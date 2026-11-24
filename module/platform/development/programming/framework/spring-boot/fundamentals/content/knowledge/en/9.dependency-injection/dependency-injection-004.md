@@ -1,0 +1,854 @@
+# `@Autowired` and When Constructors Do Not Need Annotations
+
+Dependency Injection (DI) is a mechanism where an object receives the components it needs from the outside instead of creating them itself. In Spring, the `ApplicationContext` manages beans and wires dependencies according to registered bean definitions. The `@Autowired` annotation is one way to ask Spring to automatically resolve dependencies at an injection point.
+
+When learning Spring Boot, you often see `@Autowired` on constructors in older examples, while many modern applications omit this annotation on constructors. Both styles can be valid. Since Spring Framework 4.3, if a bean class declares **only a single constructor**, Spring automatically uses that constructor to inject dependencies without requiring `@Autowired`.
+
+It helps to separate three questions:
+
+- Which beans have been registered in the context?
+- Which constructor or injection point will Spring use?
+- If there are multiple beans of the same type, which bean will Spring choose?
+
+This lesson explains how `@Autowired` works, why single constructors do not need the annotation, how to handle multiple constructors and optional dependencies, and common errors when wiring beans.
+
+## 1. Dependency Injection and `@Autowired`
+
+Suppose an order creation service needs a repository. If the service instantiates the repository itself, it must know the concrete implementation:
+
+```java
+public class OrderService {
+    private final JdbcOrderRepository repository =
+            new JdbcOrderRepository();
+
+    public void create(String id) {
+        repository.save(id);
+    }
+}
+```
+
+This style tightly couples business logic to the persistence technology. When you want to switch to JPA, call an API, or use a fake repository in tests, the service has to be modified.
+
+With DI, the service declares its dependency via the constructor:
+
+```java
+public class OrderService {
+    private final OrderRepository repository;
+
+    public OrderService(OrderRepository repository) {
+        this.repository = repository;
+    }
+
+    public void create(String id) {
+        repository.save(id);
+    }
+}
+```
+
+The service only requires the `OrderRepository` contract. Spring can create an implementation and pass it in when initializing the bean.
+
+In Spring, `@Autowired` marks a constructor, field, or method that the container should process to inject dependencies. The annotation belongs to the package:
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+```
+
+Example of annotated constructor injection:
+
+```java
+@Service
+public class OrderService {
+    private final OrderRepository repository;
+
+    @Autowired
+    public OrderService(OrderRepository repository) {
+        this.repository = repository;
+    }
+}
+```
+
+If `OrderService` has only this constructor, you can omit `@Autowired` and Spring will still inject the dependency properly.
+
+## 2. Why Does a Single Constructor Not Need `@Autowired`?
+
+Since Spring Framework 4.3, if a bean class has **only one declared constructor**, that constructor is treated as the constructor to autowire, even without `@Autowired`.
+
+Example:
+
+```java
+package com.example.orders.application;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class OrderService {
+    private final OrderRepository repository;
+    private final OrderNotifier notifier;
+
+    public OrderService(
+            OrderRepository repository,
+            OrderNotifier notifier) {
+        this.repository = repository;
+        this.notifier = notifier;
+    }
+
+    public void create(String orderId) {
+        repository.save(orderId);
+        notifier.orderCreated(orderId);
+    }
+}
+```
+
+There is no `@Autowired` on the constructor, yet Spring understands that when creating `OrderService`, it must find matching beans for `OrderRepository` and `OrderNotifier`.
+
+This rule keeps source code cleaner because a single constructor already expresses how the bean is constructed. It also makes mandatory dependencies visible in the construction API, allows `final` fields, and lets unit tests instantiate the class directly with `new OrderService(fakeRepository, fakeNotifier)`.
+
+### 2.1. Omitting the annotation does not mean dependencies appear on their own
+
+Spring still needs corresponding beans in the context. Example:
+
+```java
+@Service
+public class OrderService {
+    private final OrderRepository repository;
+
+    public OrderService(OrderRepository repository) {
+        this.repository = repository;
+    }
+}
+```
+
+If no bean is compatible with `OrderRepository`, the application still fails to start. The error usually surfaces via `UnsatisfiedDependencyException`, with the underlying cause being that no matching bean was found.
+
+Therefore:
+
+- `@Autowired` is not needed on a single constructor.
+- Dependencies still need to be registered in the Spring context.
+- `@Autowired` does not replace component scanning, `@Bean`, `@Import`, or auto-configuration.
+
+### 2.2. Default constructor generated by Java
+
+If a class declares no constructors, Java automatically generates a default no-argument constructor:
+
+```java
+@Component
+public class ApplicationMarker {
+    // Java automatically provides a no-argument constructor.
+}
+```
+
+When dependencies are needed, declare the constructor explicitly:
+
+```java
+@Component
+public class ApplicationMarker {
+    private final Environment environment;
+
+    public ApplicationMarker(Environment environment) {
+        this.environment = environment;
+    }
+}
+```
+
+Once a parameterized constructor is explicitly declared, Java no longer generates the default no-argument constructor. In this example, Spring uses the single-argument constructor even without `@Autowired`.
+
+### 2.3. The single-constructor rule does not apply when there are multiple constructors
+
+The annotation-free rule applies when a bean class has a single constructor. If a class declares multiple constructors, Spring needs to know which constructor is the injection candidate or apply appropriate constructor selection rules. When multiple options exist, make clear which constructor should be used to initialize the bean.
+
+## 3. Where Can `@Autowired` Be Used?
+
+Spring supports autowiring via constructors, fields, and methods. These styles have different characteristics.
+
+### 3.1. Constructor injection
+
+```java
+@Service
+public class InvoiceService {
+    private final InvoiceRepository repository;
+    private final Clock clock;
+
+    public InvoiceService(
+            InvoiceRepository repository,
+            Clock clock) {
+        this.repository = repository;
+        this.clock = clock;
+    }
+}
+```
+
+Dependencies are provided right when the object is created. By the time the constructor finishes, required fields already hold their values. This is usually the preferred choice for mandatory dependencies.
+
+Advantages:
+
+- Fields can be declared `final`.
+- The object cannot be constructed through this constructor if a dependency is missing.
+- Dependencies are clearly visible in the construction API.
+- Unit tests can easily create instances without Spring.
+- Circular dependencies are caught quickly because beans wait on each other during creation.
+
+### 3.2. Field injection
+
+```java
+@Service
+public class InvoiceService {
+    @Autowired
+    private InvoiceRepository repository;
+}
+```
+
+Spring creates the object first and injects into the field afterward. Because the dependency is not yet assigned while the constructor runs, field injection has several limitations:
+
+- Injected fields cannot be declared `final`.
+- Instantiating directly with `new InvoiceService()` leaves the repository unset.
+- Dependencies are not visible in the constructor.
+- Unit tests often need a Spring context or reflection to set the field.
+- An object can exist after the constructor finishes without having its dependencies.
+
+Field injection is concise, but it typically makes classes harder to test and harder to understand. For required dependencies, constructor injection is clearer.
+
+### 3.3. Setter injection
+
+```java
+@Component
+public class ReportExporter {
+    private ReportFormatter formatter;
+
+    @Autowired
+    public void setFormatter(ReportFormatter formatter) {
+        this.formatter = formatter;
+    }
+}
+```
+
+Spring calls the setter to inject the dependency after creating the object. Setter injection is better suited for truly optional dependencies or ones that can be reconfigured after initialization, if the application design requires that capability.
+
+If `ReportFormatter` is mandatory for the exporter to work, constructor injection is still better because the object cannot appear in a state missing its formatter.
+
+### 3.4. Method injection
+
+`@Autowired` can also mark a method with multiple parameters:
+
+```java
+@Component
+public class NotificationCoordinator {
+    private EmailSender emailSender;
+    private SmsSender smsSender;
+
+    @Autowired
+    public void configure(
+            EmailSender emailSender,
+            SmsSender smsSender) {
+        this.emailSender = emailSender;
+        this.smsSender = smsSender;
+    }
+}
+```
+
+Spring resolves each parameter and invokes the method. This is method injection; it does not have to be a single-parameter JavaBean setter.
+
+In new designs, if both dependencies are mandatory, putting them in the constructor generally makes the class contract clearer.
+
+### 3.5. Quick comparison
+
+| Injection style | When dependency is assigned | `final` fields allowed | Best suited for |
+| --- | --- | --- | --- |
+| Constructor | At object creation | Yes | Required dependencies |
+| Field | After object creation | No | Legacy code or special framework cases |
+| Setter/method | After object creation | No | Optional dependencies or method-based configuration |
+| `@Bean` method parameter | When Spring invokes the factory method | Not directly applicable | Wiring beans in Java configuration |
+
+Spring supports many injection styles, though support does not mean they offer equal design quality in every situation.
+
+## 4. When Does a Constructor Need `@Autowired`?
+
+If a bean class has multiple constructors, the annotation helps Spring pick the intended injection constructor.
+
+```java
+@Service
+public class ShippingService {
+    private final ShippingRepository repository;
+    private final ShippingClient client;
+
+    public ShippingService() {
+        this(new InMemoryShippingRepository(), new DefaultShippingClient());
+    }
+
+    @Autowired
+    public ShippingService(
+            ShippingRepository repository,
+            ShippingClient client) {
+        this.repository = repository;
+        this.client = client;
+    }
+}
+```
+
+In this example, the constructor with `@Autowired` is designated as the injection constructor. A no-argument constructor can be useful for some other instantiation purposes, though instantiating infrastructure dependencies directly with `new` is generally not good design for a Spring bean. The code merely illustrates constructor selection.
+
+A clearer design is to keep a single constructor:
+
+```java
+@Service
+public class ShippingService {
+    private final ShippingRepository repository;
+    private final ShippingClient client;
+
+    public ShippingService(
+            ShippingRepository repository,
+            ShippingClient client) {
+        this.repository = repository;
+        this.client = client;
+    }
+}
+```
+
+### 4.1. One required constructor annotated with `@Autowired`
+
+When multiple constructors exist, you can mark the constructor you want Spring to use. The `required` attribute of `@Autowired` defaults to `true`. A constructor annotated with `@Autowired` with `required = true` is the mandatory selected constructor.
+
+The example above has one clearly marked constructor. However, if there is no special need for multiple ways to instantiate, remove the overload and keep a single constructor.
+
+### 4.2. Multiple constructors with `@Autowired(required = false)`
+
+Spring allows several constructors to be annotated with `required = false`. When there is no required constructor, Spring can evaluate candidates and select the constructor with the most dependencies it can satisfy. If no candidate constructor fits, a default no-argument constructor may be used if present.
+
+This mechanism is flexible, but it can make initialization harder to read and dependent on which beans happen to be in the context. For most application services, avoid designing multiple optional autowired constructors. Using one required constructor and expressing optional dependencies with appropriate types is easier to follow.
+
+### 4.3. Cannot have multiple constructors marked required
+
+A class cannot instruct Spring to treat multiple constructors simultaneously as required constructors. If more than one constructor has `@Autowired` with `required = true`, the configuration is invalid and Spring will report an error.
+
+When multiple constructors exist and injection is needed, choose one primary constructor. If there is a secondary constructor for tests or another factory, ensure it does not introduce ambiguity into bean creation.
+
+## 5. How Does `@Autowired` Resolve Dependencies?
+
+By default, `@Autowired` resolves dependencies primarily by **type**. Spring searches for a bean whose type is compatible with the parameter or field being injected.
+
+```java
+public interface PaymentGateway {
+    void charge(String paymentId);
+}
+
+@Component
+public class BankPaymentGateway implements PaymentGateway {
+    @Override
+    public void charge(String paymentId) {
+        // Call bank adapter.
+    }
+}
+
+@Service
+public class PaymentService {
+    private final PaymentGateway gateway;
+
+    public PaymentService(PaymentGateway gateway) {
+        this.gateway = gateway;
+    }
+}
+```
+
+If only one bean matches `PaymentGateway`, Spring can inject that bean.
+
+If multiple implementations exist, Spring does not know which bean to choose without priority metadata or a qualifier. In that case `NoUniqueBeanDefinitionException` or an `UnsatisfiedDependencyException` wrapping that cause can occur.
+
+### 5.1. Using `@Qualifier` to specify a bean
+
+`@Qualifier` narrows the candidate beans:
+
+```java
+@Component("bankGateway")
+class BankPaymentGateway implements PaymentGateway {
+    // ...
+}
+
+@Component("walletGateway")
+class WalletPaymentGateway implements PaymentGateway {
+    // ...
+}
+
+@Service
+class PaymentService {
+    private final PaymentGateway gateway;
+
+    PaymentService(@Qualifier("bankGateway") PaymentGateway gateway) {
+        this.gateway = gateway;
+    }
+}
+```
+
+When needed, you can define custom qualifiers using dedicated annotations to convey semantic roles instead of relying on bean name strings.
+
+### 5.2. Using `@Primary` for a default implementation
+
+If one implementation should be chosen whenever no qualifier is specified, mark it with `@Primary`:
+
+```java
+@Component
+@Primary
+class BankPaymentGateway implements PaymentGateway {
+    // ...
+}
+```
+
+When injecting `PaymentGateway` without a qualifier, the primary bean takes precedence. `@Qualifier` at an injection point can still select a different bean when needed.
+
+`@Primary` does not remove other beans from the context. It only provides precedence when resolving a single dependency.
+
+### 5.3. Injecting all implementations
+
+Sometimes an application wants to run across all plugins or adapters. Spring can inject collections:
+
+```java
+@Service
+public class PaymentGatewayRegistry {
+    private final List<PaymentGateway> gateways;
+
+    public PaymentGatewayRegistry(List<PaymentGateway> gateways) {
+        this.gateways = List.copyOf(gateways);
+    }
+
+    public List<PaymentGateway> all() {
+        return gateways;
+    }
+}
+```
+
+Common forms:
+
+- `List<PaymentGateway>`: list of compatible beans.
+- `Set<PaymentGateway>`: set of beans.
+- `Map<String, PaymentGateway>`: map from bean name to bean.
+- `PaymentGateway[]`: array of matching beans.
+
+If processing order matters, you can use `@Order` or `Ordered` according to the appropriate ordering mechanism. Never rely on accidental classpath or file ordering.
+
+## 6. Optional Dependencies
+
+Not every dependency is mandatory. If a component is genuinely optional, express that in the contract instead of assuming a bean is always present.
+
+### 6.1. Using `Optional<T>`
+
+```java
+@Service
+public class WelcomeService {
+    private final Optional<WelcomeMessageCustomizer> customizer;
+
+    public WelcomeService(
+            Optional<WelcomeMessageCustomizer> customizer) {
+        this.customizer = customizer;
+    }
+
+    public String message(String name) {
+        String result = "Welcome, " + name;
+        return customizer
+                .map(bean -> bean.customize(result))
+                .orElse(result);
+    }
+}
+```
+
+Spring can inject `Optional.empty()` if no matching bean is found, or `Optional.of(bean)` if one exists. This explicitly conveys that the dependency may be absent.
+
+### 6.2. Using `@Nullable`
+
+```java
+import org.springframework.lang.Nullable;
+
+@Service
+public class WelcomeService {
+    private final WelcomeMessageCustomizer customizer;
+
+    public WelcomeService(
+            @Nullable WelcomeMessageCustomizer customizer) {
+        this.customizer = customizer;
+    }
+}
+```
+
+When the dependency is absent, Spring can pass `null`. Null checks are required before using it. In projects using another nullability annotation, standardize on one annotation set across the compiler and code analysis tools.
+
+### 6.3. Using `ObjectProvider<T>`
+
+`ObjectProvider` is useful when you need deferred bean lookup, optional bean retrieval, or handling multiple candidates:
+
+```java
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.stereotype.Service;
+
+@Service
+public class OptionalReportService {
+    private final ObjectProvider<ReportExporter> exporters;
+
+    public OptionalReportService(ObjectProvider<ReportExporter> exporters) {
+        this.exporters = exporters;
+    }
+
+    public void export(String reportId) {
+        ReportExporter exporter = exporters.getIfAvailable();
+        if (exporter != null) {
+            exporter.export(reportId);
+        }
+    }
+}
+```
+
+`getIfAvailable()` returns the bean if present, or null if no candidate exists; if multiple unresolvable candidates exist, an ambiguity error may still occur. Methods such as `getObject()`, `getIfAvailable()`, `getIfUnique()`, and `orderedStream()` have distinct semantics—choose according to requirements.
+
+Do not use `ObjectProvider` for always-required dependencies just to avoid declaring them in the constructor. That makes dependencies indirect and obscures the class contract.
+
+## 7. What Does `@Autowired(required = false)` Mean?
+
+The `required` attribute defaults to `true`. For field or method injection, `@Autowired(required = false)` allows skipping the injection point when the dependency cannot satisfy the mandatory requirement.
+
+```java
+@Component
+public class DiagnosticReporter {
+    private DiagnosticSink sink;
+
+    @Autowired(required = false)
+    public void setSink(DiagnosticSink sink) {
+        this.sink = sink;
+    }
+
+    public void report(String message) {
+        if (sink != null) {
+            sink.write(message);
+        }
+    }
+}
+```
+
+If no `DiagnosticSink` bean exists, the setter is not invoked and the field remains null. The class must handle that case itself.
+
+With constructor injection, `required = false` on constructors with multiple parameters can lead to complex constructor selection. If you only want a single optional parameter, using `Optional<T>`, `@Nullable`, or `ObjectProvider<T>` usually states the intent more clearly.
+
+Do not mark a required dependency as optional just to get the application past a missing-bean startup error. If the feature needs that dependency to work properly, skipping injection merely defers the failure until runtime.
+
+## 8. Injection in `@Configuration` and `@Bean`
+
+Not every dependency is injected into stereotype-annotated classes. In Java configuration, Spring invokes `@Bean` methods and resolves method parameters as dependencies.
+
+```java
+@Configuration(proxyBeanMethods = false)
+public class PaymentConfiguration {
+
+    @Bean
+    PaymentGateway paymentGateway() {
+        return new BankPaymentGateway();
+    }
+
+    @Bean
+    PaymentService paymentService(PaymentGateway paymentGateway) {
+        return new PaymentService(paymentGateway);
+    }
+}
+```
+
+You do not need `@Autowired` on the `PaymentGateway` parameter of the bean method. Spring resolves the parameter automatically when invoking the factory method.
+
+With `proxyBeanMethods = false`, avoid directly calling another bean method as a Java method call expecting Spring to substitute the managed bean. Use method parameter injection as shown above so dependencies stay explicit.
+
+Component scanning can also be used:
+
+```java
+@Component
+class BankPaymentGateway implements PaymentGateway {}
+
+@Service
+class PaymentService {
+    private final PaymentGateway gateway;
+
+    PaymentService(PaymentGateway gateway) {
+        this.gateway = gateway;
+    }
+}
+```
+
+Both approaches can build the bean graph. Choose a consistent mechanism that is easy to manage within the module.
+
+## 9. Lombok and Constructors Without `@Autowired`
+
+Many projects use Lombok to reduce constructor boilerplate:
+
+```java
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class CustomerService {
+    private final CustomerRepository repository;
+    private final CustomerNotifier notifier;
+
+    public void register(String customerId) {
+        repository.save(customerId);
+        notifier.registered(customerId);
+    }
+}
+```
+
+`@RequiredArgsConstructor` generates a constructor for uninitialized `final` fields and certain `@NonNull` fields according to Lombok rules. After compilation, the class has a single constructor; Spring Framework 4.3+ automatically uses that constructor without needing `@Autowired`.
+
+This depends on Lombok annotation processing being configured in the build and IDE. When viewing the source, you may not see an explicit constructor, but the compiled bytecode contains the Lombok-generated constructor.
+
+If the class also has hand-written constructors, check the actual constructor count after Lombok generates code. When multiple constructors exist, the single-constructor rule no longer applies as before. Do not combine multiple constructor-generating annotations without understanding the compiled output.
+
+## 10. Why Is Constructor Injection Usually Recommended?
+
+Constructor injection is not just a shorter way to write field injection. It makes the object's required state clear right at instantiation time.
+
+### 10.1. Enforces dependencies at object creation
+
+```java
+@Service
+public class TransferService {
+    private final AccountRepository repository;
+    private final FraudChecker fraudChecker;
+
+    public TransferService(
+            AccountRepository repository,
+            FraudChecker fraudChecker) {
+        this.repository = repository;
+        this.fraudChecker = fraudChecker;
+    }
+}
+```
+
+The object cannot be created through this constructor without supplying both dependencies. If the bean graph is missing a bean, the error occurs when Spring initializes the context—closest to the misconfiguration.
+
+### 10.2. Allows using `final`
+
+A `final` field cannot be reassigned after the constructor finishes. It does not make the object completely immutable, but it keeps dependency references stable and makes code easier to reason about.
+
+### 10.3. Unit testing without the container
+
+```java
+@Test
+void blocksTransferWhenFraudCheckFails() {
+    AccountRepository repository = new InMemoryAccountRepository();
+    FraudChecker checker = transfer -> true;
+
+    TransferService service = new TransferService(repository, checker);
+
+    assertThrows(
+            FraudDetectedException.class,
+            () -> service.transfer(new Transfer("A-1", "A-2", 100))
+    );
+}
+```
+
+The types `AccountRepository`, `FraudChecker`, `Transfer`, and `FraudDetectedException` are illustrative contracts/domain types that need to be defined in the application. The main point is that tests can instantiate the service directly with fake dependencies without Spring.
+
+### 10.4. Discourages circular dependencies
+
+Suppose `OrderService` needs `PaymentService`, and `PaymentService` also needs `OrderService`. Constructor injection creates a dependency cycle that cannot be instantiated in normal order. Spring detects and reports the error instead of constructing two objects with missing dependencies.
+
+This is usually a signal to revisit the design. You can extract a coordination service, use domain events, or invert dependency direction through an appropriate interface. Using `@Lazy` to defer one side can solve certain technical cases, but it should not be the default way to hide circular business dependencies.
+
+### 10.5. Long constructors can be a design signal
+
+If a service requires a dozen dependencies, do not switch to field injection just to shorten the constructor. Check whether the class is taking on multiple unrelated use cases or responsibilities. You can split the service by use case or introduce meaningful abstractions for cohesive groups of collaborators.
+
+## 11. Common Errors and How to Handle Them
+
+| Error/symptom | Possible cause | Resolution |
+| --- | --- | --- |
+| `NoSuchBeanDefinitionException` | No compatible bean in the context | Check bean registration, component scan, imports, and profiles |
+| `NoUniqueBeanDefinitionException` | Multiple beans of the same type | Use `@Qualifier`, `@Primary`, or narrow implementations |
+| `UnsatisfiedDependencyException` | A dependency in the bean graph chain could not be resolved | Read the deepest root cause and trace constructors |
+| `BeanCurrentlyInCreationException` | Possible circular dependency | Review dependency directions and split responsibilities |
+| Injected field is null in test | Test calls `new` directly without container field injection | Use constructor injection or a Spring test when verifying wiring |
+| Cannot inject `final` field | Field injection does not work with `final` fields | Move the dependency into the constructor |
+| Added `@Autowired` but bean still missing | The annotation does not create missing implementations | Register the implementation via component/configuration |
+| Unexpected constructor selected | Class has multiple constructors | Mark the intended constructor or keep a single constructor |
+| Application only fails when calling optional feature | Injection skipped, but code does not handle null | Use Optional/Provider or provide a default bean |
+
+When reading stack traces, do not stop at the first `UnsatisfiedDependencyException` line. Follow the `Caused by` chain to pinpoint which bean or dependency type is actually missing or ambiguous.
+
+## 12. Complete Example of Constructor Injection Without `@Autowired`
+
+The example below connects a REST controller to a service and repository. Each bean has a single constructor, so `@Autowired` is unnecessary on constructors.
+
+### 12.1. Domain model
+
+```java
+package com.example.tasks.domain;
+
+public record Task(String id, String title) {
+    public Task {
+        if (id == null || id.isBlank()) {
+            throw new IllegalArgumentException("id is required");
+        }
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("title is required");
+        }
+    }
+}
+```
+
+### 12.2. Repository contract
+
+```java
+package com.example.tasks.domain;
+
+import java.util.Optional;
+
+public interface TaskRepository {
+    void save(Task task);
+    Optional<Task> findById(String id);
+}
+```
+
+### 12.3. Repository implementation
+
+```java
+package com.example.tasks.persistence;
+
+import com.example.tasks.domain.Task;
+import com.example.tasks.domain.TaskRepository;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class InMemoryTaskRepository implements TaskRepository {
+    private final ConcurrentHashMap<String, Task> data = new ConcurrentHashMap<>();
+
+    @Override
+    public void save(Task task) {
+        data.put(task.id(), task);
+    }
+
+    @Override
+    public Optional<Task> findById(String id) {
+        return Optional.ofNullable(data.get(id));
+    }
+}
+```
+
+### 12.4. Service
+
+```java
+package com.example.tasks.application;
+
+import com.example.tasks.domain.Task;
+import com.example.tasks.domain.TaskRepository;
+import java.util.Optional;
+import org.springframework.stereotype.Service;
+
+@Service
+public class TaskService {
+    private final TaskRepository repository;
+
+    public TaskService(TaskRepository repository) {
+        this.repository = repository;
+    }
+
+    public Task create(String id, String title) {
+        Task task = new Task(id, title);
+        repository.save(task);
+        return task;
+    }
+
+    public Optional<Task> find(String id) {
+        return repository.findById(id);
+    }
+}
+```
+
+`TaskService`'s single constructor takes `TaskRepository`. Spring automatically injects `InMemoryTaskRepository` because it is the bean implementing that interface and there are no competing implementations.
+
+### 12.5. REST controller
+
+```java
+package com.example.tasks.web;
+
+import com.example.tasks.application.TaskService;
+import com.example.tasks.domain.Task;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/tasks")
+public class TaskController {
+    private final TaskService service;
+
+    public TaskController(TaskService service) {
+        this.service = service;
+    }
+
+    @PostMapping("/{id}")
+    public ResponseEntity<Task> create(
+            @PathVariable String id,
+            @RequestParam String title) {
+        return ResponseEntity.ok(service.create(id, title));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Task> find(@PathVariable String id) {
+        return service.find(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+}
+```
+
+### 12.6. Application entry point
+
+```java
+package com.example.tasks;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class TasksApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(TasksApplication.class, args);
+    }
+}
+```
+
+The `web`, `application`, and `persistence` packages are subpackages of `com.example.tasks`, so default component scanning finds the stereotypes above. If you move a package outside this scope, you must configure scanning or register beans another way.
+
+## 13. Distinguishing `@Autowired` from Other Injection Annotations
+
+Spring supports several other injection annotations, especially when working with Jakarta standards or legacy code.
+
+| Annotation | Origin | General meaning |
+| --- | --- | --- |
+| `@Autowired` | Spring Framework | Injection by type and Spring resolution rules |
+| `@Inject` | Jakarta Dependency Injection | Jakarta standard injection annotation |
+| `@Resource` | Jakarta Annotations | Typically resolves by name first, then by type according to its rules |
+| `@Qualifier` | Spring Framework | Narrows/specifies candidate bean |
+| `@Primary` | Spring Framework | Marks a preferred bean when multiple candidates exist |
+
+In Spring Boot applications, `@Autowired` is common and integrates directly with Spring. If a project needs to reduce Spring annotation coupling in certain modules, `@Inject` can be a standard option, though it still requires the appropriate API dependency and container support rules. Avoid mixing annotations arbitrarily without understanding resolution order and semantics.
+
+`@Resource` is often suitable when name-based injection contracts are desired. For constructor injection, `@Autowired` or `@Inject` reads more naturally; `@Resource` is mainly used on fields or setters in many applications.
+
+## 14. Thinking Checklist When Writing Constructors for Spring Beans
+
+Before adding `@Autowired`, answer these questions:
+
+1. Is this class a Spring bean, or just a plain Java/domain value object?
+2. Which dependencies are mandatory for the object to operate properly?
+3. Does the class already have exactly one constructor?
+4. If there is only one constructor, can `@Autowired` be omitted? With Spring Framework 4.3+, the answer is yes.
+5. If there are multiple constructors, which constructor should Spring use? Does it need to be explicitly marked with `@Autowired`?
+6. If a dependency is optional, can it be expressed with `Optional`, `@Nullable`, `ObjectProvider`, or a default bean?
+7. If there are multiple beans of the same type, has one been chosen with qualifier/primary?
+8. Can unit tests instantiate the class using `new` with fake dependencies?
+9. If Spring cannot find a bean, is the implementation actually registered and is its package within the scanned scope?
+10. Is there a circular dependency indicating responsibilities depend on each other?
+
+Do not add `@Autowired` merely because you saw it in a sample snippet. Use the annotation when it supplies necessary information for injection selection rules, and let a single constructor state the dependency contract on its own when there is no ambiguity.
+
+## 15. Takeaways
+
+`@Autowired` is a tool that asks Spring to resolve dependencies at a constructor, field, or method. With **a single constructor**, Spring Framework 4.3 and later automatically use that constructor, so the annotation is not required. That is why many modern services and controllers simply declare a constructor accepting their dependencies without annotating it.
+
+In application design, prefer constructor injection for required dependencies: it makes contracts explicit, supports `final` fields, catches missing dependencies early, and allows unit tests to run without starting a container. Use setters or optional types when dependencies are genuinely not mandatory. If multiple beans share the same type, resolve selection using `@Qualifier`, `@Primary`, or appropriate configuration; if multiple constructors exist, clarify which constructor Spring should use.
+
+Finally, `@Autowired` does not create beans by itself. Beans still need to be registered in the `ApplicationContext` via component scanning, `@Bean`, `@Import`, auto-configuration, or another suitable mechanism. Understanding the distinction between registering beans and injecting dependencies is foundational to reading, writing, and diagnosing Spring Boot applications.

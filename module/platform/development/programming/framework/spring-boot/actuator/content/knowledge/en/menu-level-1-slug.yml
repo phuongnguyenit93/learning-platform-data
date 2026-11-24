@@ -1,0 +1,88 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Khởi tạo Actuator
+  slug: actuator-startup
+  index: 1
+- title: Mô hình endpoint
+  slug: endpoint-model
+  index: 2
+- title: Công bố endpoint
+  slug: endpoint-exposure
+  index: 3
+- title: Hạ tầng quản trị
+  slug: management-infrastructure
+  index: 4
+- title: Bảo mật truy cập
+  slug: access-security
+  index: 5
+- title: Health nền tảng
+  slug: platform-health
+  index: 6
+- title: Health tùy chỉnh
+  slug: custom-health
+  index: 7
+- title: Nhóm health và probe
+  slug: health-groups-and-probes
+  index: 8
+- title: Thông tin ứng dụng
+  slug: application-info
+  index: 9
+- title: Chẩn đoán cấu hình
+  slug: configuration-diagnostics
+  index: 10
+- title: Log và bộ nhớ
+  slug: logging-and-memory
+  index: 11
+- title: HTTP và kiểm toán
+  slug: http-and-auditing
+  index: 12
+- title: Nền tảng metrics
+  slug: metrics-foundation
+  index: 13
+- title: Metrics tích hợp
+  slug: integrated-metrics
+  index: 14
+- title: Metrics tùy chỉnh
+  slug: custom-metrics
+  index: 15
+- title: Tùy biến metrics
+  slug: metrics-customization
+  index: 16
+- title: Prometheus
+  slug: prometheus
+  index: 17
+- title: Xuất metrics
+  slug: metrics-export
+  index: 18
+- title: Observation
+  slug: observation
+  index: 19
+- title: Truy vết phân tán
+  slug: distributed-tracing
+  index: 20
+- title: Endpoint tùy chỉnh
+  slug: custom-endpoints
+  index: 21
+- title: JMX
+  slug: jmx
+  index: 22
+- title: Endpoint tích hợp
+  slug: integrated-endpoints
+  index: 23
+- title: Vòng đời vận hành
+  slug: operations-lifecycle
+  index: 24
+- title: Kiểm thử Actuator
+  slug: actuator-testing
+  index: 25
+- title: Vận hành production
+  slug: production-operations
+  index: 26
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 27
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 28

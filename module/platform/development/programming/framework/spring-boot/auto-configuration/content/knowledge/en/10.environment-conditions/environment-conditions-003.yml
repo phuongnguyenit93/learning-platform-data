@@ -1,0 +1,3 @@
+menuLevel1: Điều kiện môi trường
+menuLevel2: '@ConditionalOnNotWebApplication cho ứng dụng không có ngữ cảnh web'
+status: TRANSLATE

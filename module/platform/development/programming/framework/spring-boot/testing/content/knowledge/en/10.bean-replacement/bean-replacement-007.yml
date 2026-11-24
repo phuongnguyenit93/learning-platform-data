@@ -1,0 +1,3 @@
+menuLevel1: Thay thế bean
+menuLevel2: '@TestBean hoặc @TestConfiguration để cung cấp fake, stub'
+status: TRANSLATE

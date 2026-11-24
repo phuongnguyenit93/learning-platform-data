@@ -1,0 +1,3247 @@
+menu:
+- slug: spring-boot-overview
+  title: Bức tranh Spring Boot
+  childs:
+  - slug: spring-boot-overview-001
+    title: Spring Boot là gì và giải quyết trở ngại nào khi xây dựng ứng dụng Java
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-overview-002
+    title: Spring Framework cung cấp nền tảng gì và Spring Boot bổ sung điều gì
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-overview-003
+    title: Quy ước mặc định, tự cấu hình và quyền chủ động của người phát triển
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-overview-004
+    title: Quan hệ giữa Spring Boot, Spring MVC, WebFlux, Spring Data và Spring Security
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-overview-005
+    title: Phân biệt Spring Boot với Spring Cloud và kiến trúc microservices
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-overview-006
+    title: Bean, container, dependency injection, starter và auto-configuration trong một bức tranh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-overview-007
+    title: Mã nguồn, cấu hình, dependency và môi trường cùng quyết định hành vi ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-overview-008
+    title: Ứng dụng dòng lệnh, ứng dụng web và tác vụ nền đều có thể dùng Spring Boot
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-overview-009
+    title: Ranh giới kiến thức nền tảng với tích hợp dữ liệu, web và vận hành chuyên sâu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-overview-010
+    title: Trình tự học từ ứng dụng tối thiểu đến giải thích được cơ chế tự cấu hình
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: prerequisites
+  title: Kiến thức chuẩn bị
+  childs:
+  - slug: prerequisites-001
+    title: JDK, JVM, bytecode và tiến trình Java khi chạy ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerequisites-002
+    title: Class, interface và quan hệ phụ thuộc giữa các đối tượng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerequisites-003
+    title: Constructor, tính bất biến và thiết kế đối tượng dễ kiểm thử
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerequisites-004
+    title: Package, classpath, JAR và cách Java tìm lớp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerequisites-005
+    title: Annotation, meta-annotation và vai trò của reflection
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerequisites-006
+    title: Exception, stack trace và cách truy nguyên nguyên nhân lỗi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerequisites-007
+    title: 'Gradle hoặc Maven: phân biệt dependency, plugin và task'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerequisites-008
+    title: Đọc tài liệu đúng dòng Spring Boot và phiên bản Spring Framework
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerequisites-009
+    title: Tương thích JDK, framework và thư viện bên thứ ba
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: first-project
+  title: Dự án đầu tiên
+  childs:
+  - slug: first-project-001
+    title: Chọn kiểu ứng dụng và tập dependency tối thiểu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: first-project-002
+    title: Khởi tạo dự án bằng Spring Initializr
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: first-project-003
+    title: Group, artifact, package, phiên bản và lựa chọn build tool
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: first-project-004
+    title: Đọc cấu trúc dự án sinh ra từ Initializr
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: first-project-005
+    title: Lớp main và lời gọi SpringApplication.run
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: first-project-006
+    title: Chạy bằng IDE, Gradle wrapper hoặc Maven wrapper
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: first-project-007
+    title: Đọc log khởi động và xác nhận ứng dụng đã chạy đúng loại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: first-project-008
+    title: Đăng ký một service và gọi từ ApplicationRunner
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: first-project-009
+    title: Phân biệt lỗi biên dịch, lỗi dependency và lỗi khởi động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: first-project-010
+    title: Thay đổi mã, chạy lại và xác minh kết quả quan sát được
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: source-organization
+  title: Tổ chức mã nguồn
+  childs:
+  - slug: source-organization-001
+    title: src/main/java, src/main/resources và các thư mục kiểm thử
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-organization-002
+    title: Vị trí lớp main và ảnh hưởng tới phạm vi tìm thành phần
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-organization-003
+    title: Package gốc, package con và rủi ro dùng default package
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-organization-004
+    title: Tổ chức theo chức năng hoặc theo miền nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-organization-005
+    title: Vai trò của service, adapter, configuration và thành phần truy cập dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-organization-006
+    title: Phân biệt mã nghiệp vụ với mã cấu hình hạ tầng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-organization-007
+    title: Ranh giới package không tự tạo ra ranh giới Spring context
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-organization-008
+    title: Ứng dụng nhiều module và cách đưa thành phần dùng chung vào context
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-organization-009
+    title: Tổ chức resource và cấu hình để chạy nhất quán từ IDE và JAR
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dependencies-and-starters
+  title: Dependency và starter
+  childs:
+  - slug: dependencies-and-starters-001
+    title: Starter gom những dependency nào và vì sao cần starter
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-starters-002
+    title: Dependency trực tiếp, dependency bắc cầu và classpath cuối cùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-starters-003
+    title: spring-boot-dependencies BOM và tập phiên bản được quản lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-starters-004
+    title: Phân biệt BOM, Maven parent và Spring Boot build plugin
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-starters-005
+    title: Dependency management trong Gradle hoặc Maven
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-starters-006
+    title: Starter chức năng, thư viện thực thi và embedded server
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-starters-007
+    title: Thêm dependency có thể kích hoạt auto-configuration như thế nào
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-starters-008
+    title: Phạm vi compile, runtime, test và development-only
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-starters-009
+    title: Đọc dependency tree để tìm xung đột hoặc thư viện bị kéo vào ngoài dự kiến
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-starters-010
+    title: Ghi đè phiên bản hoặc loại dependency và kiểm chứng tương thích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-starters-011
+    title: Khác biệt cách chia starter, module giữa các dòng Spring Boot
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: spring-boot-application
+  title: '@SpringBootApplication'
+  childs:
+  - slug: spring-boot-application-001
+    title: Ba vai trò của @SpringBootConfiguration, @EnableAutoConfiguration và @ComponentScan
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-application-002
+    title: '@SpringBootConfiguration trong mối liên hệ với @Configuration'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-application-003
+    title: '@ComponentScan tìm ứng viên bean trong phạm vi nào'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-application-004
+    title: '@EnableAutoConfiguration lựa chọn cấu hình theo điều kiện'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-application-005
+    title: Phân biệt lớp main Java với lớp cấu hình nguồn của Spring
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-application-006
+    title: scanBasePackages và scanBasePackageClasses
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-application-007
+    title: Phạm vi component scan khác với entity scan hoặc repository scan
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-application-008
+    title: exclude, excludeName và loại một auto-configuration cụ thể
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-application-009
+    title: Tách các annotation khi cần kiểm soát rõ từng cơ chế
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ioc-container
+  title: IoC container
+  childs:
+  - slug: ioc-container-001
+    title: Đảo ngược điều khiển và bài toán quản lý đồ thị đối tượng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ioc-container-002
+    title: Dependency injection là một cách thực hiện IoC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ioc-container-003
+    title: Bean là đối tượng được container quản lý như thế nào
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ioc-container-004
+    title: BeanFactory và ApplicationContext
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ioc-container-005
+    title: BeanDefinition, đối tượng bean thực tế và proxy của bean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ioc-container-006
+    title: Đăng ký định nghĩa, tạo đối tượng, tiêm phụ thuộc và khởi tạo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ioc-container-007
+    title: Phân biệt đối tượng được tạo bằng new với bean trong context
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ioc-container-008
+    title: Tên bean, kiểu bean và alias
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ioc-container-009
+    title: Tra cứu bean bằng tên hoặc kiểu để quan sát container
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ioc-container-010
+    title: Ranh giới trách nhiệm của container và mã nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bean-registration
+  title: Đăng ký bean
+  childs:
+  - slug: bean-registration-001
+    title: '@Component và cơ chế phát hiện thành phần'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-registration-002
+    title: '@Service, @Repository, @Controller và ý nghĩa stereotype'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-registration-003
+    title: '@Bean cho thư viện bên ngoài hoặc đối tượng cần tạo tường minh'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-registration-004
+    title: Quy tắc đặt tên bean mặc định và đặt tên chủ động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-registration-005
+    title: '@ComponentScan với include filter, exclude filter và phạm vi quét'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-registration-006
+    title: '@Import để đưa lớp cấu hình hoặc thành phần vào context'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-registration-007
+    title: Component scan, import và auto-configuration là các con đường đăng ký khác nhau
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-registration-008
+    title: Đụng tên bean, nhiều bean cùng type và hai loại xung đột cần phân biệt
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-registration-009
+    title: Bean definition overriding và giới hạn của việc dùng nó để xử lý xung đột
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-registration-010
+    title: Đăng ký bean theo interface và ảnh hưởng của kiểu trả về phương thức @Bean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-registration-011
+    title: Kiểm tra bean đã được đăng ký bằng công cụ hoặc truy vấn context
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dependency-injection
+  title: Tiêm phụ thuộc
+  childs:
+  - slug: dependency-injection-001
+    title: Tiêm qua hàm dựng (constructor injection) cho phụ thuộc bắt buộc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-injection-002
+    title: Tiêm qua setter cho phụ thuộc tùy chọn hoặc cần cấu hình lại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-injection-003
+    title: Tiêm trực tiếp vào trường dữ liệu và ảnh hưởng tới khả năng kiểm thử
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-injection-004
+    title: '@Autowired và trường hợp constructor không cần annotation'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-injection-005
+    title: Tiêm bean theo interface để tách mã nghiệp vụ khỏi phần hiện thực
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-injection-006
+    title: Tiêm List, Set hoặc Map của nhiều bean cùng kiểu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-injection-007
+    title: Optional, @Nullable và dependency không bắt buộc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-injection-008
+    title: ObjectProvider để lấy bean khi cần hoặc chọn nhiều ứng viên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-injection-009
+    title: Dependency vòng và nguyên nhân lỗi khi tạo đồ thị bean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-injection-010
+    title: Phân biệt vòng phụ thuộc trong thiết kế với lỗi thiếu bean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-injection-011
+    title: Giữ dependency tường minh thay vì tra cứu context rải rác trong nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bean-selection
+  title: Chọn bean
+  childs:
+  - slug: bean-selection-001
+    title: Chọn ứng viên theo type và xử lý khi có nhiều bean phù hợp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-selection-002
+    title: '@Qualifier và định danh nhóm dependency'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-selection-003
+    title: '@Primary và ứng viên ưu tiên'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-selection-004
+    title: '@Resource, tên bean và khác biệt với lựa chọn theo type'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-selection-005
+    title: Custom qualifier annotation để mô tả ý nghĩa nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-selection-006
+    title: Tên tham số, metadata biên dịch và khác biệt theo phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-selection-007
+    title: Ordered, @Order và thứ tự các bean trong collection
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-selection-008
+    title: Chọn cách hiện thực bằng profile hoặc thuộc tính cấu hình
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-selection-009
+    title: '@Fallback trong các phiên bản Spring Framework hỗ trợ'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-selection-010
+    title: Kiểm thử trường hợp không có ứng viên hoặc có nhiều ứng viên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bean-scopes
+  title: Phạm vi bean
+  childs:
+  - slug: bean-scopes-001
+    title: Singleton theo container và khác biệt với một đối tượng dùng chung toàn JVM
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-scopes-002
+    title: Prototype và thời điểm một instance mới được tạo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-scopes-003
+    title: Bean singleton có trạng thái và vấn đề an toàn khi nhiều luồng truy cập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-scopes-004
+    title: Tiêm prototype vào singleton và hệ quả của việc chỉ tiêm một lần
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-scopes-005
+    title: ObjectProvider hoặc scoped proxy để lấy instance đúng phạm vi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-scopes-006
+    title: Request, session, application scope trong web context
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-scopes-007
+    title: Scope web chỉ hoạt động khi có ngữ cảnh tương ứng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-scopes-008
+    title: Scoped proxy và sự khác nhau giữa tham chiếu proxy với đối tượng đích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-scopes-009
+    title: Trách nhiệm dọn tài nguyên của prototype
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-scopes-010
+    title: Chọn scope theo vòng đời dữ liệu và cách sử dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bean-lifecycle
+  title: Vòng đời bean
+  childs:
+  - slug: bean-lifecycle-001
+    title: Từ BeanDefinition đến đối tượng đã sẵn sàng sử dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-lifecycle-002
+    title: Khởi tạo constructor, tiêm dependency và callback vòng đời
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-lifecycle-003
+    title: '@PostConstruct và namespace jakarta.annotation theo dòng phiên bản'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-lifecycle-004
+    title: InitializingBean và initMethod trên @Bean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-lifecycle-005
+    title: '@PreDestroy, DisposableBean và destroyMethod'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-lifecycle-006
+    title: Thứ tự callback khi kết hợp nhiều cơ chế khởi tạo, hủy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-lifecycle-007
+    title: BeanPostProcessor trước, sau khởi tạo và khả năng trả về proxy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-lifecycle-008
+    title: Eager initialization, @Lazy và thời điểm phát hiện lỗi cấu hình
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-lifecycle-009
+    title: '@DependsOn và thứ tự khởi tạo, hủy giữa các bean'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-lifecycle-010
+    title: '@Order không thay thế quan hệ phụ thuộc khi tạo bean'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-lifecycle-011
+    title: SmartInitializingSingleton và thời điểm singleton đã được chuẩn bị
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bean-lifecycle-012
+    title: Giới hạn của callback bean với tác vụ cần ứng dụng đã khởi động xong
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-configuration
+  title: Java configuration
+  childs:
+  - slug: java-configuration-001
+    title: '@Configuration và phương thức @Bean'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-configuration-002
+    title: Full configuration, lite configuration và xử lý lời gọi giữa các @Bean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-configuration-003
+    title: proxyBeanMethods=true hoặc false và tác động tới instance được sử dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-configuration-004
+    title: Tiêm dependency qua tham số @Bean thay vì gọi phương thức thủ công
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-configuration-005
+    title: '@Import và chia cấu hình theo trách nhiệm'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-configuration-006
+    title: ImportSelector, DeferredImportSelector và lựa chọn cấu hình có chương trình
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-configuration-007
+    title: ImportBeanDefinitionRegistrar và đăng ký định nghĩa nâng cao
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-configuration-008
+    title: BeanFactoryPostProcessor và thay đổi metadata trước khi tạo bean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-configuration-009
+    title: BeanDefinitionRegistryPostProcessor và giai đoạn đăng ký bổ sung
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-configuration-010
+    title: FactoryBean khác với BeanFactory
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-configuration-011
+    title: EnvironmentAware, ApplicationContextAware và giới hạn phụ thuộc vào container
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: conditional-configuration
+  title: Cấu hình theo điều kiện
+  childs:
+  - slug: conditional-configuration-001
+    title: '@Conditional và thời điểm quyết định một cấu hình có được đăng ký'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-configuration-002
+    title: Condition, ConditionContext và dữ liệu dùng để đánh giá
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-configuration-003
+    title: '@ConditionalOnClass, @ConditionalOnMissingClass và classpath'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-configuration-004
+    title: '@ConditionalOnBean, @ConditionalOnMissingBean và bean đã được biết tới'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-configuration-005
+    title: '@ConditionalOnSingleCandidate khi một type có nhiều bean'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-configuration-006
+    title: '@ConditionalOnProperty với havingValue và matchIfMissing'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-configuration-007
+    title: '@ConditionalOnWebApplication, @ConditionalOnNotWebApplication và loại ứng dụng'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-configuration-008
+    title: '@ConditionalOnResource và điều kiện tài nguyên'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-configuration-009
+    title: '@ConditionalOnExpression và giới hạn khi biểu thức tham chiếu bean sớm'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-configuration-010
+    title: Điều kiện trên lớp, trên phương thức @Bean và sự kết hợp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-configuration-011
+    title: Thứ tự xử lý cấu hình và nguyên nhân điều kiện bean cho kết quả khác dự đoán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-configuration-012
+    title: ConditionEvaluationReport để giải thích điều kiện khớp hoặc không khớp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: auto-configuration
+  title: Auto-configuration
+  childs:
+  - slug: auto-configuration-001
+    title: Auto-configuration nhận đầu vào từ classpath, properties và bean hiện có
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auto-configuration-002
+    title: '@EnableAutoConfiguration và cơ chế import cấu hình'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auto-configuration-003
+    title: '@AutoConfiguration và cấu hình ứng viên'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auto-configuration-004
+    title: AutoConfiguration.imports và cách đăng ký ở các dòng Spring Boot hiện đại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auto-configuration-005
+    title: Quan hệ lịch sử giữa spring.factories và đăng ký auto-configuration
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auto-configuration-006
+    title: Điều kiện lớp ngoài và điều kiện trên từng bean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auto-configuration-007
+    title: Cơ chế nhường quyền (back-off) khi ứng dụng đã cung cấp bean phù hợp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auto-configuration-008
+    title: Thứ tự auto-configuration và khác biệt với thứ tự tạo bean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auto-configuration-009
+    title: '@AutoConfigureBefore, @AutoConfigureAfter hoặc thuộc tính tương ứng'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auto-configuration-010
+    title: Loại auto-configuration bằng annotation hoặc spring.autoconfigure.exclude
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auto-configuration-011
+    title: Theo dõi một ví dụ từ dependency đến bean được tạo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auto-configuration-012
+    title: Thay dependency, property hoặc bean và kiểm chứng cấu hình thay đổi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: boot-customization
+  title: Tùy biến Spring Boot
+  childs:
+  - slug: boot-customization-001
+    title: 'Chọn cấp tùy biến: property, customizer, bean hay thay cấu hình'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: boot-customization-002
+    title: Cung cấp bean riêng để thay một mặc định có điều kiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: boot-customization-003
+    title: Hàm tùy biến (customizer) và cách giữ các mặc định còn lại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: boot-customization-004
+    title: Phân biệt bean cùng type với bean cùng tên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: boot-customization-005
+    title: Giới hạn của @Primary khi muốn ngăn một auto-configuration tạo bean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: boot-customization-006
+    title: '@ImportAutoConfiguration và phạm vi sử dụng có chủ đích'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: boot-customization-007
+    title: Viết một auto-configuration nhỏ có back-off rõ ràng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: boot-customization-008
+    title: Tách module auto-configuration khỏi starter gom dependency
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: boot-customization-009
+    title: Đăng ký cấu hình dùng chung mà không quét toàn bộ package thư viện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: boot-customization-010
+    title: Kiểm chứng cấu hình người dùng luôn có đường tùy chỉnh dự kiến
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: spring-application
+  title: SpringApplication
+  childs:
+  - slug: spring-application-001
+    title: SpringApplication.run và các giai đoạn khởi động tổng quát
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-application-002
+    title: Chuẩn bị Environment trước khi tạo ApplicationContext
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-application-003
+    title: Đăng ký nguồn cấu hình và nạp bean definition
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-application-004
+    title: Refresh context và hoàn tất hạ tầng container
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-application-005
+    title: WebApplicationType NONE, SERVLET, REACTIVE
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-application-006
+    title: Classpath ảnh hưởng tới việc chọn loại ứng dụng như thế nào
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-application-007
+    title: Đặt loại ứng dụng tường minh khi cần
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-application-008
+    title: SpringApplication instance, setter và SpringApplicationBuilder
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-application-009
+    title: ApplicationContextInitializer và tùy chỉnh trước refresh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-application-010
+    title: ApplicationArguments, option argument và non-option argument
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-application-011
+    title: Context hierarchy khi ứng dụng có nhiều context
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-application-012
+    title: ApplicationStartup và quan sát thời gian các bước khởi động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: events-and-runners
+  title: Sự kiện và runner
+  childs:
+  - slug: events-and-runners-001
+    title: SpringApplicationEvent và sự kiện chuẩn của ApplicationContext
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-runners-002
+    title: ApplicationStartingEvent và ApplicationEnvironmentPreparedEvent
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-runners-003
+    title: ApplicationContextInitializedEvent và ApplicationPreparedEvent
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-runners-004
+    title: ContextRefreshedEvent, WebServerInitializedEvent và phạm vi phát sinh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-runners-005
+    title: ApplicationStartedEvent khác thời điểm ApplicationReadyEvent
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-runners-006
+    title: ApplicationFailedEvent và thông tin lỗi khởi động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-runners-007
+    title: ApplicationListener, @EventListener và đăng ký listener đủ sớm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-runners-008
+    title: Listener trước khi context tồn tại không thể chỉ khai báo như bean thông thường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-runners-009
+    title: ApplicationEventPublisher và sự kiện nghiệp vụ trong ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-runners-010
+    title: ApplicationRunner với ApplicationArguments
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-runners-011
+    title: CommandLineRunner với mảng tham số dòng lệnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-runners-012
+    title: Ordered, @Order và thứ tự các runner
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-runners-013
+    title: Phân biệt callback khởi tạo bean, runner và tín hiệu sẵn sàng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: state-and-shutdown
+  title: Trạng thái và dừng
+  childs:
+  - slug: state-and-shutdown-001
+    title: ApplicationAvailability và trạng thái của ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-shutdown-002
+    title: Liveness, readiness và sự khác nhau về mục đích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-shutdown-003
+    title: AvailabilityChangeEvent và thời điểm đổi trạng thái
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-shutdown-004
+    title: Context khởi động xong không đồng nghĩa tác vụ chuẩn bị đã hoàn tất
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-shutdown-005
+    title: Shutdown hook, đóng context và hủy bean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-shutdown-006
+    title: Lifecycle, SmartLifecycle và thứ tự start, stop theo phase
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-shutdown-007
+    title: Dọn executor, scheduler, connection và tài nguyên tự tạo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-shutdown-008
+    title: Giới hạn của graceful shutdown theo loại ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-shutdown-009
+    title: SpringApplication.exit, ExitCodeGenerator và mã thoát tiến trình
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-shutdown-010
+    title: Phân biệt dừng có kiểm soát với tiến trình bị kết thúc cưỡng bức
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-configuration
+  title: Cấu hình ứng dụng
+  childs:
+  - slug: application-configuration-001
+    title: Environment, PropertySource và giá trị cấu hình tại thời điểm chạy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-002
+    title: application.properties, application.yml và lựa chọn định dạng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-003
+    title: Cấu hình trong classpath, file bên ngoài, biến môi trường và dòng lệnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-004
+    title: Nguyên tắc ưu tiên khi một thuộc tính xuất hiện ở nhiều nguồn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-005
+    title: Placeholder ${...}, giá trị mặc định và tham chiếu thuộc tính
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-006
+    title: '@Value cho giá trị đơn và khác biệt với biểu thức SpEL'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-007
+    title: '@ConfigurationProperties để gom cấu hình theo tiền tố'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-008
+    title: Đăng ký bằng @ConfigurationPropertiesScan hoặc @EnableConfigurationProperties
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-009
+    title: Binding vào JavaBean, constructor hoặc record theo phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-010
+    title: Relaxed binding và quy ước tên thuộc tính, biến môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-011
+    title: Chuyển đổi Duration, DataSize, collection và cấu hình lồng nhau
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-012
+    title: '@Validated và phát hiện cấu hình không hợp lệ khi khởi động'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-013
+    title: Configuration metadata và gợi ý thuộc tính trong IDE
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-014
+    title: Phân biệt cấu hình ứng dụng với secret cần cung cấp từ môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: profiles
+  title: Profile
+  childs:
+  - slug: profiles-001
+    title: Profile dùng để lựa chọn phần cấu hình nào
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: profiles-002
+    title: '@Profile trên component, configuration và nhóm bean'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: profiles-003
+    title: spring.profiles.active và profile mặc định
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: profiles-004
+    title: application-{profile}.properties hoặc YAML tương ứng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: profiles-005
+    title: Kích hoạt nhiều profile và xử lý giá trị chồng lấp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: profiles-006
+    title: Biểu thức profile với AND, OR, NOT
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: profiles-007
+    title: Profile group và cấu hình nhóm môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: profiles-008
+    title: spring.config.activate.on-profile và tài liệu cấu hình nhiều phần
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: profiles-009
+    title: Phân biệt profile Spring với profile hoặc task của build tool
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: profiles-010
+    title: Kiểm tra profile thực sự có hiệu lực và tránh nhầm môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resources-and-data
+  title: Tài nguyên và dữ liệu
+  childs:
+  - slug: resources-and-data-001
+    title: Resource, ResourceLoader và các tiền tố classpath, file, URL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-data-002
+    title: Đọc tài nguyên bằng InputStream và giới hạn của Resource.getFile trong JAR
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-data-003
+    title: ResourcePatternResolver khi cần tìm nhiều tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-data-004
+    title: Charset, đóng stream và vòng đời tài nguyên tự mở
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-data-005
+    title: Environment, ConversionService và chuyển đổi giá trị sang kiểu đích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-data-006
+    title: Converter tùy chỉnh và phạm vi áp dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-data-007
+    title: Bean Validation, constraint annotation và đối tượng cần kiểm tra
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-data-008
+    title: '@Valid, @Validated và điều kiện để kiểm tra dữ liệu được thực thi'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-data-009
+    title: Method validation và vai trò proxy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-data-010
+    title: MessageSource, thông báo lỗi và lựa chọn ngôn ngữ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-data-011
+    title: Phân biệt kiểm tra dữ liệu đầu vào, cấu hình và quy tắc nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aop-and-proxies
+  title: AOP và proxy
+  childs:
+  - slug: aop-and-proxies-001
+    title: Bài toán hành vi dùng chung và lý do có AOP
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aop-and-proxies-002
+    title: Aspect, advice, pointcut, join point và đối tượng đích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aop-and-proxies-003
+    title: Spring AOP dựa trên proxy trong container
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aop-and-proxies-004
+    title: JDK dynamic proxy và proxy dựa trên lớp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aop-and-proxies-005
+    title: Nhận diện bean proxy và kiểu tham chiếu có thể tiêm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aop-and-proxies-006
+    title: Self-invocation và trường hợp gọi nội bộ không qua proxy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aop-and-proxies-007
+    title: Giới hạn với final, private và phương thức không thể can thiệp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aop-and-proxies-008
+    title: '@Transactional, @Async, @Cacheable và điều kiện hạ tầng tương ứng'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aop-and-proxies-009
+    title: '@EnableAspectJAutoProxy so với tự cấu hình AOP của Spring Boot'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aop-and-proxies-010
+    title: Thứ tự advice và giới hạn của việc suy luận từ annotation đơn lẻ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aop-and-proxies-011
+    title: Kiểm chứng lời gọi qua bean thật thay vì đối tượng tự tạo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: logging
+  title: Logging
+  childs:
+  - slug: logging-001
+    title: Logging facade, SLF4J và thư viện thực thi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-002
+    title: Logging starter và cấu hình mặc định theo dòng Spring Boot
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-003
+    title: Đọc timestamp, level, logger, thread và thông điệp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-004
+    title: TRACE, DEBUG, INFO, WARN, ERROR và chọn mức ghi log
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-005
+    title: logging.level theo package hoặc logger cụ thể
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-006
+    title: Tham số hóa thông điệp và ghi exception kèm stack trace
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-007
+    title: Log console, log file và giới hạn quản lý vòng đời file
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-008
+    title: logback-spring.xml hoặc cấu hình tương ứng của logging system
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-009
+    title: Logging khởi tạo sớm và vì sao một số nguồn cấu hình đến quá muộn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-010
+    title: Phân biệt --debug với bật DEBUG cho toàn bộ ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-011
+    title: Dữ liệu nhạy cảm, context của request và nội dung nên ghi log
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: developer-tools
+  title: Công cụ phát triển
+  childs:
+  - slug: developer-tools-001
+    title: Spring Boot Devtools và phạm vi dependency khi phát triển
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-tools-002
+    title: Automatic restart dựa trên thay đổi classpath
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-tools-003
+    title: Restart classloader, base classloader và vấn đề tương thích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-tools-004
+    title: Phân biệt restart ứng dụng với hot swap của JVM
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-tools-005
+    title: Tài nguyên cần restart, tài nguyên loại trừ và trigger file
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-tools-006
+    title: LiveReload và điều kiện để trình duyệt cập nhật
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-tools-007
+    title: Các mặc định phục vụ phát triển và cách kiểm tra cấu hình được thay đổi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-tools-008
+    title: Devtools trong dự án nhiều module
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-tools-009
+    title: Đóng gói, phạm vi development-only và kiểm tra artifact triển khai
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: run-and-package
+  title: Chạy và đóng gói
+  childs:
+  - slug: run-and-package-001
+    title: Chạy từ main, IDE, bootRun hoặc lệnh tương ứng của Maven
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: run-and-package-002
+    title: Biên dịch, kiểm thử và đóng gói là các giai đoạn khác nhau
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: run-and-package-003
+    title: JAR thư viện với executable JAR của ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: run-and-package-004
+    title: Spring Boot build plugin và vai trò đóng gói lại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: run-and-package-005
+    title: Lớp main, manifest, dependency và cấu trúc JAR thực thi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: run-and-package-006
+    title: java -jar, JVM system property và tham số ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: run-and-package-007
+    title: Classpath resource khi chạy từ thư mục lớp hoặc từ JAR
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: run-and-package-008
+    title: Thư mục làm việc, đường dẫn tương đối và cấu hình ngoài
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: run-and-package-009
+    title: 'WAR truyền thống và executable JAR: nhận diện mô hình triển khai'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: run-and-package-010
+    title: Kiểm chứng cùng artifact chạy ở nhiều môi trường bằng cấu hình bên ngoài
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: run-and-package-011
+    title: Ranh giới với build image, container và native executable
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-observability
+  title: Quan sát ứng dụng
+  childs:
+  - slug: application-observability-001
+    title: Actuator bổ sung khả năng quan sát gì cho ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-observability-002
+    title: Dependency Actuator và quan hệ với auto-configuration
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-observability-003
+    title: Endpoint tồn tại, được bật, được expose và được phép truy cập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-observability-004
+    title: health, info và ý nghĩa dữ liệu được công bố
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-observability-005
+    title: beans, conditions, env, configprops khi cần chẩn đoán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-observability-006
+    title: loggers, metrics và các tín hiệu vận hành cơ bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-observability-007
+    title: Health status khác với liveness hoặc readiness
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-observability-008
+    title: Management path, port và phạm vi cấu hình cơ bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-observability-009
+    title: Dữ liệu cấu hình nhạy cảm và chính sách công bố endpoint
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-observability-010
+    title: Giới hạn của health check hoặc startup log khi chứng minh ứng dụng hoạt động đúng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: platform-testing
+  title: Kiểm thử nền tảng
+  childs:
+  - slug: platform-testing-001
+    title: Unit test cho service được thiết kế bằng constructor injection
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-testing-002
+    title: Kiểm thử bean qua Spring context và đối tượng tạo trực tiếp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-testing-003
+    title: '@SpringBootTest để kiểm tra ứng dụng được lắp ghép đầy đủ'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-testing-004
+    title: WebEnvironment.NONE cho ứng dụng không cần môi trường web
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-testing-005
+    title: ApplicationContextRunner cho cấu hình và điều kiện có phạm vi hẹp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-testing-006
+    title: Kiểm thử @Bean, @Qualifier, @Primary và cấu hình thiếu ứng viên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-testing-007
+    title: Kiểm thử profile, property và cách hiện thực được lựa chọn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-testing-008
+    title: Kiểm thử auto-configuration có back-off khi người dùng cung cấp bean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-testing-009
+    title: Kiểm thử init, runner, sự kiện và giải phóng tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-testing-010
+    title: Phân biệt smoke test context với kiểm thử hành vi nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-testing-011
+    title: Giữ test độc lập với thứ tự chạy và dịch vụ ngoài không liên quan
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: Đọc startup log và tìm nguyên nhân gốc trong chuỗi exception
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-002
+    title: FailureAnalyzer và thông báo hướng dẫn xử lý lỗi khởi động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-003
+    title: 'NoSuchBeanDefinitionException: bean thiếu hoặc nằm ngoài phạm vi đăng ký'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-004
+    title: 'NoUniqueBeanDefinitionException: nhiều ứng viên nhưng chưa có cách chọn'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-005
+    title: BeanDefinitionOverrideException và đụng tên bean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-006
+    title: BeanCurrentlyInCreationException và vòng phụ thuộc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-007
+    title: BeanCreationException do constructor, init hoặc dependency thất bại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-008
+    title: BeanNotOfRequiredTypeException và kiểu thực tế của proxy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-009
+    title: NoClassDefFoundError, NoSuchMethodError và dependency không tương thích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-010
+    title: Auto-configuration không chạy vì classpath, property hoặc bean hiện có
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-011
+    title: Property không được đọc, binding lỗi hoặc profile sai
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-012
+    title: Ứng dụng chọn sai web type, thiếu server hoặc cổng bị chiếm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-013
+    title: Callback, runner hoặc listener không được gọi đúng thời điểm mong đợi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-014
+    title: Ứng dụng không thoát hoặc không dọn tài nguyên sau khi đóng context
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-015
+    title: Kết hợp log, conditions report, dependency tree và kiểm thử tái hiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-design
+  title: Thiết kế ứng dụng
+  childs:
+  - slug: application-design-001
+    title: Tách quy tắc nghiệp vụ khỏi cơ chế khởi tạo và cấu hình Spring
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-002
+    title: Thiết kế constructor để biểu lộ dependency bắt buộc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-003
+    title: Chọn bean do container quản lý hay đối tượng dữ liệu tạo trực tiếp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-004
+    title: Tách interface theo nhu cầu thay thế, tránh tạo lớp trung gian không có vai trò
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-005
+    title: Giữ đồ thị phụ thuộc có hướng rõ ràng và xử lý vòng từ thiết kế
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-006
+    title: Bean singleton không lưu trạng thái riêng của từng request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-007
+    title: Cấu hình theo chức năng và hạn chế component scan quá rộng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-008
+    title: Đưa tích hợp bên ngoài qua adapter để dễ kiểm thử
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-009
+    title: Thiết kế thư viện dùng chung có cấu hình rõ và khả năng tùy chỉnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-010
+    title: Quản lý tài nguyên theo vòng đời ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-011
+    title: Từ bằng chứng quan sát được đến quyết định thay đổi cấu hình
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: versioning-and-extension
+  title: Phiên bản và mở rộng
+  childs:
+  - slug: versioning-and-extension-001
+    title: Quan hệ phiên bản giữa Spring Boot, Spring Framework và JDK
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-extension-002
+    title: Đọc tài liệu theo phiên bản đang chạy và kiểm tra API mới
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-extension-003
+    title: Nhận diện thay đổi javax sang jakarta khi gặp mã cũ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-extension-004
+    title: Annotation tổng hợp, alias và custom composed annotation
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-extension-005
+    title: Thay đổi cách đăng ký auto-configuration qua các dòng Spring Boot
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-extension-006
+    title: Thay đổi starter, module, logging hoặc công cụ test khi nâng phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-extension-007
+    title: '@Fallback và các tiện ích chỉ có ở Spring Framework mới'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-extension-008
+    title: AOT, runtime hints và native image ở mức khái niệm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-extension-009
+    title: Virtual thread và các khả năng phụ thuộc phiên bản JDK, Spring Boot
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-extension-010
+    title: Ranh giới học tiếp về web runtime, external configuration, dữ liệu và bảo mật
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-extension-011
+    title: Checklist nâng cấp dựa trên dependency, cấu hình, startup và kiểm thử
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Dựng ứng dụng dòng lệnh tối thiểu với một service và ApplicationRunner
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-002
+    title: Đăng ký cùng chức năng bằng component scan và Java configuration
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-003
+    title: Tạo nhiều implementation rồi chọn bằng @Qualifier hoặc @Primary
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-004
+    title: Quan sát singleton, prototype và cách lấy bean theo nhu cầu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-005
+    title: Theo dõi constructor, init, proxy, runner và callback hủy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-006
+    title: Chuyển cách hiện thực bằng profile hoặc property
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-007
+    title: Tạo auto-configuration có điều kiện và back-off khi có bean người dùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-008
+    title: Dùng conditions report giải thích vì sao một bean xuất hiện hoặc vắng mặt
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-009
+    title: Kiểm chứng self-invocation và lời gọi qua proxy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-010
+    title: Đóng gói JAR rồi chạy bằng cấu hình ngoài ở hai môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-011
+    title: Quan sát health, beans và thông tin khởi động trong phạm vi được cho phép
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-012
+    title: Tạo lỗi thiếu bean, trùng bean, cấu hình sai rồi viết test tái hiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-013
+    title: Tổng hợp sơ đồ khởi động, đồ thị bean và bằng chứng hành vi ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

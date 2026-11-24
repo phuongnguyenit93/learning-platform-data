@@ -1,0 +1,1049 @@
+# Mapping Relationships, Cascade, Orphan Removal, and Lazy Loading in Spring Data JPA
+
+**Spring Data JPA** simplifies entity access through repositories, yet **relationship, foreign key, cascade, orphan removal, and lazy loading** behaviors come primarily from **Jakarta Persistence** and the JPA provider such as **Hibernate**. Simply misconfiguring **mappedBy**, applying **CascadeType.ALL** on a shared association, or reading a **LAZY** collection outside the persistence context can cause an application to store wrong foreign keys, delete unintended records, trigger N+1 queries, or throw LazyInitializationException.
+
+This article moves from the table model to Java objects, distinguishes ownership from lifecycle, explains **how cascade differs from orphanRemoval**, clarifies when SQL is flushed, verifies LAZY inside and outside the persistence context, and chooses **@EntityGraph/JPQL JOIN FETCH** for queries needing child data. The complete example uses **Java 17, Spring Boot 3.4.5, Spring Data JPA, Boot-managed Hibernate 6.6.x, H2, JUnit Jupiter, and @DataJpaTest**. Test commands are presented with **expected** outcomes, without implying Gradle was actually executed in this text.
+
+## 1. Object Relationships Do Not Automatically Mirror Database Relationships
+
+Suppose an application has a **PurchaseOrder** containing multiple **OrderLine**s. The physical RDBMS relationship has a single foreign key:
+
+~~~text
+purchase_orders                      order_lines
++-----------------+               +----------------------+
+| id (PK)         | 1         N   | id (PK)              |
+| order_code      |<--------------| order_id (FK)        |
++-----------------+               | sku                  |
+                                  | quantity             |
+                                  | unit_price           |
+                                  +----------------------+
+~~~
+
+In Java, you want to navigate both directions:
+
+- From PurchaseOrder: **getLines()** to read the list of OrderLines.
+- From OrderLine: **getOrder()** to know which PurchaseOrder it belongs to.
+
+Two Java properties do not mean the database needs two foreign keys. In a bidirectional **@OneToMany** / **@ManyToOne** mapping, typically only **OrderLine.order** is the **owning side** because the **order_id** column lives on the order_lines table. PurchaseOrder.lines uses **mappedBy = "order"** to declare itself the **inverse side**, both representing the same physical relationship.
+
+**Relationship direction/ownership and entity lifecycle are independent concerns.** Having a collection on the parent does not automatically make the parent manage the foreign key. Having the child as the owner does not stop the parent from configuring cascade to propagate persist/remove to children.
+
+## 2. Four Common Relationship Annotations
+
+| Mapping | Cardinality | Typical Linking Column/Table | Default Fetch per JPA |
+| --- | --- | --- | --- |
+| **@OneToOne** | At most one per side | Unique foreign key or shared primary key | **EAGER** |
+| **@OneToMany** | One parent has many children | FK on child table, or join table depending on mapping | **LAZY** |
+| **@ManyToOne** | Many children reference one parent | FK on child table | **EAGER** |
+| **@ManyToMany** | Many-to-many | Join table with two FKs | **LAZY** |
+
+A common surprise: **@ManyToOne and @OneToOne default to EAGER** in Jakarta Persistence. If you do not always need the parent whenever loading a child, you should normally declare **fetch = FetchType.LAZY** explicitly on **@ManyToOne**. To-one LAZY loading may rely on Hibernate proxies or bytecode enhancement; some inverse/optional @OneToOne cases have special rules. **LAZY is a request/hint per provider capabilities**, not a guarantee every association delays loading identically across all configurations.
+
+**@OneToMany** and **@ManyToMany** default to LAZY, though stating fetch explicitly in lessons clarifies intent. Never blanket-set **EAGER** to work around LazyInitializationException; that causes every request to load excess data and still fails to eliminate N+1.
+
+### 2.1. Owning Side and mappedBy
+
+~~~java
+@Entity
+class PurchaseOrder {
+    @OneToMany(mappedBy = "order",
+               cascade = CascadeType.ALL,
+               orphanRemoval = true,
+               fetch = FetchType.LAZY)
+    private List<OrderLine> lines = new ArrayList<>();
+}
+
+@Entity
+class OrderLine {
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "order_id", nullable = false)
+    private PurchaseOrder order;
+}
+~~~
+
+This is an **illustrative mapping snippet**; full classes and imports appear in the project section. **mappedBy = "order"** references the **Java field name** in OrderLine, not the SQL column order_id. **@JoinColumn(name="order_id")** sits on the owning side to specify the foreign key column. **optional=false** declares a required relationship in the JPA model; **nullable=false** specifies the column constraint generated by schema tools (never rely solely on Java checks instead of database constraints).
+
+If you mutate only the inverse-side collection without updating OrderLine.order, in-memory state can diverge from the actual FK. Therefore use **helper methods addLine/removeLine to keep both sides synchronized**.
+
+### 2.2. Unidirectional or Bidirectional?
+
+- **Bidirectional @OneToMany/@ManyToOne** makes navigating both ways easy; staying accurate requires updating both object references. With the FK on the child table, it generally yields cleaner SQL UPDATE/DELETEs when managing the collection.
+- **Unidirectional @ManyToOne** on the child is often simpler: the child holds the FK and the parent has no collection; when you only need child -> parent, this is a lean choice.
+- **Unidirectional @OneToMany** puts the collection only on the parent; depending on mapping/provider, Hibernate may use a join table and emit unwanted join-table DELETE/INSERTs when modifying the collection. If the FK must live on the child, configure the join column carefully and test the generated SQL.
+- **@ManyToMany** fits when both entities have independent lifecycles and the link is purely a join table. If the relation carries attributes such as quantity, createdAt, or role, model an **association entity** for cleaner management.
+
+**Principle:** design around **data ownership and business lifecycle**, not merely object-graph navigation convenience.
+
+## 3. What Is Cascade? It Is Not Equivalent to SQL ON DELETE CASCADE
+
+**CascadeType** defines how a state operation on an entity **propagates** to related entities through the JPA persistence context. The types:
+
+| CascadeType | Related JPA Operation | How to Understand It |
+| --- | --- | --- |
+| **PERSIST** | EntityManager.persist(parent) | Persists children referenced by the association |
+| **MERGE** | EntityManager.merge(parent) | Merges related entity state per provider rules |
+| **REMOVE** | EntityManager.remove(parent) | Propagates remove to children |
+| **REFRESH** | EntityManager.refresh(parent) | Refreshes children within the relationship |
+| **DETACH** | EntityManager.detach(parent) | Propagates detach |
+| **ALL** | All of the above | Convenient, yet broadest scope |
+
+**CascadeType.ALL** does not mean “everything updates right automatically”. When **OrderLine** is owned exclusively by **PurchaseOrder** and cannot exist independently, cascade ALL can make sense. However, if **Product** or **Customer** is shared across many orders, **never place CascadeType.REMOVE/ALL on @ManyToOne from OrderLine to Product/Customer**; deleting one order line could delete a shared product/customer and cause data loss or FK violations.
+
+**Cascade PERSIST** enables:
+
+~~~java
+PurchaseOrder order = new PurchaseOrder("PO-001");
+order.addLine(new OrderLine("BOOK", 2, 100));
+orderRepository.saveAndFlush(order);
+~~~
+
+If parent.lines has **cascade = CascadeType.PERSIST** (or ALL), persisting a new order propagates to the new line. Without cascade, depending on the provider and flush timing, you must persist the line explicitly or hit a transient-object/FK error. In Spring Data JPA, **save** can call **persist for a new entity** or **merge for an existing/detached entity**; with merge, the returned managed instance can **differ** from the passed object. Thus the tests below focus on new objects and reloaded managed entities, without assuming every save is always a persist.
+
+### 3.1. Cascade REMOVE Differs from SQL Foreign Key ON DELETE CASCADE
+
+**CascadeType.REMOVE** is a **JPA provider behavior when deleting an entity via EntityManager/repository**. **ON DELETE CASCADE** is a **database foreign key rule**; it also works on direct SQL DELETEs. Do not treat these two mechanisms as identical.
+
+**Bulk JPQL update/delete** statements or native SQL generally **bypass entity lifecycle callbacks and persistence-context entity cascades**. Example:
+
+~~~java
+@Modifying
+@Query("delete from PurchaseOrder o where o.code = :code")
+void deleteByCodeBulk(@Param("code") String code);
+~~~
+
+This is a **repository method excerpt**, not in the runnable code. Such a bulk command will not necessarily delete children via CascadeType.REMOVE; if the DB still enforces an FK, it can fail. Bulk deletes require intentional schema design, deletion order, or database cascades tested on a real DB.
+
+### 3.2. Cascade Does Not Determine the Owning Side
+
+An association can put cascade on the **inverse collection** while the FK column is still governed by the **@ManyToOne owning side**. If helper `addLine` calls only **lines.add(child)** and forgets **child.setOrder(this)**, cascade persist will not ensure the foreign key is populated. With `nullable=false`, a constraint violation can occur. **Correct mapping keeps object state consistent with the relational FK.**
+
+## 4. Orphan Removal: Deleting Children When Unlinked from the Parent
+
+**orphanRemoval = true** expresses a **dependent lifecycle**: when a child is removed from a managed association, it no longer has a valid “owner”, so the JPA provider schedules deleting that child in the database. This attribute applies to **@OneToMany** and **@OneToOne**, not as a generic delete switch on @ManyToMany.
+
+In an example:
+
+~~~java
+PurchaseOrder managed = orderRepository.findById(id).orElseThrow();
+OrderLine line = managed.getLines().get(0);
+managed.removeLine(line);
+entityManager.flush();
+~~~
+
+With **orphanRemoval=true**, Hibernate emits a **DELETE** for the removed OrderLine on flush (exact SQL depends on provider/DDL/version). If you omit orphanRemoval and the relation allows a null FK, removing a child normally updates or clears the link rather than **deleting the child row by default**. With `nullable=false`, unlinking without deleting the child can violate the FK constraint.
+
+| Scenario | CascadeType.REMOVE | orphanRemoval=true |
+| --- | --- | --- |
+| Remove parent via EntityManager | Can propagate remove to children | Also typically deletes owned children when parent is removed |
+| Remove only one child from managed collection | **Does not auto-delete child via REMOVE alone** | **Deletes orphaned child** on flush per association semantics |
+| Child exists independently and can move between parents | Usually unsuitable if deleting parent must keep child | Usually **should stay disabled**, since unlinking from old parent can delete child |
+| Shared objects such as Product/Tag | REMOVE is dangerous | Orphan removal also violates ownership |
+| Bulk SQL/JPQL operations | Does not operate like per-entity remove | Do not expect orphan checks on managed graph |
+
+**Concise distinction:** cascade REMOVE means “when deleting the parent, propagate deletion to children”; orphanRemoval means “when a child leaves the owning association, delete the child”.
+
+### 4.1. Orphan Does Not Mean “Lost All Foreign Keys”
+
+In JPA, orphan removal is scoped to the **declared association**. It is not a database-wide garbage collector looking for parentless rows. The mechanism has conditions around managed/detached/new state; Jakarta Persistence does not require orphan removal to apply in every variant when a brand-new unpersisted entity is removed from a collection. Do not rely on orphanRemoval as a cleanup rule for transient children.
+
+**Do not reassign a just-orphaned child to another parent within the same unit of work** when aggregate semantics treat it as deleted; that can cause “entity scheduled for deletion” or constraint exceptions. If business logic genuinely moves a line between two orders, design a different lifecycle without blindly using orphanRemoval.
+
+### 4.2. Do Not Replace the Collection Reference Carelessly
+
+With a Hibernate-managed persistent collection, replacing it via:
+
+~~~java
+managedOrder.setLines(new ArrayList<>(newLines));
+~~~
+
+can lose the reference to the original collection wrapper and cause errors or unintended deletions when orphanRemoval is enabled. In the full example, we **do not expose a setter that replaces the whole collection**; instead we keep a **final List** and mutate only through `addLine`/`removeLine`, preserving two-way synchronization. When updating a list from a payload, diff managed children by id/business key and add/remove deliberately.
+
+## 5. LAZY Loading: When Does SQL Run and When Does It Throw?
+
+**FetchType.LAZY** means the provider attempts to defer loading the association until actually needed. With Hibernate, a collection is typically a **persistent collection wrapper**; a to-one association may be a proxy or bytecode-enhanced entity. Loading an entity via a repository initially fetches only scalar fields and a lazy reference, without necessarily querying all children.
+
+~~~text
+repository.findById(orderId)
+   |
+   +-- SQL SELECT purchase_orders ...
+   |
+   +-- order.getLines()  -> uninitialized persistent collection
+          |
+          +-- order.getLines().size() while session is open
+                 -> SQL SELECT order_lines WHERE order_id=?
+                 -> collection initialized
+~~~
+
+When the **EntityManager/Session has closed or the entity was detached** before the collection is initialized:
+
+~~~java
+PurchaseOrder detached = orderRepository.findById(id).orElseThrow();
+entityManager.detach(detached);
+detached.getLines().size(); // May throw LazyInitializationException
+~~~
+
+This snippet requires a saved order and an active persistence context at detach time; section 9 has the complete test. Hibernate's **LazyInitializationException** occurs when an uninitialized lazy proxy/collection is accessed without a valid session. **Having @Transactional does not guarantee all lazy loading succeeds**: the transaction must still enclose **the exact moment the data is accessed**, and the entity/proxy must remain attached to that persistence context.
+
+### 5.1. `@DataJpaTest` Can Mask Production LAZY Bugs
+
+**`@DataJpaTest` opens a transaction by default and rolls back at the end of each test method**. Therefore:
+
+~~~java
+@DataJpaTest
+class MappingTest {
+    @Test
+    void test() {
+        PurchaseOrder order = orders.findById(id).orElseThrow();
+        order.getLines().size(); // May succeed because the test transaction is open.
+    }
+}
+~~~
+
+You must not infer that a production REST endpoint will definitely serialize the lazy collection cleanly. When a controller returns an entity after the service transaction ends and **Open Session in View** is disabled, the serializer touching an uninitialized collection throws LazyInitializationException. If Open Session in View is enabled, it can permit lazy queries outside the service transaction, causing SQL during HTTP serialization and hard-to-control N+1 queries.
+
+**Intentional solution:** inside the service transaction, fetch the exact data needed and **map to a DTO**. Never return raw JPA entities with bidirectional graphs directly as JSON just for convenience; beyond lazy failures, it risks infinite parent ↔ child recursion and leaking unintended fields.
+
+### 5.2. Hibernate.isInitialized and EntityManager.clear
+
+When a test needs to verify lazy state directly:
+
+~~~java
+entityManager.flush();
+entityManager.clear();
+
+PurchaseOrder reloaded = orders.findById(orderId).orElseThrow();
+assertFalse(Hibernate.isInitialized(reloaded.getLines()));
+
+int count = reloaded.getLines().size();
+assertEquals(2, count);
+assertTrue(Hibernate.isInitialized(reloaded.getLines()));
+~~~
+
+**flush** pushes pending SQL changes to the database within the current transaction; **clear** detaches all managed entities from the persistence context so the subsequent `findById` does not merely return the first-level cached object. Without `clear`, you might get back the same parent/children already initialized when created, rendering the LAZY assertion meaningless.
+
+**flush is not commit.** The `@DataJpaTest` transaction still rolls back at the end of the method. Hence a query after `clear` reads flushed records **within the same transaction**, not proof that changes committed for another process to see.
+
+## 6. N+1 Queries: Why Does Each Order Trigger Another SELECT?
+
+Suppose a repository loads **N orders**:
+
+~~~java
+List<PurchaseOrder> orders = repository.findAll();
+for (PurchaseOrder order : orders) {
+    System.out.println(order.getLines().size());
+}
+~~~
+
+If the `lines` collection is LAZY and uninitialized, Hibernate can execute:
+
+~~~sql
+SELECT ... FROM purchase_orders;                 -- 1 query
+SELECT ... FROM order_lines WHERE order_id = ?;  -- order 1
+SELECT ... FROM order_lines WHERE order_id = ?;  -- order 2
+SELECT ... FROM order_lines WHERE order_id = ?;  -- order 3
+-- ...
+~~~
+
+**N+1** is 1 query fetching N parents plus up to N queries fetching associations. This is a **common pattern**, not a promise every provider/config executes literally N+1 SQL statements: caching, batching, subselect fetching, first-level context, and join plans can alter the actual count. Still, it warns that reading associations can scale linearly with parent count.
+
+**Never fix this by flipping every relationship to FetchType.EAGER.** EAGER loads excess data in unrelated use cases and some queries still emit secondary SELECTs. Instead, use **query-specific fetch plans** where you know children will be used.
+
+### 6.1. Spring Data JPA @EntityGraph
+
+~~~java
+@EntityGraph(attributePaths = "lines")
+@Query("select o from PurchaseOrder o where o.id = :id")
+Optional<PurchaseOrder> findDetailById(@Param("id") Long id);
+~~~
+
+**@EntityGraph** requests that the `lines` association be fetched with the query via the JPA provider's fetch graph; Hibernate typically chooses a JOIN for a simple collection, though **do not rely on one fixed SQL shape** when testing behavior. EntityGraph fits a dedicated repository method for an order detail screen.
+
+### 6.2. JPQL JOIN FETCH
+
+~~~java
+@Query("""
+    select distinct o
+    from PurchaseOrder o
+    left join fetch o.lines
+    where o.id = :id
+    """)
+Optional<PurchaseOrder> findDetailWithJoinFetch(@Param("id") Long id);
+~~~
+
+This explicitly requests fetching the association. For collections, multiple SQL rows can belong to the same order; **distinct** signals intent to avoid duplicate parents in the object result, while Hibernate 6 includes automatic deduplication mechanisms. Exact SQL and DISTINCT handling depend on provider/query plan. Do not write tests assuming exact SQL row counts from simplified examples.
+
+**Pagination warning:** join-fetching a collection combined with database pagination can fall back to in-memory pagination or emit warnings/errors depending on configuration. When paging many parents that need children, usually use **two steps**: page parent IDs first, then fetch children for those IDs, or use DTO projections/batch fetching. Do not blindly attach a collection JOIN FETCH to every `PageRequest`.
+
+### 6.3. Batch Fetching and DTO Projections
+
+Hibernate supports **hibernate.default_batch_fetch_size** or **@BatchSize** to reduce query counts when initializing multiple lazy associations, depending on access pattern and provider config. This is an **optimization** technique, not a replacement for transactions and fetching the right data.
+
+**DTO projections** select only the scalar fields needed for a response (code, SKU, quantity…), avoiding loading full object graphs. For an order list screen showing only code and item count, an aggregate count query avoids fetching every line. Measure query counts with Hibernate statistics/SQL logging or a datasource proxy in integration/performance tests, rather than claiming one query is always faster on every database.
+
+## 7. Runnable Project: Spring Boot 3.4.5 + H2 + JUnit
+
+All source files below form a small runnable project. It models **parent PurchaseOrder** and **child OrderLine**, bidirectional mapping, cascade ALL on the parent collection, `orphanRemoval=true`, and LAZY fetching. Tests use `@DataJpaTest`, repositories, `EntityManager`, and `Hibernate.isInitialized`.
+
+**Demo business rules:**
+
+- Each PurchaseOrder has a unique **code** and one or more OrderLines.
+- Each OrderLine has **sku, quantity, unitPrice**, and a required FK to an order.
+- OrderLine **cannot exist independently**; deleting an order deletes its lines; removing a line from a managed order deletes the line row via orphanRemoval.
+- Java helpers update both **order.getLines()** and **line.getOrder()**.
+- Repository provides standard methods (LAZY) and **@EntityGraph** methods for details.
+- Tests verify **cascade persist, FKs, orphan deletion, cascade remove, LAZY loading, detached failures, and fetch graphs**.
+
+### 7.1. File Structure
+
+~~~text
+settings.gradle
+build.gradle
+src/main/resources/application.yml
+src/main/java/com/example/jparel/JpaRelationshipApplication.java
+src/main/java/com/example/jparel/PurchaseOrder.java
+src/main/java/com/example/jparel/OrderLine.java
+src/main/java/com/example/jparel/PurchaseOrderRepository.java
+src/main/java/com/example/jparel/OrderLineRepository.java
+src/test/java/com/example/jparel/PurchaseOrderMappingTest.java
+src/test/java/com/example/jparel/PurchaseOrderLazyLoadingTest.java
+~~~
+
+**settings.gradle**
+
+~~~groovy
+rootProject.name = 'jpa-relationship-mapping-tests'
+~~~
+
+**build.gradle**
+
+~~~groovy
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.5'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.h2database:h2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+~~~
+
+Spring Boot BOM manages Hibernate/Spring Data JPA/JUnit. Do not manually override Jakarta Persistence and Hibernate versions across release lines just for annotations. H2 is chosen to avoid needing an external database and keep `@DataJpaTest` fast; when SQL dialect/locking/isolation/schema migrations are under test, use Testcontainers with a production-like engine instead of H2 alone.
+
+**src/main/resources/application.yml**
+
+~~~yaml
+spring:
+  datasource:
+    generate-unique-name: true
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+  sql:
+    init:
+      mode: never
+~~~
+
+**ddl-auto=create-drop** builds the learning schema from entities in the JPA context; do not use it as-is in production, where versioned migrations belong. **open-in-view=false** models clean persistence boundaries in web apps, though it does not remove the transaction opened by `@DataJpaTest`. **generate-unique-name** reduces the chance of separate in-memory H2 ApplicationContexts sharing the same DB name. **sql.init.mode=never** prevents unintended SQL initialization scripts in the demo.
+
+### 7.2. Application Class
+
+**src/main/java/com/example/jparel/JpaRelationshipApplication.java**
+
+~~~java
+package com.example.jparel;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class JpaRelationshipApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(JpaRelationshipApplication.class, args);
+    }
+}
+~~~
+
+### 7.3. Parent Entity: Managing the Collection Through Helpers
+
+**src/main/java/com/example/jparel/PurchaseOrder.java**
+
+~~~java
+package com.example.jparel;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "purchase_orders")
+public class PurchaseOrder {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "order_code", nullable = false, unique = true)
+    private String code;
+
+    @OneToMany(
+            mappedBy = "order",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
+    private List<OrderLine> lines = new ArrayList<>();
+
+    protected PurchaseOrder() {
+        // Required by JPA.
+    }
+
+    public PurchaseOrder(String code) {
+        this.code = Objects.requireNonNull(code, "code");
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public List<OrderLine> getLines() {
+        return lines;
+    }
+
+    public void addLine(OrderLine line) {
+        Objects.requireNonNull(line, "line");
+        if (line.getOrder() != null) {
+            throw new IllegalStateException(
+                    "line is already assigned to an order");
+        }
+        lines.add(line);
+        line.setOrder(this);
+    }
+
+    public void removeLine(OrderLine line) {
+        if (lines.remove(line)) {
+            line.setOrder(null);
+        }
+    }
+}
+~~~
+
+**Why no setLines?** The persistence provider needs to track the collection wrapper and orphan state. Keeping the same collection instance and mutating only through controlled add/remove helpers avoids accidentally swapping the reference. The example returns the `List` directly to keep tests simple; in a production API, prevent callers from calling **getLines().clear()** or adding without syncing the owning side. You can expose a separate immutable view for business callers while keeping intentional mutation methods, as long as tests do not run `Hibernate.isInitialized` on a wrapper copy instead of the original persistent wrapper.
+
+**Avoid Lombok's generated `@Data`/`toString()`/`equals`/`hashCode` across associations**: it easily causes parent↔child recursion, triggers unintended LAZY loads, or mutates hashCodes when `@GeneratedValue` assigns IDs. When entity equality is needed, pick an immutable natural key or a consistent ID strategy, handle proxies/lifecycles carefully, and exclude associations from `equals`/`hashCode`.
+
+### 7.4. Child Entity: FK and Owning Side
+
+**src/main/java/com/example/jparel/OrderLine.java**
+
+~~~java
+package com.example.jparel;
+
+import java.util.Objects;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "order_lines")
+public class OrderLine {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String sku;
+
+    @Column(nullable = false)
+    private int quantity;
+
+    @Column(name = "unit_price", nullable = false)
+    private int unitPrice;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "order_id", nullable = false)
+    private PurchaseOrder order;
+
+    protected OrderLine() {
+        // Required by JPA.
+    }
+
+    public OrderLine(String sku, int quantity, int unitPrice) {
+        this.sku = Objects.requireNonNull(sku, "sku");
+        if (quantity <= 0 || unitPrice < 0) {
+            throw new IllegalArgumentException(
+                    "invalid quantity or unit price");
+        }
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getSku() {
+        return sku;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public int getUnitPrice() {
+        return unitPrice;
+    }
+
+    public PurchaseOrder getOrder() {
+        return order;
+    }
+
+    void setOrder(PurchaseOrder order) {
+        this.order = order;
+    }
+}
+~~~
+
+The **real FK** is mapped via **@JoinColumn(name="order_id")** on `OrderLine.order`. **fetch=LAZY** is intentional to avoid loading the parent when only line data is needed. The child has no cascade back up to PurchaseOrder, because deleting a line must never delete the order. **optional=false/nullable=false** reinforces that a child cannot exist without an order; on `removeLine`, orphanRemoval deletes the child on flush instead of storing a NULL FK.
+
+This models an aggregate with unshared children. If OrderLine can live independently or transfer between orders, redesign nullability and orphan policies.
+
+### 7.5. Repositories: Standard and Fetch Graph
+
+**src/main/java/com/example/jparel/PurchaseOrderRepository.java**
+
+~~~java
+package com.example.jparel;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+public interface PurchaseOrderRepository
+        extends JpaRepository<PurchaseOrder, Long> {
+
+    @EntityGraph(attributePaths = "lines")
+    @Query("select o from PurchaseOrder o where o.id = :id")
+    Optional<PurchaseOrder> findDetailById(@Param("id") Long id);
+
+    @EntityGraph(attributePaths = "lines")
+    @Query("select distinct o from PurchaseOrder o")
+    List<PurchaseOrder> findAllWithLines();
+}
+~~~
+
+**@EntityGraph(attributePaths="lines")** serves use cases needing `lines` data. Standard inherited **findById** and **findAll** do not have to load `lines` just because the class exposes `getLines()`. Separating the two query methods keeps performance contracts explicit: a list view needing only order codes does not pay for all lines, whereas the detail view fetches the collection.
+
+**src/main/java/com/example/jparel/OrderLineRepository.java**
+
+~~~java
+package com.example.jparel;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface OrderLineRepository
+        extends JpaRepository<OrderLine, Long> {
+}
+~~~
+
+The second repository exists solely for checking **count/existsById** on the child table after flush/clear. Not every application should expose a public repository for aggregate children; under strict domain design, writes to children go only through the aggregate root repository while tests verify state with EntityManager/JDBC.
+
+## 8. `@DataJpaTest`: Verifying Cascade and Orphan Removal Against a Real Database
+
+**src/test/java/com/example/jparel/PurchaseOrderMappingTest.java**
+
+~~~java
+package com.example.jparel;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@DataJpaTest
+class PurchaseOrderMappingTest {
+
+    @Autowired
+    private PurchaseOrderRepository orders;
+
+    @Autowired
+    private OrderLineRepository lines;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Test
+    void cascadePersistSavesBothChildrenAndForeignKeys() {
+        PurchaseOrder order = new PurchaseOrder("PO-CASCADE");
+        order.addLine(new OrderLine("BOOK", 2, 100));
+        order.addLine(new OrderLine("PEN", 3, 20));
+
+        orders.saveAndFlush(order);
+        Long orderId = order.getId();
+        assertNotNull(orderId);
+
+        entityManager.clear();
+
+        PurchaseOrder reloaded =
+                orders.findById(orderId).orElseThrow();
+        assertEquals("PO-CASCADE", reloaded.getCode());
+        assertEquals(2, reloaded.getLines().size());
+        assertEquals(2L, lines.count());
+
+        for (OrderLine line : reloaded.getLines()) {
+            assertNotNull(line.getId());
+            assertEquals(orderId, line.getOrder().getId());
+        }
+    }
+
+    @Test
+    void removingOneManagedChildDeletesOnlyThatOrphan() {
+        PurchaseOrder order = new PurchaseOrder("PO-ORPHAN");
+        order.addLine(new OrderLine("BOOK", 1, 100));
+        order.addLine(new OrderLine("PEN", 1, 20));
+
+        orders.saveAndFlush(order);
+        Long orderId = order.getId();
+        entityManager.clear();
+
+        PurchaseOrder managed =
+                orders.findById(orderId).orElseThrow();
+        OrderLine removed = managed.getLines().stream()
+                .filter(line -> line.getSku().equals("BOOK"))
+                .findFirst().orElseThrow();
+        Long removedId = removed.getId();
+
+        managed.removeLine(removed);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertFalse(lines.existsById(removedId));
+        PurchaseOrder stillExists =
+                orders.findById(orderId).orElseThrow();
+        assertEquals(1, stillExists.getLines().size());
+        assertEquals("PEN",
+                stillExists.getLines().get(0).getSku());
+    }
+
+    @Test
+    void deletingParentAlsoRemovesOwnedChildren() {
+        PurchaseOrder order = new PurchaseOrder("PO-REMOVE");
+        order.addLine(new OrderLine("A", 1, 10));
+        order.addLine(new OrderLine("B", 1, 15));
+
+        orders.saveAndFlush(order);
+        Long orderId = order.getId();
+        entityManager.clear();
+
+        PurchaseOrder managed =
+                orders.findById(orderId).orElseThrow();
+        orders.delete(managed);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertFalse(orders.existsById(orderId));
+        assertEquals(0L, lines.count());
+    }
+
+    @Test
+    void deletingNoOrphansWhenAssociationUnchanged() {
+        PurchaseOrder order = new PurchaseOrder("PO-KEEP");
+        order.addLine(new OrderLine("KEEP", 1, 10));
+
+        orders.saveAndFlush(order);
+        Long lineId = order.getLines().get(0).getId();
+        entityManager.clear();
+
+        PurchaseOrder managed =
+                orders.findById(order.getId()).orElseThrow();
+        assertEquals(1, managed.getLines().size());
+        entityManager.flush();
+        entityManager.clear();
+
+        assertTrue(lines.existsById(lineId));
+    }
+}
+~~~
+
+**Four checks and what they mean:**
+
+1. **cascadePersistSavesBothChildrenAndForeignKeys:** saves only the **new PurchaseOrder**, and cascade ALL propagates persist to both OrderLines. After **flush + clear**, reloads from H2, counts child rows, and checks each child's FK points to the parent. This is much stronger than merely checking the in-memory Java collection after adding.
+2. **removingOneManagedChildDeletesOnlyThatOrphan:** loads the parent as a managed entity, removes one line via the helper, flushes + clears, verifies the BOOK row **actually disappeared**, the parent survives, and the PEN line remains. Without orphanRemoval, the test fails or hits different FK semantics.
+3. **deletingParentAlsoRemovesOwnedChildren:** deletes the parent through the repository/EntityManager, and cascade REMOVE from ALL deletes the children. This test does not use JPQL bulk delete because bulk has different semantics.
+4. **deletingNoOrphansWhenAssociationUnchanged:** loads and flushes an unchanged association; orphan removal does not randomly wipe children on every flush.
+
+**`@DataJpaTest`** opens a transaction for each test method and **rolls back at the end of the method**. Each test in this class is isolated by transaction rollback even though the same Spring test context may be cached. To prove **SQL was actually sent**, call **saveAndFlush** and **entityManager.flush**; do not confuse flush with commit. **entityManager.clear** forces subsequent reads to re-query instead of merely reading the first-level cache.
+
+No specific SQL stdout is assumed in the example because INSERT/DELETE ordering can vary with Hibernate and ID generation. Results are verified by assertions on **rows, IDs, FKs, and surviving parents**, not by relying on logs.
+
+## 9. `@DataJpaTest`: Verifying Lazy State, Detached Errors, and `@EntityGraph`
+
+**src/test/java/com/example/jparel/PurchaseOrderLazyLoadingTest.java**
+
+~~~java
+package com.example.jparel;
+
+import java.util.List;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
+import org.hibernate.Hibernate;
+import org.hibernate.LazyInitializationException;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@DataJpaTest
+class PurchaseOrderLazyLoadingTest {
+
+    @Autowired
+    private PurchaseOrderRepository orders;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    private Long createOrder(String code, int count) {
+        PurchaseOrder order = new PurchaseOrder(code);
+        for (int i = 0; i < count; i++) {
+            order.addLine(
+                    new OrderLine("SKU-" + i, 1, 10 + i));
+        }
+        orders.saveAndFlush(order);
+        Long id = order.getId();
+        entityManager.clear();
+        return id;
+    }
+
+    @Test
+    void collectionLoadsOnlyWhenAccessedInsideSession() {
+        Long id = createOrder("PO-LAZY", 2);
+        PurchaseOrder loaded =
+                orders.findById(id).orElseThrow();
+
+        assertFalse(Hibernate.isInitialized(loaded.getLines()));
+
+        assertEquals(2, loaded.getLines().size());
+        assertTrue(Hibernate.isInitialized(loaded.getLines()));
+    }
+
+    @Test
+    void detachedUninitializedCollectionFailsOnAccess() {
+        Long id = createOrder("PO-DETACH", 1);
+        PurchaseOrder loaded =
+                orders.findById(id).orElseThrow();
+
+        assertFalse(Hibernate.isInitialized(loaded.getLines()));
+        entityManager.detach(loaded);
+
+        assertThrows(LazyInitializationException.class,
+                () -> loaded.getLines().size());
+    }
+
+    @Test
+    void entityGraphLoadsCollectionBeforeDetach() {
+        Long id = createOrder("PO-DETAIL", 2);
+        PurchaseOrder detail =
+                orders.findDetailById(id).orElseThrow();
+
+        assertTrue(Hibernate.isInitialized(detail.getLines()));
+        entityManager.detach(detail);
+
+        assertEquals(2, detail.getLines().size());
+    }
+
+    @Test
+    void entityGraphCanFetchCollectionsForMultipleParents() {
+        createOrder("PO-LIST-1", 1);
+        createOrder("PO-LIST-2", 2);
+
+        List<PurchaseOrder> result = orders.findAllWithLines();
+        assertEquals(2, result.size());
+        assertTrue(result.stream()
+                .allMatch(order ->
+                    Hibernate.isInitialized(order.getLines())));
+    }
+}
+~~~
+
+### 9.1. What Does the First LAZY Test Verify?
+
+**collectionLoadsOnlyWhenAccessedInsideSession** creates data, flushes/clears, and loads the parent from the repository. The collection is uninitialized so `Hibernate.isInitialized` returns false; calling `size()` inside `@DataJpaTest`'s transaction lets Hibernate use the session to load lines, flipping the flag to true. This is a **behavioral assertion**, avoiding brittle SQL guessing based purely on the word LAZY.
+
+**detachedUninitializedCollectionFailsOnAccess** detaches the parent from the persistence context **before** accessing the collection. Hibernate no longer has a suitable session for lazy initialization, so `size()` throws **LazyInitializationException**. Key point: even though the test method still has an active transaction, a **detached object** is no longer managed; another active transaction will not auto-reattach it.
+
+**entityGraphLoadsCollectionBeforeDetach** calls the repository method with `@EntityGraph`. Hibernate initializes `lines` during the query before detaching; thus `size()` still reads the initialized collection after detach. Note this **does not guarantee nested associations inside OrderLine are initialized too**; a fetch graph only covers the requested paths.
+
+**entityGraphCanFetchCollectionsForMultipleParents** creates two orders in the same test, calls the fetch-graph repository method, and asserts the collections are initialized. It **does not assert exact SQL statement counts** because providers/configs vary; if N+1 performance is a hard requirement, add Hibernate statistics/SQL metrics independently.
+
+### 9.2. Why Not Use assertThrows Around repository.findById Directly?
+
+`repository.findById` normally succeeds and returns the parent; LAZY failures typically appear only **when touching an uninitialized association** beyond the persistence context boundary. Writing `assertThrows(LazyInitializationException.class, () -> repository.findById(id))` tests the wrong failure site. You must arrange **flush/clear, findById, confirm uninitialized, detach, and only then access the collection**.
+
+### 9.3. Conditions Affecting Test Results
+
+The tests assume Hibernate 6.6.x with a **LAZY collection**, H2, and no special settings like `enable_lazy_load_no_trans` or global fetch profiles eagerly pulling `lines` with the parent. If a project enables extra-lazy, eager graphs, bytecode enhancement, caching, or OSIV differently from the demo, exact details change. Tests should verify **your project's contract**, rather than forcing every mapping to emit a single Hibernate SQL pattern.
+
+## 10. Running the Example and Interpreting Results
+
+With a Gradle Wrapper compatible with JDK 17 and Spring Boot 3.4.5 at the root directory:
+
+~~~bash
+./gradlew clean test
+./gradlew test --tests com.example.jparel.PurchaseOrderMappingTest
+./gradlew test --tests com.example.jparel.PurchaseOrderLazyLoadingTest
+~~~
+
+On Windows use **gradlew.bat** with the same arguments. The tests are **designed to PASS** with the files and dependencies shown above. These are **expected outcomes inferred from the code**, not actual Gradle execution logs. You can enable Hibernate SQL logging to inspect queries, but do not copy a specific SQL trace as mandatory output across all versions.
+
+Expected results per assertions:
+
+| Test | Expected Evidence |
+| --- | --- |
+| cascadePersistSavesBothChildrenAndForeignKeys | Parent and 2 child rows exist; child FKs point to parent |
+| removingOneManagedChildDeletesOnlyThatOrphan | BOOK child deleted; parent and PEN child remain |
+| deletingParentAlsoRemovesOwnedChildren | Deleting parent removes both children via entity-level cascade |
+| deletingNoOrphansWhenAssociationUnchanged | No child row deleted when collection is unchanged |
+| collectionLoadsOnlyWhenAccessedInsideSession | Collection uninitialized before `size()`, initialized after `size()` |
+| detachedUninitializedCollectionFailsOnAccess | `LazyInitializationException` when accessing detached lazy collection |
+| entityGraphLoadsCollectionBeforeDetach | Collection initialized and readable after detach |
+| entityGraphCanFetchCollectionsForMultipleParents | Both parents have collections initialized per fetch graph |
+
+**Never use these green tests to claim production DB engines, transaction isolation, connection pools, or API serialization are correct.** H2 can differ from PostgreSQL/MySQL/Oracle in SQL dialect, FK behavior, locking, and migrations. When a feature relies on vendor-specific SQL or constraints, run `@DataJpaTest` against Testcontainers/a matching engine datasource and manage cleanup properly.
+
+## 11. Transactions and Flush: Observing Changes at the Right Time
+
+In JPA, we can separate three concepts:
+
+- **Persist/dirty checking:** marks entity state changes in the persistence context.
+- **Flush:** synchronizes pending changes to SQL inside the transaction; many mapping/constraint violations surface here.
+- **Commit:** finishes the transaction and makes data durable/visible per isolation rules; `@DataJpaTest` defaults to **rollback**, not commit.
+
+For example, a test checking only the Java collection:
+
+~~~java
+PurchaseOrder order = new PurchaseOrder("PO-TEST");
+order.addLine(new OrderLine("A", 1, 10));
+assertEquals(1, order.getLines().size());
+~~~
+
+is merely a **unit assertion on the Java helper**; it does not prove cascade or FKs. To prove mapping, use **saveAndFlush**, **clear**, **reload**, and then assert data.
+
+With orphan removal, the DELETE effect normally executes during **flush**, not necessarily the instant `List.remove` is called. If a test checks only collection length after removing, it could pass even with `orphanRemoval=false`. Assert **OrderLineRepository.existsById(removedId) == false** after flush/clear.
+
+### 11.1. When to Use TestEntityManager?
+
+Spring Boot `@DataJpaTest` provides **TestEntityManager** as a persist/flush/clear helper, though a standard **@PersistenceContext EntityManager** suffices for the tests in this lesson. Stick consistently to one tool so you do not confuse TestEntityManager with another transaction's persistence context. TestEntityManager does not make transactions commit, nor does it replace testing real database schemas.
+
+### 11.2. Bulk Delete and Orphan Removal
+
+Bulk JPQL/native deletes are not equivalent to individual `repository.delete(managedEntity)` calls. Bulk operations can bypass entity lifecycle callbacks, cascades, and persistence context state. When bulk-deleting orders, account for child rows, DB FK `ON DELETE CASCADE`, dedicated delete statements, or schema design, and write an integration test for that path. Never assume `CascadeType.ALL` on an entity collection handles all bulk SQL.
+
+## 12. Service Transaction and DTO Pattern to Prevent HTTP Lazy Errors
+
+A well-structured service decides **the exact data to load inside one transaction** and returns a **DTO**, instead of handing raw entities to Jackson after the transaction ends:
+
+~~~java
+@Service
+class OrderViewService {
+    private final PurchaseOrderRepository repository;
+
+    OrderViewService(PurchaseOrderRepository repository) {
+        this.repository = repository;
+    }
+
+    @Transactional(readOnly = true)
+    public OrderView detail(Long id) {
+        PurchaseOrder order = repository.findDetailById(id)
+                .orElseThrow();
+
+        List<LineView> lines = order.getLines().stream()
+                .map(line -> new LineView(
+                        line.getSku(),
+                        line.getQuantity(),
+                        line.getUnitPrice()))
+                .toList();
+
+        return new OrderView(order.getCode(), lines);
+    }
+
+    record LineView(String sku, int quantity, int unitPrice) {}
+    record OrderView(String code, List<LineView> lines) {}
+}
+~~~
+
+This is an **architectural excerpt**, not part of the runnable file tree in section 7, requiring Spring `@Service`, `@Transactional`, and `List` imports. It illustrates:
+- `@Transactional(readOnly=true)` keeps the persistence context open for querying and mapping inside the service.
+- `findDetailById` loads lines intentionally for the use case, minimizing N+1 and out-of-service LAZY access.
+- Record DTOs hold no Hibernate proxies or collection wrappers.
+- The controller can serialize the DTO after the service transaction closes without triggering lazy queries.
+
+**readOnly=true** is only a transaction/provider optimization hint, **not a security guard** blocking all writes. Never treat read-only transactions as an authorization mechanism.
+
+**Open Session in View (OSIV):** in web applications, enabling OSIV permits lazy loading during view serialization after the service call, yet blurs boundaries and can emit SQL outside business transactions. The sample YAML sets **spring.jpa.open-in-view=false** to encourage explicit fetching inside services.
+
+## 13. Other Mappings: OneToOne, ManyToMany, and Shared Entities
+
+### 13.1. @OneToOne with Orphan Removal
+
+An Account owns its AccountSettings; if settings are replaced/removed and have no independent meaning, **@OneToOne(orphanRemoval=true)** can make sense. However, bidirectional LAZY one-to-one, shared primary keys, and unique FKs have distinct proxy/enhancement constraints. Test replacing/removing via **flush/clear** and inspect real rows rather than asserting Java references alone.
+
+### 13.2. @ManyToMany Must Not Cascade REMOVE to Shared Targets
+
+For Student ↔ Course, Courses are shared across many students. Adding **cascade=ALL** from student to courses can make deleting a student try to delete a Course still referenced by others, causing data loss or FK violations. Normally only the join-table row should be removed, not the Course. When the link has properties like `enrollmentDate`/`status`/`grade`, model **Enrollment** as its own entity with **@ManyToOne** to Student and Course, giving Student **@OneToMany<Enrollment>** if lifecycle ownership fits.
+
+### 13.3. A Child That Can Move from Parent A to B
+
+With `orphanRemoval=true`, `removeLine` from A means “delete this child”, not “keep this child to attach to B”. If business logic moves a line, choose different semantics (no orphanRemoval, appropriate FK nullability/constraints, or explicit lifecycle operations inside a transaction), then verify post-flush database state. **Never copy ownership helpers from aggregate A to a shared-entity model without revisiting lifecycle policy.**
+
+### 13.4. @Embeddable vs. Child Entity
+
+If a child lacks independent identity, consider **@Embeddable + @ElementCollection** for value objects. Note that ElementCollection has its own lifecycle/fetch/update semantics and can generate heavy SQL when modifying the collection. Do not blindly replace every OneToMany with ElementCollection; decide based on identity and domain behavior.
+
+## 14. Common Errors and Resolutions
+
+| Symptom | Common Cause | Resolution |
+| --- | --- | --- |
+| FK `order_id` NULL on line insert | Added only to inverse collection, forgot `child.order` | Use helper syncing both sides; check nullable FK |
+| OrderLine not saved when saving parent | Missing cascade PERSIST or unexpected parent/child state | Pick cascade per lifecycle; check persist vs. merge |
+| Removed line from List yet row remains | Only cascade REMOVE, no orphanRemoval | If child is exclusively owned, enable orphanRemoval and flush |
+| Deleting parent deletes shared Product/Customer | `CascadeType.REMOVE/ALL` put on shared `@ManyToOne` | Remove REMOVE from shared associations; verify surviving data |
+| Removing child causes constraint error | FK `nullable=false` without deleting or validly updating link | Clarify orphan removal or unlink policy |
+| `LazyInitializationException` during JSON serialization | Controller returns detached entity/LAZY collection | Fetch graph inside transaction, map to DTO, avoid entity serialization |
+| `@DataJpaTest` green yet controller breaks | Test transaction keeps session open; web context differs | Test service/API transaction boundaries separately |
+| N+1 when displaying a list | Each parent touches lazy children | Projections, EntityGraph, use-case join fetch, batch fetch |
+| EAGER still suffers N+1 | Provider runs secondary SELECTs or different query shapes | Tune query plan; measure SQL instead of trusting EAGER |
+| `JOIN FETCH` collection + `Pageable` warning | Collection joins multiply rows; SQL-level paging invalid | Two-step pagination or projections |
+| `@ManyToMany` delete throws FK violation | Cascade REMOVE to shared target | Delete join rows only; use association entity |
+| `@OneToOne` LAZY still queries eagerly | Proxy/optional/inverse mapping or bytecode enhancement constraints | Check Hibernate behavior and entity design |
+| Test line count right yet DB wrong | Asserted Java collection without flush/clear/reload | Verify rows after SQL flush |
+| EntityGraph test misleading when context cached entity | L1 cache already holds initialized parent | Call `entityManager.clear()` before the query under test |
+| `equals`/`toString` triggers StackOverflow | Parent↔child recursion or lazy association traversal | Exclude associations from generated `equals`/`hashCode`/`toString` |
+| Bulk delete skips cascades | Bulk JPQL/SQL bypasses entity remove semantics | Use DB cascade/safe delete order and integration tests |
+| Tests slow due to multiple Spring contexts | `@SpringBootTest` instead of `@DataJpaTest`, varying cache keys | Slice tests for JPA; integration tests when multi-layer is needed |
+| H2 green, production DB fails | Different dialect, constraints, isolation, migrations | Testcontainers on production engine for risky features |
+
+## 15. A More Complete Testing Strategy
+
+A test suite for JPA relationships should span multiple levels:
+
+1. **Unit tests for helpers**: `addLine`/`removeLine` update both sides and forbid invalid reparenting; no Spring context needed.
+2. **`@DataJpaTest`**: cascade persist, owning FK, orphan delete, cascade remove, lazy initialized/detached, entity graph; using flush/clear/reload.
+3. **`@SpringBootTest` with real services**: transaction boundaries, DTO mapping, business validation, rollback semantics; needed for multi-bean integration.
+4. **HTTP integration tests**: JSON contract, error mapping, no recursive serialization, no `LazyInitializationException` under production OSIV config.
+5. **Database-engine integration**: use PostgreSQL/MySQL/... matching production when FK constraints, locks, bulk deletes, generated columns, custom SQL, or migrations matter.
+6. **Performance tests/SQL counting**: measure N+1 and query plans on sufficiently large fixtures; never treat a handful of H2 rows as indicative of production latency.
+
+**Never turn a green `@DataJpaTest` into a claim that every layer works.** It is evidence of JPA mapping and repository behavior against a test database, excluding MVC controllers, external services, production security, or production transaction isolation unless tested separately.
+
+## 16. Counter-Check Exercises
+
+**A.** Parent has `@OneToMany(mappedBy="order")`, child has `@ManyToOne @JoinColumn("order_id")`. Which side manages the FK? **Child.order**, because `@ManyToOne` is the owning side. `mappedBy` designates the inverse reference.
+
+**B.** Parent uses `cascade=REMOVE` with `orphanRemoval=false`. Does removing a child from the List guarantee a row DELETE? **No**. REMOVE propagates when deleting the parent, and does not auto-delete orphans on unlinking alone.
+
+**C.** Is enabling `orphanRemoval=true` on a collection referencing shared Products safe? **No** if Products are shared, because removing from the association can delete an entity needed elsewhere.
+
+**D.** What is the default fetch type of `@ManyToOne` if unspecified? **EAGER** per JPA, so consider explicit LAZY for most use cases.
+
+**E.** In `@DataJpaTest`, calling `getLines().size()` after `findById` succeeds. Does that prove a REST API returning the entity will avoid `LazyInitializationException`? **No**, because the test transaction is still open.
+
+**F.** How does `entityManager.clear()` before `repository.findById` help? It clears first-level managed instances to test reloading from the database rather than reusing existing Java objects.
+
+**G.** When an entity is detached after its collection was already initialized, does `size()` always throw `LazyInitializationException`? **No**; already-loaded collection data remains readable in memory.
+
+**H.** Why is `@EntityGraph` useful? It lets a specific repository method fetch an association for a use case without forcing the entire entity mapping to be EAGER.
+
+**I.** Querying a list of parents and touching each parent's lazy children causes N+1. How to address it? Use EntityGraph/JOIN FETCH or projections/batch fetching while measuring SQL, mindful of collection pagination.
+
+**J.** Is a bulk JPQL `DELETE` on orders identical to `repository.delete(managedOrder)` regarding cascades? **No**; bulk bypasses entity lifecycle, requiring separate FK/child handling.
+
+**K.** If a service only updates a dirty field on a managed OrderLine, will missing cascade MERGE cause the update to fail? **Not necessarily**; dirty checking of managed entities happens inside the persistence context. Cascade MERGE primarily governs merge operations across relationships, not every SQL UPDATE.
+
+**L.** A test flushes and still rolls back. Is that a contradiction? **No**. Flush sends SQL within the transaction; commit completes the transaction permanently, whereas `@DataJpaTest` rolls back at test end.
+
+### Review and QA Checklist
+
+- Chose `@OneToOne`/`@OneToMany`/`@ManyToOne`/`@ManyToMany` accurately per cardinality?
+- Know which table holds the FK column and which field carries the **owning side** annotation?
+- Does **mappedBy** reference the exact Java field name rather than a SQL column name?
+- Do add/remove helpers update **both the collection and child reference**?
+- Do cascade PERSIST/MERGE/REMOVE match **ownership lifecycle**, avoiding deleting shared entities?
+- Clearly distinguished **cascade REMOVE vs. orphanRemoval** across parent removal and child removal?
+- Verified orphan removal after **flush/clear** via row existence?
+- Do to-one relationships explicitly declare LAZY when eager loading is unnecessary?
+- Do LAZY tests use **clear/reload/isInitialized** so L1 cache does not mask behavior?
+- Do detached LAZY tests confirm the collection was uninitialized before detaching?
+- Does the service read associations inside a transaction and map to DTOs before exiting the transaction?
+- Used **@EntityGraph/JOIN FETCH** per use case instead of global EAGER?
+- Checked for N+1, duplicate parents, collection-fetch pagination issues, and real SQL counts when performance matters?
+- Avoided serializing bidirectional entity graphs directly to JSON?
+- Tested critical vendor SQL, FK schemas, and DB migrations on a production-like engine?
+- Reported the scope limits of **`@DataJpaTest` transaction rollback** without confusing flush and commit?
+
+**Conclusion:** The **owning side** controls FK updates, **cascade** controls operation propagation across entities, **orphanRemoval** controls deleting children removed from an owning association, and **LAZY** controls when associations load inside a persistence context. To verify them reliably, use **`@DataJpaTest` + flush/clear/reload + SQL/row assertions**, rather than inspecting a Java List alone; add **`@EntityGraph`/JOIN FETCH and DTO mapping inside transactions** for use cases needing children, instead of turning on global EAGER to hide LazyInitializationException.
+
+## Official Documentation
+
+- Hibernate ORM 6.6 User Guide — Associations, cascading, orphan removal, lazy fetching: https://docs.hibernate.org/orm/6.6/userguide/html_single/
+- Hibernate ORM 6.6 — Introduction to Hibernate 6, entity graphs and lazy fetching: https://docs.hibernate.org/orm/6.6/introduction/html_single/
+- Spring Data JPA — JPA Query Methods and EntityGraph: https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html
+- Spring Boot 3.4 — Testing Spring Boot Applications, Auto-configured Data JPA Tests: https://docs.spring.io/spring-boot/3.4/reference/testing/spring-boot-applications.html
+- Jakarta Persistence 3.1 Specification — Relationships, cascade, orphanRemoval, and fetch: https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1

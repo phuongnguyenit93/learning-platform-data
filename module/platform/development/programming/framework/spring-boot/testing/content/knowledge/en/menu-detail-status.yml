@@ -1,0 +1,3913 @@
+menu:
+- slug: testing-overview
+  title: Bức tranh kiểm thử
+  childs:
+  - slug: testing-overview-001
+    title: Kiểm thử tự động giải quyết vấn đề gì khi phát triển ứng dụng Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-002
+    title: Một ca kiểm thử gồm điều kiện ban đầu, hành động và kết quả mong đợi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-003
+    title: Đơn vị được kiểm thử và các ranh giới phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-004
+    title: Phân biệt unit test, test slice, integration test và kiểm thử đầu cuối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-005
+    title: Ứng dụng chạy được, context khởi động được và nghiệp vụ đúng là các bằng chứng khác nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-006
+    title: Vai trò của JUnit, Spring Test, Spring Boot Test, Mockito và Testcontainers
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-007
+    title: Kiểm thử hành vi quan sát được và tránh bám chặt cách hiện thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-008
+    title: Tính độc lập, lặp lại được và phản hồi nhanh của bộ kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-009
+    title: Trình tự học từ kiểm thử không có Spring đến tích hợp nhiều thành phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-strategy
+  title: Chiến lược kiểm thử
+  childs:
+  - slug: testing-strategy-001
+    title: Chọn cấp kiểm thử theo rủi ro và phạm vi cần chứng minh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-002
+    title: Phân bổ unit test, slice test và integration test theo kiến trúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-003
+    title: Ma trận trường hợp thành công, đầu vào sai, biên và phụ thuộc lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-004
+    title: Phân biệt kiểm thử chức năng, hợp đồng, bảo mật và hiệu năng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-005
+    title: Chọn thành phần thật, fake, stub, mock hoặc dịch vụ trong container
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-006
+    title: Arrange–Act–Assert và Given–When–Then để mô tả hành vi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-007
+    title: Viết kiểm thử hồi quy trước hoặc cùng lúc sửa lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-008
+    title: Vòng lặp TDD và lựa chọn điểm áp dụng trong Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-009
+    title: Đặt tên ca kiểm thử theo tình huống và kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-010
+    title: Độ bao phủ mã nguồn, độ mạnh của assertion và giới hạn của các con số
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-011
+    title: Chi phí bảo trì và cách nhận diện kiểm thử giá trị thấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-setup
+  title: Thiết lập kiểm thử
+  childs:
+  - slug: testing-setup-001
+    title: Cấu trúc src/test/java, src/test/resources và cách tổ chức package
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-setup-002
+    title: Dependency kiểm thử và phạm vi testImplementation, testRuntimeOnly
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-setup-003
+    title: Spring Boot dependency management và tương thích thư viện kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-setup-004
+    title: Starter kiểm thử chung và các module theo công nghệ ở từng dòng Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-setup-005
+    title: JUnit Platform, Jupiter và Vintage trong quá trình phát hiện test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-setup-006
+    title: Cấu hình Gradle useJUnitPlatform và thực thi test bằng wrapper
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-setup-007
+    title: Chạy một lớp, một phương thức hoặc một nhóm tag
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-setup-008
+    title: Cấu hình IDE và đối chiếu với cách chạy trên dòng lệnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-setup-009
+    title: Classpath, tài nguyên kiểm thử và khác biệt với môi trường ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-setup-010
+    title: Đọc báo cáo lỗi, stack trace và xác định ca kiểm thử thực sự đã chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: junit-jupiter
+  title: JUnit Jupiter
+  childs:
+  - slug: junit-jupiter-001
+    title: '@Test, @DisplayName và cấu trúc lớp kiểm thử'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-jupiter-002
+    title: '@BeforeEach, @AfterEach, @BeforeAll và @AfterAll'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-jupiter-003
+    title: Vòng đời PER_METHOD, PER_CLASS và trạng thái dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-jupiter-004
+    title: '@Nested để nhóm các tình huống liên quan'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-jupiter-005
+    title: '@ParameterizedTest với nguồn dữ liệu đơn giản'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-jupiter-006
+    title: '@MethodSource, @CsvSource và @CsvFileSource'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-jupiter-007
+    title: Kiểm thử giá trị null, rỗng, biên và tổ hợp đầu vào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-jupiter-008
+    title: '@Tag và phân nhóm theo mục đích thực thi'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-jupiter-009
+    title: Assumption, điều kiện môi trường và lý do bỏ qua test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-jupiter-010
+    title: Timeout và khác biệt giữa giới hạn thời gian thông thường với preemptive timeout
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-jupiter-011
+    title: Extension model, MockitoExtension và SpringExtension
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-jupiter-012
+    title: '@TempDir cho tài nguyên tạm và dọn dữ liệu sau test'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: assertions
+  title: Assertion
+  childs:
+  - slug: assertions-001
+    title: Chọn kết quả quan sát được để xác nhận hành vi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-002
+    title: JUnit assertions và nhóm nhiều điều kiện kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-003
+    title: 'AssertJ: fluent assertions và thông điệp lỗi dễ đọc'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-004
+    title: So sánh collection, thứ tự, phần tử trùng và tập rỗng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-005
+    title: So sánh đối tượng theo thuộc tính và recursive comparison
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-006
+    title: Kiểm tra exception, nguyên nhân và thông điệp phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-007
+    title: Kiểm tra thời gian, số thập phân và sai số được chấp nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-008
+    title: JSON assertions, JSONPath và so sánh cấu trúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-009
+    title: Soft assertions và phạm vi sử dụng có kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-010
+    title: Tránh assertion luôn đúng, quá yếu hoặc phụ thuộc chi tiết không liên quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mockito
+  title: Mockito
+  childs:
+  - slug: mockito-001
+    title: Mock, stub, fake và spy trong thiết kế kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-002
+    title: '@Mock, @InjectMocks và khởi tạo qua MockitoExtension'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-003
+    title: when–thenReturn, thenThrow và mô phỏng nhiều lần gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-004
+    title: ArgumentMatchers, eq và quy tắc dùng matcher nhất quán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-005
+    title: ArgumentCaptor để kiểm tra dữ liệu gửi đến phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-006
+    title: verify, số lần gọi và thứ tự khi hành vi yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-007
+    title: doReturn, doThrow và giới hạn khi làm việc với spy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-008
+    title: Strict stubbing và phát hiện cấu hình giả lập không được sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-009
+    title: Mock phương thức void, final hoặc static theo khả năng phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-010
+    title: Khép phạm vi static mock và tránh làm rò trạng thái giữa các test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-011
+    title: Phân biệt mock đối tượng Java với thay thế bean trong Spring context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-012
+    title: Giới hạn over-mocking và kiểm thử chỉ lặp lại mã hiện thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-unit-testing
+  title: Unit test nghiệp vụ
+  childs:
+  - slug: business-unit-testing-001
+    title: Kiểm thử service bằng constructor injection mà không khởi động Spring
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-unit-testing-002
+    title: Giả lập repository và kiểm chứng quy tắc nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-unit-testing-003
+    title: Kiểm thử validator, mapper và phép biến đổi dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-unit-testing-004
+    title: Phân biệt lỗi đầu vào với lỗi phụ thuộc hoặc trạng thái nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-unit-testing-005
+    title: Kiểm thử biên, trạng thái chuyển tiếp và nhánh xử lý lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-unit-testing-006
+    title: Đưa Clock vào thiết kế để kiểm thử logic theo thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-unit-testing-007
+    title: Kiểm soát ngẫu nhiên, UUID và bộ sinh định danh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-unit-testing-008
+    title: Kiểm tra tính lũy đẳng và hành vi khi thao tác bị gọi lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-unit-testing-009
+    title: Kiểm thử dữ liệu gửi ra ngoài thay vì chỉ đếm lời gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-unit-testing-010
+    title: Giới hạn của unit test với transaction, proxy, validation và cấu hình Spring
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-test-context
+  title: Spring TestContext
+  childs:
+  - slug: spring-test-context-001
+    title: TestContext framework và vai trò của SpringExtension
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-test-context-002
+    title: Khởi tạo ApplicationContext, tiêm phụ thuộc và thực thi test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-test-context-003
+    title: '@ContextConfiguration và khai báo cấu hình tối thiểu'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-test-context-004
+    title: '@SpringJUnitConfig khi cần Spring nhưng không cần Spring Boot'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-test-context-005
+    title: TestExecutionListener và các giai đoạn vòng đời kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-test-context-006
+    title: Context hierarchy và phạm vi cấu hình cha, con
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-test-context-007
+    title: Dependency injection vào test instance và constructor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-test-context-008
+    title: Kế thừa cấu hình, lớp @Nested và annotation tổng hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-test-context-009
+    title: 'Proxy Spring trong test: transaction, cache và method security'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-test-context-010
+    title: Phân biệt lỗi tải context với lỗi assertion hoặc lỗi nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-environment-configuration
+  title: Cấu hình môi trường test
+  childs:
+  - slug: test-environment-configuration-001
+    title: Tìm @SpringBootConfiguration và ảnh hưởng của cấu trúc package
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-configuration-002
+    title: Nested @Configuration và @TestConfiguration trong lớp kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-configuration-003
+    title: '@Import để bổ sung cấu hình hoặc bean cần thiết'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-configuration-004
+    title: '@ActiveProfiles và application-test.yml'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-configuration-005
+    title: '@TestPropertySource và properties trên annotation kiểm thử'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-configuration-006
+    title: '@DynamicPropertySource cho port, URL và tài nguyên tạo động'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-configuration-007
+    title: Thứ tự ưu tiên cấu hình và cách xác minh giá trị thực sự được dùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-configuration-008
+    title: '@ConfigurationProperties, binding và validation trong test'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-configuration-009
+    title: Tách cấu hình kiểm thử khỏi secret và dịch vụ production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-configuration-010
+    title: Điều khiển command-line arguments và thuộc tính khởi động theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-configuration-011
+    title: Dùng cấu hình dùng chung mà vẫn giữ ranh giới từng nhóm test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bean-replacement
+  title: Thay thế bean
+  childs:
+  - slug: bean-replacement-001
+    title: '@MockBean, @SpyBean và phạm vi áp dụng trong các dòng Spring Boot cũ'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-replacement-002
+    title: '@MockitoBean, @MockitoSpyBean và phiên bản Spring Framework hỗ trợ'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-replacement-003
+    title: Thay bean theo type, tên và qualifier khi có nhiều ứng viên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-replacement-004
+    title: Thêm mock khi thiếu bean so với bắt buộc thay bean đã tồn tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-replacement-005
+    title: Spy bean thật, tác động phụ và cách stub an toàn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-replacement-006
+    title: Reset mock giữa các ca kiểm thử và trạng thái dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-replacement-007
+    title: '@TestBean hoặc @TestConfiguration để cung cấp fake, stub'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-replacement-008
+    title: '@Primary, @Qualifier và giới hạn của việc bật bean definition overriding'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-replacement-009
+    title: Bean bị mock và ảnh hưởng đến proxy transaction, cache hoặc security
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-replacement-010
+    title: Ảnh hưởng của khai báo mock tới khóa cache ApplicationContext
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-replacement-011
+    title: Chọn test double ở đúng ranh giới thay vì mock toàn bộ chuỗi nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-test
+  title: '@SpringBootTest'
+  childs:
+  - slug: spring-boot-test-001
+    title: '@SpringBootTest tải ứng dụng theo cơ chế Spring Boot như thế nào'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-test-002
+    title: webEnvironment MOCK, NONE, RANDOM_PORT và DEFINED_PORT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-test-003
+    title: MOCK không đồng nghĩa có embedded server đang lắng nghe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-test-004
+    title: '@AutoConfigureMockMvc với context đầy đủ'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-test-005
+    title: '@AutoConfigureWebTestClient và điều kiện hỗ trợ của ứng dụng'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-test-006
+    title: Khởi động server thật với RANDOM_PORT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-test-007
+    title: '@LocalServerPort, management port và địa chỉ gọi trong test'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-test-008
+    title: Chọn classes, properties và các tùy chọn khởi động cần kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-test-009
+    title: ApplicationRunner, CommandLineRunner và tác động khi tải ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-test-010
+    title: Giao dịch trên luồng HTTP server khác với giao dịch của phương thức test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-test-011
+    title: Kiểm tra context khởi động và kiểm tra hành vi ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-test-012
+    title: Tiêu chí dùng full context thay cho unit test hoặc test slice
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-slices
+  title: Test slice
+  childs:
+  - slug: test-slices-001
+    title: Test slice giới hạn những bean và auto-configuration nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-slices-002
+    title: Chọn @WebMvcTest, @WebFluxTest, @JsonTest hoặc slice dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-slices-003
+    title: TypeExcludeFilter, component scan và nguyên nhân bean ngoài phạm vi xuất hiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-slices-004
+    title: Bổ sung dependency cần thiết bằng import hoặc bean thay thế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-slices-005
+    title: Phân biệt cấu hình slice với context ứng dụng đầy đủ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-slices-006
+    title: '@OverrideAutoConfiguration và @ImportAutoConfiguration'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-slices-007
+    title: Include filter, exclude filter và phạm vi quét thành phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-slices-008
+    title: '@AutoConfigureTestDatabase và chính sách thay thế DataSource'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-slices-009
+    title: Không chồng nhiều slice để tạo một context không rõ phạm vi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-slices-010
+    title: Ma trận chọn slice theo thành phần và bằng chứng cần thu được
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-mvc
+  title: Spring MVC
+  childs:
+  - slug: spring-mvc-001
+    title: '@WebMvcTest và phạm vi Controller, advice, converter, filter'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-002
+    title: 'MockMvc: standaloneSetup và webAppContextSetup'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-003
+    title: Gửi request với path variable, query parameter, header và body
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-004
+    title: Kiểm tra status, header, content type và nội dung phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-005
+    title: JSONPath, JSON assertions và dữ liệu trả về
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-006
+    title: Bean Validation, binding lỗi và phản hồi đầu vào không hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-007
+    title: '@ControllerAdvice, exception handler và ProblemDetail'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-008
+    title: Filter, interceptor, argument resolver và cấu hình MVC tùy chỉnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-009
+    title: Multipart, upload và giới hạn dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-010
+    title: Async request, asyncDispatch và xử lý phản hồi bất đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-011
+    title: MockMvcTester trong các phiên bản hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-012
+    title: Giới hạn của MockMvc so với gọi server qua HTTP thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-webflux
+  title: Spring WebFlux
+  childs:
+  - slug: spring-webflux-001
+    title: '@WebFluxTest và thành phần web được đưa vào context'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-002
+    title: WebTestClient gắn Controller, ApplicationContext hoặc server thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-003
+    title: Kiểm thử annotated Controller và functional endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-004
+    title: Gửi request và kiểm tra status, header, body
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-005
+    title: Kiểm tra Mono, Flux và dữ liệu nhiều phần tử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-006
+    title: Validation, codec và xử lý lỗi của WebFlux
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-007
+    title: Filter Reactive và cấu hình phụ thuộc của slice
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-008
+    title: Kiểm thử streaming, SSE và giới hạn thời gian chờ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-009
+    title: Kiểm tra Reactor Context được truyền trong chuỗi xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-010
+    title: Phân biệt lỗi ứng dụng với lỗi do block hoặc subscribe sai cách
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-011
+    title: Giới hạn của web slice khi cần kiểm chứng toàn bộ ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-flows
+  title: Luồng Reactive
+  childs:
+  - slug: reactive-flows-001
+    title: reactor-test và kiểm thử publisher ngoài Spring context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-flows-002
+    title: 'StepVerifier: giá trị, hoàn tất và tín hiệu lỗi'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-flows-003
+    title: Kiểm tra thứ tự phần tử và dữ liệu bị loại bỏ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-flows-004
+    title: Virtual time cho delay, timeout và retry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-flows-005
+    title: Tạo publisher đúng thời điểm khi dùng withVirtualTime
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-flows-006
+    title: TestPublisher để điều khiển dữ liệu và tín hiệu từ phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-flows-007
+    title: PublisherProbe để kiểm tra nhánh fallback được đăng ký
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-flows-008
+    title: Kiểm thử demand, backpressure và cancellation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-flows-009
+    title: Kiểm thử Reactor Context và ranh giới chuyển scheduler
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-flows-010
+    title: Giới hạn thời gian xác minh và dọn scheduler sau test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-integration
+  title: HTTP tích hợp
+  childs:
+  - slug: http-integration-001
+    title: Chọn kiểm thử HTTP thật khi cần kiểm chứng embedded server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-integration-002
+    title: TestRestTemplate, WebTestClient và RestTestClient theo dòng phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-integration-003
+    title: Cấu hình base URL từ RANDOM_PORT thay vì gắn cứng port
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-integration-004
+    title: Kiểm tra hợp đồng status, header, JSON và thông báo lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-integration-005
+    title: Cookie, session, redirect và nhiều request liên tiếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-integration-006
+    title: Kiểm thử upload, download và phản hồi có kích thước lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-integration-007
+    title: Dữ liệu được commit trên server và chiến lược dọn sau test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-integration-008
+    title: Kiểm thử management endpoint trên port riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-integration-009
+    title: Phân biệt kiểm thử HTTP phía backend với kiểm thử đầu cuối qua trình duyệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-integration-010
+    title: Giới hạn của mock web environment với filter container và cấu hình mạng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: json-and-serialization
+  title: JSON và serialization
+  childs:
+  - slug: json-and-serialization-001
+    title: '@JsonTest và phạm vi hỗ trợ serialization'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-and-serialization-002
+    title: JacksonTester, JsonbTester, GsonTester hoặc BasicJsonTester theo thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-and-serialization-003
+    title: Kiểm tra JSON đầu ra theo cấu trúc và thuộc tính quan trọng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-and-serialization-004
+    title: Deserialize đầu vào hợp lệ, thiếu trường, sai kiểu hoặc dư trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-and-serialization-005
+    title: Naming strategy, null, enum và định dạng ngày giờ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-and-serialization-006
+    title: Custom serializer, deserializer, module và @JsonComponent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-and-serialization-007
+    title: Round-trip serialization và giới hạn của việc chỉ kiểm tra hai chiều
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-and-serialization-008
+    title: Kiểm tra trường nhạy cảm không xuất hiện trong phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-and-serialization-009
+    title: JSON fixture, charset và tính ổn định khi so sánh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-and-serialization-010
+    title: Đối chiếu cấu hình mapper trong test với mapper ứng dụng thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graphql-and-soap
+  title: GraphQL và SOAP
+  childs:
+  - slug: graphql-and-soap-001
+    title: '@GraphQlTest và phạm vi resolver, controller được kiểm thử'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-and-soap-002
+    title: GraphQlTester cho query, mutation và biến đầu vào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-and-soap-003
+    title: Kiểm tra data path, GraphQL errors và nullability
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-and-soap-004
+    title: ExecutionGraphQlServiceTester so với kiểm thử qua HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-and-soap-005
+    title: HttpGraphQlTester và kiểm chứng transport, authentication
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-and-soap-006
+    title: Kiểm thử subscription và dữ liệu phát ra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-and-soap-007
+    title: Kiểm thử resolver phụ thuộc service, DataLoader và ngữ cảnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-and-soap-008
+    title: '@WebServiceClientTest cho ứng dụng SOAP client'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-and-soap-009
+    title: '@WebServiceServerTest và MockWebServiceClient theo phiên bản hỗ trợ'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-and-soap-010
+    title: Kiểm tra XML payload, SOAP fault và ánh xạ lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-and-soap-011
+    title: Chọn kiểm thử hợp đồng hay tích hợp transport theo rủi ro
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-data-jpa
+  title: Spring Data JPA
+  childs:
+  - slug: spring-data-jpa-001
+    title: '@DataJpaTest và thành phần persistence được tự cấu hình'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-jpa-002
+    title: Embedded database, database thật và @AutoConfigureTestDatabase
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-jpa-003
+    title: TestEntityManager với persist, flush, clear và find
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-jpa-004
+    title: Kiểm thử derived query, JPQL và native query
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-jpa-005
+    title: Phân biệt dữ liệu trong persistence context với dữ liệu đã ghi xuống database
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-jpa-006
+    title: Ràng buộc unique, foreign key và thời điểm phát sinh lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-jpa-007
+    title: Mapping quan hệ, cascade, orphan removal và lazy loading
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-jpa-008
+    title: Phân trang, sắp xếp, projection và dữ liệu tổng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-jpa-009
+    title: Kiểm thử optimistic locking và xung đột cập nhật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-jpa-010
+    title: H2 khác database production ở dialect, kiểu dữ liệu và hành vi SQL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-jpa-011
+    title: Kiểm chứng migration và schema thay vì chỉ dựa vào tự tạo bảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-jpa-012
+    title: Giới hạn rollback mặc định đối với các hành vi cần commit thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdbc-and-sql-data
+  title: JDBC và dữ liệu SQL
+  childs:
+  - slug: jdbc-and-sql-data-001
+    title: '@JdbcTest và kiểm thử JdbcTemplate'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-sql-data-002
+    title: '@DataJdbcTest cho Spring Data JDBC'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-sql-data-003
+    title: '@JooqTest và cấu hình DSLContext'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-sql-data-004
+    title: '@DataR2dbcTest và kiểm thử truy cập dữ liệu Reactive'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-sql-data-005
+    title: Kiểm tra row mapping, giá trị null và chuyển đổi kiểu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-sql-data-006
+    title: Kiểm tra câu lệnh SQL, điều kiện lọc và số dòng bị tác động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-sql-data-007
+    title: Generated key, batch update và ràng buộc database
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-sql-data-008
+    title: Giao dịch JDBC so với giao dịch Reactive trong kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-sql-data-009
+    title: Kiểm thử stored procedure hoặc tính năng riêng của database khi có sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-sql-data-010
+    title: Chọn slice hoặc full context để kiểm chứng cấu hình DataSource thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: non-sql-data
+  title: Dữ liệu ngoài SQL
+  childs:
+  - slug: non-sql-data-001
+    title: '@DataMongoTest và kiểm thử document, mapping, query'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-sql-data-002
+    title: '@DataRedisTest với cache, TTL và cấu trúc dữ liệu được sử dụng'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-sql-data-003
+    title: '@DataElasticsearchTest và khác biệt của khả năng hỗ trợ theo phiên bản'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-sql-data-004
+    title: '@DataNeo4jTest cho quan hệ và truy vấn đồ thị'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-sql-data-005
+    title: '@DataCassandraTest, @DataCouchbaseTest hoặc @DataLdapTest khi ứng dụng có tích hợp'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-sql-data-006
+    title: Khởi tạo dịch vụ thật bằng container và cấu hình kết nối động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-sql-data-007
+    title: Dọn collection, key, index hoặc dữ liệu giữa các test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-sql-data-008
+    title: Eventual consistency, refresh index và chờ điều kiện quan sát được
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-sql-data-009
+    title: Phiên bản dịch vụ, mapping và giới hạn của bản giả lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-sql-data-010
+    title: Kiểm thử tính năng giao dịch theo khả năng của từng hệ lưu trữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transaction-testing
+  title: Giao dịch kiểm thử
+  childs:
+  - slug: transaction-testing-001
+    title: Test-managed transaction, transaction của ứng dụng và transaction của database
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-testing-002
+    title: '@Transactional trên test và phạm vi rollback mặc định'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-testing-003
+    title: '@Rollback, @Commit và kiểm soát dữ liệu sau mỗi test'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-testing-004
+    title: TestTransaction để kết thúc và mở lại giao dịch có chủ đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-testing-005
+    title: '@BeforeTransaction và @AfterTransaction'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-testing-006
+    title: Flush để quan sát lỗi SQL trước khi transaction kết thúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-testing-007
+    title: REQUIRES_NEW và dữ liệu có thể được commit ngoài transaction của test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-testing-008
+    title: HTTP thật, @Async và lời gọi chạy ngoài luồng transaction của test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-testing-009
+    title: Preemptive timeout và rủi ro thao tác ngoài ngữ cảnh giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-testing-010
+    title: Kiểm thử after-commit event và tác vụ chỉ chạy sau commit
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-testing-011
+    title: Giao dịch Reactive và khác biệt với cơ chế ThreadLocal
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-testing-012
+    title: Chiến lược dọn dữ liệu khi rollback không bao phủ toàn bộ thao tác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-data
+  title: Dữ liệu kiểm thử
+  childs:
+  - slug: test-data-001
+    title: Fixture, object builder và dữ liệu có ý nghĩa theo từng tình huống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-002
+    title: Tạo dữ liệu tối thiểu để quan sát một hành vi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-003
+    title: '@Sql, @SqlGroup và thời điểm chạy script'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-004
+    title: '@SqlConfig, transaction mode và script dọn dữ liệu'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-005
+    title: Flyway, Liquibase và kiểm chứng nâng cấp schema
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-006
+    title: Tách dữ liệu kiểm thử khỏi seed data của ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-007
+    title: Định danh, thời gian, múi giờ và locale có thể lặp lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-008
+    title: Dữ liệu biên, ký tự Unicode, null và quan hệ không hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-009
+    title: Schema, database hoặc namespace riêng cho từng nhóm test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-010
+    title: Tránh phụ thuộc thứ tự và dữ liệu còn lại từ test trước
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-011
+    title: Kiểm thử truy vấn với kích thước, phân bố và đặc điểm dữ liệu phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testcontainers
+  title: Testcontainers
+  childs:
+  - slug: testcontainers-001
+    title: Vì sao dùng dịch vụ thật trong container cho kiểm thử tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-002
+    title: Dependency Testcontainers, JUnit integration và môi trường Docker
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-003
+    title: '@Testcontainers, @Container và vòng đời static hoặc instance'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-004
+    title: Container do Spring quản lý qua @Bean trong cấu hình test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-005
+    title: '@ServiceConnection và ConnectionDetails trong các phiên bản hỗ trợ'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-006
+    title: '@DynamicPropertySource khi cần tự cung cấp cấu hình kết nối'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-007
+    title: Phân biệt container dùng chung với dữ liệu dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-008
+    title: Chọn image, ghim phiên bản và kiểm soát tính lặp lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-009
+    title: Mapped port, container network và URL từ ứng dụng đến dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-010
+    title: Wait strategy, readiness và kiểm tra dịch vụ thực sự sẵn sàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-011
+    title: Dọn tài nguyên, log container và chẩn đoán startup lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-012
+    title: Container reuse, context cache và giới hạn khi chạy song song
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-013
+    title: Chạy Testcontainers trên CI với quyền, tài nguyên và Docker phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-014
+    title: Docker Compose trong test và lựa chọn theo khả năng hỗ trợ của Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-client-and-mocking
+  title: HTTP client và giả lập
+  childs:
+  - slug: http-client-and-mocking-001
+    title: Chọn ranh giới giả lập khi ứng dụng gọi dịch vụ HTTP ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-and-mocking-002
+    title: '@RestClientTest và cấu hình client được đưa vào slice'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-and-mocking-003
+    title: MockRestServiceServer với RestTemplate hoặc RestClient theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-and-mocking-004
+    title: HTTP stub server cho WebClient và client cần kiểm chứng transport
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-and-mocking-005
+    title: Kiểm tra URL, method, header, query, body và số lần gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-and-mocking-006
+    title: Giả lập phản hồi thành công, dữ liệu sai và mã lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-and-mocking-007
+    title: Timeout, chậm phản hồi, ngắt kết nối và giới hạn retry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-and-mocking-008
+    title: Fallback, circuit breaker và tránh gọi lặp ngoài dự kiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-and-mocking-009
+    title: Kiểm tra propagation của token, correlation ID và header cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-and-mocking-010
+    title: Khởi động stub ở port động, reset expectation và dọn sau test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-and-mocking-011
+    title: Giới hạn của mock tại lớp Java so với server giả lập qua HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messaging
+  title: Messaging
+  childs:
+  - slug: messaging-001
+    title: Phân biệt unit test listener với tích hợp qua broker thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-002
+    title: Giả lập producer, consumer hoặc adapter ở ranh giới nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-003
+    title: Embedded Kafka và Kafka trong Testcontainers
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-004
+    title: RabbitMQ trong container và công cụ kiểm thử của Spring AMQP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-005
+    title: Topic, queue, consumer group và cách ly dữ liệu kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-006
+    title: Serialization, header, routing key và schema thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-007
+    title: Chờ listener sẵn sàng trước khi gửi dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-008
+    title: Xác nhận xử lý bất đồng bộ bằng điều kiện có thời hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-009
+    title: Retry, redelivery, dead-letter và kiểm tra lỗi không bị mất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-010
+    title: Thông điệp trùng, tính lũy đẳng và tác động nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-011
+    title: Transaction, outbox và quan hệ giữa ghi database với gửi thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-012
+    title: Dọn broker state, offset và tài nguyên sau từng nhóm test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-testing
+  title: Bảo mật
+  childs:
+  - slug: security-testing-001
+    title: spring-security-test và tích hợp filter chain thật trong kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-002
+    title: '@WithMockUser, anonymous và danh tính tùy chỉnh'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-003
+    title: Kiểm thử chưa xác thực, thiếu quyền và được phép truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-004
+    title: CSRF token và phân biệt lỗi CSRF với lỗi phân quyền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-005
+    title: Form login, HTTP Basic, session và logout khi ứng dụng có sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-006
+    title: JWT, opaque token, OAuth2 Login và các công cụ mô phỏng tương ứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-007
+    title: Authentication được mock không chứng minh chữ ký hoặc toàn bộ luồng xác thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-008
+    title: Kiểm thử method security qua Spring proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-009
+    title: Quyền theo đối tượng, chủ sở hữu và cách ly tenant
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-010
+    title: Kiểm thử CORS, security header và xử lý lỗi bảo mật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-011
+    title: Giới hạn của việc tắt filter để làm test thành công
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-012
+    title: Kiểm thử bảo mật Reactive với WebTestClient và Reactor Context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: async-and-scheduling
+  title: Bất đồng bộ và lịch chạy
+  childs:
+  - slug: async-and-scheduling-001
+    title: Kiểm thử @Async qua proxy và executor được cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-scheduling-002
+    title: CompletableFuture, callback và truyền lỗi về phía kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-scheduling-003
+    title: Chờ điều kiện hoàn tất thay cho thời gian ngủ cố định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-scheduling-004
+    title: CountDownLatch, barrier và phối hợp luồng có kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-scheduling-005
+    title: Clock, scheduler và kiểm thử tác vụ theo thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-scheduling-006
+    title: Tách logic nghiệp vụ khỏi @Scheduled để kiểm thử độc lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-scheduling-007
+    title: Kiểm soát việc tự chạy scheduler khi khởi động context test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-scheduling-008
+    title: Truyền SecurityContext, tenant và correlation ID sang tác vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-scheduling-009
+    title: Timeout, hủy tác vụ và dọn thread sau test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-scheduling-010
+    title: Kiểm thử Spring Batch job, step và tham số khi ứng dụng có sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-scheduling-011
+    title: Kiểm thử chạy lại, xử lý trùng và lỗi giữa chừng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-scheduling-012
+    title: Giới hạn của executor đồng bộ khi cần chứng minh hành vi đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: auto-configuration-testing
+  title: Kiểm thử auto-configuration
+  childs:
+  - slug: auto-configuration-testing-001
+    title: ApplicationContextRunner cho auto-configuration có phạm vi hẹp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-testing-002
+    title: AutoConfigurations.of và cấu hình cần được kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-testing-003
+    title: withUserConfiguration và bean do ứng dụng cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-testing-004
+    title: withPropertyValues và ma trận điều kiện cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-testing-005
+    title: '@ConditionalOnClass, @ConditionalOnProperty và @ConditionalOnMissingBean'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-testing-006
+    title: FilteredClassLoader để kiểm thử khi dependency không có trên classpath
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-testing-007
+    title: Kiểm tra loại bean, số lượng bean và thuộc tính cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-testing-008
+    title: Xác minh auto-configuration nhường quyền cho cấu hình người dùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-testing-009
+    title: WebApplicationContextRunner và ReactiveWebApplicationContextRunner
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-testing-010
+    title: Kiểm thử binding, validation và giá trị mặc định của configuration properties
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-testing-011
+    title: Đọc ConditionEvaluationReport khi điều kiện không khớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: additional-integration
+  title: Tích hợp bổ sung
+  childs:
+  - slug: additional-integration-001
+    title: Kiểm thử @Cacheable, @CachePut, @CacheEvict qua bean proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: additional-integration-002
+    title: Cache key, TTL và dữ liệu tách biệt giữa người dùng hoặc tenant
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: additional-integration-003
+    title: Xóa cache giữa các ca kiểm thử và kiểm chứng cache provider thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: additional-integration-004
+    title: Kiểm thử method validation và khác biệt với gọi đối tượng Java trực tiếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: additional-integration-005
+    title: Kiểm tra tác động của self-invocation tới transaction, cache và validation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: additional-integration-006
+    title: File, đường dẫn, charset và tài nguyên trong @TempDir
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: additional-integration-007
+    title: ClassPathResource trong test và giới hạn khi ứng dụng được đóng gói
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: additional-integration-008
+    title: Email với mail server giả lập và xác nhận nội dung, người nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: additional-integration-009
+    title: Object storage hoặc hệ thống tệp ngoài được thay thế ở đúng ranh giới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: additional-integration-010
+    title: Kiểm tra lỗi IO, quyền truy cập, đóng stream và dọn tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: events-and-observability
+  title: Sự kiện và observability
+  childs:
+  - slug: events-and-observability-001
+    title: '@RecordApplicationEvents và ApplicationEvents'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-observability-002
+    title: Kiểm tra loại sự kiện, nội dung và số lần phát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-observability-003
+    title: Phân biệt sự kiện đã phát với listener đã xử lý xong
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-observability-004
+    title: '@EventListener, @TransactionalEventListener và thời điểm commit'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-observability-005
+    title: Kiểm thử listener đồng bộ, bất đồng bộ và nhánh xử lý lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-observability-006
+    title: Kiểm thử ApplicationRunner, readiness và vòng đời ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-observability-007
+    title: '@AutoConfigureObservability theo khả năng hỗ trợ của phiên bản'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-observability-008
+    title: MeterRegistry thử nghiệm và kiểm chứng counter, timer, tag
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-observability-009
+    title: Observation, trace context và tránh phụ thuộc exporter bên ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-observability-010
+    title: Health indicator, Actuator endpoint và chính sách truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-observability-011
+    title: CapturedOutput hoặc công cụ ghi log thử nghiệm khi log là hành vi cần chứng minh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contracts-and-resilience
+  title: Hợp đồng và khả năng phục hồi
+  childs:
+  - slug: contracts-and-resilience-001
+    title: Phân biệt contract test với integration test và kiểm thử đầu cuối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-resilience-002
+    title: Hợp đồng request, response, schema và khả năng tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-resilience-003
+    title: Consumer-driven contract khi nhiều dịch vụ phát triển độc lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-resilience-004
+    title: Kiểm tra thay đổi tương thích và thay đổi làm hỏng client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-resilience-005
+    title: Giả lập phụ thuộc chậm, lỗi, mất kết nối hoặc trả dữ liệu không hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-resilience-006
+    title: Retry có giới hạn, backoff và tránh thực thi nghiệp vụ hai lần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-resilience-007
+    title: Timeout, fallback và circuit breaker theo cấu hình ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-resilience-008
+    title: Kiểm thử hoạt động khi database, broker hoặc dịch vụ ngoài tạm gián đoạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-resilience-009
+    title: Kiểm thử khởi động với cấu hình thiếu hoặc tài nguyên chưa sẵn sàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-resilience-010
+    title: Ranh giới giữa kiểm thử chức năng, kiểm thử tải và thử nghiệm gây lỗi có kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-cache-and-performance
+  title: Context cache và hiệu năng
+  childs:
+  - slug: context-cache-and-performance-001
+    title: Context cache tái sử dụng ApplicationContext như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-cache-and-performance-002
+    title: 'Các thành phần tạo khóa cache: cấu hình, profile, properties và bean override'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-cache-and-performance-003
+    title: Quan sát cache hit, miss và số context thực sự được tạo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-cache-and-performance-004
+    title: Chuẩn hóa cấu hình test để giảm context trùng lặp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-cache-and-performance-005
+    title: '@DirtiesContext và chi phí dựng lại ứng dụng'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-cache-and-performance-006
+    title: Đo thời gian khởi động context, container và từng nhóm test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-cache-and-performance-007
+    title: Thay full-context test bằng slice hoặc unit test khi đủ bằng chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-cache-and-performance-008
+    title: Container dùng chung, context được cache và vòng đời kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-cache-and-performance-009
+    title: Giới hạn của cache khi Gradle fork nhiều JVM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-cache-and-performance-010
+    title: Chọn phạm vi tối ưu mà vẫn giữ tính độc lập và khả năng phát hiện lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: isolation-and-parallel-execution
+  title: Cách ly và chạy song song
+  childs:
+  - slug: isolation-and-parallel-execution-001
+    title: Độc lập theo phương thức, lớp, JVM và tài nguyên ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-parallel-execution-002
+    title: JUnit parallel execution và số worker của Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-parallel-execution-003
+    title: Singleton bean, mock dùng chung và trạng thái có thể thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-parallel-execution-004
+    title: Database, schema, topic, queue và namespace riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-parallel-execution-005
+    title: Port động và tránh tranh chấp tài nguyên mạng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-parallel-execution-006
+    title: Static field, system property, locale và timezone dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-parallel-execution-007
+    title: '@DirtiesContext và bean override khi nhiều test dùng cùng context'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-parallel-execution-008
+    title: ResourceLock hoặc cơ chế khóa theo khả năng của JUnit
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-parallel-execution-009
+    title: Clock, random seed và khả năng tái hiện một lần chạy thất bại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-parallel-execution-010
+    title: Phát hiện test phụ thuộc thứ tự hoặc dữ liệu còn sót
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-parallel-execution-011
+    title: Chạy lặp, xáo trộn thứ tự và phân tích race condition
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-parallel-execution-012
+    title: Dọn executor, scheduler, connection và container khi test kết thúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-and-ci
+  title: Build và CI
+  childs:
+  - slug: build-and-ci-001
+    title: Tách nhóm unit, slice, integration và kiểm thử đầu cuối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-ci-002
+    title: JUnit tag, Gradle test filter và task kiểm thử theo nhóm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-ci-003
+    title: Source set hoặc JVM Test Suite cho integration test theo phiên bản Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-ci-004
+    title: Thứ tự task, dependency và kiểm tra cần chạy trước khi build thành công
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-ci-005
+    title: Ma trận JDK, Spring Boot và phiên bản dịch vụ phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-ci-006
+    title: Docker trên runner và tài nguyên cho Testcontainers
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-ci-007
+    title: Cache dependency, image và giới hạn của việc tái sử dụng kết quả test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-ci-008
+    title: JUnit XML, HTML report, log và artifact để điều tra lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-ci-009
+    title: 'JaCoCo: line, branch coverage và chất lượng điều kiện kiểm chứng'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-ci-010
+    title: Mutation testing để đánh giá khả năng phát hiện thay đổi sai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-ci-011
+    title: Test retry, flaky test và chính sách xử lý lỗi không ổn định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-ci-012
+    title: Bảo vệ secret, dữ liệu thật và đích kết nối trong môi trường CI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-troubleshooting
+  title: Chẩn đoán lỗi kiểm thử
+  childs:
+  - slug: test-troubleshooting-001
+    title: Test không được phát hiện do engine, classpath, tên hoặc bộ lọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-troubleshooting-002
+    title: Failed to load ApplicationContext và truy nguyên lỗi đầu tiên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-troubleshooting-003
+    title: Context failure threshold và thông báo lặp che nguyên nhân gốc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-troubleshooting-004
+    title: Không tìm thấy @SpringBootConfiguration hoặc chọn sai cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-troubleshooting-005
+    title: Thiếu bean trong slice, import dư và vòng phụ thuộc cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-troubleshooting-006
+    title: Nhiều bean cùng type, qualifier sai hoặc bean override không đúng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-troubleshooting-007
+    title: Mockito stubbing sai, mock không được dùng hoặc verify sai thời điểm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-troubleshooting-008
+    title: Mockito agent, mock maker và tương thích JDK
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-troubleshooting-009
+    title: MockMvc trả 401, 403 hoặc 404 ngoài dự kiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-troubleshooting-010
+    title: Database constraint chỉ lỗi sau flush hoặc commit
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-troubleshooting-011
+    title: Container chưa sẵn sàng, sai mapped port hoặc mất kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-troubleshooting-012
+    title: Test chỉ thất bại khi chạy cả suite hoặc trên CI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-troubleshooting-013
+    title: Reactive test không hoàn tất, mất context hoặc dùng scheduler sai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-troubleshooting-014
+    title: Port, thread hoặc tài nguyên còn sống sau khi test kết thúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versions-and-migration
+  title: Phiên bản và chuyển đổi
+  childs:
+  - slug: versions-and-migration-001
+    title: Đối chiếu Spring Boot, Spring Framework, JUnit, Mockito và Testcontainers
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-migration-002
+    title: JUnit 4, SpringRunner và chuyển sang Jupiter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-migration-003
+    title: Vintage engine cho giai đoạn chạy song song bộ test cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-migration-004
+    title: 'JUnit 5 và JUnit 6: tương thích với dòng Spring Boot đang sử dụng'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-migration-005
+    title: '@MockBean, @SpyBean và chuyển sang @MockitoBean, @MockitoSpyBean'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-migration-006
+    title: Thay đổi module, starter và package test annotation giữa các dòng Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-migration-007
+    title: MockMvcTester, RestTestClient và API chỉ có ở phiên bản hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-migration-008
+    title: Thay đổi Jackson, JSON tester và dependency serialization
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-migration-009
+    title: Thay đổi test database replacement, service connection và thư viện container
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-migration-010
+    title: AOT, native testing và phạm vi annotation được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-migration-011
+    title: Giữ ma trận hành vi làm chuẩn khi refactor hoặc nâng cấp bộ kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-testing-practice
+  title: Thực hành tích hợp
+  childs:
+  - slug: integrated-testing-practice-001
+    title: Xây bộ kiểm thử cho một tính năng từ service đến HTTP và database
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-testing-practice-002
+    title: Viết unit test cho quy tắc nghiệp vụ có nhánh lỗi và điều kiện biên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-testing-practice-003
+    title: Kiểm thử Controller bằng @WebMvcTest và hợp đồng phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-testing-practice-004
+    title: Kiểm thử repository với database thật trong Testcontainers
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-testing-practice-005
+    title: Kiểm thử cùng nghiệp vụ qua @SpringBootTest với RANDOM_PORT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-testing-practice-006
+    title: Chứng minh ranh giới rollback và dọn dữ liệu sau HTTP test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-testing-practice-007
+    title: Giả lập dịch vụ ngoài với timeout, lỗi và retry có giới hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-testing-practice-008
+    title: Kiểm thử gửi, nhận thông điệp và xử lý thông điệp trùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-testing-practice-009
+    title: Kiểm thử xác thực, quyền sở hữu và truy cập chéo tenant
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-testing-practice-010
+    title: Kiểm thử luồng Reactive bằng virtual time và WebTestClient
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-testing-practice-011
+    title: Đo số context, thời gian suite và tối ưu cấu hình dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-testing-practice-012
+    title: Chạy bộ kiểm thử trên CI và điều tra một lỗi chỉ xuất hiện khi chạy song song
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-testing-practice-013
+    title: Tổng hợp ma trận yêu cầu, bằng chứng và giới hạn của từng loại test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

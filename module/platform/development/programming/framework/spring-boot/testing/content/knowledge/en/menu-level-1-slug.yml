@@ -1,0 +1,115 @@
+menu:
+- title: Bức tranh kiểm thử
+  slug: testing-overview
+  index: 0
+- title: Chiến lược kiểm thử
+  slug: testing-strategy
+  index: 1
+- title: Thiết lập kiểm thử
+  slug: testing-setup
+  index: 2
+- title: JUnit Jupiter
+  slug: junit-jupiter
+  index: 3
+- title: Assertion
+  slug: assertions
+  index: 4
+- title: Mockito
+  slug: mockito
+  index: 5
+- title: Unit test nghiệp vụ
+  slug: business-unit-testing
+  index: 6
+- title: Spring TestContext
+  slug: spring-test-context
+  index: 7
+- title: Cấu hình môi trường test
+  slug: test-environment-configuration
+  index: 8
+- title: Thay thế bean
+  slug: bean-replacement
+  index: 9
+- title: '@SpringBootTest'
+  slug: spring-boot-test
+  index: 10
+- title: Test slice
+  slug: test-slices
+  index: 11
+- title: Spring MVC
+  slug: spring-mvc
+  index: 12
+- title: Spring WebFlux
+  slug: spring-webflux
+  index: 13
+- title: Luồng Reactive
+  slug: reactive-flows
+  index: 14
+- title: HTTP tích hợp
+  slug: http-integration
+  index: 15
+- title: JSON và serialization
+  slug: json-and-serialization
+  index: 16
+- title: GraphQL và SOAP
+  slug: graphql-and-soap
+  index: 17
+- title: Spring Data JPA
+  slug: spring-data-jpa
+  index: 18
+- title: JDBC và dữ liệu SQL
+  slug: jdbc-and-sql-data
+  index: 19
+- title: Dữ liệu ngoài SQL
+  slug: non-sql-data
+  index: 20
+- title: Giao dịch kiểm thử
+  slug: transaction-testing
+  index: 21
+- title: Dữ liệu kiểm thử
+  slug: test-data
+  index: 22
+- title: Testcontainers
+  slug: testcontainers
+  index: 23
+- title: HTTP client và giả lập
+  slug: http-client-and-mocking
+  index: 24
+- title: Messaging
+  slug: messaging
+  index: 25
+- title: Bảo mật
+  slug: security-testing
+  index: 26
+- title: Bất đồng bộ và lịch chạy
+  slug: async-and-scheduling
+  index: 27
+- title: Kiểm thử auto-configuration
+  slug: auto-configuration-testing
+  index: 28
+- title: Tích hợp bổ sung
+  slug: additional-integration
+  index: 29
+- title: Sự kiện và observability
+  slug: events-and-observability
+  index: 30
+- title: Hợp đồng và khả năng phục hồi
+  slug: contracts-and-resilience
+  index: 31
+- title: Context cache và hiệu năng
+  slug: context-cache-and-performance
+  index: 32
+- title: Cách ly và chạy song song
+  slug: isolation-and-parallel-execution
+  index: 33
+- title: Build và CI
+  slug: build-and-ci
+  index: 34
+- title: Chẩn đoán lỗi kiểm thử
+  slug: test-troubleshooting
+  index: 35
+- title: Phiên bản và chuyển đổi
+  slug: versions-and-migration
+  index: 36
+- title: Thực hành tích hợp
+  slug: integrated-testing-practice
+  index: 37

@@ -1,0 +1,305 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Môi trường thực thi ứng dụng (application runtime) là gì và quản lý những gì
+  - Phân biệt tiến trình JVM, ứng dụng Spring Boot, ApplicationContext và bean
+  - 'Bản đồ vòng đời: khởi động, sẵn sàng, hoạt động và dừng'
+  - Vai trò của Spring Boot so với vòng đời container của Spring Framework
+  - Phân biệt ứng dụng chạy một lần với dịch vụ hoạt động lâu dài
+  - Mối liên hệ với cấu hình ngoài, tự cấu hình, máy chủ web và Actuator
+  - Kiến thức Java 21, IoC và Spring Boot 3.3 cần chuẩn bị
+  - Lộ trình học qua ứng dụng mẫu và bằng chứng quan sát lúc chạy
+- level1: Khởi chạy ứng dụng
+  level2:
+  - Từ phương thức main đến SpringApplication.run
+  - Vai trò của lớp nguồn chính và @SpringBootApplication
+  - Dùng phương thức run tĩnh và đối tượng SpringApplication tùy biến
+  - Giá trị trả về ConfigurableApplicationContext và thời điểm run hoàn tất
+  - Khởi chạy từ IDE, Gradle bootRun và tệp JAR
+  - Phân biệt tham số JVM, tham số công cụ dựng và đối số ứng dụng
+  - Ảnh hưởng của classpath, thư mục làm việc và ResourceLoader
+  - Dùng SpringApplicationBuilder để biểu diễn quá trình khởi chạy
+  - Chạy nhiều context trong một JVM và trách nhiệm đóng từng context
+  - Tạo ứng dụng dòng lệnh không cần mở máy chủ web
+- level1: Thiết lập SpringApplication
+  level2:
+  - Thiết lập trước run và giới hạn thay đổi khi ứng dụng đã khởi động
+  - Nhóm thuộc tính spring.main.* và thời điểm được áp dụng
+  - Cung cấp nguồn bean bổ sung bằng addPrimarySources và setSources
+  - Thiết lập mặc định và profile bổ sung qua SpringApplication
+  - Đăng ký initializer và listener trước khi khởi động
+  - Tùy chỉnh banner bằng banner.txt, Banner và Banner.Mode
+  - Thông tin khởi động và spring.main.log-startup-info
+  - Chế độ headless và khi ứng dụng cần tương tác đồ họa
+  - Chính sách ghi đè định nghĩa bean và phụ thuộc vòng
+  - Thiết lập shutdown hook và ApplicationContextFactory
+- level1: Kiểu ứng dụng
+  level2:
+  - 'Ba kiểu WebApplicationType: NONE, SERVLET và REACTIVE'
+  - Cách Spring Boot suy luận kiểu ứng dụng từ classpath
+  - Trường hợp đồng thời có Spring MVC và Spring WebFlux
+  - Chọn kiểu tường minh bằng setWebApplicationType hoặc spring.main.web-application-type
+  - Đối chiếu các loại ApplicationContext tương ứng
+  - Quan hệ giữa web context, WebServerFactory và máy chủ nhúng
+  - Phân biệt máy chủ khởi động thành công với toàn ứng dụng sẵn sàng
+  - Ranh giới giữa vòng đời ứng dụng với xử lý yêu cầu Servlet hoặc Reactive
+- level1: Chuỗi khởi động
+  level2:
+  - Đọc SpringApplication.run như một chuỗi giai đoạn
+  - Chuẩn bị bootstrap context và thông báo bắt đầu
+  - Chuẩn bị ApplicationArguments, Environment và profile
+  - Khởi tạo logging sớm và hiển thị banner
+  - Tạo context và áp dụng các initializer
+  - Nạp nguồn định nghĩa bean trước khi refresh
+  - Refresh context và hoàn tất khởi tạo các thành phần cần thiết
+  - Thông báo started, thực thi runner và thông báo ready
+  - Các nhánh thất bại và dọn dẹp khi chuỗi khởi động bị gián đoạn
+  - Phân biệt thời gian tiến trình JVM với thời gian khởi động ứng dụng
+- level1: Context và refresh
+  level2:
+  - ApplicationContext cung cấp gì ngoài BeanFactory
+  - Phân biệt tạo context, đăng ký định nghĩa bean và refresh
+  - Xử lý BeanDefinitionRegistryPostProcessor và BeanFactoryPostProcessor
+  - Đăng ký BeanPostProcessor trước khi tạo bean thông thường
+  - Khởi tạo singleton không trì hoãn và hoàn tất refresh
+  - Vai trò của LifecycleProcessor trong refresh và đóng context
+  - Trạng thái active, running và closed của context
+  - Giới hạn refresh lại một context đã sử dụng
+  - 'Context cha con: khả năng nhìn thấy bean và phạm vi sở hữu'
+  - Thiết kế phân cấp bằng SpringApplicationBuilder.parent, child và sibling
+- level1: Điểm mở rộng
+  level2:
+  - Chọn điểm mở rộng theo tài nguyên đang có ở từng giai đoạn
+  - ApplicationContextInitializer và thao tác trước refresh
+  - Đăng ký initializer bằng API hoặc META-INF/spring.factories
+  - EnvironmentPostProcessor và quan hệ với chuẩn bị Environment
+  - SpringApplicationRunListener và các callback của quá trình run
+  - Đăng ký RunListener, yêu cầu constructor và thứ tự thực thi
+  - Phân biệt RunListener với ApplicationListener và runner
+  - BootstrapRegistry và ConfigurableBootstrapContext trước khi có bean
+  - Đăng ký đối tượng khởi tạo sớm qua BootstrapRegistryInitializer
+  - BootstrapContextClosedEvent và chuyển giao sang ApplicationContext
+  - Phân biệt đăng ký điểm mở rộng qua spring.factories với khai báo auto-configuration
+  - Giữ điểm mở rộng gọn, có thể kiểm thử và tránh phụ thuộc bean quá sớm
+- level1: Vòng đời bean
+  level2:
+  - Từ định nghĩa bean đến đối tượng đã sẵn sàng sử dụng
+  - Constructor, tiêm phụ thuộc và các callback Aware
+  - Thứ tự @PostConstruct, InitializingBean và initMethod
+  - BeanPostProcessor, proxy và thời điểm tham chiếu bean hoàn chỉnh
+  - SmartInitializingSingleton sau khi tạo singleton không trì hoãn
+  - Phân biệt bean hoàn tất khởi tạo với ứng dụng hoàn tất khởi động
+  - '@DependsOn và lý do @Order không quyết định thứ tự tạo mọi bean'
+  - Chọn callback bean hay runner cho công việc khởi động
+  - Thứ tự @PreDestroy, DisposableBean và destroyMethod
+  - Giới hạn tự hủy đối với bean prototype và tài nguyên tạo ngoài container
+- level1: Sự kiện ứng dụng
+  level2:
+  - Bản đồ sự kiện SpringApplication theo tiến trình khởi động
+  - ApplicationStartingEvent trước khi có Environment và context hoàn chỉnh
+  - ApplicationEnvironmentPreparedEvent khi Environment đã được chuẩn bị
+  - ApplicationContextInitializedEvent sau khi áp dụng initializer
+  - ApplicationPreparedEvent sau khi nạp định nghĩa bean và trước refresh
+  - ContextRefreshedEvent trong vòng đời Spring Framework
+  - WebServerInitializedEvent và các biến thể Servlet hoặc Reactive
+  - ApplicationStartedEvent trước khi gọi các runner
+  - AvailabilityChangeEvent chuyển trạng thái liveness sau started
+  - ApplicationReadyEvent sau khi các runner đã hoàn tất
+  - AvailabilityChangeEvent chuyển trạng thái readiness sau ready
+  - ApplicationFailedEvent và trường hợp chưa có context
+  - ContextClosedEvent và phân biệt với các sự kiện khởi động
+- level1: Listener
+  level2:
+  - Viết ApplicationListener với kiểu sự kiện cụ thể
+  - Dùng @EventListener cho listener được quản lý như bean
+  - Đăng ký listener sớm bằng SpringApplication.addListeners
+  - Đăng ký listener qua SpringApplicationBuilder hoặc spring.factories
+  - Vì sao listener dạng bean không nhận được mọi sự kiện rất sớm
+  - Điều phối listener bằng Ordered và @Order
+  - Mặc định thực thi đồng bộ và ảnh hưởng của listener chạy lâu
+  - Xử lý ngoại lệ từ listener trong lúc khởi động
+  - Giới hạn chuyển listener sang bất đồng bộ khi cần bảo đảm thứ tự
+  - Sự kiện truyền từ context con lên cha và cách lọc đúng context
+  - Tránh đăng ký trùng listener và tạo tác dụng phụ lặp lại
+- level1: Runner
+  level2:
+  - Vai trò của ApplicationRunner và CommandLineRunner
+  - Thời điểm runner chạy so với refresh, started và ready
+  - Chọn ApplicationArguments hay mảng String[]
+  - Đăng ký runner bằng @Component hoặc phương thức @Bean
+  - Điều phối nhiều runner với Ordered và @Order
+  - Thứ tự chung khi đồng thời có hai loại runner
+  - Ứng xử khi runner ném ngoại lệ
+  - Runner chạy lâu, thời hạn khởi động và readiness
+  - Công việc bất đồng bộ do runner tạo không tự được chờ đến khi hoàn tất
+  - Thiết kế khởi tạo dữ liệu hoặc làm nóng bộ nhớ đệm có thể chạy lại an toàn
+  - Phân biệt khởi tạo một lần mỗi tiến trình với công việc chỉ được chạy một lần toàn hệ thống
+- level1: Đối số ứng dụng
+  level2:
+  - Cấu trúc ApplicationArguments và DefaultApplicationArguments
+  - Phân biệt đối số tùy chọn với đối số không có tên
+  - Đọc tên tùy chọn, sự tồn tại và danh sách giá trị
+  - Xử lý tùy chọn lặp lại hoặc không kèm giá trị
+  - Đọc đối số gốc bằng getSourceArgs
+  - Quan hệ giữa đối số --key=value với thuộc tính trong Environment
+  - Tắt nguồn cấu hình dòng lệnh mà vẫn sử dụng ApplicationArguments
+  - Kiểm tra đầu vào, thông báo cách dùng và tránh ghi bí mật ra log
+- level1: Trạng thái sẵn sàng
+  level2:
+  - Phân biệt liveness, readiness và khả năng mở cổng mạng
+  - LivenessState.CORRECT và BROKEN phản ánh trạng thái nội bộ
+  - ReadinessState.ACCEPTING_TRAFFIC và REFUSING_TRAFFIC
+  - Đọc trạng thái hiện tại qua ApplicationAvailability
+  - Quan sát thay đổi qua AvailabilityChangeEvent
+  - Chủ động phát sự kiện thay đổi trạng thái ứng dụng
+  - Mối liên hệ giữa runner và mốc sẵn sàng nhận công việc
+  - Phân biệt công bố readiness với việc tự động chặn yêu cầu
+  - Lý do lỗi dịch vụ bên ngoài không nên mặc nhiên làm liveness thất bại
+  - Liên hệ với startup probe, liveness probe và readiness probe
+  - Ranh giới giữa trạng thái vòng đời với các health group của Actuator
+- level1: Khởi tạo lười
+  level2:
+  - Khởi tạo lười là gì và thay đổi thời điểm tạo bean như thế nào
+  - Bật spring.main.lazy-initialization hoặc setLazyInitialization
+  - Chọn ngoại lệ bằng @Lazy(false)
+  - Phân biệt khởi tạo lười toàn ứng dụng với @Lazy ở một phụ thuộc
+  - Lỗi cấu hình bị dời sang lần sử dụng đầu tiên
+  - Ảnh hưởng đến yêu cầu đầu tiên, làm nóng và readiness
+  - Đánh giá thời gian khởi động cùng mức sử dụng bộ nhớ thực tế
+  - Đo và kiểm thử trước khi áp dụng khởi tạo lười trong vận hành
+- level1: SmartLifecycle
+  level2:
+  - Phân biệt khởi tạo bean với bắt đầu hoạt động của thành phần
+  - 'Hợp đồng Lifecycle: start, stop và isRunning'
+  - SmartLifecycle và cơ chế tự khởi động khi refresh
+  - isAutoStartup và thành phần cần khởi động tường minh
+  - getPhase và thứ tự khởi động từ phase thấp đến cao
+  - Thứ tự dừng ngược lại và quan hệ phụ thuộc depends-on
+  - Giới hạn bảo đảm thứ tự giữa các thành phần cùng phase
+  - Dừng bất đồng bộ bằng stop(Runnable) và nghĩa vụ gọi callback
+  - Thời hạn dừng từng giai đoạn của DefaultLifecycleProcessor
+  - Tương tác giữa SmartLifecycle, khởi tạo lười và đóng context
+  - Thiết kế start hoặc stop an toàn khi được gọi lại
+- level1: Luồng và tác vụ
+  level2:
+  - Luồng main, luồng máy chủ và luồng tác vụ trong vòng đời ứng dụng
+  - Luồng daemon, non-daemon và điều kiện JVM tiếp tục tồn tại
+  - Sử dụng TaskExecutor hoặc TaskScheduler do Spring quản lý
+  - Liên hệ @Async và @Scheduled với tài nguyên thực thi
+  - Phân biệt tác vụ đã được gửi với tác vụ đã hoàn thành
+  - Quản lý hàng đợi, giới hạn đồng thời và lỗi trong tác vụ nền
+  - Truyền ngắt luồng và thiết kế tác vụ có thể hủy
+  - Dừng nhận việc mới và chờ tác vụ đang chạy khi đóng ứng dụng
+  - Tránh tạo executor không có cơ chế thu hồi
+  - Ranh giới giữa quản lý vòng đời với thiết kế xử lý đồng thời chuyên sâu
+- level1: Luồng ảo
+  level2:
+  - Luồng ảo trong Java 21 và phạm vi Spring Boot hỗ trợ
+  - Bật spring.threads.virtual.enabled
+  - Thành phần dùng executor hoặc scheduler khi bật luồng ảo
+  - Phân biệt bật hỗ trợ Boot với tự chuyển mọi tác vụ trong ứng dụng
+  - Ảnh hưởng đến các thiết lập kích thước nhóm luồng truyền thống
+  - Luồng ảo là daemon và nguy cơ ứng dụng nền kết thúc sớm
+  - Giữ JVM hoạt động bằng spring.main.keep-alive
+  - Nhận diện luồng ảo bị ghim và đo hành vi trên JDK 21
+  - Kiểm tra khả năng dừng, giải phóng tài nguyên và giới hạn hệ thống bên ngoài
+- level1: Tài nguyên ứng dụng
+  level2:
+  - Xác định chủ sở hữu và thời hạn sống của từng tài nguyên
+  - Đăng ký client, connection pool và executor như tài nguyên do container quản lý
+  - AutoCloseable và suy luận phương thức hủy của @Bean
+  - Phân biệt tài nguyên dùng chung với tài nguyên thuộc một context
+  - Tránh đóng tài nguyên khi thành phần phụ thuộc còn hoạt động
+  - Giải phóng tài nguyên khi khởi tạo mới hoàn tất một phần
+  - Phát hiện rò rỉ luồng, kết nối, tệp và classloader
+  - Thiết kế đóng tài nguyên nhiều lần an toàn và có thời hạn
+- level1: Dừng ứng dụng
+  level2:
+  - 'Các đường dừng: close, shutdown hook, tín hiệu hệ điều hành và lỗi'
+  - ConfigurableApplicationContext.close và SpringApplicationShutdownHook
+  - Trình tự thông báo đóng, dừng Lifecycle và hủy singleton
+  - Phân biệt context.stop với context.close
+  - Dừng có kiểm soát (graceful shutdown) và dừng ngay
+  - Bật server.shutdown=graceful trong Spring Boot 3.3
+  - spring.lifecycle.timeout-per-shutdown-phase và giới hạn thời gian dừng
+  - Ứng xử với yêu cầu đang xử lý và yêu cầu mới ở mức vòng đời máy chủ
+  - Phối hợp thời gian dừng của ứng dụng với Docker hoặc nền tảng triển khai
+  - SIGTERM, Ctrl+C và giới hạn cleanup khi tiến trình bị buộc kết thúc
+  - Khác biệt giữa nút Stop của IDE với tín hiệu dừng có kiểm soát
+  - Chẩn đoán hook bị kẹt, tác vụ không kết thúc và callback dừng bị bỏ quên
+- level1: Mã thoát
+  level2:
+  - Mã thoát tiến trình và ý nghĩa với shell hoặc bộ điều phối
+  - SpringApplication.exit và giá trị mã thoát trả về
+  - Phân biệt đóng context với gọi System.exit
+  - Triển khai ExitCodeGenerator cho ứng dụng dòng lệnh
+  - Ngoại lệ cung cấp mã thoát và ExitCodeExceptionMapper
+  - Nhiều nguồn mã thoát và thứ tự lựa chọn
+  - Quan sát mã thoát bằng ExitCodeEvent
+  - 'Thiết kế tác vụ chạy một lần: thành công, lỗi đầu vào và lỗi thực thi'
+  - Trả mã thoát sau khi hoàn tất dọn dẹp tài nguyên
+- level1: Lỗi khởi động
+  level2:
+  - Phân loại lỗi trước khi có context, trong refresh và trong runner
+  - Đọc chuỗi nguyên nhân thay vì chỉ thông báo ngoài cùng
+  - Phân biệt thiếu bean, xung đột bean, phụ thuộc vòng và lỗi khởi tạo
+  - Lỗi cấu hình bắt buộc, kiểm tra hợp lệ và dịch vụ bên ngoài
+  - ApplicationFailedEvent và giới hạn những tài nguyên còn dùng được
+  - FailureAnalyzer, FailureAnalysis và mô tả hành động khắc phục
+  - Viết AbstractFailureAnalyzer và đăng ký qua spring.factories
+  - Vai trò của FailureAnalysisReporter trong trình bày kết quả
+  - Dùng --debug và báo cáo điều kiện để hỗ trợ truy vết
+  - Giải phóng tài nguyên và trả mã lỗi khi khởi động thất bại
+  - Phân biệt dừng sớm có chủ đích với thử lại vô hạn trong lúc khởi động
+- level1: Đo khởi động
+  level2:
+  - Phân biệt thời gian dựng, thời gian JVM, refresh và thời gian đến ready
+  - ApplicationStartup và các StartupStep
+  - Gắn BufferingApplicationStartup vào SpringApplication
+  - Đọc các bước, thẻ và quan hệ cha con trong dữ liệu khởi động
+  - Giới hạn bộ đệm và vòng đời dữ liệu đo
+  - FlightRecorderApplicationStartup và kết hợp với Java Flight Recorder
+  - Quan sát cấp phát bộ nhớ, nạp lớp và GC trong quá trình khởi động
+  - Đối chiếu thời gian tạo bean, runner và listener
+  - Liên hệ dữ liệu đo với Actuator startup khi có cấu hình phù hợp
+  - Đánh giá khởi động nguội, khởi động lại và lần sử dụng đầu tiên
+- level1: Devtools
+  level2:
+  - Vai trò của spring-boot-devtools trong vòng lặp phát triển
+  - Phân biệt restart, tải lại tài nguyên và khởi động lại JVM
+  - Classloader cơ sở và classloader restart
+  - Điều kiện phát hiện thay đổi classpath và nhu cầu biên dịch lại
+  - Loại trừ đường dẫn, thêm đường dẫn theo dõi và dùng trigger file
+  - Quan hệ giữa Devtools restart với shutdown hook và dọn dẹp tài nguyên
+  - Chẩn đoán lỗi classloader trong dự án nhiều module
+  - Thay đổi mặc định khi phát triển và tác động đến đo thời gian
+  - Giới hạn Devtools ở môi trường phát triển và hành vi với ứng dụng đóng gói
+- level1: Kiểm thử vòng đời
+  level2:
+  - Chọn kiểm thử thành phần, context hoặc tiến trình thực
+  - Kiểm thử runner bằng ApplicationArguments và phụ thuộc giả
+  - Kiểm thử initializer hoặc listener không cần chạy toàn ứng dụng
+  - Dùng ApplicationContextRunner và hiểu các mốc SpringApplication không được thực thi
+  - Kiểm thử run thực tế bằng SpringApplication với WebApplicationType.NONE
+  - '@SpringBootTest và việc main không mặc nhiên được thực thi'
+  - Chọn useMainMethod khi cần kiểm chứng thiết lập trong main
+  - Thu thập sự kiện để kiểm chứng thứ tự và trạng thái availability
+  - Kiểm thử khởi động thất bại và FailureAnalyzer
+  - Kiểm thử close, SmartLifecycle và callback giải phóng tài nguyên
+  - Kiểm thử mã thoát bằng tiến trình con thay vì dừng JVM của bộ kiểm thử
+  - Dùng timeout và tín hiệu hoàn thành thay cho chờ cố định trong kiểm thử bất đồng bộ
+  - Cô lập context, luồng và hook để các lần kiểm thử không ảnh hưởng nhau
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây ứng dụng NONE ghi lại các mốc khởi động bằng thời gian tương đối
+  - So sánh cùng một chương trình ở kiểu NONE, SERVLET và REACTIVE
+  - Gắn initializer, listener và runner để đối chiếu thứ tự quan sát
+  - Thiết kế runner làm nóng dữ liệu trước khi công bố readiness
+  - Mô phỏng runner lỗi và tạo FailureAnalyzer cho lỗi khởi động riêng
+  - Xây thành phần nền bằng SmartLifecycle với hai phase phụ thuộc
+  - Thử luồng ảo và quan sát tác dụng của spring.main.keep-alive
+  - Mô phỏng công việc đang chạy rồi thực hiện dừng có kiểm soát
+  - Tạo ứng dụng dòng lệnh có mã thoát và kiểm thử bằng tiến trình con
+  - Đo BufferingApplicationStartup rồi xác định giai đoạn khởi động chậm
+  - Kiểm tra rò rỉ tài nguyên qua nhiều lần mở và đóng context
+  - Lập bảng chọn điểm mở rộng theo thời điểm, phụ thuộc và yêu cầu hoàn tất

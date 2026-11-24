@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nguồn và ưu tiên
+  slug: sources-and-precedence
+  index: 1
+- title: Properties và YAML
+  slug: properties-and-yaml
+  index: 2
+- title: Tìm và nạp tệp
+  slug: configuration-file-loading
+  index: 3
+- title: Config Data Import
+  slug: config-data-import
+  index: 4
+- title: Profile
+  slug: profiles
+  index: 5
+- title: Tài liệu có điều kiện
+  slug: conditional-documents
+  index: 6
+- title: Biến môi trường
+  slug: environment-variables
+  index: 7
+- title: Placeholder và mặc định
+  slug: placeholders-and-defaults
+  index: 8
+- title: Truy cập cấu hình
+  slug: configuration-access
+  index: 9
+- title: '@ConfigurationProperties'
+  slug: configuration-properties
+  index: 10
+- title: Constructor và record
+  slug: constructors-and-records
+  index: 11
+- title: Quy tắc liên kết
+  slug: binding-rules
+  index: 12
+- title: Collection và Map
+  slug: collections-and-maps
+  index: 13
+- title: Chuyển đổi kiểu
+  slug: type-conversion
+  index: 14
+- title: Kiểm tra hợp lệ
+  slug: validation
+  index: 15
+- title: Metadata cấu hình
+  slug: configuration-metadata
+  index: 16
+- title: Binder nâng cao
+  slug: advanced-binder
+  index: 17
+- title: Mở rộng Environment
+  slug: environment-extensions
+  index: 18
+- title: Bảo vệ bí mật
+  slug: secret-protection
+  index: 19
+- title: Triển khai cấu hình
+  slug: configuration-deployment
+  index: 20
+- title: Kiểm thử cấu hình
+  slug: configuration-testing
+  index: 21
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 22
+- title: Thiết kế và nâng cấp
+  slug: design-and-evolution
+  index: 23
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 24

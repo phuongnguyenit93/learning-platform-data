@@ -1,0 +1,457 @@
+menu:
+- level1: Tổng quan runtime
+  level2:
+  - Web runtime là gì và vai trò của Spring Boot khi phục vụ yêu cầu HTTP
+  - Mối quan hệ giữa ứng dụng, Spring Framework và máy chủ web
+  - Phân biệt Spring MVC, Spring WebFlux và máy chủ nhúng
+  - Đường đi tổng quát từ kết nối mạng đến mã nghiệp vụ và phản hồi
+  - Tự cấu hình của Spring Boot và phần hành vi do ứng dụng sở hữu
+  - 'Tài nguyên khi chạy: kết nối, luồng, bộ nhớ, phiên và bộ đệm'
+  - Lựa chọn mô hình web theo đặc điểm tác vụ và thư viện phụ thuộc
+  - Kiến thức đầu vào và trình tự học từ khởi động đến vận hành ứng dụng
+- level1: Nền tảng HTTP
+  level2:
+  - 'Cấu trúc yêu cầu và phản hồi: phương thức, URI, header và nội dung'
+  - Ý nghĩa các nhóm mã trạng thái và cách lựa chọn phản hồi
+  - Content-Type, Accept và thương lượng định dạng dữ liệu
+  - Content-Length, truyền dữ liệu theo luồng và thời điểm hoàn tất phản hồi
+  - Kết nối HTTP keep-alive và phân biệt kết nối với một yêu cầu
+  - Phân biệt HTTP/1.1, HTTP/2 và yêu cầu TLS
+  - Query parameter, form data, JSON và multipart
+  - Cookie, phiên và tính không lưu trạng thái của HTTP
+  - Yêu cầu an toàn, tính lũy đẳng và tác động khi thử lại
+  - Phân biệt thời gian kết nối, thời gian chờ phản hồi và thời gian xử lý
+- level1: Lựa chọn web stack
+  level2:
+  - WebApplicationType.NONE, SERVLET và REACTIVE
+  - Cách Spring Boot suy luận loại ứng dụng từ classpath
+  - spring-boot-starter-web và mô hình Servlet với Spring MVC
+  - spring-boot-starter-webflux và mô hình reactive với Reactor
+  - Hành vi khi đồng thời có Spring MVC và WebFlux trên classpath
+  - Dùng WebClient trong ứng dụng MVC mà không đổi mô hình máy chủ
+  - Thiết lập spring.main.web-application-type khi cần lựa chọn tường minh
+  - ServletWebServerApplicationContext và ReactiveWebServerApplicationContext
+  - Quan hệ giữa web stack và các máy chủ được hỗ trợ theo phiên bản
+  - Đánh giá thư viện chặn luồng trước khi chọn mô hình reactive
+- level1: Khởi động máy chủ
+  level2:
+  - Từ SpringApplication.run đến ApplicationContext của ứng dụng web
+  - Vai trò của cấu hình tự động trong tạo WebServerFactory
+  - ServletWebServerFactory và ReactiveWebServerFactory
+  - Thời điểm tạo máy chủ, đăng ký handler và mở cổng lắng nghe
+  - WebServerInitializedEvent và lấy cổng thực tế sau khởi động
+  - Phân biệt máy chủ đã mở cổng với ứng dụng đã sẵn sàng phục vụ
+  - ApplicationRunner, CommandLineRunner và ảnh hưởng tới thời gian sẵn sàng
+  - Vòng đời máy chủ trong ApplicationContext và giải phóng tài nguyên
+  - Phân biệt server.port=0, server.port=-1 và ứng dụng không có web server
+  - Chẩn đoán thiếu WebServerFactory hoặc cổng đã được sử dụng
+- level1: Máy chủ nhúng
+  level2:
+  - Tomcat, Jetty, Undertow và Reactor Netty trong Spring Boot
+  - Máy chủ mặc định của từng starter và kiểm tra cây phụ thuộc
+  - Thay máy chủ bằng cách loại phụ thuộc mặc định và thêm starter phù hợp
+  - Đánh giá khả năng hỗ trợ Servlet hoặc reactive của từng máy chủ theo phiên bản
+  - WebServerFactoryCustomizer và thời điểm áp dụng cấu hình
+  - Thứ tự customizer và quan hệ với giá trị cấu hình server.*
+  - Tùy chỉnh TomcatServletWebServerFactory và connector
+  - Tùy chỉnh JettyServletWebServerFactory hoặc UndertowServletWebServerFactory
+  - Tùy chỉnh NettyReactiveWebServerFactory và HttpServer
+  - Ranh giới giữa thuộc tính Spring Boot và API riêng của máy chủ
+  - Hệ quả của việc thay toàn bộ bean factory thay vì bổ sung customizer
+- level1: Cấu hình máy chủ
+  level2:
+  - Cấu hình server.port, server.address và địa chỉ mạng lắng nghe
+  - Phân biệt localhost, địa chỉ cụ thể và mọi giao diện mạng
+  - server.servlet.context-path, spring.mvc.servlet.path và spring.webflux.base-path
+  - Đường dẫn gốc của ứng dụng, servlet mapping và URL điểm truy cập
+  - Giới hạn kích thước header yêu cầu và cấu hình theo máy chủ
+  - Giới hạn kết nối, hàng đợi chờ và số yêu cầu đồng thời
+  - Thời gian chờ kết nối, keep-alive và giới hạn riêng của máy chủ
+  - Mã hóa ký tự, URI và xử lý Unicode
+  - Truyền cấu hình qua tệp, biến môi trường và tham số dòng lệnh
+  - Đối chiếu thuộc tính hỗ trợ và giá trị mặc định theo phiên bản
+- level1: Luồng Spring MVC
+  level2:
+  - Đường đi qua Servlet container, FilterChain và DispatcherServlet
+  - Đăng ký DispatcherServlet và ánh xạ yêu cầu trong Spring Boot
+  - HandlerMapping và lựa chọn Controller hoặc handler chức năng
+  - HandlerAdapter và gọi phương thức xử lý yêu cầu
+  - HandlerMethodArgumentResolver và tạo đối số đầu vào
+  - HttpMessageConverter và xử lý nội dung yêu cầu, phản hồi
+  - ViewResolver và dựng giao diện từ tên view
+  - HandlerExceptionResolver và chuỗi xử lý ngoại lệ
+  - RequestContext, ServletRequestAttributes và phạm vi dữ liệu theo yêu cầu
+  - Thời điểm phản hồi được commit và giới hạn thay đổi status hoặc header
+- level1: Tùy chỉnh MVC
+  level2:
+  - Những thành phần Spring Boot tự cấu hình cho Spring MVC
+  - WebMvcConfigurer và bổ sung cấu hình mà vẫn giữ mặc định của Boot
+  - Ảnh hưởng của @EnableWebMvc và WebMvcConfigurationSupport
+  - Bổ sung formatter, converter và argument resolver
+  - Tùy chỉnh HttpMessageConverter mà không làm mất bộ chuyển đổi mặc định
+  - Đăng ký interceptor, view controller và resource handler
+  - PathPatternParser, mẫu đường dẫn và lựa chọn chiến lược khớp đường dẫn
+  - Xử lý dấu gạch chéo cuối, ký tự mã hóa và đường dẫn không khớp
+  - Cấu hình content negotiation và tránh suy luận định dạng không mong muốn
+  - Quan hệ giữa spring.mvc.*, spring.web.* và cấu hình bằng Java
+- level1: Luồng Spring WebFlux
+  level2:
+  - Đường đi qua máy chủ reactive, HttpHandler và WebHandler
+  - DispatcherHandler, HandlerMapping và HandlerAdapter
+  - Controller dùng annotation và handler dùng RouterFunction
+  - Mono, Flux và thời điểm thực thi sau khi có đăng ký
+  - HandlerResultHandler và ghi kết quả vào phản hồi
+  - ServerWebExchange và vòng đời yêu cầu reactive
+  - HttpMessageReader, HttpMessageWriter và bộ codec
+  - WebFilter, WebExceptionHandler và xử lý trước hoặc sau handler
+  - Event loop và sự khác biệt với mô hình một luồng xử lý Servlet
+  - Ranh giới hỗ trợ WebFlux trên máy chủ Servlet và trên Reactor Netty
+- level1: Tùy chỉnh WebFlux
+  level2:
+  - Những thành phần Spring Boot tự cấu hình cho WebFlux
+  - WebFluxConfigurer và bổ sung cấu hình giữ lại mặc định của Boot
+  - Ảnh hưởng của @EnableWebFlux và cấu hình thay thế
+  - CodecCustomizer và cấu hình codec ở mức ứng dụng
+  - Tùy chỉnh formatter, argument resolver và nội dung phản hồi
+  - Thiết lập spring.webflux.base-path và ánh xạ tài nguyên
+  - ReactorResourceFactory và vòng đời tài nguyên HTTP dùng chung
+  - Phân biệt cấu hình máy chủ reactive với cấu hình WebClient
+  - Giới hạn dữ liệu được gom trong bộ nhớ khi đọc nội dung
+  - Kiểm tra cấu hình thực tế khi thư viện bổ sung bean làm thay đổi mặc định
+- level1: Định tuyến web
+  level2:
+  - '@Controller, @RestController và trách nhiệm của lớp tiếp nhận yêu cầu'
+  - '@RequestMapping, HTTP method, consumes và produces'
+  - Phân biệt định tuyến theo đường dẫn, header và query parameter
+  - Biến đường dẫn, kiểu dữ liệu và trường hợp không khớp
+  - RouterFunction, HandlerFunction và ServerResponse trong WebFlux.fn
+  - Định tuyến chức năng với WebMvc.fn và phân biệt API với WebFlux.fn
+  - Ghép route, nhóm đường dẫn và thứ tự lựa chọn handler
+  - Kết hợp Controller và router chức năng trong một ứng dụng
+  - ResponseEntity, mã trạng thái, header và phản hồi không có nội dung
+  - Phân biệt 404, 405, 406 và 415 từ điều kiện định tuyến hoặc định dạng
+  - Thiết kế URL nhất quán với context path và đường dẫn công khai
+- level1: Dữ liệu yêu cầu
+  level2:
+  - Đọc path variable, query parameter, header và cookie
+  - '@RequestBody, @ModelAttribute và cơ chế tạo đối tượng đầu vào'
+  - Chuyển đổi kiểu dữ liệu và định dạng ngày giờ
+  - Giá trị mặc định, tham số tùy chọn và dữ liệu bị thiếu
+  - Ràng buộc trường dữ liệu và phòng tránh cập nhật thuộc tính ngoài ý muốn
+  - Phân biệt lỗi đọc JSON với lỗi chuyển đổi tham số
+  - Đọc HttpServletRequest trong MVC và ServerWebExchange trong WebFlux
+  - Giới hạn đọc lại request body và cách dùng bộ bọc hoặc decorator
+  - Truyền dữ liệu lớn theo luồng thay vì gom toàn bộ vào bộ nhớ
+  - Không tin cậy tên tệp, header hoặc thuộc tính do máy khách cung cấp
+- level1: JSON và codec
+  level2:
+  - Jackson, ObjectMapper và cấu hình tự động của Spring Boot
+  - Tùy chỉnh spring.jackson.* và Jackson2ObjectMapperBuilderCustomizer
+  - Đăng ký module, serializer và deserializer
+  - HttpMessageConverter của MVC và codec của WebFlux
+  - Quan hệ giữa cấu hình Jackson dùng chung và tùy chỉnh riêng từng stack
+  - Quy ước đặt tên trường, ngày giờ, múi giờ và giá trị null
+  - Xử lý trường không biết, enum không hợp lệ và dữ liệu lồng nhau
+  - Tránh lộ dữ liệu nhạy cảm hoặc vòng lặp khi tuần tự hóa đối tượng
+  - Định dạng JSON, văn bản, nhị phân và XML khi có bộ chuyển đổi phù hợp
+  - Kiểm soát bộ đệm và lỗi DataBufferLimitException trong WebFlux
+  - Thương lượng application/json, application/problem+json và định dạng luồng
+- level1: Kiểm tra dữ liệu
+  level2:
+  - Thiết lập Bean Validation và spring-boot-starter-validation
+  - '@Valid, @Validated và kiểm tra đối tượng nhận từ HTTP'
+  - Ràng buộc tham số đường dẫn, query parameter và đối tượng lồng nhau
+  - Nhóm kiểm tra và khác biệt giữa tạo mới với cập nhật
+  - Phân biệt lỗi binding, lỗi Bean Validation và lỗi nghiệp vụ
+  - BindingResult trong MVC và điều kiện xử lý tại Controller
+  - WebExchangeBindException và lỗi kiểm tra dữ liệu trong WebFlux
+  - Kiểm tra phương thức và thay đổi cơ chế hỗ trợ theo phiên bản Spring
+  - Tùy chỉnh thông báo lỗi và bản địa hóa
+  - Thiết kế phản hồi lỗi theo trường mà không lộ dữ liệu đầu vào nhạy cảm
+- level1: Xử lý lỗi
+  level2:
+  - Phân tầng lỗi mạng, máy chủ, bộ lọc, Controller và nghiệp vụ
+  - Cơ chế /error, BasicErrorController và ErrorAttributes trong Servlet
+  - Trang lỗi HTML, whitelabel và phản hồi JSON mặc định
+  - '@ExceptionHandler, @ControllerAdvice và @RestControllerAdvice'
+  - ResponseStatusException, @ResponseStatus và lựa chọn mã HTTP
+  - ProblemDetail, ErrorResponse và cấu hình Problem Details theo web stack
+  - ErrorWebExceptionHandler, DefaultErrorWebExceptionHandler và ErrorAttributes trong WebFlux
+  - Phân biệt lỗi trước handler với lỗi phát sinh khi xử lý kết quả
+  - Cấu hình server.error.* và giới hạn hiển thị message, exception, stack trace
+  - Lỗi khi phản hồi đã commit hoặc luồng dữ liệu đã bắt đầu
+  - Thống nhất cấu trúc lỗi, mã nghiệp vụ và mã tương quan
+- level1: Bộ lọc và interceptor
+  level2:
+  - Filter của Servlet, HandlerInterceptor của MVC và WebFilter của WebFlux
+  - FilterRegistrationBean, thứ tự bộ lọc và phạm vi URL
+  - OncePerRequestFilter và các kiểu dispatch REQUEST, ASYNC, ERROR
+  - Interceptor trước handler, sau handler và sau khi hoàn tất yêu cầu
+  - Ordered, @Order và kiểm tra thứ tự thực tế
+  - Đọc hoặc bổ sung header mà không tiêu thụ mất request body
+  - ContentCachingRequestWrapper, ContentCachingResponseWrapper và giới hạn sử dụng
+  - ServerHttpRequestDecorator, ServerHttpResponseDecorator và xử lý DataBuffer
+  - Truyền mã tương quan và đo thời gian xử lý theo yêu cầu
+  - Tránh đăng ký bộ lọc hai lần qua Spring Boot và Spring Security
+  - Xử lý lỗi và giải phóng tài nguyên khi chuỗi xử lý bị ngắt
+- level1: Đồng thời Servlet
+  level2:
+  - Mô hình luồng tiếp nhận kết nối và luồng xử lý yêu cầu
+  - Servlet async và phân biệt với mã không chặn luồng
+  - Callable, DeferredResult và WebAsyncTask trong Spring MVC
+  - StreamingResponseBody, ResponseBodyEmitter và SseEmitter
+  - Trả về Mono hoặc Flux từ Controller MVC và giới hạn chuyển đổi sang I/O không chặn
+  - Cấu hình bộ thực thi tác vụ cho xử lý bất đồng bộ MVC
+  - Thời gian chờ async, hủy tác vụ và xử lý máy khách ngắt kết nối
+  - Quan hệ giữa nhóm luồng, connection pool và khả năng xử lý đồng thời
+  - Bật luồng ảo bằng spring.threads.virtual.enabled trên Java 21 trở lên
+  - Giới hạn của luồng ảo với CPU, kết nối cơ sở dữ liệu và tác vụ ghim luồng
+  - Giới hạn truyền SecurityContext, MDC và ngữ cảnh giao dịch khi đổi luồng
+  - Đo lường trước khi thay đổi kích thước nhóm luồng hoặc bộ thực thi
+- level1: Thực thi reactive
+  level2:
+  - Chuỗi Publisher từ đọc yêu cầu đến ghi phản hồi
+  - Event loop, Scheduler và phân biệt tác vụ I/O với tác vụ CPU
+  - Backpressure và điều kiện áp dụng ở các ranh giới HTTP
+  - Chuyển tác vụ chặn luồng sang Scheduler có giới hạn
+  - Tránh block() và subscribe() thủ công trong luồng xử lý yêu cầu
+  - Reactor Context và dữ liệu gắn với yêu cầu khi đổi luồng
+  - Xử lý lỗi với onErrorResume mà không che lỗi ngoài ý muốn
+  - Giới hạn thời gian, hủy đăng ký và giải phóng tài nguyên
+  - DataBuffer, tham chiếu bộ nhớ và nguy cơ rò rỉ bộ đệm
+  - Tải dữ liệu từ kho không reactive và hệ quả khi tích hợp
+  - Phát hiện chặn luồng và đánh giá khả năng chịu tải thực tế
+- level1: Tài nguyên tĩnh
+  level2:
+  - Thư mục static, public, resources và META-INF/resources trên classpath
+  - Cơ chế phục vụ tài nguyên tĩnh trong MVC và WebFlux
+  - Welcome page, index.html và thứ tự lựa chọn trang mặc định
+  - Cấu hình spring.web.resources.* và đường dẫn tài nguyên
+  - Tùy chỉnh resource handler và tránh xung đột với API
+  - WebJars và tài nguyên đóng gói trong thư viện
+  - Resource chain, phiên bản theo nội dung và vô hiệu hóa bộ nhớ đệm cũ
+  - Phân biệt tài nguyên trên classpath với tệp bên ngoài ứng dụng
+  - Tài nguyên tĩnh trong executable JAR, WAR và khi chạy từ IDE
+  - Phòng tránh path traversal và chỉ công bố thư mục được cho phép
+- level1: Giao diện máy chủ
+  level2:
+  - '@Controller, Model và tên view trong ứng dụng web'
+  - ViewResolver và thứ tự tìm giao diện
+  - Tự cấu hình các template engine được Spring Boot hỗ trợ
+  - Thymeleaf, thư mục templates và cấu hình bộ nhớ đệm mẫu
+  - Phân biệt template engine với tài nguyên HTML tĩnh
+  - Giới hạn JSP theo máy chủ và kiểu đóng gói
+  - Khả năng dựng view của MVC và WebFlux theo template engine
+  - MessageSource, locale và bản địa hóa nội dung giao diện
+  - Escaping dữ liệu, liên kết URL và biểu mẫu an toàn
+  - Chẩn đoán không tìm thấy template và khác biệt thứ tự classpath
+- level1: Tải và nhận tệp
+  level2:
+  - Multipart trong HTTP và khác biệt với nội dung JSON
+  - MultipartResolver, MultipartFile và cấu hình multipart của Servlet
+  - 'spring.servlet.multipart.*: kích thước tệp, kích thước yêu cầu và nơi lưu tạm'
+  - FilePart, Part và nhận multipart trong WebFlux
+  - Nhận tệp lớn theo luồng và giới hạn bộ nhớ theo web stack
+  - Xử lý yêu cầu vượt kích thước, sai định dạng hoặc ngắt giữa chừng
+  - Kiểm tra tên tệp, loại nội dung và đường dẫn lưu
+  - Dọn tệp tạm và giải phóng tài nguyên khi yêu cầu lỗi hoặc bị hủy
+  - Trả tệp bằng Resource, Content-Disposition và kiểu nội dung phù hợp
+  - Range request, tải tiếp và giới hạn hỗ trợ theo cách trả tài nguyên
+  - Tách thư mục lưu tệp người dùng khỏi mã nguồn và tài nguyên công khai
+- level1: Phiên và cookie
+  level2:
+  - HttpSession của Servlet và WebSession của WebFlux
+  - Thời điểm tạo phiên và liên kết phiên bằng cookie
+  - Cấu hình thời hạn phiên và xử lý phiên hết hạn
+  - Cookie Secure, HttpOnly, SameSite, domain và path
+  - Phân biệt cookie do máy chủ quản lý với cookie do ứng dụng tự tạo
+  - Lưu phiên trong bộ nhớ và hệ quả khi khởi động lại máy chủ
+  - Spring Session và lựa chọn kho phiên tương thích từng web stack
+  - Cân bằng tải, giữ phiên trên một nút và kho phiên dùng chung
+  - Tuần tự hóa dữ liệu phiên và rủi ro khi thay phiên bản ứng dụng
+  - Phân biệt trạng thái phiên với dữ liệu gắn riêng cho từng yêu cầu
+  - Giới hạn kích thước cookie và dữ liệu nhạy cảm trong phiên
+- level1: Cache và nén HTTP
+  level2:
+  - Phân biệt bộ nhớ đệm HTTP với Spring Cache ở tầng nghiệp vụ
+  - Cache-Control, Expires và chính sách cho dữ liệu tĩnh hoặc dữ liệu riêng tư
+  - ETag, Last-Modified và yêu cầu có điều kiện
+  - Phản hồi 304 Not Modified và tránh gửi lại nội dung không đổi
+  - Vary và tính đúng đắn khi phản hồi thay đổi theo header
+  - Cấu hình server.compression.enabled và loại nội dung được nén
+  - Ngưỡng kích thước nén và tác động tới CPU, độ trễ
+  - Phối hợp nén tại ứng dụng, reverse proxy và CDN
+  - Không lưu đệm công khai phản hồi chứa thông tin cá nhân
+  - Kiểm tra cache hoặc nén khi phản hồi được gửi theo luồng
+- level1: TLS và HTTP/2
+  level2:
+  - TLS, chứng thư máy chủ, private key và chuỗi chứng thư
+  - Cấu hình server.ssl.* với keystore JKS hoặc PKCS12
+  - SSL bundle và cấu hình vật liệu tin cậy dùng chung trong Spring Boot
+  - Dùng chứng thư PEM và áp dụng bundle cho máy chủ nhúng
+  - Client authentication và truststore khi yêu cầu mTLS
+  - Lựa chọn phiên bản TLS và bộ mã hóa được cho phép
+  - Bật HTTP/2 và kiểm tra điều kiện hỗ trợ của máy chủ
+  - Phân biệt h2, h2c và cơ chế thương lượng giao thức
+  - Kết thúc TLS tại proxy so với kết nối TLS tới ứng dụng
+  - Quản lý bí mật, thời hạn và khả năng nạp lại chứng thư theo máy chủ
+  - Kiểm tra handshake, hostname, truststore và lỗi chuỗi chứng thư
+- level1: Proxy và CORS
+  level2:
+  - Đường dẫn, host và giao thức công khai khi ứng dụng sau reverse proxy
+  - Forwarded, X-Forwarded-* và server.forward-headers-strategy
+  - Phân biệt xử lý header chuyển tiếp tại máy chủ với tại Spring Framework
+  - Chỉ tin thông tin chuyển tiếp từ proxy được kiểm soát
+  - Tạo redirect, liên kết tuyệt đối và cookie đúng địa chỉ công khai
+  - Same-Origin Policy, origin và mục đích của CORS
+  - Cấu hình CORS bằng WebMvcConfigurer hoặc WebFluxConfigurer
+  - Preflight OPTIONS và thứ tự xử lý trước xác thực
+  - Allowed origins, methods, headers và exposed headers
+  - allowCredentials và giới hạn sử dụng origin ký tự đại diện
+  - Phân biệt CORS với CSRF, lỗi định tuyến và lỗi từ proxy
+  - Tránh cấu hình CORS trùng tại ứng dụng, gateway và Spring Security
+- level1: Tích hợp bảo mật
+  level2:
+  - Ảnh hưởng của spring-boot-starter-security tới ứng dụng web
+  - SecurityFilterChain của Servlet và SecurityWebFilterChain của reactive
+  - Phân biệt điểm truy cập công khai, yêu cầu xác thực và yêu cầu quyền
+  - Phân biệt 401, 403 và chuyển hướng đăng nhập trong web runtime
+  - Phối hợp bảo mật với CORS, CSRF và cookie phiên
+  - Xử lý lỗi bảo mật trước Controller và giới hạn của ControllerAdvice
+  - Bảo vệ tài nguyên tĩnh, endpoint quản trị và thông tin chẩn đoán
+  - Header bảo mật, HTTPS và tránh làm lộ dữ liệu qua phản hồi lỗi
+  - Kiểm tra thứ tự bộ lọc để tránh đăng ký hoặc xử lý bảo mật hai lần
+  - Ranh giới giữa cấu hình web runtime và thiết kế cơ chế xác thực chuyên sâu
+- level1: HTTP client
+  level2:
+  - Phân biệt máy chủ nhận yêu cầu với client gọi dịch vụ khác
+  - RestClient, RestTemplate và WebClient theo kiểu ứng dụng
+  - Builder do Spring Boot quản lý và những tùy chỉnh được áp dụng
+  - RestClientCustomizer, RestTemplateCustomizer và WebClientCustomizer
+  - WebClient trong MVC và ảnh hưởng tới lựa chọn web application type
+  - Kết nối HTTP dùng chung, connection pool và vòng đời tài nguyên client
+  - Cấu hình thời gian kết nối, đọc và chờ lấy kết nối
+  - Áp dụng SSL bundle và kiểm tra chứng thư máy chủ đích
+  - Quan sát lời gọi HTTP và truyền trace qua builder được quản lý
+  - Giới hạn kích thước phản hồi, giải phóng nội dung và xử lý lỗi từ dịch vụ đích
+  - Tránh block() trên event loop và thử lại yêu cầu không lũy đẳng
+  - Ranh giới giữa cấu hình client của Boot với tích hợp dịch vụ nghiệp vụ
+- level1: Kết nối dài
+  level2:
+  - Phân biệt streaming HTTP, Server-Sent Events và WebSocket
+  - Phát SSE bằng SseEmitter trong MVC và Flux trong WebFlux
+  - Content-Type, nhịp giữ kết nối và bộ đệm tại proxy
+  - Máy khách ngắt kết nối, hủy đăng ký và dọn tài nguyên
+  - Cấu hình WebSocket trong ứng dụng Servlet
+  - WebSocketHandler và WebSocketSession trong WebFlux
+  - Phân biệt WebSocket thuần với STOMP và phạm vi hỗ trợ từng stack
+  - Origin, bước bắt tay và xác thực kết nối WebSocket
+  - Giới hạn kích thước thông điệp, hàng đợi gửi và máy khách đọc chậm
+  - Tác động của timeout, cân bằng tải và graceful shutdown tới kết nối dài
+  - Giới hạn phiên xác thực hoặc token khi kết nối tồn tại lâu
+- level1: Mở rộng nền tảng web
+  level2:
+  - Jersey và JAX-RS như lựa chọn xử lý HTTP thay cho Spring MVC
+  - Cấu hình ResourceConfig, Jersey servlet hoặc filter và đường dẫn ứng dụng
+  - Quan hệ giữa Jersey, tài nguyên tĩnh và DispatcherServlet
+  - Hỗ trợ Spring HATEOAS và liên kết tài nguyên trong phản hồi
+  - GraphQL qua HTTP và WebSocket trong ứng dụng Spring Boot
+  - Ranh giới giữa HTTP runtime với schema, resolver và mô hình dữ liệu GraphQL
+  - RSocket và sự khác biệt với mô hình yêu cầu–phản hồi HTTP
+  - RSocket qua TCP hoặc WebSocket và điều kiện dùng chung máy chủ web
+  - Kiểm tra phụ thuộc, ánh xạ URL và phiên bản khi kết hợp nhiều nền tảng
+  - Tránh thêm giao thức hoặc starter không phục vụ nhu cầu ứng dụng
+- level1: Quan sát HTTP
+  level2:
+  - Access log của máy chủ và log xử lý yêu cầu của ứng dụng
+  - Cấu hình access log theo Tomcat, Jetty, Undertow hoặc Reactor Netty
+  - Mã tương quan, trace ID và liên kết yêu cầu với lời gọi dịch vụ phía sau
+  - HTTP server metrics, thời gian phản hồi và số yêu cầu đang xử lý
+  - Nhãn URI theo mẫu đường dẫn và tránh số lượng giá trị nhãn quá lớn
+  - Quan sát lỗi được xử lý và phân biệt với lỗi đã ghi nhận tự động
+  - Phân biệt log request body với quan sát an toàn metadata
+  - Che Authorization, cookie, dữ liệu cá nhân và nội dung nhạy cảm
+  - Kết nối Actuator, health và readiness với trạng thái web runtime
+  - Tách cổng quản trị và đánh giá quyền truy cập endpoint
+  - Giới hạn log chẩn đoán chi tiết trong môi trường production
+- level1: Hiệu năng và giới hạn
+  level2:
+  - Phân biệt thông lượng, độ trễ, số yêu cầu đồng thời và mức sử dụng tài nguyên
+  - Tìm điểm nghẽn ở luồng xử lý, event loop, connection pool hoặc dịch vụ phụ thuộc
+  - Giới hạn kết nối, hàng đợi và khả năng từ chối khi quá tải
+  - Phối hợp thời gian chờ giữa máy khách, proxy, máy chủ và dịch vụ phía sau
+  - Bộ nhớ heap, direct memory và bộ đệm đọc hoặc ghi HTTP
+  - Giới hạn request body, multipart, header và dữ liệu codec
+  - Tác động của tuần tự hóa JSON, nén và ghi log tới chi phí mỗi yêu cầu
+  - Phân biệt tối ưu luồng nền tảng, luồng ảo và mô hình reactive
+  - Kiểm soát tải từ máy khách chậm hoặc kết nối giữ lâu
+  - Đo tải với dữ liệu, mức đồng thời và thời gian chạy đại diện thực tế
+  - Đọc thread dump, thống kê GC và quan sát event loop để xác minh giả thuyết
+- level1: Dừng có kiểm soát
+  level2:
+  - Đóng ApplicationContext và vòng đời SmartLifecycle của máy chủ
+  - server.shutdown và khác biệt mặc định theo phiên bản Spring Boot
+  - Bật graceful shutdown và ngừng tiếp nhận yêu cầu mới
+  - spring.lifecycle.timeout-per-shutdown-phase và thời gian chờ hoàn tất
+  - Khác biệt cách từ chối kết nối giữa các máy chủ nhúng
+  - Xử lý yêu cầu đang chạy, tác vụ bất đồng bộ và lời gọi dịch vụ phía sau
+  - Đóng SSE, WebSocket và các luồng phản hồi dài hạn
+  - Phối hợp readiness, gỡ khỏi cân bằng tải và tín hiệu SIGTERM
+  - Phân biệt dừng từ IDE, tín hiệu hệ điều hành và tiến trình bị buộc kết thúc
+  - Giải phóng bộ thực thi, connection pool, tài nguyên Reactor và tệp tạm
+  - Kiểm chứng không mất yêu cầu khi triển khai thay phiên bản
+- level1: Kiểm thử web runtime
+  level2:
+  - Phân biệt kiểm thử handler không mở cổng với kiểm thử HTTP qua máy chủ thật
+  - '@WebMvcTest, MockMvc và phạm vi kiểm thử MVC'
+  - '@WebFluxTest, WebTestClient và phạm vi kiểm thử reactive'
+  - '@SpringBootTest với MOCK, RANDOM_PORT và DEFINED_PORT'
+  - '@LocalServerPort và khám phá cổng do máy chủ cấp phát'
+  - Kiểm thử mapping, status, header, JSON và content negotiation
+  - Kiểm thử dữ liệu sai, Problem Details và phản hồi lỗi mặc định
+  - Kiểm thử filter, interceptor, CORS và ranh giới Spring Security
+  - Kiểm thử tải tệp, cookie, phiên và tài nguyên tĩnh
+  - Kiểm thử async, streaming và máy khách ngắt kết nối
+  - Kiểm thử cấu hình riêng máy chủ, proxy header, TLS và HTTP/2
+  - Kiểm thử vòng đời khởi động, lỗi cổng và graceful shutdown
+- level1: Triển khai ứng dụng
+  level2:
+  - Chạy executable JAR và phân biệt với triển khai WAR
+  - SpringBootServletInitializer và ứng dụng Servlet trong container bên ngoài
+  - Giới hạn đóng gói hoặc triển khai WebFlux theo máy chủ và phiên bản
+  - Cấu hình cổng, địa chỉ lắng nghe và tài nguyên trong container
+  - Đưa chứng thư, thư mục tạm và cấu hình môi trường ra ngoài gói ứng dụng
+  - Reverse proxy, ingress và đường dẫn công khai khi có context path
+  - Thư mục chỉ đọc, tài khoản tiến trình và quyền ghi tệp tạm
+  - Startup probe, readiness, liveness và ranh giới với Actuator
+  - Thời hạn dừng tiến trình và thời gian rút lưu lượng khỏi cân bằng tải
+  - Giữ tương thích dữ liệu phiên khi nhiều phiên bản ứng dụng cùng tồn tại
+  - Ranh giới giữa yêu cầu runtime với công cụ đóng gói và nền tảng triển khai
+- level1: Gỡ lỗi và nâng cấp
+  level2:
+  - Ứng dụng chọn sai web stack do phụ thuộc bắc cầu
+  - Không tạo được web server hoặc không có bean WebServerFactory
+  - Ứng dụng chạy nhưng không truy cập được do port, address hoặc proxy
+  - 404 do context path, servlet path, base path hoặc mapping sai
+  - 405, 406 và 415 do phương thức hoặc định dạng không khớp
+  - 400, 413 hoặc 431 do dữ liệu đầu vào và giới hạn kích thước
+  - 500 do tuần tự hóa, template hoặc lỗi sau khi phản hồi đã commit
+  - Chẩn đoán treo yêu cầu, cạn luồng, event loop bị chặn và timeout
+  - Chẩn đoán mất phiên, cookie không được gửi và chuyển hướng sai giao thức
+  - Đối chiếu điều kiện tự cấu hình khi thêm bean hoặc @EnableWebMvc/@EnableWebFlux
+  - Rà soát thay đổi mặc định, thuộc tính đổi tên và hỗ trợ máy chủ khi nâng phiên bản
+  - Xác minh bằng kiểm thử qua máy chủ thật sau khi thay web stack hoặc máy chủ
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng REST API MVC với cấu hình máy chủ, validation và lỗi nhất quán
+  - Xây dựng API WebFlux có dữ liệu theo luồng và kiểm soát mã chặn luồng
+  - So sánh cùng một tác vụ trên MVC dùng luồng nền tảng, luồng ảo và WebFlux
+  - Thay Tomcat bằng máy chủ khác và kiểm tra cấu hình thực tế
+  - Phục vụ giao diện, tài nguyên có phiên bản và chính sách cache
+  - Xây dựng luồng nhận tệp lớn với giới hạn kích thước và dọn tài nguyên
+  - Triển khai HTTPS với SSL bundle và kiểm chứng HTTP/2
+  - Đặt ứng dụng sau reverse proxy với chuyển tiếp header và CORS đúng phạm vi
+  - Quan sát yêu cầu đi qua server và HTTP client bằng trace, metrics và log an toàn
+  - Đo tải, điều chỉnh giới hạn tài nguyên và kiểm chứng hành vi quá tải
+  - Triển khai thay phiên bản với graceful shutdown và yêu cầu đang xử lý
+  - Xây dựng bộ kiểm thử tái hiện các lỗi web runtime thường gặp

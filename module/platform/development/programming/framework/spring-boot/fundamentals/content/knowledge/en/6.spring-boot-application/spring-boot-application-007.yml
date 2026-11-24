@@ -1,0 +1,3 @@
+menuLevel1: '@SpringBootApplication'
+menuLevel2: Phạm vi component scan khác với entity scan hoặc repository scan
+status: TRANSLATE

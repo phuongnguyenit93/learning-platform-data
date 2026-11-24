@@ -1,0 +1,3 @@
+menuLevel1: '@ConfigurationProperties'
+menuLevel2: Đăng ký bằng @ConfigurationPropertiesScan
+status: TRANSLATE

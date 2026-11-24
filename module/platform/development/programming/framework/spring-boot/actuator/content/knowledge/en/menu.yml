@@ -1,0 +1,352 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Actuator là gì và giải quyết bài toán vận hành ứng dụng như thế nào
+  - Phân biệt khả năng quan sát, giám sát và chẩn đoán sự cố
+  - Vai trò của log, chỉ số đo lường (metrics) và dấu vết phân tán (traces)
+  - Các khái niệm endpoint, health indicator, meter, observation và trace
+  - Quan hệ giữa Spring Boot Actuator, Micrometer và hệ thống giám sát bên ngoài
+  - Phân biệt endpoint quản trị với API nghiệp vụ
+  - Phạm vi hỗ trợ trong ứng dụng Servlet, Reactive và không có web
+  - Lộ trình từ kiểm tra sức khỏe đến quan sát ứng dụng đang vận hành
+- level1: Khởi tạo Actuator
+  level2:
+  - Thêm spring-boot-starter-actuator bằng Maven hoặc Gradle
+  - Vai trò của mô-đun actuator và actuator-autoconfigure
+  - Nhận diện các thành phần được cấu hình tự động theo classpath và bean
+  - Chạy ứng dụng mẫu và gọi endpoint health đầu tiên
+  - Đọc log khởi động để xác định endpoint được công bố
+  - Tổ chức cấu hình management trong application.properties hoặc YAML
+  - Tách cấu hình quản trị theo môi trường phát triển, kiểm thử và production
+  - Kiểm tra bộ phiên bản Spring Boot, Micrometer và thư viện xuất dữ liệu
+- level1: Mô hình endpoint
+  level2:
+  - Định danh endpoint và quan hệ với đường dẫn /actuator
+  - Phân biệt endpoint được bật, được công bố và được phép truy cập
+  - Phân loại thao tác đọc, ghi và xóa trên endpoint
+  - Phân biệt giao tiếp HTTP với giao tiếp JMX
+  - Khám phá discovery page và liên kết giữa các endpoint
+  - Đọc kiểu nội dung và cấu trúc phản hồi của Actuator API
+  - Nhận diện điều kiện để endpoint tích hợp xuất hiện
+  - Phân biệt endpoint chỉ cung cấp thông tin với endpoint thay đổi trạng thái
+- level1: Công bố endpoint
+  level2:
+  - Bật hoặc tắt từng endpoint bằng management.endpoint.<id>.enabled
+  - Lựa chọn cơ chế bật mặc định hoặc chỉ bật endpoint được chỉ định
+  - Cấu hình danh sách include và exclude cho HTTP
+  - Cấu hình danh sách include và exclude cho JMX
+  - Thứ tự ưu tiên giữa exclude, include và trạng thái enabled
+  - Sử dụng ký tự * trong cấu hình và quy tắc đặt dấu nháy trong YAML
+  - Cấu hình discovery page và giới hạn phạm vi khám phá endpoint
+  - Tùy chỉnh đường dẫn endpoint bằng base-path và path-mapping
+  - Cấu hình cache.time-to-live cho thao tác đọc đủ điều kiện
+- level1: Hạ tầng quản trị
+  level2:
+  - Chạy Actuator trên cổng ứng dụng hoặc cổng quản trị riêng
+  - Cấu hình management.server.port và địa chỉ mạng lắng nghe
+  - Phối hợp management base path với Servlet context path hoặc WebFlux base path
+  - Nhận diện management context và hạ tầng web riêng khi tách cổng
+  - Cấu hình HTTPS cho cổng quản trị và quan hệ với HTTPS của ứng dụng
+  - Giới hạn khả năng truy cập qua mạng nội bộ, reverse proxy và firewall
+  - Cấu hình CORS cho endpoint quản trị khi có nhu cầu truy cập từ trình duyệt
+  - Xử lý URL, cổng và thông tin proxy trong môi trường container
+  - Phân biệt tắt giao tiếp HTTP quản trị với tắt toàn bộ endpoint
+- level1: Bảo mật truy cập
+  level2:
+  - Hành vi bảo mật Actuator khi có hoặc không có Spring Security
+  - Ảnh hưởng của SecurityFilterChain tự khai báo đến cấu hình bảo mật mặc định
+  - Phân tách quy tắc bảo mật API nghiệp vụ và endpoint quản trị
+  - Sử dụng EndpointRequest để khớp endpoint trong ứng dụng Servlet
+  - Cấu hình endpoint matcher và SecurityWebFilterChain trong ứng dụng Reactive
+  - Thiết kế quyền truy cập tối thiểu cho người vận hành và hệ thống giám sát
+  - Phân biệt xác thực truy cập endpoint với quyền xem chi tiết dữ liệu
+  - Kiểm soát CSRF cho thao tác ghi hoặc xóa theo cơ chế xác thực
+  - Giới hạn truy cập health và Prometheus theo nhu cầu hạ tầng
+  - Che dữ liệu bằng show-values, roles và SanitizingFunction
+  - Bảo vệ heapdump, logfile, env và các endpoint có khả năng thay đổi trạng thái
+  - Kiểm chứng truy cập ẩn danh, sai quyền và đúng quyền trên cả cổng quản trị
+- level1: Health nền tảng
+  level2:
+  - Health endpoint biểu diễn sức khỏe ứng dụng như thế nào
+  - Cấu trúc status, components và details trong phản hồi health
+  - Vai trò của HealthContributor, HealthIndicator và CompositeHealthContributor
+  - Ý nghĩa của UP, DOWN, OUT_OF_SERVICE và UNKNOWN
+  - Tổng hợp trạng thái bằng StatusAggregator
+  - Ánh xạ trạng thái sức khỏe sang HTTP status bằng HttpCodeStatusMapper
+  - Quản lý show-details, show-components và quyền xem health
+  - Nhận diện health indicator tự cấu hình cho cơ sở dữ liệu, Redis, ổ đĩa và dịch vụ liên quan
+  - Bật hoặc tắt từng indicator và các indicator mặc định
+  - Phân biệt sức khỏe kỹ thuật, khả năng phục vụ và tính đúng đắn nghiệp vụ
+- level1: Health tùy chỉnh
+  level2:
+  - Xây dựng HealthIndicator cho thành phần đặc thù của ứng dụng
+  - Định danh indicator từ tên bean và tổ chức đường dẫn thành phần
+  - Tạo kết quả bằng Health.Builder với chi tiết có ý nghĩa chẩn đoán
+  - Xử lý ngoại lệ và trạng thái suy giảm trong kiểm tra sức khỏe
+  - Thiết kế kiểm tra phụ thuộc ngoài với timeout và chi phí có giới hạn
+  - Xây dựng ReactiveHealthIndicator mà không chặn luồng xử lý reactive
+  - Kết hợp kiểm tra đồng bộ và reactive trong ứng dụng WebFlux
+  - Tổ chức nhiều thành phần bằng composite health contributor
+  - Đăng ký hoặc loại bỏ contributor bằng HealthContributorRegistry
+  - Phát hiện kiểm tra chậm và tránh thao tác gây thay đổi dữ liệu
+- level1: Nhóm health và probe
+  level2:
+  - Tạo health group và chọn thành viên bằng include hoặc exclude
+  - Chọn thành phần con của composite indicator và kiểm tra thành viên hợp lệ
+  - Tùy chỉnh chi tiết, vai trò, thứ tự trạng thái và HTTP status theo nhóm
+  - Phân biệt liveness, readiness và startup probe
+  - Vai trò của ApplicationAvailability, LivenessState và ReadinessState
+  - Kích hoạt probe trong và ngoài môi trường Kubernetes
+  - Thiết lập endpoint health/liveness và health/readiness cho hạ tầng
+  - Công bố probe trên cổng chính với /livez, /readyz hoặc additional-path
+  - Vì sao kiểm tra phụ thuộc ngoài cần được cân nhắc khác nhau cho liveness và readiness
+  - Phối hợp chu kỳ kiểm tra, timeout và ngưỡng lỗi với thời gian khởi động
+  - Quan sát trạng thái probe khi khởi động, ngừng nhận yêu cầu và tắt ứng dụng
+- level1: Thông tin ứng dụng
+  level2:
+  - Vai trò của endpoint info và các InfoContributor
+  - Quản lý contributor qua management.info và cấu hình mặc định
+  - Đưa thông tin được chọn từ info.* vào phản hồi
+  - Đọc metadata bản dựng từ META-INF/build-info.properties
+  - Đọc thông tin commit từ git.properties và lựa chọn chế độ công bố
+  - Công bố thông tin Java, hệ điều hành và tiến trình
+  - Xây dựng InfoContributor cho thông tin ứng dụng đặc thù
+  - Truy vết phiên bản đang chạy mà không công bố bí mật hoặc dữ liệu cá nhân
+  - Phân biệt info với endpoint sbom và điều kiện cung cấp danh mục thành phần phần mềm
+- level1: Chẩn đoán cấu hình
+  level2:
+  - Dùng endpoint env để xác định nguồn và thứ tự ưu tiên của cấu hình
+  - Tra cứu một thuộc tính cụ thể và hiểu giá trị đã được che
+  - Đọc endpoint configprops để kiểm tra bean gắn @ConfigurationProperties
+  - Phân biệt cấu hình đã khai báo với giá trị thực tế đã được liên kết
+  - Khám phá bean, kiểu bean và quan hệ phụ thuộc bằng endpoint beans
+  - Đọc endpoint conditions để giải thích cấu hình tự động khớp hoặc không khớp
+  - Kiểm tra ánh xạ yêu cầu Servlet và Reactive bằng endpoint mappings
+  - Đối chiếu endpoint chẩn đoán với log, profile và cấu hình môi trường
+  - Giới hạn thông tin cấu trúc và cấu hình được công bố trong production
+- level1: Log và bộ nhớ
+  level2:
+  - Đọc mức log được cấu hình và mức log có hiệu lực bằng endpoint loggers
+  - Thay đổi hoặc khôi phục mức log của logger và logger group khi ứng dụng đang chạy
+  - Phân biệt thay đổi mức log tạm thời với cấu hình được lưu lâu dài
+  - Sử dụng endpoint logfile khi ứng dụng đã cấu hình tệp log
+  - Đọc từng phần tệp log bằng HTTP Range và kiểm soát thông tin nhạy cảm
+  - Lấy thread dump và nhận diện luồng bị chặn, chờ hoặc tranh chấp tài nguyên
+  - Tạo heap dump và kiểm tra định dạng phù hợp với JVM
+  - Đánh giá chi phí CPU, bộ nhớ, dung lượng đĩa và thời gian tạo dump
+  - Thu thập và lưu trữ dump an toàn để phân tích ngoài ứng dụng
+- level1: HTTP và kiểm toán
+  level2:
+  - Phân biệt lịch sử trao đổi HTTP với log truy cập, metrics và distributed tracing
+  - Kích hoạt endpoint httpexchanges bằng HttpExchangeRepository
+  - Sử dụng InMemoryHttpExchangeRepository cho chẩn đoán có giới hạn
+  - Lựa chọn thông tin yêu cầu, phản hồi và thời gian được ghi nhận
+  - Kiểm soát dung lượng lưu, header nhạy cảm và dữ liệu cá nhân trong HTTP exchange
+  - Vai trò của AuditEvent và AuditEventRepository
+  - Đọc sự kiện đăng nhập, đăng nhập thất bại và từ chối truy cập
+  - Phát hành sự kiện kiểm toán đặc thù qua ApplicationEventPublisher
+  - Tổ chức nơi lưu kiểm toán bền vững và phân biệt với bộ nhớ tạm
+  - Lọc truy vấn auditevents theo chủ thể, thời gian và loại sự kiện
+- level1: Nền tảng metrics
+  level2:
+  - Micrometer cung cấp lớp trừu tượng cho chỉ số đo lường như thế nào
+  - Vai trò của Meter, Meter.Id, MeterRegistry và CompositeMeterRegistry
+  - Định danh chỉ số bằng tên, tag và đơn vị đo
+  - Phân biệt Counter, Gauge, Timer, DistributionSummary và LongTaskTimer
+  - Đọc các phép đo COUNT, TOTAL_TIME, MAX và VALUE đúng ngữ cảnh
+  - Phân biệt giá trị tích lũy, tốc độ thay đổi và giá trị tức thời
+  - Quan hệ giữa đo lường, lấy mẫu và thời điểm hệ thống giám sát thu thập
+  - Hiểu số lượng tổ hợp tag (cardinality) và tác động đến bộ nhớ
+  - Khám phá danh sách chỉ số bằng endpoint metrics
+  - Truy vấn metrics theo tên và tag, tránh hiểu nhầm kết quả đã tổng hợp
+- level1: Metrics tích hợp
+  level2:
+  - 'Theo dõi JVM: heap, non-heap, GC, luồng và lớp đã nạp'
+  - Theo dõi tiến trình, CPU, thời gian hoạt động và tệp đang mở
+  - Theo dõi dung lượng và phần đĩa còn trống
+  - 'Quan sát HTTP server: số yêu cầu, độ trễ, mã phản hồi và mẫu URI'
+  - Quan sát HTTP client được tạo từ builder do Spring Boot quản lý
+  - Đọc metrics Tomcat và điều kiện kích hoạt các chỉ số liên quan
+  - Theo dõi connection pool của DataSource và HikariCP
+  - Theo dõi cache hit, miss, kích thước và điều kiện hỗ trợ của cache provider
+  - Theo dõi executor, task scheduler và hàng đợi công việc
+  - Quan sát lời gọi Spring Data repository theo cơ chế được hỗ trợ
+  - Nhận diện metrics Kafka, RabbitMQ và thư viện tích hợp theo dependency
+  - Phân biệt chỉ số được thu tự động với phép đo cần cấu hình hoặc thư viện bổ sung
+- level1: Metrics tùy chỉnh
+  level2:
+  - Thiết kế chỉ số nghiệp vụ với tên, đơn vị và tag có phạm vi rõ ràng
+  - Đăng ký Counter để đếm sự kiện theo chiều tăng
+  - Đăng ký Timer để đo thời lượng và số lần thực hiện
+  - Sử dụng Timer.Sample để đo thao tác có nhiều nhánh kết thúc
+  - Đăng ký Gauge và quản lý vòng đời đối tượng được quan sát
+  - Đo kích thước phân bố bằng DistributionSummary
+  - Theo dõi công việc dài bằng LongTaskTimer
+  - Đóng gói phép đo dùng chung bằng MeterBinder
+  - Sử dụng @Timed và @Counted với cơ chế aspect phù hợp
+  - Tránh ghi nhận trùng khi thao tác đã được tự động đo lường
+  - Kiểm soát đăng ký meter trong vòng lặp và giải phóng meter không còn cần thiết
+- level1: Tùy biến metrics
+  level2:
+  - Cấu hình tag chung bằng management.metrics.tags và MeterRegistryCustomizer
+  - Áp dụng quy tắc đặt tên và hiểu cách registry chuyển đổi tên chỉ số
+  - Lọc, đổi tên hoặc từ chối meter bằng MeterFilter
+  - Giới hạn số giá trị tag và xử lý URI có số lượng giá trị quá lớn
+  - Bật hoặc tắt nhóm metrics bằng management.metrics.enable
+  - Cấu hình histogram, percentile và ranh giới mục tiêu mức dịch vụ
+  - Phân biệt percentile tính tại ứng dụng với percentile tính từ histogram ở hệ thống giám sát
+  - Giới hạn miền giá trị để kiểm soát số bucket và chi phí lưu trữ
+  - Quản lý thời hạn phân bố, bộ đệm và ý nghĩa giá trị cực đại theo từng loại registry
+  - Phân biệt cấu hình quan sát chung với cấu hình riêng của một meter
+- level1: Prometheus
+  level2:
+  - Tích hợp micrometer-registry-prometheus và công bố endpoint prometheus
+  - Phân biệt JSON từ endpoint metrics với định dạng thu thập của Prometheus
+  - Đọc tên metric, label, đơn vị và hậu tố sau khi chuyển đổi
+  - Hiểu count, sum và bucket của Timer hoặc DistributionSummary
+  - Cấu hình mục tiêu scrape, đường dẫn, cổng và thông tin xác thực
+  - Phân biệt chu kỳ scrape với thời gian thực hiện phép đo trong ứng dụng
+  - Tính tốc độ yêu cầu và tỷ lệ lỗi từ counter theo cửa sổ thời gian
+  - Ước lượng độ trễ phân vị từ histogram và chọn bucket phù hợp
+  - Phân biệt tổng hợp theo instance với tổng hợp theo service
+  - Kết nối dashboard Grafana và kiểm tra dữ liệu trước khi tạo cảnh báo
+  - Nhận diện counter reset, nhãn không ổn định và dữ liệu gián đoạn
+- level1: Xuất metrics
+  level2:
+  - Phân biệt cơ chế kéo dữ liệu với cơ chế đẩy dữ liệu
+  - Chọn MeterRegistry phù hợp với hệ thống giám sát
+  - Kết hợp nhiều registry và nhận diện vai trò của global registry
+  - Cấu hình xuất metrics qua OTLP
+  - Tích hợp registry cho Datadog, InfluxDB hoặc StatsD theo nhu cầu
+  - Quản lý endpoint nhận dữ liệu, thông tin xác thực và chu kỳ xuất
+  - Bật hoặc tắt từng registry và cơ chế xuất mặc định
+  - Kiểm soát lỗi kết nối, mất dữ liệu và chi phí khi hệ thống giám sát gián đoạn
+  - Phân biệt xuất metrics OTLP với xuất trace OTLP
+- level1: Observation
+  level2:
+  - Observation kết nối phép đo metrics và trace như thế nào
+  - Vai trò của ObservationRegistry, Observation.Context và ObservationHandler
+  - Tạo Observation cho một thao tác nghiệp vụ
+  - Quản lý vòng đời start, scope, error và stop
+  - Phân biệt key-value có cardinality thấp và cardinality cao
+  - Tùy chỉnh tên và tag bằng ObservationConvention
+  - Lọc hoặc bổ sung dữ liệu bằng ObservationPredicate và ObservationFilter
+  - Cấu hình key-value chung và bật hoặc tắt nhóm observation
+  - Sử dụng @Observed cùng cơ chế aspect khi cần quan sát phương thức
+  - Truyền ngữ cảnh qua luồng, tác vụ bất đồng bộ và Reactor
+  - Tránh tạo observation lồng không cần thiết khi framework đã tự quan sát
+- level1: Truy vết phân tán
+  level2:
+  - Phân biệt trace, span, quan hệ cha con và ngữ cảnh truyền qua dịch vụ
+  - Quan hệ giữa Micrometer Tracing, Observation và thư viện tracer
+  - Lựa chọn bridge OpenTelemetry hoặc Brave và exporter tương thích
+  - Cấu hình xuất trace đến OTLP hoặc Zipkin
+  - Điều chỉnh xác suất lấy mẫu và hiểu giới hạn dữ liệu quan sát được
+  - Truyền trace qua RestTemplateBuilder, RestClient.Builder và WebClient.Builder
+  - Đọc và cấu hình định dạng truyền ngữ cảnh W3C hoặc B3
+  - Liên kết log với traceId, spanId và MDC
+  - Tạo span tùy chỉnh và ghi nhận lỗi theo phạm vi thao tác
+  - Phân biệt baggage với tag và kiểm soát dữ liệu truyền giữa các dịch vụ
+  - Duy trì trace khi chuyển luồng hoặc đi qua chuỗi xử lý reactive
+  - Nhận diện trace bị đứt, span trùng và cấu hình quan sát bị chồng lặp
+- level1: Endpoint tùy chỉnh
+  level2:
+  - Khi nào nên tạo endpoint Actuator thay vì controller nghiệp vụ
+  - Định nghĩa endpoint bằng @Endpoint và đăng ký bean
+  - Khai báo @ReadOperation, @WriteOperation và @DeleteOperation
+  - Ánh xạ operation sang HTTP method và mã phản hồi
+  - Ánh xạ tham số từ đường dẫn bằng @Selector
+  - Nhận tham số truy vấn hoặc nội dung yêu cầu và kiểm soát tham số bắt buộc
+  - Chuyển đổi kiểu với ApplicationConversionService và @EndpointConverter
+  - Vai trò của thông tin tên tham số khi biên dịch với -parameters
+  - Thiết kế kiểu trả về, nội dung JSON và phản hồi tài nguyên
+  - Tùy chỉnh endpoint bằng @EndpointWebExtension hoặc @EndpointJmxExtension
+  - Lựa chọn @WebEndpoint hoặc @JmxEndpoint khi chỉ hỗ trợ một công nghệ
+  - Kiểm tra Principal, SecurityContext và quyền thực hiện thao tác
+  - Kiểm soát cache, chi phí thực thi và tính an toàn của thao tác quản trị
+- level1: JMX
+  level2:
+  - Vai trò của JMX, MBean và MBeanServer trong quản trị ứng dụng
+  - Bật hỗ trợ Spring JMX và xác định endpoint được công bố
+  - Truy cập endpoint bằng công cụ JConsole hoặc công cụ JMX tương thích
+  - Đọc thuộc tính và gọi operation trên MBean endpoint
+  - Tùy chỉnh domain và tên MBean
+  - Xử lý xung đột tên bằng unique-names khi có nhiều ApplicationContext
+  - Phân biệt endpoint Actuator qua JMX với metrics xuất qua JMX registry
+  - Kiểm soát kết nối JMX từ xa, xác thực và bảo vệ dữ liệu quản trị
+- level1: Endpoint tích hợp
+  level2:
+  - Khám phá cache bằng endpoint caches và phạm vi thao tác xóa cache
+  - Đọc tác vụ đã lên lịch bằng endpoint scheduledtasks
+  - Đọc thông tin Quartz job, trigger và dữ liệu đã được che
+  - Kiểm tra lịch sử migration bằng endpoint flyway
+  - Kiểm tra thay đổi cơ sở dữ liệu bằng endpoint liquibase
+  - Khám phá sơ đồ Spring Integration bằng endpoint integrationgraph
+  - Tra cứu hoặc xóa session qua endpoint sessions khi dùng Spring Session phù hợp
+  - Đọc danh mục SBOM, vị trí tệp và các SBOM bổ sung được cấu hình
+  - Đánh giá điều kiện dependency, bean và quyền truy cập của từng endpoint tích hợp
+- level1: Vòng đời vận hành
+  level2:
+  - Quan sát thời gian khởi động qua endpoint startup
+  - Cấu hình BufferingApplicationStartup và giới hạn bộ đệm bước khởi động
+  - Phân biệt đọc snapshot với thao tác lấy và xóa dữ liệu startup đã thu
+  - Liên hệ dữ liệu startup với bean khởi tạo chậm và phụ thuộc ngoài
+  - Theo dõi AvailabilityChangeEvent trong chu kỳ sống ứng dụng
+  - Bật endpoint shutdown có chủ đích và kiểm tra giới hạn hỗ trợ
+  - Phân biệt gọi shutdown endpoint với cấu hình graceful shutdown của web server
+  - Phối hợp ngừng nhận yêu cầu, hoàn tất yêu cầu đang xử lý và timeout tắt
+  - Kiểm tra hành vi readiness và dữ liệu quan sát khi ứng dụng dừng
+- level1: Kiểm thử Actuator
+  level2:
+  - Kiểm thử HealthIndicator và InfoContributor độc lập
+  - Kiểm thử nội dung, HTTP status và phân quyền của health group
+  - Kiểm thử endpoint qua @SpringBootTest và môi trường web thực
+  - Sử dụng @LocalManagementPort khi cổng quản trị được tách riêng
+  - Chọn MockMvc, WebTestClient hoặc HTTP client theo hạ tầng cần kiểm chứng
+  - Kiểm tra ma trận bật, công bố và bảo mật endpoint
+  - Kiểm thử endpoint tùy chỉnh cho tham số hợp lệ, thiếu và sai kiểu
+  - Xác minh dữ liệu nhạy cảm được che theo từng vai trò
+  - Kiểm thử meter bằng SimpleMeterRegistry và kiểm soát trạng thái giữa các lần chạy
+  - Kiểm thử Observation và tracing bằng công cụ hỗ trợ tương thích
+  - Hiểu @AutoConfigureObservability và hành vi tự cấu hình trong kiểm thử
+  - Mô phỏng phụ thuộc ngoài lỗi, probe chuyển trạng thái và hệ thống xuất dữ liệu gián đoạn
+- level1: Vận hành production
+  level2:
+  - Xác định tập endpoint tối thiểu cho từng môi trường và vai trò vận hành
+  - Thiết kế nhãn service, instance, môi trường và phiên bản nhất quán
+  - Xây dựng dashboard cho lưu lượng, lỗi, độ trễ và mức sử dụng tài nguyên
+  - Phân biệt chỉ báo mức dịch vụ (SLI), mục tiêu mức dịch vụ (SLO) và ngưỡng cảnh báo
+  - Chọn cảnh báo có cửa sổ thời gian và hướng dẫn xử lý rõ ràng
+  - Kiểm soát chi phí tag, histogram, trace sampling và tần suất probe
+  - Quản lý dữ liệu cá nhân, thời hạn lưu và quyền đọc log, trace hoặc dump
+  - Đảm bảo lỗi hệ thống giám sát không làm gián đoạn chức năng nghiệp vụ
+  - Giám sát khả năng thu thập dữ liệu và nhận diện điểm mù của cổng quản trị riêng
+  - Rà soát thay đổi endpoint, cấu hình và thư viện khi nâng cấp Spring Boot
+  - Tổ chức quy trình chẩn đoán từ cảnh báo đến metrics, trace, log và chứng cứ liên quan
+- level1: Chẩn đoán sự cố
+  level2:
+  - Phân biệt lỗi 404 do sai đường dẫn, endpoint bị tắt hoặc chưa được công bố
+  - Chẩn đoán lỗi 401, 403 và thao tác ghi bị chặn bởi CSRF
+  - Tìm nguyên nhân endpoint không xuất hiện dù đã cấu hình include
+  - Xử lý health DOWN, UNKNOWN và kết quả không có chi tiết
+  - Tìm nguyên nhân health group có thành viên không tồn tại hoặc ánh xạ status sai
+  - Phân tích probe thành công trong khi ứng dụng không nhận được yêu cầu
+  - Chẩn đoán metrics chưa xuất hiện do chưa phát sinh phép đo hoặc thiếu binder
+  - Xử lý tên chỉ số hoặc tag khác nhau giữa metrics endpoint và exporter
+  - Chẩn đoán Gauge bị mất dữ liệu và số lượng meter tăng không kiểm soát
+  - Tìm nguyên nhân Prometheus scrape lỗi hoặc registry không xuất được dữ liệu
+  - Khôi phục liên kết trace khi thiếu builder, propagation hoặc ngữ cảnh bất đồng bộ
+  - Xử lý trùng tên MBean, sai cổng quản trị và xung đột cấu hình theo môi trường
+  - Đối chiếu triệu chứng với conditions, cấu hình có hiệu lực và bộ phiên bản thư viện
+- level1: Thực hành tổng hợp
+  level2:
+  - Tạo ứng dụng có health và info với tập endpoint công bố tối thiểu
+  - Xây dựng health indicator cho phụ thuộc ngoài và nhóm readiness phù hợp
+  - Thiết lập cổng quản trị riêng và kiểm thử quyền truy cập
+  - Thêm metrics nghiệp vụ với tag được giới hạn
+  - Thu thập metrics bằng Prometheus và xây dựng dashboard Grafana
+  - Quan sát một lời gọi qua hai dịch vụ với trace và log được liên kết
+  - Tạo endpoint quản trị có thao tác ghi và bộ kiểm thử bảo mật
+  - Mô phỏng database lỗi, HTTP chậm và tài nguyên cạn để thực hành chẩn đoán
+  - Kiểm chứng quy trình khởi động, readiness và graceful shutdown
+  - Hoàn thiện cấu hình vận hành cùng hướng dẫn đọc tín hiệu và xử lý sự cố

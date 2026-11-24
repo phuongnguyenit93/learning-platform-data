@@ -1,0 +1,498 @@
+# Choosing the Application Type and Minimal Dependency Set
+
+When creating your first Spring Boot project, two decisions need to be made before writing business logic: **how the application will run** and **which libraries need to be included in the project**. These two choices are directly related: a REST API needs HTTP-handling components; a batch file-processing program may not need a web server; an application that accesses a database only needs the driver and data-access library when that requirement actually exists.
+
+The goal of the initialization step is to create the **smallest application that satisfies the first feature**, one that can run and be extended intentionally. Starting with fewer dependencies makes it easier to read the project structure, see the role of each component, and find the cause when the application does not behave as expected.
+
+## 1. Define the first feature before choosing technologies
+
+Describe the minimal outcome the program needs to produce. A few clear ways to state it:
+
+- “When sending `GET /hello`, the server returns JSON containing a greeting.”
+- “When visiting the home page, the browser receives a server-generated HTML page.”
+- “When running the program, the application reads a CSV file, processes it, and exits.”
+- “When an event arrives from another system, the application receives and processes the message.”
+- “When a client requests a product list, the application reads from PostgreSQL and returns JSON.”
+
+Only after defining the first outcome should you choose the appropriate runtime architecture. The label “Spring Boot application” is only a broad scope; Spring Boot supports many types of applications.
+
+### Common application types
+
+| Application Type | When It Fits | Basic Needs | Common Spring Choice |
+|---|---|---|---|
+| **REST API / HTTP backend** | Mobile app, SPA, or another system calls endpoints and receives JSON | HTTP routing, serialization, web server | Spring MVC via **Spring Web** |
+| **Server-rendered HTML web app** | UI rendered using server-side Java templates | HTTP, controllers, and a template engine | **Spring Web** + **Thymeleaf** if using Thymeleaf |
+| **Command-line / simple task** | Runs a task, reads/writes files, then exits | ApplicationContext, logic processing; no need to accept HTTP | Core **Spring Boot** + `CommandLineRunner` or `ApplicationRunner` |
+| **Batch job processing** | Multi-step jobs requiring state management, retry, or restart | Ability to orchestrate jobs and steps | **Spring Batch** when the problem truly needs it |
+| **Reactive HTTP service** | Asynchronous streams, non-blocking I/O with compatible libraries | Reactive HTTP stack | **Spring Reactive Web / WebFlux** |
+| **Event / message consumer** | Receives messages from a broker, without necessarily exposing endpoints | Corresponding broker client and listener mechanism | Kafka, AMQP, etc. dependencies according to the actual system |
+
+If the first lesson is simply “respond to `GET /hello`”, choosing Spring MVC is easy to observe and explain. There is not yet any reason to add a database, messaging, cache, or reactive stack.
+
+**Important distinction:** a REST API is not required to use WebFlux. Spring MVC also handles REST APIs very well. The term “REST” describes how HTTP communication is designed; “MVC” and “WebFlux” are different web programming models.
+
+## 2. What is a dependency and why does Spring Boot use starters?
+
+A **dependency** is a library that a project needs in order to compile, run, or test. Maven or Gradle reads dependency declarations in `pom.xml` or `build.gradle` / `build.gradle.kts`, downloads the appropriate artifacts, and builds the library set for each phase.
+
+One dependency can pull in other dependencies. For example, a web starter typically brings in components for Spring MVC, JSON, and an embedded web server. Those are **transitive dependencies**: indirect library dependencies resolved by the build tool.
+
+A **starter** is a curated set of dependencies prepared by Spring Boot for a common need. Instead of assembling individual HTTP components manually, you start from the starter that fits the problem. Spring Boot also provides a mechanism to manage compatible versions across many libraries when the project uses the appropriate dependency management configuration.
+
+A familiar example in **Spring Boot 3.x**:
+
+~~~xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+~~~
+
+This dependency provides a convenient foundation for building a Spring MVC servlet application, but it **does not automatically create business endpoints**. Endpoints must be declared through the corresponding code or configuration.
+
+> **Version note:** starter names may change between major Spring Boot versions. For example, Spring Boot 4.x projects may use `spring-boot-starter-webmvc` for the Spring MVC stack. When starting a project, prefer the dependency names and configuration set generated by **Spring Initializr for the selected version**; the build snippets below use Spring Boot 3.x conventions.
+
+### Dependencies can change startup behavior
+
+You should not treat dependencies as a list of “libraries for later use.” Spring Boot applies **auto-configuration** based on the classpath, beans, and properties present. Therefore:
+
+- Adding a web starter can cause the application to start an embedded HTTP server.
+- Adding a Data JPA starter and the corresponding driver can trigger the creation of data connection beans, depending on conditions.
+- Adding Spring Security can cause HTTP endpoints to be protected under default security settings, even if controllers do not change.
+- Adding WebFlux creates reactive components; if Spring MVC is also present, Spring Boot usually prioritizes the servlet MVC application type by default.
+
+Dependencies are part of architectural decisions. Only add one when you understand the need and its impact.
+
+## 3. Selection process: start from the main execution flow
+
+You can use the following short decision tree for your first project:
+
+~~~text
+Does the application need to expose HTTP endpoints?
+│
+├── No
+│   ├── Only runs logic on startup
+│   │   └── Core Spring Boot + CommandLineRunner
+│   ├── Needs multi-step jobs, job-level restart/retry
+│   │   └── Consider Spring Batch
+│   └── Consumes messages from a broker
+│       └── Add the appropriate broker client/starter when used
+│
+└── Yes
+    ├── Is there a specific reactive requirement?
+    │   ├── Yes -> Consider WebFlux and an end-to-end reactive I/O chain
+    │   └── No -> Choose Spring Web (Spring MVC)
+    │
+    ├── Needs server-side HTML rendering?
+    │   └── Add Thymeleaf or an equivalent template engine
+    │
+    └── Stores data in a database?
+        ├── Not yet -> Do not add persistence dependencies yet
+        └── Yes -> Choose JDBC / JPA / appropriate client
+~~~
+
+The diagram shows an **order of questions**, not an absolute limitation. A real-world application can combine HTTP, jobs, and message listeners. For your first learning project, choose one execution flow that is easy to test-run, then add capabilities when clear requirements appear.
+
+### Spring MVC or WebFlux?
+
+| Criterion | Spring MVC | Spring WebFlux |
+|---|---|---|
+| Common programming style | Controllers return objects, `ResponseEntity`, or similar types | Controllers/handlers typically use `Mono`, `Flux`, and Reactor |
+| Common processing model | Servlet, approachable request-handling model | Reactive, geared toward asynchronous I/O and backpressure |
+| When first learning REST APIs | Usually the simpler choice | Should only be prioritized when learning or requiring reactive |
+| Traditional persistence integration | Fits blocking JDBC and JPA models well | Should evaluate the entire I/O chain; arbitrary blocking can negate the benefits |
+| Library to choose | Spring Web / Spring MVC | Spring Reactive Web / WebFlux |
+
+WebFlux is not inherently faster than Spring MVC for every problem. Performance depends on workload, I/O handling, data design, and environment. Choosing reactive just because it “sounds more modern” increases the number of concepts to learn and the complexity of debugging.
+
+### Does a backend API need a template engine?
+
+If a React, Vue, mobile app, or other client consumes JSON, **you do not need Thymeleaf** just to build a REST API. Adding a rendering engine like Thymeleaf only makes sense if you want the Java server to generate HTML pages from templates. Both approaches can coexist, but a first project should have one primary goal.
+
+## 4. Minimal selection example: “Hello” REST API
+
+Suppose the first requirement is:
+
+> Create a Spring Boot program running locally. When sending an HTTP GET to `/hello`, the application returns the JSON `{"message":"Hello Spring Boot"}`.
+
+From this requirement, we deduce:
+
+1. Need to accept HTTP requests and map paths to a controller.
+2. Need to convert Java objects into JSON.
+3. Need a web server so clients can send requests.
+4. **Do not yet need a database, advanced security, queues, or HTML templates**.
+
+Choose the **Spring Web (MVC)** application type. With Spring Boot 3.x, the main dependency is `spring-boot-starter-web`. The testing dependency included by standard generators is `spring-boot-starter-test` with `test` scope; this library is for testing, not for serving HTTP in production.
+
+### 4.1. Creating the project configuration with Spring Initializr
+
+In the Spring Initializr interface:
+
+| Field | Example Choice | Meaning |
+|---|---|---|
+| Project | Maven | Build and dependency management tool |
+| Language | Java | Language used to write the application |
+| Spring Boot | Stable, supported, and environment-compatible version | Determines the framework line and managed library set |
+| Group | `com.example` | Organization namespace |
+| Artifact | `hello-api` | Artifact name; usually affects the project name |
+| Name | `hello-api` | Project name |
+| Packaging | Jar | Packages a runnable application |
+| Java | JDK version compatible with the chosen Spring Boot version | Version used to build and run |
+| Dependencies | **Spring Web** | Provides Spring MVC and required components |
+
+With Spring Boot 3.x, Java 17 is the minimum baseline. When choosing a newer version, use a JDK supported by that Spring Boot version and ensure the deployment JDK is not older than the build's bytecode. You do not need to pick the newest Java version if your learning machine or runtime environment does not support it yet.
+
+If your goal is to learn Gradle, choosing Gradle is still suitable; the Java code stays virtually identical, with only the build file syntax and build commands differing. Choose **one** build tool to understand the workflow clearly instead of maintaining Maven and Gradle side by side for the same example.
+
+After downloading and extracting the project from Initializr, the typical structure is:
+
+~~~text
+hello-api/
+├── pom.xml
+├── mvnw
+├── mvnw.cmd
+├── .mvn/
+│   └── ...
+└── src/
+    ├── main/
+    │   ├── java/
+    │   │   └── com/example/helloapi/
+    │   │       └── HelloApiApplication.java
+    │   └── resources/
+    │       └── application.properties
+    └── test/
+        └── java/
+            └── ...
+~~~
+
+Depending on the version and generator options, exact filenames or paths may vary. The `pom.xml` or `build.gradle(.kts)` file is what describes the build and dependencies; the `src/main/java` directory holds main source code, and `src/main/resources` holds packaged resources and configuration.
+
+### 4.2. Reading the dependencies section in a Maven project
+
+For the Spring Boot 3.x example, the `dependencies` section in `pom.xml` might look like this:
+
+~~~xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+~~~
+
+This is an **excerpt** of `pom.xml`; the complete file generated by Initializr also contains project metadata, Spring Boot version management, and appropriate build plugins. You do not need to manually pin a version number on each starter when the project is managed by Spring Boot dependency management.
+
+If creating a Gradle Kotlin DSL project on Spring Boot 3.x, the two equivalent declarations in intent take the form:
+
+~~~kotlin
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+~~~
+
+When using Spring Boot 4.x or another version, **read the actual dependencies generated by the generator** instead of copying starter names verbatim from examples written for Boot 3.x.
+
+### 4.3. Writing the minimal source code
+
+Startup class:
+
+~~~java
+package com.example.helloapi;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class HelloApiApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(HelloApiApplication.class, args);
+    }
+}
+~~~
+
+Controller:
+
+~~~java
+package com.example.helloapi;
+
+import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HelloController {
+
+    @GetMapping("/hello")
+    public Map<String, String> hello() {
+        return Map.of("message", "Hello Spring Boot");
+    }
+}
+~~~
+
+Place `HelloController` in the same package as or a subpackage of `HelloApiApplication`. This location matches the default component scan mechanism of `@SpringBootApplication`.
+
+In the example:
+
+- `@SpringBootApplication` identifies the configuration/startup class and enables key Spring Boot mechanisms.
+- `@RestController` declares an HTTP-handling bean and writes the return value as the response body.
+- `@GetMapping("/hello")` maps HTTP GET requests to `/hello`.
+- `Map.of(...)` is the application's own logic; the appropriate HTTP message converter transforms the data into JSON.
+
+### 4.4. Running the application and observing behavior
+
+From the Maven project root directory, the common command on macOS/Linux is:
+
+~~~bash
+./mvnw spring-boot:run
+~~~
+
+On Windows PowerShell:
+
+~~~powershell
+.\mvnw.cmd spring-boot:run
+~~~
+
+If using Gradle, the corresponding command is typically `./gradlew bootRun` (macOS/Linux) or `.\gradlew.bat bootRun` (Windows).
+
+Once the application has started, use a browser or HTTP client:
+
+~~~bash
+curl http://localhost:8080/hello
+~~~
+
+Expected output:
+
+~~~json
+{"message":"Hello Spring Boot"}
+~~~
+
+`8080` is the common default port when running a Spring Boot servlet web application without configuring another port. If that port is already occupied by another application or changed via a property, the actual address also changes.
+
+This example clearly shows the separation of responsibilities:
+
+| Component | Role in the Result |
+|---|---|
+| `HelloController` | Defines `/hello` and the returned data |
+| Spring MVC / JSON from the web starter | Receives and routes HTTP requests and serializes JSON |
+| Spring Boot and runtime configuration | Creates the application context and starts the server on the corresponding port |
+| JVM and machine | Executes the application; provides network ports, CPU, RAM, and environment |
+
+## 5. What if the first problem does not need HTTP?
+
+Suppose the requirement changes to “on startup, print one line and exit.” In this case, **a web server is unnecessary**. A Spring Boot project can use the core starter and declare a `CommandLineRunner`:
+
+~~~java
+package com.example.job;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+
+@SpringBootApplication
+public class JobApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(JobApplication.class, args);
+    }
+
+    @Bean
+    CommandLineRunner runJob() {
+        return args -> System.out.println("First task executed");
+    }
+}
+~~~
+
+For a Spring Boot 3.x Maven project, the base dependency can be:
+
+~~~xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter</artifactId>
+</dependency>
+~~~
+
+You do not need `spring-boot-starter-web` to use `@SpringBootApplication` or `CommandLineRunner`. Without a web stack or tasks that keep the process alive, the application can finish its work and exit rather than continuing to listen for requests.
+
+If a project already includes a web starter but you want to force it to run without a web server, Spring Boot also supports the property:
+
+~~~properties
+spring.main.web-application-type=none
+~~~
+
+However, when creating a new project with no HTTP requirement, a clearer approach is **not adding the web dependency in the first place**. Avoid turning configuration into a way to mask unnecessary dependencies.
+
+You should also avoid equating “running a piece of code at startup” with “having to use Spring Batch.” `CommandLineRunner` suits short examples or simple tasks; Spring Batch shines in structured jobs that manage step state, control restarts, and have serious operational requirements.
+
+## 6. When should you add the next dependency?
+
+Once the first feature is running, each new requirement leads to a new dependency decision. The table below lists common choices in the Spring Boot 3.x ecosystem; artifact names may change across Spring Boot lines, so check the libraries provided by Initializr or your project version's documentation.
+
+| Actual Requirement | Common Dependency/Starter | Only Add When... |
+|---|---|---|
+| Accept HTTP, return JSON | `spring-boot-starter-web` (Boot 3.x) | The application exposes MVC HTTP endpoints |
+| Render HTML pages server-side | `spring-boot-starter-thymeleaf` | Using Thymeleaf for HTML views |
+| Validate input data via Bean Validation | `spring-boot-starter-validation` | Having constraints like `@NotBlank`, `@Size`, and validation mechanics |
+| Write SQL directly or use `JdbcTemplate` | `spring-boot-starter-jdbc` | Needing to interact with a database via JDBC |
+| ORM/repositories with JPA | `spring-boot-starter-data-jpa` | Having entity, repository, and transaction/ORM needs |
+| Connect to PostgreSQL | `org.postgresql:postgresql` | Actually using PostgreSQL with JDBC |
+| Use an in-memory database for lessons/tests | `com.h2database:h2` | Needing a test/practice database suited to the purpose |
+| Protect APIs with Spring Security | `spring-boot-starter-security` | Ready to configure authentication/authorization |
+| Monitor health and operational info | `spring-boot-starter-actuator` | Having appropriate observability/monitoring requirements |
+| Test the application | `spring-boot-starter-test` (Boot 3.x) | Needing testing libraries; usually added by the generator with test scope |
+| Development utilities like automatic restart | `spring-boot-devtools` | Needing extra development convenience; not a business dependency |
+
+A few requirement-driven selection examples:
+
+**Example A — Book list CRUD with PostgreSQL.** Once data persistence is needed, the selection might include Spring Web + Spring Data JPA + PostgreSQL driver + Validation if input constraints exist. When only writing the `/hello` endpoint, there is no reason yet to add both JPA and the driver.
+
+**Example B — REST API that only calls another HTTP service.** You may need a web starter to receive requests and an appropriate HTTP client to make outbound calls. There is no need to add JPA if data is not stored in a DB.
+
+**Example C — Displaying a product list with templates.** You can use Spring Web + Thymeleaf; a database is only added when products need to be read from a real data store.
+
+**Example D — Running a CSV import job.** You can start with core Spring Boot and a CSV processing library if needed. Only use Spring Batch when the problem has significant batch-processing characteristics.
+
+### How do JDBC, JPA, and a driver differ?
+
+If you choose a database, separate three concepts:
+
+- **JDBC** is the API and mechanism for accessing relational databases; in Spring, the JDBC starter provides utilities like `JdbcTemplate`.
+- **JPA** is a specification for working with entities/ORM; Spring Data JPA builds a repository layer on top and integrates a JPA provider. Using JPA does not mean a JDBC connection is not needed underneath.
+- **Driver** is the library that communicates with a specific database management system such as PostgreSQL. Neither the JPA starter nor the JDBC starter replaces the corresponding driver.
+
+Moreover, **dependencies do not create an external database for you**. If configuration points to PostgreSQL, the PostgreSQL server must exist, be reachable over the network, and have an account with appropriate permissions. Adding a database starter before proper configuration is in place can cause the application to fail at startup because auto-configuration tries to create data-access components.
+
+## 7. Adding dependencies has side effects: the Spring Security example
+
+Suppose a REST API serves public data at `/hello`. Later, you add `spring-boot-starter-security` just because you want to “be ready for security.” Spring Boot may apply default security configuration and require authentication for endpoints, even though the controller code has not changed at all.
+
+This is not a random bug. When new library classes appear on the classpath, auto-configuration conditions can change. When adding Security, you need to design clearly:
+
+- Which endpoints are public and which require a user to log in.
+- Which authentication mechanism to use, such as sessions, HTTP Basic in a simple lesson, or tokens for APIs as required.
+- How access permissions and error responses are enforced.
+- How to configure the `SecurityFilterChain` and manage credentials.
+
+Practical takeaway: an added dependency must have a **specific reason**, and the author must understand at least at a high level how system behavior changes. This is especially true for web, data, security, and messaging starters.
+
+## 8. Minimal does not mean removing essential supporting infrastructure
+
+“Minimal” means **having only what the current features need**, not removing all development or testing support mechanisms.
+
+For example, with Spring MVC, it is usually sensible to keep the test dependency provided by Initializr, even though tests are not an HTTP feature in production. Depending on the Spring Boot version, test starter names may be modularized; use the exact choice generated by the generator. The `test` scope separates dependencies that only serve testing from libraries that run in production.
+
+On the other hand, there is no need to add a heap of libraries “just in case”:
+
+- **Lombok** reduces boilerplate code in some cases, but introduces annotation processing and new conventions; beginners can write Java constructors/getters directly to understand the structure.
+- **DevTools** improves convenience for the development loop, but is not required for the application to execute properly; only add it if needed.
+- **Actuator** is useful for health/metrics and operations, but is not a prerequisite for `GET /hello` to work.
+- **H2** is useful when practicing data quickly; there is no reason for it if the application does not use a database yet.
+- **Swagger/OpenAPI UI** is useful when there are many endpoints needing documentation; it is not needed for a single starter endpoint.
+
+An unused library can enlarge the dependency graph, increase build processing time, create additional security update surface, and make auto-configuration results harder to understand.
+
+## 9. Choose the right dependency versions and scopes from the start
+
+### Use Spring Boot's version management mechanism
+
+In Maven, Spring Boot typically provides a parent POM or BOM to manage the set of dependency versions. In Gradle, the corresponding plugin and dependency management configuration play a similar role. The files generated by Initializr lay the groundwork for this.
+
+For managed starters, you normally do not need to manually specify `<version>` for each dependency. Manually pinning incompatible library versions can cause compilation failures or runtime errors such as `NoSuchMethodError`.
+
+For your first project:
+
+1. Choose a supported Spring Boot version compatible with your Java version and runtime environment.
+2. Let Initializr generate Maven/Gradle configuration aligned with that version.
+3. Use the starter and dependency names recommended for the exact version you are running.
+4. Only upgrade or override an individual library version when you have a reason and understand compatibility.
+5. When moving across major Spring Boot versions, read compatibility changes and starter names instead of assuming every artifact stays the same.
+
+### Distinguish usage scopes
+
+For example, a Spring Boot 3.x Maven project might declare:
+
+~~~xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <scope>runtime</scope>
+    </dependency>
+</dependencies>
+~~~
+
+The snippet above is **not the minimal dependencies for Hello API**; the PostgreSQL part illustrates when the project already has a feature requiring a database. `scope=runtime` is usually appropriate for a JDBC driver because business code works against JDBC/JPA APIs at compile time. `scope=test` is for libraries used in tests. Dependency scope affects the classpath and final artifact, so you should not change scopes arbitrarily just to silence a missing-class error.
+
+Gradle similarly distinguishes `implementation`, `runtimeOnly`, `testImplementation`, and other configurations. For projects generated by Initializr, choose dependency definitions according to the purpose suggested by the generator.
+
+## 10. Common mistakes when getting started
+
+| Situation | Possible Cause Related to Initial Choices | How to Adjust |
+|---|---|---|
+| Added `@RestController` but the application does not serve HTTP | Missing appropriate web stack, or controller is not detected | Choose Spring Web for MVC, check package scan and mappings |
+| API returns `401 Unauthorized` after adding Security | Auto-configuration protects endpoints | Configure security per requirements instead of randomly removing other logic |
+| Application tries to connect to DB and fails even without using a DB | Added Data JPA/JDBC and data initialization conditions were triggered | Remove unneeded dependencies or provide valid DB config when actually needed |
+| Chose WebFlux but most code uses blocking JDBC | I/O chain does not follow the reactive model | Consider MVC, or redesign I/O as reactive when required |
+| Added `Spring Data REST` just to have a REST API | Confusing repository-generated REST with Spring Web in general | Start with standard MVC controllers |
+| Project has both MVC and WebFlux and behaves unexpectedly | Both web stacks are present; application type is chosen by Spring Boot rules | Clearly choose the primary stack; only mix when you understand the purpose |
+| Code edits do not seem to take effect | Running an old artifact or the wrong project | Verify which build is running; rebuild the right project |
+| Runtime missing class or method errors | Incompatible dependency scope or version | Check runtime dependencies and version management |
+| Build runs on your machine but fails on another | Different JVM/JDK or environment conditions | Check Java version, configuration, and external dependencies |
+
+Do not assume every startup failure is caused by a missing dependency. Some errors come from misspelled property names, missing environment variables, code bugs, occupied ports, or unavailable external services. Choosing few and accurate dependencies helps narrow the investigation scope.
+
+## 11. Practice with three problems
+
+Try deciding the application type and dependencies **before opening Initializr**, then compare against the actual requirements.
+
+### Problem 1: API returning static course information
+
+Requirement: `GET /courses` returns JSON containing three courses hard-coded in Java; no database storage.
+
+Reasonable choice: **Spring Web (MVC)**. You need a controller returning a list of objects or records; JSON conversion comes from the web stack. No need for Data JPA, JDBC, H2, or PostgreSQL because the data is already in memory.
+
+### Problem 2: Tool counting total lines in a CSV
+
+Requirement: accept a file path when launched, count records, print the result, then exit; does not accept HTTP.
+
+Reasonable choice: **Core Spring Boot** with `CommandLineRunner` or `ApplicationRunner`. You can use the Java standard library to read the file if the CSV structure is simple. Only add a dedicated CSV library when formatting or parsing rules truly require it; do not add a web server.
+
+### Problem 3: API creating and reading orders from PostgreSQL
+
+Requirement: `POST /orders` saves an order and `GET /orders/{id}` reads the data back from PostgreSQL.
+
+Common reasonable choice: **Spring Web + Spring Data JPA + PostgreSQL driver**, optionally adding Validation if you want to validate inputs with Bean Validation. Beyond declaring dependencies, you need a PostgreSQL server, connection URL, credentials, appropriate tables/schema, and entity/repository/service/controller code. If the team prefers writing explicit SQL, JDBC can be chosen instead of JPA depending on needs.
+
+All three problems lead to the same practical conclusion: **dependencies are derived from required behavior**, not from the list of technologies Spring Boot supports.
+
+## 12. Check your decisions before starting larger features
+
+Before continuing to expand your first Spring Boot project, you should be able to answer:
+
+- Does this application handle HTTP, run a standalone task, or consume events? Does it need a web server?
+- Why was Spring MVC or WebFlux chosen? Is there any technical requirement demanding reactive?
+- What specific feature does each declared dependency serve?
+- Which starters might alter auto-configuration and how the application starts up?
+- Is a database needed right now? If so, is JDBC or JPA being used, and which driver?
+- Are the Spring Boot version, JDK, and starter names compatible with one another?
+- Which parts serve only tests or development, and which parts are needed at runtime?
+
+A solid starting point for a simple REST API is **Java + Spring Boot + an appropriate web starter + build/test configuration generated by Initializr**. From there, add dependencies when new requirements actually emerge and observe the corresponding changes in configuration and startup behavior. This approach keeps every step of your first project understandable, explainable, and convenient to expand later.

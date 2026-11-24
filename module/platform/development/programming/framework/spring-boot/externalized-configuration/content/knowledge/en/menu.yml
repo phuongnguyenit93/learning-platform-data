@@ -1,0 +1,294 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Cấu hình ngoài (externalized configuration) là gì và giải quyết vấn đề nào
+  - 'Một bản dựng dùng cho nhiều môi trường: mã nguồn và cấu hình thay đổi độc lập'
+  - 'Bản đồ khái niệm: thuộc tính, nguồn cấu hình, Environment, profile và liên kết kiểu'
+  - Phân biệt cấu hình ứng dụng, định nghĩa bean và dữ liệu nghiệp vụ
+  - Hành trình từ nguồn cấu hình đến giá trị được bean sử dụng
+  - Vai trò của Spring Framework và phần mở rộng của Spring Boot
+  - Phạm vi Spring Boot 3.3 và kiến thức Java, IoC cần chuẩn bị
+  - Lộ trình học và ứng dụng mẫu để quan sát cấu hình
+- level1: Nguồn và ưu tiên
+  level2:
+  - Các nhóm nguồn cấu hình và cách chúng cùng tham gia Environment
+  - Thứ tự ưu tiên đầy đủ của PropertySource trong Spring Boot 3.3
+  - Cấu hình mặc định bằng SpringApplication.setDefaultProperties
+  - 'Config Data: cấu hình đóng gói và cấu hình bên ngoài ứng dụng'
+  - Đối chiếu biến môi trường, thuộc tính JVM và tham số dòng lệnh
+  - JNDI, ServletContext và ServletConfig trong môi trường Servlet
+  - SPRING_APPLICATION_JSON và vị trí của nguồn JSON trong thứ tự ưu tiên
+  - Nguồn cấu hình kiểm thử và thiết lập toàn cục của Devtools
+  - Phân biệt thứ tự ưu tiên nguồn, thứ tự nạp tệp và ghi đè từng khóa
+  - Thực nghiệm nhiều nguồn cùng khai báo một khóa cấu hình
+- level1: Properties và YAML
+  level2:
+  - Cú pháp khóa và giá trị trong application.properties
+  - Khoảng trắng, chú thích, ký tự đặc biệt và nối dòng trong properties
+  - Cấu trúc phân cấp và quy tắc thụt lề trong YAML
+  - Chuỗi, số, boolean và thời điểm cần đặt dấu nháy trong YAML
+  - 'Chuỗi nhiều dòng trong YAML: giữ xuống dòng và gộp dòng'
+  - Biểu diễn danh sách và ánh xạ bằng properties và YAML
+  - Chuyển cấu trúc YAML thành tên thuộc tính phẳng
+  - Xử lý khóa trùng, sai thụt lề và khác biệt giữa trống với null
+  - Lựa chọn một định dạng và xử lý trường hợp properties cùng tồn tại với YAML
+- level1: Tìm và nạp tệp
+  level2:
+  - Các vị trí tìm application.properties và application.yaml mặc định
+  - 'Phân biệt classpath, thư mục làm việc và đường dẫn file:'
+  - Đổi tên cơ sở của tệp bằng spring.config.name
+  - Thay thế vị trí mặc định bằng spring.config.location
+  - Bổ sung vị trí bằng spring.config.additional-location
+  - Quy tắc đường dẫn tệp, thư mục và dấu gạch chéo cuối
+  - 'Nhóm vị trí nạp: dấu phẩy, dấu chấm phẩy và tác động đến ghi đè'
+  - Vị trí wildcard và thứ tự xét các thư mục cấu hình bên ngoài
+  - Thời điểm cung cấp spring.config.* để bộ nạp nhận được cấu hình
+  - 'Ứng xử khi vị trí không tồn tại: optional: và spring.config.on-not-found'
+- level1: Config Data Import
+  level2:
+  - Vai trò của spring.config.import và khác biệt với location
+  - Nhập tệp properties hoặc YAML từ classpath và hệ thống tệp
+  - Đường dẫn nhập cố định và đường dẫn tương đối với tệp khai báo
+  - Ưu tiên của dữ liệu nhập so với tài liệu khai báo import
+  - Nhiều import, nhập lồng nhau và quy tắc chỉ nạp một lần
+  - Biến thể theo profile của tệp được import
+  - Import tùy chọn và phân biệt thiếu tài nguyên với nội dung không hợp lệ
+  - Nạp tệp không có phần mở rộng bằng gợi ý [.properties] hoặc [.yaml]
+  - 'Cây cấu hình configtree: từ tên thư mục, tên tệp đến khóa và giá trị'
+  - Import nhiều cây cấu hình và lựa chọn kiểu String hoặc byte[]
+- level1: Profile
+  level2:
+  - Profile là gì và khi nào cần tách cấu hình theo môi trường
+  - Kích hoạt profile bằng spring.profiles.active từ các nguồn cấu hình
+  - Profile mặc định và thuộc tính spring.profiles.default
+  - Tệp application-{profile} và quan hệ với tệp cấu hình chung
+  - Nhiều profile hoạt động đồng thời và thứ tự ghi đè
+  - Bổ sung profile bằng spring.profiles.include
+  - Gom profile theo chức năng bằng spring.profiles.group
+  - Đặt active, default, include và group ở tài liệu hợp lệ
+  - '@Profile: chọn bean theo profile và liên hệ với tệp cấu hình'
+  - Bổ sung profile bằng SpringApplication và ConfigurableEnvironment
+  - Thiết kế profile theo nhu cầu triển khai và tránh tổ hợp khó kiểm soát
+- level1: Tài liệu có điều kiện
+  level2:
+  - Phân biệt một tệp vật lý với nhiều tài liệu cấu hình logic
+  - 'Tách tài liệu YAML bằng --- và properties bằng #--- hoặc !---'
+  - Thứ tự xử lý và ghi đè giữa các tài liệu trong cùng tệp
+  - Kích hoạt tài liệu bằng spring.config.activate.on-profile
+  - Biểu thức profile với toán tử !, & và |
+  - Kích hoạt theo nền tảng bằng spring.config.activate.on-cloud-platform
+  - Kết hợp điều kiện profile và nền tảng triển khai
+  - Giới hạn nạp tài liệu nhiều phần qua @PropertySource và @TestPropertySource
+- level1: Biến môi trường
+  level2:
+  - Chuyển tên thuộc tính chuẩn thành tên biến môi trường
+  - Quy tắc dấu chấm, dấu gạch ngang và chữ hoa khi liên kết
+  - Chỉ số danh sách trong tên biến môi trường
+  - Khóa Map qua biến môi trường và giới hạn bảo toàn chữ hoa
+  - Truyền thuộc tính JVM bằng -D và vị trí trước -jar
+  - Truyền tham số --key=value và phân biệt với đối số thông thường
+  - Tắt nguồn dòng lệnh bằng setAddCommandLineProperties(false)
+  - Truyền cấu hình có cấu trúc qua SPRING_APPLICATION_JSON
+  - Ý nghĩa của null trong JSON khi cần ghi đè giá trị
+  - Dấu nháy và ký tự đặc biệt khi chạy trên PowerShell hoặc shell Unix
+  - Phân biệt biến của tiến trình, tùy chọn IDE và tệp .env không tự được Boot nạp
+- level1: Placeholder và mặc định
+  level2:
+  - Tham chiếu thuộc tính bằng cú pháp ${key}
+  - Cung cấp giá trị dự phòng bằng ${key:default}
+  - Tham chiếu lồng nhau và xây giá trị từ nhiều thuộc tính
+  - Tên khóa chuẩn dạng kebab-case trong placeholder
+  - Phân biệt khóa vắng mặt, chuỗi rỗng, giá trị 0 và false
+  - Lỗi placeholder không phân giải được và tham chiếu vòng
+  - 'Phân biệt placeholder ${...} với biểu thức SpEL #{...}'
+  - Giá trị ngẫu nhiên từ random.* và giới hạn sử dụng
+  - Phân biệt thay thế placeholder lúc chạy với lọc tài nguyên lúc dựng
+- level1: Truy cập cấu hình
+  level2:
+  - Chọn Environment, @Value hay @ConfigurationProperties theo nhu cầu
+  - Đọc giá trị bằng Environment.getProperty và chỉ định kiểu đích
+  - Thuộc tính bắt buộc với getRequiredProperty và kiểm tra containsProperty
+  - Phân giải chuỗi chứa placeholder qua Environment
+  - Tiêm giá trị đơn bằng @Value ở constructor, trường và phương thức
+  - Chuyển đổi kiểu và giá trị mặc định khi dùng @Value
+  - Sử dụng SpEL trong @Value và giới hạn khi đọc dữ liệu cấu hình
+  - Giới hạn liên kết tên và cấu trúc phức tạp của @Value
+  - Thời điểm tiêm giá trị và lý do trường static không phù hợp
+  - Thay các @Value rải rác bằng đối tượng cấu hình có cấu trúc
+- level1: '@ConfigurationProperties'
+  level2:
+  - Mô hình cấu hình có kiểu và lợi ích của @ConfigurationProperties
+  - Thiết kế prefix theo miền chức năng và quy tắc đặt tên chuẩn
+  - Đăng ký bằng @ConfigurationPropertiesScan
+  - Đăng ký tường minh bằng @EnableConfigurationProperties
+  - Đăng ký kiểu JavaBean bằng @Component và phạm vi áp dụng
+  - Liên kết kiểu JavaBean qua getter, setter và giá trị khởi tạo
+  - Mô hình hóa đối tượng lồng nhau và đường dẫn thuộc tính
+  - Dùng @ConfigurationProperties trên @Bean của thư viện bên ngoài
+  - Phân biệt tạo bean, liên kết thuộc tính và tiêm phụ thuộc
+  - Tách lớp cấu hình khỏi dịch vụ nghiệp vụ và phụ thuộc bean khác
+- level1: Constructor và record
+  level2:
+  - Liên kết qua constructor và thiết kế cấu hình bất biến
+  - Suy luận constructor liên kết khi lớp có một constructor phù hợp
+  - Chọn constructor bằng @ConstructorBinding khi có nhiều constructor
+  - Dùng Java record cho cấu hình và đối tượng lồng nhau
+  - Cấp giá trị mặc định bằng @DefaultValue
+  - Đối tượng lồng nhau khi toàn bộ nhóm thuộc tính vắng mặt
+  - Yêu cầu tên tham số -parameters và cấu hình biên dịch
+  - Giới hạn constructor binding với bean tạo qua @Component hoặc @Bean
+  - Lý do không nên dùng Optional làm trường cấu hình
+  - So sánh JavaBean, lớp bất biến và record qua cùng một mô hình
+- level1: Quy tắc liên kết
+  level2:
+  - Liên kết linh hoạt (relaxed binding) và tên thuộc tính chuẩn
+  - Đối chiếu kebab-case, camelCase và underscore theo từng nguồn
+  - Phân biệt quy tắc prefix với quy tắc tên thuộc tính thành viên
+  - Khác biệt giữa tra cứu trực tiếp Environment và liên kết đối tượng
+  - Xử lý thuộc tính không có trong lớp với ignoreUnknownFields
+  - Xử lý giá trị sai kiểu với ignoreInvalidFields
+  - Phát hiện khóa viết sai thay vì bỏ qua âm thầm
+  - Giá trị mặc định của kiểu nguyên thủy và rủi ro che giấu cấu hình thiếu
+  - Phân biệt liên kết thành công với cấu hình đáp ứng yêu cầu nghiệp vụ
+- level1: Collection và Map
+  level2:
+  - Liên kết mảng, List và Set từ properties hoặc YAML
+  - Cú pháp chỉ số và danh sách phân tách bằng dấu phẩy
+  - Liên kết danh sách đối tượng có cấu trúc lồng nhau
+  - Danh sách bị thay thế khi xuất hiện ở nguồn ưu tiên cao hơn
+  - Tác động của profile lên danh sách và phần tử có thuộc tính thiếu
+  - Liên kết Map có giá trị đơn hoặc đối tượng phức tạp
+  - Cách Map kết hợp các khóa từ nhiều nguồn cấu hình
+  - Bảo toàn khóa Map đặc biệt bằng ký pháp dấu ngoặc vuông
+  - Phân biệt dấu chấm trong khóa Map với đường dẫn đối tượng
+  - Collection khả biến, bất biến và yêu cầu getter hoặc setter
+- level1: Chuyển đổi kiểu
+  level2:
+  - Vai trò của ConversionService trong liên kết cấu hình
+  - Chuyển chuỗi thành số, boolean, enum và kiểu chuẩn
+  - Cấu hình khoảng thời gian bằng Duration
+  - Đơn vị mặc định và @DurationUnit
+  - Cấu hình dung lượng bằng DataSize và @DataSizeUnit
+  - Chuyển đổi URI, URL, InetAddress và Resource
+  - Tạo Converter tùy chỉnh với @ConfigurationPropertiesBinding
+  - Yêu cầu khởi tạo sớm của bộ chuyển đổi và giới hạn phụ thuộc
+  - Ảnh hưởng của bean tên conversionService và cách tránh thay đổi ngoài ý muốn
+  - Chẩn đoán sai định dạng, sai đơn vị và giá trị vượt miền hợp lệ
+- level1: Kiểm tra hợp lệ
+  level2:
+  - Vì sao cần kiểm tra cấu hình ngay khi khởi động
+  - Chuẩn bị Bean Validation và các annotation jakarta.validation
+  - Kích hoạt kiểm tra bằng @Validated trên cấu hình
+  - Ràng buộc chuỗi, số, địa chỉ và giá trị bắt buộc
+  - Kiểm tra đối tượng lồng nhau bằng @Valid
+  - Kiểm tra phần tử collection và giá trị Map
+  - Ràng buộc quan hệ giữa nhiều trường cấu hình
+  - Tạo constraint và ConstraintValidator theo yêu cầu riêng
+  - Validator chuyên dụng mang tên configurationPropertiesValidator
+  - Phân biệt lỗi liên kết, lỗi chuyển đổi và lỗi vi phạm ràng buộc
+  - Thiết kế thông báo lỗi hữu ích mà không lộ giá trị bí mật
+- level1: Metadata cấu hình
+  level2:
+  - Configuration metadata là gì và hỗ trợ IDE ra sao
+  - Sinh metadata bằng spring-boot-configuration-processor
+  - Khai báo annotation processor trong Gradle và Maven
+  - Cấu trúc groups, properties và hints của metadata JSON
+  - Mô tả thuộc tính, kiểu dữ liệu và giá trị mặc định
+  - Metadata cho kiểu lồng nhau và @NestedConfigurationProperty
+  - Bổ sung thông tin bằng additional-spring-configuration-metadata.json
+  - Gợi ý giá trị, đánh dấu ngừng khuyến nghị và khai báo khóa thay thế
+  - Kiểm tra metadata trong JAR và phân biệt metadata với kiểm tra lúc chạy
+- level1: Binder nâng cao
+  level2:
+  - Khi nào cần liên kết lập trình thay vì annotation
+  - Lấy Binder từ Environment và liên kết theo prefix
+  - Giữ thông tin kiểu tổng quát bằng Bindable
+  - Xử lý BindResult và trường hợp không có dữ liệu
+  - Khởi tạo đối tượng bằng bindOrCreate và quản lý giá trị mặc định
+  - Liên kết vào đối tượng sẵn có bằng Bindable.ofInstance
+  - Tùy biến quá trình bằng BindHandler
+  - Kiểm tra hợp lệ và phát hiện dữ liệu không được liên kết qua handler
+  - Giới hạn của Binder khi dùng trực tiếp ngoài vòng đời bean
+- level1: Mở rộng Environment
+  level2:
+  - PropertySource và MutablePropertySources trong ConfigurableEnvironment
+  - Thêm nguồn bằng addFirst, addLast, addBefore và addAfter
+  - Nạp properties bổ sung bằng @PropertySource và xác định ưu tiên
+  - Giới hạn YAML, tài liệu nhiều phần và thời điểm của @PropertySource
+  - Thuộc tính đọc sớm như logging.* và spring.main.*
+  - Can thiệp sớm bằng EnvironmentPostProcessor
+  - Đăng ký EnvironmentPostProcessor và điều phối thứ tự thực thi
+  - Phân biệt EnvironmentPostProcessor với ApplicationContextInitializer
+  - Mở rộng Config Data qua ConfigDataLocationResolver và ConfigDataLoader
+  - Ranh giới giữa Boot thuần với Spring Cloud Config, Consul và Vault
+- level1: Bảo vệ bí mật
+  level2:
+  - Phân loại giá trị cấu hình thông thường và thông tin bí mật
+  - Tách bí mật khỏi Git, tài nguyên classpath và bản dựng ứng dụng
+  - Cấp bí mật qua biến môi trường hoặc tệp được gắn vào tiến trình
+  - 'Đọc Docker secrets và Kubernetes Secrets bằng configtree:'
+  - Rủi ro lộ bí mật qua dòng lệnh, log, toString và thông báo lỗi
+  - Ẩn giá trị khi chẩn đoán bằng Actuator env và configprops
+  - Giới hạn mã hóa của Spring Boot thuần và vai trò kho bí mật bên ngoài
+  - Thay đổi bí mật, vòng đời tiến trình và kế hoạch khởi động lại
+- level1: Triển khai cấu hình
+  level2:
+  - Tổ chức cấu hình chung, cấu hình môi trường và bí mật riêng
+  - Chạy từ IDE, bootRun và java -jar với cùng hợp đồng cấu hình
+  - Phân biệt tham số Gradle, thuộc tính JVM và đối số ứng dụng
+  - Thư mục làm việc khác nhau và lỗi tìm cấu hình khi triển khai
+  - Truyền cấu hình vào Docker và phân biệt biến Compose với biến trong container
+  - Nạp ConfigMap hoặc Secret dưới dạng biến môi trường hay volume
+  - Chọn giá trị triển khai khi có cấu hình tệp và biến môi trường đồng thời
+  - Phân biệt đọc lúc khởi động với thay đổi tệp sau khi ứng dụng đã chạy
+  - Giới hạn tự làm mới cấu hình của Boot thuần và ranh giới Spring Cloud
+  - Phiên bản hóa cấu hình, kiểm soát sai lệch và quay lại bản đã biết
+- level1: Kiểm thử cấu hình
+  level2:
+  - 'Chọn mức kiểm thử: đối tượng, Binder, ApplicationContextRunner và ứng dụng đầy đủ'
+  - Kiểm thử liên kết và chuyển đổi kiểu bằng Binder với nguồn dữ liệu nhỏ
+  - Kiểm thử bean cấu hình bằng ApplicationContextRunner.withPropertyValues
+  - Kiểm thử cấu hình không hợp lệ và xác nhận lỗi khởi động
+  - Ghi đè thuộc tính bằng @SpringBootTest(properties = ...)
+  - Nạp nguồn kiểm thử bằng @TestPropertySource và hiểu giới hạn Config Data
+  - Cấp giá trị động bằng @DynamicPropertySource
+  - Kích hoạt profile kiểm thử bằng @ActiveProfiles
+  - Kiểm thử thực tế thứ tự ưu tiên, import và vị trí tệp qua SpringApplication
+  - Kiểm thử collection, đối tượng lồng nhau, giá trị trống và cấu hình thiếu
+  - Cô lập biến môi trường, System properties và trạng thái dùng chung giữa các test
+  - Phân biệt @DynamicPropertySource với @ServiceConnection khi dùng Testcontainers
+- level1: Chẩn đoán lỗi
+  level2:
+  - 'Quy trình truy vết giá trị: khóa, nguồn, profile, vị trí và thời điểm đọc'
+  - Xem profile hoạt động và thông tin nạp Config Data trong log
+  - Quan sát PropertySource và nguồn gốc giá trị mà không in bí mật
+  - Dùng Actuator env để tìm nguồn thắng và configprops để xem kết quả liên kết
+  - Giới hạn truy cập Actuator và chính sách hiển thị giá trị khi chẩn đoán
+  - Phân tích lỗi không tìm thấy vị trí hoặc tài nguyên Config Data
+  - Phân tích lỗi placeholder, chuyển đổi kiểu và ConfigurationPropertiesBindException
+  - Xử lý profile không được kích hoạt và cấu hình đặt sai tài liệu
+  - Xử lý danh sách bị thay thế, Map sai khóa và biến môi trường sai tên
+  - Phân biệt báo cáo điều kiện tự cấu hình với bằng chứng giá trị thuộc tính thực tế
+- level1: Thiết kế và nâng cấp
+  level2:
+  - 'Xây hợp đồng cấu hình: tên khóa, kiểu, đơn vị, mặc định và ràng buộc'
+  - Chọn ranh giới nhóm cấu hình theo trách nhiệm chức năng
+  - Tránh sao chép toàn bộ cấu hình giữa các profile
+  - Quản lý khóa tùy chọn và khóa bắt buộc cho từng môi trường
+  - Tách lựa chọn tính năng bằng @ConditionalOnProperty khỏi dữ liệu cấu hình
+  - Đổi tên thuộc tính mà vẫn quản lý tương thích và lộ trình loại bỏ
+  - Dùng spring-boot-properties-migrator khi nâng cấp thuộc tính do Boot quản lý
+  - Đối chiếu tài liệu đúng phiên bản và nhận diện hướng dẫn bootstrap cũ
+  - Rà soát cấu hình trước phát hành bằng metadata, kiểm thử và tài liệu sử dụng
+- level1: Thực hành tổng hợp
+  level2:
+  - Khởi tạo ứng dụng mẫu có nhóm cấu hình kết nối dịch vụ bên ngoài
+  - Thí nghiệm một khóa qua tệp, biến môi trường, JVM và dòng lệnh
+  - Thiết kế cấu hình chung cùng profile local, test và prod
+  - Tách tệp dùng chung bằng import và chứng minh thứ tự ghi đè
+  - Mô hình hóa timeout, giới hạn dung lượng và danh sách máy chủ bằng record
+  - Kiểm tra cấu hình thiếu hoặc sai và quan sát ứng dụng dừng sớm
+  - 'Nạp bí mật thử nghiệm từ configtree: với dữ liệu giả lập'
+  - Viết kiểm thử cho quy tắc ghi đè, liên kết và kiểm tra hợp lệ
+  - Chẩn đoán một sự cố cấu hình từ bằng chứng nguồn gốc giá trị
+  - Đóng gói một lần, chạy ở hai môi trường và tài liệu hóa hợp đồng cấu hình

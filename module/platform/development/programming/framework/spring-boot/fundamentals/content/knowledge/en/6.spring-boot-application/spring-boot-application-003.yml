@@ -1,0 +1,3 @@
+menuLevel1: '@SpringBootApplication'
+menuLevel2: '@ComponentScan tìm ứng viên bean trong phạm vi nào'
+status: TRANSLATE

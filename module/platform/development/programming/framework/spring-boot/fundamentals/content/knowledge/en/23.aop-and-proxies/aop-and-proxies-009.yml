@@ -1,0 +1,3 @@
+menuLevel1: AOP và proxy
+menuLevel2: '@EnableAspectJAutoProxy so với tự cấu hình AOP của Spring Boot'
+status: TRANSLATE

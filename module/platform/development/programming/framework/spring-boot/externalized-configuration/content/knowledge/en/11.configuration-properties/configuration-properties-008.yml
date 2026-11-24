@@ -1,0 +1,3 @@
+menuLevel1: '@ConfigurationProperties'
+menuLevel2: Dùng @ConfigurationProperties trên @Bean của thư viện bên ngoài
+status: TRANSLATE

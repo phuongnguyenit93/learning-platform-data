@@ -1,0 +1,3 @@
+menuLevel1: Điều kiện bean
+menuLevel2: '@ConditionalOnSingleCandidate khi có một ứng viên hoặc một ứng viên @Primary'
+status: TRANSLATE

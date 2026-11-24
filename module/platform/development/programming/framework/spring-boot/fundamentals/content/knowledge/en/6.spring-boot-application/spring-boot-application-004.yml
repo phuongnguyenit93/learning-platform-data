@@ -1,0 +1,3 @@
+menuLevel1: '@SpringBootApplication'
+menuLevel2: '@EnableAutoConfiguration lựa chọn cấu hình theo điều kiện'
+status: TRANSLATE

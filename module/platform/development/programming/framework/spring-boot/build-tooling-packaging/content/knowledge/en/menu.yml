@@ -1,0 +1,310 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Công cụ build và đóng gói giải quyết vấn đề gì trong ứng dụng Spring Boot
+  - 'Từ mã nguồn đến sản phẩm triển khai: biên dịch, kiểm tra, đóng gói và xuất bản'
+  - Phân biệt JDK, công cụ build, plugin Spring Boot và môi trường chạy
+  - 'Các thuật ngữ nền tảng: artifact, dependency, repository, classpath và lifecycle'
+  - Quan hệ giữa starter, BOM và plugin đóng gói
+  - Lựa chọn JAR thường, JAR thực thi, WAR hoặc image OCI
+  - Ranh giới với cấu hình ứng dụng, kiểm thử chuyên sâu và Native Image
+  - Trình tự học và tiêu chí kiểm chứng một bản dựng hoàn chỉnh
+- level1: Khởi tạo dự án
+  level2:
+  - 'Tạo dự án với Spring Initializr: lựa chọn Java, Spring Boot và công cụ build'
+  - Chọn tọa độ group, artifact, version và tên package
+  - Đọc cấu trúc dự án Maven và Gradle do Initializr sinh ra
+  - Vai trò của pom.xml, settings.gradle và build.gradle
+  - Quản lý src/main, src/test và tài nguyên đi kèm
+  - Nhập dự án vào IDE và xác định cấu hình build có hiệu lực
+  - Chạy bản dựng đầu tiên từ dòng lệnh trên Windows và Linux
+  - Phân biệt tệp nguồn, cấu hình được quản lý trong Git và đầu ra được sinh
+- level1: Java và Wrapper
+  level2:
+  - Chọn bộ phiên bản tương thích giữa Java, Spring Boot, Maven và Gradle
+  - Phân biệt JDK chạy Maven hoặc Gradle với JDK dùng để biên dịch
+  - Thiết lập JAVA_HOME và xác minh Java thực tế trên dòng lệnh
+  - Sử dụng Maven Wrapper qua mvnw và mvnw.cmd
+  - Sử dụng Gradle Wrapper qua gradlew và gradlew.bat
+  - Quản lý phiên bản, URL phân phối và checksum của Wrapper
+  - Cấu hình Java Toolchains trong Maven và Gradle
+  - Phân biệt sourceCompatibility, targetCompatibility và --release
+  - Đồng bộ JDK giữa máy cá nhân, IDE và máy chạy CI
+- level1: Vòng đời bản dựng
+  level2:
+  - Mô hình phase và goal của Maven
+  - Các phase validate, compile, test, package, verify, install và deploy
+  - Mô hình task và đồ thị phụ thuộc của Gradle
+  - Quan hệ giữa classes, test, check, assemble và build
+  - Vị trí của repackage, bootJar và bootWar trong bản dựng
+  - Phân biệt clean, build tăng dần và chạy lại tác vụ
+  - Đọc kế hoạch thực thi bằng trợ giúp Maven và Gradle --dry-run
+  - Xác định đầu vào, đầu ra và trạng thái thành công của từng giai đoạn
+- level1: Phụ thuộc và BOM
+  level2:
+  - Tọa độ Maven và quan hệ giữa phụ thuộc trực tiếp với phụ thuộc bắc cầu
+  - Phạm vi compile, runtime, provided và test trong Maven
+  - Các cấu hình implementation, api, runtimeOnly, compileOnly và testImplementation trong Gradle
+  - Starter Spring Boot tập hợp phụ thuộc như thế nào
+  - Vai trò và phạm vi quản lý phiên bản của spring-boot-dependencies
+  - Phân biệt khai báo dependency với dependencyManagement
+  - Phân biệt spring-boot-starter-parent với việc nhập BOM độc lập
+  - So sánh io.spring.dependency-management với platform và enforcedPlatform của Gradle
+  - Ghi đè phiên bản được quản lý và đánh giá tương thích
+  - Loại trừ phụ thuộc, xử lý optional và tránh thiếu thư viện khi chạy
+  - Đọc dependency:tree, dependencies và dependencyInsight để giải thích phiên bản được chọn
+  - Cấu hình kho Maven, mirror, proxy và thông tin xác thực
+- level1: Maven với Spring Boot
+  level2:
+  - Cấu trúc pom.xml tối thiểu cho ứng dụng Spring Boot
+  - Kế thừa spring-boot-starter-parent và tùy chỉnh thuộc tính bản dựng
+  - Sử dụng BOM khi dự án đã có parent riêng
+  - Khai báo và quản lý phiên bản spring-boot-maven-plugin
+  - Phân biệt plugins với pluginManagement và cấu hình execution
+  - Gắn repackage vào package khi không dùng starter parent
+  - Chạy các goal run, start, stop và help đúng mục đích
+  - Cấu hình mainClass, finalName và thư mục đầu ra
+  - Sử dụng Maven profile cho biến thể bản dựng
+  - Phân biệt Maven profile với Spring profile
+  - Đọc effective-pom, effective-settings và các thuộc tính đã nội suy
+- level1: Gradle với Spring Boot
+  level2:
+  - Cấu trúc settings.gradle và build.gradle trong dự án Spring Boot
+  - Đối chiếu cú pháp Groovy DSL và Kotlin DSL cho cấu hình phổ biến
+  - Áp dụng plugin org.springframework.boot cùng java hoặc war
+  - Quản lý phiên bản plugin qua pluginManagement và apply false
+  - Cấu hình group, version, repositories và dependencies
+  - Tùy chỉnh springBoot.mainClass và các tác vụ Boot
+  - Cấu hình tác vụ bằng tasks.named và Provider API
+  - Quản lý cấu hình dùng chung qua convention plugin và version catalog
+  - Truyền thuộc tính bằng -P, -D và biến môi trường
+  - Phân biệt repositories cho plugin với repositories cho thư viện
+  - Quan sát tác động khi plugin Boot kết hợp với java-library, application và maven-publish
+- level1: Biên dịch và tài nguyên
+  level2:
+  - Cấu hình trình biên dịch Java, mã hóa UTF-8 và tùy chọn -parameters
+  - Tổ chức source set và thư mục nguồn tùy chỉnh
+  - Cấu hình annotation processor và mã nguồn được sinh
+  - Sinh metadata cấu hình bằng spring-boot-configuration-processor
+  - Xử lý tài nguyên qua Maven Resources Plugin và Gradle processResources
+  - Nội suy thuộc tính trong tài nguyên và tránh xung đột với placeholder Spring
+  - Giữ nguyên tài nguyên nhị phân khi lọc hoặc thay thế nội dung
+  - Xử lý tài nguyên trùng tên và quy tắc đưa tệp vào archive
+  - Tách tài nguyên kiểm thử khỏi tài nguyên đóng gói
+  - Kiểm tra mã nguồn sinh và tài nguyên đã biên dịch trong thư mục đầu ra
+- level1: Chạy khi phát triển
+  level2:
+  - Chạy ứng dụng bằng spring-boot:run và bootRun
+  - Đối chiếu chạy từ IDE với chạy bằng công cụ build
+  - Phân biệt tham số JVM, system property và đối số ứng dụng
+  - Truyền Spring profile, biến môi trường và thư mục làm việc khi chạy
+  - Cấu hình gỡ lỗi từ xa cho tiến trình ứng dụng
+  - Sử dụng bootTestRun hoặc cấu hình chạy với test classpath khi phù hợp
+  - Đưa DevTools vào môi trường phát triển bằng phạm vi phụ thuộc phù hợp
+  - Kiểm soát việc loại DevTools và công cụ hỗ trợ phát triển khỏi sản phẩm phát hành
+  - Nhận diện chênh lệch giữa classpath phát triển và classpath của archive
+- level1: Kiểm tra bản dựng
+  level2:
+  - Tích hợp kiểm thử đơn vị với Maven Surefire và Gradle Test
+  - Chạy JUnit Platform và kiểm tra việc phát hiện đúng bài kiểm thử
+  - Tách kiểm thử tích hợp bằng Maven Failsafe hoặc Gradle test suite
+  - Phối hợp spring-boot:start và spring-boot:stop trong vòng đời kiểm thử tích hợp
+  - Chọn bài kiểm thử cần chạy và đọc báo cáo thất bại
+  - Phân biệt skipTests, maven.test.skip và loại trừ tác vụ test của Gradle
+  - Tích hợp kiểm tra định dạng, phân tích tĩnh và độ bao phủ vào verify hoặc check
+  - Kiểm thử khởi động từ JAR đã đóng gói thay vì chỉ chạy từ mã nguồn
+  - Quản lý tài nguyên và tiến trình kiểm thử để bản dựng không bị treo
+- level1: JAR thực thi
+  level2:
+  - JAR thường và JAR thực thi khác nhau ở nội dung và cách khởi động
+  - Tạo JAR thực thi bằng Maven package và repackage
+  - Tạo JAR thực thi bằng Gradle bootJar
+  - Đọc META-INF/MANIFEST.MF và phân biệt Main-Class với Start-Class
+  - Khám phá BOOT-INF/classes, BOOT-INF/lib và các lớp Boot Loader
+  - Xác định lớp main tự động và cấu hình khi có nhiều điểm khởi động
+  - Quản lý archive thường, archive thực thi và hậu tố plain hoặc original
+  - Cấu hình tên, phiên bản, classifier và vị trí lưu JAR
+  - Kiểm tra nội dung JAR bằng jar tf và công cụ giải nén
+  - Chạy java -jar từ một thư mục độc lập và xác minh tài nguyên được nạp
+- level1: Boot Loader
+  level2:
+  - Vì sao JVM cần Boot Loader để chạy JAR có thư viện lồng bên trong
+  - Vai trò của JarLauncher, WarLauncher và PropertiesLauncher
+  - Quan hệ giữa manifest, lớp khởi chạy và classpath ứng dụng
+  - Giới hạn của thư viện lồng và cách đọc tài nguyên trong archive
+  - Vai trò của classpath.idx và thứ tự nạp thư viện
+  - Cấu hình PropertiesLauncher với loader.path và loader.main
+  - Khi nào cần requiresUnpack hoặc cấu hình unpack của plugin
+  - Phân biệt archive lồng với JAR gộp bằng Maven Shade hoặc Gradle Shadow
+- level1: Tùy biến đóng gói
+  level2:
+  - Quy tắc lựa chọn lớp, tài nguyên và phụ thuộc được đưa vào sản phẩm
+  - Bổ sung hoặc loại trừ thư viện trong cấu hình repackage và bootJar
+  - Kiểm tra ảnh hưởng của phụ thuộc provided, compileOnly và developmentOnly
+  - Cấu hình manifest bổ sung mà vẫn giữ đúng điểm khởi động Spring Boot
+  - Lựa chọn layout JAR, WAR, ZIP hoặc NONE trong Maven plugin
+  - Tạo nhiều artifact với classifier và tránh ghi đè đầu ra
+  - Giữ artifact thư viện riêng khi dự án đồng thời tạo sản phẩm thực thi
+  - Tạo fully executable archive bằng launch script trên hệ điều hành phù hợp
+  - Giới hạn tương thích của launch script với công cụ đọc JAR và chế độ trích xuất
+  - Đóng gói tài nguyên bên trong archive và xác định cấu hình cần cung cấp bên ngoài
+- level1: WAR triển khai
+  level2:
+  - Khi nào chọn WAR và khi nào chọn JAR với máy chủ nhúng
+  - Chuẩn bị SpringBootServletInitializer và lớp ứng dụng
+  - Tạo WAR bằng Maven war và Spring Boot repackage
+  - Tạo WAR bằng Gradle war và bootWar
+  - Phân biệt WAR triển khai truyền thống với WAR có thể chạy bằng java -jar
+  - Quản lý máy chủ nhúng qua Maven provided và Gradle providedRuntime
+  - Đọc WEB-INF/classes, WEB-INF/lib và WEB-INF/lib-provided
+  - Kiểm tra tương thích Java, Servlet, Jakarta và máy chủ đích
+  - Xác định ranh giới của WAR đối với ứng dụng reactive dùng WebFlux
+  - Kiểm chứng cùng một WAR ở chế độ chạy độc lập và triển khai vào servlet container
+- level1: Dự án đa mô-đun
+  level2:
+  - Tách mô-đun thư viện, mô-đun ứng dụng và mô-đun cấu hình build
+  - Phân biệt Maven parent, aggregator và dependency giữa các module
+  - Xây dựng Maven reactor với -pl, -am và thứ tự phụ thuộc
+  - Tổ chức Gradle multi-project qua settings và project dependency
+  - Áp dụng plugin Boot cho mô-đun ứng dụng và BOM cho mô-đun thư viện
+  - Phân phối cấu hình chung bằng parent POM hoặc convention plugin
+  - Vì sao thư viện dùng chung cần JAR thường thay vì Boot JAR
+  - Đóng gói phụ thuộc nội bộ cùng các thư viện bắc cầu cần thiết
+  - Xuất bản POM hoặc Gradle Module Metadata phản ánh đúng phụ thuộc
+  - Build riêng một mô-đun và kiểm tra mức độ độc lập của sản phẩm
+- level1: Tối ưu bản dựng
+  level2:
+  - Đo thời gian bản dựng trước khi chọn hướng tối ưu
+  - Phân biệt cache tải thư viện, cache cấu hình và cache đầu ra tác vụ
+  - Sử dụng cơ chế up-to-date và biên dịch tăng dần của Gradle
+  - Áp dụng Gradle Build Cache và kiểm soát đầu vào của tác vụ
+  - Sử dụng Configuration Cache khi các plugin tương thích
+  - Điều chỉnh Gradle Daemon, bộ nhớ JVM và mức độ chạy song song
+  - Chạy Maven song song và đánh giá plugin không an toàn với nhiều luồng
+  - Giảm tác vụ không cần thiết mà vẫn giữ các bước kiểm tra bắt buộc
+  - Phân biệt build offline, làm mới dependency và xóa cache có mục tiêu
+- level1: Bản dựng tái lập
+  level2:
+  - Phân biệt tái lập môi trường build với tạo artifact giống từng byte
+  - Khóa phiên bản Java, Wrapper, plugin và dependency
+  - Kiểm soát SNAPSHOT, phiên bản động và phụ thuộc có thể bị thay thế
+  - Sử dụng dependency locking và dependency verification trong Gradle
+  - Ổn định timestamp với project.build.outputTimestamp của Maven
+  - Cấu hình thứ tự tệp và timestamp tái lập cho archive Gradle
+  - Loại bỏ ảnh hưởng của đường dẫn tuyệt đối, múi giờ và locale
+  - Kiểm soát build.time và metadata thay đổi sau mỗi lần build
+  - So sánh SHA-256 của hai bản dựng từ cùng nguồn trên môi trường sạch
+- level1: Metadata bản dựng
+  level2:
+  - Vai trò của group, artifact, version và danh tính sản phẩm
+  - Sinh META-INF/build-info.properties bằng Maven build-info
+  - Sinh thông tin bản dựng bằng Gradle springBoot.buildInfo và bootBuildInfo
+  - Tùy chỉnh thuộc tính build và quản lý thời gian dựng
+  - Bổ sung git.properties bằng plugin phù hợp để truy vết commit
+  - Liên kết artifact với commit, nhánh và mã lần chạy CI
+  - Kiểm tra metadata trong archive và quan hệ với Actuator info
+- level1: Đóng gói theo lớp
+  level2:
+  - Mục đích của layered archive và quan hệ với cache lớp container
+  - Vai trò của layers.idx và phân biệt với classpath.idx
+  - Phân chia dependencies, spring-boot-loader, snapshot-dependencies và application
+  - Bật, tắt và tùy chỉnh lớp bằng Maven plugin
+  - Tùy chỉnh BootJar layered DSL trong Gradle
+  - Kiểm soát thứ tự lớp và vị trí của thư viện nội bộ
+  - Liệt kê và trích xuất lớp bằng chế độ jarmode tools
+  - Nhận diện khác biệt giữa jarmode tools và layertools ở các phiên bản Spring Boot
+  - Kiểm chứng thay đổi mã ứng dụng hoặc dependency tác động đến những lớp nào
+- level1: Dockerfile
+  level2:
+  - Đóng gói JAR đã kiểm chứng thành image OCI bằng Dockerfile
+  - Phân biệt image JDK dùng để build và image JRE dùng để chạy
+  - Tổ chức multi-stage build và tối ưu build context bằng .dockerignore
+  - Lựa chọn chạy nguyên JAR hoặc trích xuất lớp trước khi tạo image
+  - Sắp xếp COPY theo lớp để tăng khả năng tái sử dụng cache
+  - Sử dụng layout trích xuất phù hợp cho Java CDS và xác định giới hạn phiên bản
+  - Cấu hình WORKDIR, quyền sở hữu tệp và người dùng không phải root
+  - Lựa chọn ENTRYPOINT dạng exec và truyền tùy chọn JVM khi chạy
+  - Quản lý base image theo tag, digest và kiến trúc CPU
+  - Kiểm tra kích thước image, nội dung lớp và khả năng khởi động
+- level1: Cloud Native Buildpacks
+  level2:
+  - Cloud Native Buildpacks tạo image từ ứng dụng Spring Boot như thế nào
+  - Vai trò của builder, buildpack, lifecycle và run image
+  - Chuẩn bị Docker daemon và kiểm tra kết nối từ công cụ build
+  - Tạo image bằng Maven spring-boot:build-image
+  - Phân biệt build-image với build-image-no-fork khi gắn vào Maven lifecycle
+  - Tạo image bằng Gradle bootBuildImage
+  - Cấu hình tên image, tag, builder, run image và pull policy
+  - Chọn phiên bản JVM trong buildpack và kiểm tra tương thích với mã đã biên dịch
+  - Phân biệt biến môi trường lúc build image với biến môi trường lúc chạy
+  - Quản lý build cache, launch cache và thao tác làm sạch cache
+  - Xác thực kho image riêng và cấu hình xuất bản image
+  - So sánh Buildpacks với Dockerfile theo khả năng tùy biến và yêu cầu vận hành
+- level1: Xuất bản sản phẩm
+  level2:
+  - Phân biệt Maven repository, nơi lưu artifact CI và OCI registry
+  - Quản lý phiên bản phát hành, SNAPSHOT và classifier
+  - Xuất bản artifact bằng Maven install, deploy và distributionManagement
+  - Xuất bản artifact bằng Gradle maven-publish và MavenPublication
+  - Lựa chọn artifact JAR thường, Boot JAR, WAR hoặc source JAR cần phát hành
+  - Phát hành sources, Javadoc và metadata phụ thuộc phù hợp
+  - Gắn checksum, chữ ký và thông tin truy vết cho sản phẩm
+  - Tải sản phẩm từ kho và kiểm tra khả năng chạy hoặc sử dụng từ dự án khác
+- level1: Chuỗi cung ứng
+  level2:
+  - Kiểm soát nguồn tải plugin, dependency và bản phân phối Wrapper
+  - Xác minh checksum và chữ ký theo khả năng của từng công cụ
+  - Quét lỗ hổng dependency và đối chiếu phiên bản thực tế trong artifact
+  - Sinh SBOM bằng công cụ tương thích như CycloneDX
+  - Phân biệt SBOM của ứng dụng Java với SBOM của image container
+  - Kiểm tra giấy phép và thành phần được phép phân phối
+  - Ngăn thông tin xác thực, khóa riêng và cấu hình nhạy cảm lọt vào archive hoặc image
+  - Quản lý secrets cho Maven settings, Gradle credentials và registry trong CI
+  - Lưu chứng cứ nguồn gốc bản dựng và liên kết chúng với artifact đã phát hành
+- level1: Tự động hóa CI
+  level2:
+  - Thiết kế chuỗi checkout, thiết lập JDK, kiểm tra, đóng gói và lưu artifact
+  - Sử dụng Wrapper và cố định môi trường build trên máy chạy CI
+  - Cấu hình cache dependency theo công cụ, hệ điều hành và tệp cấu hình
+  - Phân biệt cache dùng tăng tốc với artifact dùng chuyển giao sản phẩm
+  - Chạy verify hoặc build và thu thập báo cáo kiểm thử
+  - Kiểm tra khởi động JAR hoặc image trên môi trường sạch
+  - Đặt điều kiện xuất bản sau khi các bước kiểm tra bắt buộc thành công
+  - Build một lần và chuyển đúng artifact đã kiểm chứng qua các môi trường
+  - Quản lý timeout, tác vụ đồng thời và dọn tiến trình sau khi kiểm tra
+  - Đính kèm checksum, SBOM và metadata vào kết quả CI
+- level1: Chẩn đoán sự cố
+  level2:
+  - Đọc log để phân biệt lỗi cấu hình build, biên dịch, kiểm thử và đóng gói
+  - Xử lý Plugin not found, dependency không tải được và kho yêu cầu xác thực
+  - Chẩn đoán lỗi proxy, TLS, chứng chỉ và chế độ offline
+  - Xử lý UnsupportedClassVersionError và sai JDK giữa build với runtime
+  - Xử lý không tìm thấy main class hoặc có nhiều main class
+  - Xử lý no main manifest attribute và chạy nhầm JAR thường
+  - Chẩn đoán ClassNotFoundException, NoClassDefFoundError và NoSuchMethodError
+  - Tìm nguyên nhân tài nguyên có khi chạy IDE nhưng thiếu trong JAR
+  - Xử lý xung đột thư viện khi đóng gói hoặc triển khai WAR
+  - Chẩn đoán lỗi task graph, Maven execution và cấu hình plugin bị ghi đè
+  - Xử lý cache cũ, đầu ra không được tạo lại và bản dựng không tái lập
+  - Chẩn đoán lỗi Docker daemon, Buildpacks, kiến trúc image và quyền tệp
+  - Thu gọn trường hợp lỗi và tái hiện bản dựng độc lập ngoài IDE
+- level1: Nâng cấp công cụ
+  level2:
+  - Lập ma trận tương thích trước khi nâng Java, Spring Boot hoặc công cụ build
+  - Phân biệt nâng plugin Boot với nâng BOM và phụ thuộc ứng dụng
+  - Đọc thay đổi cấu hình plugin, task, goal và giá trị mặc định
+  - Kiểm tra thay đổi Boot Loader, jarmode và cấu trúc đóng gói giữa các phiên bản
+  - Nâng Wrapper và kiểm chứng convention plugin hoặc parent POM hiện có
+  - So sánh dependency graph, nội dung artifact và kết quả kiểm tra sau nâng cấp
+  - Lập phương án quay lại phiên bản trước với sản phẩm đã lưu và định danh rõ ràng
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng cùng một ứng dụng bằng Maven và Gradle rồi đối chiếu sản phẩm
+  - Chuyển một dự án dùng parent riêng sang quản lý phụ thuộc bằng BOM
+  - Tạo JAR thực thi và kiểm chứng chạy trên máy chỉ có JRE phù hợp
+  - Thiết kế ứng dụng đa mô-đun với thư viện chung được đóng gói đúng
+  - Tạo WAR chạy độc lập và kiểm tra triển khai vào servlet container
+  - Tạo image bằng Dockerfile và Buildpacks từ cùng một ứng dụng
+  - Thử thay đổi mã hoặc dependency để quan sát cache và lớp image
+  - Tái hiện lỗi đóng gói phổ biến rồi tìm nguyên nhân bằng log và nội dung archive
+  - Hoàn thiện CI tạo artifact có checksum, metadata và SBOM để truy vết

@@ -1,0 +1,2761 @@
+menu:
+- slug: auto-configuration-overview
+  title: Bức tranh tự cấu hình
+  childs:
+  - slug: auto-configuration-overview-001
+    title: Tự cấu hình (auto-configuration) là gì và giải quyết sự lặp lại cấu hình như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-overview-002
+    title: Vai trò của tự cấu hình trong mối quan hệ giữa Spring Framework và Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-overview-003
+    title: Thư viện, starter, thuộc tính và bean người dùng cùng quyết định cấu hình được chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-overview-004
+    title: Phân biệt tự cấu hình với quét thành phần, tiêm phụ thuộc và gắn thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-overview-005
+    title: Từ danh sách cấu hình ứng viên đến tập bean thực sự có trong ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-overview-006
+    title: Cấu hình mặc định có điều kiện và cơ chế nhường chỗ cho người dùng (back-off)
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-overview-007
+    title: Phạm vi tự cấu hình khi xây ứng dụng và khi phát triển thư viện dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-overview-008
+    title: 'Những ngộ nhận: thêm starter luôn tạo bean, mọi cấu hình đều được bật và Boot thay thế Spring'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-overview-009
+    title: Trình tự học từ quan sát bean đến tự viết và kiểm chứng một thư viện tự cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: core-prerequisites
+  title: Nền tảng cần biết
+  childs:
+  - slug: core-prerequisites-001
+    title: ApplicationContext, BeanFactory và định nghĩa bean trong quá trình khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-prerequisites-002
+    title: Phân biệt đăng ký định nghĩa bean với khởi tạo đối tượng bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-prerequisites-003
+    title: '@Configuration, @Bean và @Import trong cấu hình bằng Java'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-prerequisites-004
+    title: '@ComponentScan và ranh giới package của cấu hình do ứng dụng sở hữu'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-prerequisites-005
+    title: Classpath, ClassLoader và sự hiện diện của dependency tùy chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-prerequisites-006
+    title: Environment, PropertySource và thời điểm thuộc tính sẵn sàng cho điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-prerequisites-007
+    title: Annotation tổng hợp, siêu dữ liệu annotation và khai báo theo tên lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-prerequisites-008
+    title: Dependency trực tiếp, dependency bắc cầu và phiên bản Spring Boot đang sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: enable-auto-configuration
+  title: Kích hoạt tự cấu hình
+  childs:
+  - slug: enable-auto-configuration-001
+    title: '@SpringBootApplication kết hợp cấu hình ứng dụng, quét thành phần và tự cấu hình'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enable-auto-configuration-002
+    title: '@EnableAutoConfiguration kích hoạt lựa chọn cấu hình như thế nào'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enable-auto-configuration-003
+    title: Vai trò của @AutoConfigurationPackage và AutoConfigurationPackages
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enable-auto-configuration-004
+    title: Phân biệt package tự cấu hình với phạm vi @ComponentScan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enable-auto-configuration-005
+    title: AutoConfigurationImportSelector trong chuỗi xử lý @Import
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enable-auto-configuration-006
+    title: DeferredImportSelector và lý do trì hoãn xử lý cấu hình tự động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enable-auto-configuration-007
+    title: Cấu hình người dùng và thời điểm xem xét cấu hình mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enable-auto-configuration-008
+    title: Từ SpringApplication.run đến xử lý lớp cấu hình và đăng ký định nghĩa bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enable-auto-configuration-009
+    title: Phân biệt nhập một lớp bằng @Import với bật cơ chế @EnableAutoConfiguration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enable-auto-configuration-010
+    title: Thiết lập ứng dụng tối thiểu để quan sát tự cấu hình mà không cần máy chủ web
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: candidate-discovery
+  title: Khám phá ứng viên
+  childs:
+  - slug: candidate-discovery-001
+    title: Đăng ký lớp tại META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-discovery-002
+    title: Tên lớp đầy đủ, mỗi dòng một ứng viên và quy tắc chú thích trong tệp imports
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-discovery-003
+    title: Đăng ký lớp lồng nhau bằng tên nhị phân có ký tự $
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-discovery-004
+    title: ImportCandidates và việc đọc tài nguyên từ các JAR trên classpath
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-discovery-005
+    title: Hợp nhất danh sách ứng viên, xử lý trùng lặp và danh sách loại trừ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-discovery-006
+    title: Lọc ứng viên trước khi xử lý đầy đủ cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-discovery-007
+    title: Vai trò của AutoConfigurationImportFilter và metadata hỗ trợ lọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-discovery-008
+    title: Phối hợp ứng viên qua nhóm DeferredImportSelector và sắp xếp cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-discovery-009
+    title: Kiểm tra tệp đăng ký trong JAR thư viện đã đóng gói
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-discovery-010
+    title: Phân biệt lỗi không khám phá được ứng viên với điều kiện của ứng viên không thỏa mãn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: auto-configuration-class
+  title: Lớp tự cấu hình
+  childs:
+  - slug: auto-configuration-class-001
+    title: '@AutoConfiguration và mối quan hệ với @Configuration'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-class-002
+    title: proxyBeanMethods=false và cách cung cấp dependency qua tham số @Bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-class-003
+    title: Tách cấu hình theo chức năng thay vì gom mọi tích hợp vào một lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-class-004
+    title: Điều kiện đặt ở lớp ngoài, lớp lồng nhau và phương thức @Bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-class-005
+    title: Cô lập cấu hình cho dependency tùy chọn bằng lớp cấu hình lồng nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-class-006
+    title: Đặt lớp tự cấu hình ngoài vùng quét thành phần của ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-class-007
+    title: Nhập thành phần phụ trợ bằng @Import thay cho quét thành phần rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-class-008
+    title: Thiết kế phương thức @Bean công khai đủ thông tin về kiểu trả về
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-class-009
+    title: Phân biệt giao diện mở rộng công khai với lớp triển khai tự cấu hình nội bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: condition-mechanism
+  title: Cơ chế điều kiện
+  childs:
+  - slug: condition-mechanism-001
+    title: '@Conditional và giao ước Condition.matches'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-mechanism-002
+    title: ConditionContext cung cấp Environment, registry, BeanFactory và ClassLoader
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-mechanism-003
+    title: AnnotatedTypeMetadata và dữ liệu annotation khi đánh giá điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-mechanism-004
+    title: Điều kiện ở cấp lớp và cấp phương thức tác động đến phạm vi đăng ký như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-mechanism-005
+    title: Kết hợp nhiều điều kiện và quy tắc tất cả điều kiện phải thỏa mãn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-mechanism-006
+    title: Phân biệt giai đoạn phân tích cấu hình và giai đoạn đăng ký bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-mechanism-007
+    title: ConfigurationCondition với PARSE_CONFIGURATION và REGISTER_BEAN
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-mechanism-008
+    title: Điều kiện được đánh giá khi xây context, không phải công tắc tự cập nhật theo từng lời gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-mechanism-009
+    title: Vì sao điều kiện không nên khởi tạo bean hoặc thực hiện tác vụ có tác dụng phụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-mechanism-010
+    title: Phân biệt cấu hình không được nhập, điều kiện không khớp và bean khởi tạo thất bại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: classpath-conditions
+  title: Điều kiện classpath
+  childs:
+  - slug: classpath-conditions-001
+    title: '@ConditionalOnClass kiểm tra sự hiện diện của các kiểu bắt buộc'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-conditions-002
+    title: '@ConditionalOnMissingClass chọn phương án khi thư viện không có mặt'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-conditions-003
+    title: Chọn value hoặc name khi tham chiếu lớp tùy chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-conditions-004
+    title: Kiểm tra đồng thời nhiều lớp và thiết kế điều kiện cho từng nhóm tính năng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-conditions-005
+    title: Đọc metadata bằng ASM và giới hạn của việc tránh nạp lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-conditions-006
+    title: Rủi ro đặt điều kiện trên @Bean có kiểu trả về không tồn tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-conditions-007
+    title: Cô lập chữ ký phương thức và mã triển khai phụ thuộc thư viện tùy chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-conditions-008
+    title: Annotation tổng hợp có điều kiện lớp và trường hợp cần dùng tên lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-conditions-009
+    title: Phân biệt thiếu lớp, thiếu dependency bắc cầu và sai phiên bản thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bean-conditions
+  title: Điều kiện bean
+  childs:
+  - slug: bean-conditions-001
+    title: '@ConditionalOnBean và yêu cầu các bean phụ thuộc đã được đăng ký'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-conditions-002
+    title: '@ConditionalOnMissingBean và lựa chọn bean mặc định khi chưa có ứng viên'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-conditions-003
+    title: Tra cứu theo kiểu, tên bean và annotation trên bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-conditions-004
+    title: Quy tắc kết hợp nhiều yêu cầu trong điều kiện có bean và thiếu bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-conditions-005
+    title: Kiểu trả về của @Bean ảnh hưởng đến khả năng suy luận ứng viên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-conditions-006
+    title: Điều kiện bean chỉ quan sát những định nghĩa đã được xử lý tại thời điểm đánh giá
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-conditions-007
+    title: SearchStrategy.CURRENT, ANCESTORS và ALL trong cây context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-conditions-008
+    title: ignored và ignoredType khi loại một số kiểu khỏi phép kiểm tra thiếu bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-conditions-009
+    title: parameterizedContainer và việc nhận diện kiểu bean qua lớp chứa generic
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-conditions-010
+    title: '@ConditionalOnSingleCandidate khi có một ứng viên hoặc một ứng viên @Primary'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-conditions-011
+    title: Phân biệt @Primary, @Qualifier và việc ngăn đăng ký bean bằng điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-conditions-012
+    title: Hai cấu hình mặc định cùng thỏa điều kiện thiếu bean và vai trò của thứ tự
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-conditions-013
+    title: Đặt điều kiện tại lớp hoặc từng @Bean để kiểm soát mức độ nhường chỗ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-conditions-014
+    title: Ảnh hưởng của thông tin kiểu không đầy đủ, FactoryBean và bean đăng ký gián tiếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: property-conditions
+  title: Điều kiện thuộc tính
+  childs:
+  - slug: property-conditions-001
+    title: '@ConditionalOnProperty với prefix, name và value'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-conditions-002
+    title: Ý nghĩa mặc định khi thuộc tính tồn tại và giá trị khác false
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-conditions-003
+    title: havingValue và cách diễn giải các giá trị true, false hoặc chuỗi tùy chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-conditions-004
+    title: matchIfMissing và quyết định bật hay tắt khi không khai báo thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-conditions-005
+    title: Nhiều tên thuộc tính trong một điều kiện và yêu cầu tất cả cùng khớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-conditions-006
+    title: Phân biệt thuộc tính không tồn tại, chuỗi rỗng và giá trị false
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-conditions-007
+    title: Chuẩn hóa tên khóa dạng kebab-case và kiểm tra nguồn giá trị hiệu lực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-conditions-008
+    title: Giới hạn khi kiểm tra thuộc tính danh sách hoặc phần tử có chỉ số
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-conditions-009
+    title: Phân biệt giá trị mặc định của đối tượng @ConfigurationProperties với thuộc tính trong Environment
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-conditions-010
+    title: '@ConditionalOnExpression và rủi ro tham chiếu bean khiến khởi tạo quá sớm'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-conditions-011
+    title: Thiết kế khóa bật tính năng rõ ràng và lập bảng trường hợp đầu vào cho điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-conditions
+  title: Điều kiện môi trường
+  childs:
+  - slug: environment-conditions-001
+    title: '@ConditionalOnResource và kiểm tra tài nguyên classpath hoặc hệ thống tệp'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-conditions-002
+    title: '@ConditionalOnWebApplication với ANY, SERVLET và REACTIVE'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-conditions-003
+    title: '@ConditionalOnNotWebApplication cho ứng dụng không có ngữ cảnh web'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-conditions-004
+    title: Phân biệt có thư viện web trên classpath với loại ApplicationContext đang chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-conditions-005
+    title: '@ConditionalOnWarDeployment và @ConditionalOnNotWarDeployment'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-conditions-006
+    title: '@ConditionalOnJava và khoảng phiên bản JVM được chấp nhận'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-conditions-007
+    title: '@ConditionalOnCloudPlatform và phạm vi nhận diện nền tảng'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-conditions-008
+    title: '@ConditionalOnJndi và điều kiện hạ tầng tra cứu JNDI'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-conditions-009
+    title: '@ConditionalOnThreading và cấu hình theo mô hình luồng ở phiên bản hỗ trợ'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-conditions-010
+    title: '@Profile trong cấu hình có điều kiện và mối quan hệ với nhóm annotation của Boot'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-conditions-011
+    title: Kết hợp điều kiện môi trường với classpath và bean mà không gây kích hoạt ngoài dự kiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-order
+  title: Thứ tự cấu hình
+  childs:
+  - slug: configuration-order-001
+    title: Vì sao cấu hình tạo bean nền phải được xử lý trước cấu hình sử dụng bean đó
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-order-002
+    title: before, after, beforeName và afterName trên @AutoConfiguration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-order-003
+    title: '@AutoConfigureBefore và @AutoConfigureAfter khi khai báo quan hệ thứ tự'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-order-004
+    title: '@AutoConfigureOrder cho mức ưu tiên giữa các cấu hình tự động'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-order-005
+    title: Thứ tự xử lý cấu hình khác với thứ tự khởi tạo bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-order-006
+    title: Phân biệt thứ tự tự cấu hình với @Order, Ordered và @DependsOn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-order-007
+    title: Tham chiếu cấu hình tùy chọn theo tên để tránh phụ thuộc cứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-order-008
+    title: Đồ thị quan hệ trước sau, quan hệ bắc cầu và vòng lặp thứ tự
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-order-009
+    title: Không dựa vào thứ tự dòng trong tệp imports hoặc thứ tự dependency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-order-010
+    title: Kiểm chứng thứ tự bằng kết quả bean và báo cáo điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: replacement-and-exclusion
+  title: Thay thế và loại trừ
+  childs:
+  - slug: replacement-and-exclusion-001
+    title: 'Tùy chỉnh bằng thuộc tính, customizer hoặc bean người dùng: chọn đúng mức can thiệp'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replacement-and-exclusion-002
+    title: Nhường chỗ theo từng bean thay vì tắt toàn bộ một nhóm cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replacement-and-exclusion-003
+    title: exclude trên @SpringBootApplication và @EnableAutoConfiguration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replacement-and-exclusion-004
+    title: excludeName khi cần loại trừ bằng tên lớp đầy đủ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replacement-and-exclusion-005
+    title: spring.autoconfigure.exclude qua tệp cấu hình và tham số khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replacement-and-exclusion-006
+    title: Loại trừ một cấu hình không đồng nghĩa loại dependency khỏi classpath
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replacement-and-exclusion-007
+    title: Phân biệt nhường chỗ có điều kiện với ghi đè định nghĩa bean cùng tên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replacement-and-exclusion-008
+    title: Rủi ro dùng spring.main.allow-bean-definition-overriding để che xung đột thiết kế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replacement-and-exclusion-009
+    title: Bean @Primary không tự làm biến mất mọi bean mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replacement-and-exclusion-010
+    title: Giới hạn của việc loại trừ lớp cấu hình thông thường hoặc lớp lồng nhau nội bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replacement-and-exclusion-011
+    title: Kiểm tra tác động dây chuyền khi loại bean nền mà cấu hình khác đang cần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: library-properties
+  title: Thuộc tính thư viện
+  childs:
+  - slug: library-properties-001
+    title: Thiết kế namespace riêng cho @ConfigurationProperties của thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-properties-002
+    title: Đăng ký lớp thuộc tính bằng @EnableConfigurationProperties
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-properties-003
+    title: Chọn kiểu dữ liệu, giá trị mặc định và nhóm thuộc tính theo chức năng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-properties-004
+    title: Gắn thuộc tính vào bean mặc định mà không trộn logic nghiệp vụ vào cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-properties-005
+    title: Ràng buộc tính hợp lệ bằng @Validated và phản hồi lỗi cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-properties-006
+    title: Đọc Environment để quyết định kích hoạt và dùng đối tượng thuộc tính để cấu hình bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-properties-007
+    title: Giữ khóa điều khiển bật tắt nhất quán với cấu hình được tạo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-properties-008
+    title: Thiết kế thuộc tính bắt buộc khi tính năng bật và hành vi khi tính năng tắt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-properties-009
+    title: Phân biệt thuộc tính công khai ổn định với chi tiết triển khai nội bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-properties-010
+    title: Kiểm tra quyền ưu tiên nguồn cấu hình trong phạm vi tính năng tự cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extension-points
+  title: Điểm mở rộng
+  childs:
+  - slug: extension-points-001
+    title: Customizer và builder giúp tùy chỉnh bean mà vẫn giữ cấu hình mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-002
+    title: ObjectProvider cho dependency tùy chọn và truy xuất theo nhu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-003
+    title: Xử lý không có, có một hoặc có nhiều thành phần mở rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-004
+    title: Áp dụng nhiều customizer theo thứ tự xác định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-005
+    title: Chọn điều kiện có một ứng viên khi cấu hình chỉ hỗ trợ một thành phần nền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-006
+    title: Thiết kế giao diện chiến lược và bean thay thế cho người dùng thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-007
+    title: Tách cấu hình cốt lõi khỏi tích hợp tùy chọn bằng nhiều lớp tự cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-008
+    title: Quy định quyền sở hữu vòng đời và giải phóng tài nguyên của bean tạo tự động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-009
+    title: Phân biệt mở rộng qua API công khai với phụ thuộc vào lớp nội bộ của framework
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: condition-evaluation-report
+  title: Báo cáo điều kiện
+  childs:
+  - slug: condition-evaluation-report-001
+    title: Bật báo cáo tự cấu hình bằng --debug hoặc debug=true
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-evaluation-report-002
+    title: Đọc positive matches, negative matches, exclusions và unconditional classes
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-evaluation-report-003
+    title: Xác định điều kiện ở lớp ngoài và phương thức @Bean trong báo cáo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-evaluation-report-004
+    title: ConditionEvaluationReport và cách tra cứu kết quả theo nguồn cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-evaluation-report-005
+    title: ConditionOutcome, thông điệp khớp và thông điệp không khớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-evaluation-report-006
+    title: Kết hợp báo cáo điều kiện với danh sách bean thực tế trong context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-evaluation-report-007
+    title: Điểm cuối Actuator conditions và phạm vi thông tin theo từng context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-evaluation-report-008
+    title: Giới hạn quyền truy cập khi dùng thông tin chẩn đoán của Actuator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-evaluation-report-009
+    title: ConditionEvaluationReportLoggingListener trong kiểm thử cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-evaluation-report-010
+    title: Phân biệt không khớp có chủ đích với cấu hình bị lỗi ngoài dự kiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-evaluation-report-011
+    title: So sánh báo cáo trước và sau khi thay dependency, thuộc tính hoặc bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reading-auto-configuration
+  title: Đọc mã tự cấu hình
+  childs:
+  - slug: reading-auto-configuration-001
+    title: Tìm lớp tự cấu hình tương ứng với một tính năng và đúng phiên bản đang chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-auto-configuration-002
+    title: Đọc điều kiện lớp trước khi phân tích từng phương thức @Bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-auto-configuration-003
+    title: Truy vết @Import và cấu hình lồng nhau theo từng nhánh lựa chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-auto-configuration-004
+    title: Xác định thuộc tính đầu vào, bean đầu ra và điểm tùy chỉnh công khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-auto-configuration-005
+    title: Lần theo cấu hình tiền đề qua quan hệ before và after
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-auto-configuration-006
+    title: Đọc kiểm thử của framework để hiểu hành vi nhường chỗ và trường hợp biên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-auto-configuration-007
+    title: Lập bảng classpath, thuộc tính, bean người dùng và kết quả dự kiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-auto-configuration-008
+    title: Phân biệt giao ước được tài liệu hóa với chi tiết triển khai có thể thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-auto-configuration-009
+    title: Đối chiếu suy luận từ mã nguồn với một thí nghiệm context tối thiểu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdbc-example
+  title: Ví dụ JDBC
+  childs:
+  - slug: jdbc-example-001
+    title: Lần theo điều kiện của DataSourceAutoConfiguration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-example-002
+    title: Classpath JDBC, driver và nguồn dữ liệu nhúng trong các nhánh cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-example-003
+    title: Thuộc tính kết nối và lựa chọn nguồn dữ liệu mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-example-004
+    title: Bean DataSource do người dùng cung cấp và hành vi nhường chỗ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-example-005
+    title: Nhiều DataSource, ứng viên chính và điều kiện của JdbcTemplateAutoConfiguration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-example-006
+    title: Quan hệ thứ tự giữa cấu hình nguồn dữ liệu và tiện ích JDBC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-example-007
+    title: Đọc báo cáo khi thiếu driver, thiếu thông tin kết nối hoặc bean bị thay thế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-example-008
+    title: Giữ thí nghiệm ở mức cơ chế tự cấu hình, tách khỏi nghiệp vụ truy vấn dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: web-application-example
+  title: Ví dụ ứng dụng web
+  childs:
+  - slug: web-application-example-001
+    title: Lần theo điều kiện servlet của WebMvcAutoConfiguration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-application-example-002
+    title: Lần theo điều kiện reactive của WebFluxAutoConfiguration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-application-example-003
+    title: Ảnh hưởng của dependency và lựa chọn loại ứng dụng đến nhánh cấu hình web
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-application-example-004
+    title: Phân biệt cấu hình máy chủ web với cấu hình tầng xử lý yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-application-example-005
+    title: WebMvcConfigurer để mở rộng cấu hình MVC đang có
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-application-example-006
+    title: '@EnableWebMvc và tác động đến cơ chế cấu hình mặc định của Boot'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-application-example-007
+    title: Dùng ứng dụng không web để kiểm chứng cấu hình web không bị kích hoạt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-application-example-008
+    title: Đối chiếu bean và báo cáo điều kiện mà không xây API nghiệp vụ nhân tạo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: auto-configuration-library
+  title: Thư viện tự cấu hình
+  childs:
+  - slug: auto-configuration-library-001
+    title: Xác định khả năng của thư viện, điều kiện kích hoạt và giao ước tùy chỉnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-library-002
+    title: Tạo lớp @AutoConfiguration và đăng ký trong tệp imports
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-library-003
+    title: Khai báo điều kiện classpath để thư viện tùy chọn không gây lỗi nạp lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-library-004
+    title: Tạo bean mặc định với điều kiện nhường chỗ rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-library-005
+    title: Tách tích hợp bổ sung thành các cấu hình độc lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-library-006
+    title: Đăng ký thuộc tính thư viện và cung cấp giá trị mặc định có chủ đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-library-007
+    title: Thiết kế trường hợp không có dependency hoặc người dùng tắt tính năng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-library-008
+    title: Đảm bảo ứng dụng không cần quét package của thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-library-009
+    title: Kiểm tra tài nguyên đăng ký và các lớp triển khai trong JAR phân phối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-library-010
+    title: Cung cấp ứng dụng tiêu thụ tối thiểu để xác nhận tự khám phá từ dependency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-starter
+  title: Starter tùy chỉnh
+  childs:
+  - slug: custom-starter-001
+    title: Phân biệt mô-đun API, mô-đun autoconfigure và mô-đun starter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-starter-002
+    title: Khi nào nên tách starter khỏi mã tự cấu hình và khi nào có thể gộp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-starter-003
+    title: Quy ước đặt tên starter bên thứ ba và tránh chiếm namespace Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-starter-004
+    title: Chọn dependency cần thiết cho trải nghiệm sử dụng mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-starter-005
+    title: optional trong Maven và compileOnly hoặc api, implementation trong Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-starter-006
+    title: Phân biệt dependency xuất bản tới người dùng với dependency chỉ phục vụ biên dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-starter-007
+    title: BOM và quản lý phiên bản thư viện theo dòng Spring Boot tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-starter-008
+    title: Xuất bản JAR thư viện thông thường thay vì dùng executable JAR làm dependency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-starter-009
+    title: Giới hạn dependency bắc cầu để không vô tình kích hoạt tính năng khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-starter-010
+    title: Kiểm chứng starter từ dự án tiêu thụ độc lập với mã nguồn thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: auto-configuration-metadata
+  title: Metadata
+  childs:
+  - slug: auto-configuration-metadata-001
+    title: Phân biệt metadata tự cấu hình và metadata thuộc tính cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-metadata-002
+    title: spring-boot-autoconfigure-processor và spring-autoconfigure-metadata.properties
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-metadata-003
+    title: Metadata hỗ trợ lọc ứng viên sớm và tối ưu chi phí xử lý cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-metadata-004
+    title: spring-boot-configuration-processor và spring-configuration-metadata.json
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-metadata-005
+    title: Khai báo annotation processor phù hợp trong Gradle hoặc Maven
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-metadata-006
+    title: Tài liệu hóa tên khóa, kiểu, mô tả và giá trị mặc định của thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-metadata-007
+    title: additional-spring-configuration-metadata.json cho mô tả bổ sung và gợi ý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-metadata-008
+    title: Metadata thuộc tính lỗi thời và hướng dẫn khóa thay thế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-metadata-009
+    title: Kiểm tra metadata sinh ra trong JAR và hỗ trợ hoàn thành cấu hình của IDE
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-metadata-010
+    title: Phân biệt metadata phục vụ công cụ với logic quyết định tạo bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: isolated-testing
+  title: Kiểm thử độc lập
+  childs:
+  - slug: isolated-testing-001
+    title: ApplicationContextRunner và lợi ích của context nhỏ cho kiểm thử tự cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-testing-002
+    title: AutoConfigurations.of để nạp đúng tập cấu hình cần kiểm tra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-testing-003
+    title: withUserConfiguration để mô phỏng cấu hình ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-testing-004
+    title: withPropertyValues để thiết lập từng trường hợp thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-testing-005
+    title: withBean để cung cấp bean người dùng cho thí nghiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-testing-006
+    title: Kiểm tra có một bean, không có bean, tên bean và danh tính đối tượng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-testing-007
+    title: Kiểm tra giá trị cấu hình đã được gắn vào bean mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-testing-008
+    title: FilteredClassLoader để mô phỏng thiếu lớp hoặc thiếu gói thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-testing-009
+    title: Kiểm tra startup failure và nguyên nhân gốc khi cấu hình không hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-testing-010
+    title: Đọc báo cáo điều kiện ngay trong kiểm thử để giải thích kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-testing-011
+    title: Giải phóng context sau mỗi lần chạy và giữ các trường hợp độc lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-matrix
+  title: Ma trận kiểm thử
+  childs:
+  - slug: test-matrix-001
+    title: Tổ hợp dependency có mặt hoặc vắng mặt với tính năng bật hoặc tắt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-matrix-002
+    title: Thuộc tính không khai báo, hợp lệ, không hợp lệ và giá trị biên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-matrix-003
+    title: Không có bean người dùng, có bean thay thế và có nhiều ứng viên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-matrix-004
+    title: Kiểm tra @Primary cùng trường hợp nhiều ứng viên không có ứng viên chính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-matrix-005
+    title: withParent để xác minh SearchStrategy trong cây context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-matrix-006
+    title: WebApplicationContextRunner và ReactiveWebApplicationContextRunner
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-matrix-007
+    title: Kiểm chứng quan hệ thứ tự giữa nhiều lớp tự cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-matrix-008
+    title: Kiểm thử tính năng độc lập và trường hợp tích hợp nhiều tính năng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-matrix-009
+    title: '@ImportAutoConfiguration và giới hạn tập cấu hình trong kiểm thử'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-matrix-010
+    title: Quan hệ giữa test slice, bộ tự cấu hình được nhập và kiểm thử toàn ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-matrix-011
+    title: Kiểm thử khám phá qua JAR để phát hiện thiếu hoặc sai tệp imports
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-matrix-012
+    title: Phân biệt kiểm thử JVM bằng context runner với kiểm thử ứng dụng native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-conditions
+  title: Điều kiện tùy chỉnh
+  childs:
+  - slug: custom-conditions-001
+    title: Khi nào annotation điều kiện có sẵn không diễn đạt đủ yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-conditions-002
+    title: Triển khai Condition với dữ liệu đầu vào xác định và không có tác dụng phụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-conditions-003
+    title: SpringBootCondition và getMatchOutcome cho kết quả có thể giải thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-conditions-004
+    title: Tạo ConditionMessage và thông báo thiếu điều kiện cụ thể
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-conditions-005
+    title: Annotation điều kiện riêng và cách đọc tham số annotation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-conditions-006
+    title: AnyNestedCondition cho các phương án thay thế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-conditions-007
+    title: AllNestedConditions cho nhóm yêu cầu đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-conditions-008
+    title: NoneNestedConditions cho nhóm điều kiện phủ định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-conditions-009
+    title: Chọn ConfigurationPhase phù hợp với dữ liệu cần quan sát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-conditions-010
+    title: Kiểm tra thuộc tính danh sách bằng điều kiện chuyên biệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-conditions-011
+    title: Tránh truy cập mạng, đọc bí mật vào log hoặc khởi tạo bean trong điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-conditions-012
+    title: Kiểm thử cả nhánh khớp, không khớp và thông điệp chẩn đoán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-aot
+  title: Hiệu năng và AOT
+  childs:
+  - slug: performance-and-aot-001
+    title: Chi phí khám phá ứng viên, đọc metadata, đánh giá điều kiện và khởi tạo bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-aot-002
+    title: Dùng metadata và điều kiện lớp để tránh xử lý tích hợp không cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-aot-003
+    title: Tránh quét package rộng hoặc thực hiện công việc nặng trong lớp cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-aot-004
+    title: Phân biệt giảm số ứng viên với trì hoãn khởi tạo bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-aot-005
+    title: Đo khởi động trước và sau thay đổi bằng cùng tập dependency và cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-aot-006
+    title: Xử lý trước thời điểm chạy (AOT) và đồ thị bean được xác định khi xây dựng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-aot-007
+    title: Giới hạn thay đổi thuộc tính ảnh hưởng đến sự hiện diện của bean sau AOT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-aot-008
+    title: RuntimeHints và @ImportRuntimeHints cho reflection, resource hoặc proxy cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-aot-009
+    title: Phân biệt điều kiện classpath với khai báo khả năng truy cập trong native image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-aot-010
+    title: Kiểm chứng thư viện tự cấu hình trên JVM và native theo phạm vi hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: version-compatibility
+  title: Tương thích phiên bản
+  childs:
+  - slug: version-compatibility-001
+    title: Xác định dòng Spring Boot, Spring Framework và JDK làm mốc cho thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-002
+    title: Đăng ký qua spring.factories trong mã cũ và chuyển sang AutoConfiguration.imports
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-003
+    title: Mốc chuyển tiếp Spring Boot 2.7 và thay đổi cơ chế đăng ký trong Boot 3
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-004
+    title: Tránh suy diễn rằng spring.factories đã bị loại bỏ với mọi cơ chế mở rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-005
+    title: Thay đổi package, module và dependency khi nâng dòng Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-006
+    title: Đổi tên lớp tự cấu hình và ảnh hưởng đến exclude hoặc quan hệ thứ tự
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-007
+    title: AutoConfiguration.replacements ở phiên bản hỗ trợ và ánh xạ tên lớp cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-008
+    title: Annotation điều kiện mới và cách xác minh phiên bản bắt đầu hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-009
+    title: Phân biệt API công khai ổn định với lớp nội bộ không bảo đảm tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-010
+    title: Chạy ma trận phiên bản để phát hiện thay đổi điều kiện và hành vi nhường chỗ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Tự cấu hình không được khám phá do thiếu tài nguyên hoặc sai tên lớp đăng ký
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Cấu hình không khớp do dependency vắng mặt hoặc thư viện bị loại bắc cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: NoClassDefFoundError do tham chiếu lớp tùy chọn quá sớm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: NoSuchMethodError do phiên bản thư viện không tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Bean mặc định không xuất hiện vì điều kiện thiếu bean đã không còn thỏa mãn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Bean nền có mặt nhưng cấu hình phụ thuộc được đánh giá sai thời điểm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: NoUniqueBeanDefinitionException do nhiều bean cùng kiểu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: BeanDefinitionOverrideException do đăng ký trùng tên ngoài cơ chế nhường chỗ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Thuộc tính không có hiệu lực do sai khóa, sai nguồn hoặc sai thời điểm đọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Cấu hình web không khớp vì loại context khác với dự kiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Cấu hình khớp nhưng tạo bean thất bại do dữ liệu đầu vào hoặc tài nguyên ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Kết quả khác nhau giữa IDE, kiểm thử và JAR do classpath hoặc đóng gói
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Tác dụng phụ khi quét nhầm package tự cấu hình hoặc nhập cấu hình nội bộ trực tiếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Quy trình chẩn đoán từ tái hiện tối thiểu đến báo cáo điều kiện và kiểm thử hồi quy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-and-maintenance
+  title: Thiết kế và bảo trì
+  childs:
+  - slug: design-and-maintenance-001
+    title: Mỗi cấu hình có mục đích, đầu vào và bean đầu ra rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-maintenance-002
+    title: Mặc định tối thiểu, quyền tùy chỉnh minh bạch và hành vi tắt tính năng nhất quán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-maintenance-003
+    title: Giao ước không có dependency thì không gây lỗi ngoài phạm vi tính năng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-maintenance-004
+    title: Không dùng thứ tự cấu hình để che giấu vòng phụ thuộc trong thiết kế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-maintenance-005
+    title: Không tạo tài nguyên bên ngoài chỉ để kiểm tra điều kiện kích hoạt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-maintenance-006
+    title: Giữ logic nghiệp vụ trong thành phần chuyên trách thay vì lớp cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-maintenance-007
+    title: Tài liệu hóa thuộc tính, điểm mở rộng, bean thay thế và các loại trừ được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-maintenance-008
+    title: Rà soát thay đổi dependency để phát hiện kích hoạt tính năng ngoài dự kiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-maintenance-009
+    title: Dùng kiểm thử hồi quy để bảo vệ giao ước nhường chỗ và tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-maintenance-010
+    title: 'Checklist phát hành JAR: imports, metadata, dependency, kiểm thử và ứng dụng tiêu thụ'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Dựng thí nghiệm so sánh ứng dụng có và không bật tự cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Thay đổi dependency và ghi nhận khác biệt trong bean cùng báo cáo điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Thiết kế thư viện client tối thiểu có thuộc tính, bean mặc định và khóa bật tắt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Thêm bean người dùng rồi kiểm chứng hành vi nhường chỗ theo kiểu và theo tên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Tách tích hợp tùy chọn và kiểm tra khi thiếu dependency bằng FilteredClassLoader
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Tạo hai lớp tự cấu hình có quan hệ trước sau và viết kiểm thử chứng minh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Bổ sung customizer để thay đổi hành vi mà không thay toàn bộ bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Viết điều kiện tổ hợp và kiểm tra thông điệp cho từng nhánh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Đóng gói autoconfigure cùng starter và dùng từ dự án độc lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Cố ý tạo lỗi đăng ký, điều kiện và xung đột bean rồi chẩn đoán theo bằng chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Lập ma trận kiểm thử và tài liệu giao ước để hoàn thiện thư viện tự cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

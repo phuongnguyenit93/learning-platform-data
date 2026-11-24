@@ -1,0 +1,583 @@
+menu:
+- level1: Tổng quan tích hợp
+  level2:
+  - Tích hợp hệ thống là gì và những vấn đề cần giải quyết trong ứng dụng Spring Boot
+  - Vai trò của Spring Boot, Spring Framework và các thư viện tích hợp
+  - Phân biệt tích hợp hệ thống với riêng framework Spring Integration và kiểm thử tích hợp
+  - Mô hình đồng bộ, bất đồng bộ và xử lý theo lô
+  - Phân biệt giao tiếp qua HTTP, cơ sở dữ liệu, thông điệp và tệp
+  - Ranh giới ứng dụng, hệ thống bên ngoài và hợp đồng trao đổi dữ liệu
+  - Lỗi từng phần, độ trễ và tính độc lập giữa các hệ thống
+  - Lựa chọn kiểu tích hợp theo yêu cầu nhất quán và mức độ phụ thuộc
+  - Kiến thức đầu vào và trình tự học từ kết nối đến xử lý tin cậy
+- level1: Cấu hình kết nối
+  level2:
+  - Starter, thư viện client và điều kiện kích hoạt cấu hình tự động
+  - Quản lý phiên bản phụ thuộc bằng Spring Boot và kiểm tra tương thích
+  - Properties, biến môi trường và cấu hình kết nối theo từng môi trường
+  - '@ConfigurationProperties và kiểm tra dữ liệu cấu hình đầu vào'
+  - Bean do Boot tạo, điều kiện ngừng tự cấu hình và điểm tùy chỉnh
+  - Phân biệt client, template, repository, connection factory và connection pool
+  - Quản lý vòng đời kết nối và tài nguyên dùng chung
+  - Kết nối nhiều hệ thống cùng loại và xác định bean theo qualifier
+  - Không để URL, tài khoản hoặc khóa bí mật cố định trong mã nguồn
+  - Kiểm tra cấu hình thực tế và chẩn đoán kết nối ban đầu
+- level1: Hợp đồng dữ liệu
+  level2:
+  - DTO và tách mô hình trao đổi khỏi đối tượng lưu trữ nội bộ
+  - Lựa chọn JSON, XML, dữ liệu nhị phân và schema
+  - ObjectMapper, module Jackson và cấu hình tuần tự hóa dùng chung
+  - Quy ước tên trường, ngày giờ, múi giờ, tiền tệ và giá trị null
+  - Kiểm tra cấu trúc thông điệp trước khi thực thi nghiệp vụ
+  - Chuyển đổi định dạng và chuẩn hóa dữ liệu từ nhiều nguồn
+  - Phiên bản hợp đồng và tương thích khi thêm hoặc bỏ trường
+  - Định danh nghiệp vụ, mã tương quan và metadata trao đổi
+  - Giới hạn kích thước, dữ liệu không tin cậy và thông tin nhạy cảm
+  - Phân biệt lỗi giao thức, lỗi hợp đồng và lỗi nghiệp vụ
+- level1: Lựa chọn HTTP client
+  level2:
+  - RestClient, RestTemplate và WebClient trong Spring Boot
+  - Lựa chọn API chặn luồng hoặc reactive theo kiến trúc ứng dụng
+  - Builder do Boot quản lý và khác biệt với tạo client trực tiếp
+  - Thư viện HTTP nền, connection pool và vòng đời kết nối
+  - Cấu hình địa chỉ gốc, URI, query parameter và header
+  - Thương lượng định dạng, codec và giới hạn nội dung phản hồi
+  - Phân biệt connect timeout, read timeout và chờ lấy kết nối
+  - Proxy, chuyển hướng và chính sách gửi thông tin xác thực
+  - Tích hợp quan sát và TLS qua các điểm tùy chỉnh của Boot
+  - Ranh giới giữa cơ chế gọi HTTP và chính sách nghiệp vụ
+- level1: HTTP đồng bộ
+  level2:
+  - Tạo RestClient từ RestClient.Builder được Spring Boot cấu hình
+  - Gọi GET, POST, PUT, PATCH và DELETE với RestClient
+  - retrieve, exchange và lựa chọn cách xử lý phản hồi
+  - Ánh xạ phản hồi đơn, danh sách và kiểu dữ liệu tổng quát
+  - Xử lý mã 4xx, 5xx và phản hồi không đúng hợp đồng
+  - RestClientCustomizer, interceptor và ClientHttpRequestFactory
+  - Tạo RestTemplate từ RestTemplateBuilder
+  - RestTemplateCustomizer, ResponseErrorHandler và chuyển đổi dữ liệu
+  - Cấu hình xác thực, SSL và thời gian chờ theo client
+  - Chuyển dần từ RestTemplate sang RestClient mà vẫn giữ hợp đồng
+  - Kiểm tra hành vi request factory và lỗi khi cạn connection pool
+- level1: WebClient
+  level2:
+  - Tạo WebClient từ WebClient.Builder do Boot quản lý
+  - Gửi và nhận dữ liệu với Mono hoặc Flux
+  - retrieve, exchangeToMono và exchangeToFlux
+  - onStatus, ánh xạ ngoại lệ và phân biệt lỗi HTTP với lỗi mạng
+  - ExchangeFilterFunction và xử lý header theo từng lời gọi
+  - Codec, maxInMemorySize và giải phóng nội dung phản hồi
+  - ConnectionProvider, tài nguyên Reactor Netty và giới hạn kết nối
+  - Giới hạn thời gian, hủy đăng ký và xử lý phản hồi theo luồng
+  - Truyền Reactor Context và mã tương quan qua lời gọi HTTP
+  - Tránh block() trên event loop và subscribe() ngoài chuỗi nghiệp vụ
+  - Kiểm soát thử lại, token và địa chỉ đích để không rò rỉ thông tin
+- level1: HTTP interface
+  level2:
+  - Khai báo hợp đồng client bằng @HttpExchange và các annotation HTTP
+  - HttpServiceProxyFactory và cơ chế tạo proxy cho interface
+  - Kết nối HTTP interface với RestClient hoặc WebClient adapter
+  - Sử dụng builder đã được Boot tùy chỉnh thay vì bỏ qua cấu hình chung
+  - Ánh xạ đối số vào đường dẫn, query, header và request body
+  - Kiểu trả về đồng bộ, ResponseEntity và kiểu reactive
+  - Xử lý lỗi, thời gian chờ và giới hạn do client nền quyết định
+  - Tiêm nhiều HTTP interface với địa chỉ và chính sách riêng
+  - Phân biệt HTTP interface của Spring với OpenFeign và thư viện bên ngoài
+  - Kiểm thử hợp đồng khai báo và hành vi thực tế của proxy
+- level1: SOAP và XML
+  level2:
+  - SOAP, WSDL, XML Schema và tình huống tích hợp hệ thống cũ
+  - Thiết lập spring-boot-starter-webservices
+  - WebServiceTemplateBuilder và tạo WebServiceTemplate
+  - Marshalling, unmarshalling và cấu hình JAXB phù hợp phiên bản Java
+  - Message sender, kết nối HTTP, xác thực và thời gian chờ
+  - SOAPAction, interceptor và xử lý SOAP Fault
+  - Xác thực cấu trúc XML và phân biệt lỗi vận chuyển với lỗi dịch vụ
+  - Kiểm soát parser XML, XXE và kích thước thông điệp
+  - WebServiceTemplateCustomizer và cấu hình riêng từng dịch vụ
+  - Phân biệt gọi SOAP với công bố SOAP endpoint và XsdSchema
+  - Kiểm thử thông điệp yêu cầu, phản hồi và lỗi hợp đồng
+- level1: RSocket
+  level2:
+  - Mô hình request-response, fire-and-forget, stream và channel
+  - RSocketRequester.Builder và cấu hình tự động của Spring Boot
+  - Lựa chọn TCP hoặc WebSocket cho kết nối RSocket
+  - Route, metadata, định dạng dữ liệu và codec
+  - Tạo client, tái sử dụng kết nối và đóng tài nguyên
+  - Backpressure, hủy luồng và kiểm soát lượng dữ liệu
+  - Cấu hình responder bằng @MessageMapping khi cần nhận thông điệp
+  - Phân biệt timeout, reconnect và cơ chế resume theo thư viện
+  - Tích hợp xác thực và giới hạn tin cậy của metadata
+  - Kiểm thử tương tác, ngắt kết nối và xử lý lỗi
+- level1: Kết nối SQL
+  level2:
+  - DataSource, JDBC driver và spring-boot-starter-jdbc
+  - spring.datasource.* và suy luận driver từ URL
+  - HikariCP, kích thước pool và vòng đời kết nối
+  - Connection timeout, validation và kết nối không còn hợp lệ
+  - Phân biệt cơ sở dữ liệu nhúng với hệ quản trị bên ngoài
+  - DataSourceBuilder, DataSourceProperties và tùy chỉnh nguồn dữ liệu
+  - Cấu hình nhiều DataSource với @Primary và qualifier
+  - JNDI DataSource và kết nối do môi trường triển khai quản lý
+  - SSL, tài khoản giới hạn quyền và quản lý thông tin bí mật
+  - Giới hạn pool theo tổng số bản sao ứng dụng
+  - Chẩn đoán lỗi driver, chứng thư, cạn pool và giao dịch giữ kết nối lâu
+- level1: JDBC và jOOQ
+  level2:
+  - JdbcTemplate, NamedParameterJdbcTemplate và cấu hình do Boot cung cấp
+  - JdbcClient và API truy vấn SQL theo phong cách fluent
+  - Ánh xạ hàng dữ liệu, tham số và xử lý giá trị null
+  - Batch update, khóa sinh tự động và truy vấn dữ liệu lớn
+  - Dịch ngoại lệ SQL thành DataAccessException
+  - Tích hợp Spring Data JDBC và ranh giới với JPA
+  - Thiết lập jOOQ và DSLContext do Boot cấu hình
+  - SQL dialect, schema và ranh giới của bước sinh mã jOOQ
+  - Tích hợp truy vấn với transaction manager phù hợp
+  - Kiểm thử SQL với hệ quản trị thực tế và khác biệt dialect
+- level1: JPA và Hibernate
+  level2:
+  - spring-boot-starter-data-jpa và các thành phần được cấu hình tự động
+  - EntityManagerFactory, entity scanning và repository scanning
+  - spring.jpa.* và cấu hình riêng của Hibernate
+  - Lựa chọn chiến lược quản lý schema và giới hạn ddl-auto
+  - Transaction manager và ranh giới giao dịch ở tầng dịch vụ
+  - Open EntityManager in View và ảnh hưởng tới truy vấn ngoài giao dịch
+  - Tải lười, N+1 và tác động tới tích hợp qua HTTP hoặc thông điệp
+  - Nhiều persistence unit gắn với các DataSource khác nhau
+  - Chuyển mô hình persistence sang DTO trước khi trao đổi ra ngoài
+  - Kiểm thử repository, giao dịch và truy vấn theo đúng cơ sở dữ liệu
+- level1: Dữ liệu reactive
+  level2:
+  - R2DBC, ConnectionFactory và phân biệt với JDBC DataSource
+  - Thiết lập spring-boot-starter-data-r2dbc và driver phù hợp
+  - Cấu hình spring.r2dbc.* và connection pool
+  - DatabaseClient, R2dbcEntityTemplate và reactive repository
+  - Tự cấu hình khi đồng thời có ConnectionFactory và DataSource
+  - ReactiveTransactionManager và TransactionalOperator
+  - Phạm vi Reactor Context trong giao dịch reactive
+  - Phân biệt thời điểm tạo Publisher với thời điểm truy vấn thực thi
+  - Tích hợp JDBC hoặc JPA trong ứng dụng reactive tại ranh giới có kiểm soát
+  - Quản lý timeout, hủy truy vấn và tài nguyên kết nối
+  - Phối hợp R2DBC với công cụ migration dùng JDBC
+- level1: Khởi tạo và migration
+  level2:
+  - Phân biệt tạo schema, nạp dữ liệu và nâng phiên bản cơ sở dữ liệu
+  - schema.sql, data.sql và cấu hình spring.sql.init.*
+  - Thứ tự khởi tạo dữ liệu và tương tác với Hibernate
+  - Tích hợp Flyway và quản lý migration có phiên bản
+  - Module Flyway theo hệ quản trị và phụ thuộc cần bổ sung
+  - Tích hợp Liquibase và quản lý changelog
+  - Chọn công cụ migration duy nhất cho cùng một schema
+  - Migration khi có nhiều DataSource hoặc tài khoản riêng
+  - Migration trước khi ứng dụng bắt đầu tiếp nhận công việc
+  - Tương thích schema khi nhiều phiên bản ứng dụng cùng chạy
+  - Xử lý migration thất bại và giới hạn quay lui thay đổi dữ liệu
+  - Tách dữ liệu thử nghiệm khỏi dữ liệu production
+- level1: Redis
+  level2:
+  - spring-boot-starter-data-redis và lựa chọn client Redis
+  - Lettuce, Jedis và phạm vi hỗ trợ reactive
+  - spring.data.redis.* và cấu hình kết nối, timeout
+  - RedisConnectionFactory, RedisTemplate và StringRedisTemplate
+  - ReactiveRedisTemplate và giới hạn không chặn luồng
+  - Serializer cho khóa, giá trị và khả năng đọc dữ liệu giữa các phiên bản
+  - TTL, thao tác nguyên tử và quản lý vòng đời dữ liệu
+  - Standalone, Sentinel hoặc Cluster theo môi trường
+  - SSL, xác thực và giới hạn quyền truy cập Redis
+  - Phân biệt dùng Redis cho dữ liệu, cache, phiên và hàng đợi
+  - Lỗi mạng, chuyển đổi nút và chính sách khi Redis không sẵn sàng
+- level1: MongoDB
+  level2:
+  - spring-boot-starter-data-mongodb và lựa chọn driver
+  - URI kết nối, database và cấu hình spring.data.mongodb.*
+  - MongoClient, MongoTemplate và MongoRepository
+  - ReactiveMongoTemplate và reactive repository
+  - Mapping document, định danh và chuyển đổi kiểu dữ liệu
+  - Chỉ mục, điều kiện tạo chỉ mục và quy trình quản lý schema
+  - Connection pool, timeout và tùy chỉnh MongoClientSettings
+  - Replica set, read preference và write concern
+  - Điều kiện hỗ trợ giao dịch và transaction manager
+  - TLS, xác thực và truy cập dữ liệu theo quyền tối thiểu
+  - Kiểm thử bằng MongoDB thực tế và giới hạn của giải pháp nhúng
+- level1: Các kho NoSQL khác
+  level2:
+  - Lựa chọn kho dữ liệu theo nhu cầu tìm kiếm, đồ thị và phân tán
+  - Tích hợp Elasticsearch client và Spring Data Elasticsearch
+  - Địa chỉ cụm, xác thực, TLS và tùy chỉnh client Elasticsearch
+  - Neo4j Driver, Neo4jClient và Spring Data Neo4j
+  - Cấu hình database, xác thực và quản lý phiên Neo4j
+  - Cassandra CqlSession, contact points, keyspace và local datacenter
+  - CassandraTemplate, repository và lựa chọn API phù hợp
+  - Couchbase Cluster, bucket, scope và collection
+  - CouchbaseTemplate, repository và cấu hình kết nối
+  - Kiểm soát chỉ mục hoặc schema và tránh thay đổi ngầm khi khởi động
+  - Phân biệt tính năng do Boot tự cấu hình với phần do nhà cung cấp bổ sung
+  - Kiểm tra tương thích driver, máy chủ và Spring Data khi nâng phiên bản
+- level1: Bộ nhớ đệm
+  level2:
+  - Spring Cache, CacheManager và @EnableCaching
+  - Cách Boot chọn cache provider và chỉ định spring.cache.type
+  - '@Cacheable, @CachePut, @CacheEvict và ngữ nghĩa cập nhật'
+  - Cache key, SpEL, condition và unless
+  - Tích hợp Caffeine cho cache cục bộ
+  - Tích hợp RedisCacheManager cho cache dùng chung
+  - JCache, Hazelcast hoặc Infinispan và phạm vi phụ thuộc cần có
+  - CacheManagerCustomizer và cấu hình từng vùng cache
+  - TTL, dữ liệu cũ và phối hợp vô hiệu hóa cache sau giao dịch
+  - Spring AOP, lời gọi nội bộ và trường hợp annotation không có hiệu lực
+  - Tránh cache stampede và xử lý lỗi cache theo yêu cầu nghiệp vụ
+  - Phân biệt cache đồng bộ với kiểu trả về reactive theo phiên bản
+- level1: Giao dịch tích hợp
+  level2:
+  - PlatformTransactionManager và lựa chọn bộ quản lý giao dịch
+  - '@Transactional, propagation và isolation'
+  - Rollback theo loại ngoại lệ và hệ quả khi bắt lỗi
+  - Giao dịch JDBC, JPA và reactive có phạm vi ngữ cảnh khác nhau
+  - Nhiều transaction manager và chỉ định đúng tài nguyên
+  - Giới hạn truyền giao dịch qua HTTP, luồng bất đồng bộ hoặc thông điệp
+  - Không giữ giao dịch cơ sở dữ liệu trong lúc chờ dịch vụ bên ngoài
+  - JTA, XA và điều kiện cần để phối hợp nhiều tài nguyên
+  - Phân biệt giao dịch cục bộ, giao dịch phân tán và nhất quán cuối cùng
+  - Sự kiện sau commit và khoảng trống mất thông điệp
+  - Kiểm thử lỗi giữa các bước để xác minh ranh giới giao dịch
+- level1: Nền tảng nhắn tin
+  level2:
+  - Phân biệt command, event và message trong giao tiếp hệ thống
+  - Producer, broker, consumer và trách nhiệm của từng thành phần
+  - Queue, topic, subscription và mô hình chia sẻ công việc
+  - Giao tiếp một chiều, publish-subscribe và request-reply
+  - Xác nhận đã gửi, broker đã nhận và consumer đã xử lý
+  - At-most-once, at-least-once và giới hạn của exactly-once
+  - Thứ tự thông điệp, phân vùng và xử lý song song
+  - Serializer, schema, header và mã tương quan
+  - Thông điệp lỗi, thử lại, dead-letter và phát lại
+  - Độ bền thông điệp, thời hạn lưu và khả năng phục hồi
+- level1: RabbitMQ và AMQP
+  level2:
+  - spring-boot-starter-amqp và cấu hình spring.rabbitmq.*
+  - ConnectionFactory, RabbitTemplate và RabbitAdmin
+  - Khai báo exchange, queue, binding và routing key
+  - Gửi dữ liệu và chuyển đổi thông điệp JSON
+  - Publisher confirms, returns và thông điệp không được định tuyến
+  - '@RabbitListener và listener container factory'
+  - Acknowledgement, prefetch và số consumer đồng thời
+  - Thử lại, requeue và tránh vòng lặp thông điệp lỗi
+  - Dead-letter exchange và chính sách xử lý sau khi thất bại
+  - SSL, xác thực và kết nối nhiều broker theo cấu hình
+  - Ranh giới giao dịch RabbitMQ với cập nhật cơ sở dữ liệu
+  - Quan sát hàng đợi, consumer và độ trễ xử lý
+- level1: Apache Kafka
+  level2:
+  - Tích hợp spring-kafka và cấu hình spring.kafka.*
+  - KafkaTemplate, ProducerFactory và gửi thông điệp bất đồng bộ
+  - Serializer, deserializer và kiểm soát kiểu dữ liệu được tin cậy
+  - Topic, partition, key và bảo đảm thứ tự theo khóa
+  - '@KafkaListener, ConsumerFactory và listener container'
+  - Consumer group, concurrency và phân phối partition
+  - Offset, acknowledge và thời điểm commit
+  - Xử lý lỗi, retry topic hoặc dead-letter topic theo nhu cầu
+  - Idempotent producer, transaction và giới hạn exactly-once
+  - Tích hợp Kafka Streams và vòng đời ứng dụng xử lý luồng
+  - SSL, SASL và bảo vệ thông tin xác thực
+  - Rebalance, consumer lag và lỗi xử lý quá thời gian cho phép
+  - Phân biệt giao dịch Kafka với giao dịch cơ sở dữ liệu
+- level1: JMS
+  level2:
+  - Jakarta JMS, broker và ConnectionFactory
+  - Tích hợp ActiveMQ Classic hoặc ActiveMQ Artemis
+  - Cấu hình spring.activemq.*, spring.artemis.* và lựa chọn broker
+  - JNDI ConnectionFactory và tài nguyên do môi trường quản lý
+  - JmsTemplate, JmsMessagingTemplate và chuyển đổi thông điệp
+  - '@JmsListener và cấu hình listener container factory'
+  - Queue, topic và durable subscription
+  - Session acknowledgement, giao dịch và redelivery
+  - Dead-letter queue và thông điệp không thể xử lý
+  - Caching hoặc pooling kết nối và session
+  - Phối hợp với cơ sở dữ liệu, JTA và giới hạn cam kết nguyên tử
+  - Tương thích client Jakarta, phiên bản broker và thư viện nền
+- level1: Apache Pulsar
+  level2:
+  - Tích hợp Spring for Apache Pulsar bằng starter phù hợp phiên bản Boot
+  - Cấu hình service URL, client và các thuộc tính spring.pulsar.*
+  - PulsarTemplate và gửi thông điệp tới topic
+  - '@PulsarListener, subscription và listener container'
+  - Schema, kiểu dữ liệu và tính tương thích thông điệp
+  - Lựa chọn subscription type và hệ quả đối với thứ tự, phân phối
+  - Acknowledgement, negative acknowledgement và redelivery
+  - Thử lại, dead-letter và giới hạn xử lý thông điệp lỗi
+  - Lựa chọn API thường hoặc reactive theo bộ phụ thuộc
+  - Xác thực, TLS và kiểm soát tài nguyên client
+  - Kiểm thử broker, lỗi kết nối và xử lý lại sau khởi động
+- level1: Spring Integration
+  level2:
+  - Spring Integration và các mẫu tích hợp doanh nghiệp
+  - spring-boot-starter-integration và hạ tầng Boot khởi tạo
+  - Message, payload, MessageHeaders và tính bất biến
+  - MessageChannel và đường đi giữa các endpoint
+  - DirectChannel, QueueChannel và PublishSubscribeChannel
+  - ExecutorChannel, ranh giới luồng và tác động tới giao dịch
+  - Channel adapter, messaging gateway và service activator
+  - IntegrationFlow và khai báo luồng bằng Java DSL
+  - PollerMetadata, TaskScheduler và spring.integration.poller.*
+  - Vòng đời endpoint, autoStartup và thứ tự khởi động luồng
+  - Phân biệt lời gọi đồng bộ với xử lý bất đồng bộ trong một flow
+- level1: Định tuyến và biến đổi
+  level2:
+  - Transformer và chuẩn hóa payload giữa hai hệ thống
+  - Filter và loại bỏ thông điệp không đáp ứng điều kiện
+  - Router và chọn nhánh theo nội dung hoặc header
+  - Splitter và chia một thông điệp thành nhiều đơn vị xử lý
+  - Aggregator và ghép kết quả theo correlation key
+  - Release strategy, timeout và nhóm thông điệp chưa hoàn tất
+  - Resequencer và xử lý dữ liệu đến không đúng thứ tự
+  - Header enricher, content enricher và bổ sung metadata
+  - Gateway request-reply, replyChannel và thời gian chờ
+  - Scatter-gather và giới hạn phối hợp nhiều hệ thống
+  - Wire tap và quan sát luồng mà không thay đổi xử lý chính
+- level1: Adapter tích hợp
+  level2:
+  - Lựa chọn module adapter và phân biệt phần Boot tự cấu hình
+  - Nhận và ghi tệp với file adapter, bộ lọc và tên tệp tạm
+  - SFTP adapter, xác minh host key và quản lý phiên kết nối
+  - HTTP inbound gateway và outbound gateway
+  - JDBC adapter hoặc gateway và liên hệ với transaction manager
+  - AMQP, JMS hoặc Kafka adapter trong IntegrationFlow
+  - Mail adapter và phân biệt nhận thư với gửi thư
+  - TCP, UDP hoặc MQTT adapter theo yêu cầu giao thức
+  - RSocket adapter hoặc gateway và hạ tầng Boot hỗ trợ
+  - Polling, thông báo sự kiện và kiểm soát nhịp lấy dữ liệu
+  - Đóng phiên, dọn tệp và giải phóng tài nguyên khi flow dừng
+- level1: Lỗi và trạng thái flow
+  level2:
+  - errorChannel, ErrorMessage và định tuyến lỗi xử lý
+  - Phân biệt lỗi đồng bộ trả về bên gọi với lỗi trên executor
+  - RequestHandlerRetryAdvice và phân loại lỗi được phép thử lại
+  - Khôi phục sau thử lại và chuyển thông điệp sang kênh xử lý lỗi
+  - MessageStore và lưu trạng thái channel hoặc aggregator
+  - JdbcMessageStore và quản lý schema hạ tầng
+  - MetadataStore, IdempotentReceiverInterceptor và đánh dấu hoặc loại thông điệp trùng
+  - LockRegistry và phối hợp flow giữa nhiều bản sao ứng dụng
+  - Giới hạn dung lượng QueueChannel và hành vi khi quá tải
+  - Transaction synchronization và thao tác tệp sau commit
+  - Khởi động lại flow và kiểm chứng không mất trạng thái cần thiết
+  - Theo dõi message history, endpoint và số liệu xử lý
+- level1: Tác vụ bất đồng bộ
+  level2:
+  - '@Async, @EnableAsync và tác vụ chạy ngoài luồng gọi'
+  - TaskExecutor, AsyncTaskExecutor và cấu hình tự động của Boot
+  - spring.task.execution.* và lựa chọn executor
+  - Giới hạn số luồng, hàng đợi và chiến lược từ chối
+  - CompletableFuture, ngoại lệ và AsyncUncaughtExceptionHandler
+  - Luồng ảo trên Java 21 và giới hạn của tài nguyên bên ngoài
+  - Truyền mã tương quan, MDC hoặc SecurityContext khi cần
+  - Không giả định giao dịch hiện tại được truyền qua @Async
+  - '@Scheduled, fixedRate, fixedDelay và cron'
+  - TaskScheduler, múi giờ và tác vụ chạy chồng
+  - Giới hạn lịch cục bộ khi ứng dụng có nhiều bản sao
+  - Dừng tác vụ và thời gian chờ khi ứng dụng kết thúc
+- level1: Quartz
+  level2:
+  - spring-boot-starter-quartz và SchedulerFactoryBean
+  - Job, JobDetail, Trigger và vòng đời thực thi
+  - Khai báo lịch đơn giản hoặc CronTrigger
+  - JobDataMap, truyền dữ liệu và giới hạn tuần tự hóa
+  - Tích hợp bean nghiệp vụ và tiêm phụ thuộc vào job
+  - In-memory JobStore và JDBC JobStore
+  - spring.quartz.* và SchedulerFactoryBeanCustomizer
+  - Khởi tạo schema, dữ liệu lịch hiện có và nguy cơ ghi đè
+  - Misfire, chạy chồng và chính sách khôi phục
+  - Clustering và điều kiện chỉ một nút thực thi công việc
+  - DataSource riêng cho Quartz và ranh giới giao dịch
+  - Khởi động trễ, dừng scheduler và chờ công việc đang chạy
+- level1: Spring Batch
+  level2:
+  - spring-boot-starter-batch và điều kiện cấu hình tự động
+  - Job, Step, JobInstance, JobExecution và JobParameters
+  - JobRepository và schema lưu metadata
+  - ItemReader, ItemProcessor, ItemWriter và xử lý theo chunk
+  - Tasklet và lựa chọn mô hình bước xử lý
+  - Giao dịch từng chunk và ảnh hưởng khi bước xử lý thất bại
+  - Khởi chạy job khi ứng dụng bắt đầu và lựa chọn tắt hành vi tự chạy
+  - Điều kiện ngừng tự cấu hình khi dùng @EnableBatchProcessing hoặc cấu hình riêng
+  - Checkpoint, ExecutionContext và khởi động lại công việc
+  - Skip, retry và phân biệt lỗi dữ liệu với lỗi hệ thống
+  - Kết nối batch với lịch Quartz, tệp hoặc thông điệp
+  - Nhiều job, chạy đồng thời và nhận diện trùng JobInstance
+  - Phân biệt dữ liệu nghiệp vụ với metadata của Spring Batch
+- level1: Email
+  level2:
+  - spring-boot-starter-mail và điều kiện tạo JavaMailSender
+  - Cấu hình spring.mail.* và Jakarta Mail
+  - SimpleMailMessage và MimeMessageHelper
+  - Nội dung văn bản, HTML, tài nguyên nội tuyến và tệp đính kèm
+  - SMTP authentication, STARTTLS và SSL
+  - Giới hạn thời gian kết nối, đọc và ghi tới SMTP server
+  - Mẫu thư, bản địa hóa và mã hóa ký tự
+  - Gửi thư ngoài giao dịch nghiệp vụ và tránh giữ kết nối cơ sở dữ liệu
+  - Thử lại có kiểm soát, chống gửi trùng và theo dõi kết quả
+  - Phân biệt SMTP chấp nhận thư với người nhận đã nhận hoặc đọc
+  - Kiểm thử bằng máy chủ thư giả lập và tránh gửi tới người nhận thật
+- level1: LDAP và thư mục
+  level2:
+  - Vai trò LDAP trong truy vấn hồ sơ, nhóm và cấu hình tổ chức
+  - spring-boot-starter-data-ldap và cấu hình spring.ldap.*
+  - LdapContextSource, LdapTemplate và Spring Data LDAP repository
+  - Base DN, tên phân biệt và phạm vi truy vấn
+  - Ánh xạ thuộc tính, bộ lọc tìm kiếm và phân trang
+  - Tài khoản truy cập dịch vụ và giới hạn quyền
+  - LDAPS, StartTLS và kiểm tra chứng thư
+  - Timeout, pooling và lỗi máy chủ thư mục
+  - Ngăn LDAP injection khi xây dựng bộ lọc từ dữ liệu đầu vào
+  - LDAP nhúng cho kiểm thử và giới hạn so với hệ thống thật
+  - Phân biệt tích hợp dữ liệu thư mục với cơ chế xác thực của Spring Security
+- level1: Bảo mật kết nối
+  level2:
+  - TLS, hostname verification và chuỗi chứng thư tin cậy
+  - SSL bundle, keystore, truststore và cấu hình spring.ssl.bundle.*
+  - Áp dụng SSL bundle theo khả năng hỗ trợ của từng client
+  - mTLS và xác thực hai chiều giữa các dịch vụ
+  - Basic authentication, API key và OAuth2 Client Credentials
+  - Lấy và làm mới access token bằng thành phần Spring Security phù hợp
+  - Phân biệt xác thực tới broker, cơ sở dữ liệu và HTTP service
+  - Quản lý secret, luân chuyển mật khẩu và chứng thư
+  - Giới hạn địa chỉ đích, chuyển hướng và nguy cơ SSRF
+  - Che token, mật khẩu và dữ liệu cá nhân trong log hoặc thông điệp lỗi
+  - Phân quyền tối thiểu cho tài khoản tích hợp
+  - Từ chối kết nối không hợp lệ thay vì bỏ kiểm tra chứng thư
+- level1: Phục hồi khi lỗi
+  level2:
+  - Phân loại lỗi tạm thời, lỗi vĩnh viễn và lỗi nghiệp vụ
+  - Giới hạn thời gian cho từng bước và cho toàn bộ thao tác tích hợp
+  - Retry với backoff, jitter và giới hạn số lần thử
+  - Đánh giá tính lũy đẳng trước khi thử lại thao tác có tác dụng phụ
+  - Tích hợp Spring Retry hoặc Resilience4j bằng thư viện, cấu hình thích hợp
+  - Circuit breaker và điều kiện chuyển trạng thái
+  - Bulkhead, giới hạn đồng thời và cách ly hệ thống chậm
+  - Rate limit và điều tiết lưu lượng theo năng lực của hệ thống đích
+  - Fallback có ý nghĩa nghiệp vụ và tránh che lỗi dữ liệu
+  - Tránh retry nhiều tầng làm khuếch đại lưu lượng
+  - Tôn trọng thời gian còn lại khi truyền yêu cầu qua nhiều dịch vụ
+  - Kiểm thử phục hồi khi kết nối khôi phục hoặc hệ thống bị quá tải
+- level1: Nhất quán và chống trùng
+  level2:
+  - Tính lũy đẳng của lệnh và sự kiện
+  - Idempotency key, phạm vi định danh và thời hạn lưu kết quả
+  - Inbox, ràng buộc duy nhất và phát hiện thông điệp đã xử lý
+  - Khoảng trống giữa commit cơ sở dữ liệu và gửi thông điệp
+  - Transactional Outbox và lưu sự kiện cùng giao dịch nghiệp vụ
+  - Polling publisher hoặc CDC để phát dữ liệu outbox
+  - Xác nhận phát thành công và khả năng phát trùng sau lỗi
+  - Saga, hành động bù và giới hạn khôi phục tác vụ ngoài hệ thống
+  - Thứ tự sự kiện theo thực thể và xử lý sự kiện đến muộn
+  - Chống trùng đồng thời giữa nhiều consumer hoặc bản sao ứng dụng
+  - Replay, backfill và phân biệt dữ liệu phục hồi với dữ liệu mới
+  - Đối soát trạng thái giữa hệ thống nguồn và hệ thống đích
+- level1: Thư viện bổ sung
+  level2:
+  - Phân biệt tích hợp có sẵn của Boot với starter từ hệ sinh thái
+  - Spring Cloud release train và tương thích với Spring Boot
+  - Spring Cloud Stream, binder và mô hình hàm xử lý thông điệp
+  - Spring Cloud Function và ranh giới với Spring Integration
+  - OpenFeign, HTTP interface và lựa chọn client khai báo
+  - Service discovery, load balancing và điều kiện cần thêm Spring Cloud
+  - gRPC, protobuf và các thành phần phải cấu hình ngoài Boot
+  - SDK của dịch vụ đám mây hoặc kho đối tượng và quản lý vòng đời client
+  - Đánh giá starter bên thứ ba qua phiên bản, điều kiện tạo bean và bảo trì
+  - Điều kiện kích hoạt resilience và cấu hình phân tán theo từng thư viện
+- level1: Dịch vụ phát triển
+  level2:
+  - Vai trò Docker Compose và Testcontainers trong phát triển tích hợp
+  - spring-boot-docker-compose và vòng đời dịch vụ cục bộ
+  - Service connection và ConnectionDetails thay cho ghép URL thủ công
+  - Ưu tiên thông tin kết nối dịch vụ so với thuộc tính kết nối
+  - Nhận diện dịch vụ được Boot hỗ trợ và trường hợp cần cấu hình riêng
+  - Cổng động, địa chỉ container và địa chỉ ứng dụng thực sự sử dụng
+  - Health check, thời điểm dịch vụ sẵn sàng và thứ tự kết nối
+  - Tùy chỉnh tên image, ánh xạ dịch vụ và cấu hình môi trường
+  - Testcontainers chạy cùng ứng dụng trong chế độ phát triển
+  - Phân biệt vòng đời container với vòng đời ApplicationContext
+  - Cô lập dữ liệu, volume và thông tin bí mật giữa các môi trường
+  - Không đưa dịch vụ phát triển vào production do phụ thuộc đóng gói nhầm
+- level1: Kiểm thử tích hợp
+  level2:
+  - Phân biệt unit test, integration test và end-to-end test
+  - '@SpringBootTest và phạm vi thành phần được khởi tạo'
+  - Testcontainers, @Container và @ServiceConnection
+  - '@DynamicPropertySource cho dịch vụ chưa có hỗ trợ service connection'
+  - Kiểm thử JDBC, JPA, R2DBC, Redis hoặc MongoDB với dịch vụ thực tế
+  - Kiểm thử RabbitMQ, Kafka, JMS hoặc Pulsar qua broker thử nghiệm
+  - MockRestServiceServer cho client HTTP đồng bộ phù hợp
+  - Máy chủ HTTP giả lập cho WebClient, timeout và phản hồi không hợp lệ
+  - MockWebServiceServer cho lời gọi SOAP
+  - Spring Integration Test và thay thế endpoint trong flow
+  - Kiểm thử mail hoặc LDAP bằng dịch vụ tách biệt
+  - Quản lý dữ liệu thử nghiệm và dọn tài nguyên sau kiểm thử
+  - Chờ điều kiện bất đồng bộ theo thời hạn thay vì thời gian ngủ cố định
+- level1: Hợp đồng và lỗi biên
+  level2:
+  - Kiểm thử hợp đồng HTTP, schema và thông điệp giữa hai phía
+  - Consumer-driven contract và phạm vi thư viện hỗ trợ
+  - Kiểm chứng tương thích ngược khi thêm trường hoặc thay đổi kiểu
+  - Thông điệp thiếu trường, sai định dạng và dữ liệu vượt kích thước
+  - Kiểm thử dữ liệu trùng, sai thứ tự và xử lý đồng thời
+  - Mô phỏng mất kết nối trước hoặc sau khi hệ thống đích đã nhận
+  - Mô phỏng commit thành công nhưng chưa kịp acknowledge
+  - Kiểm thử retry, circuit breaker, dead-letter và khôi phục
+  - Kiểm thử migration, phiên bản dữ liệu và khởi động lại ứng dụng
+  - Kiểm thử bảo mật TLS, secret sai và quyền truy cập thiếu
+  - Đối chiếu giới hạn của mock với hành vi dịch vụ thật
+- level1: Quan sát tích hợp
+  level2:
+  - Micrometer Observation và các tích hợp do Boot hỗ trợ
+  - HTTP client metrics và điều kiện dùng builder được quản lý
+  - Metrics của connection pool, cache và cơ sở dữ liệu
+  - Producer, consumer, lag, hàng đợi và thời gian xử lý
+  - Trace qua HTTP và header thông điệp theo thư viện hỗ trợ
+  - Phân biệt mã tương quan nghiệp vụ với trace ID
+  - Đo lỗi, số lần thử lại và số thông điệp bị chuyển dead-letter
+  - Giới hạn cardinality của nhãn và không gắn định danh cá nhân vào metrics
+  - Health indicator và ý nghĩa khi một phụ thuộc không sẵn sàng
+  - Không buộc liveness phụ thuộc trực tiếp vào mọi dịch vụ bên ngoài
+  - Nhật ký kiểm toán, che dữ liệu nhạy cảm và thời hạn lưu log
+- level1: Vận hành tích hợp
+  level2:
+  - Ngân sách timeout, số kết nối và giới hạn đồng thời theo từng phụ thuộc
+  - Cân bằng tốc độ nhận, xử lý và gửi dữ liệu
+  - Giới hạn hàng đợi, bộ nhớ và dung lượng lưu trạng thái
+  - Dừng consumer hoặc poller trước khi đóng tài nguyên kết nối
+  - Graceful shutdown với thông điệp hoặc công việc đang xử lý
+  - Khởi động lại sau lỗi và tiếp tục từ checkpoint hợp lệ
+  - Quản lý dead-letter, replay và quyền vận hành các thao tác phục hồi
+  - Luân chuyển secret, khóa và chứng thư mà không ngừng toàn bộ luồng
+  - Triển khai nhiều phiên bản với schema và hợp đồng tương thích
+  - Backfill dữ liệu lớn mà không làm quá tải dịch vụ chính
+  - Cảnh báo dựa trên lỗi kéo dài, độ trễ và tồn đọng công việc
+  - Quy trình xử lý sự cố, đối soát dữ liệu và khôi phục từng phần
+- level1: Gỡ lỗi và nâng cấp
+  level2:
+  - Bean không được tạo do thiếu starter hoặc điều kiện tự cấu hình
+  - Bean tự khai báo khiến Boot ngừng cung cấp cấu hình mặc định
+  - Nhầm qualifier khi có nhiều DataSource, client hoặc transaction manager
+  - Thuộc tính không có hiệu lực do ServiceConnection hoặc cấu hình ưu tiên cao hơn
+  - Không kết nối được do DNS, cổng, TLS hoặc quyền truy cập
+  - Lỗi serializer, sai schema và không tương thích hợp đồng dữ liệu
+  - Cạn pool, listener ngừng chạy và luồng bị chặn
+  - Message mất, trùng hoặc sai thứ tự do hiểu sai acknowledge và commit
+  - Job chạy trùng giữa các bản sao hoặc không khởi động lại được
+  - Lỗi proxy AOP khi dùng @Transactional, @Async, @Retryable hoặc @Cacheable
+  - Rà soát thay đổi phiên bản client, driver, broker và Spring Data
+  - Kiểm thử tương thích khi nâng Spring Boot hoặc thêm starter bên thứ ba
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng client HTTP khai báo với timeout, TLS và kiểm thử hợp đồng
+  - Đọc dữ liệu từ SQL và gửi tới dịch vụ ngoài với ranh giới giao dịch rõ ràng
+  - Xử lý dữ liệu reactive với R2DBC, WebClient và giới hạn tài nguyên
+  - Tích hợp Redis cache với chính sách vô hiệu hóa sau cập nhật dữ liệu
+  - Xây dựng luồng RabbitMQ hoặc Kafka có retry và dead-letter
+  - Triển khai outbox, consumer chống trùng và đối soát sau lỗi
+  - Xây dựng IntegrationFlow nhận tệp, kiểm tra, biến đổi và định tuyến
+  - Lập lịch Quartz để khởi chạy batch có checkpoint và khả năng chạy lại
+  - Gửi email qua hàng đợi với theo dõi kết quả và chống gửi trùng
+  - Chuẩn bị dịch vụ thử nghiệm bằng Docker Compose hoặc Testcontainers
+  - Quan sát một thao tác xuyên HTTP, cơ sở dữ liệu và broker
+  - Mô phỏng lỗi từng phần và xác minh quy trình phục hồi dữ liệu

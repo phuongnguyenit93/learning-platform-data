@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Khởi chạy ứng dụng
+  slug: application-launch
+  index: 1
+- title: Thiết lập SpringApplication
+  slug: spring-application-setup
+  index: 2
+- title: Kiểu ứng dụng
+  slug: application-type
+  index: 3
+- title: Chuỗi khởi động
+  slug: startup-sequence
+  index: 4
+- title: Context và refresh
+  slug: context-refresh
+  index: 5
+- title: Điểm mở rộng
+  slug: extension-points
+  index: 6
+- title: Vòng đời bean
+  slug: bean-lifecycle
+  index: 7
+- title: Sự kiện ứng dụng
+  slug: application-events
+  index: 8
+- title: Listener
+  slug: event-listeners
+  index: 9
+- title: Runner
+  slug: application-runners
+  index: 10
+- title: Đối số ứng dụng
+  slug: application-arguments
+  index: 11
+- title: Trạng thái sẵn sàng
+  slug: readiness-state
+  index: 12
+- title: Khởi tạo lười
+  slug: lazy-initialization
+  index: 13
+- title: SmartLifecycle
+  slug: smart-lifecycle
+  index: 14
+- title: Luồng và tác vụ
+  slug: task-execution
+  index: 15
+- title: Luồng ảo
+  slug: virtual-threads
+  index: 16
+- title: Tài nguyên ứng dụng
+  slug: application-resources
+  index: 17
+- title: Dừng ứng dụng
+  slug: application-shutdown
+  index: 18
+- title: Mã thoát
+  slug: exit-codes
+  index: 19
+- title: Lỗi khởi động
+  slug: startup-failure
+  index: 20
+- title: Đo khởi động
+  slug: startup-metrics
+  index: 21
+- title: Devtools
+  slug: devtools
+  index: 22
+- title: Kiểm thử vòng đời
+  slug: lifecycle-testing
+  index: 23
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 24

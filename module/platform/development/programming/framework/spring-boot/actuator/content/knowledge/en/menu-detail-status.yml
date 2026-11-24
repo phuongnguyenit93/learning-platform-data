@@ -1,0 +1,2725 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Actuator là gì và giải quyết bài toán vận hành ứng dụng như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt khả năng quan sát, giám sát và chẩn đoán sự cố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Vai trò của log, chỉ số đo lường (metrics) và dấu vết phân tán (traces)
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Các khái niệm endpoint, health indicator, meter, observation và trace
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Quan hệ giữa Spring Boot Actuator, Micrometer và hệ thống giám sát bên ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt endpoint quản trị với API nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phạm vi hỗ trợ trong ứng dụng Servlet, Reactive và không có web
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình từ kiểm tra sức khỏe đến quan sát ứng dụng đang vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: actuator-startup
+  title: Khởi tạo Actuator
+  childs:
+  - slug: actuator-startup-001
+    title: Thêm spring-boot-starter-actuator bằng Maven hoặc Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-startup-002
+    title: Vai trò của mô-đun actuator và actuator-autoconfigure
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-startup-003
+    title: Nhận diện các thành phần được cấu hình tự động theo classpath và bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-startup-004
+    title: Chạy ứng dụng mẫu và gọi endpoint health đầu tiên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-startup-005
+    title: Đọc log khởi động để xác định endpoint được công bố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-startup-006
+    title: Tổ chức cấu hình management trong application.properties hoặc YAML
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-startup-007
+    title: Tách cấu hình quản trị theo môi trường phát triển, kiểm thử và production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-startup-008
+    title: Kiểm tra bộ phiên bản Spring Boot, Micrometer và thư viện xuất dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: endpoint-model
+  title: Mô hình endpoint
+  childs:
+  - slug: endpoint-model-001
+    title: Định danh endpoint và quan hệ với đường dẫn /actuator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-model-002
+    title: Phân biệt endpoint được bật, được công bố và được phép truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-model-003
+    title: Phân loại thao tác đọc, ghi và xóa trên endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-model-004
+    title: Phân biệt giao tiếp HTTP với giao tiếp JMX
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-model-005
+    title: Khám phá discovery page và liên kết giữa các endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-model-006
+    title: Đọc kiểu nội dung và cấu trúc phản hồi của Actuator API
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-model-007
+    title: Nhận diện điều kiện để endpoint tích hợp xuất hiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-model-008
+    title: Phân biệt endpoint chỉ cung cấp thông tin với endpoint thay đổi trạng thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: endpoint-exposure
+  title: Công bố endpoint
+  childs:
+  - slug: endpoint-exposure-001
+    title: Bật hoặc tắt từng endpoint bằng management.endpoint.<id>.enabled
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-exposure-002
+    title: Lựa chọn cơ chế bật mặc định hoặc chỉ bật endpoint được chỉ định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-exposure-003
+    title: Cấu hình danh sách include và exclude cho HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-exposure-004
+    title: Cấu hình danh sách include và exclude cho JMX
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-exposure-005
+    title: Thứ tự ưu tiên giữa exclude, include và trạng thái enabled
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-exposure-006
+    title: Sử dụng ký tự * trong cấu hình và quy tắc đặt dấu nháy trong YAML
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-exposure-007
+    title: Cấu hình discovery page và giới hạn phạm vi khám phá endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-exposure-008
+    title: Tùy chỉnh đường dẫn endpoint bằng base-path và path-mapping
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpoint-exposure-009
+    title: Cấu hình cache.time-to-live cho thao tác đọc đủ điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: management-infrastructure
+  title: Hạ tầng quản trị
+  childs:
+  - slug: management-infrastructure-001
+    title: Chạy Actuator trên cổng ứng dụng hoặc cổng quản trị riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-infrastructure-002
+    title: Cấu hình management.server.port và địa chỉ mạng lắng nghe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-infrastructure-003
+    title: Phối hợp management base path với Servlet context path hoặc WebFlux base path
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-infrastructure-004
+    title: Nhận diện management context và hạ tầng web riêng khi tách cổng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-infrastructure-005
+    title: Cấu hình HTTPS cho cổng quản trị và quan hệ với HTTPS của ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-infrastructure-006
+    title: Giới hạn khả năng truy cập qua mạng nội bộ, reverse proxy và firewall
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-infrastructure-007
+    title: Cấu hình CORS cho endpoint quản trị khi có nhu cầu truy cập từ trình duyệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-infrastructure-008
+    title: Xử lý URL, cổng và thông tin proxy trong môi trường container
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-infrastructure-009
+    title: Phân biệt tắt giao tiếp HTTP quản trị với tắt toàn bộ endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-security
+  title: Bảo mật truy cập
+  childs:
+  - slug: access-security-001
+    title: Hành vi bảo mật Actuator khi có hoặc không có Spring Security
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-002
+    title: Ảnh hưởng của SecurityFilterChain tự khai báo đến cấu hình bảo mật mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-003
+    title: Phân tách quy tắc bảo mật API nghiệp vụ và endpoint quản trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-004
+    title: Sử dụng EndpointRequest để khớp endpoint trong ứng dụng Servlet
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-005
+    title: Cấu hình endpoint matcher và SecurityWebFilterChain trong ứng dụng Reactive
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-006
+    title: Thiết kế quyền truy cập tối thiểu cho người vận hành và hệ thống giám sát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-007
+    title: Phân biệt xác thực truy cập endpoint với quyền xem chi tiết dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-008
+    title: Kiểm soát CSRF cho thao tác ghi hoặc xóa theo cơ chế xác thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-009
+    title: Giới hạn truy cập health và Prometheus theo nhu cầu hạ tầng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-010
+    title: Che dữ liệu bằng show-values, roles và SanitizingFunction
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-011
+    title: Bảo vệ heapdump, logfile, env và các endpoint có khả năng thay đổi trạng thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-012
+    title: Kiểm chứng truy cập ẩn danh, sai quyền và đúng quyền trên cả cổng quản trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: platform-health
+  title: Health nền tảng
+  childs:
+  - slug: platform-health-001
+    title: Health endpoint biểu diễn sức khỏe ứng dụng như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-health-002
+    title: Cấu trúc status, components và details trong phản hồi health
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-health-003
+    title: Vai trò của HealthContributor, HealthIndicator và CompositeHealthContributor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-health-004
+    title: Ý nghĩa của UP, DOWN, OUT_OF_SERVICE và UNKNOWN
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-health-005
+    title: Tổng hợp trạng thái bằng StatusAggregator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-health-006
+    title: Ánh xạ trạng thái sức khỏe sang HTTP status bằng HttpCodeStatusMapper
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-health-007
+    title: Quản lý show-details, show-components và quyền xem health
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-health-008
+    title: Nhận diện health indicator tự cấu hình cho cơ sở dữ liệu, Redis, ổ đĩa và dịch vụ liên quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-health-009
+    title: Bật hoặc tắt từng indicator và các indicator mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-health-010
+    title: Phân biệt sức khỏe kỹ thuật, khả năng phục vụ và tính đúng đắn nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-health
+  title: Health tùy chỉnh
+  childs:
+  - slug: custom-health-001
+    title: Xây dựng HealthIndicator cho thành phần đặc thù của ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-health-002
+    title: Định danh indicator từ tên bean và tổ chức đường dẫn thành phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-health-003
+    title: Tạo kết quả bằng Health.Builder với chi tiết có ý nghĩa chẩn đoán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-health-004
+    title: Xử lý ngoại lệ và trạng thái suy giảm trong kiểm tra sức khỏe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-health-005
+    title: Thiết kế kiểm tra phụ thuộc ngoài với timeout và chi phí có giới hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-health-006
+    title: Xây dựng ReactiveHealthIndicator mà không chặn luồng xử lý reactive
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-health-007
+    title: Kết hợp kiểm tra đồng bộ và reactive trong ứng dụng WebFlux
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-health-008
+    title: Tổ chức nhiều thành phần bằng composite health contributor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-health-009
+    title: Đăng ký hoặc loại bỏ contributor bằng HealthContributorRegistry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-health-010
+    title: Phát hiện kiểm tra chậm và tránh thao tác gây thay đổi dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: health-groups-and-probes
+  title: Nhóm health và probe
+  childs:
+  - slug: health-groups-and-probes-001
+    title: Tạo health group và chọn thành viên bằng include hoặc exclude
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-groups-and-probes-002
+    title: Chọn thành phần con của composite indicator và kiểm tra thành viên hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-groups-and-probes-003
+    title: Tùy chỉnh chi tiết, vai trò, thứ tự trạng thái và HTTP status theo nhóm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-groups-and-probes-004
+    title: Phân biệt liveness, readiness và startup probe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-groups-and-probes-005
+    title: Vai trò của ApplicationAvailability, LivenessState và ReadinessState
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-groups-and-probes-006
+    title: Kích hoạt probe trong và ngoài môi trường Kubernetes
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-groups-and-probes-007
+    title: Thiết lập endpoint health/liveness và health/readiness cho hạ tầng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-groups-and-probes-008
+    title: Công bố probe trên cổng chính với /livez, /readyz hoặc additional-path
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-groups-and-probes-009
+    title: Vì sao kiểm tra phụ thuộc ngoài cần được cân nhắc khác nhau cho liveness và readiness
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-groups-and-probes-010
+    title: Phối hợp chu kỳ kiểm tra, timeout và ngưỡng lỗi với thời gian khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-groups-and-probes-011
+    title: Quan sát trạng thái probe khi khởi động, ngừng nhận yêu cầu và tắt ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-info
+  title: Thông tin ứng dụng
+  childs:
+  - slug: application-info-001
+    title: Vai trò của endpoint info và các InfoContributor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-info-002
+    title: Quản lý contributor qua management.info và cấu hình mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-info-003
+    title: Đưa thông tin được chọn từ info.* vào phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-info-004
+    title: Đọc metadata bản dựng từ META-INF/build-info.properties
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-info-005
+    title: Đọc thông tin commit từ git.properties và lựa chọn chế độ công bố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-info-006
+    title: Công bố thông tin Java, hệ điều hành và tiến trình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-info-007
+    title: Xây dựng InfoContributor cho thông tin ứng dụng đặc thù
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-info-008
+    title: Truy vết phiên bản đang chạy mà không công bố bí mật hoặc dữ liệu cá nhân
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-info-009
+    title: Phân biệt info với endpoint sbom và điều kiện cung cấp danh mục thành phần phần mềm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-diagnostics
+  title: Chẩn đoán cấu hình
+  childs:
+  - slug: configuration-diagnostics-001
+    title: Dùng endpoint env để xác định nguồn và thứ tự ưu tiên của cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-diagnostics-002
+    title: Tra cứu một thuộc tính cụ thể và hiểu giá trị đã được che
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-diagnostics-003
+    title: Đọc endpoint configprops để kiểm tra bean gắn @ConfigurationProperties
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-diagnostics-004
+    title: Phân biệt cấu hình đã khai báo với giá trị thực tế đã được liên kết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-diagnostics-005
+    title: Khám phá bean, kiểu bean và quan hệ phụ thuộc bằng endpoint beans
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-diagnostics-006
+    title: Đọc endpoint conditions để giải thích cấu hình tự động khớp hoặc không khớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-diagnostics-007
+    title: Kiểm tra ánh xạ yêu cầu Servlet và Reactive bằng endpoint mappings
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-diagnostics-008
+    title: Đối chiếu endpoint chẩn đoán với log, profile và cấu hình môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-diagnostics-009
+    title: Giới hạn thông tin cấu trúc và cấu hình được công bố trong production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logging-and-memory
+  title: Log và bộ nhớ
+  childs:
+  - slug: logging-and-memory-001
+    title: Đọc mức log được cấu hình và mức log có hiệu lực bằng endpoint loggers
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-memory-002
+    title: Thay đổi hoặc khôi phục mức log của logger và logger group khi ứng dụng đang chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-memory-003
+    title: Phân biệt thay đổi mức log tạm thời với cấu hình được lưu lâu dài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-memory-004
+    title: Sử dụng endpoint logfile khi ứng dụng đã cấu hình tệp log
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-memory-005
+    title: Đọc từng phần tệp log bằng HTTP Range và kiểm soát thông tin nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-memory-006
+    title: Lấy thread dump và nhận diện luồng bị chặn, chờ hoặc tranh chấp tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-memory-007
+    title: Tạo heap dump và kiểm tra định dạng phù hợp với JVM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-memory-008
+    title: Đánh giá chi phí CPU, bộ nhớ, dung lượng đĩa và thời gian tạo dump
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-memory-009
+    title: Thu thập và lưu trữ dump an toàn để phân tích ngoài ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-and-auditing
+  title: HTTP và kiểm toán
+  childs:
+  - slug: http-and-auditing-001
+    title: Phân biệt lịch sử trao đổi HTTP với log truy cập, metrics và distributed tracing
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-auditing-002
+    title: Kích hoạt endpoint httpexchanges bằng HttpExchangeRepository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-auditing-003
+    title: Sử dụng InMemoryHttpExchangeRepository cho chẩn đoán có giới hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-auditing-004
+    title: Lựa chọn thông tin yêu cầu, phản hồi và thời gian được ghi nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-auditing-005
+    title: Kiểm soát dung lượng lưu, header nhạy cảm và dữ liệu cá nhân trong HTTP exchange
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-auditing-006
+    title: Vai trò của AuditEvent và AuditEventRepository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-auditing-007
+    title: Đọc sự kiện đăng nhập, đăng nhập thất bại và từ chối truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-auditing-008
+    title: Phát hành sự kiện kiểm toán đặc thù qua ApplicationEventPublisher
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-auditing-009
+    title: Tổ chức nơi lưu kiểm toán bền vững và phân biệt với bộ nhớ tạm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-auditing-010
+    title: Lọc truy vấn auditevents theo chủ thể, thời gian và loại sự kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-foundation
+  title: Nền tảng metrics
+  childs:
+  - slug: metrics-foundation-001
+    title: Micrometer cung cấp lớp trừu tượng cho chỉ số đo lường như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-002
+    title: Vai trò của Meter, Meter.Id, MeterRegistry và CompositeMeterRegistry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-003
+    title: Định danh chỉ số bằng tên, tag và đơn vị đo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-004
+    title: Phân biệt Counter, Gauge, Timer, DistributionSummary và LongTaskTimer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-005
+    title: Đọc các phép đo COUNT, TOTAL_TIME, MAX và VALUE đúng ngữ cảnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-006
+    title: Phân biệt giá trị tích lũy, tốc độ thay đổi và giá trị tức thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-007
+    title: Quan hệ giữa đo lường, lấy mẫu và thời điểm hệ thống giám sát thu thập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-008
+    title: Hiểu số lượng tổ hợp tag (cardinality) và tác động đến bộ nhớ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-009
+    title: Khám phá danh sách chỉ số bằng endpoint metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-010
+    title: Truy vấn metrics theo tên và tag, tránh hiểu nhầm kết quả đã tổng hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-metrics
+  title: Metrics tích hợp
+  childs:
+  - slug: integrated-metrics-001
+    title: 'Theo dõi JVM: heap, non-heap, GC, luồng và lớp đã nạp'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-metrics-002
+    title: Theo dõi tiến trình, CPU, thời gian hoạt động và tệp đang mở
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-metrics-003
+    title: Theo dõi dung lượng và phần đĩa còn trống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-metrics-004
+    title: 'Quan sát HTTP server: số yêu cầu, độ trễ, mã phản hồi và mẫu URI'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-metrics-005
+    title: Quan sát HTTP client được tạo từ builder do Spring Boot quản lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-metrics-006
+    title: Đọc metrics Tomcat và điều kiện kích hoạt các chỉ số liên quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-metrics-007
+    title: Theo dõi connection pool của DataSource và HikariCP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-metrics-008
+    title: Theo dõi cache hit, miss, kích thước và điều kiện hỗ trợ của cache provider
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-metrics-009
+    title: Theo dõi executor, task scheduler và hàng đợi công việc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-metrics-010
+    title: Quan sát lời gọi Spring Data repository theo cơ chế được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-metrics-011
+    title: Nhận diện metrics Kafka, RabbitMQ và thư viện tích hợp theo dependency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-metrics-012
+    title: Phân biệt chỉ số được thu tự động với phép đo cần cấu hình hoặc thư viện bổ sung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-metrics
+  title: Metrics tùy chỉnh
+  childs:
+  - slug: custom-metrics-001
+    title: Thiết kế chỉ số nghiệp vụ với tên, đơn vị và tag có phạm vi rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-002
+    title: Đăng ký Counter để đếm sự kiện theo chiều tăng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-003
+    title: Đăng ký Timer để đo thời lượng và số lần thực hiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-004
+    title: Sử dụng Timer.Sample để đo thao tác có nhiều nhánh kết thúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-005
+    title: Đăng ký Gauge và quản lý vòng đời đối tượng được quan sát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-006
+    title: Đo kích thước phân bố bằng DistributionSummary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-007
+    title: Theo dõi công việc dài bằng LongTaskTimer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-008
+    title: Đóng gói phép đo dùng chung bằng MeterBinder
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-009
+    title: Sử dụng @Timed và @Counted với cơ chế aspect phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-010
+    title: Tránh ghi nhận trùng khi thao tác đã được tự động đo lường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-011
+    title: Kiểm soát đăng ký meter trong vòng lặp và giải phóng meter không còn cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-customization
+  title: Tùy biến metrics
+  childs:
+  - slug: metrics-customization-001
+    title: Cấu hình tag chung bằng management.metrics.tags và MeterRegistryCustomizer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-customization-002
+    title: Áp dụng quy tắc đặt tên và hiểu cách registry chuyển đổi tên chỉ số
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-customization-003
+    title: Lọc, đổi tên hoặc từ chối meter bằng MeterFilter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-customization-004
+    title: Giới hạn số giá trị tag và xử lý URI có số lượng giá trị quá lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-customization-005
+    title: Bật hoặc tắt nhóm metrics bằng management.metrics.enable
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-customization-006
+    title: Cấu hình histogram, percentile và ranh giới mục tiêu mức dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-customization-007
+    title: Phân biệt percentile tính tại ứng dụng với percentile tính từ histogram ở hệ thống giám sát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-customization-008
+    title: Giới hạn miền giá trị để kiểm soát số bucket và chi phí lưu trữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-customization-009
+    title: Quản lý thời hạn phân bố, bộ đệm và ý nghĩa giá trị cực đại theo từng loại registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-customization-010
+    title: Phân biệt cấu hình quan sát chung với cấu hình riêng của một meter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: prometheus
+  title: Prometheus
+  childs:
+  - slug: prometheus-001
+    title: Tích hợp micrometer-registry-prometheus và công bố endpoint prometheus
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-002
+    title: Phân biệt JSON từ endpoint metrics với định dạng thu thập của Prometheus
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-003
+    title: Đọc tên metric, label, đơn vị và hậu tố sau khi chuyển đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-004
+    title: Hiểu count, sum và bucket của Timer hoặc DistributionSummary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-005
+    title: Cấu hình mục tiêu scrape, đường dẫn, cổng và thông tin xác thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-006
+    title: Phân biệt chu kỳ scrape với thời gian thực hiện phép đo trong ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-007
+    title: Tính tốc độ yêu cầu và tỷ lệ lỗi từ counter theo cửa sổ thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-008
+    title: Ước lượng độ trễ phân vị từ histogram và chọn bucket phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-009
+    title: Phân biệt tổng hợp theo instance với tổng hợp theo service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-010
+    title: Kết nối dashboard Grafana và kiểm tra dữ liệu trước khi tạo cảnh báo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-011
+    title: Nhận diện counter reset, nhãn không ổn định và dữ liệu gián đoạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-export
+  title: Xuất metrics
+  childs:
+  - slug: metrics-export-001
+    title: Phân biệt cơ chế kéo dữ liệu với cơ chế đẩy dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-export-002
+    title: Chọn MeterRegistry phù hợp với hệ thống giám sát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-export-003
+    title: Kết hợp nhiều registry và nhận diện vai trò của global registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-export-004
+    title: Cấu hình xuất metrics qua OTLP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-export-005
+    title: Tích hợp registry cho Datadog, InfluxDB hoặc StatsD theo nhu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-export-006
+    title: Quản lý endpoint nhận dữ liệu, thông tin xác thực và chu kỳ xuất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-export-007
+    title: Bật hoặc tắt từng registry và cơ chế xuất mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-export-008
+    title: Kiểm soát lỗi kết nối, mất dữ liệu và chi phí khi hệ thống giám sát gián đoạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-export-009
+    title: Phân biệt xuất metrics OTLP với xuất trace OTLP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observation
+  title: Observation
+  childs:
+  - slug: observation-001
+    title: Observation kết nối phép đo metrics và trace như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-002
+    title: Vai trò của ObservationRegistry, Observation.Context và ObservationHandler
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-003
+    title: Tạo Observation cho một thao tác nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-004
+    title: Quản lý vòng đời start, scope, error và stop
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-005
+    title: Phân biệt key-value có cardinality thấp và cardinality cao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-006
+    title: Tùy chỉnh tên và tag bằng ObservationConvention
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-007
+    title: Lọc hoặc bổ sung dữ liệu bằng ObservationPredicate và ObservationFilter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-008
+    title: Cấu hình key-value chung và bật hoặc tắt nhóm observation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-009
+    title: Sử dụng @Observed cùng cơ chế aspect khi cần quan sát phương thức
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-010
+    title: Truyền ngữ cảnh qua luồng, tác vụ bất đồng bộ và Reactor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-011
+    title: Tránh tạo observation lồng không cần thiết khi framework đã tự quan sát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-tracing
+  title: Truy vết phân tán
+  childs:
+  - slug: distributed-tracing-001
+    title: Phân biệt trace, span, quan hệ cha con và ngữ cảnh truyền qua dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-002
+    title: Quan hệ giữa Micrometer Tracing, Observation và thư viện tracer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-003
+    title: Lựa chọn bridge OpenTelemetry hoặc Brave và exporter tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-004
+    title: Cấu hình xuất trace đến OTLP hoặc Zipkin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-005
+    title: Điều chỉnh xác suất lấy mẫu và hiểu giới hạn dữ liệu quan sát được
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-006
+    title: Truyền trace qua RestTemplateBuilder, RestClient.Builder và WebClient.Builder
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-007
+    title: Đọc và cấu hình định dạng truyền ngữ cảnh W3C hoặc B3
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-008
+    title: Liên kết log với traceId, spanId và MDC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-009
+    title: Tạo span tùy chỉnh và ghi nhận lỗi theo phạm vi thao tác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-010
+    title: Phân biệt baggage với tag và kiểm soát dữ liệu truyền giữa các dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-011
+    title: Duy trì trace khi chuyển luồng hoặc đi qua chuỗi xử lý reactive
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-012
+    title: Nhận diện trace bị đứt, span trùng và cấu hình quan sát bị chồng lặp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-endpoints
+  title: Endpoint tùy chỉnh
+  childs:
+  - slug: custom-endpoints-001
+    title: Khi nào nên tạo endpoint Actuator thay vì controller nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-endpoints-002
+    title: Định nghĩa endpoint bằng @Endpoint và đăng ký bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-endpoints-003
+    title: Khai báo @ReadOperation, @WriteOperation và @DeleteOperation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-endpoints-004
+    title: Ánh xạ operation sang HTTP method và mã phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-endpoints-005
+    title: Ánh xạ tham số từ đường dẫn bằng @Selector
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-endpoints-006
+    title: Nhận tham số truy vấn hoặc nội dung yêu cầu và kiểm soát tham số bắt buộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-endpoints-007
+    title: Chuyển đổi kiểu với ApplicationConversionService và @EndpointConverter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-endpoints-008
+    title: Vai trò của thông tin tên tham số khi biên dịch với -parameters
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-endpoints-009
+    title: Thiết kế kiểu trả về, nội dung JSON và phản hồi tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-endpoints-010
+    title: Tùy chỉnh endpoint bằng @EndpointWebExtension hoặc @EndpointJmxExtension
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-endpoints-011
+    title: Lựa chọn @WebEndpoint hoặc @JmxEndpoint khi chỉ hỗ trợ một công nghệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-endpoints-012
+    title: Kiểm tra Principal, SecurityContext và quyền thực hiện thao tác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-endpoints-013
+    title: Kiểm soát cache, chi phí thực thi và tính an toàn của thao tác quản trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx
+  title: JMX
+  childs:
+  - slug: jmx-001
+    title: Vai trò của JMX, MBean và MBeanServer trong quản trị ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-002
+    title: Bật hỗ trợ Spring JMX và xác định endpoint được công bố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-003
+    title: Truy cập endpoint bằng công cụ JConsole hoặc công cụ JMX tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-004
+    title: Đọc thuộc tính và gọi operation trên MBean endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-005
+    title: Tùy chỉnh domain và tên MBean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-006
+    title: Xử lý xung đột tên bằng unique-names khi có nhiều ApplicationContext
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-007
+    title: Phân biệt endpoint Actuator qua JMX với metrics xuất qua JMX registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-008
+    title: Kiểm soát kết nối JMX từ xa, xác thực và bảo vệ dữ liệu quản trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-endpoints
+  title: Endpoint tích hợp
+  childs:
+  - slug: integrated-endpoints-001
+    title: Khám phá cache bằng endpoint caches và phạm vi thao tác xóa cache
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-endpoints-002
+    title: Đọc tác vụ đã lên lịch bằng endpoint scheduledtasks
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-endpoints-003
+    title: Đọc thông tin Quartz job, trigger và dữ liệu đã được che
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-endpoints-004
+    title: Kiểm tra lịch sử migration bằng endpoint flyway
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-endpoints-005
+    title: Kiểm tra thay đổi cơ sở dữ liệu bằng endpoint liquibase
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-endpoints-006
+    title: Khám phá sơ đồ Spring Integration bằng endpoint integrationgraph
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-endpoints-007
+    title: Tra cứu hoặc xóa session qua endpoint sessions khi dùng Spring Session phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-endpoints-008
+    title: Đọc danh mục SBOM, vị trí tệp và các SBOM bổ sung được cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-endpoints-009
+    title: Đánh giá điều kiện dependency, bean và quyền truy cập của từng endpoint tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-lifecycle
+  title: Vòng đời vận hành
+  childs:
+  - slug: operations-lifecycle-001
+    title: Quan sát thời gian khởi động qua endpoint startup
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-lifecycle-002
+    title: Cấu hình BufferingApplicationStartup và giới hạn bộ đệm bước khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-lifecycle-003
+    title: Phân biệt đọc snapshot với thao tác lấy và xóa dữ liệu startup đã thu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-lifecycle-004
+    title: Liên hệ dữ liệu startup với bean khởi tạo chậm và phụ thuộc ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-lifecycle-005
+    title: Theo dõi AvailabilityChangeEvent trong chu kỳ sống ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-lifecycle-006
+    title: Bật endpoint shutdown có chủ đích và kiểm tra giới hạn hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-lifecycle-007
+    title: Phân biệt gọi shutdown endpoint với cấu hình graceful shutdown của web server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-lifecycle-008
+    title: Phối hợp ngừng nhận yêu cầu, hoàn tất yêu cầu đang xử lý và timeout tắt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-lifecycle-009
+    title: Kiểm tra hành vi readiness và dữ liệu quan sát khi ứng dụng dừng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: actuator-testing
+  title: Kiểm thử Actuator
+  childs:
+  - slug: actuator-testing-001
+    title: Kiểm thử HealthIndicator và InfoContributor độc lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-testing-002
+    title: Kiểm thử nội dung, HTTP status và phân quyền của health group
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-testing-003
+    title: Kiểm thử endpoint qua @SpringBootTest và môi trường web thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-testing-004
+    title: Sử dụng @LocalManagementPort khi cổng quản trị được tách riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-testing-005
+    title: Chọn MockMvc, WebTestClient hoặc HTTP client theo hạ tầng cần kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-testing-006
+    title: Kiểm tra ma trận bật, công bố và bảo mật endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-testing-007
+    title: Kiểm thử endpoint tùy chỉnh cho tham số hợp lệ, thiếu và sai kiểu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-testing-008
+    title: Xác minh dữ liệu nhạy cảm được che theo từng vai trò
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-testing-009
+    title: Kiểm thử meter bằng SimpleMeterRegistry và kiểm soát trạng thái giữa các lần chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-testing-010
+    title: Kiểm thử Observation và tracing bằng công cụ hỗ trợ tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-testing-011
+    title: Hiểu @AutoConfigureObservability và hành vi tự cấu hình trong kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-testing-012
+    title: Mô phỏng phụ thuộc ngoài lỗi, probe chuyển trạng thái và hệ thống xuất dữ liệu gián đoạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: production-operations
+  title: Vận hành production
+  childs:
+  - slug: production-operations-001
+    title: Xác định tập endpoint tối thiểu cho từng môi trường và vai trò vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-002
+    title: Thiết kế nhãn service, instance, môi trường và phiên bản nhất quán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-003
+    title: Xây dựng dashboard cho lưu lượng, lỗi, độ trễ và mức sử dụng tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-004
+    title: Phân biệt chỉ báo mức dịch vụ (SLI), mục tiêu mức dịch vụ (SLO) và ngưỡng cảnh báo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-005
+    title: Chọn cảnh báo có cửa sổ thời gian và hướng dẫn xử lý rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-006
+    title: Kiểm soát chi phí tag, histogram, trace sampling và tần suất probe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-007
+    title: Quản lý dữ liệu cá nhân, thời hạn lưu và quyền đọc log, trace hoặc dump
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-008
+    title: Đảm bảo lỗi hệ thống giám sát không làm gián đoạn chức năng nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-009
+    title: Giám sát khả năng thu thập dữ liệu và nhận diện điểm mù của cổng quản trị riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-010
+    title: Rà soát thay đổi endpoint, cấu hình và thư viện khi nâng cấp Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-011
+    title: Tổ chức quy trình chẩn đoán từ cảnh báo đến metrics, trace, log và chứng cứ liên quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Phân biệt lỗi 404 do sai đường dẫn, endpoint bị tắt hoặc chưa được công bố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Chẩn đoán lỗi 401, 403 và thao tác ghi bị chặn bởi CSRF
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Tìm nguyên nhân endpoint không xuất hiện dù đã cấu hình include
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Xử lý health DOWN, UNKNOWN và kết quả không có chi tiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Tìm nguyên nhân health group có thành viên không tồn tại hoặc ánh xạ status sai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Phân tích probe thành công trong khi ứng dụng không nhận được yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Chẩn đoán metrics chưa xuất hiện do chưa phát sinh phép đo hoặc thiếu binder
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Xử lý tên chỉ số hoặc tag khác nhau giữa metrics endpoint và exporter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Chẩn đoán Gauge bị mất dữ liệu và số lượng meter tăng không kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Tìm nguyên nhân Prometheus scrape lỗi hoặc registry không xuất được dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Khôi phục liên kết trace khi thiếu builder, propagation hoặc ngữ cảnh bất đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Xử lý trùng tên MBean, sai cổng quản trị và xung đột cấu hình theo môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Đối chiếu triệu chứng với conditions, cấu hình có hiệu lực và bộ phiên bản thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Tạo ứng dụng có health và info với tập endpoint công bố tối thiểu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Xây dựng health indicator cho phụ thuộc ngoài và nhóm readiness phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Thiết lập cổng quản trị riêng và kiểm thử quyền truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Thêm metrics nghiệp vụ với tag được giới hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Thu thập metrics bằng Prometheus và xây dựng dashboard Grafana
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Quan sát một lời gọi qua hai dịch vụ với trace và log được liên kết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Tạo endpoint quản trị có thao tác ghi và bộ kiểm thử bảo mật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Mô phỏng database lỗi, HTTP chậm và tài nguyên cạn để thực hành chẩn đoán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Kiểm chứng quy trình khởi động, readiness và graceful shutdown
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Hoàn thiện cấu hình vận hành cùng hướng dẫn đọc tín hiệu và xử lý sự cố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

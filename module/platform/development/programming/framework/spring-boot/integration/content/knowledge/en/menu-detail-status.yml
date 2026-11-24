@@ -1,0 +1,4579 @@
+menu:
+- slug: integration-overview
+  title: Tổng quan tích hợp
+  childs:
+  - slug: integration-overview-001
+    title: Tích hợp hệ thống là gì và những vấn đề cần giải quyết trong ứng dụng Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-overview-002
+    title: Vai trò của Spring Boot, Spring Framework và các thư viện tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-overview-003
+    title: Phân biệt tích hợp hệ thống với riêng framework Spring Integration và kiểm thử tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-overview-004
+    title: Mô hình đồng bộ, bất đồng bộ và xử lý theo lô
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-overview-005
+    title: Phân biệt giao tiếp qua HTTP, cơ sở dữ liệu, thông điệp và tệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-overview-006
+    title: Ranh giới ứng dụng, hệ thống bên ngoài và hợp đồng trao đổi dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-overview-007
+    title: Lỗi từng phần, độ trễ và tính độc lập giữa các hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-overview-008
+    title: Lựa chọn kiểu tích hợp theo yêu cầu nhất quán và mức độ phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-overview-009
+    title: Kiến thức đầu vào và trình tự học từ kết nối đến xử lý tin cậy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-configuration
+  title: Cấu hình kết nối
+  childs:
+  - slug: connection-configuration-001
+    title: Starter, thư viện client và điều kiện kích hoạt cấu hình tự động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-002
+    title: Quản lý phiên bản phụ thuộc bằng Spring Boot và kiểm tra tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-003
+    title: Properties, biến môi trường và cấu hình kết nối theo từng môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-004
+    title: '@ConfigurationProperties và kiểm tra dữ liệu cấu hình đầu vào'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-005
+    title: Bean do Boot tạo, điều kiện ngừng tự cấu hình và điểm tùy chỉnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-006
+    title: Phân biệt client, template, repository, connection factory và connection pool
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-007
+    title: Quản lý vòng đời kết nối và tài nguyên dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-008
+    title: Kết nối nhiều hệ thống cùng loại và xác định bean theo qualifier
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-009
+    title: Không để URL, tài khoản hoặc khóa bí mật cố định trong mã nguồn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-010
+    title: Kiểm tra cấu hình thực tế và chẩn đoán kết nối ban đầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-contracts
+  title: Hợp đồng dữ liệu
+  childs:
+  - slug: data-contracts-001
+    title: DTO và tách mô hình trao đổi khỏi đối tượng lưu trữ nội bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-002
+    title: Lựa chọn JSON, XML, dữ liệu nhị phân và schema
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-003
+    title: ObjectMapper, module Jackson và cấu hình tuần tự hóa dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-004
+    title: Quy ước tên trường, ngày giờ, múi giờ, tiền tệ và giá trị null
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-005
+    title: Kiểm tra cấu trúc thông điệp trước khi thực thi nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-006
+    title: Chuyển đổi định dạng và chuẩn hóa dữ liệu từ nhiều nguồn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-007
+    title: Phiên bản hợp đồng và tương thích khi thêm hoặc bỏ trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-008
+    title: Định danh nghiệp vụ, mã tương quan và metadata trao đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-009
+    title: Giới hạn kích thước, dữ liệu không tin cậy và thông tin nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-010
+    title: Phân biệt lỗi giao thức, lỗi hợp đồng và lỗi nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-client-selection
+  title: Lựa chọn HTTP client
+  childs:
+  - slug: http-client-selection-001
+    title: RestClient, RestTemplate và WebClient trong Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-selection-002
+    title: Lựa chọn API chặn luồng hoặc reactive theo kiến trúc ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-selection-003
+    title: Builder do Boot quản lý và khác biệt với tạo client trực tiếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-selection-004
+    title: Thư viện HTTP nền, connection pool và vòng đời kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-selection-005
+    title: Cấu hình địa chỉ gốc, URI, query parameter và header
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-selection-006
+    title: Thương lượng định dạng, codec và giới hạn nội dung phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-selection-007
+    title: Phân biệt connect timeout, read timeout và chờ lấy kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-selection-008
+    title: Proxy, chuyển hướng và chính sách gửi thông tin xác thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-selection-009
+    title: Tích hợp quan sát và TLS qua các điểm tùy chỉnh của Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-selection-010
+    title: Ranh giới giữa cơ chế gọi HTTP và chính sách nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: synchronous-http
+  title: HTTP đồng bộ
+  childs:
+  - slug: synchronous-http-001
+    title: Tạo RestClient từ RestClient.Builder được Spring Boot cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-002
+    title: Gọi GET, POST, PUT, PATCH và DELETE với RestClient
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-003
+    title: retrieve, exchange và lựa chọn cách xử lý phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-004
+    title: Ánh xạ phản hồi đơn, danh sách và kiểu dữ liệu tổng quát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-005
+    title: Xử lý mã 4xx, 5xx và phản hồi không đúng hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-006
+    title: RestClientCustomizer, interceptor và ClientHttpRequestFactory
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-007
+    title: Tạo RestTemplate từ RestTemplateBuilder
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-008
+    title: RestTemplateCustomizer, ResponseErrorHandler và chuyển đổi dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-009
+    title: Cấu hình xác thực, SSL và thời gian chờ theo client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-010
+    title: Chuyển dần từ RestTemplate sang RestClient mà vẫn giữ hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-011
+    title: Kiểm tra hành vi request factory và lỗi khi cạn connection pool
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: web-client
+  title: WebClient
+  childs:
+  - slug: web-client-001
+    title: Tạo WebClient từ WebClient.Builder do Boot quản lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-002
+    title: Gửi và nhận dữ liệu với Mono hoặc Flux
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-003
+    title: retrieve, exchangeToMono và exchangeToFlux
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-004
+    title: onStatus, ánh xạ ngoại lệ và phân biệt lỗi HTTP với lỗi mạng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-005
+    title: ExchangeFilterFunction và xử lý header theo từng lời gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-006
+    title: Codec, maxInMemorySize và giải phóng nội dung phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-007
+    title: ConnectionProvider, tài nguyên Reactor Netty và giới hạn kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-008
+    title: Giới hạn thời gian, hủy đăng ký và xử lý phản hồi theo luồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-009
+    title: Truyền Reactor Context và mã tương quan qua lời gọi HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-010
+    title: Tránh block() trên event loop và subscribe() ngoài chuỗi nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-011
+    title: Kiểm soát thử lại, token và địa chỉ đích để không rò rỉ thông tin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-interfaces
+  title: HTTP interface
+  childs:
+  - slug: http-interfaces-001
+    title: Khai báo hợp đồng client bằng @HttpExchange và các annotation HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-002
+    title: HttpServiceProxyFactory và cơ chế tạo proxy cho interface
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-003
+    title: Kết nối HTTP interface với RestClient hoặc WebClient adapter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-004
+    title: Sử dụng builder đã được Boot tùy chỉnh thay vì bỏ qua cấu hình chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-005
+    title: Ánh xạ đối số vào đường dẫn, query, header và request body
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-006
+    title: Kiểu trả về đồng bộ, ResponseEntity và kiểu reactive
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-007
+    title: Xử lý lỗi, thời gian chờ và giới hạn do client nền quyết định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-008
+    title: Tiêm nhiều HTTP interface với địa chỉ và chính sách riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-009
+    title: Phân biệt HTTP interface của Spring với OpenFeign và thư viện bên ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-010
+    title: Kiểm thử hợp đồng khai báo và hành vi thực tế của proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: soap-and-xml
+  title: SOAP và XML
+  childs:
+  - slug: soap-and-xml-001
+    title: SOAP, WSDL, XML Schema và tình huống tích hợp hệ thống cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soap-and-xml-002
+    title: Thiết lập spring-boot-starter-webservices
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soap-and-xml-003
+    title: WebServiceTemplateBuilder và tạo WebServiceTemplate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soap-and-xml-004
+    title: Marshalling, unmarshalling và cấu hình JAXB phù hợp phiên bản Java
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soap-and-xml-005
+    title: Message sender, kết nối HTTP, xác thực và thời gian chờ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soap-and-xml-006
+    title: SOAPAction, interceptor và xử lý SOAP Fault
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soap-and-xml-007
+    title: Xác thực cấu trúc XML và phân biệt lỗi vận chuyển với lỗi dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soap-and-xml-008
+    title: Kiểm soát parser XML, XXE và kích thước thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soap-and-xml-009
+    title: WebServiceTemplateCustomizer và cấu hình riêng từng dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soap-and-xml-010
+    title: Phân biệt gọi SOAP với công bố SOAP endpoint và XsdSchema
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soap-and-xml-011
+    title: Kiểm thử thông điệp yêu cầu, phản hồi và lỗi hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rsocket
+  title: RSocket
+  childs:
+  - slug: rsocket-001
+    title: Mô hình request-response, fire-and-forget, stream và channel
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-002
+    title: RSocketRequester.Builder và cấu hình tự động của Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-003
+    title: Lựa chọn TCP hoặc WebSocket cho kết nối RSocket
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-004
+    title: Route, metadata, định dạng dữ liệu và codec
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-005
+    title: Tạo client, tái sử dụng kết nối và đóng tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-006
+    title: Backpressure, hủy luồng và kiểm soát lượng dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-007
+    title: Cấu hình responder bằng @MessageMapping khi cần nhận thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-008
+    title: Phân biệt timeout, reconnect và cơ chế resume theo thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-009
+    title: Tích hợp xác thực và giới hạn tin cậy của metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-010
+    title: Kiểm thử tương tác, ngắt kết nối và xử lý lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sql-connectivity
+  title: Kết nối SQL
+  childs:
+  - slug: sql-connectivity-001
+    title: DataSource, JDBC driver và spring-boot-starter-jdbc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-connectivity-002
+    title: spring.datasource.* và suy luận driver từ URL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-connectivity-003
+    title: HikariCP, kích thước pool và vòng đời kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-connectivity-004
+    title: Connection timeout, validation và kết nối không còn hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-connectivity-005
+    title: Phân biệt cơ sở dữ liệu nhúng với hệ quản trị bên ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-connectivity-006
+    title: DataSourceBuilder, DataSourceProperties và tùy chỉnh nguồn dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-connectivity-007
+    title: Cấu hình nhiều DataSource với @Primary và qualifier
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-connectivity-008
+    title: JNDI DataSource và kết nối do môi trường triển khai quản lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-connectivity-009
+    title: SSL, tài khoản giới hạn quyền và quản lý thông tin bí mật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-connectivity-010
+    title: Giới hạn pool theo tổng số bản sao ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-connectivity-011
+    title: Chẩn đoán lỗi driver, chứng thư, cạn pool và giao dịch giữ kết nối lâu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdbc-and-jooq
+  title: JDBC và jOOQ
+  childs:
+  - slug: jdbc-and-jooq-001
+    title: JdbcTemplate, NamedParameterJdbcTemplate và cấu hình do Boot cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-jooq-002
+    title: JdbcClient và API truy vấn SQL theo phong cách fluent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-jooq-003
+    title: Ánh xạ hàng dữ liệu, tham số và xử lý giá trị null
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-jooq-004
+    title: Batch update, khóa sinh tự động và truy vấn dữ liệu lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-jooq-005
+    title: Dịch ngoại lệ SQL thành DataAccessException
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-jooq-006
+    title: Tích hợp Spring Data JDBC và ranh giới với JPA
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-jooq-007
+    title: Thiết lập jOOQ và DSLContext do Boot cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-jooq-008
+    title: SQL dialect, schema và ranh giới của bước sinh mã jOOQ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-jooq-009
+    title: Tích hợp truy vấn với transaction manager phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-and-jooq-010
+    title: Kiểm thử SQL với hệ quản trị thực tế và khác biệt dialect
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jpa-and-hibernate
+  title: JPA và Hibernate
+  childs:
+  - slug: jpa-and-hibernate-001
+    title: spring-boot-starter-data-jpa và các thành phần được cấu hình tự động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-and-hibernate-002
+    title: EntityManagerFactory, entity scanning và repository scanning
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-and-hibernate-003
+    title: spring.jpa.* và cấu hình riêng của Hibernate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-and-hibernate-004
+    title: Lựa chọn chiến lược quản lý schema và giới hạn ddl-auto
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-and-hibernate-005
+    title: Transaction manager và ranh giới giao dịch ở tầng dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-and-hibernate-006
+    title: Open EntityManager in View và ảnh hưởng tới truy vấn ngoài giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-and-hibernate-007
+    title: Tải lười, N+1 và tác động tới tích hợp qua HTTP hoặc thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-and-hibernate-008
+    title: Nhiều persistence unit gắn với các DataSource khác nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-and-hibernate-009
+    title: Chuyển mô hình persistence sang DTO trước khi trao đổi ra ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-and-hibernate-010
+    title: Kiểm thử repository, giao dịch và truy vấn theo đúng cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-data
+  title: Dữ liệu reactive
+  childs:
+  - slug: reactive-data-001
+    title: R2DBC, ConnectionFactory và phân biệt với JDBC DataSource
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-data-002
+    title: Thiết lập spring-boot-starter-data-r2dbc và driver phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-data-003
+    title: Cấu hình spring.r2dbc.* và connection pool
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-data-004
+    title: DatabaseClient, R2dbcEntityTemplate và reactive repository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-data-005
+    title: Tự cấu hình khi đồng thời có ConnectionFactory và DataSource
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-data-006
+    title: ReactiveTransactionManager và TransactionalOperator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-data-007
+    title: Phạm vi Reactor Context trong giao dịch reactive
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-data-008
+    title: Phân biệt thời điểm tạo Publisher với thời điểm truy vấn thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-data-009
+    title: Tích hợp JDBC hoặc JPA trong ứng dụng reactive tại ranh giới có kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-data-010
+    title: Quản lý timeout, hủy truy vấn và tài nguyên kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-data-011
+    title: Phối hợp R2DBC với công cụ migration dùng JDBC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: initialization-and-migration
+  title: Khởi tạo và migration
+  childs:
+  - slug: initialization-and-migration-001
+    title: Phân biệt tạo schema, nạp dữ liệu và nâng phiên bản cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-and-migration-002
+    title: schema.sql, data.sql và cấu hình spring.sql.init.*
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-and-migration-003
+    title: Thứ tự khởi tạo dữ liệu và tương tác với Hibernate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-and-migration-004
+    title: Tích hợp Flyway và quản lý migration có phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-and-migration-005
+    title: Module Flyway theo hệ quản trị và phụ thuộc cần bổ sung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-and-migration-006
+    title: Tích hợp Liquibase và quản lý changelog
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-and-migration-007
+    title: Chọn công cụ migration duy nhất cho cùng một schema
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-and-migration-008
+    title: Migration khi có nhiều DataSource hoặc tài khoản riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-and-migration-009
+    title: Migration trước khi ứng dụng bắt đầu tiếp nhận công việc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-and-migration-010
+    title: Tương thích schema khi nhiều phiên bản ứng dụng cùng chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-and-migration-011
+    title: Xử lý migration thất bại và giới hạn quay lui thay đổi dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-and-migration-012
+    title: Tách dữ liệu thử nghiệm khỏi dữ liệu production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: redis
+  title: Redis
+  childs:
+  - slug: redis-001
+    title: spring-boot-starter-data-redis và lựa chọn client Redis
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-002
+    title: Lettuce, Jedis và phạm vi hỗ trợ reactive
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-003
+    title: spring.data.redis.* và cấu hình kết nối, timeout
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-004
+    title: RedisConnectionFactory, RedisTemplate và StringRedisTemplate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-005
+    title: ReactiveRedisTemplate và giới hạn không chặn luồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-006
+    title: Serializer cho khóa, giá trị và khả năng đọc dữ liệu giữa các phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-007
+    title: TTL, thao tác nguyên tử và quản lý vòng đời dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-008
+    title: Standalone, Sentinel hoặc Cluster theo môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-009
+    title: SSL, xác thực và giới hạn quyền truy cập Redis
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-010
+    title: Phân biệt dùng Redis cho dữ liệu, cache, phiên và hàng đợi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-011
+    title: Lỗi mạng, chuyển đổi nút và chính sách khi Redis không sẵn sàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mongodb
+  title: MongoDB
+  childs:
+  - slug: mongodb-001
+    title: spring-boot-starter-data-mongodb và lựa chọn driver
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongodb-002
+    title: URI kết nối, database và cấu hình spring.data.mongodb.*
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongodb-003
+    title: MongoClient, MongoTemplate và MongoRepository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongodb-004
+    title: ReactiveMongoTemplate và reactive repository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongodb-005
+    title: Mapping document, định danh và chuyển đổi kiểu dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongodb-006
+    title: Chỉ mục, điều kiện tạo chỉ mục và quy trình quản lý schema
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongodb-007
+    title: Connection pool, timeout và tùy chỉnh MongoClientSettings
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongodb-008
+    title: Replica set, read preference và write concern
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongodb-009
+    title: Điều kiện hỗ trợ giao dịch và transaction manager
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongodb-010
+    title: TLS, xác thực và truy cập dữ liệu theo quyền tối thiểu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongodb-011
+    title: Kiểm thử bằng MongoDB thực tế và giới hạn của giải pháp nhúng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: other-nosql-stores
+  title: Các kho NoSQL khác
+  childs:
+  - slug: other-nosql-stores-001
+    title: Lựa chọn kho dữ liệu theo nhu cầu tìm kiếm, đồ thị và phân tán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-nosql-stores-002
+    title: Tích hợp Elasticsearch client và Spring Data Elasticsearch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-nosql-stores-003
+    title: Địa chỉ cụm, xác thực, TLS và tùy chỉnh client Elasticsearch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-nosql-stores-004
+    title: Neo4j Driver, Neo4jClient và Spring Data Neo4j
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-nosql-stores-005
+    title: Cấu hình database, xác thực và quản lý phiên Neo4j
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-nosql-stores-006
+    title: Cassandra CqlSession, contact points, keyspace và local datacenter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-nosql-stores-007
+    title: CassandraTemplate, repository và lựa chọn API phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-nosql-stores-008
+    title: Couchbase Cluster, bucket, scope và collection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-nosql-stores-009
+    title: CouchbaseTemplate, repository và cấu hình kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-nosql-stores-010
+    title: Kiểm soát chỉ mục hoặc schema và tránh thay đổi ngầm khi khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-nosql-stores-011
+    title: Phân biệt tính năng do Boot tự cấu hình với phần do nhà cung cấp bổ sung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-nosql-stores-012
+    title: Kiểm tra tương thích driver, máy chủ và Spring Data khi nâng phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching
+  title: Bộ nhớ đệm
+  childs:
+  - slug: caching-001
+    title: Spring Cache, CacheManager và @EnableCaching
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-002
+    title: Cách Boot chọn cache provider và chỉ định spring.cache.type
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-003
+    title: '@Cacheable, @CachePut, @CacheEvict và ngữ nghĩa cập nhật'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-004
+    title: Cache key, SpEL, condition và unless
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-005
+    title: Tích hợp Caffeine cho cache cục bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-006
+    title: Tích hợp RedisCacheManager cho cache dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-007
+    title: JCache, Hazelcast hoặc Infinispan và phạm vi phụ thuộc cần có
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-008
+    title: CacheManagerCustomizer và cấu hình từng vùng cache
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-009
+    title: TTL, dữ liệu cũ và phối hợp vô hiệu hóa cache sau giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-010
+    title: Spring AOP, lời gọi nội bộ và trường hợp annotation không có hiệu lực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-011
+    title: Tránh cache stampede và xử lý lỗi cache theo yêu cầu nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-012
+    title: Phân biệt cache đồng bộ với kiểu trả về reactive theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-transactions
+  title: Giao dịch tích hợp
+  childs:
+  - slug: integration-transactions-001
+    title: PlatformTransactionManager và lựa chọn bộ quản lý giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-transactions-002
+    title: '@Transactional, propagation và isolation'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-transactions-003
+    title: Rollback theo loại ngoại lệ và hệ quả khi bắt lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-transactions-004
+    title: Giao dịch JDBC, JPA và reactive có phạm vi ngữ cảnh khác nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-transactions-005
+    title: Nhiều transaction manager và chỉ định đúng tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-transactions-006
+    title: Giới hạn truyền giao dịch qua HTTP, luồng bất đồng bộ hoặc thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-transactions-007
+    title: Không giữ giao dịch cơ sở dữ liệu trong lúc chờ dịch vụ bên ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-transactions-008
+    title: JTA, XA và điều kiện cần để phối hợp nhiều tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-transactions-009
+    title: Phân biệt giao dịch cục bộ, giao dịch phân tán và nhất quán cuối cùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-transactions-010
+    title: Sự kiện sau commit và khoảng trống mất thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-transactions-011
+    title: Kiểm thử lỗi giữa các bước để xác minh ranh giới giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messaging-platforms
+  title: Nền tảng nhắn tin
+  childs:
+  - slug: messaging-platforms-001
+    title: Phân biệt command, event và message trong giao tiếp hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-platforms-002
+    title: Producer, broker, consumer và trách nhiệm của từng thành phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-platforms-003
+    title: Queue, topic, subscription và mô hình chia sẻ công việc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-platforms-004
+    title: Giao tiếp một chiều, publish-subscribe và request-reply
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-platforms-005
+    title: Xác nhận đã gửi, broker đã nhận và consumer đã xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-platforms-006
+    title: At-most-once, at-least-once và giới hạn của exactly-once
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-platforms-007
+    title: Thứ tự thông điệp, phân vùng và xử lý song song
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-platforms-008
+    title: Serializer, schema, header và mã tương quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-platforms-009
+    title: Thông điệp lỗi, thử lại, dead-letter và phát lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-platforms-010
+    title: Độ bền thông điệp, thời hạn lưu và khả năng phục hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rabbitmq-amqp
+  title: RabbitMQ và AMQP
+  childs:
+  - slug: rabbitmq-amqp-001
+    title: spring-boot-starter-amqp và cấu hình spring.rabbitmq.*
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-amqp-002
+    title: ConnectionFactory, RabbitTemplate và RabbitAdmin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-amqp-003
+    title: Khai báo exchange, queue, binding và routing key
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-amqp-004
+    title: Gửi dữ liệu và chuyển đổi thông điệp JSON
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-amqp-005
+    title: Publisher confirms, returns và thông điệp không được định tuyến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-amqp-006
+    title: '@RabbitListener và listener container factory'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-amqp-007
+    title: Acknowledgement, prefetch và số consumer đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-amqp-008
+    title: Thử lại, requeue và tránh vòng lặp thông điệp lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-amqp-009
+    title: Dead-letter exchange và chính sách xử lý sau khi thất bại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-amqp-010
+    title: SSL, xác thực và kết nối nhiều broker theo cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-amqp-011
+    title: Ranh giới giao dịch RabbitMQ với cập nhật cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-amqp-012
+    title: Quan sát hàng đợi, consumer và độ trễ xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: apache-kafka
+  title: Apache Kafka
+  childs:
+  - slug: apache-kafka-001
+    title: Tích hợp spring-kafka và cấu hình spring.kafka.*
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-kafka-002
+    title: KafkaTemplate, ProducerFactory và gửi thông điệp bất đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-kafka-003
+    title: Serializer, deserializer và kiểm soát kiểu dữ liệu được tin cậy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-kafka-004
+    title: Topic, partition, key và bảo đảm thứ tự theo khóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-kafka-005
+    title: '@KafkaListener, ConsumerFactory và listener container'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-kafka-006
+    title: Consumer group, concurrency và phân phối partition
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-kafka-007
+    title: Offset, acknowledge và thời điểm commit
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-kafka-008
+    title: Xử lý lỗi, retry topic hoặc dead-letter topic theo nhu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-kafka-009
+    title: Idempotent producer, transaction và giới hạn exactly-once
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-kafka-010
+    title: Tích hợp Kafka Streams và vòng đời ứng dụng xử lý luồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-kafka-011
+    title: SSL, SASL và bảo vệ thông tin xác thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-kafka-012
+    title: Rebalance, consumer lag và lỗi xử lý quá thời gian cho phép
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-kafka-013
+    title: Phân biệt giao dịch Kafka với giao dịch cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms
+  title: JMS
+  childs:
+  - slug: jms-001
+    title: Jakarta JMS, broker và ConnectionFactory
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-002
+    title: Tích hợp ActiveMQ Classic hoặc ActiveMQ Artemis
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-003
+    title: Cấu hình spring.activemq.*, spring.artemis.* và lựa chọn broker
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-004
+    title: JNDI ConnectionFactory và tài nguyên do môi trường quản lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-005
+    title: JmsTemplate, JmsMessagingTemplate và chuyển đổi thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-006
+    title: '@JmsListener và cấu hình listener container factory'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-007
+    title: Queue, topic và durable subscription
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-008
+    title: Session acknowledgement, giao dịch và redelivery
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-009
+    title: Dead-letter queue và thông điệp không thể xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-010
+    title: Caching hoặc pooling kết nối và session
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-011
+    title: Phối hợp với cơ sở dữ liệu, JTA và giới hạn cam kết nguyên tử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-012
+    title: Tương thích client Jakarta, phiên bản broker và thư viện nền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: apache-pulsar
+  title: Apache Pulsar
+  childs:
+  - slug: apache-pulsar-001
+    title: Tích hợp Spring for Apache Pulsar bằng starter phù hợp phiên bản Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-pulsar-002
+    title: Cấu hình service URL, client và các thuộc tính spring.pulsar.*
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-pulsar-003
+    title: PulsarTemplate và gửi thông điệp tới topic
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-pulsar-004
+    title: '@PulsarListener, subscription và listener container'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-pulsar-005
+    title: Schema, kiểu dữ liệu và tính tương thích thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-pulsar-006
+    title: Lựa chọn subscription type và hệ quả đối với thứ tự, phân phối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-pulsar-007
+    title: Acknowledgement, negative acknowledgement và redelivery
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-pulsar-008
+    title: Thử lại, dead-letter và giới hạn xử lý thông điệp lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-pulsar-009
+    title: Lựa chọn API thường hoặc reactive theo bộ phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-pulsar-010
+    title: Xác thực, TLS và kiểm soát tài nguyên client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apache-pulsar-011
+    title: Kiểm thử broker, lỗi kết nối và xử lý lại sau khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-integration
+  title: Spring Integration
+  childs:
+  - slug: spring-integration-001
+    title: Spring Integration và các mẫu tích hợp doanh nghiệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-002
+    title: spring-boot-starter-integration và hạ tầng Boot khởi tạo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-003
+    title: Message, payload, MessageHeaders và tính bất biến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-004
+    title: MessageChannel và đường đi giữa các endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-005
+    title: DirectChannel, QueueChannel và PublishSubscribeChannel
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-006
+    title: ExecutorChannel, ranh giới luồng và tác động tới giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-007
+    title: Channel adapter, messaging gateway và service activator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-008
+    title: IntegrationFlow và khai báo luồng bằng Java DSL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-009
+    title: PollerMetadata, TaskScheduler và spring.integration.poller.*
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-010
+    title: Vòng đời endpoint, autoStartup và thứ tự khởi động luồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-011
+    title: Phân biệt lời gọi đồng bộ với xử lý bất đồng bộ trong một flow
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: routing-and-transformation
+  title: Định tuyến và biến đổi
+  childs:
+  - slug: routing-and-transformation-001
+    title: Transformer và chuẩn hóa payload giữa hai hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-transformation-002
+    title: Filter và loại bỏ thông điệp không đáp ứng điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-transformation-003
+    title: Router và chọn nhánh theo nội dung hoặc header
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-transformation-004
+    title: Splitter và chia một thông điệp thành nhiều đơn vị xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-transformation-005
+    title: Aggregator và ghép kết quả theo correlation key
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-transformation-006
+    title: Release strategy, timeout và nhóm thông điệp chưa hoàn tất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-transformation-007
+    title: Resequencer và xử lý dữ liệu đến không đúng thứ tự
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-transformation-008
+    title: Header enricher, content enricher và bổ sung metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-transformation-009
+    title: Gateway request-reply, replyChannel và thời gian chờ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-transformation-010
+    title: Scatter-gather và giới hạn phối hợp nhiều hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-transformation-011
+    title: Wire tap và quan sát luồng mà không thay đổi xử lý chính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-adapters
+  title: Adapter tích hợp
+  childs:
+  - slug: integration-adapters-001
+    title: Lựa chọn module adapter và phân biệt phần Boot tự cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-adapters-002
+    title: Nhận và ghi tệp với file adapter, bộ lọc và tên tệp tạm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-adapters-003
+    title: SFTP adapter, xác minh host key và quản lý phiên kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-adapters-004
+    title: HTTP inbound gateway và outbound gateway
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-adapters-005
+    title: JDBC adapter hoặc gateway và liên hệ với transaction manager
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-adapters-006
+    title: AMQP, JMS hoặc Kafka adapter trong IntegrationFlow
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-adapters-007
+    title: Mail adapter và phân biệt nhận thư với gửi thư
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-adapters-008
+    title: TCP, UDP hoặc MQTT adapter theo yêu cầu giao thức
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-adapters-009
+    title: RSocket adapter hoặc gateway và hạ tầng Boot hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-adapters-010
+    title: Polling, thông báo sự kiện và kiểm soát nhịp lấy dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-adapters-011
+    title: Đóng phiên, dọn tệp và giải phóng tài nguyên khi flow dừng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flow-errors-and-state
+  title: Lỗi và trạng thái flow
+  childs:
+  - slug: flow-errors-and-state-001
+    title: errorChannel, ErrorMessage và định tuyến lỗi xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-errors-and-state-002
+    title: Phân biệt lỗi đồng bộ trả về bên gọi với lỗi trên executor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-errors-and-state-003
+    title: RequestHandlerRetryAdvice và phân loại lỗi được phép thử lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-errors-and-state-004
+    title: Khôi phục sau thử lại và chuyển thông điệp sang kênh xử lý lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-errors-and-state-005
+    title: MessageStore và lưu trạng thái channel hoặc aggregator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-errors-and-state-006
+    title: JdbcMessageStore và quản lý schema hạ tầng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-errors-and-state-007
+    title: MetadataStore, IdempotentReceiverInterceptor và đánh dấu hoặc loại thông điệp trùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-errors-and-state-008
+    title: LockRegistry và phối hợp flow giữa nhiều bản sao ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-errors-and-state-009
+    title: Giới hạn dung lượng QueueChannel và hành vi khi quá tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-errors-and-state-010
+    title: Transaction synchronization và thao tác tệp sau commit
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-errors-and-state-011
+    title: Khởi động lại flow và kiểm chứng không mất trạng thái cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-errors-and-state-012
+    title: Theo dõi message history, endpoint và số liệu xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: async-tasks
+  title: Tác vụ bất đồng bộ
+  childs:
+  - slug: async-tasks-001
+    title: '@Async, @EnableAsync và tác vụ chạy ngoài luồng gọi'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-002
+    title: TaskExecutor, AsyncTaskExecutor và cấu hình tự động của Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-003
+    title: spring.task.execution.* và lựa chọn executor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-004
+    title: Giới hạn số luồng, hàng đợi và chiến lược từ chối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-005
+    title: CompletableFuture, ngoại lệ và AsyncUncaughtExceptionHandler
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-006
+    title: Luồng ảo trên Java 21 và giới hạn của tài nguyên bên ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-007
+    title: Truyền mã tương quan, MDC hoặc SecurityContext khi cần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-008
+    title: Không giả định giao dịch hiện tại được truyền qua @Async
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-009
+    title: '@Scheduled, fixedRate, fixedDelay và cron'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-010
+    title: TaskScheduler, múi giờ và tác vụ chạy chồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-011
+    title: Giới hạn lịch cục bộ khi ứng dụng có nhiều bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-012
+    title: Dừng tác vụ và thời gian chờ khi ứng dụng kết thúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quartz
+  title: Quartz
+  childs:
+  - slug: quartz-001
+    title: spring-boot-starter-quartz và SchedulerFactoryBean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quartz-002
+    title: Job, JobDetail, Trigger và vòng đời thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quartz-003
+    title: Khai báo lịch đơn giản hoặc CronTrigger
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quartz-004
+    title: JobDataMap, truyền dữ liệu và giới hạn tuần tự hóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quartz-005
+    title: Tích hợp bean nghiệp vụ và tiêm phụ thuộc vào job
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quartz-006
+    title: In-memory JobStore và JDBC JobStore
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quartz-007
+    title: spring.quartz.* và SchedulerFactoryBeanCustomizer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quartz-008
+    title: Khởi tạo schema, dữ liệu lịch hiện có và nguy cơ ghi đè
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quartz-009
+    title: Misfire, chạy chồng và chính sách khôi phục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quartz-010
+    title: Clustering và điều kiện chỉ một nút thực thi công việc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quartz-011
+    title: DataSource riêng cho Quartz và ranh giới giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quartz-012
+    title: Khởi động trễ, dừng scheduler và chờ công việc đang chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-batch
+  title: Spring Batch
+  childs:
+  - slug: spring-batch-001
+    title: spring-boot-starter-batch và điều kiện cấu hình tự động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-batch-002
+    title: Job, Step, JobInstance, JobExecution và JobParameters
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-batch-003
+    title: JobRepository và schema lưu metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-batch-004
+    title: ItemReader, ItemProcessor, ItemWriter và xử lý theo chunk
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-batch-005
+    title: Tasklet và lựa chọn mô hình bước xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-batch-006
+    title: Giao dịch từng chunk và ảnh hưởng khi bước xử lý thất bại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-batch-007
+    title: Khởi chạy job khi ứng dụng bắt đầu và lựa chọn tắt hành vi tự chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-batch-008
+    title: Điều kiện ngừng tự cấu hình khi dùng @EnableBatchProcessing hoặc cấu hình riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-batch-009
+    title: Checkpoint, ExecutionContext và khởi động lại công việc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-batch-010
+    title: Skip, retry và phân biệt lỗi dữ liệu với lỗi hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-batch-011
+    title: Kết nối batch với lịch Quartz, tệp hoặc thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-batch-012
+    title: Nhiều job, chạy đồng thời và nhận diện trùng JobInstance
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-batch-013
+    title: Phân biệt dữ liệu nghiệp vụ với metadata của Spring Batch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: email
+  title: Email
+  childs:
+  - slug: email-001
+    title: spring-boot-starter-mail và điều kiện tạo JavaMailSender
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-002
+    title: Cấu hình spring.mail.* và Jakarta Mail
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-003
+    title: SimpleMailMessage và MimeMessageHelper
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-004
+    title: Nội dung văn bản, HTML, tài nguyên nội tuyến và tệp đính kèm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-005
+    title: SMTP authentication, STARTTLS và SSL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-006
+    title: Giới hạn thời gian kết nối, đọc và ghi tới SMTP server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-007
+    title: Mẫu thư, bản địa hóa và mã hóa ký tự
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-008
+    title: Gửi thư ngoài giao dịch nghiệp vụ và tránh giữ kết nối cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-009
+    title: Thử lại có kiểm soát, chống gửi trùng và theo dõi kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-010
+    title: Phân biệt SMTP chấp nhận thư với người nhận đã nhận hoặc đọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-011
+    title: Kiểm thử bằng máy chủ thư giả lập và tránh gửi tới người nhận thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ldap-and-directories
+  title: LDAP và thư mục
+  childs:
+  - slug: ldap-and-directories-001
+    title: Vai trò LDAP trong truy vấn hồ sơ, nhóm và cấu hình tổ chức
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-and-directories-002
+    title: spring-boot-starter-data-ldap và cấu hình spring.ldap.*
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-and-directories-003
+    title: LdapContextSource, LdapTemplate và Spring Data LDAP repository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-and-directories-004
+    title: Base DN, tên phân biệt và phạm vi truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-and-directories-005
+    title: Ánh xạ thuộc tính, bộ lọc tìm kiếm và phân trang
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-and-directories-006
+    title: Tài khoản truy cập dịch vụ và giới hạn quyền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-and-directories-007
+    title: LDAPS, StartTLS và kiểm tra chứng thư
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-and-directories-008
+    title: Timeout, pooling và lỗi máy chủ thư mục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-and-directories-009
+    title: Ngăn LDAP injection khi xây dựng bộ lọc từ dữ liệu đầu vào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-and-directories-010
+    title: LDAP nhúng cho kiểm thử và giới hạn so với hệ thống thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-and-directories-011
+    title: Phân biệt tích hợp dữ liệu thư mục với cơ chế xác thực của Spring Security
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-security
+  title: Bảo mật kết nối
+  childs:
+  - slug: connection-security-001
+    title: TLS, hostname verification và chuỗi chứng thư tin cậy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-002
+    title: SSL bundle, keystore, truststore và cấu hình spring.ssl.bundle.*
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-003
+    title: Áp dụng SSL bundle theo khả năng hỗ trợ của từng client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-004
+    title: mTLS và xác thực hai chiều giữa các dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-005
+    title: Basic authentication, API key và OAuth2 Client Credentials
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-006
+    title: Lấy và làm mới access token bằng thành phần Spring Security phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-007
+    title: Phân biệt xác thực tới broker, cơ sở dữ liệu và HTTP service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-008
+    title: Quản lý secret, luân chuyển mật khẩu và chứng thư
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-009
+    title: Giới hạn địa chỉ đích, chuyển hướng và nguy cơ SSRF
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-010
+    title: Che token, mật khẩu và dữ liệu cá nhân trong log hoặc thông điệp lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-011
+    title: Phân quyền tối thiểu cho tài khoản tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-012
+    title: Từ chối kết nối không hợp lệ thay vì bỏ kiểm tra chứng thư
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failure-recovery
+  title: Phục hồi khi lỗi
+  childs:
+  - slug: failure-recovery-001
+    title: Phân loại lỗi tạm thời, lỗi vĩnh viễn và lỗi nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-002
+    title: Giới hạn thời gian cho từng bước và cho toàn bộ thao tác tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-003
+    title: Retry với backoff, jitter và giới hạn số lần thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-004
+    title: Đánh giá tính lũy đẳng trước khi thử lại thao tác có tác dụng phụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-005
+    title: Tích hợp Spring Retry hoặc Resilience4j bằng thư viện, cấu hình thích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-006
+    title: Circuit breaker và điều kiện chuyển trạng thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-007
+    title: Bulkhead, giới hạn đồng thời và cách ly hệ thống chậm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-008
+    title: Rate limit và điều tiết lưu lượng theo năng lực của hệ thống đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-009
+    title: Fallback có ý nghĩa nghiệp vụ và tránh che lỗi dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-010
+    title: Tránh retry nhiều tầng làm khuếch đại lưu lượng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-011
+    title: Tôn trọng thời gian còn lại khi truyền yêu cầu qua nhiều dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-012
+    title: Kiểm thử phục hồi khi kết nối khôi phục hoặc hệ thống bị quá tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consistency-and-deduplication
+  title: Nhất quán và chống trùng
+  childs:
+  - slug: consistency-and-deduplication-001
+    title: Tính lũy đẳng của lệnh và sự kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-deduplication-002
+    title: Idempotency key, phạm vi định danh và thời hạn lưu kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-deduplication-003
+    title: Inbox, ràng buộc duy nhất và phát hiện thông điệp đã xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-deduplication-004
+    title: Khoảng trống giữa commit cơ sở dữ liệu và gửi thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-deduplication-005
+    title: Transactional Outbox và lưu sự kiện cùng giao dịch nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-deduplication-006
+    title: Polling publisher hoặc CDC để phát dữ liệu outbox
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-deduplication-007
+    title: Xác nhận phát thành công và khả năng phát trùng sau lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-deduplication-008
+    title: Saga, hành động bù và giới hạn khôi phục tác vụ ngoài hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-deduplication-009
+    title: Thứ tự sự kiện theo thực thể và xử lý sự kiện đến muộn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-deduplication-010
+    title: Chống trùng đồng thời giữa nhiều consumer hoặc bản sao ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-deduplication-011
+    title: Replay, backfill và phân biệt dữ liệu phục hồi với dữ liệu mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-deduplication-012
+    title: Đối soát trạng thái giữa hệ thống nguồn và hệ thống đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: supplementary-libraries
+  title: Thư viện bổ sung
+  childs:
+  - slug: supplementary-libraries-001
+    title: Phân biệt tích hợp có sẵn của Boot với starter từ hệ sinh thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supplementary-libraries-002
+    title: Spring Cloud release train và tương thích với Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supplementary-libraries-003
+    title: Spring Cloud Stream, binder và mô hình hàm xử lý thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supplementary-libraries-004
+    title: Spring Cloud Function và ranh giới với Spring Integration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supplementary-libraries-005
+    title: OpenFeign, HTTP interface và lựa chọn client khai báo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supplementary-libraries-006
+    title: Service discovery, load balancing và điều kiện cần thêm Spring Cloud
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supplementary-libraries-007
+    title: gRPC, protobuf và các thành phần phải cấu hình ngoài Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supplementary-libraries-008
+    title: SDK của dịch vụ đám mây hoặc kho đối tượng và quản lý vòng đời client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supplementary-libraries-009
+    title: Đánh giá starter bên thứ ba qua phiên bản, điều kiện tạo bean và bảo trì
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supplementary-libraries-010
+    title: Điều kiện kích hoạt resilience và cấu hình phân tán theo từng thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: development-services
+  title: Dịch vụ phát triển
+  childs:
+  - slug: development-services-001
+    title: Vai trò Docker Compose và Testcontainers trong phát triển tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-services-002
+    title: spring-boot-docker-compose và vòng đời dịch vụ cục bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-services-003
+    title: Service connection và ConnectionDetails thay cho ghép URL thủ công
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-services-004
+    title: Ưu tiên thông tin kết nối dịch vụ so với thuộc tính kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-services-005
+    title: Nhận diện dịch vụ được Boot hỗ trợ và trường hợp cần cấu hình riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-services-006
+    title: Cổng động, địa chỉ container và địa chỉ ứng dụng thực sự sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-services-007
+    title: Health check, thời điểm dịch vụ sẵn sàng và thứ tự kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-services-008
+    title: Tùy chỉnh tên image, ánh xạ dịch vụ và cấu hình môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-services-009
+    title: Testcontainers chạy cùng ứng dụng trong chế độ phát triển
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-services-010
+    title: Phân biệt vòng đời container với vòng đời ApplicationContext
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-services-011
+    title: Cô lập dữ liệu, volume và thông tin bí mật giữa các môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-services-012
+    title: Không đưa dịch vụ phát triển vào production do phụ thuộc đóng gói nhầm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-testing
+  title: Kiểm thử tích hợp
+  childs:
+  - slug: integration-testing-001
+    title: Phân biệt unit test, integration test và end-to-end test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-002
+    title: '@SpringBootTest và phạm vi thành phần được khởi tạo'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-003
+    title: Testcontainers, @Container và @ServiceConnection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-004
+    title: '@DynamicPropertySource cho dịch vụ chưa có hỗ trợ service connection'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-005
+    title: Kiểm thử JDBC, JPA, R2DBC, Redis hoặc MongoDB với dịch vụ thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-006
+    title: Kiểm thử RabbitMQ, Kafka, JMS hoặc Pulsar qua broker thử nghiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-007
+    title: MockRestServiceServer cho client HTTP đồng bộ phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-008
+    title: Máy chủ HTTP giả lập cho WebClient, timeout và phản hồi không hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-009
+    title: MockWebServiceServer cho lời gọi SOAP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-010
+    title: Spring Integration Test và thay thế endpoint trong flow
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-011
+    title: Kiểm thử mail hoặc LDAP bằng dịch vụ tách biệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-012
+    title: Quản lý dữ liệu thử nghiệm và dọn tài nguyên sau kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-013
+    title: Chờ điều kiện bất đồng bộ theo thời hạn thay vì thời gian ngủ cố định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contracts-and-edge-cases
+  title: Hợp đồng và lỗi biên
+  childs:
+  - slug: contracts-and-edge-cases-001
+    title: Kiểm thử hợp đồng HTTP, schema và thông điệp giữa hai phía
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-edge-cases-002
+    title: Consumer-driven contract và phạm vi thư viện hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-edge-cases-003
+    title: Kiểm chứng tương thích ngược khi thêm trường hoặc thay đổi kiểu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-edge-cases-004
+    title: Thông điệp thiếu trường, sai định dạng và dữ liệu vượt kích thước
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-edge-cases-005
+    title: Kiểm thử dữ liệu trùng, sai thứ tự và xử lý đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-edge-cases-006
+    title: Mô phỏng mất kết nối trước hoặc sau khi hệ thống đích đã nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-edge-cases-007
+    title: Mô phỏng commit thành công nhưng chưa kịp acknowledge
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-edge-cases-008
+    title: Kiểm thử retry, circuit breaker, dead-letter và khôi phục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-edge-cases-009
+    title: Kiểm thử migration, phiên bản dữ liệu và khởi động lại ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-edge-cases-010
+    title: Kiểm thử bảo mật TLS, secret sai và quyền truy cập thiếu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-and-edge-cases-011
+    title: Đối chiếu giới hạn của mock với hành vi dịch vụ thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-observability
+  title: Quan sát tích hợp
+  childs:
+  - slug: integration-observability-001
+    title: Micrometer Observation và các tích hợp do Boot hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-observability-002
+    title: HTTP client metrics và điều kiện dùng builder được quản lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-observability-003
+    title: Metrics của connection pool, cache và cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-observability-004
+    title: Producer, consumer, lag, hàng đợi và thời gian xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-observability-005
+    title: Trace qua HTTP và header thông điệp theo thư viện hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-observability-006
+    title: Phân biệt mã tương quan nghiệp vụ với trace ID
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-observability-007
+    title: Đo lỗi, số lần thử lại và số thông điệp bị chuyển dead-letter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-observability-008
+    title: Giới hạn cardinality của nhãn và không gắn định danh cá nhân vào metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-observability-009
+    title: Health indicator và ý nghĩa khi một phụ thuộc không sẵn sàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-observability-010
+    title: Không buộc liveness phụ thuộc trực tiếp vào mọi dịch vụ bên ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-observability-011
+    title: Nhật ký kiểm toán, che dữ liệu nhạy cảm và thời hạn lưu log
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-operations
+  title: Vận hành tích hợp
+  childs:
+  - slug: integration-operations-001
+    title: Ngân sách timeout, số kết nối và giới hạn đồng thời theo từng phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-operations-002
+    title: Cân bằng tốc độ nhận, xử lý và gửi dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-operations-003
+    title: Giới hạn hàng đợi, bộ nhớ và dung lượng lưu trạng thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-operations-004
+    title: Dừng consumer hoặc poller trước khi đóng tài nguyên kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-operations-005
+    title: Graceful shutdown với thông điệp hoặc công việc đang xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-operations-006
+    title: Khởi động lại sau lỗi và tiếp tục từ checkpoint hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-operations-007
+    title: Quản lý dead-letter, replay và quyền vận hành các thao tác phục hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-operations-008
+    title: Luân chuyển secret, khóa và chứng thư mà không ngừng toàn bộ luồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-operations-009
+    title: Triển khai nhiều phiên bản với schema và hợp đồng tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-operations-010
+    title: Backfill dữ liệu lớn mà không làm quá tải dịch vụ chính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-operations-011
+    title: Cảnh báo dựa trên lỗi kéo dài, độ trễ và tồn đọng công việc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-operations-012
+    title: Quy trình xử lý sự cố, đối soát dữ liệu và khôi phục từng phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting-upgrades
+  title: Gỡ lỗi và nâng cấp
+  childs:
+  - slug: troubleshooting-upgrades-001
+    title: Bean không được tạo do thiếu starter hoặc điều kiện tự cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-upgrades-002
+    title: Bean tự khai báo khiến Boot ngừng cung cấp cấu hình mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-upgrades-003
+    title: Nhầm qualifier khi có nhiều DataSource, client hoặc transaction manager
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-upgrades-004
+    title: Thuộc tính không có hiệu lực do ServiceConnection hoặc cấu hình ưu tiên cao hơn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-upgrades-005
+    title: Không kết nối được do DNS, cổng, TLS hoặc quyền truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-upgrades-006
+    title: Lỗi serializer, sai schema và không tương thích hợp đồng dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-upgrades-007
+    title: Cạn pool, listener ngừng chạy và luồng bị chặn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-upgrades-008
+    title: Message mất, trùng hoặc sai thứ tự do hiểu sai acknowledge và commit
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-upgrades-009
+    title: Job chạy trùng giữa các bản sao hoặc không khởi động lại được
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-upgrades-010
+    title: Lỗi proxy AOP khi dùng @Transactional, @Async, @Retryable hoặc @Cacheable
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-upgrades-011
+    title: Rà soát thay đổi phiên bản client, driver, broker và Spring Data
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-upgrades-012
+    title: Kiểm thử tương thích khi nâng Spring Boot hoặc thêm starter bên thứ ba
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integration-practice-001
+    title: Xây dựng client HTTP khai báo với timeout, TLS và kiểm thử hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-002
+    title: Đọc dữ liệu từ SQL và gửi tới dịch vụ ngoài với ranh giới giao dịch rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-003
+    title: Xử lý dữ liệu reactive với R2DBC, WebClient và giới hạn tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-004
+    title: Tích hợp Redis cache với chính sách vô hiệu hóa sau cập nhật dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-005
+    title: Xây dựng luồng RabbitMQ hoặc Kafka có retry và dead-letter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-006
+    title: Triển khai outbox, consumer chống trùng và đối soát sau lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-007
+    title: Xây dựng IntegrationFlow nhận tệp, kiểm tra, biến đổi và định tuyến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-008
+    title: Lập lịch Quartz để khởi chạy batch có checkpoint và khả năng chạy lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-009
+    title: Gửi email qua hàng đợi với theo dõi kết quả và chống gửi trùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-010
+    title: Chuẩn bị dịch vụ thử nghiệm bằng Docker Compose hoặc Testcontainers
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-011
+    title: Quan sát một thao tác xuyên HTTP, cơ sở dữ liệu và broker
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-012
+    title: Mô phỏng lỗi từng phần và xác minh quy trình phục hồi dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

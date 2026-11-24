@@ -1,0 +1,3 @@
+menuLevel1: '@ConfigurationProperties'
+menuLevel2: Đăng ký tường minh bằng @EnableConfigurationProperties
+status: TRANSLATE

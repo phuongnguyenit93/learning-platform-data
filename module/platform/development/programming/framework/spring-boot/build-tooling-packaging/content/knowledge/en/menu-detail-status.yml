@@ -1,0 +1,2377 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Công cụ build và đóng gói giải quyết vấn đề gì trong ứng dụng Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: 'Từ mã nguồn đến sản phẩm triển khai: biên dịch, kiểm tra, đóng gói và xuất bản'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt JDK, công cụ build, plugin Spring Boot và môi trường chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: 'Các thuật ngữ nền tảng: artifact, dependency, repository, classpath và lifecycle'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Quan hệ giữa starter, BOM và plugin đóng gói
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Lựa chọn JAR thường, JAR thực thi, WAR hoặc image OCI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Ranh giới với cấu hình ứng dụng, kiểm thử chuyên sâu và Native Image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Trình tự học và tiêu chí kiểm chứng một bản dựng hoàn chỉnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: project-initialization
+  title: Khởi tạo dự án
+  childs:
+  - slug: project-initialization-001
+    title: 'Tạo dự án với Spring Initializr: lựa chọn Java, Spring Boot và công cụ build'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-initialization-002
+    title: Chọn tọa độ group, artifact, version và tên package
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-initialization-003
+    title: Đọc cấu trúc dự án Maven và Gradle do Initializr sinh ra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-initialization-004
+    title: Vai trò của pom.xml, settings.gradle và build.gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-initialization-005
+    title: Quản lý src/main, src/test và tài nguyên đi kèm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-initialization-006
+    title: Nhập dự án vào IDE và xác định cấu hình build có hiệu lực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-initialization-007
+    title: Chạy bản dựng đầu tiên từ dòng lệnh trên Windows và Linux
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-initialization-008
+    title: Phân biệt tệp nguồn, cấu hình được quản lý trong Git và đầu ra được sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-and-wrapper
+  title: Java và Wrapper
+  childs:
+  - slug: java-and-wrapper-001
+    title: Chọn bộ phiên bản tương thích giữa Java, Spring Boot, Maven và Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-wrapper-002
+    title: Phân biệt JDK chạy Maven hoặc Gradle với JDK dùng để biên dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-wrapper-003
+    title: Thiết lập JAVA_HOME và xác minh Java thực tế trên dòng lệnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-wrapper-004
+    title: Sử dụng Maven Wrapper qua mvnw và mvnw.cmd
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-wrapper-005
+    title: Sử dụng Gradle Wrapper qua gradlew và gradlew.bat
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-wrapper-006
+    title: Quản lý phiên bản, URL phân phối và checksum của Wrapper
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-wrapper-007
+    title: Cấu hình Java Toolchains trong Maven và Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-wrapper-008
+    title: Phân biệt sourceCompatibility, targetCompatibility và --release
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-wrapper-009
+    title: Đồng bộ JDK giữa máy cá nhân, IDE và máy chạy CI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-lifecycle
+  title: Vòng đời bản dựng
+  childs:
+  - slug: build-lifecycle-001
+    title: Mô hình phase và goal của Maven
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-lifecycle-002
+    title: Các phase validate, compile, test, package, verify, install và deploy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-lifecycle-003
+    title: Mô hình task và đồ thị phụ thuộc của Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-lifecycle-004
+    title: Quan hệ giữa classes, test, check, assemble và build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-lifecycle-005
+    title: Vị trí của repackage, bootJar và bootWar trong bản dựng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-lifecycle-006
+    title: Phân biệt clean, build tăng dần và chạy lại tác vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-lifecycle-007
+    title: Đọc kế hoạch thực thi bằng trợ giúp Maven và Gradle --dry-run
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-lifecycle-008
+    title: Xác định đầu vào, đầu ra và trạng thái thành công của từng giai đoạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependencies-and-bom
+  title: Phụ thuộc và BOM
+  childs:
+  - slug: dependencies-and-bom-001
+    title: Tọa độ Maven và quan hệ giữa phụ thuộc trực tiếp với phụ thuộc bắc cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-bom-002
+    title: Phạm vi compile, runtime, provided và test trong Maven
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-bom-003
+    title: Các cấu hình implementation, api, runtimeOnly, compileOnly và testImplementation trong Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-bom-004
+    title: Starter Spring Boot tập hợp phụ thuộc như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-bom-005
+    title: Vai trò và phạm vi quản lý phiên bản của spring-boot-dependencies
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-bom-006
+    title: Phân biệt khai báo dependency với dependencyManagement
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-bom-007
+    title: Phân biệt spring-boot-starter-parent với việc nhập BOM độc lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-bom-008
+    title: So sánh io.spring.dependency-management với platform và enforcedPlatform của Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-bom-009
+    title: Ghi đè phiên bản được quản lý và đánh giá tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-bom-010
+    title: Loại trừ phụ thuộc, xử lý optional và tránh thiếu thư viện khi chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-bom-011
+    title: Đọc dependency:tree, dependencies và dependencyInsight để giải thích phiên bản được chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-bom-012
+    title: Cấu hình kho Maven, mirror, proxy và thông tin xác thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maven-with-spring-boot
+  title: Maven với Spring Boot
+  childs:
+  - slug: maven-with-spring-boot-001
+    title: Cấu trúc pom.xml tối thiểu cho ứng dụng Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-with-spring-boot-002
+    title: Kế thừa spring-boot-starter-parent và tùy chỉnh thuộc tính bản dựng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-with-spring-boot-003
+    title: Sử dụng BOM khi dự án đã có parent riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-with-spring-boot-004
+    title: Khai báo và quản lý phiên bản spring-boot-maven-plugin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-with-spring-boot-005
+    title: Phân biệt plugins với pluginManagement và cấu hình execution
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-with-spring-boot-006
+    title: Gắn repackage vào package khi không dùng starter parent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-with-spring-boot-007
+    title: Chạy các goal run, start, stop và help đúng mục đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-with-spring-boot-008
+    title: Cấu hình mainClass, finalName và thư mục đầu ra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-with-spring-boot-009
+    title: Sử dụng Maven profile cho biến thể bản dựng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-with-spring-boot-010
+    title: Phân biệt Maven profile với Spring profile
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-with-spring-boot-011
+    title: Đọc effective-pom, effective-settings và các thuộc tính đã nội suy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gradle-with-spring-boot
+  title: Gradle với Spring Boot
+  childs:
+  - slug: gradle-with-spring-boot-001
+    title: Cấu trúc settings.gradle và build.gradle trong dự án Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-with-spring-boot-002
+    title: Đối chiếu cú pháp Groovy DSL và Kotlin DSL cho cấu hình phổ biến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-with-spring-boot-003
+    title: Áp dụng plugin org.springframework.boot cùng java hoặc war
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-with-spring-boot-004
+    title: Quản lý phiên bản plugin qua pluginManagement và apply false
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-with-spring-boot-005
+    title: Cấu hình group, version, repositories và dependencies
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-with-spring-boot-006
+    title: Tùy chỉnh springBoot.mainClass và các tác vụ Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-with-spring-boot-007
+    title: Cấu hình tác vụ bằng tasks.named và Provider API
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-with-spring-boot-008
+    title: Quản lý cấu hình dùng chung qua convention plugin và version catalog
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-with-spring-boot-009
+    title: Truyền thuộc tính bằng -P, -D và biến môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-with-spring-boot-010
+    title: Phân biệt repositories cho plugin với repositories cho thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-with-spring-boot-011
+    title: Quan sát tác động khi plugin Boot kết hợp với java-library, application và maven-publish
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compilation-and-resources
+  title: Biên dịch và tài nguyên
+  childs:
+  - slug: compilation-and-resources-001
+    title: Cấu hình trình biên dịch Java, mã hóa UTF-8 và tùy chọn -parameters
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-002
+    title: Tổ chức source set và thư mục nguồn tùy chỉnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-003
+    title: Cấu hình annotation processor và mã nguồn được sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-004
+    title: Sinh metadata cấu hình bằng spring-boot-configuration-processor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-005
+    title: Xử lý tài nguyên qua Maven Resources Plugin và Gradle processResources
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-006
+    title: Nội suy thuộc tính trong tài nguyên và tránh xung đột với placeholder Spring
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-007
+    title: Giữ nguyên tài nguyên nhị phân khi lọc hoặc thay thế nội dung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-008
+    title: Xử lý tài nguyên trùng tên và quy tắc đưa tệp vào archive
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-009
+    title: Tách tài nguyên kiểm thử khỏi tài nguyên đóng gói
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-010
+    title: Kiểm tra mã nguồn sinh và tài nguyên đã biên dịch trong thư mục đầu ra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: development-run
+  title: Chạy khi phát triển
+  childs:
+  - slug: development-run-001
+    title: Chạy ứng dụng bằng spring-boot:run và bootRun
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-run-002
+    title: Đối chiếu chạy từ IDE với chạy bằng công cụ build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-run-003
+    title: Phân biệt tham số JVM, system property và đối số ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-run-004
+    title: Truyền Spring profile, biến môi trường và thư mục làm việc khi chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-run-005
+    title: Cấu hình gỡ lỗi từ xa cho tiến trình ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-run-006
+    title: Sử dụng bootTestRun hoặc cấu hình chạy với test classpath khi phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-run-007
+    title: Đưa DevTools vào môi trường phát triển bằng phạm vi phụ thuộc phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-run-008
+    title: Kiểm soát việc loại DevTools và công cụ hỗ trợ phát triển khỏi sản phẩm phát hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-run-009
+    title: Nhận diện chênh lệch giữa classpath phát triển và classpath của archive
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-verification
+  title: Kiểm tra bản dựng
+  childs:
+  - slug: build-verification-001
+    title: Tích hợp kiểm thử đơn vị với Maven Surefire và Gradle Test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-verification-002
+    title: Chạy JUnit Platform và kiểm tra việc phát hiện đúng bài kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-verification-003
+    title: Tách kiểm thử tích hợp bằng Maven Failsafe hoặc Gradle test suite
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-verification-004
+    title: Phối hợp spring-boot:start và spring-boot:stop trong vòng đời kiểm thử tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-verification-005
+    title: Chọn bài kiểm thử cần chạy và đọc báo cáo thất bại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-verification-006
+    title: Phân biệt skipTests, maven.test.skip và loại trừ tác vụ test của Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-verification-007
+    title: Tích hợp kiểm tra định dạng, phân tích tĩnh và độ bao phủ vào verify hoặc check
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-verification-008
+    title: Kiểm thử khởi động từ JAR đã đóng gói thay vì chỉ chạy từ mã nguồn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-verification-009
+    title: Quản lý tài nguyên và tiến trình kiểm thử để bản dựng không bị treo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: executable-jar
+  title: JAR thực thi
+  childs:
+  - slug: executable-jar-001
+    title: JAR thường và JAR thực thi khác nhau ở nội dung và cách khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jar-002
+    title: Tạo JAR thực thi bằng Maven package và repackage
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jar-003
+    title: Tạo JAR thực thi bằng Gradle bootJar
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jar-004
+    title: Đọc META-INF/MANIFEST.MF và phân biệt Main-Class với Start-Class
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jar-005
+    title: Khám phá BOOT-INF/classes, BOOT-INF/lib và các lớp Boot Loader
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jar-006
+    title: Xác định lớp main tự động và cấu hình khi có nhiều điểm khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jar-007
+    title: Quản lý archive thường, archive thực thi và hậu tố plain hoặc original
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jar-008
+    title: Cấu hình tên, phiên bản, classifier và vị trí lưu JAR
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jar-009
+    title: Kiểm tra nội dung JAR bằng jar tf và công cụ giải nén
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jar-010
+    title: Chạy java -jar từ một thư mục độc lập và xác minh tài nguyên được nạp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: boot-loader
+  title: Boot Loader
+  childs:
+  - slug: boot-loader-001
+    title: Vì sao JVM cần Boot Loader để chạy JAR có thư viện lồng bên trong
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-loader-002
+    title: Vai trò của JarLauncher, WarLauncher và PropertiesLauncher
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-loader-003
+    title: Quan hệ giữa manifest, lớp khởi chạy và classpath ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-loader-004
+    title: Giới hạn của thư viện lồng và cách đọc tài nguyên trong archive
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-loader-005
+    title: Vai trò của classpath.idx và thứ tự nạp thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-loader-006
+    title: Cấu hình PropertiesLauncher với loader.path và loader.main
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-loader-007
+    title: Khi nào cần requiresUnpack hoặc cấu hình unpack của plugin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-loader-008
+    title: Phân biệt archive lồng với JAR gộp bằng Maven Shade hoặc Gradle Shadow
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: packaging-customization
+  title: Tùy biến đóng gói
+  childs:
+  - slug: packaging-customization-001
+    title: Quy tắc lựa chọn lớp, tài nguyên và phụ thuộc được đưa vào sản phẩm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-customization-002
+    title: Bổ sung hoặc loại trừ thư viện trong cấu hình repackage và bootJar
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-customization-003
+    title: Kiểm tra ảnh hưởng của phụ thuộc provided, compileOnly và developmentOnly
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-customization-004
+    title: Cấu hình manifest bổ sung mà vẫn giữ đúng điểm khởi động Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-customization-005
+    title: Lựa chọn layout JAR, WAR, ZIP hoặc NONE trong Maven plugin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-customization-006
+    title: Tạo nhiều artifact với classifier và tránh ghi đè đầu ra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-customization-007
+    title: Giữ artifact thư viện riêng khi dự án đồng thời tạo sản phẩm thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-customization-008
+    title: Tạo fully executable archive bằng launch script trên hệ điều hành phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-customization-009
+    title: Giới hạn tương thích của launch script với công cụ đọc JAR và chế độ trích xuất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-customization-010
+    title: Đóng gói tài nguyên bên trong archive và xác định cấu hình cần cung cấp bên ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployable-war
+  title: WAR triển khai
+  childs:
+  - slug: deployable-war-001
+    title: Khi nào chọn WAR và khi nào chọn JAR với máy chủ nhúng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployable-war-002
+    title: Chuẩn bị SpringBootServletInitializer và lớp ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployable-war-003
+    title: Tạo WAR bằng Maven war và Spring Boot repackage
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployable-war-004
+    title: Tạo WAR bằng Gradle war và bootWar
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployable-war-005
+    title: Phân biệt WAR triển khai truyền thống với WAR có thể chạy bằng java -jar
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployable-war-006
+    title: Quản lý máy chủ nhúng qua Maven provided và Gradle providedRuntime
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployable-war-007
+    title: Đọc WEB-INF/classes, WEB-INF/lib và WEB-INF/lib-provided
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployable-war-008
+    title: Kiểm tra tương thích Java, Servlet, Jakarta và máy chủ đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployable-war-009
+    title: Xác định ranh giới của WAR đối với ứng dụng reactive dùng WebFlux
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployable-war-010
+    title: Kiểm chứng cùng một WAR ở chế độ chạy độc lập và triển khai vào servlet container
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-module-projects
+  title: Dự án đa mô-đun
+  childs:
+  - slug: multi-module-projects-001
+    title: Tách mô-đun thư viện, mô-đun ứng dụng và mô-đun cấu hình build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-002
+    title: Phân biệt Maven parent, aggregator và dependency giữa các module
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-003
+    title: Xây dựng Maven reactor với -pl, -am và thứ tự phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-004
+    title: Tổ chức Gradle multi-project qua settings và project dependency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-005
+    title: Áp dụng plugin Boot cho mô-đun ứng dụng và BOM cho mô-đun thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-006
+    title: Phân phối cấu hình chung bằng parent POM hoặc convention plugin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-007
+    title: Vì sao thư viện dùng chung cần JAR thường thay vì Boot JAR
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-008
+    title: Đóng gói phụ thuộc nội bộ cùng các thư viện bắc cầu cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-009
+    title: Xuất bản POM hoặc Gradle Module Metadata phản ánh đúng phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-010
+    title: Build riêng một mô-đun và kiểm tra mức độ độc lập của sản phẩm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-optimization
+  title: Tối ưu bản dựng
+  childs:
+  - slug: build-optimization-001
+    title: Đo thời gian bản dựng trước khi chọn hướng tối ưu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-optimization-002
+    title: Phân biệt cache tải thư viện, cache cấu hình và cache đầu ra tác vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-optimization-003
+    title: Sử dụng cơ chế up-to-date và biên dịch tăng dần của Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-optimization-004
+    title: Áp dụng Gradle Build Cache và kiểm soát đầu vào của tác vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-optimization-005
+    title: Sử dụng Configuration Cache khi các plugin tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-optimization-006
+    title: Điều chỉnh Gradle Daemon, bộ nhớ JVM và mức độ chạy song song
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-optimization-007
+    title: Chạy Maven song song và đánh giá plugin không an toàn với nhiều luồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-optimization-008
+    title: Giảm tác vụ không cần thiết mà vẫn giữ các bước kiểm tra bắt buộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-optimization-009
+    title: Phân biệt build offline, làm mới dependency và xóa cache có mục tiêu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reproducible-builds
+  title: Bản dựng tái lập
+  childs:
+  - slug: reproducible-builds-001
+    title: Phân biệt tái lập môi trường build với tạo artifact giống từng byte
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-002
+    title: Khóa phiên bản Java, Wrapper, plugin và dependency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-003
+    title: Kiểm soát SNAPSHOT, phiên bản động và phụ thuộc có thể bị thay thế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-004
+    title: Sử dụng dependency locking và dependency verification trong Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-005
+    title: Ổn định timestamp với project.build.outputTimestamp của Maven
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-006
+    title: Cấu hình thứ tự tệp và timestamp tái lập cho archive Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-007
+    title: Loại bỏ ảnh hưởng của đường dẫn tuyệt đối, múi giờ và locale
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-008
+    title: Kiểm soát build.time và metadata thay đổi sau mỗi lần build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-009
+    title: So sánh SHA-256 của hai bản dựng từ cùng nguồn trên môi trường sạch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-metadata
+  title: Metadata bản dựng
+  childs:
+  - slug: build-metadata-001
+    title: Vai trò của group, artifact, version và danh tính sản phẩm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-metadata-002
+    title: Sinh META-INF/build-info.properties bằng Maven build-info
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-metadata-003
+    title: Sinh thông tin bản dựng bằng Gradle springBoot.buildInfo và bootBuildInfo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-metadata-004
+    title: Tùy chỉnh thuộc tính build và quản lý thời gian dựng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-metadata-005
+    title: Bổ sung git.properties bằng plugin phù hợp để truy vết commit
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-metadata-006
+    title: Liên kết artifact với commit, nhánh và mã lần chạy CI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-metadata-007
+    title: Kiểm tra metadata trong archive và quan hệ với Actuator info
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: layered-packaging
+  title: Đóng gói theo lớp
+  childs:
+  - slug: layered-packaging-001
+    title: Mục đích của layered archive và quan hệ với cache lớp container
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-packaging-002
+    title: Vai trò của layers.idx và phân biệt với classpath.idx
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-packaging-003
+    title: Phân chia dependencies, spring-boot-loader, snapshot-dependencies và application
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-packaging-004
+    title: Bật, tắt và tùy chỉnh lớp bằng Maven plugin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-packaging-005
+    title: Tùy chỉnh BootJar layered DSL trong Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-packaging-006
+    title: Kiểm soát thứ tự lớp và vị trí của thư viện nội bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-packaging-007
+    title: Liệt kê và trích xuất lớp bằng chế độ jarmode tools
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-packaging-008
+    title: Nhận diện khác biệt giữa jarmode tools và layertools ở các phiên bản Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-packaging-009
+    title: Kiểm chứng thay đổi mã ứng dụng hoặc dependency tác động đến những lớp nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dockerfile
+  title: Dockerfile
+  childs:
+  - slug: dockerfile-001
+    title: Đóng gói JAR đã kiểm chứng thành image OCI bằng Dockerfile
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dockerfile-002
+    title: Phân biệt image JDK dùng để build và image JRE dùng để chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dockerfile-003
+    title: Tổ chức multi-stage build và tối ưu build context bằng .dockerignore
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dockerfile-004
+    title: Lựa chọn chạy nguyên JAR hoặc trích xuất lớp trước khi tạo image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dockerfile-005
+    title: Sắp xếp COPY theo lớp để tăng khả năng tái sử dụng cache
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dockerfile-006
+    title: Sử dụng layout trích xuất phù hợp cho Java CDS và xác định giới hạn phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dockerfile-007
+    title: Cấu hình WORKDIR, quyền sở hữu tệp và người dùng không phải root
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dockerfile-008
+    title: Lựa chọn ENTRYPOINT dạng exec và truyền tùy chọn JVM khi chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dockerfile-009
+    title: Quản lý base image theo tag, digest và kiến trúc CPU
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dockerfile-010
+    title: Kiểm tra kích thước image, nội dung lớp và khả năng khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cloud-native-buildpacks
+  title: Cloud Native Buildpacks
+  childs:
+  - slug: cloud-native-buildpacks-001
+    title: Cloud Native Buildpacks tạo image từ ứng dụng Spring Boot như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-native-buildpacks-002
+    title: Vai trò của builder, buildpack, lifecycle và run image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-native-buildpacks-003
+    title: Chuẩn bị Docker daemon và kiểm tra kết nối từ công cụ build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-native-buildpacks-004
+    title: Tạo image bằng Maven spring-boot:build-image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-native-buildpacks-005
+    title: Phân biệt build-image với build-image-no-fork khi gắn vào Maven lifecycle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-native-buildpacks-006
+    title: Tạo image bằng Gradle bootBuildImage
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-native-buildpacks-007
+    title: Cấu hình tên image, tag, builder, run image và pull policy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-native-buildpacks-008
+    title: Chọn phiên bản JVM trong buildpack và kiểm tra tương thích với mã đã biên dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-native-buildpacks-009
+    title: Phân biệt biến môi trường lúc build image với biến môi trường lúc chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-native-buildpacks-010
+    title: Quản lý build cache, launch cache và thao tác làm sạch cache
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-native-buildpacks-011
+    title: Xác thực kho image riêng và cấu hình xuất bản image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-native-buildpacks-012
+    title: So sánh Buildpacks với Dockerfile theo khả năng tùy biến và yêu cầu vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: artifact-publication
+  title: Xuất bản sản phẩm
+  childs:
+  - slug: artifact-publication-001
+    title: Phân biệt Maven repository, nơi lưu artifact CI và OCI registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publication-002
+    title: Quản lý phiên bản phát hành, SNAPSHOT và classifier
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publication-003
+    title: Xuất bản artifact bằng Maven install, deploy và distributionManagement
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publication-004
+    title: Xuất bản artifact bằng Gradle maven-publish và MavenPublication
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publication-005
+    title: Lựa chọn artifact JAR thường, Boot JAR, WAR hoặc source JAR cần phát hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publication-006
+    title: Phát hành sources, Javadoc và metadata phụ thuộc phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publication-007
+    title: Gắn checksum, chữ ký và thông tin truy vết cho sản phẩm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publication-008
+    title: Tải sản phẩm từ kho và kiểm tra khả năng chạy hoặc sử dụng từ dự án khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: software-supply-chain
+  title: Chuỗi cung ứng
+  childs:
+  - slug: software-supply-chain-001
+    title: Kiểm soát nguồn tải plugin, dependency và bản phân phối Wrapper
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-002
+    title: Xác minh checksum và chữ ký theo khả năng của từng công cụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-003
+    title: Quét lỗ hổng dependency và đối chiếu phiên bản thực tế trong artifact
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-004
+    title: Sinh SBOM bằng công cụ tương thích như CycloneDX
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-005
+    title: Phân biệt SBOM của ứng dụng Java với SBOM của image container
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-006
+    title: Kiểm tra giấy phép và thành phần được phép phân phối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-007
+    title: Ngăn thông tin xác thực, khóa riêng và cấu hình nhạy cảm lọt vào archive hoặc image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-008
+    title: Quản lý secrets cho Maven settings, Gradle credentials và registry trong CI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-009
+    title: Lưu chứng cứ nguồn gốc bản dựng và liên kết chúng với artifact đã phát hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: continuous-integration
+  title: Tự động hóa CI
+  childs:
+  - slug: continuous-integration-001
+    title: Thiết kế chuỗi checkout, thiết lập JDK, kiểm tra, đóng gói và lưu artifact
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-002
+    title: Sử dụng Wrapper và cố định môi trường build trên máy chạy CI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-003
+    title: Cấu hình cache dependency theo công cụ, hệ điều hành và tệp cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-004
+    title: Phân biệt cache dùng tăng tốc với artifact dùng chuyển giao sản phẩm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-005
+    title: Chạy verify hoặc build và thu thập báo cáo kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-006
+    title: Kiểm tra khởi động JAR hoặc image trên môi trường sạch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-007
+    title: Đặt điều kiện xuất bản sau khi các bước kiểm tra bắt buộc thành công
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-008
+    title: Build một lần và chuyển đúng artifact đã kiểm chứng qua các môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-009
+    title: Quản lý timeout, tác vụ đồng thời và dọn tiến trình sau khi kiểm tra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-010
+    title: Đính kèm checksum, SBOM và metadata vào kết quả CI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: build-troubleshooting-001
+    title: Đọc log để phân biệt lỗi cấu hình build, biên dịch, kiểm thử và đóng gói
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-troubleshooting-002
+    title: Xử lý Plugin not found, dependency không tải được và kho yêu cầu xác thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-troubleshooting-003
+    title: Chẩn đoán lỗi proxy, TLS, chứng chỉ và chế độ offline
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-troubleshooting-004
+    title: Xử lý UnsupportedClassVersionError và sai JDK giữa build với runtime
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-troubleshooting-005
+    title: Xử lý không tìm thấy main class hoặc có nhiều main class
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-troubleshooting-006
+    title: Xử lý no main manifest attribute và chạy nhầm JAR thường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-troubleshooting-007
+    title: Chẩn đoán ClassNotFoundException, NoClassDefFoundError và NoSuchMethodError
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-troubleshooting-008
+    title: Tìm nguyên nhân tài nguyên có khi chạy IDE nhưng thiếu trong JAR
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-troubleshooting-009
+    title: Xử lý xung đột thư viện khi đóng gói hoặc triển khai WAR
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-troubleshooting-010
+    title: Chẩn đoán lỗi task graph, Maven execution và cấu hình plugin bị ghi đè
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-troubleshooting-011
+    title: Xử lý cache cũ, đầu ra không được tạo lại và bản dựng không tái lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-troubleshooting-012
+    title: Chẩn đoán lỗi Docker daemon, Buildpacks, kiến trúc image và quyền tệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-troubleshooting-013
+    title: Thu gọn trường hợp lỗi và tái hiện bản dựng độc lập ngoài IDE
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tooling-upgrade
+  title: Nâng cấp công cụ
+  childs:
+  - slug: tooling-upgrade-001
+    title: Lập ma trận tương thích trước khi nâng Java, Spring Boot hoặc công cụ build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-upgrade-002
+    title: Phân biệt nâng plugin Boot với nâng BOM và phụ thuộc ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-upgrade-003
+    title: Đọc thay đổi cấu hình plugin, task, goal và giá trị mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-upgrade-004
+    title: Kiểm tra thay đổi Boot Loader, jarmode và cấu trúc đóng gói giữa các phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-upgrade-005
+    title: Nâng Wrapper và kiểm chứng convention plugin hoặc parent POM hiện có
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-upgrade-006
+    title: So sánh dependency graph, nội dung artifact và kết quả kiểm tra sau nâng cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-upgrade-007
+    title: Lập phương án quay lại phiên bản trước với sản phẩm đã lưu và định danh rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Xây dựng cùng một ứng dụng bằng Maven và Gradle rồi đối chiếu sản phẩm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Chuyển một dự án dùng parent riêng sang quản lý phụ thuộc bằng BOM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Tạo JAR thực thi và kiểm chứng chạy trên máy chỉ có JRE phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Thiết kế ứng dụng đa mô-đun với thư viện chung được đóng gói đúng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Tạo WAR chạy độc lập và kiểm tra triển khai vào servlet container
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Tạo image bằng Dockerfile và Buildpacks từ cùng một ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Thử thay đổi mã hoặc dependency để quan sát cache và lớp image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Tái hiện lỗi đóng gói phổ biến rồi tìm nguyên nhân bằng log và nội dung archive
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Hoàn thiện CI tạo artifact có checksum, metadata và SBOM để truy vết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
