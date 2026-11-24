@@ -1,66 +1,66 @@
-# 3.3 Thu thập phiên bản, nhà cung cấp JDK, kiến trúc và đối số JVM thực tế
+# 3.3 Collecting Actual JVM Version, JDK Vendor, Architecture, and Arguments
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Khi một ứng dụng Java gặp lỗi khác nhau giữa máy phát triển, CI, container và production, câu hỏi đầu tiên không chỉ là “đã cài Java mấy?”. Cần chứng minh **tiến trình đang phục vụ yêu cầu thực sự chạy bằng JVM nào, do nhà cung cấp nào phát hành, trên kiến trúc gì và với những đối số/cờ nào**. Những dữ kiện này là cơ sở để giải thích khác biệt về garbage collector, JIT, module access, TLS, native library, giới hạn bộ nhớ và hành vi của công cụ chẩn đoán.
+When a Java application fails differently across a developer machine, CI, containers, and production, the first question is not merely “what Java version is installed?”. You need to prove **which JVM the request-serving process is actually running on, which vendor distributed it, on what architecture, and with which arguments/flags**. These facts form the basis for explaining differences in garbage collector, JIT, module access, TLS, native libraries, memory limits, and diagnostic tool behavior.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Nhận diện đúng **PID và phiên chạy cụ thể**, kể cả khi một máy có nhiều JDK/JVM, container và process vừa restart.
-- Thu thập phiên bản runtime, vendor, tên và phiên bản VM, Java home, OS/CPU architecture từ **chính JVM đích**.
-- Phân biệt đối số JVM lúc khởi động, đối số của chương trình, system properties và các **VM flags có giá trị hiệu lực tại thời điểm đo**.
-- Dùng `jcmd`, Java Management API và công cụ hệ điều hành phù hợp, biết khi nào `java -version`/biến `JAVA_HOME` có thể gây hiểu nhầm.
-- Lưu bằng chứng có thời điểm, nguồn và mức độ chắc chắn, đồng thời loại bỏ thông tin nhạy cảm khỏi báo cáo sự cố.
+- Identify the exact **PID and specific running instance**, even when a machine has multiple JDKs/JVMs, containers, and recently restarted processes.
+- Collect runtime version, vendor, VM name and version, Java home, and OS/CPU architecture from **the target JVM itself**.
+- Distinguish startup JVM arguments, program arguments, system properties, and **VM flags with effective values at measurement time**.
+- Use `jcmd`, the Java Management API, and appropriate OS tools, knowing when `java -version` or the `JAVA_HOME` variable can mislead.
+- Record evidence with timestamps, sources, and confidence levels while removing sensitive information from incident reports.
 
-## 1. Chính xác phải thu thập những gì?
+## 1. What Exactly Must Be Collected?
 
-Một “runtime fingerprint” có thể gồm các trường dưới đây. Không nhất thiết cần tất cả cho mọi ca, nhưng khi điều tra lỗi tương thích hoặc bất đồng giữa môi trường, thiếu một trong những nhóm chính có thể khiến kết luận sai.
+A “runtime fingerprint” can include the fields below. You do not necessarily need all of them for every case, but when investigating compatibility bugs or environment discrepancies, missing one of the key groups can lead to wrong conclusions.
 
-| Nhóm | Dữ liệu nên có | Câu hỏi được trả lời |
+| Group | Data to have | Question answered |
 | --- | --- | --- |
-| Danh tính tiến trình | PID, máy/container/pod, thời điểm tiến trình bắt đầu, tên/phiên bản ứng dụng | Có đúng **lần chạy** đang xảy ra lỗi không? |
-| Java runtime | `java.version`, `java.runtime.version`, `Runtime.version()`, `java.home` | Java đang chạy thuộc feature/patch/build nào, được nạp từ runtime image nào? |
-| Nhà cung cấp/bản VM | `java.vendor`, `java.vm.vendor`, `java.vm.name`, `java.vm.version` | Bản phân phối JDK/runtime và implementation JVM thực sự là gì? |
-| Kiến trúc/nền tảng | `os.name`, `os.version`, `os.arch`, kiến trúc host/container khi cần | JVM đích được dựng cho x86-64, AArch64 hay kiến trúc nào? |
-| Startup command | Java launcher/đường dẫn thực thi, main class/JAR/module, JVM options, tham số ứng dụng | Tiến trình được khởi tạo như thế nào? |
-| Runtime state | `VM.flags`, `VM.flags -all`, system properties đang có hiệu lực | JVM hiện dùng heap/GC/flags nào, kể cả các lựa chọn mặc định/ergonomic? |
-| Nguồn cấu hình | service unit, container spec, start script, IDE/CI, `JDK_JAVA_OPTIONS`, `JAVA_TOOL_OPTIONS` | Các lựa chọn phát sinh từ đâu, có bị ghi đè không? |
-| Bằng chứng | UTC timestamp, phương pháp lấy dữ liệu, bản ghi đã loại bí mật, lỗi attach nếu có | Bằng chứng được thu lúc nào, đáng tin đến đâu? |
+| Process identity | PID, host/container/pod, process start time, app name/version | Is this the exact **run** experiencing the error? |
+| Java runtime | `java.version`, `java.runtime.version`, `Runtime.version()`, `java.home` | Which feature/patch/build of Java is running, and from which runtime image was it loaded? |
+| Vendor/VM build | `java.vendor`, `java.vm.vendor`, `java.vm.name`, `java.vm.version` | What is the actual JDK/runtime distribution and JVM implementation? |
+| Architecture/platform | `os.name`, `os.version`, `os.arch`, host/container architecture when needed | Is the target JVM built for x86-64, AArch64, or another architecture? |
+| Startup command | Java launcher/executable path, main class/JAR/module, JVM options, app arguments | How was the process initialized? |
+| Runtime state | `VM.flags`, `VM.flags -all`, effective system properties | Which heap/GC/flags is the JVM currently using, including default/ergonomic choices? |
+| Configuration sources | Service unit, container spec, start script, IDE/CI, `JDK_JAVA_OPTIONS`, `JAVA_TOOL_OPTIONS` | Where did the options come from, and were any overridden? |
+| Evidence | UTC timestamp, collection method, secret-redacted record, attach errors if any | When was the evidence gathered, and how reliable is it? |
 
-Điểm mấu chốt: **phiên bản Java, vendor và cờ khởi động là thuộc tính của một tiến trình cụ thể**, không suy ra chắc chắn từ terminal hiện tại, máy build, file cấu hình dự kiến hay câu trả lời của một container khác.
+Key point: **Java version, vendor, and startup flags are properties of a specific process**, not reliably inferred from the current terminal, build machine, expected config file, or another container's output.
 
-## 2. Phân biệt JDK, Java runtime, Java launcher và JVM
+## 2. Distinguishing JDK, Java Runtime, Java Launcher, and JVM
 
-- **JDK (Java Development Kit):** bản phân phối có các thành phần phát triển như `javac` cùng runtime; tùy image có thể có `jcmd`, `jfr`, `jlink`... Một ứng dụng có thể chạy trong **runtime image tối giản** không chứa compiler/công cụ chẩn đoán.
-- **Java launcher (`java`):** chương trình khởi động JVM. Dòng `java -version` mô tả **chương trình `java` đang được shell chọn lúc đó**. Nó có thể hoàn toàn khác executable dùng để tạo service đang chạy.
-- **JVM implementation:** máy ảo chạy bytecode, chẳng hạn HotSpot hoặc OpenJ9; cung cấp thông tin qua các property `java.vm.*`. Hai bản phân phối JDK cùng phiên bản Java có thể có đặc điểm VM, build hoặc tùy chọn khác nhau.
-- **Java runtime image:** môi trường thực thi ứng dụng đang dùng, thường được chỉ bởi `java.home`. Nó có thể là JDK đầy đủ, image riêng tạo bởi `jlink`, hoặc runtime đi cùng một bản đóng gói ứng dụng.
+- **JDK (Java Development Kit):** a distribution containing development components such as `javac` alongside the runtime; depending on the image it may include `jcmd`, `jfr`, `jlink`, etc. An application may run in a **minimal runtime image** without a compiler or diagnostic tools.
+- **Java launcher (`java`):** the program that starts the JVM. Running `java -version` describes **the `java` executable selected by the shell at that moment**. It can be completely different from the executable used to create the running service.
+- **JVM implementation:** the virtual machine executing bytecode, such as HotSpot or OpenJ9; exposed via `java.vm.*` properties. Two JDK distributions of the same Java version can have different VM characteristics, builds, or options.
+- **Java runtime image:** the execution environment the application is using, usually indicated by `java.home`. It may be a full JDK, a custom image built with `jlink`, or a runtime bundled with an application package.
 
-Ví dụ: máy chủ cài `JAVA_HOME` trỏ tới JDK 21, còn service được start bằng đường dẫn tuyệt đối tới runtime 17 trong một container. Chạy `java -version` ngoài container cho ra Java 21 **không thể chứng minh** service dùng Java 21. Muốn biết sự thật, lấy thông tin từ JVM có đúng PID, process-start time và namespace.
+Example: a host has `JAVA_HOME` pointing to JDK 21, while the service is started via an absolute path to runtime 17 inside a container. Running `java -version` outside the container yields Java 21, which **cannot prove** the service uses Java 21. To know the truth, query the JVM with the exact PID, process-start time, and namespace.
 
-Tương tự, `javac -version` cho biết compiler của **môi trường đang gọi lệnh**; không tự cho biết class được build bằng `--release` nào, lại càng không xác nhận JVM nào đang chạy class đó. Phiên bản bytecode được biên dịch và phiên bản runtime là hai thuộc tính cần kiểm chứng riêng khi gặp `UnsupportedClassVersionError`.
+Similarly, `javac -version` tells you the compiler of **the environment invoking the command**; it does not tell you which `--release` classes were built with, let alone confirm which JVM is running those classes. Compiled bytecode version and runtime version are two separate properties to verify when encountering `UnsupportedClassVersionError`.
 
-## 3. Xác định đúng tiến trình trước khi đọc thông tin JVM
+## 3. Identifying the Right Process Before Reading JVM Info
 
-**Bước 1 – Khoanh vùng:** ghi tên service, môi trường, host/container/pod và thời điểm xảy ra sự cố. Nếu có nhiều replica, phải xác định replica đang phục vụ request lỗi; dữ liệu một replica khác không đủ để giải thích sự cố.
+**Step 1 – Narrow the scope:** record service name, environment, host/container/pod, and incident timestamp. If there are multiple replicas, identify the replica serving the failing requests; data from another replica is insufficient to explain the incident.
 
-**Bước 2 – Xác nhận PID:** với JDK có `jcmd`, lệnh:
+**Step 2 – Confirm the PID:** on a JDK with `jcmd`, the command:
 
 ```bash
 jcmd -l
 ```
 
-có thể liệt kê các JVM nhìn thấy được cùng PID và thông tin main class/command. Tuy nhiên, theo hướng dẫn `jcmd` của JDK 21, việc liệt kê **không bao gồm một số tiến trình trong Docker namespace riêng**; có thể cần công cụ OS và thực thi lệnh trong đúng container. Không tùy tiện chọn JVM đầu danh sách.
+lists visible JVMs with PID and main class/command details. However, per JDK 21 `jcmd` documentation, listing **excludes some processes in separate Docker namespaces**; you may need OS tools and to run commands inside the right container. Never arbitrarily pick the first JVM in the list.
 
-Trên Linux, nếu biết PID từ process manager, có thể kiểm tra thông tin OS của PID:
+On Linux, if you know the PID from the process manager, inspect its OS details:
 
 ```bash
 ps -p 12345 -o pid,ppid,lstart,etime,comm,args
 ```
 
-**12345 chỉ là PID giả định**. Dòng `args` có thể chứa token/mật khẩu; chỉ xem trong terminal được kiểm soát, **không đẩy nguyên văn** lên ticket/chat. PID được tái sử dụng sau restart; gắn PID với **process start time** để tránh đọc nhầm lần chạy mới.
+**12345 is only a hypothetical PID**. The `args` column may contain tokens/passwords; view only in a controlled terminal and **do not paste verbatim** into tickets/chat. PIDs are reused after restarts; pair the PID with **process start time** to avoid reading a new run by mistake.
 
-Trên Windows/PowerShell, với quyền phù hợp có thể xem:
+On Windows/PowerShell, with proper permissions you can inspect:
 
 ```powershell
 Get-Process -Id 12345
@@ -68,15 +68,15 @@ Get-CimInstance Win32_Process -Filter 'ProcessId = 12345' |
     Select-Object ProcessId, ExecutablePath, CommandLine
 ```
 
-Thông tin command line trên Windows cũng có thể chứa bí mật. `Get-Process` xác nhận một process tồn tại nhưng chưa chắc đó là đúng JVM nếu chỉ nhìn tên `java`/`javaw`; cần đối chiếu thời điểm bắt đầu, executable, application và deployment.
+Command-line info on Windows can also contain secrets. `Get-Process` confirms a process exists, yet seeing `java`/`javaw` alone does not guarantee it is the right JVM; verify start time, executable, application, and deployment.
 
-**Bước 3 – Ràng buộc identity với dữ liệu JVM:** ngay trước khi chẩn đoán, đối chiếu PID và startup time với service/instance ID, version ứng dụng, log startup, container ID hoặc deployment revision. Khi có JVM tự báo PID, ưu tiên ghép với process metadata của cùng môi trường.
+**Step 3 – Bind identity to JVM data:** right before diagnosing, cross-check PID and startup time against service/instance ID, application version, startup logs, container ID, or deployment revision. When the JVM self-reports its PID, prefer matching it with process metadata from the same environment.
 
-**Bước 4 – Kiểm tra có thể attach:** `jcmd` cần công cụ phù hợp, quyền tương thích và khả năng tiếp cận JVM đích; attach có thể bị vô hiệu hóa bằng JVM option, bị chặn bởi policy/container, namespace khác hoặc không có `jcmd` trong image. Lỗi attach **không chứng minh** ứng dụng không chạy Java.
+**Step 4 – Check attachability:** `jcmd` requires a compatible tool, matching permissions, and reachability to the target JVM; attaching may be disabled by a JVM option, blocked by policy/container, in a different namespace, or `jcmd` may be missing from the image. An attach error **does not prove** the application is not running Java.
 
-## 4. Bộ lệnh read-only với JDK 21: hỏi trực tiếp JVM đang chạy
+## 4. Read-Only Commands with JDK 21: Querying the Live JVM Directly
 
-Sau khi kiểm tra PID và quyền truy cập, dùng công cụ `jcmd` tương thích với VM đích; trong môi trường HotSpot/JDK 21, một phiên chẩn đoán điển hình là:
+After checking PID and access permissions, use a `jcmd` compatible with the target VM; in a HotSpot/JDK 21 environment, a typical diagnostic session runs:
 
 ```bash
 jcmd 12345 help
@@ -87,69 +87,69 @@ jcmd 12345 VM.flags -all
 jcmd 12345 VM.uptime
 ```
 
-Ý nghĩa từng lệnh:
+Meaning of each command:
 
-| Lệnh | Thu được điều gì? | Giới hạn diễn giải |
+| Command | What it retrieves | Interpretation limits |
 | --- | --- | --- |
-| `jcmd 12345 help` | Danh sách diagnostic command JVM đích hỗ trợ | Command thay đổi theo implementation và phiên bản; không giả định mọi JVM đều có cùng lệnh |
-| `VM.version` | Thông tin phiên bản VM hiện chạy | Không phải kết quả `java -version` của terminal |
-| `VM.command_line` | Thông tin command line dùng khởi tạo VM | Có thể chứa secrets, Java/VM options và app command; không phản ánh mọi thay đổi runtime sau launch |
-| `VM.flags` | Những VM flag/value có hiệu lực mà lệnh này trình bày | Không phải toàn bộ tham số launcher hoặc đối số ứng dụng |
-| `VM.flags -all` | Tập flag JVM được hỗ trợ và giá trị hiện tại, có thể có dấu hiệu nguồn/default theo VM | Dài và phụ thuộc HotSpot/phiên bản; không có nghĩa mọi flag là startup option do người vận hành tự đặt |
-| `VM.uptime` | Uptime tiến trình JVM | Dùng đối chiếu lần chạy/PID; không thay thế start timestamp và release ID |
+| `jcmd 12345 help` | List of diagnostic commands supported by the target JVM | Commands vary by implementation and version; do not assume every JVM has the same ones |
+| `VM.version` | Version info of the currently running VM | Not the terminal's `java -version` output |
+| `VM.command_line` | Command line used to initialize the VM | May contain secrets, Java/VM options, and app command; does not reflect all post-launch runtime changes |
+| `VM.flags` | Effective VM flags/values presented by this command | Not the full set of launcher parameters or application arguments |
+| `VM.flags -all` | Supported JVM flags and current values, potentially with VM source/default markers | Long and HotSpot/version-dependent; does not mean every flag was operator-supplied at startup |
+| `VM.uptime` | JVM process uptime | Used to cross-check run/PID; does not replace start timestamp and release ID |
 
-Theo tài liệu Oracle JDK 21, các command trên có tác động **thấp**, nhưng “thấp” không đồng nghĩa 0; cân nhắc chính sách vận hành và log audit. **Đặc biệt `VM.command_line` có khả năng chứa bí mật**; đọc ở nơi kiểm soát, chỉ công bố bản đã lọc.
+According to Oracle JDK 21 documentation, these commands have **low** impact, but “low” does not mean zero; consider operational policies and audit logs. **In particular, `VM.command_line` can contain secrets**; read in a controlled place and publish only filtered versions.
 
-Để đọc các thuộc tính Java/OS hiện tại, `VM.system_properties` có sẵn trên HotSpot:
+To read current Java/OS properties, `VM.system_properties` is available on HotSpot:
 
 ```bash
 jcmd 12345 VM.system_properties
 ```
 
-Không đưa toàn bộ stdout lên nơi công khai. Một số ứng dụng lưu `-Dpassword`, `-Dtoken`, URL chứa credential, truststore password hoặc key ở system properties; chính lệnh đọc không làm thay đổi JVM, nhưng **đầu ra có rủi ro lộ dữ liệu**.
+Do not post the entire stdout publicly. Some applications store `-Dpassword`, `-Dtoken`, URLs with credentials, truststore passwords, or keys in system properties; reading does not mutate the JVM, yet **the output risks data exposure**.
 
-Trên Linux/macOS, nếu cần chỉ một số key phi nhạy cảm, có thể lọc đầu ra cục bộ:
+On Linux/macOS, if you only need specific non-sensitive keys, you can filter output locally:
 
 ```bash
 jcmd 12345 VM.system_properties |
   grep -E '^(java\.(version|runtime\.version|vendor|vm\.(name|vendor|version)|home)|os\.(name|arch|version))='
 ```
 
-Đoạn trên **chỉ trình bày** các property khớp biểu thức regex; các giá trị lấy từ JVM thực tế. Với các hệ thống kiểm soát đầu ra nghiêm ngặt, nên dùng một công cụ/chương trình thu **allowlist ngay tại nguồn** thay cho lệnh in toàn bộ rồi lọc. Nếu thuộc tính nào không xuất hiện, ghi nhận nó không có thay vì suy diễn.
+This snippet **only displays** properties matching the regex; values come from the live JVM. For systems with strict output controls, use a tool/program collecting an **allowlist at the source** rather than printing everything and filtering afterward. If a property does not appear, record its absence instead of guessing.
 
-Khi hỗ trợ HotSpot, `VM.info` còn cung cấp thông tin môi trường/trạng thái rộng hơn, nhưng thường không cần cho bước thu identity cơ bản và có thể tăng lượng dữ liệu phải xử lý. Chỉ dùng nếu cần thêm ngữ cảnh và xem lại trường thông tin trước khi lưu.
+Where supported on HotSpot, `VM.info` provides broader environment/status details, though it is usually unnecessary for basic identity capture and increases the data to handle. Use it only when additional context is needed and review fields before saving.
 
-## 5. Đọc đúng phiên bản và nhà cung cấp
+## 5. Reading Version and Vendor Accurately
 
-### 5.1 Những property không được đánh đồng
+### 5.1 Properties That Must Not Be Equated
 
-| Trường | Ý nghĩa |
+| Field | Meaning |
 | --- | --- |
-| `java.version` | Version runtime Java, chẳng hạn nhánh `17.0.x` hoặc `21.0.x` |
-| `java.runtime.version` | Chuỗi version runtime chi tiết hơn nếu runtime cung cấp; thường kèm build |
-| `Runtime.version()` | API Java 9+ cho cấu trúc phiên bản runtime; `feature()` lấy feature release như 17 hoặc 21 |
-| `java.specification.version` | Phiên bản đặc tả Java SE mà runtime hỗ trợ; không phải patch/build/vendor |
-| `java.version.date` | Ngày phát hành runtime nếu runtime có thuộc tính đó |
-| `java.vendor` | Vendor **runtime/distribution** theo thông tin được công bố |
-| `java.vm.name` | Tên VM implementation |
-| `java.vm.vendor` | Vendor VM implementation |
-| `java.vm.version` | Chuỗi version/build của VM |
-| `java.home` | Đường dẫn môi trường runtime trong process, không mặc nhiên là `JAVA_HOME` của shell |
+| `java.version` | Java runtime version, such as the `17.0.x` or `21.0.x` line |
+| `java.runtime.version` | More detailed runtime version string if provided by the runtime; often includes build |
+| `Runtime.version()` | Java 9+ API for structured runtime version; `feature()` gets the feature release such as 17 or 21 |
+| `java.specification.version` | Java SE specification version supported by the runtime; not patch/build/vendor |
+| `java.version.date` | Runtime release date if provided by the runtime |
+| `java.vendor` | Published **runtime/distribution** vendor |
+| `java.vm.name` | VM implementation name |
+| `java.vm.vendor` | VM implementation vendor |
+| `java.vm.version` | VM version/build string |
+| `java.home` | Runtime environment path inside the process, not necessarily the shell's `JAVA_HOME` |
 
-Không thể suy ra vendor chỉ từ số `21.0.4`; các vendor có thể cung cấp cùng feature/patch release nhưng khác build, CA/certificates, chính sách patch và native libraries. Tên `OpenJDK` trong dòng `java -version` **không xác định duy nhất** công ty phát hành bản phân phối. Tên `HotSpot` hay `OpenJ9` thể hiện implementation VM chứ không nhất thiết trùng tên vendor của package.
+You cannot deduce vendor from `21.0.4` alone; different vendors can ship the same feature/patch release with different builds, CA/certificates, patching policies, and native libraries. The word `OpenJDK` in `java -version` **does not uniquely identify** the distribution publisher. Names like `HotSpot` or `OpenJ9` indicate the VM implementation, not necessarily the package vendor.
 
-Khi kiểm tra một sự cố tương thích, cần ghi **đủ bộ version + runtime vendor + VM name/vendor/version**, không chỉ “Java 21”. Nếu cần kiểm chứng bản vá CVE cụ thể, đối chiếu dữ liệu phát hành và nguồn image/runtime của đúng vendor; chỉ dựa vào version major là không đủ.
+When investigating a compatibility issue, record **the full set of version + runtime vendor + VM name/vendor/version**, not just “Java 21”. To verify a specific CVE patch, check release metadata and image/runtime origin from that exact vendor; major version alone is insufficient.
 
-### 5.2 Quy tắc so sánh version
+### 5.2 Version Comparison Rules
 
-- `Runtime.version().feature()` cho biết **feature release**, hữu ích khi cần điều kiện API/bytecode. `21` và `17` là các phiên bản feature khác nhau.
-- Chuỗi build/patch cần giữ nguyên từ JVM đích; **không tự đoán** build metadata theo Java feature. Một JDK 21 chạy trên máy build chưa chắc giống JDK 21.0.x trên máy production.
-- `java.vm.version` và `java.runtime.version` có thể dùng định dạng khác nhau tùy vendor; không nối hoặc thay thế tùy ý.
-- Một image có runtime Java 21 vẫn có thể chạy class bytecode được biên dịch cho Java 17; chiều ngược lại không tự đúng. Khi kiểm tra `UnsupportedClassVersionError`, cần xác minh **class-file major version** của artifact bị lỗi và runtime version đích.
+- `Runtime.version().feature()` gives the **feature release**, useful for API/bytecode checks. `21` and `17` are different feature versions.
+- Preserve patch/build strings verbatim from the target JVM; **do not guess** build metadata from the Java feature release. A JDK 21 on a build machine is not necessarily the same as JDK 21.0.x in production.
+- `java.vm.version` and `java.runtime.version` can use different formats across vendors; do not concatenate or substitute them arbitrarily.
+- An image with a Java 21 runtime can still run class bytecode compiled for Java 17; the reverse is not automatically true. When checking `UnsupportedClassVersionError`, verify both the **class-file major version** of the failing artifact and the target runtime version.
 
-### 5.3 Không dùng shell như bằng chứng duy nhất
+### 5.3 Do Not Rely on the Shell as Sole Proof
 
-Các lệnh:
+The commands:
 
 ```bash
 command -v java
@@ -157,9 +157,9 @@ java -version
 javac -version
 ```
 
-chỉ mô tả các executable/phiên bản mà **terminal đang truy cập**. Trên máy có `PATH`, `JAVA_HOME`, alternatives, SDK manager, IDE, Gradle toolchain, `jlink` image hoặc container, kết quả đó có thể khác JVM service đang chạy.
+only describe the executables/versions **accessible to the current terminal**. On a machine with `PATH`, `JAVA_HOME`, alternatives, SDK managers, IDEs, Gradle toolchains, `jlink` images, or containers, those results can differ from the running JVM service.
 
-Trên PowerShell:
+In PowerShell:
 
 ```powershell
 Get-Command java
@@ -168,86 +168,86 @@ javac -version
 $env:JAVA_HOME
 ```
 
-Các lệnh có giá trị để kiểm tra **môi trường đang thao tác**, nhưng muốn chứng minh thuộc tính JVM service, phải đọc từ **process đó**. Dòng `java -version` của một container cũng chỉ đúng với process mới được tạo bởi `java` tìm thấy trong container ấy, chưa chắc khớp service dùng executable riêng.
+These commands are useful for checking **your working environment**, but to prove properties of a JVM service you must read from **that process**. Even `java -version` inside a container only reflects a new process spawned by the `java` found in that container, which may not match a service using its own executable.
 
-## 6. Xác định kiến trúc: JVM, hệ điều hành và host có thể khác nhau
+## 6. Identifying Architecture: JVM, OS, and Host Can Differ
 
-`os.arch` trong Java system properties mô tả tên kiến trúc nền tảng nhìn từ runtime Java, thường có giá trị như `amd64`, `x86_64`, `aarch64` hoặc `x86` tùy JVM/OS. `os.name` và `os.version` cho bối cảnh OS. Khi cần bằng chứng bitness hay ABI native, cần đối chiếu thêm **kiến trúc binary JVM/native library và kiến trúc process**, không tự suy luận chỉ từ tên biến môi trường host.
+`os.arch` in Java system properties describes the platform architecture name as seen by the Java runtime, typically `amd64`, `x86_64`, `aarch64`, or `x86` depending on JVM/OS. `os.name` and `os.version` provide OS context. When needing proof of bitness or native ABI, also compare **the JVM/native library binary architecture and process architecture** rather than inferring solely from host environment variables.
 
-Phân biệt ba lớp:
+Distinguish three layers:
 
-1. **Host/hardware:** CPU kiến trúc vật lý của máy hoặc node.
-2. **OS/container:** OS kernel và execution environment; container thường chia sẻ kernel host nhưng có image/runtime riêng, có thể chạy lớp giả lập khi nền tảng khác.
-3. **JVM đích:** binary JVM và native libraries mà process thực sự nạp. `os.arch` từ JVM đích giúp định vị sự khác biệt với host.
+1. **Host/hardware:** physical CPU architecture of the machine or node.
+2. **OS/container:** OS kernel and execution environment; containers usually share the host kernel yet have their own image/runtime, and may run an emulation layer across platforms.
+3. **Target JVM:** the JVM binary and native libraries actually loaded by the process. `os.arch` from the target JVM pinpoints differences from the host.
 
-Ví dụ giả định: laptop dùng CPU ARM64 nhưng container chạy image `linux/amd64` qua emulation; `uname -m` trên host có thể báo ARM64 trong khi JVM trong image tự nhận `amd64`. Kết luận về JNI, native codec, agent hay JIT phải dùng kiến trúc **JVM thực chạy** và các thư viện native tương ứng, không dùng hostname hoặc kết quả `uname` ngoài container làm bằng chứng duy nhất.
+Hypothetical example: a laptop uses an ARM64 CPU while a container runs a `linux/amd64` image under emulation; `uname -m` on the host may report ARM64 while the JVM inside the image sees `amd64`. Conclusions about JNI, native codecs, agents, or JIT must use the **actual running JVM's** architecture and matching native libraries, not the hostname or `uname` outside the container as sole proof.
 
-Trên Linux, lệnh sau đọc kiến trúc kernel của **môi trường đang chạy lệnh**, không trực tiếp xác nhận bitness của một JVM khác namespace:
+On Linux, the following reads the kernel architecture of **the environment running the command**, which does not directly confirm bitness of a JVM in another namespace:
 
 ```bash
 uname -m
 ```
 
-Cũng không được nhầm `os.arch` với cấu hình **memory** của VM: `-Xmx2g` mô tả ngưỡng Java heap, không chứng minh CPU architecture, và RSS của process có thể bao gồm native memory ngoài heap. Container memory/CPU quota còn ảnh hưởng kích thước heap được chọn theo tỷ lệ, thread count và performance; khi điều tra, ghi riêng resource limits cùng VM flags nếu liên quan.
+Also never confuse `os.arch` with VM **memory** configuration: `-Xmx2g` sets the Java heap ceiling, does not prove CPU architecture, and process RSS can include native memory outside the heap. Container memory/CPU quotas also affect ergonomic heap sizing, thread counts, and performance; when investigating, record resource limits alongside VM flags when relevant.
 
-### Dấu hiệu thường gặp trong lỗi kiến trúc
+### Common Signs of Architecture Mismatches
 
-- `UnsatisfiedLinkError`, “wrong ELF class”, “mach-o wrong architecture”, lỗi nạp DLL/`.so`/`.dylib`: kiểm tra `os.arch`, ABI, bitness của **process và native library**.
-- Native agent cung cấp bản `linux-amd64` nhưng JVM chạy `aarch64`: đối chiếu distribution/architecture của agent và Java runtime image.
-- Performance khác nhau giữa hai node dù cùng Java feature release: so sánh vendor/build, architecture, container resource limits, effective GC/JIT flags và workload, không gán ngay cho version major.
+- `UnsatisfiedLinkError`, “wrong ELF class”, “mach-o wrong architecture”, or DLL/`.so`/`.dylib` load failures: inspect `os.arch`, ABI, and bitness of **both the process and native library**.
+- Native agent provided as `linux-amd64` while the JVM runs `aarch64`: verify distribution/architecture of both the agent and Java runtime image.
+- Performance differs between two nodes on the same Java feature release: compare vendor/build, architecture, container resource limits, effective GC/JIT flags, and workload rather than blaming the major version right away.
 
-## 7. Phân biệt bốn lớp “đối số JVM thực tế”
+## 7. Distinguishing Four Layers of “Actual JVM Arguments”
 
-Hãy xem một dòng khởi động minh họa:
+Consider an illustrative launch line:
 
 ```bash
 java -Xms256m -Xmx2g -XX:+UseG1GC -Ddiag.region=ap-southeast-1 \
      -jar service.jar --batch-size=100
 ```
 
-Đây là lệnh **minh họa** và không bảo đảm ứng dụng nào cũng hiểu `--batch-size`. Ý nghĩa các phần:
+This is an **illustrative** command and does not imply every application understands `--batch-size`. Meaning of the parts:
 
-| Thành phần | Nhóm | Cách xác minh |
+| Component | Category | How to verify |
 | --- | --- | --- |
-| `java` | Executable launcher | Process executable/OS metadata, `java.home` và identity của JVM |
-| `-Xms256m` | JVM startup heap option | `VM.command_line`, `RuntimeMXBean.getInputArguments()`; giá trị runtime liên quan là `InitialHeapSize` |
-| `-Xmx2g` | JVM startup heap limit | Command line; kiểm tra `MaxHeapSize` bằng `VM.flags`/`VM.flags -all` |
-| `-XX:+UseG1GC` | VM flag do người cấu hình | Command line và effective flags (tên/hỗ trợ khác theo VM) |
-| `-Ddiag.region=...` | System property lúc khởi động | `VM.command_line` hoặc VM input args; property hiện tại qua `System.getProperty` |
-| `-jar service.jar` | Launcher chọn artifact | Command line/OS metadata; runtime image không chứa thông tin hash artifact mặc định |
-| `--batch-size=100` | **Đối số ứng dụng**, nằm sau `-jar` | `main(String[] args)`, app config hoặc command line; không nằm trong danh sách VM input arguments |
+| `java` | Launcher executable | Process executable/OS metadata, `java.home`, and JVM identity |
+| `-Xms256m` | JVM startup heap option | `VM.command_line`, `RuntimeMXBean.getInputArguments()`; related runtime value is `InitialHeapSize` |
+| `-Xmx2g` | JVM startup heap limit | Command line; check `MaxHeapSize` via `VM.flags`/`VM.flags -all` |
+| `-XX:+UseG1GC` | User-configured VM flag | Command line and effective flags (names/support vary by VM) |
+| `-Ddiag.region=...` | Startup system property | `VM.command_line` or VM input args; current property via `System.getProperty` |
+| `-jar service.jar` | Launcher artifact selection | Command line/OS metadata; runtime image does not include artifact hashes by default |
+| `--batch-size=100` | **Application argument**, placed after `-jar` | `main(String[] args)`, app config, or command line; not in VM input arguments |
 
-**Lớp A – JVM input arguments tại startup:** `ManagementFactory.getRuntimeMXBean().getInputArguments()` phản ánh input arguments chuyển vào VM theo implementation; thường có `-X`, `-XX`, `-D`, `--add-opens`, `-javaagent` nếu được truyền vào VM. Theo API Java, danh sách này **không chứa đối số của `main()`**, và không bảo đảm chứa mọi tùy chọn của chính `java` launcher.
+**Layer A – JVM input arguments at startup:** `ManagementFactory.getRuntimeMXBean().getInputArguments()` reflects input arguments passed to the VM according to the implementation; typically includes `-X`, `-XX`, `-D`, `--add-opens`, `-javaagent` if passed to the VM. Per the Java API, this list **does not contain `main()` arguments**, and is not guaranteed to contain every option of the `java` launcher itself.
 
-**Lớp B – Command line lúc khởi động:** `jcmd PID VM.command_line` mô tả lệnh dùng để khởi tạo VM; tùy implementation, cách hiển thị và mức phục hồi nguyên chuỗi shell có thể khác nhau. Quote/expansion của shell, wrapper script và `@argfile` có thể khiến thứ tự/cú pháp gốc trong file deploy khác dạng VM nhìn thấy. Command line cũng có thể gồm app arguments và thông tin nhạy cảm.
+**Layer B – Startup command line:** `jcmd PID VM.command_line` describes the command used to initialize the VM; presentation and exact shell-string reconstruction vary by implementation. Shell quoting/expansion, wrapper scripts, and `@argfile` can make the original order/syntax in deployment files differ from what the VM sees. Command lines can also include app arguments and sensitive info.
 
-**Lớp C – System properties đang tồn tại:** `System.getProperty("key")`/`VM.system_properties` lấy **giá trị hiện tại**. Một property có thể được đặt qua `-D` lúc startup rồi đổi qua `System.setProperty` trong code. Do đó **giá trị hiện tại không chứng minh mọi nguồn và giá trị ở thời điểm launch**.
+**Layer C – Active system properties:** `System.getProperty("key")`/`VM.system_properties` reads **current values**. A property may be set via `-D` at startup and later changed via `System.setProperty` in code. Thus **current values do not prove all sources and values at launch time**.
 
-**Lớp D – VM flags đang có hiệu lực:** `jcmd PID VM.flags` và `VM.flags -all` cho thấy state/giá trị được VM hỗ trợ trình bày. JVM có thể tự chọn flags theo ergonomics, CPU/RAM/container; không thấy một `-XX` option trong startup không có nghĩa VM không có giá trị cho flag đó. Một số flag được hỗ trợ thay đổi động; **current value** có thể khác startup value. `VM.flags` không tương đương “tập nguyên văn toàn bộ command line”.
+**Layer D – Effective VM flags:** `jcmd PID VM.flags` and `VM.flags -all` show the state/values reported by the VM. The JVM can auto-select flags via ergonomics, CPU/RAM/container limits; omitting a `-XX` option at startup does not mean the VM has no value for it. Some flags support dynamic updates; **current value** may differ from startup value. `VM.flags` is not equivalent to “the verbatim entire command line”.
 
-### “Nguồn cấu hình dự kiến” không bằng “giá trị thực tế”
+### “Expected Config Source” Does Not Equal “Actual Value”
 
-| Nguồn | Điều có thể chứng minh | Điều chưa thể chứng minh |
+| Source | What it can prove | What it cannot prove |
 | --- | --- | --- |
-| Dockerfile hoặc manifest Deployment | Image/config **được khai báo** | Replica đang chạy được tạo từ digest nào, entrypoint đã biến đổi gì |
-| CI/Gradle toolchain | JDK dùng để build/compile theo cấu hình | JDK nào đã thực thi service |
-| Shell `JAVA_HOME`, `PATH` | Môi trường của terminal hiện tại | Môi trường lúc service launch, executable được wrapper chọn |
-| Service unit/start script | Các tùy chọn dự định cấp cho process | Các biến env, options file, override, restart ngoài ý muốn |
-| `VM.command_line` + `RuntimeMXBean` | Input startup mà JVM báo cáo | Toàn bộ config app hiện tại và mọi VM flag ergonomic |
-| `VM.flags -all` + system properties | State VM/property tại thời điểm đọc | Ai đã thay chúng, và mọi tham số command line ban đầu |
+| Dockerfile or Deployment manifest | **Declared** image/config | Which digest the running replica came from, or how the entrypoint transformed it |
+| CI/Gradle toolchain | JDK configured for build/compile | Which JDK actually executed the service |
+| Shell `JAVA_HOME`, `PATH` | Current terminal's environment | Environment at service launch, or executable chosen by a wrapper |
+| Service unit/start script | Options intended for the process | Env vars, options files, overrides, or unexpected restarts |
+| `VM.command_line` + `RuntimeMXBean` | Startup input reported by the JVM | Full current app config and all ergonomic VM flags |
+| `VM.flags -all` + system properties | VM/property state at read time | Who changed them, and all original command-line parameters |
 
-Hai biến môi trường rất dễ bị bỏ sót:
+Two environment variables that are very easy to overlook:
 
-- **`JDK_JAVA_OPTIONS`**: được Java launcher hỗ trợ để đưa thêm tùy chọn vào trước các đối số launcher; giá trị trong runtime của service có thể không giống shell đang kiểm tra.
-- **`JAVA_TOOL_OPTIONS`**: có thể đưa VM options từ môi trường khi khởi tạo VM trong các điều kiện được hỗ trợ; hành vi cụ thể phụ thuộc launcher/VM. Không giả định chuỗi env đó tự động được ghi đầy đủ trong báo cáo `VM.command_line`.
+- **`JDK_JAVA_OPTIONS`**: supported by the Java launcher to prepend options before launcher arguments; its value in the service's runtime may differ from your inspection shell.
+- **`JAVA_TOOL_OPTIONS`**: can inject VM options from the environment during VM initialization under supported conditions; exact behavior depends on launcher/VM. Do not assume that env string is automatically printed in full by `VM.command_line`.
 
-Ngoài ra còn wrapper script, IDE run configuration, biến môi trường của orchestrator, launch arguments từ systemd/Windows service và `@argfile`. Khi thấy sai khác, đối chiếu **startup input + runtime flag/property + nguồn deploy thực tế**. Đừng suy diễn “mọi flags trong `VM.flags -all` đều do operator truyền”, cũng đừng nghĩ option có chữ `-D` luôn phản ánh app đã dùng giá trị đó để cấu hình mọi thành phần: một số framework chỉ đọc property một lần lúc startup.
+There are also wrapper scripts, IDE run configurations, orchestrator environment variables, launch arguments from systemd/Windows services, and `@argfile`. When discrepancies appear, cross-check **startup input + runtime flags/properties + actual deployment sources**. Do not assume “every flag in `VM.flags -all` was passed by an operator,” nor think a `-D` option always means the app used that value for every component: some frameworks read a property only once at startup.
 
-## 8. Thực hành Java 17+: in runtime fingerprint từ chính JVM
+## 8. Java 17+ Practice: Printing the Runtime Fingerprint from the JVM Itself
 
-Đây là cách chủ động thu thập khi attach không khả dụng: dùng API Java có sẵn trong ứng dụng để xuất ra **allowlist thuộc tính không chứa credential**. Ví dụ chạy được với JDK 17+; kết quả version/vendor/architecture phụ thuộc máy nên không gán một dòng stdout giả định cho chúng.
+This is a proactive collection approach when attach is unavailable: use built-in Java APIs inside the application to emit a **credential-free property allowlist**. The example runs on JDK 17+; version/vendor/architecture values depend on the machine, so no fixed stdout is assumed for them.
 
-Tạo tệp **`RuntimeFingerprint.java`**:
+Create the file **`RuntimeFingerprint.java`**:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -263,7 +263,7 @@ public final class RuntimeFingerprint {
     public static void main(String[] args) {
         RuntimeMXBean runtime = ManagementFactory.getRuntimeMXBean();
 
-        // Hai dòng đầu xác định nhờ chính lệnh thực hành bên dưới.
+        // The first two lines are determined by the practice command below.
         System.out.println("diag.mode=" + property("diag.mode"));
         System.out.println("applicationArgs.count=" + args.length);
 
@@ -296,112 +296,112 @@ public final class RuntimeFingerprint {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac RuntimeFingerprint.java
 java -Xms64m -Xmx256m -Ddiag.mode=lab RuntimeFingerprint alpha beta
 ```
 
-**Hai dòng stdout đầu tiên chính xác** cho lệnh thực hành (không phụ thuộc hệ điều hành):
+**Exact first two lines of stdout** for the practice command (OS-independent):
 
 ```text
 diag.mode=lab
 applicationArgs.count=2
 ```
 
-Các dòng sau gồm PID, thời điểm JVM được khởi tạo, version, vendor, runtime home, OS arch và `selectedHeapInputArgs`; **giá trị phụ thuộc runtime thực sự**. Với HotSpot/JDK tiêu chuẩn, các heap input arguments minh họa thường là `-Xms64m` và `-Xmx256m`, nhưng đừng coi mọi implementation buộc phải hiển thị chúng cùng dạng; hãy kiểm tra dữ liệu thu được.
+Subsequent lines contain PID, JVM initialization timestamp, version, vendor, runtime home, OS arch, and `selectedHeapInputArgs`; **values depend on the actual runtime**. On standard HotSpot/JDK, the illustrative heap input arguments are usually `-Xms64m` and `-Xmx256m`, though do not assume every implementation must display them identically; inspect the captured output.
 
-Giải thích cơ chế:
+Mechanism explanation:
 
-- `ProcessHandle.current().pid()` xác định PID của **JVM đang chạy đoạn code này**, thay vì phỏng đoán PID từ tên `java` trên máy.
-- `RuntimeMXBean.getStartTime()` cho epoch milliseconds xấp xỉ lúc VM khởi động; chuyển sang `Instant` để ghi thời gian UTC có thể tương quan với logs và uptime.
-- `System.getProperty(...)` lấy giá trị **hiện tại**, không bảo đảm là giá trị bất biến từ thời điểm launch.
-- `Runtime.version().feature()` chỉ là **feature release**; muốn giữ patch/build, phải lưu thêm chuỗi version chi tiết.
-- `getInputArguments()` lọc chỉ `-Xms`/`-Xmx` để minh họa giới hạn thông tin, không in tất cả `-D`/agents vì nhiều ứng dụng chứa bí mật trong JVM arguments.
-- `alpha` và `beta` là **đối số ứng dụng**, vì vậy `args.length == 2`; chúng không biến thành input arguments của JVM.
+- `ProcessHandle.current().pid()` identifies the PID of **the JVM running this code**, rather than guessing a PID from `java` processes on the machine.
+- `RuntimeMXBean.getStartTime()` gives approximate epoch milliseconds when the VM started; convert to `Instant` to record UTC time for correlation with logs and uptime.
+- `System.getProperty(...)` reads the **current** value, not guaranteed to be immutable since launch time.
+- `Runtime.version().feature()` is only the **feature release**; to retain patch/build, also record the detailed version string.
+- `getInputArguments()` filters only `-Xms`/`-Xmx` to illustrate scoping output, avoiding printing all `-D`/agents since many apps carry secrets in JVM arguments.
+- `alpha` and `beta` are **application arguments**, so `args.length == 2`; they do not become JVM input arguments.
 
-Lưu ý: đây là chương trình **mẫu được khởi chạy mới**, do đó chỉ mô tả **process mẫu đó**. Muốn chứng minh service đang lỗi dùng những giá trị nào, cần chạy cơ chế thu tương đương **bên trong đúng service**, hoặc dùng `jcmd`/JMX truy cập đúng PID. Đừng chạy `RuntimeFingerprint` trong một container mới rồi gán kết quả cho container production đã hoạt động nhiều ngày.
+Note: this is a **newly launched sample program**, so it only describes **that sample process**. To prove which values a failing service uses, run an equivalent collection mechanism **inside that exact service**, or use `jcmd`/JMX against the exact PID. Never run `RuntimeFingerprint` in a fresh container and attribute the results to a production container that has been running for days.
 
-### Mở rộng qua JMX/Management API
+### Extending via JMX/Management API
 
-Nếu ứng dụng đã có endpoint quản trị bảo mật phù hợp, có thể truy vấn `RuntimeMXBean` và bộ property **allowlist** từ chính service. MBean `java.lang:type=Runtime` có thông tin runtime như VM vendor, VM version, start time và input arguments. Không mở JMX remote vô điều kiện để tiện đọc version: endpoint quản trị phải có authentication, authorization, network restrictions và chính sách tiết lộ thông tin. Một endpoint diagnostics tùy biến nên xuất **chỉ các key được duyệt**, tránh cung cấp toàn bộ environment hoặc system properties.
+If the application already exposes a properly secured management endpoint, you can query `RuntimeMXBean` and an **allowlisted** property set from the service itself. The `java.lang:type=Runtime` MBean provides runtime details such as VM vendor, VM version, start time, and input arguments. Do not expose remote JMX unconditionally just for convenience reading versions: management endpoints require authentication, authorization, network restrictions, and disclosure controls. A custom diagnostics endpoint should emit **only approved keys**, avoiding dumping the full environment or system properties.
 
-Cần nhớ `RuntimeMXBean.getInputArguments()` có thể chứa secrets, còn `getSystemProperties()` có thể trả nhiều trường nhạy cảm. Dù API đó là read-only, **việc công bố đầu ra** vẫn phải tuân thủ phạm vi chia sẻ dữ liệu.
+Remember that `RuntimeMXBean.getInputArguments()` can contain secrets, and `getSystemProperties()` can return many sensitive fields. Even though the API is read-only, **publishing the output** must still follow data-sharing boundaries.
 
-## 9. Một lượt thu thập bằng terminal: trình tự áp dụng được trong sự cố
+## 9. A Terminal Collection Pass: Sequence Usable During an Incident
 
-Giả sử đang điều tra một process HotSpot/JDK 21 có PID **12345** trong đúng host/container. Lưu thời gian UTC của phiên đo và xác nhận PID thuộc đúng service **trước mỗi lần thu mới** nếu có autoscaling/restart.
+Suppose you are investigating a HotSpot/JDK 21 process with PID **12345** on the right host/container. Record the UTC timestamp of the capture session and confirm the PID belongs to the right service **before each new capture** if autoscaling/restarts occur.
 
 ```bash
-# Kiểm tra các command có trên JVM đích.
+# Check available commands on the target JVM.
 jcmd 12345 help
 
-# Version/build VM thực sự.
+# Actual VM version/build.
 jcmd 12345 VM.version
 
-# Startup command; chỉ dùng trong terminal có quyền, phải redact khi chia sẻ.
+# Startup command; run only in an authorized terminal, redact before sharing.
 jcmd 12345 VM.command_line
 
-# Giá trị flag hiện tại mà VM hỗ trợ báo cáo.
+# Current flag values reported by the VM.
 jcmd 12345 VM.flags
 
-# Dùng khi cần điều tra default, ergonomics hoặc origin chi tiết.
+# Use when investigating defaults, ergonomics, or detailed origins.
 jcmd 12345 VM.flags -all
 
-# Uptime phục vụ đối chiếu đúng lần khởi động.
+# Uptime for correlating the specific startup instance.
 jcmd 12345 VM.uptime
 ```
 
-Dòng lệnh trên **không thay đổi VM flags**. `jcmd` không tự có mặt trên mọi image, và một `jcmd` từ JDK khác vendor/version có thể không hỗ trợ đầy đủ các diagnostics của VM mục tiêu. Dùng công cụ phù hợp nhất với runtime/implementation khi có thể. Không khẳng định thứ tự hay output chính xác của `VM.command_line` nếu chưa đọc thực tế.
+These commands **do not change VM flags**. `jcmd` is not automatically present in every image, and a `jcmd` from a different JDK vendor/version may not fully support diagnostics of the target VM. Use the tool best matched to the runtime/implementation when possible. Do not assert exact ordering or output of `VM.command_line` without observing it directly.
 
-### Nếu attach bị từ chối hoặc không tìm thấy PID
+### If Attach Is Refused or PID Is Not Found
 
-Kiểm tra theo thứ tự:
+Check in order:
 
-1. **Đúng namespace chưa?** Process có thể chạy trong container khác; PID `1` trong container không nhất thiết là PID `1` ở host. `jcmd -l` phía host có thể không liệt kê container JVM.
-2. **Đúng user/permission chưa?** Theo tài liệu Oracle JDK 21, `jcmd` cần chạy trên cùng máy và với effective user/group phù hợp. Service account và chính sách hệ thống có thể ngăn attach.
-3. **Công cụ có trong image chưa?** Runtime `jlink`/distroless tối giản có thể không chứa `jcmd` hoặc shell. Không vội sửa/khởi động lại container chỉ để đưa thêm công cụ vào khi đang xử lý incident.
-4. **JVM có tắt attach không?** Một số cấu hình có thể vô hiệu cơ chế attach, hoặc runtime khác HotSpot không hỗ trợ cùng tập lệnh.
-5. **PID đã restart chưa?** So PID, start time, container ID và deployment revision với lúc ghi nhận sự cố.
-6. **Có đường đọc từ bên trong ứng dụng không?** Dùng endpoint diagnostics/JMX đã được kiểm soát để truy vấn runtime identity; ghi rõ nguồn, tránh giả định dữ liệu từ process khác tương đương.
+1. **Right namespace?** The process may run in another container; PID `1` in a container is not necessarily PID `1` on the host. Host-side `jcmd -l` may not list container JVMs.
+2. **Right user/permissions?** Per Oracle JDK 21 documentation, `jcmd` must run on the same machine with matching effective user/group. Service accounts and OS policies can block attach.
+3. **Is the tool in the image?** Minimal `jlink`/distroless runtimes may lack `jcmd` or a shell. Do not rush to modify/restart a container just to inject tools mid-incident.
+4. **Did the JVM disable attach?** Some configurations disable the attach mechanism, or non-HotSpot runtimes do not support the same command set.
+5. **Did the PID restart?** Compare PID, start time, container ID, and deployment revision against when the incident was noted.
+6. **Is there an in-app read path?** Use a controlled diagnostics/JMX endpoint to query runtime identity; note the source clearly and avoid assuming another process's data is equivalent.
 
-Trong Kubernetes, vị trí lấy bằng chứng quan trọng không kém câu lệnh: cần ghép **pod UID/container ID, image digest, node, restart count và PID trong namespace**. Nhiều pod có cùng tên logic hoặc cùng image tag nhưng không nhất thiết giống image digest/runtime flags tại thời điểm đọc.
+In Kubernetes, where you collect evidence matters just as much as the command: correlate **pod UID/container ID, image digest, node, restart count, and PID within the namespace**. Multiple pods with the same logical name or same image tag do not necessarily share the same image digest or runtime flags at read time.
 
-### Khi chỉ có OS process metadata
+### When Only OS Process Metadata Is Available
 
-OS có thể cung cấp executable path và raw command line, nhưng không bảo đảm hiển thị **all VM flags sau khi JVM chọn defaults** hoặc **system properties hiện tại**. Một script `/bin/sh -c ...`, Windows service wrapper hoặc process supervisor còn có thể làm người đọc nhầm **wrapper process** với JVM con. Ghi nguồn OS và mức độ chắc chắn; không tự nâng kết quả `ps`/Task Manager thành kết luận về GC hoặc heap đang dùng.
+The OS can provide the executable path and raw command line, yet does not guarantee showing **all VM flags after JVM default selection** or **current system properties**. A `/bin/sh -c ...` script, Windows service wrapper, or process supervisor can also trick readers into mistaking the **wrapper process** for the child JVM. Record the OS source and confidence level; do not stretch `ps`/Task Manager output into claims about active GC or heap.
 
-## 10. Đối chiếu cấu hình dự kiến với cấu hình đang có hiệu lực
+## 10. Comparing Expected Configuration with Effective Configuration
 
-Khi manifest nói `-Xmx2g` nhưng heap/GC hoạt động khác dự đoán, đừng dừng ở việc tìm chuỗi `-Xmx2g` trong YAML:
+When a manifest says `-Xmx2g` yet heap/GC behaves unexpectedly, do not stop at grepping `-Xmx2g` in YAML:
 
-1. Xác nhận **đúng process** và phiên bản runtime/VM; kiểm tra Java executable, vendor, architecture và thời điểm startup.
-2. Đọc **startup input** bằng `VM.command_line` và/hoặc `RuntimeMXBean.getInputArguments()` sau khi được cấp quyền.
-3. Đọc **effective flags** bằng `VM.flags`/`VM.flags -all`, gồm `MaxHeapSize`, `InitialHeapSize`, GC options và flags có liên quan; phân biệt giá trị byte với cách viết `m`/`g` trong CLI.
-4. Đối chiếu nguồn cấu hình: image entrypoint, process manager, `JAVA_TOOL_OPTIONS`, `JDK_JAVA_OPTIONS`, options file, command line override, container limit và phiên bản VM.
-5. Nếu chỉ đang so sánh môi trường, đọc trạng thái **đã tồn tại**; đừng dùng `VM.set_flag` để “thử” thay đổi cấu hình production trong bước thu thập identity.
-6. Ghi rõ một flag nào là **explicit**, **ergonomic/default** hoặc **thay đổi lúc runtime** nếu công cụ/bằng chứng hỗ trợ; không gán nguồn khi không chắc.
+1. Confirm **the right process** and runtime/VM version; verify Java executable, vendor, architecture, and startup time.
+2. Read **startup input** via `VM.command_line` and/or `RuntimeMXBean.getInputArguments()` once authorized.
+3. Read **effective flags** via `VM.flags`/`VM.flags -all`, including `MaxHeapSize`, `InitialHeapSize`, GC options, and related flags; distinguish byte values from `m`/`g` CLI notation.
+4. Cross-check config sources: image entrypoint, process manager, `JAVA_TOOL_OPTIONS`, `JDK_JAVA_OPTIONS`, options files, command-line overrides, container limits, and VM version.
+5. If only comparing environments, read **existing** state; never use `VM.set_flag` to “test” config changes in production during identity collection.
+6. Explicitly note whether a flag is **explicit**, **ergonomic/default**, or **changed at runtime** when supported by tools/evidence; do not assign an origin when uncertain.
 
-Ví dụ `-Xmx` thường liên hệ với effective VM flag `MaxHeapSize`, nhưng các trường không nhất thiết hiển thị cùng cú pháp. Với môi trường container-aware, JVM có thể tính heap từ memory limits khi không truyền `-Xmx`. Một `MaxHeapSize` có giá trị không tự chứng minh người vận hành đã gõ `-Xmx`; cần dùng startup input và nguồn deployment để kết luận.
+For example, `-Xmx` usually relates to the effective VM flag `MaxHeapSize`, though fields do not necessarily display the same syntax. In container-aware environments, the JVM may compute heap from memory limits when `-Xmx` is omitted. Seeing a `MaxHeapSize` value does not prove an operator typed `-Xmx`; use startup input and deployment sources to conclude.
 
-Lệnh `java -XX:+PrintFlagsFinal -version` (nếu VM hỗ trợ) cũng hiển thị các flag **của JVM mới được tạo bởi lệnh đó**. Nó có thể hữu ích khi dựng môi trường tái hiện, nhưng không thay thế `jcmd PID VM.flags -all` cho process đang chạy.
+Running `java -XX:+PrintFlagsFinal -version` (if supported by the VM) also prints flags **of the new JVM spawned by that command**. It can help when building a reproducer, but does not replace `jcmd PID VM.flags -all` for a running process.
 
-## 11. Thu và chia sẻ bằng chứng an toàn, có thể đối chiếu
+## 11. Collecting and Sharing Evidence Safely and Verifiably
 
-**Nguyên tắc tối thiểu:** phần thông tin cần gửi ra ngoài phải là bản **đã xử lý bí mật và chỉ chứa các trường liên quan**. Đối số JVM, environment variables, system properties, shell history, URL, command line và các file cấu hình đều có thể mang token/password/path riêng tư.
+**Minimalism principle:** any information sent externally must be **secret-sanitized and contain only relevant fields**. JVM arguments, environment variables, system properties, shell history, URLs, command lines, and config files can all carry private tokens/passwords/paths.
 
-Những dữ liệu đặc biệt cần kiểm tra trước khi lưu/chia sẻ:
+Data requiring special review before saving/sharing:
 
-- `-D...` có chứa password, access token, API key, JDBC URL có credential, proxy authentication hoặc truststore password.
-- `-javaagent:`, `-agentpath:`, `--module-path` và `-cp` có thể lộ đường dẫn nội bộ.
-- Application arguments sau `-jar`/main class có thể chứa secret; `jcmd -l`/OS `ps args` cũng có thể hiển thị chúng.
-- `JAVA_TOOL_OPTIONS`, `JDK_JAVA_OPTIONS` và toàn bộ environment có thể chứa dữ liệu nhạy cảm ngoài phạm vi câu hỏi về runtime.
-- JMX hoặc `VM.system_properties` có thể lấy dữ liệu ứng dụng do framework/code bổ sung mà không liên quan đến JDK identity.
+- `-D...` containing passwords, access tokens, API keys, JDBC URLs with credentials, proxy authentication, or truststore passwords.
+- `-javaagent:`, `-agentpath:`, `--module-path`, and `-cp` that may expose internal paths.
+- Application arguments after `-jar`/main class that may contain secrets; `jcmd -l`/OS `ps args` can expose them too.
+- `JAVA_TOOL_OPTIONS`, `JDK_JAVA_OPTIONS`, and the full environment can contain sensitive data outside the runtime question's scope.
+- JMX or `VM.system_properties` may capture app data added by frameworks/code unrelated to JDK identity.
 
-**Cách báo cáo:** lưu `java.version`, `java.runtime.version`, `java.vendor`, `java.vm.*`, `os.arch`, PID/process start time, tên source và một danh sách options **được phép công bố** (ví dụ heap/GC flags đã được kiểm tra). Với bí mật, dùng nhãn `[REDACTED]` trong bản báo cáo mà **không giữ lại giá trị hoặc số ký tự của token**. Không lưu raw `VM.command_line` trong tài liệu chia sẻ chung.
+**Reporting format:** record `java.version`, `java.runtime.version`, `java.vendor`, `java.vm.*`, `os.arch`, PID/process start time, source name, and an **approved** list of options (e.g., reviewed heap/GC flags). For secrets, put `[REDACTED]` in the report **without preserving the value or token character count**. Never store raw `VM.command_line` in broadly shared documents.
 
-Một mẫu ghi nhận minh họa, **dữ liệu giả định**, là:
+An illustrative capture template, with **hypothetical data**:
 
 ```yaml
 captureTimeUtc: "2026-10-29T08:10:00Z"
@@ -432,94 +432,94 @@ evidence:
   incompleteFields: []
 ```
 
-Không sử dụng các giá trị trên như “default của Java 21”: đó là **mẫu cấu trúc**, không phải output thực tế của bất kỳ process nào. Khi áp dụng, sửa mọi giá trị bằng dữ liệu từ JVM tương ứng và chỉ lưu những command đã chạy thật; nếu chưa lấy được trường nào, đánh dấu `unavailable` kèm lý do thay vì điền số gần đúng.
+Do not treat the values above as “Java 21 defaults”: this is a **structural template**, not real output from any process. When applying it, replace every value with data from the target JVM and list only commands actually run; if a field could not be read, mark `unavailable` with a reason rather than filling in an approximate number.
 
-Muốn so sánh hai bản deploy, lập bảng chênh lệch theo **cùng trường**: process start, Java runtime full version, vendor, VM name/build, `os.arch`, effective heap/GC flags, các options explicit đã redact và hash/digest artifact/container nếu có. So sánh cùng timestamp hoặc cùng pha workload; tránh nhầm thay đổi do restart/deploy với thay đổi do runtime flag.
+To compare two deployments, build a diff table across the **exact same fields**: process start, full Java runtime version, vendor, VM name/build, `os.arch`, effective heap/GC flags, redacted explicit options, and artifact/container hashes/digests if available. Compare at matching timestamps or matching workload phases; avoid confusing restart/deploy changes with runtime flag changes.
 
-## 12. Tình huống điển hình
+## 12. Typical Scenarios
 
-### Tình huống A – “Cả hai server đều dùng Java 21” nhưng một server lỗi
+### Scenario A – “Both servers use Java 21” yet only one fails
 
-Server A và B đều báo `java -version` là Java 21 khi SSH vào, nhưng lỗi chỉ xuất hiện trên B. Đây mới là dữ liệu của **shell**. Điều tra trên đúng service PID ở cả hai:
+Servers A and B both report `java -version` as Java 21 over SSH, yet the error occurs only on B. That is only **shell** data. Investigate the exact service PID on both:
 
-1. Ghi PID, thời điểm process startup, container ID và build ứng dụng.
-2. Lấy `VM.version`, `java.runtime.version`, `java.vendor`, `java.vm.name`, `java.vm.version`.
-3. Đối chiếu `os.arch`, đường dẫn `java.home`, image digest và architecture.
-4. So sánh startup args và effective flags sau khi redact.
-5. Chỉ sau khi xác nhận khác biệt mới dựng lại lỗi hoặc kết luận phiên bản/vendor có liên hệ.
+1. Record PID, process startup time, container ID, and application build.
+2. Collect `VM.version`, `java.runtime.version`, `java.vendor`, `java.vm.name`, `java.vm.version`.
+3. Cross-check `os.arch`, `java.home` path, image digest, and architecture.
+4. Compare startup args and effective flags after redaction.
+5. Only after confirming a difference should you reproduce the error or conclude version/vendor is involved.
 
-Kết quả có thể cho thấy service B thực tế chạy Java 17, một runtime build khác, kiến trúc khác hoặc thêm agent/flag dù terminal đang mặc định Java 21. Nếu mọi trường đều giống, những dữ liệu này giúp **loại bỏ một số giả thuyết cấu hình**, chưa loại bỏ lỗi workload, application state hoặc điều kiện mạng.
+Results might reveal service B actually runs Java 17, a different runtime build, a different architecture, or an extra agent/flag despite the terminal defaulting to Java 21. If all fields match, this evidence helps **rule out several configuration hypotheses**, though it does not rule out workload, application state, or network conditions.
 
-### Tình huống B – “Manifest đã khai báo `-Xmx2g`, sao JVM lại dùng heap khác?”
+### Scenario B – “The manifest declared `-Xmx2g`, why does the JVM use a different heap?”
 
-Bắt đầu từ `VM.command_line` để biết VM nhận input gì, rồi `VM.flags`/`VM.flags -all` để biết `MaxHeapSize` hiện tại. Kiểm tra service wrapper/entrypoint, override của deployment, container memory limits và các env/options files. Nếu chỉ đọc manifest mà bỏ qua process state, có thể chẩn đoán sai nguồn memory pressure. Nếu đọc mỗi `MaxHeapSize` mà không biết startup options, không phân biệt được explicit `-Xmx` với giá trị ergonomics.
+Start with `VM.command_line` to see what input the VM received, then `VM.flags`/`VM.flags -all` to inspect current `MaxHeapSize`. Check the service wrapper/entrypoint, deployment overrides, container memory limits, and env/options files. Reading only the manifest while ignoring process state can misdiagnose the source of memory pressure. Reading only `MaxHeapSize` without startup options cannot distinguish explicit `-Xmx` from ergonomic values.
 
-### Tình huống C – Native library chạy tốt ở local nhưng không load được trong production
+### Scenario C – Native library works locally yet fails to load in production
 
-Thu `os.arch` từ JVM của cả hai nơi, ghi `java.vm.name`, version/vendor và binary type của JNI/native artifact. Kiểm tra OS, libc/ABI và dependency của library. Đừng lấy `uname -m` từ host thay cho kiến trúc process trong container. Một image cùng tag có thể trỏ tới variant ARM64 và amd64 khác nhau; so theo **digest + platform** nếu đang điều tra phân phối image.
+Collect `os.arch` from the JVM in both environments, record `java.vm.name`, version/vendor, and binary type of the JNI/native artifact. Check OS, libc/ABI, and library dependencies. Do not take `uname -m` from the host as the architecture of a container process. One image tag can point to different ARM64 and amd64 variants; compare by **digest + platform** when investigating image distribution.
 
-### Tình huống D – Không thể dùng `jcmd` trong production image
+### Scenario D – Cannot use `jcmd` in a production image
 
-Nếu runtime bị tối giản hoặc attach bị policy chặn, dùng telemetry/management endpoint được thiết kế sẵn để đưa ra allowlist thông tin ở mục 1. Nếu không có bằng chứng từ process, ghi mức độ hạn chế; đừng dùng `java -version` ở một debug container mới như lời khẳng định cho JVM đang chạy. Quyết định bổ sung chẩn đoán cho lần deploy sau cần qua quy trình phù hợp; bước thu identity không tự động cấp quyền thay runtime đang chạy.
+If the runtime is minimal or attach is blocked by policy, use a pre-built telemetry/management endpoint exposing the allowlisted info from Section 1. If no in-process evidence exists, document the limitation; never use `java -version` in a fresh debug container as proof for a running JVM. Any decision to add diagnostics for the next deployment must go through proper processes; identity collection does not grant authority to swap out a running runtime.
 
-## 13. Những nhầm lẫn cần tránh
+## 13. Pitfalls to Avoid
 
-| Nhầm lẫn | Điều đúng hơn |
+| Misconception | More accurate reality |
 | --- | --- |
-| “`java -version` trên terminal là phiên bản JVM production.” | Terminal có thể dùng executable khác. Hỏi trực tiếp đúng process và xác nhận PID/start time. |
-| “`JAVA_HOME` quyết định mọi JVM trên máy.” | Wrapper, service manager, đường dẫn tuyệt đối, image/container và toolchain có thể chọn runtime khác. |
-| “`java.version` đủ để biết bản vá/vendor.” | Cần full runtime/build, distribution vendor và VM information, đôi khi cả image digest. |
-| “`java.vendor` và `java.vm.vendor` luôn giống nhau.” | Hai property có ý nghĩa khác nhau; ghi nguyên văn thay vì suy đoán. |
-| “`os.arch` của host luôn bằng của JVM.” | Container/emulation/native ABI có thể khác; lấy từ JVM thực tế. |
-| “`VM.command_line` và `VM.flags -all` là cùng một thứ.” | Một bên là startup input, bên kia trình bày current flags, gồm default/ergonomic theo VM. |
-| “Có `MaxHeapSize` nghĩa là có `-Xmx` được truyền từ operator.” | VM có thể chọn heap tự động; cần đối chiếu startup args và nguồn cấu hình. |
-| “`RuntimeMXBean.getInputArguments()` chứa toàn bộ tham số sau `-jar`.” | Nó loại trừ `main()` args và không buộc chứa mọi launcher option. |
-| “System properties đang xem luôn đúng bằng `-D` lúc launch.” | Ứng dụng có thể gọi `System.setProperty`; state hiện tại không chứng minh lịch sử. |
-| “Không tìm được PID trong `jcmd -l` nghĩa là ứng dụng không chạy Java.” | PID namespace, container, quyền và công cụ có thể làm process không được liệt kê. |
-| “Log raw command line tiện cho debug nên không có rủi ro.” | Đối số và system properties có thể chứa password/token; chỉ chia sẻ bản đã lọc. |
-| “`-XX:+PrintFlagsFinal -version` mô tả service đang chạy.” | Đây là thông tin của **JVM mới** do lệnh đó tạo ra. |
+| “`java -version` in the terminal is the production JVM version.” | The terminal may use a different executable. Query the target process directly and verify PID/start time. |
+| “`JAVA_HOME` controls every JVM on the machine.” | Wrappers, service managers, absolute paths, images/containers, and toolchains can choose other runtimes. |
+| “`java.version` is enough to know patches/vendor.” | You need full runtime/build, distribution vendor, VM info, and sometimes image digest. |
+| “`java.vendor` and `java.vm.vendor` are always identical.” | These two properties have distinct meanings; record verbatim rather than assuming. |
+| “Host `os.arch` always equals the JVM's.” | Containers/emulation/native ABIs can differ; read from the live JVM. |
+| “`VM.command_line` and `VM.flags -all` are the same thing.” | One is startup input; the other presents current flags, including VM defaults/ergonomics. |
+| “Having `MaxHeapSize` means an operator passed `-Xmx`.” | The VM can size heap automatically; verify startup args and config sources. |
+| “`RuntimeMXBean.getInputArguments()` includes everything after `-jar`.” | It excludes `main()` args and is not required to include every launcher option. |
+| “Current system properties always equal startup `-D`.” | Applications can call `System.setProperty`; current state does not prove history. |
+| “Not finding a PID in `jcmd -l` means the app isn't running Java.” | PID namespaces, containers, permissions, and tools can omit processes from listing. |
+| “Logging raw command lines is handy for debugging and risk-free.” | Arguments and system properties can contain passwords/tokens; share only sanitized versions. |
+| “`-XX:+PrintFlagsFinal -version` describes the running service.” | That reports info for **a new JVM** spawned by that command. |
 
-## 14. Bài tập tự kiểm tra
+## 14. Self-Check Questions
 
-**Câu 1.** Shell trên host báo JDK 21, nhưng JVM của service trả `java.version=17.0.x`. Nên ghi phiên bản nào trong báo cáo incident?
+**Q1.** The host shell reports JDK 21, but the service's JVM returns `java.version=17.0.x`. Which version should go in the incident report?
 
-**Trả lời:** runtime 17.0.x của **đúng service process**, cùng vendor/build và nguồn đọc. JDK 21 của shell có thể ghi như một quan sát về môi trường, không dùng thay thế sự thật của service.
+**A:** Runtime 17.0.x of **the exact service process**, along with vendor/build and read source. The shell's JDK 21 can be noted as an environment observation, not as a substitute for the service's reality.
 
-**Câu 2.** `RuntimeMXBean.getInputArguments()` không có `--batch-size=100`, có phải lệnh launch thiếu tham số?
+**Q2.** `RuntimeMXBean.getInputArguments()` lacks `--batch-size=100`; is the launch command missing an argument?
 
-**Trả lời:** không. Nếu `--batch-size=100` đứng sau main class hoặc `-jar service.jar`, đó là app argument; API trả JVM input arguments, không trả `main(String[] args)`.
+**A:** No. If `--batch-size=100` appears after the main class or `-jar service.jar`, it is an app argument; the API returns JVM input arguments, not `main(String[] args)`.
 
-**Câu 3.** `VM.flags -all` báo `MaxHeapSize` nhưng `VM.command_line` không thấy `-Xmx`. Có mâu thuẫn không?
+**Q3.** `VM.flags -all` reports `MaxHeapSize`, yet `VM.command_line` shows no `-Xmx`. Is that a contradiction?
 
-**Trả lời:** không. `MaxHeapSize` luôn có giá trị được JVM xác định, có thể bằng default/ergonomics hoặc giới hạn tài nguyên môi trường, không buộc do explicit `-Xmx`.
+**A:** No. `MaxHeapSize` always has a VM-determined value, which can come from defaults/ergonomics or environment resource limits without requiring an explicit `-Xmx`.
 
-**Câu 4.** Container trên host ARM64 báo `os.arch=amd64` từ chính service. Nên dựa vào giá trị nào khi tìm native library?
+**Q4.** A container on an ARM64 host reports `os.arch=amd64` from the service itself. Which value should guide native library lookup?
 
-**Trả lời:** cần điều tra architecture/ABI của **JVM process và native artifact**. Giá trị JVM `os.arch=amd64` là dữ kiện trọng yếu; host ARM64 không tự chứng minh library ARM64 có thể được process amd64 nạp.
+**A:** Investigate the architecture/ABI of **the JVM process and native artifact**. The JVM's `os.arch=amd64` is a critical fact; an ARM64 host does not prove an ARM64 library can be loaded by an amd64 process.
 
-**Câu 5.** Có thể gửi ngay output `VM.command_line` và `VM.system_properties` vào ticket hay không?
+**Q5.** Can raw `VM.command_line` and `VM.system_properties` output be pasted straight into a ticket?
 
-**Trả lời:** chỉ khi đã kiểm tra và loại thông tin nhạy cảm theo chính sách. Lý tưởng là thu **allowlist** các trường cần thiết và ghi rằng dữ liệu nhạy cảm đã được loại khỏi bản chia sẻ.
+**A:** Only after reviewing and removing sensitive information per policy. Ideally, collect an **allowlist** of needed fields and note that sensitive data was stripped from the shared record.
 
-**Câu 6.** `jcmd` không attach được vì service chạy với UID khác. Có nên dùng `java -version` ở shell của người điều tra để kết luận JVM version?
+**Q6.** `jcmd` fails to attach because the service runs under a different UID. Should the investigator run `java -version` in their own shell to determine the JVM version?
 
-**Trả lời:** không. Cần dùng quyền và phương thức thu được phép, hoặc endpoint in-process đã có; ghi trạng thái **chưa xác minh** nếu chưa thể lấy dữ liệu từ đúng JVM đích.
+**A:** No. Use authorized permissions and collection paths, or an existing in-process endpoint; mark the status **unverified** if data could not be retrieved from the target JVM itself.
 
-## 15. Checklist thực hành cho một incident
+## 15. Practical Incident Checklist
 
-- Xác nhận đúng **service, host/container, PID và start time**; khi có thể ghi application build/deployment digest.
-- Thu từ đúng JVM: **Java runtime version đầy đủ; `java.vendor`; `java.vm.name`, `java.vm.vendor`, `java.vm.version`; `java.home`; `os.name` và `os.arch`**.
-- Thu startup VM options và active flags bằng công cụ được hỗ trợ; ghi rõ **nguồn**, time UTC, command, tool version và giới hạn attach.
-- Tách **VM input arguments**, **app arguments**, **system properties hiện tại** và **effective VM flags**.
-- So sánh các nguồn dự kiến (manifest/IDE/service script/CI/JDK env) với **thông tin thực**; chú ý container architecture, resources, env injection và phiên bản runtime image.
-- Kiểm tra/redact secrets trước khi lưu file hay gửi báo cáo; chỉ dùng các dữ kiện có thể kiểm chứng và đánh dấu trường chưa đọc được.
+- Confirm the exact **service, host/container, PID, and start time**; record application build/deployment digest when possible.
+- Collect from the target JVM: **full Java runtime version; `java.vendor`; `java.vm.name`, `java.vm.vendor`, `java.vm.version`; `java.home`; `os.name` and `os.arch`**.
+- Collect startup VM options and active flags via supported tools; document **source**, UTC time, command, tool version, and attach limits.
+- Separate **VM input arguments**, **app arguments**, **current system properties**, and **effective VM flags**.
+- Compare expected sources (manifest/IDE/service script/CI/JDK env) against **actual process info**; watch for container architecture, resource limits, env injection, and runtime image version.
+- Inspect/redact secrets before saving files or sending reports; rely only on verifiable facts and mark unreadable fields.
 
-**Nguyên tắc kết luận:** dữ liệu của JVM đích tại đúng thời điểm có giá trị hơn cấu hình được kỳ vọng. Thu version, vendor, architecture và arguments chỉ hữu ích khi chúng **được gắn với đúng process, đúng lần khởi động, nguồn đáng tin cậy và diễn giải đúng phạm vi**.
+**Conclusion principle:** data from the target JVM at the right point in time outweighs expected configuration. Collecting version, vendor, architecture, and arguments is only useful when **tied to the exact process, exact startup instance, reliable source, and accurate scope interpretation**.
 
-### Tài liệu tham khảo chính thức
+### Official References
 
-- [Oracle JDK 21 — The `jcmd` Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): `jcmd -l`, `VM.version`, `VM.command_line`, `VM.flags`, `VM.system_properties`, yêu cầu về user/host.
-- [Oracle JDK 21 — The `java` Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html): launcher, `-D`, `-X`, `-XX`, `@argfile`, `JDK_JAVA_OPTIONS` và phân biệt app arguments.
-- [Java SE 21 — `System` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/System.html): Java runtime, VM, OS properties.
-- [Java SE 21 — `RuntimeMXBean` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/RuntimeMXBean.html): input arguments, start time, VM name/vendor/version và hệ thống quản trị.
-- [Java SE 21 — `ProcessHandle` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ProcessHandle.html): PID và thông tin của process hiện hành.
+- [Oracle JDK 21 — The `jcmd` Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): `jcmd -l`, `VM.version`, `VM.command_line`, `VM.flags`, `VM.system_properties`, user/host requirements.
+- [Oracle JDK 21 — The `java` Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html): launcher, `-D`, `-X`, `-XX`, `@argfile`, `JDK_JAVA_OPTIONS`, and distinguishing app arguments.
+- [Java SE 21 — `System` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/System.html): Java runtime, VM, and OS properties.
+- [Java SE 21 — `RuntimeMXBean` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/RuntimeMXBean.html): input arguments, start time, VM name/vendor/version, and management system.
+- [Java SE 21 — `ProcessHandle` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ProcessHandle.html): PID and info of the current process.

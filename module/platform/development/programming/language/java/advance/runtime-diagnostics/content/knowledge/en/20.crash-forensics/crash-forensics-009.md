@@ -1,107 +1,107 @@
-# 20.9 Phân biệt JVM tự ghi lỗi với tiến trình bị hệ điều hành chấm dứt
+# 20.9 Distinguishing JVM Self-Reported Fatal Errors from OS-Terminated Processes
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Khi một ứng dụng Java đột nhiên biến mất, có nhiều cơ chế có thể dẫn đến cùng một triệu chứng: service ngừng trả lời, process không còn, pod restart và log dừng giữa chừng. Tuy nhiên, **JVM tự phát hiện lỗi nghiêm trọng rồi ghi fatal error log** và **tiến trình bị hệ điều hành hoặc bộ điều phối chấm dứt** là hai nhánh điều tra khác nhau. Một ngoại lệ Java chưa bắt, một lệnh System.exit, sự kiện container OOMKilled hoặc một SIGSEGV trong thư viện native cũng không được gộp làm một loại “JVM crash”.
+When a Java application suddenly disappears, multiple mechanisms can lead to the same symptom: the service stops responding, the process is gone, the pod restarts, and logs stop mid-stream. However, **the JVM detecting a severe error itself and writing a fatal error log** vs. **the process being terminated by the operating system or orchestrator** are two distinct investigation branches. An uncaught Java exception, a `System.exit` call, a container `OOMKilled` event, or a `SIGSEGV` in a native library must not be lumped together as one generic “JVM crash.”
 
-Bài học này thuộc chủ đề **Crash và phân tích sau lỗi**, tập trung vào việc nhận diện **ai hoặc cơ chế nào đã khiến tiến trình kết thúc**, bằng chứng nào đáng tin, dấu vết nào có thể vắng mặt và cách điều tra có thứ tự sau sự cố.
+This lesson belongs to **Crash and Post-Failure Analysis**, focusing on identifying **who or what mechanism caused the process to terminate**, which evidence is trustworthy, which traces may be absent, and how to investigate methodically after an incident.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt lỗi Java ở mức ứng dụng, thoát JVM chủ động, HotSpot fatal error, external signal và Linux OOM killer/cgroup OOM kill.
-2. Đọc đúng các loại dấu vết: hs_err_pid*.log, stack trace, heap dump, core dump, exit status, kernel logs, cgroup memory.events và container termination reason.
-3. Giải thích vì sao **exit code 137 không tự chứng minh OOMKilled**, vì sao **không có hs_err không chứng minh OS kill**, và vì sao một OutOfMemoryError không nhất thiết giết cả JVM.
-4. Dựng timeline nguồn–bằng chứng–nguyên nhân từ JVM, OS, service manager và orchestrator mà không nhầm lẫn.
-5. Thu thập chứng cứ sớm, có bảo mật và ít xâm lấn, rồi đưa ra kết luận theo mức độ chắc chắn.
-6. Thực hành với chương trình Java 17+ mô phỏng những đường thoát **có kiểm soát**, không cố gây cạn kiệt bộ nhớ hay phá JVM thật.
+1. Distinguish application-level Java errors, intentional JVM exits, HotSpot fatal errors, external signals, and Linux OOM killer / cgroup OOM kills.
+2. Read the right evidence types accurately: `hs_err_pid*.log`, stack traces, heap dumps, core dumps, exit statuses, kernel logs, cgroup `memory.events`, and container termination reasons.
+3. Explain why **exit code 137 does not by itself prove `OOMKilled`**, why **absence of `hs_err` does not prove an OS kill**, and why an `OutOfMemoryError` does not necessarily kill the entire JVM.
+4. Build a source–evidence–cause timeline across the JVM, OS, service manager, and orchestrator without confusion.
+5. Collect evidence early, securely, and non-intrusively, then state conclusions calibrated by confidence level.
+6. Practice with a Java 17+ program simulating **controlled** exit paths, without attempting to exhaust memory or break a real JVM.
 
-Phạm vi: Java 17+ chạy trên HotSpot/OpenJDK, Linux hoặc container/Kubernetes khi ví dụ OS liên quan. Hành vi logging, exit status, signals, core dumps và công cụ quản trị phụ thuộc OS/JDK/vendor/container runtime. Luôn xác nhận trên môi trường cụ thể; **không dùng các thao tác kill/crash để thử trên dịch vụ production**.
+Scope: Java 17+ running on HotSpot/OpenJDK, with Linux or containers/Kubernetes where OS examples apply. Logging behavior, exit statuses, signals, core dumps, and management tools depend on OS/JDK/vendor/container runtime. Always verify on your specific environment; **never use kill/crash operations to test on production services**.
 
-## 1. Đặt đúng câu hỏi: tiến trình chấm dứt theo cơ chế nào?
+## 1. Ask the Right Question: By What Mechanism Did the Process Terminate?
 
-Khi ứng dụng chết, ít nhất phải tách năm nhóm:
+When an application dies, at minimum separate five groups:
 
-| Nhóm | Mô tả | Bằng chứng thường thấy | Không được suy luận vội |
+| Group | Description | Typical evidence | What not to infer hastily |
 | --- | --- | --- | --- |
-| **Java-level failure** | Một thread ném ngoại lệ không được bắt, kể cả một số OutOfMemoryError | Java exception stack trace, app logs, đôi khi nonzero exit | Không mặc nhiên là fatal JVM crash hoặc OS OOM kill |
-| **JVM chủ động kết thúc** | main kết thúc, System.exit, Runtime.halt hoặc chính sách ExitOnOutOfMemoryError | Exit status và log trước khi thoát, hook có thể chạy | Exit code khác 0 chưa chắc do OS gửi tín hiệu |
-| **JVM fatal error / native crash** | HotSpot hoặc native code gặp lỗi nghiêm trọng: SIGSEGV, SIGBUS, fatal internal error, intentional CrashOnOutOfMemoryError | hs_err_pid*.log, có thể core dump, signal-related status | Tín hiệu SIGSEGV từ kernel không đồng nghĩa bị OOM killer chấm dứt |
-| **External termination** | systemd, operator, deploy controller, liveness probe, timeout, runtime gửi SIGTERM rồi có thể SIGKILL | Service manager/events, signal status, lifecycle records | SIGKILL không nhất thiết do hết bộ nhớ |
-| **OS/cgroup OOM kill** | Kernel chọn một hoặc nhiều tasks để kill vì memory pressure/limit | Kernel OOM message, cgroup oom_kill tăng, Kubernetes reason OOMKilled | Heap used thấp không loại trừ tổng memory cgroup vượt giới hạn |
+| **Java-level failure** | A thread throws an uncaught exception, including some `OutOfMemoryError`s | Java exception stack trace, app logs, sometimes nonzero exit | Not automatically a fatal JVM crash or OS OOM kill |
+| **Intentional JVM termination** | `main` finishes, `System.exit`, `Runtime.halt`, or `ExitOnOutOfMemoryError` policy | Exit status and pre-exit logs; hooks may run | Non-zero exit code is not necessarily an OS signal |
+| **JVM fatal error / native crash** | HotSpot or native code hits a severe fault: `SIGSEGV`, `SIGBUS`, fatal internal error, intentional `CrashOnOutOfMemoryError` | `hs_err_pid*.log`, possibly core dump, signal-related status | A `SIGSEGV` signal from the kernel does not mean OOM killer termination |
+| **External termination** | `systemd`, operator, deploy controller, liveness probe, or timeout sends `SIGTERM` and possibly `SIGKILL` | Service manager/events, signal status, lifecycle records | `SIGKILL` is not necessarily due to running out of memory |
+| **OS/cgroup OOM kill** | Kernel selects one or more tasks to kill due to memory pressure/limit | Kernel OOM message, cgroup `oom_kill` increments, Kubernetes reason `OOMKilled` | Low `heap used` does not rule out total cgroup memory exceeding the limit |
 
-Một process có thể có **nhiều yếu tố góp phần**. Ví dụ native memory tăng làm container vượt memory.max; kernel SIGKILL Java mà không cho JVM chạy fatal-error handler. Hoặc Java code bắt OOME rồi gọi System.exit: có OOME và nonzero exit nhưng không có OOM killer. Vì thế cần phân biệt:
+A single process death can have **multiple contributing factors**. For example, growing native memory pushes the container past `memory.max`; the kernel `SIGKILL`s Java without letting the JVM run its fatal-error handler. Or Java code catches OOME and calls `System.exit`: there is an OOME and a nonzero exit, yet no OOM killer. Therefore, distinguish:
 
-- **Triệu chứng:** process biến mất hoặc application không phục vụ.
-- **Cơ chế kết thúc (termination mechanism):** exit thông thường, signal, fatal error hoặc kernel kill.
-- **Nguyên nhân sâu (root cause):** code bug, data growth, memory budget, native library, deployment, watchdog, storage failure...
-- **Bằng chứng:** loại artifact và nguồn tạo ra nó, có timestamp/instance khớp.
+- **Symptom:** the process vanished or the application stopped serving.
+- **Termination mechanism:** normal exit, signal, fatal error, or kernel kill.
+- **Root cause:** code bug, data growth, memory budget, native library, deployment, watchdog, storage failure, etc.
+- **Evidence:** artifact type and the source that produced it, with matching timestamp/instance.
 
-“OS là bên gửi tín hiệu” và “lỗi phát sinh từ JVM/native code” không luôn đối lập tuyệt đối. Ví dụ lỗi truy cập bộ nhớ phát sinh trong native code khiến kernel giao SIGSEGV; JVM có thể bắt tín hiệu, tạo hs_err rồi tiến trình chấm dứt. Khác với việc **kernel OOM killer gửi SIGKILL để thu hồi bộ nhớ**.
+“The OS sent the signal” and “the fault originated in JVM/native code” are not always strict opposites. For instance, an invalid memory access in native code causes the kernel to deliver `SIGSEGV`; the JVM may catch that signal, write `hs_err`, and then terminate. That differs from **the kernel OOM killer sending `SIGKILL` to reclaim memory**.
 
-## 2. Hiểu ba đường kết thúc rất dễ nhầm
+## 2. Understanding Three Easily Confused Termination Paths
 
-### 2.1. Java exception không tự đồng nghĩa JVM fatal error
+### 2.1. A Java exception is not automatically a JVM fatal error
 
-Nếu thread ném RuntimeException chưa bắt, runtime thường in stack trace qua uncaught exception handler; **chỉ thread đó kết thúc**. JVM có thể vẫn chạy nếu còn non-daemon threads. Nếu main là thread user cuối cùng, JVM có thể tự kết thúc và shell thấy mã lỗi; đây không phải bằng chứng HotSpot/native crash.
+If a thread throws an uncaught `RuntimeException`, the runtime typically prints a stack trace via the uncaught exception handler; **only that thread terminates**. The JVM can keep running if non-daemon threads remain. If `main` was the last user thread, the JVM may exit on its own and the shell sees an error code; this is not evidence of a HotSpot/native crash.
 
-java.lang.OutOfMemoryError là một **Error ở tầng Java**: có thể do heap, metaspace, native thread, direct buffer hoặc một giới hạn khác tùy message và nguồn phát sinh. Nó cũng có thể được ném, bắt hoặc được JVM xử lý theo các flags. Không mặc định có hs_err cho mọi OOME. Một heap dump do -XX:+HeapDumpOnOutOfMemoryError không giống fatal error log.
+`java.lang.OutOfMemoryError` is a **Java-level `Error`**: it can stem from heap, metaspace, native threads, direct buffers, or another limit depending on its message and origin. It can also be thrown, caught, or handled by the JVM according to flags. Do not assume `hs_err` exists for every OOME. A heap dump from `-XX:+HeapDumpOnOutOfMemoryError` is not the same as a fatal error log.
 
-### 2.2. JVM fatal error là tình huống khác
+### 2.2. A JVM fatal error is a different situation
 
-HotSpot có fatal error reporting khi gặp lỗi không thể tiếp tục an toàn, chẳng hạn lỗi VM internal, memory access fault trong mã native/JVM, một số lỗi native allocation fatal hoặc cấu hình chủ động crash. JVM có thể xuất báo cáo hs_err_pid*.log với “A fatal error has been detected by the Java Runtime Environment”, “Problematic frame”, trạng thái thread, native/Java stack và thông tin VM/OS.
+HotSpot invokes fatal error reporting when it hits a fault from which it cannot safely continue—such as an internal VM error, a memory access fault in native/VM code, certain fatal native allocation failures, or an intentional crash configuration. The JVM may write `hs_err_pid*.log` with “A fatal error has been detected by the Java Runtime Environment”, “Problematic frame”, thread state, native/Java stacks, and VM/OS details.
 
-Điểm quan trọng:
-- **Có hs_err phù hợp timestamp/PID** là dấu hiệu mạnh rằng cơ chế fatal-error reporting của JVM đã chạy.
-- **Có hs_err không tự chứng minh lỗi do mã Java thuần**, vì JNI/native agent/driver/JVM bug hoặc phần cứng đều có thể liên quan.
-- **Không thấy hs_err** không chứng minh không có JVM fatal error: JVM có thể không kịp ghi, không có quyền/disk, bị kill đột ngột, file nằm nơi khác, bị xóa hoặc log hỏng một phần.
+Key points:
+- **Having `hs_err` with matching timestamp/PID** is strong evidence that the JVM's fatal-error reporting mechanism ran.
+- **Having `hs_err` does not prove pure Java code caused the bug**, because JNI, native agents, drivers, JVM bugs, or hardware may be involved.
+- **Not seeing `hs_err`** does not prove there was no JVM fatal error: the JVM may have run out of time to write, lacked permissions/disk, been killed abruptly, written elsewhere, been deleted, or produced a partially corrupted log.
 
-### 2.3. Bị gửi tín hiệu không mặc định là OOM kill
+### 2.3. Receiving a signal does not default to an OOM kill
 
-Trên Linux:
-- **SIGTERM (15)** là yêu cầu kết thúc; JVM HotSpot thông thường có cơ hội shutdown có kiểm soát nếu signal handling phù hợp.
-- **SIGKILL (9)** không thể bắt, bỏ qua hay chặn bằng shutdown hook: process dừng ngay, không kịp ghi hs_err hoặc heap dump theo lộ trình JVM thông thường.
-- **SIGSEGV (11)** là memory access fault; HotSpot có thể xử lý để báo fatal error, nhưng cũng có thể chết trước khi tạo đủ artifact.
-- **SIGABRT (6)** có thể xuất hiện khi native code/JVM chủ động abort hoặc từ tác nhân khác; phải kiểm tra nguồn.
-- **SIGBUS (7, trên Linux)** có thể liên quan truy cập memory-mapped region hoặc lỗi bộ nhớ/thiết bị; không đủ để gọi OOMKilled.
+On Linux:
+- **`SIGTERM` (15)** is a termination request; a standard HotSpot JVM gets a chance for controlled shutdown if signal handling is normal.
+- **`SIGKILL` (9)** cannot be caught, ignored, or blocked by shutdown hooks: the process stops immediately with no chance to write `hs_err` or a heap dump via normal JVM paths.
+- **`SIGSEGV` (11)** is a memory access fault; HotSpot may handle it to write a fatal error report, or it may die before finishing artifacts.
+- **`SIGABRT` (6)** can appear when native code/JVM intentionally aborts or from another actor; you must verify the source.
+- **`SIGBUS` (7, on Linux)** can relate to memory-mapped region access or memory/hardware faults; insufficient to call it `OOMKilled`.
 
-Cả operator “kill -9”, service manager escalated shutdown và kernel OOM killer đều có thể tạo một trạng thái termination bằng SIGKILL. **Cần biết ai gửi tín hiệu, tại sao và thời điểm nào**, không chỉ đọc số 9.
+An operator running `kill -9`, a service manager escalating shutdown, and the kernel OOM killer can all produce a `SIGKILL` termination status. **You must know who sent the signal, why, and when**, rather than merely reading the number 9.
 
-## 3. Bảng chẩn đoán nhanh theo dấu vết
+## 3. Quick Diagnostic Table by Clue
 
-| Quan sát | Gợi ý hợp lý | Việc cần kiểm chứng |
+| Observation | Reasonable hint | What to verify |
 | --- | --- | --- |
-| Có hs_err_pid1234.log mới, header báo SIGSEGV, problematic frame là libxyz.so | JVM/native fatal error xảy ra | Đúng PID/start time? thư viện JNI/agent/JVM version? core dump? |
-| App logs có “Exception in thread main” rồi exit 1 | Uncaught Java exception có thể khiến JVM kết thúc | Còn thread sống không? có System.exit trong error handler? |
-| App logs có “OutOfMemoryError: Java heap space” | JVM ném Java OOME về heap | Có exit thật? heap dump? heap/GC trend? flags ExitOnOOME? |
-| Pod lastState.terminated.reason = OOMKilled, exitCode 137 | Container đã được runtime/orchestrator xác nhận bị OOM kill | Đúng container, thời điểm, cgroup/Node/kernel evidence và memory source |
-| Chỉ thấy exitCode 137 | Thường tương thích SIGKILL theo quy ước shell | Kube reason là gì? hệ thống gửi SIGKILL? app có thể exit(137)? |
-| ExitCode 143 kèm rollout/termination event | Có thể SIGTERM theo quy ước 128+15 | Deployment/liveness/systemd logs? JVM có shutdown hook không? |
-| ExitCode 139, có hs_err SIGSEGV | Native/VM memory fault có khả năng cao | Core/native stack, JVM/JNI/agent, không mặc định OOM killer |
-| Không có hs_err, logs dừng đột ngột, memory.events oom_kill tăng | Nghi kernel/cgroup OOM kill | Counters đúng cgroup? kernel log/termination reason? |
-| Không có hs_err, process chết sau liveness probe failed | Nghi orchestrator restart | Probe failure reason, grace period, signal/exit code, app hang trước đó |
-| Có core dump nhưng không có hs_err | Process chết do fatal signal/core-producing mechanism | Core thuộc PID nào, signal nào, core handler, không vội kết luận JVM bug |
-| Service restart nhưng PID cũ không có chứng cứ exit | Có thể rolling deploy, process supervisor, runtime reset | Lifecycle events, previous logs, restart reason, PID/instance mapping |
-| OOMKill counters không tăng, app log có exit request | Chưa có bằng chứng kernel OOM kill | Cùng cgroup/khung thời gian? systemd/container audit? |
+| Fresh `hs_err_pid1234.log`, header shows `SIGSEGV`, problematic frame is `libxyz.so` | JVM/native fatal error occurred | Exact PID/start time? JNI/agent/JVM versions? core dump? |
+| App logs show “Exception in thread main” then exit 1 | Uncaught Java exception may have ended the JVM | Any live threads left? `System.exit` in an error handler? |
+| App logs show “OutOfMemoryError: Java heap space” | JVM threw a Java heap OOME | Did it actually exit? heap dump? heap/GC trend? `ExitOnOOME` flags? |
+| Pod `lastState.terminated.reason = OOMKilled`, `exitCode 137` | Container was confirmed OOM-killed by runtime/orchestrator | Exact container, timestamp, cgroup/Node/kernel evidence, and memory source |
+| Only `exitCode 137` seen | Usually consistent with `SIGKILL` under shell conventions | What is the Kube reason? did the system send `SIGKILL`? could the app call `exit(137)`? |
+| `ExitCode 143` alongside rollout/termination event | Possibly `SIGTERM` per `128+15` convention | Deployment/liveness/systemd logs? did the JVM have shutdown hooks? |
+| `ExitCode 139`, `hs_err` shows `SIGSEGV` | High likelihood of native/VM memory fault | Core/native stack, JVM/JNI/agent; do not assume OOM killer |
+| No `hs_err`, logs stop abruptly, `memory.events` `oom_kill` increments | Suspect kernel/cgroup OOM kill | Counters from the right cgroup? kernel log / termination reason? |
+| No `hs_err`, process died after liveness probe failed | Suspect orchestrator restart | Probe failure reason, grace period, signal/exit code, prior app hang |
+| Core dump exists without `hs_err` | Process died from a fatal signal / core-producing mechanism | Which PID and signal produced the core, core handler; do not rush to blame JVM bug |
+| Service restarted yet old PID has no exit evidence | Could be rolling deploy, process supervisor, runtime reset | Lifecycle events, previous logs, restart reason, PID/instance mapping |
+| `oom_kill` counters did not increment, app logs show exit request | No evidence yet of kernel OOM kill | Same cgroup/time window? systemd/container audit? |
 
-Bảng chỉ là **định hướng điều tra**, không phải phép suy diễn một–một. Một container có thể nhận SIGTERM rồi SIGKILL sau grace period và cho exit 137, nhưng reason không phải OOMKilled. Một JVM có thể crash native rồi container report generic Error. Exit 1/134/137/139/143 đều cần nguồn bổ trợ.
+This table is an **investigation guide**, not a 1-to-1 deduction rule. A container may receive `SIGTERM` followed by `SIGKILL` after its grace period and report exit 137, with a reason other than `OOMKilled`. A JVM can crash natively while the container reports a generic `Error`. Exits 1, 134, 137, 139, and 143 all require corroborating sources.
 
-## 4. Đọc hs_err_pid*.log: khi JVM kịp ghi fatal error
+## 4. Reading `hs_err_pid*.log`: When the JVM Managed to Report a Fatal Error
 
-### 4.1. Nội dung thường có
+### 4.1. Typical contents
 
-Một HotSpot fatal error log, tùy JDK/version và mức hoàn chỉnh, có thể ghi:
+A HotSpot fatal error log, depending on JDK/version and completeness, may record:
 
 - Header “A fatal error has been detected by the Java Runtime Environment”.
-- Signal/code: SIGSEGV, SIGBUS, SIGILL, internal error và địa chỉ liên quan.
-- PID, thread ID, thời điểm, VM/version/build, uptime.
-- **Problematic frame:** ví dụ mã JIT, libjvm.so, libc.so, thư viện JNI, native agent...
-- Current thread, thread state và native/Java stack, dynamic libraries.
-- Heap/metaspace, VM arguments, command line, môi trường OS và memory map.
-- Instruction pointers/registers hoặc thông tin thấp hơn, không phải lúc nào cũng đầy đủ.
+- Signal/code: `SIGSEGV`, `SIGBUS`, `SIGILL`, internal error, and related addresses.
+- PID, thread ID, timestamp, VM/version/build, uptime.
+- **Problematic frame:** e.g., JIT code, `libjvm.so`, `libc.so`, JNI library, native agent, etc.
+- Current thread, thread state, native/Java stacks, dynamic libraries.
+- Heap/metaspace, VM arguments, command line, OS environment, and memory map.
+- Instruction pointers/registers or lower-level details, not always complete.
 
-**Đọc đúng:** “Problematic frame” là nơi fault được quan sát hoặc nơi phát hiện lỗi, **không nhất thiết là nơi bắt đầu bug**. Heap corruption có thể xảy ra từ trước; JNI viết sai bộ nhớ làm JVM chết sau đó ở code khác. Một frame libjvm.so không đủ chứng minh “JDK bug” nếu agent/JNI hoặc native corruption gây trước.
+**Read accurately:** “Problematic frame” is where the fault was observed or detected, **not necessarily where the bug began**. Heap corruption may have happened earlier; buggy JNI memory writes can make the JVM die later in unrelated code. A `libjvm.so` frame is insufficient to prove a “JDK bug” if an agent, JNI, or prior native corruption caused it.
 
-### 4.2. Dấu vết mẫu, chỉ để nhận diện
+### 4.2. Sample trace, for recognition only
 
 ~~~text
 # A fatal error has been detected by the Java Runtime Environment:
@@ -115,136 +115,136 @@ Một HotSpot fatal error log, tùy JDK/version và mức hoàn chỉnh, có th�
 # /var/log/app/hs_err_pid1234.log
 ~~~
 
-Đây là **mẫu hình thức minh họa**, không phải output của chương trình chạy kèm bài, không phải bảo đảm log luôn giống hệt. C ở dòng frame có thể biểu thị native C/C++ frame theo notation HotSpot; có thể gặp J (compiled Java), V (VM code), j (interpreted Java) và những ký hiệu khác theo version.
+This is an **illustrative format sample**, not output from a program in this lesson, nor a guarantee that every log looks identical. `C` on the frame line denotes a native C/C++ frame in HotSpot notation; you may also see `J` (compiled Java), `V` (VM code), `j` (interpreted Java), and other markers depending on version.
 
-### 4.3. Kiểm chứng artifact chính xác
+### 4.3. Verifying artifact accuracy
 
-Khi tìm hs_err, cần hỏi:
-1. Đường dẫn thực do JVM ghi ở đâu? Startup working directory có phải nơi operator đang đứng không?
-2. Có cờ -XX:ErrorFile định hướng output? Giá trị %p có được thay bằng PID không?
-3. File có thuộc **đúng process**, đúng instance/container, đúng thời điểm không?
-4. Có được ghi đầy đủ hay bị cắt vì disk full, process bị kill giữa lúc báo lỗi?
-5. Native library/agent nào trong loaded modules? Có thay version/build ngay trước sự cố?
-6. Có core dump tương ứng hoặc symbol/debug information để điều tra sâu không?
+When searching for `hs_err`, ask:
+1. Where did the JVM actually write? Is the startup working directory where the operator is looking?
+2. Was `-XX:ErrorFile` set to redirect output? Was `%p` replaced by the PID?
+3. Does the file belong to the **exact process**, instance/container, and timestamp?
+4. Was it written completely or truncated due to a full disk or being killed mid-report?
+5. Which native libraries/agents are in the loaded modules? Did any version/build change right before the incident?
+6. Is there a matching core dump or symbol/debug info for deeper investigation?
 
-Nếu hs_err còn tồn tại nhưng process đã bị restart, **giữ nguyên bản gốc**, ghi thời gian, vị trí, checksum khi cần và hạn chế chia sẻ công khai vì có thể chứa thông tin nhạy cảm.
+If `hs_err` still exists after the process restarted, **preserve the original intact**, record timestamp, path, and checksum when needed, and restrict public sharing because it may contain sensitive data.
 
-## 5. Khi nào không có hs_err và điều đó có nghĩa gì?
+## 5. When `hs_err` Is Missing and What That Means
 
-Nhiều tình huống **không kỳ vọng** có hs_err:
+Many scenarios **do not expect** an `hs_err`:
 
-- Java exception hoặc OutOfMemoryError được xử lý ở tầng Java.
-- Main thread kết thúc và JVM thoát bình thường.
-- System.exit(code) được gọi.
-- Runtime.halt(code) kết thúc ngay mà không qua shutdown sequence thông thường.
-- Process bị SIGKILL từ operator, service manager hoặc kernel OOM killer.
-- Container bị xóa/kill trong khi JVM không có cơ hội thực thi fatal-error handler.
+- A Java exception or `OutOfMemoryError` was handled at the Java layer.
+- The main thread finished and the JVM exited normally.
+- `System.exit(code)` was called.
+- `Runtime.halt(code)` terminated immediately without running normal shutdown sequences.
+- The process received `SIGKILL` from an operator, service manager, or kernel OOM killer.
+- The container was deleted/killed while the JVM had no chance to execute its fatal-error handler.
 
-Nhưng **vắng hs_err không đủ chứng minh** các cơ chế trên vì cũng có thể là một JVM fatal error **không ghi được file**: disk full, permission denied, path không tồn tại, filesystem ephemeral bị xóa, JVM quá hỏng, native crash rất sớm, fatal signal và core policy, JVM khác HotSpot hoặc file được lưu nơi khác.
+Yet **the absence of `hs_err` does not prove** any of the above, because it could also be a JVM fatal error that **failed to write a file**: full disk, permission denied, missing directory, deleted ephemeral filesystem, severely corrupted VM, very early native crash, fatal signal/core policy interaction, a non-HotSpot JVM, or the file being written elsewhere.
 
-Ngược lại, presence của hs_err không loại trừ external factors: agent native do vận hành cài, lỗi file mapping, thiết bị/OS, process được stop sau khi JVM đã bắt đầu báo fatal error. Cần nối **nhiều nguồn evidence cùng PID/timestamp**.
+Conversely, the presence of `hs_err` does not rule out external factors: an operator-installed native agent, file-mapping errors, hardware/OS faults, or the process being stopped after the JVM had already started reporting a fatal error. You must connect **multiple evidence sources with the same PID/timestamp**.
 
-## 6. Phân biệt Java OutOfMemoryError với kernel/cgroup OOM kill
+## 6. Distinguishing Java `OutOfMemoryError` from Kernel/Cgroup OOM Kills
 
-### 6.1. OutOfMemoryError là sự kiện ở JVM/Java
+### 6.1. `OutOfMemoryError` is a JVM/Java-level event
 
-Ví dụ thông báo:
-- java.lang.OutOfMemoryError: Java heap space;
-- java.lang.OutOfMemoryError: GC overhead limit exceeded;
-- java.lang.OutOfMemoryError: Metaspace;
-- java.lang.OutOfMemoryError: Direct buffer memory;
-- java.lang.OutOfMemoryError: unable to create native thread.
+Example messages:
+- `java.lang.OutOfMemoryError: Java heap space`;
+- `java.lang.OutOfMemoryError: GC overhead limit exceeded`;
+- `java.lang.OutOfMemoryError: Metaspace`;
+- `java.lang.OutOfMemoryError: Direct buffer memory`;
+- `java.lang.OutOfMemoryError: unable to create native thread`.
 
-Chúng phản ánh những vùng/tình huống tài nguyên khác nhau, không có nghĩa OS đã kill process. Một số trường hợp là Java-level OOME do thư viện/lớp Java ném; không phải mọi biến thể đều chắc chắn có heap dump.
+They reflect different resource regions/conditions and do not mean the OS killed the process. Some cases are Java-level OOMEs thrown by Java libraries/classes; not every variant guarantees a heap dump.
 
-Ứng dụng có thể:
-- bắt OOME và tiếp tục chạy trong tình trạng suy giảm;
-- không bắt được ở một thread, khiến thread kết thúc còn JVM sống;
-- thoát vì fatal policy, wrapper hoặc System.exit;
-- bị cgroup OOM kill ở thời điểm khác nếu tổng memory vẫn tăng.
+The application may:
+- catch OOME and keep running in a degraded state;
+- fail to catch it in one thread, killing that thread while the JVM stays alive;
+- exit via a fatal policy, wrapper, or `System.exit`;
+- get cgroup OOM-killed at another time if total memory keeps climbing.
 
-**Đừng kết luận “hết heap” chỉ vì pod OOMKilled**: container memory bao gồm nhiều thành phần ngoài Java heap như metaspace, code cache, direct/native buffers, thread stacks, malloc/JNI, page cache và những process khác trong cgroup. Cũng đừng kết luận “OS kill” chỉ vì log có chữ OutOfMemoryError.
+**Do not conclude “out of heap” just because a pod was `OOMKilled`**: container memory includes many components beyond the Java heap such as metaspace, code cache, direct/native buffers, thread stacks, `malloc`/JNI, page cache, and other processes in the cgroup. Equally, do not conclude “OS kill” just because logs contain `OutOfMemoryError`.
 
-### 6.2. JVM HotSpot có các cờ thay đổi đường kết thúc
+### 6.2. HotSpot JVM flags that change termination paths
 
-Các tùy chọn liên quan gồm:
-- -XX:+HeapDumpOnOutOfMemoryError: cố tạo heap dump cho một số OOME do JVM phát hiện theo cơ chế hỗ trợ; cần không gian/permission, không bảo đảm cho OS kill.
-- -XX:HeapDumpPath=...: đích ghi heap dump khi kích hoạt; kiểm tra path/volume.
-- -XX:+ExitOnOutOfMemoryError: chính sách JVM exit khi có OOME.
-- -XX:+CrashOnOutOfMemoryError: cố tạo fatal-error crash khi có OOME, dùng trong những trường hợp được thiết kế đặc biệt; không dùng tùy tiện production.
-- -XX:ErrorFile=...: nơi ghi HotSpot fatal error log.
-- -XX:OnOutOfMemoryError=...: chạy lệnh được cấu hình khi phát hiện OOME trong những điều kiện hỗ trợ; không phải đảm bảo chạy khi kernel SIGKILL.
+Relevant options include:
+- `-XX:+HeapDumpOnOutOfMemoryError`: attempts to create a heap dump for supported VM-detected OOMEs; requires disk space/permissions and is not guaranteed for OS kills.
+- `-XX:HeapDumpPath=...`: destination for the heap dump when triggered; verify path/volume.
+- `-XX:+ExitOnOutOfMemoryError`: policy telling the JVM to exit on OOME.
+- `-XX:+CrashOnOutOfMemoryError`: attempts to trigger a fatal-error crash on OOME for specially designed diagnostic cases; never enable casually in production.
+- `-XX:ErrorFile=...`: destination for HotSpot fatal error logs.
+- `-XX:OnOutOfMemoryError=...`: runs a configured command on OOME under supported conditions; not guaranteed to run on kernel `SIGKILL`.
 
-**Lưu ý:** các cờ không tự thay đổi semantics của memory cgroup. Dù có HeapDumpOnOutOfMemoryError, một SIGKILL có thể xảy ra trước khi JVM biết/ghi được Java OOME. Heap dump cũng có thể gây disk pressure và chứa dữ liệu nhạy cảm.
+**Note:** flags do not change cgroup memory semantics. Even with `HeapDumpOnOutOfMemoryError`, a `SIGKILL` can strike before the JVM notices or writes a Java OOME. Heap dumps can also cause disk pressure and contain sensitive data.
 
-### 6.3. OS OOM killer đi theo đường khác
+### 6.3. The OS OOM killer takes a different path
 
-Khi Linux kernel thiếu memory theo chính sách hệ thống hoặc một memory cgroup vượt giới hạn, OOM logic có thể chọn task rồi gửi SIGKILL. Với JVM bị chọn, process **không có quyền thương lượng**; shutdown hooks không chạy, JVM không có cơ hội thông thường tạo hs_err/heap dump tại thời điểm kill.
+When the Linux kernel runs out of memory system-wide or a memory cgroup exceeds its limit, OOM logic selects a task and sends `SIGKILL`. For the chosen JVM, the process **has no say in the matter**: shutdown hooks do not run, and the JVM gets no normal opportunity to write `hs_err` or a heap dump at kill time.
 
-Bằng chứng gần nguồn:
-- Kernel log có OOM message và **Killed process** với PID/comm/memory context.
-- cgroup v2 memory.events (hoặc memory.events.local) có oom_kill counter tăng **đúng cửa sổ**.
-- Container runtime/Kubernetes báo last terminated reason OOMKilled đối với đúng container.
-- Metrics memory.current, memory.max, working set/RSS, restartCount, node/container pressure và time series phù hợp.
+Evidence close to the source:
+- Kernel logs show an OOM message and **Killed process** with PID/comm/memory context.
+- cgroup v2 `memory.events` (or `memory.events.local`) shows the `oom_kill` counter incrementing **in the exact window**.
+- Container runtime / Kubernetes reports last terminated reason `OOMKilled` for that exact container.
+- Metrics `memory.current`, `memory.max`, working set/RSS, `restartCount`, node/container pressure, and matching time series.
 
-**Không coi một snapshot sau restart là memory trước crash.** Cgroup cũ có thể bị xóa, counters reset, logs rotate; cần metrics lịch sử hoặc thông tin từ runtime/monitoring.
+**Never treat a post-restart snapshot as pre-crash memory.** The old cgroup may be gone, counters reset, or logs rotated; you need historical metrics or runtime/monitoring records.
 
-### 6.4. Cgroup OOM, node OOM, userspace OOM management và eviction
+### 6.4. Cgroup OOM, node OOM, userspace OOM management, and eviction
 
-Các hiện tượng không đồng nhất:
+These phenomena are not identical:
 
-| Cơ chế | Bên quyết định | Dấu vết thường gặp |
+| Mechanism | Decision maker | Typical trace |
 | --- | --- | --- |
-| Memory cgroup vượt limit | Kernel memcg OOM | memory.events oom_kill, container OOMKilled, exit do SIGKILL |
-| Node/global memory pressure | Kernel global OOM killer | Kernel OOM message, victim PID, node memory metrics; container status tùy runtime |
-| systemd-oomd hoặc daemon quản lý pressure | Userspace daemon chọn cgroup/process để kill | Journal của daemon, cgroup/pressure, signal; có thể **không có kernel OOM message** |
-| Kubelet node-pressure eviction | Kubelet evict pod theo eviction policy | Pod events/reason Evicted, kubelet logs; không mặc định là kernel OOMKilled |
-| Liveness probe/deploy/timeout | Controller, kubelet, service manager | Probe failures, rollout events, SIGTERM và có thể SIGKILL sau grace |
-| Ứng dụng tự thoát vì OOME | JVM hoặc app policy | OOME log/flag, process exit, không nhất thiết OOMKilled |
+| Memory cgroup exceeds limit | Kernel memcg OOM | `memory.events` `oom_kill`, container `OOMKilled`, exit via `SIGKILL` |
+| Node/global memory pressure | Kernel global OOM killer | Kernel OOM message, victim PID, node memory metrics; container status varies by runtime |
+| `systemd-oomd` or pressure daemon | Userspace daemon picks cgroup/process to kill | Daemon journal, cgroup/pressure metrics, signal; may have **no kernel OOM message** |
+| Kubelet node-pressure eviction | Kubelet evicts pod per eviction policy | Pod events/reason `Evicted`, kubelet logs; not by default kernel `OOMKilled` |
+| Liveness probe / deploy / timeout | Controller, kubelet, service manager | Probe failures, rollout events, `SIGTERM` and possibly `SIGKILL` after grace period |
+| App exits itself due to OOME | JVM or app policy | OOME log/flag, process exit, not necessarily `OOMKilled` |
 
-Khi người vận hành nói “pod bị OOM”, yêu cầu làm rõ **OOMKilled**, **Evicted do MemoryPressure**, **ứng dụng log OOME** hay **node/global kill**. Hướng sửa khác nhau: phân tích live heap, native memory/cgroup budget, capacity node, request/limit/eviction policy, hay lỗi application.
+When an operator says “the pod OOM'd,” ask them to clarify whether it was **`OOMKilled`**, **`Evicted` due to `MemoryPressure`**, **application OOME logs**, or a **node/global kill**. Remediation differs completely: live heap tuning, native memory/cgroup budgeting, node capacity, request/limit/eviction policy, or an application bug.
 
-## 7. Exit status và tín hiệu: dùng làm manh mối, không dùng làm phán quyết
+## 7. Exit Status and Signals: Clues, Not Verdicts
 
-### 7.1. Các số thường thấy
+### 7.1. Commonly seen numbers
 
-Trên shell Linux và nhiều container runtime, một quy ước thường gặp là **128 + signal number** khi process bị tín hiệu kết thúc. Ví dụ:
+In Linux shells and many container runtimes, a common convention is **`128 + signal number`** when a process is terminated by a signal. For example:
 
-| Mã quan sát | Có thể tương ứng | Điều kiện xác minh |
+| Observed code | Possible correspondence | Verification required |
 | --- | --- | --- |
-| 0 | Hoàn tất thành công theo quy ước app | App có thực sự phục vụ/đạt SLO trước khi thoát? |
-| 1 | Lỗi chung, uncaught exception, explicit exit(1) | Stack trace, framework exit policy, service manager |
-| 134 | 128 + SIGABRT(6) | Fatal/native abort hay tác nhân ngoài? hs_err/core? |
-| 137 | 128 + SIGKILL(9) | OOM killer hay kill -9/timeout/probe? |
-| 139 | 128 + SIGSEGV(11) | Native/VM memory fault hay signal khác? hs_err/core? |
-| 143 | 128 + SIGTERM(15) | Deploy, pod termination, service manager, operator? |
+| 0 | Completed successfully per app convention | Did the app actually serve / meet SLOs before exiting? |
+| 1 | General error, uncaught exception, explicit `exit(1)` | Stack trace, framework exit policy, service manager |
+| 134 | `128 + SIGABRT(6)` | Fatal/native abort or external actor? `hs_err`/core? |
+| 137 | `128 + SIGKILL(9)` | OOM killer or `kill -9`/timeout/probe? |
+| 139 | `128 + SIGSEGV(11)` | Native/VM memory fault or another signal? `hs_err`/core? |
+| 143 | `128 + SIGTERM(15)` | Deploy, pod termination, service manager, operator? |
 
-Đây không phải ánh xạ đảm bảo cho mọi OS/shell/runtime. **Exit code tự thân không chứa toàn bộ thông tin ai gửi signal**. Một chương trình Java có thể gọi System.exit(137) và tạo mã 137 **mà không có SIGKILL**. Một wrapper/supervisor có thể ghi status của chính wrapper hoặc biến đổi status của process con.
+This is not a guaranteed mapping across every OS, shell, and runtime. **An exit code by itself does not record who sent the signal.** A Java program can call `System.exit(137)` and produce code 137 **without any `SIGKILL`**. A wrapper/supervisor may report its own status or transform a child process's status.
 
-Trên Linux, cha của process có thể phân biệt **WIFEXITED** với **WIFSIGNALED** trong wait status thô; log orchestrator có thể hiển thị dạng exit code đã chuẩn hóa. Không lấy chuỗi “exitCode: 137” từ dashboard làm bằng chứng hoàn chỉnh rằng kernel đã giết vì hết bộ nhớ.
+On Linux, a parent process can distinguish **`WIFEXITED`** from **`WIFSIGNALED`** in raw wait status; orchestrator logs may present a normalized exit code. Never take the string “exitCode: 137” on a dashboard as complete proof that the kernel killed the process for running out of memory.
 
-### 7.2. SIGTERM khác SIGKILL
+### 7.2. `SIGTERM` vs. `SIGKILL`
 
-SIGTERM thường cho chương trình cơ hội:
-- nhận tín hiệu theo cơ chế runtime;
-- chạy shutdown hooks nếu JVM đang shutdown bình thường và không bị ép;
-- giải phóng connections, flush logs, trả readiness false hoặc xử lý drain.
+`SIGTERM` normally gives the program an opportunity to:
+- receive the signal via runtime handlers;
+- run shutdown hooks if the JVM is shutting down normally and is not forced;
+- release connections, flush logs, fail readiness, or drain traffic.
 
-Nhưng SIGTERM cũng có thể không dẫn đến shutdown sạch: process bị treo, hook chạy quá lâu, signal handler thay đổi hoặc sau grace period controller gửi SIGKILL. Sau SIGKILL, không có thêm Java shutdown log; absence của “shutting down” không phân biệt được kernel OOM với operator kill.
+Yet `SIGTERM` may still fail to produce a clean shutdown: the process may be hung, a hook may take too long, a signal handler may be altered, or the controller sends `SIGKILL` after the grace period. After `SIGKILL`, no further Java shutdown logs appear; the absence of “shutting down” cannot tell a kernel OOM apart from an operator kill.
 
-**Không thử kill -9 trên dịch vụ thật** chỉ để xác minh mã 137. Nếu cần minh họa, dùng process Java độc lập trong môi trường lab, ghi PID và biết rõ phạm vi.
+**Never test `kill -9` on live services** just to verify code 137. If demonstration is needed, use a standalone Java process in a lab environment with its PID noted and scope clearly bounded.
 
-### 7.3. SIGSEGV có phải “OS chấm dứt” không?
+### 7.3. Is `SIGSEGV` an “OS termination”?
 
-Lỗi truy cập bộ nhớ trong native/JIT/JVM code thường khiến kernel gửi tín hiệu SIGSEGV. Nhưng bản chất của sự cố là **memory fault** trên đường thực thi process; HotSpot thường cố tạo fatal error report. Vì vậy một hs_err SIGSEGV nên đi theo hướng **native/JVM crash analysis**, không bị gộp với external administrative kill.
+A memory access fault in native/JIT/JVM code typically causes the kernel to deliver `SIGSEGV`. Yet the root nature of the incident is a **memory fault** on the process's execution path; HotSpot usually tries to write a fatal error report. Therefore, an `hs_err` with `SIGSEGV` belongs to **native/JVM crash analysis**, not external administrative kills.
 
-Nếu JVM dùng JNI, agent monitoring, native library, Unsafe hoặc foreign/native interfaces, không thể chỉ nhìn frame libjvm rồi tự kết luận JVM core có bug; phải xem caller/callee, version, native memory corruption và khả năng tái hiện.
+If the JVM uses JNI, monitoring agents, native libraries, `Unsafe`, or foreign/native interfaces, you cannot look solely at a `libjvm` frame and conclude HotSpot core has a bug; inspect caller/callee, versions, native memory corruption, and reproducibility.
 
-## 8. Bằng chứng từ Linux: kernel, cgroup, service manager
+## 8. Evidence from Linux: Kernel, Cgroups, and Service Managers
 
-### 8.1. Kernel logs trong đúng cửa sổ thời gian
+### 8.1. Kernel logs in the exact time window
 
-Các lệnh đọc-only minh họa (tùy distro và quyền):
+Illustrative read-only commands (depending on distro and permissions):
 
 ~~~bash
 journalctl -k --since "2026-10-29 09:00:00" \
@@ -252,19 +252,19 @@ journalctl -k --since "2026-10-29 09:00:00" \
 dmesg -T
 ~~~
 
-Trong sự cố thực, thay thời gian bằng **incident window đúng theo timezone**; -T hiển thị wall time suy từ kernel timestamps và có thể chịu ảnh hưởng khi clock thay đổi. Ưu tiên journal logs với timestamp chính xác khi có.
+In a real incident, substitute the **exact incident window with the proper timezone**; `-T` converts kernel timestamps to wall time and can be skewed if the system clock changed. Prefer journal logs with accurate timestamps when available.
 
-Tìm:
-- “Out of memory” và “Killed process PID ... (java)”;
-- “Memory cgroup out of memory” hoặc các biến thể kernel/distro;
-- PID và memory context, cgroup path, node/pod association;
-- các dấu hiệu kernel/device lỗi khác nếu phù hợp.
+Look for:
+- “Out of memory” and “Killed process PID ... (java)”;
+- “Memory cgroup out of memory” or kernel/distro variants;
+- PID and memory context, cgroup path, node/pod association;
+- other kernel/device error signs where relevant.
 
-**Thiếu dòng OOM trong dmesg không phủ định OOM kill**: quyền đọc bị giới hạn, ring buffer đã ghi đè, logs không được lưu dài hạn, process bị userspace OOM daemon kill hoặc bạn xem sai node/thời gian.
+**Missing OOM lines in `dmesg` do not rule out an OOM kill**: read permissions may be restricted, the ring buffer may have wrapped, logs may lack long-term retention, a userspace OOM daemon may have killed the process, or you checked the wrong node/time.
 
 ### 8.2. Cgroup v2 memory counters
 
-Trong **đúng cgroup của container/process** và hệ thống dùng cgroup v2:
+Inside the **exact cgroup of the container/process** on a cgroup v2 system:
 
 ~~~bash
 cat /sys/fs/cgroup/memory.events
@@ -273,22 +273,22 @@ cat /sys/fs/cgroup/memory.current
 cat /sys/fs/cgroup/memory.max
 ~~~
 
-Ý nghĩa:
-- **memory.events:** counters các trạng thái như low, high, max, oom, oom_kill... tùy kernel/config, thường có tính phân cấp.
-- **memory.events.local:** local events của chính cgroup, giúp tránh lẫn propagation từ descendants.
-- **memory.current:** lượng memory cgroup đang được tính tại thời điểm đọc.
-- **memory.max:** hard memory limit hoặc “max” nếu không giới hạn.
-- **oom_kill:** số OOM kills thuộc phạm vi counter. Cần so **delta theo thời gian**, không chỉ một giá trị tích lũy.
-- **oom:** số lần cgroup chạm tình huống OOM theo semantics kernel; **không đồng nghĩa số kills**.
-- **high/max:** cho thấy pressure hoặc chạm giới hạn tương ứng; cũng không tự chứng minh process đã bị kill.
+Meaning:
+- **`memory.events`:** counters for states such as `low`, `high`, `max`, `oom`, `oom_kill`, etc., depending on kernel/config, usually hierarchical.
+- **`memory.events.local`:** events local to this cgroup itself, avoiding propagation from descendants.
+- **`memory.current`:** memory currently charged to the cgroup at read time.
+- **`memory.max`:** hard memory limit or literal “max” if unlimited.
+- **`oom_kill`:** number of OOM kills in the counter's scope. Compare **deltas over time**, not just a single cumulative value.
+- **`oom`:** number of times the cgroup hit OOM conditions per kernel semantics; **not equal to kill count**.
+- **`high`/`max`:** indicate pressure or hitting the respective limit; also do not by themselves prove a process was killed.
 
-Cách đọc phải xác minh mount/cgroup path từ /proc/PID/cgroup **trước khi process chết** hoặc từ orchestrator/runtime. /sys/fs/cgroup của container có thể được namespace hóa, giới hạn hiển thị hoặc không phải đúng cgroup trong host view. **Nếu cgroup bị xóa sau restart, không thể đọc lại counter của cgroup cũ từ đường dẫn mới và giả vờ đó là số liệu trước crash.**
+Verify the mount/cgroup path via `/proc/PID/cgroup` **before the process dies** or via the orchestrator/runtime. A container's `/sys/fs/cgroup` may be namespaced, visibility-restricted, or different from the host view's cgroup path. **If the cgroup was deleted on restart, you cannot read the new cgroup's counters and pretend they are pre-crash figures.**
 
-Một oom_kill tăng mạnh ở cgroup cha không tự nói victim là Java: trong cùng pod/cgroup có thể có process phụ hoặc descendant khác. Ghép kernel victim PID, container status và timestamps.
+A spike in `oom_kill` on a parent cgroup does not automatically mean Java was the victim: sidecars or other descendants may share the pod/cgroup. Match the kernel victim PID, container status, and timestamps.
 
-### 8.3. systemd và userspace OOM manager
+### 8.3. `systemd` and userspace OOM managers
 
-Với service được systemd quản lý:
+For a `systemd`-managed service:
 
 ~~~bash
 systemctl status my-java-service
@@ -298,13 +298,13 @@ journalctl -u my-java-service --since "2026-10-29 09:00:00"
 journalctl -u systemd-oomd --since "2026-10-29 09:00:00"
 ~~~
 
-Các tên service và mốc thời gian trên chỉ là ví dụ. systemd có thể báo code=exited hoặc code=killed và status theo signal khi đủ thông tin, cùng restart/timeout/watchdog reason tùy version. Nếu systemd-oomd là tác nhân, journal của nó có thể là bằng chứng chính dù kernel log không ghi “Killed process” theo mẫu kernel OOM killer.
+Service names and timestamps above are examples. `systemd` can report `code=exited` or `code=killed` and signal status when available, along with restart/timeout/watchdog reasons depending on version. If `systemd-oomd` acted, its journal may be the primary evidence even when kernel logs lack a kernel OOM killer “Killed process” line.
 
-Không đồng nhất “service đang active sau restart” với “JVM cũ không từng chết”. Cần lấy log của **lần process cũ** và restart count.
+Do not equate “service is active after restart” with “the old JVM never died.” Pull logs from the **old process run** and check the restart count.
 
-### 8.4. Core dump không phải bằng chứng độc quyền của JVM
+### 8.4. Core dumps are not exclusive JVM evidence
 
-Trên Linux, core dump có thể phát sinh vì signal lỗi fatal cho nhiều chương trình, không riêng JVM. Có thể kiểm tra:
+On Linux, core dumps can be produced on fatal signals for many programs, not only the JVM. You can inspect:
 
 ~~~bash
 ulimit -c
@@ -312,13 +312,13 @@ cat /proc/sys/kernel/core_pattern
 coredumpctl list
 ~~~
 
-Lệnh coredumpctl phụ thuộc hệ thống có systemd-coredump hay không. ulimit/core_pattern ảnh hưởng cách core được tạo/thu hồi; file có thể lớn, bảo mật cao và bị retention xóa. **Không có core dump** không chứng minh process không crash; **có core dump** cũng không tự chứng minh nguyên nhân thuộc JVM core.
+`coredumpctl` depends on whether the host uses `systemd-coredump`. `ulimit`/`core_pattern` govern how cores are created/collected; files can be large, highly sensitive, and pruned by retention. **Having no core dump** does not prove the process did not crash; **having a core dump** does not automatically prove the root cause is inside the JVM core.
 
-Đối với JVM fatal error, core/native stack + hs_err + symbols và version native libraries thường bổ sung nhau; cần đúng PID/timestamp/architecture.
+For a JVM fatal error, core/native stack + `hs_err` + symbols and native library versions complement each other; verify matching PID/timestamp/architecture.
 
-## 9. Kubernetes và container: xem đúng container đã chết
+## 9. Kubernetes and Containers: Inspect the Exact Container That Died
 
-### 9.1. Các lệnh read-only thường dùng
+### 9.1. Common read-only commands
 
 ~~~bash
 NS=default
@@ -330,20 +330,20 @@ kubectl logs "$POD" -n "$NS" -c "$CONTAINER" --previous
 kubectl get pod "$POD" -n "$NS" -o json
 ~~~
 
-Dùng tên thực và quyền phù hợp. Lệnh --previous truy xuất log của một container instance trước nếu runtime còn giữ; nó **không bảo đảm** có toàn bộ lịch sử nhiều lần restart. Pod events có hạn lưu; JSON có thể chứa metadata nhạy cảm, không phát tán nguyên bản.
+Use real names and appropriate permissions. `--previous` fetches logs from the prior container instance if the runtime still keeps them; it **does not guarantee** full history across multiple restarts. Pod events have limited retention; JSON may contain sensitive metadata and must not be distributed raw.
 
-Kiểm tra:
-- **status.containerStatuses[].lastState.terminated.reason**, exitCode, startedAt, finishedAt, message;
-- restartCount của **đúng container** trong pod;
-- pod phase/reason và Events: OOMKilled, Evicted, Killing, Unhealthy/liveness, rollout/drain, sandbox changes;
-- memory limits/requests, actual resource usage **trước khi chết**, CPU throttling, node MemoryPressure;
-- container IDs, pod UID, node ID, process start times để không nhầm pod mới cùng tên logic.
+Check:
+- **`status.containerStatuses[].lastState.terminated.reason`**, `exitCode`, `startedAt`, `finishedAt`, `message`;
+- `restartCount` of the **exact container** in the pod;
+- pod phase/reason and Events: `OOMKilled`, `Evicted`, `Killing`, `Unhealthy`/liveness, rollout/drain, sandbox changes;
+- memory limits/requests, actual resource usage **before death**, CPU throttling, node `MemoryPressure`;
+- container IDs, pod UID, node ID, and process start times so you do not confuse a newly created pod with the same logical name.
 
-**Reason=OOMKilled** trên trạng thái termination của container là bằng chứng mạnh theo phân loại runtime/orchestrator về một OOM kill. Nhưng vẫn nên đối chiếu kernel/cgroup, container memory breakdown và workload để giải thích **tại sao** vượt giới hạn. **ExitCode=137 nhưng reason=Error** có thể do kill khác; kiểm tra events và shutdown timeline.
+**`reason=OOMKilled`** on a container's termination state is strong orchestrator/runtime-level evidence of an OOM kill. Still cross-check kernel/cgroup records, container memory breakdown, and workload to explain **why** it hit the limit. **`ExitCode=137` with `reason=Error`** may be a different kill; inspect events and the shutdown timeline.
 
-### 9.2. Restart sau liveness failure và shutdown escalation
+### 9.2. Restart after liveness failure and shutdown escalation
 
-Ví dụ giả định:
+Hypothetical example:
 
 ~~~text
 12:00:00 liveness probe failed
@@ -352,93 +352,93 @@ Ví dụ giả định:
 12:00:32 container exit code 137
 ~~~
 
-Điều này tạo exit 137 **mà không cần kernel OOM killer**. Muốn kết luận phải tìm liveness/probe failure, kubelet events và grace period. Nguyên nhân gốc có thể là JVM deadlock, GC pause, network timeout hoặc probe quá gắt; SIGKILL chỉ là **cơ chế kết thúc cuối cùng**.
+This produces exit 137 **without any kernel OOM killer**. To confirm it, look for liveness/probe failures, kubelet events, and the grace period. The underlying cause may be a JVM deadlock, GC pause, network timeout, or overly aggressive probe; `SIGKILL` was merely the **final termination mechanism**.
 
-Ngược lại một OOMKilled có thể xảy ra dù liveness probes xanh trước đó; kernel kill có thể nhanh hơn đường SIGTERM. Đừng dùng hiện diện/absence của shutdown hook log làm tiêu chí duy nhất.
+Conversely, `OOMKilled` can strike even if liveness probes were green just moments before; a kernel kill can outpace `SIGTERM`. Never rely on the presence or absence of a shutdown hook log as your sole criterion.
 
-### 9.3. Docker runtime và tình huống không dùng Kubernetes
+### 9.3. Docker runtime and non-Kubernetes setups
 
-Trong môi trường Docker, khi có quyền:
+In Docker environments, with authorization:
 
 ~~~bash
 docker inspect --format '{{.State.OOMKilled}} {{.State.ExitCode}} {{.State.FinishedAt}}' example-container
 docker logs --timestamps example-container
 ~~~
 
-Đây là cú pháp minh họa Docker CLI; cần đúng container ID/tên. OOMKilled=true giúp phân biệt runtime báo OOM termination so với những nonzero exits khác. Docker không nhất thiết lưu mọi log đã rotate; phải ghép timestamps, kernel/cgroup records, cấu hình resource limit và nguyên nhân làm memory tăng.
+This is illustrative Docker CLI syntax; substitute the real container ID/name. `OOMKilled=true` helps distinguish runtime-reported OOM termination from other nonzero exits. Docker does not necessarily keep all rotated logs; correlate timestamps, kernel/cgroup records, resource limit settings, and causes of memory growth.
 
-Với ECS/Nomad/containerd hoặc nền tảng khác, tìm termination reason/exit status và events **tương đương**, không suy đoán rằng nơi nào cũng dùng trường status giống Kubernetes.
+On ECS, Nomad, `containerd`, or other platforms, look for **equivalent** termination reasons, exit statuses, and events rather than assuming every platform uses Kubernetes status fields.
 
-## 10. Tập hợp bằng chứng: nguồn nào trả lời câu hỏi nào?
+## 10. Assembling Evidence: Which Source Answers Which Question?
 
-| Câu hỏi | Nguồn nên ưu tiên | Giới hạn |
+| Question | Priority source | Limitations |
 | --- | --- | --- |
-| JVM đã tự phát hiện fatal error chưa? | hs_err file và header phù hợp PID/timestamp; JVM stderr | Không thấy file chưa phủ định |
-| Có Java-level exception/OOME không? | App logs/stderr, exception stack trace, heap dump và JVM flags | Có OOME không có nghĩa process bị kernel kill |
-| Process thoát bình thường hay bị signal? | Parent/supervisor raw wait status, container runtime/service manager | Flattened exitCode có thể mơ hồ |
-| Signal là SIGKILL từ ai? | Kernel OOM logs, cgroup oom_kill, orchestrator/events, audit/supervisor | Exit 137 một mình không xác nhận sender |
-| Tại sao memory bị cạn? | Memory timeline, container memory.max/current/peak, JVM heap/native memory, process RSS, workload | Snapshot sau restart không đủ |
-| Có native/JVM crash? | hs_err, core dump/native stack, loaded libraries, JDK build, agent/JNI | Problematic frame không nhất thiết là root cause |
-| Có liveness/probe/rollout? | Pod events, kubelet/controller logs, service manager journal | Events có retention/clock skew |
-| Có node-level eviction/OOM? | Node kernel logs, MemoryPressure, eviction messages, kubelet/systemd-oomd | Không nhầm container OOMKilled |
-| Crash có xảy ra trước khi bị kill? | Timeline ghép hs_err, manager signals, kernel logs | Cả hai dấu vết có thể xuất hiện trong một chuỗi |
-| Có đủ bằng chứng để thay heap? | Heap trend, GC/native memory, cgroup budget, OOM reason | Heap size không giải quyết mọi native/cgroup OOM |
+| Did the JVM itself detect a fatal error? | `hs_err` file and header matching PID/timestamp; JVM stderr | Not finding the file does not rule it out |
+| Was there a Java-level exception/OOME? | App logs/stderr, exception stack trace, heap dump, and JVM flags | Having an OOME does not mean the kernel killed the process |
+| Did the process exit normally or via signal? | Parent/supervisor raw wait status, container runtime / service manager | Flattened `exitCode` can be ambiguous |
+| If `SIGKILL`, who sent it? | Kernel OOM logs, cgroup `oom_kill`, orchestrator/events, audit/supervisor | Exit 137 alone does not identify the sender |
+| Why was memory exhausted? | Memory timeline, container `memory.max`/`current`/`peak`, JVM heap/native memory, process RSS, workload | Post-restart snapshots are insufficient |
+| Was there a native/JVM crash? | `hs_err`, core dump/native stack, loaded libraries, JDK build, agents/JNI | Problematic frame is not necessarily root cause |
+| Was there a liveness/probe/rollout? | Pod events, kubelet/controller logs, service manager journal | Events have retention limits and clock skew |
+| Was there node-level eviction/OOM? | Node kernel logs, `MemoryPressure`, eviction messages, kubelet/`systemd-oomd` | Do not confuse with container `OOMKilled` |
+| Did a crash occur before a kill? | Timeline combining `hs_err`, manager signals, kernel logs | Both traces can appear in a single sequence |
+| Is there enough evidence to change heap size? | Heap trend, GC/native memory, cgroup budget, OOM reason | Heap size does not fix every native/cgroup OOM |
 
-**Một artifact không phải toàn bộ câu chuyện.** Bằng chứng mạnh thường có **hai nguồn độc lập** cùng mô tả cùng PID/instance và thời điểm: ví dụ container lastState OOMKilled + kernel/cgroup oom_kill delta; hoặc hs_err SIGSEGV + core dump/native frame từ đúng process.
+**One artifact is never the whole story.** Strong evidence usually involves **two independent sources** describing the same PID/instance and timestamp: e.g., container `lastState` `OOMKilled` + kernel/cgroup `oom_kill` delta; or `hs_err` `SIGSEGV` + core dump/native frame from the exact same process.
 
-## 11. Runbook điều tra một Java process vừa biến mất
+## 11. Runbook for Investigating a Recently Disappeared Java Process
 
-### Bước 1 — Chứng minh process đã kết thúc, không chỉ treo
+### Step 1 — Prove the process terminated, rather than merely hanging
 
-Xác định service instance, container ID, pod UID, PID, process start/end, node và timestamp UTC. Application không trả request có thể do deadlock, pool saturation, network partition, probe fail hoặc process chết. Đừng mặc định “crash” nếu process còn sống.
+Identify service instance, container ID, pod UID, PID, process start/end times, node, and UTC timestamps. An application failing to respond can be caused by deadlock, pool saturation, network partition, probe failure, or process death. Do not assume “crash” if the process is still alive.
 
-Nếu process đã chết và supervisor tự restart, ghi **PID cũ** và thời điểm restart. Không dùng dữ liệu jcmd/heap của PID mới để kết luận về bộ nhớ của PID cũ.
+If the process died and a supervisor restarted it, record the **old PID** and restart timestamp. Never use `jcmd`/heap data from the new PID to draw conclusions about the old PID's memory.
 
-### Bước 2 — Thu dấu vết có thể mất sớm
+### Step 2 — Collect volatile clues before they vanish
 
-Ưu tiên:
-- App stderr/stdout cuối cùng và logs trước restart; logs --previous nếu phù hợp.
-- hs_err, heap dump, core dump còn trên persistent volume/working directory.
-- Container last termination reason/exitCode/finishedAt; runtime/systemd/kubelet events.
-- Kernel logs đúng node và cgroup memory events/monitoring time series.
+Prioritize:
+- Final app stderr/stdout and pre-restart logs; `logs --previous` where applicable.
+- `hs_err`, heap dumps, and core dumps still on persistent volumes or working directories.
+- Container last termination reason/`exitCode`/`finishedAt`; runtime/systemd/kubelet events.
+- Kernel logs from the exact node and cgroup memory events / monitoring time series.
 - Deployment/rollout/health probe/scale-down/eviction events.
-- Nếu process chưa chết nhưng báo lỗi: JFR/GC logs/metrics, jcmd hoặc thread dump theo chính sách an toàn.
+- If the process is still alive yet reporting errors: JFR/GC logs/metrics, `jcmd`, or thread dumps per safety policy.
 
-**Đừng restart/rotate/xóa file và làm mất chứng cứ trước khi lưu nếu hệ thống vẫn an toàn để thu.** Với dịch vụ đang incident, phục hồi availability có thể ưu tiên; ghi lại giới hạn evidence nếu không thể chờ.
+**Do not restart, rotate, or delete files and wipe evidence before saving if the system is safe to collect from.** During active incidents, restoring availability may take precedence; document evidence gaps if you cannot wait.
 
-### Bước 3 — Nhận diện JVM tự báo fatal error hay không
+### Step 3 — Determine whether the JVM self-reported a fatal error
 
-- Có hs_err phù hợp? Đọc header/signal/problematic frame và JVM arguments.
-- Có core dump tương ứng? Thu metadata và native stack theo quyền.
-- Có lỗi JVM fatal được in stderr nhưng không ghi được file?
-- Có cấu hình ErrorFile, disk path, container ephemeral FS hoặc permission issues giải thích vì sao mất artifact không?
-- Nếu không có: **chưa kết luận external kill**, chuyển kiểm tra OS/runtime evidence.
+- Is there a matching `hs_err`? Read header/signal/problematic frame and JVM arguments.
+- Is there a matching core dump? Collect metadata and native stacks per authorization.
+- Was a fatal JVM error printed to stderr without writing a file?
+- Do `ErrorFile` settings, disk path, ephemeral container FS, or permissions explain missing artifacts?
+- If none exist: **do not jump to external kill yet**; move to inspecting OS/runtime evidence.
 
-### Bước 4 — Kiểm tra signal/exit reason theo nguồn supervisor
+### Step 4 — Check signal/exit reason from supervisor sources
 
-- Đọc exit status và cách mã hóa: exited(code) hay killed(signal)?
-- Nếu 137/9: tìm người gửi SIGKILL, OOM killer, liveness grace timeout, manual operator action hoặc userspace OOM daemon.
-- Nếu 143/15: tìm rollout, stop command, shutdown timeout và hook behavior.
-- Nếu 134/6, 139/11 hoặc fatal hs_err: điều tra native/JVM fault.
-- Nếu 1 hoặc custom status: tìm Java exceptions, System.exit và startup/launcher errors.
+- Read the exit status and encoding: exited(code) or killed(signal)?
+- If 137/9: identify who sent `SIGKILL`—OOM killer, liveness grace timeout, manual operator action, or userspace OOM daemon.
+- If 143/15: check rollouts, stop commands, shutdown timeouts, and hook behavior.
+- If 134/6, 139/11, or fatal `hs_err`: investigate native/JVM faults.
+- If 1 or custom status: inspect Java exceptions, `System.exit`, and startup/launcher errors.
 
-**Luôn hỏi:** status có thuộc process Java chính hay chỉ entrypoint shell/wrapper? Wrapper có thể xử lý signal/exit code khác JVM.
+**Always ask:** does the status belong to the main Java process or only a shell/wrapper entrypoint? A wrapper can handle signals and exit codes differently from the JVM.
 
-### Bước 5 — Điều tra memory theo đúng ranh giới
+### Step 5 — Investigate memory along the exact boundaries
 
-Nếu nghi OOM:
-1. Xác định pod/container/node memory limits và memory time series **trước kill**.
-2. Xem kernel OOM lines và cgroup oom_kill delta, nhớ cgroup path đúng.
-3. Đối chiếu Java heap usage/Xmx, metaspace, direct memory, native malloc/NMT nếu đã bật, thread count/stacks và page cache.
-4. Nếu có Java OOME, đọc **message** để biết vùng tài nguyên thất bại; heap dump chỉ dùng khi tạo được và phù hợp loại lỗi.
-5. Kiểm tra tổng process/container RSS và các process khác trong cgroup.
-6. Đánh giá memory growth, traffic, batch, native library, deploy và known memory budget.
+If OOM is suspected:
+1. Identify pod/container/node memory limits and **pre-kill** memory time series.
+2. Check kernel OOM lines and cgroup `oom_kill` deltas, ensuring the exact cgroup path.
+3. Correlate Java heap usage/`-Xmx`, metaspace, direct memory, native `malloc`/NMT if enabled, thread counts/stacks, and page cache.
+4. If a Java OOME occurred, read the **message** to identify the failing resource region; use a heap dump only if created and relevant to the error type.
+5. Check total process/container RSS and any other processes in the cgroup.
+6. Evaluate memory growth, traffic, batches, native libraries, deployments, and known memory budgets.
 
-**Heap used thấp không bác bỏ cgroup OOMKilled**; memory usage cgroup bao gồm phần JVM không quản lý trực tiếp và cache. Cũng không cần tăng Xmx nếu container memory limit cố định và native headroom vốn đã thiếu.
+**Low `heap used` does not refute cgroup `OOMKilled`**; cgroup memory usage includes allocations the JVM does not manage directly plus caches. Nor should you raise `-Xmx` if the container memory limit is fixed and native headroom is already tight.
 
-### Bước 6 — Xây timeline và giả thuyết cạnh tranh
+### Step 6 — Build a timeline and competing hypotheses
 
-Một timeline có thể như sau (giả định):
+One timeline might look like this (hypothetical):
 
 ~~~text
 14:10:00 Service A starts, pid=3210, Xmx=1GiB, memory.max=1.5GiB
@@ -449,9 +449,9 @@ Một timeline có thể như sau (giả định):
 14:12:25 New container starts with a new pid
 ~~~
 
-Dựa trên **kernel victim + container OOMKilled + đúng cgroup và timeline**, nhánh OS kill mạnh. hs_err không có là phù hợp nhưng không phải yếu tố chứng minh chính.
+Based on **kernel victim + container `OOMKilled` + exact cgroup and timeline**, the OS kill branch is strong. The absence of `hs_err` is consistent, though not the primary proof.
 
-Một timeline khác:
+Another timeline:
 
 ~~~text
 14:10:00 Java process pid=3210 starts
@@ -460,23 +460,23 @@ Một timeline khác:
 14:12:21 Supervisor restarts service
 ~~~
 
-Nhánh JVM/native fatal error mạnh; không suy ra kernel OOM kill chỉ vì process mất sau đó.
+The JVM/native fatal error branch is strong; do not infer a kernel OOM kill merely because the process vanished afterward.
 
-### Bước 7 — Phân mức tin cậy và quyết định hành động
+### Step 7 — Assign confidence levels and decide actions
 
-Dùng các nhãn:
-- **Đã xác nhận cơ chế:** có bằng chứng có nguồn và timestamp đủ mạnh.
-- **Khả năng cao:** các nguồn khớp nhưng một nguồn quan trọng thiếu.
-- **Chưa đủ bằng chứng:** chỉ exit code, chỉ log cuối hoặc chỉ biểu đồ sau restart.
-- **Mâu thuẫn:** dấu vết trái nhau cần kiểm tra PID/clock/instance/aggregation.
+Use explicit labels:
+- **Confirmed mechanism:** sufficiently strong sourced and timestamped evidence.
+- **High likelihood:** sources align, though one key source is missing.
+- **Insufficient evidence:** only an exit code, only a final log line, or only a post-restart graph.
+- **Conflicting:** contradicting clues requiring checks of PID, clock, instance, or aggregation.
 
-Hành động theo cơ chế: native crash → core/hs_err/JNI/JDK; Java OOME → heap/native root; OS OOMKill → cgroup budget/memory trend; liveness kill → probe/health/deadlock/queue/GC; controlled exit → app/supervisor logic. Một thay đổi chỉ được coi thành công khi đã xác minh không lặp lại cùng dấu vết và các SLO, memory/CPU guardrails vẫn đạt.
+Act according to the mechanism: native crash → core/`hs_err`/JNI/JDK; Java OOME → heap/native root cause; OS `OOMKill` → cgroup budget/memory trend; liveness kill → probe/health/deadlock/queues/GC; controlled exit → app/supervisor logic. A change is considered successful only after verifying the same trace does not recur and SLOs plus memory/CPU guardrails hold.
 
-## 12. Demo Java 17+: đường thoát chủ động, không phải JVM crash
+## 12. Java 17+ Demo: Intentional Exit Paths, Not a JVM Crash
 
-Để học **thứ gì có/không có shutdown hook**, dùng chương trình Java chạy độc lập, không tiêu hao bộ nhớ, không gây segmentation fault, không gửi tín hiệu tới process khác. Chương trình giúp chứng minh: một mã exit nonzero **không cần OS OOM killer**, và Runtime.halt có thể kết thúc **không chạy shutdown hook** nhưng vẫn không phải fatal HotSpot crash.
+To study **what does or does not run shutdown hooks**, use a standalone Java program that consumes no extra memory, triggers no segmentation fault, and sends no signals to other processes. It demonstrates that a nonzero exit code **does not require an OS OOM killer**, and `Runtime.halt` can terminate **without running shutdown hooks** while still not being a HotSpot fatal crash.
 
-Tạo file **TerminationModesDemo.java**:
+Create **`TerminationModesDemo.java`**:
 
 ~~~java
 public final class TerminationModesDemo {
@@ -510,13 +510,13 @@ public final class TerminationModesDemo {
 }
 ~~~
 
-Biên dịch với JDK 17+:
+Compile with JDK 17+:
 
 ~~~bash
 javac TerminationModesDemo.java
 ~~~
 
-Chạy lần lượt từng mode **trong lab shell**, không phải process đang phục vụ traffic:
+Run each mode one by one **in a lab shell**, never on a traffic-serving process:
 
 ~~~bash
 java TerminationModesDemo normal
@@ -525,155 +525,155 @@ java TerminationModesDemo halt
 java TerminationModesDemo throw
 ~~~
 
-Với mode **normal**, stdout do chương trình tạo:
+In **normal** mode, stdout produced by the program:
 
 ~~~text
 MODE: normal
 HOOK: shutdown
 ~~~
 
-Với mode **exit**, stdout do chương trình tạo:
+In **exit** mode, stdout produced by the program:
 
 ~~~text
 MODE: exit
 HOOK: shutdown
 ~~~
 
-Giải thích theo mode:
+Explanation by mode:
 
-| Mode | Exit mechanism | Exit status thông thường | Shutdown hook | hs_err mặc định? |
+| Mode | Exit mechanism | Typical exit status | Shutdown hook | `hs_err` by default? |
 | --- | --- | --- | --- | --- |
-| normal | main kết thúc, JVM shutdown bình thường | 0 | Có | Không |
-| exit | System.exit(7) | 7 | Có | Không |
-| halt | Runtime.halt(9), chấm dứt ngay | 9 | Không | Không |
-| throw | Uncaught IllegalStateException ở main; JVM exit khi không còn non-daemon thread | Thường khác 0 | Có khi JVM shutdown thông thường | Không |
+| normal | `main` completes, normal JVM shutdown | 0 | Yes | No |
+| exit | `System.exit(7)` | 7 | Yes | No |
+| halt | `Runtime.halt(9)`, immediate termination | 9 | No | No |
+| throw | Uncaught `IllegalStateException` in `main`; JVM exits when no non-daemon threads remain | Usually nonzero | Yes, during normal JVM shutdown | No |
 
-Mode halt in "MODE: halt" và flush stdout trước khi kết thúc; **không** in “HOOK: shutdown”. Mode throw in “MODE: throw”, sau đó có stack trace trên **stderr** với line numbers thay đổi theo file; thứ tự hiển thị giữa stdout/stderr không bảo đảm. Bảng này mô tả hành vi thông thường của ví dụ trên HotSpot, không thay thế đo exit status thực tế ở shell.
+`halt` mode prints `"MODE: halt"` and flushes stdout before terminating; it does **not** print “HOOK: shutdown”. `throw` mode prints “MODE: throw”, followed by a stack trace on **stderr** with file-dependent line numbers; interleaving order between stdout and stderr is not guaranteed. This table describes typical HotSpot behavior for this example and does not replace measuring actual exit status in your shell.
 
-Một bước kiểm tra tùy chọn trên Linux shell:
+An optional check on a Linux shell:
 
 ~~~bash
 java TerminationModesDemo exit
 printf 'exit status=%s\n' "$?"
 ~~~
 
-Dòng thứ hai của shell theo chương trình này là:
+The second shell line for this program is:
 
 ~~~text
 exit status=7
 ~~~
 
-Điểm học tập:
-- Exit 7 là do **chính Java gọi System.exit**, không phải OS kill.
-- Exit 9 là do **Runtime.halt(9)** trong Java, không chứng minh có SIGKILL(9). **Mã exit = 9 khác signal number = 9.**
-- Exception ở Java không biến thành native hs_err.
-- Không có hook trong mode halt là một ví dụ vì sao **thiếu shutdown log không chứng minh SIGKILL**.
-- Nếu bạn sửa mode exit thành System.exit(137), hệ thống có thể báo exit code 137 **mà không có kernel OOM kill**; chỉ là minh họa cho tính mơ hồ của code.
+Learning takeaways:
+- Exit 7 came from **Java itself calling `System.exit`**, not an OS kill.
+- Exit 9 came from **`Runtime.halt(9)`** in Java, not proof of `SIGKILL(9)`. **Exit code 9 differs from signal number 9.**
+- A Java exception does not turn into a native `hs_err`.
+- Missing the hook in `halt` mode illustrates why **missing shutdown logs do not prove `SIGKILL`**.
+- If you change `exit` mode to `System.exit(137)`, the system can report exit code 137 **with no kernel OOM kill**—purely illustrating how ambiguous a bare exit code can be.
 
-**Không chạy demo tạo OOME, SIGSEGV hoặc SIGKILL trên production.** Mục đích là nắm semantics của các đường kết thúc an toàn trước khi phân tích sự cố ngoài đời.
+**Never run demos that trigger OOME, `SIGSEGV`, or `SIGKILL` in production.** The goal is to grasp exit-path semantics safely before analyzing real-world incidents.
 
-## 13. Tình huống A — OOME xuất hiện nhưng process chưa chết
+## 13. Scenario A — OOME Appears Yet the Process Has Not Died
 
-Ví dụ:
-- Thread của ứng dụng log “java.lang.OutOfMemoryError: Java heap space”.
-- Tại cùng thời điểm không có kernel OOM victim message; memory.events oom_kill không tăng.
-- Process Java vẫn có PID cũ và health endpoint còn phản hồi ở mức suy giảm.
-- Không có hs_err, chỉ Java stack trace và một heap dump nếu cờ liên quan được bật.
+Example:
+- An application thread logs `java.lang.OutOfMemoryError: Java heap space`.
+- At the same time, there are no kernel OOM victim messages; `memory.events` `oom_kill` does not increment.
+- The Java process still has the same PID and the health endpoint still responds in a degraded state.
+- No `hs_err` exists, only the Java stack trace and a heap dump if the relevant flag was enabled.
 
-**Diễn giải:** Có Java-level heap allocation failure; chưa có bằng chứng kernel kill. Phải xem GC/heap live-set, allocations và retention, xác minh thread nào chết và hệ thống có thực sự phục hồi. Việc ứng dụng vẫn alive **không** chứng minh OOME vô hại: state có thể bị lỗi hoặc thiếu capacity.
+**Interpretation:** There was a Java-level heap allocation failure; there is no evidence of a kernel kill. Inspect GC/heap live-set, allocations, and retention, and verify which thread died and whether the system truly recovered. The application remaining alive **does not** prove OOME is harmless: state may be corrupted or capacity degraded.
 
-**Sai lầm:** ghi ticket “OOMKilled” chỉ vì nhìn thấy chữ OutOfMemoryError. Hành động phù hợp là điều tra heap/OOME và health status, không mặc định sửa cgroup limit.
+**Mistake:** filing a ticket as “OOMKilled” merely upon seeing the word `OutOfMemoryError`. The appropriate action is investigating heap/OOME and health status, not blindly editing cgroup limits.
 
-## 14. Tình huống B — Pod OOMKilled trong khi Java heap còn headroom
+## 14. Scenario B — Pod `OOMKilled` While Java Heap Still Has Headroom
 
-Ví dụ giả định:
-- Pod container memory limit 2 GiB; Xmx 1 GiB.
-- Metrics trước crash cho thấy heap used khoảng 700 MiB, nhưng container memory usage tiến gần 2 GiB.
-- Kernel log cho thấy memcg OOM victim là Java PID; cgroup oom_kill tăng.
-- Kubernetes lastState reason=OOMKilled, exitCode=137.
-- Không có hs_err hoặc Java OutOfMemoryError stack trace.
+Hypothetical example:
+- Pod container memory limit is 2 GiB; `-Xmx` is 1 GiB.
+- Pre-crash metrics show `heap used` around 700 MiB, yet container memory usage climbs near 2 GiB.
+- Kernel logs show a memcg OOM victim matching the Java PID; cgroup `oom_kill` increments.
+- Kubernetes `lastState` `reason=OOMKilled`, `exitCode=137`.
+- No `hs_err` or Java `OutOfMemoryError` stack trace.
 
-**Diễn giải:** Kernel/cgroup kill có evidence mạnh. Nguyên nhân có thể ở native/direct buffer, metaspace, thread stacks, malloc/JNI, memory-mapped/file cache hoặc process khác trong cgroup. Không nên **tăng Xmx** ngay khi limit tổng không đổi.
+**Interpretation:** Kernel/cgroup kill has strong evidence. Causes may lie in native/direct buffers, metaspace, thread stacks, `malloc`/JNI, memory-mapped/file cache, or another process in the cgroup. Do **not** immediately **increase `-Xmx`** while the total limit stays fixed.
 
-**Dữ liệu cần lấy:** cgroup memory.stat, container working set/RSS trend, JVM Native Memory Tracking nếu **đã bật trước**, thread count, direct/mapped buffers, metaspace, native allocator và batch/workload. NMT không bao quát hoàn toàn mọi native third-party allocations hoặc toàn bộ page cache. Nếu chưa bật, không thể tái tạo snapshot NMT của process đã bị kill.
+**Data to gather:** cgroup `memory.stat`, container working set/RSS trend, JVM Native Memory Tracking if **already enabled beforehand**, thread count, direct/mapped buffers, metaspace, native allocators, and batch/workload details. NMT does not cover all third-party native allocations or total page cache. If not enabled ahead of time, an NMT snapshot of the killed process cannot be reconstructed.
 
-## 15. Tình huống C — JVM fatal error trong thư viện native
+## 15. Scenario C — JVM Fatal Error in a Native Library
 
-Ví dụ:
-- hs_err_pid5500.log báo SIGSEGV và problematic frame trong một native library.
-- Core dump cùng PID/timestamp có signal SIGSEGV.
-- Container exit status thường tương thích 139 nếu signal termination được phản ánh theo quy ước runtime.
-- Kernel không có bằng chứng OOM kill; orchestrator reason có thể chỉ là Error.
+Example:
+- `hs_err_pid5500.log` reports `SIGSEGV` and a problematic frame in a native library.
+- A core dump with matching PID/timestamp records `SIGSEGV`.
+- Container exit status is typically compatible with 139 if signal termination is surfaced per runtime convention.
+- The kernel shows no OOM kill evidence; orchestrator reason may simply say `Error`.
 
-**Diễn giải:** Native/JVM fatal error rất đáng tin; người điều tra nên xem JNI/agent/native library, quyền truy cập bộ nhớ, versions/ABI và JDK builds. Nếu fault trong libjvm, vẫn cần kiểm tra code và extensions native để phân biệt lỗi trực tiếp với memory corruption trước đó.
+**Interpretation:** A native/JVM fatal error is strongly supported; investigators should check JNI/agents/native libraries, memory access safety, versions/ABI, and JDK builds. If the fault is in `libjvm`, still inspect native code and extensions to distinguish a direct VM bug from earlier memory corruption.
 
-**Không kết luận:** “Linux tự giết Java vì hết RAM” chỉ dựa trên signal-related exit code. SIGSEGV và SIGKILL là hai cơ chế khác nhau.
+**Do not conclude:** “Linux killed Java because it ran out of RAM” solely from a signal-related exit code. `SIGSEGV` and `SIGKILL` are two different mechanisms.
 
-## 16. Tình huống D — Liveness probe dẫn tới SIGKILL, không phải OOM
+## 16. Scenario D — Liveness Probe Leads to `SIGKILL`, Not OOM
 
-Ví dụ giả định:
-- 09:00:00: liveness probe liên tiếp thất bại trong lúc JVM vẫn chạy nhưng thread pool nghẽn.
-- 09:00:05: controller gửi SIGTERM, bắt đầu termination grace period.
-- 09:00:35: process vẫn chưa thoát; SIGKILL được gửi.
-- Container cuối cùng exit 137; reason không phải OOMKilled.
-- cgroup oom_kill không tăng và không có kernel OOM victim message.
+Hypothetical example:
+- 09:00:00: consecutive liveness probes fail while the JVM is still running with a congested thread pool.
+- 09:00:05: controller sends `SIGTERM`, starting the termination grace period.
+- 09:00:35: process still has not exited; `SIGKILL` is sent.
+- Container finally exits 137; reason is not `OOMKilled`.
+- cgroup `oom_kill` does not increment and kernel logs show no OOM victim message.
 
-**Diễn giải:** Exit 137 tương thích SIGKILL do lifecycle shutdown escalation. Root cause ban đầu có thể là deadlock, GC pause, health probe design, workload, network hoặc native hang, cần điều tra riêng. Chỉ tăng memory limit vì thấy 137 là không có cơ sở.
+**Interpretation:** Exit 137 matches `SIGKILL` from lifecycle shutdown escalation. The initial root cause could be deadlock, GC pause, health probe design, workload, network, or a native hang, requiring separate investigation. Raising the memory limit simply because you saw 137 is unfounded.
 
-**Dữ liệu tiếp:** previous logs, kubelet events, probe timings, readiness vs liveness, shutdown hook duration, thread dumps nếu đã thu trước kill, latency/CPU/GC/queues trước sự cố.
+**Follow-up data:** `--previous` logs, kubelet events, probe timings, readiness vs. liveness, shutdown hook duration, thread dumps if captured prior to kill, and latency/CPU/GC/queue metrics before the failure.
 
-## 17. Tình huống E — JVM ghi hs_err rồi bị systemd restart
+## 17. Scenario E — JVM Writes `hs_err`, Then `systemd` Restarts It
 
-Ví dụ:
-- 11:02:10 HotSpot ghi fatal error log từ PID cũ.
-- 11:02:11 process chết với signal fault hoặc abort.
-- 11:02:12 systemd nhận termination và restart theo Restart=on-failure.
-- 11:02:13 PID mới xuất hiện, service trả lời bình thường.
+Example:
+- 11:02:10 HotSpot writes a fatal error log from the old PID.
+- 11:02:11 process dies with a fault or abort signal.
+- 11:02:12 `systemd` detects termination and restarts per `Restart=on-failure`.
+- 11:02:13 a new PID appears, and the service responds normally.
 
-**Diễn giải:** systemd là **tác nhân restart**, không tự động là tác nhân gây fatal error. Việc thấy “systemd started service” sau crash không chứng minh systemd đã kill JVM trước đó. Cần xem **log ngay trước** restart và artifact của PID cũ.
+**Interpretation:** `systemd` is the **restart agent**, not automatically the cause of the fatal error. Seeing “systemd started service” after a crash does not prove `systemd` killed the JVM beforehand. Inspect **logs immediately prior** to the restart and artifacts from the old PID.
 
-Đặc biệt, app health hiện tại ổn không xóa được bằng chứng lỗi cũ. Các metrics của PID mới không thay cho trạng thái memory/stack lúc PID cũ crash.
+Notably, healthy current status does not erase evidence of the old fault. Metrics from the new PID cannot substitute for memory/stack state when the old PID crashed.
 
-## 18. Những ngoại lệ cần nhớ trước khi chốt nguyên nhân
+## 18. Exceptions to Keep in Mind Before Finalizing Root Cause
 
-### 18.1. Wrapper/entrypoint shell có thể biến đổi exit code
+### 18.1. Shell wrappers/entrypoints can transform exit codes
 
-Container command có thể là shell script hoặc process supervisor, không phải exec trực tiếp java. Kết quả được runtime báo có thể là exit code của PID 1 wrapper, còn Java child đã chết theo cơ chế khác. Điều tra process tree, init/entrypoint behavior, signal forwarding và logs của wrapper. Không suy mã container ra signal của JVM khi không chắc Java là PID 1 hoặc status được truyền nguyên.
+The container command may be a shell script or process supervisor rather than directly `exec`ing `java`. The status reported by the runtime may be the PID 1 wrapper's exit code while the Java child died via a different mechanism. Inspect the process tree, init/entrypoint behavior, signal forwarding, and wrapper logs. Never map a container exit code straight to a JVM signal unless you are certain Java was PID 1 or the status was passed through untouched.
 
-### 18.2. Crash report có thể chỉ được ghi một phần
+### 18.2. Crash reports can be only partially written
 
-Fatal signal/low disk/low memory có thể cắt ngắn hs_err hoặc core. Một file có header nhưng thiếu problematic frame/threads vẫn có giá trị chứng cứ; chưa đủ để quy root cause. Không xóa file chỉ vì không parse được, nhưng cũng không gọi báo cáo dở dang là full crash analysis.
+Fatal signals, low disk, or low memory can truncate `hs_err` or a core. A file containing a header yet missing problematic frame/threads still has evidentiary value, though not enough to assign root cause. Do not delete a file just because a parser fails on it, and do not present an incomplete report as a full crash analysis.
 
-### 18.3. SIGTERM/SIGINT và shutdown hooks không có SLA đảm bảo
+### 18.3. `SIGTERM`/`SIGINT` and shutdown hooks have no guaranteed SLA
 
-Ngay cả trong đường shutdown bình thường, hook có thể lỗi, kẹt hoặc bị hết grace period. Các hook được khởi động đồng thời theo JVM semantics; thứ tự giữa **nhiều** hooks không được bảo đảm. Log “begin shutdown” có thể tồn tại mà “end shutdown” vắng mặt. Ngược lại absence của hook log có thể do logging buffer, không đủ để chứng minh SIGKILL.
+Even on a normal shutdown path, hooks can throw, hang, or hit the grace-period deadline. Hooks are started concurrently per JVM semantics; ordering across **multiple** hooks is not guaranteed. A “begin shutdown” log may exist while “end shutdown” is absent. Conversely, missing hook logs can be due to log buffering and are insufficient to prove `SIGKILL`.
 
-### 18.4. OS có thể phát tín hiệu vì native fault, không phải chủ ý kill
+### 18.4. The OS can raise a signal due to a native fault, not an intentional kill
 
-SIGSEGV/SIGBUS phát sinh bởi fault của chương trình là cơ chế hệ điều hành báo lỗi cho process. HotSpot fatal handler có thể ghi hs_err. Khi phân loại, đừng dùng một câu “do OS gửi signal” để xóa đi sự khác biệt giữa **fault xảy ra trong process** và **kill bên ngoài để thu hồi tài nguyên/quản trị**.
+`SIGSEGV`/`SIGBUS` triggered by a program fault is how the OS notifies the process of an error. The HotSpot fatal handler may write `hs_err`. When classifying, never use a loose phrase like “OS sent a signal” to blur the difference between **an in-process fault** and **an external kill for resource reclamation or administration**.
 
-### 18.5. Java OutOfMemoryError và native allocation failure không phải lúc nào cùng lộ trình
+### 18.5. Java `OutOfMemoryError` and native allocation failures do not always take the same path
 
-Một số native memory allocation failure có thể tạo thông báo fatal JVM error, trong khi một số loại resource exhaustion trả về Java OOME. Message và context mới quyết định hướng điều tra; chỉ nhìn chữ “memory” không đủ. Nếu Java đang dùng container CPU/memory quotas, có thể có tương tác giữa heap sizing tự động, native allocations và memory.max.
+Some native memory allocation failures produce a fatal JVM error message, whereas some resource exhaustion conditions throw a Java OOME. The exact message and context determine the investigation path; seeing the word “memory” alone is not enough. When Java runs under container CPU/memory quotas, interactions can occur among automatic heap sizing, native allocations, and `memory.max`.
 
-### 18.6. Core dumps, hs_err và heap dumps trả lời câu hỏi khác nhau
+### 18.6. Core dumps, `hs_err`, and heap dumps answer different questions
 
-| Artifact | Ghi gì? | Khi nào hữu ích nhất? | Không phải điều gì? |
+| Artifact | What it records | When most useful | What it is not |
 | --- | --- | --- | --- |
-| hs_err | Snapshot fatal state của HotSpot: signal, threads, VM/native context | Native/JVM crash, fatal VM error | Không phải Java heap dump |
-| Core dump | Snapshot process memory/registers tại crash theo OS/core policy | Native stack, library versions, memory corruption | Không đảm bảo có khi SIGKILL/OOMKilled |
-| Heap dump (.hprof) | Java heap object graph tại thời điểm thu | Java heap leak/retention, một số OOME | Không đại diện mọi native memory hoặc lý do signal |
-| GC log/JFR | Runtime timeline/GC/JIT/events đã được ghi | Lịch sử trước lỗi nếu có dữ liệu | Không phải hệ thống lưu vĩnh viễn khi bị SIGKILL |
-| Kernel log/cgroup counters | OS memory/signal/resource evidence | OOM victim/pressure/limits | Không chỉ ra object Java nào giữ memory |
-| Orchestrator status/events | Container lifecycle/reason/exit code | OOMKilled, Evicted, probe/rollout | Không tự phân tích JNI/JVM root cause |
+| `hs_err` | Snapshot of HotSpot fatal state: signal, threads, VM/native context | Native/JVM crash, fatal VM error | Not a Java heap dump |
+| Core dump | Snapshot of process memory/registers at crash per OS/core policy | Native stack, library versions, memory corruption | Not guaranteed on `SIGKILL`/`OOMKilled` |
+| Heap dump (`.hprof`) | Java heap object graph at capture time | Java heap leak/retention, certain OOMEs | Does not represent all native memory or signal cause |
+| GC log / JFR | Recorded runtime timeline / GC / JIT / events | Pre-error history if data was flushed | Not a durable persistence system against `SIGKILL` |
+| Kernel logs / cgroup counters | OS memory/signal/resource evidence | OOM victim / pressure / limits | Does not show which Java objects hold memory |
+| Orchestrator status/events | Container lifecycle / reason / exit code | `OOMKilled`, `Evicted`, probes/rollouts | Does not analyze JNI/JVM root causes by itself |
 
-Một file .jfr từ continuous recording có thể không được dump/flush thành artifact trước SIGKILL. **Đặt dumponexit=true không bảo đảm JFR tồn tại sau SIGKILL.** Muốn giữ lịch sử trước kill, cần thiết kế dump/metrics ngoài process, quyền lưu và retention phù hợp.
+A `.jfr` file from a continuous recording might not be dumped or flushed to an artifact before `SIGKILL`. **Setting `dumponexit=true` does not guarantee JFR survives `SIGKILL`.** To preserve pre-kill history, design out-of-process dumps/metrics with appropriate storage permissions and retention.
 
-## 19. Chuẩn bị trước sự cố: khả năng điều tra thay vì chờ crash
+## 19. Pre-Incident Preparation: Enabling Investigability Instead of Waiting for a Crash
 
-### 19.1. Startup flags theo rủi ro đã cân nhắc
+### 19.1. Startup flags weighed against risk
 
-Các ví dụ chỉ dành cho HotSpot/JDK phù hợp và môi trường có quyền ghi:
+Examples intended only for compatible HotSpot/JDK builds and writable environments:
 
 ~~~bash
 java \
@@ -684,124 +684,124 @@ java \
   -jar app.jar
 ~~~
 
-Lưu ý:
-- /var/log/myapp phải tồn tại/ghi được từ filesystem của JVM đích. Ở container phải hiểu volume mount, ownership và ephemeral storage.
-- %p trong HotSpot ErrorFile được thay bằng PID theo hỗ trợ của flag; dùng tên gắn instance khi lưu tập trung để tránh đụng file.
-- Heap dump có thể rất lớn, có thể làm đầy storage và tiết lộ secrets. Nếu rủi ro không chấp nhận được, không bật bừa bãi.
-- File GC logs có rotate; cần policy lưu đủ đoạn trước sự cố, không để ghi log khiến disk full.
-- Tùy chọn HeapDumpOnOOME **không tạo crash artifact khi OS SIGKILL**. ErrorFile dành cho HotSpot fatal reports, không cho mọi Java exceptions.
+Notes:
+- `/var/log/myapp` must exist and be writable from the target JVM's filesystem. In containers, verify volume mounts, ownership, and ephemeral storage.
+- `%p` in HotSpot `ErrorFile` is replaced by the PID as supported by the flag; include instance-unique names in centralized storage to avoid collisions.
+- Heap dumps can be huge, fill storage, and expose secrets. If the risk is unacceptable, do not enable them indiscriminately.
+- GC log files rotate; size retention to cover enough pre-incident window without letting logs fill the disk.
+- `HeapDumpOnOutOfMemoryError` **does not create crash artifacts on OS `SIGKILL`**. `ErrorFile` is for HotSpot fatal reports, not ordinary Java exceptions.
 
-Không thêm -XX:+CrashOnOutOfMemoryError để “debug OOM” trên production nếu chưa có chính sách/phân tích rủi ro rõ ràng; flag thay đổi chính đường kết thúc và có thể khiến ứng dụng chết ngay.
+Never add `-XX:+CrashOnOutOfMemoryError` to “debug OOM” in production without an explicit policy and risk analysis; that flag changes the termination path itself and can make the application die immediately.
 
-### 19.2. Telemetry ngoài tiến trình
+### 19.2. Out-of-process telemetry
 
-Để phân biệt JVM crash với OS kill khi process đã biến mất, cần nguồn không chết cùng JVM:
+To tell a JVM crash apart from an OS kill once the process has vanished, you need sources that do not die with the JVM:
 
-- Container lastState/exit reason, restart counters, pod/container IDs.
-- cgroup memory.current/max/events/pressure time series từ exporter/agent.
-- Node kernel logs, kubelet/systemd/systemd-oomd logs và event stream.
-- JVM heap/nonheap/direct/thread/GC metrics xuất ra monitoring, gắn instance labels.
-- CPU throttling, native RSS, process memory, file descriptors và container page cache.
-- Deployment, rollout, termination, liveness/readiness events.
-- Centralized stdout/stderr, fatal error logs hoặc artifact collector lưu ngoài filesystem ephemeral.
+- Container `lastState`/exit reason, restart counters, pod/container IDs.
+- cgroup `memory.current`/`max`/`events`/pressure time series from an exporter/agent.
+- Node kernel logs, kubelet/`systemd`/`systemd-oomd` logs, and event streams.
+- JVM heap/non-heap/direct/thread/GC metrics exported to monitoring with instance labels.
+- CPU throttling, native RSS, process memory, file descriptors, and container page cache.
+- Deployment, rollout, termination, and liveness/readiness events.
+- Centralized stdout/stderr, fatal error logs, or an artifact collector stored outside ephemeral filesystems.
 
-Đặc biệt quan trọng: metrics cần **timestamp, process/container identity và tần suất thu đủ cao**. Một biểu đồ “memory trung bình 5 phút” có thể bỏ lỡ spike ngắn trước OOM kill.
+Crucially, metrics need **timestamps, process/container identity, and high enough sampling frequency**. A “5-minute average memory” chart can easily miss a brief spike right before an OOM kill.
 
-### 19.3. Native Memory Tracking và công cụ hậu kiểm
+### 19.3. Native Memory Tracking and postmortem tools
 
-Nếu dự đoán native memory pressure, có thể cân nhắc bật NMT trước khi chạy process bằng JVM flags phù hợp, sau đó dùng jcmd VM.native_memory khi process còn sống; tính năng có overhead và không bao quát tất cả allocations bên ngoài HotSpot. Khi process bị SIGKILL, jcmd không còn attach được. **Không có NMT snapshot trước crash thì không thể dựng lại snapshot đó từ PID mới.**
+If native memory pressure is anticipated, consider enabling NMT at startup with appropriate JVM flags, then querying `jcmd VM.native_memory` while the process is alive; this feature has overhead and does not cover all allocations outside HotSpot. Once the process receives `SIGKILL`, `jcmd` can no longer attach. **Without a pre-crash NMT snapshot, you cannot reconstruct it from the new PID.**
 
-Với native crash: core dump, symbols, loaded libraries, hs_err và JVM/JNI agent versions giúp điều tra. Không cố tải bản core lớn hoặc chạy debugger trên production nếu không có quyền/chiến lược bảo mật.
+For native crashes: core dumps, symbols, loaded libraries, `hs_err`, and JVM/JNI agent versions aid investigation. Never attempt to pull massive cores or run debuggers on production without authorization and security controls.
 
-## 20. Cách viết báo cáo không vượt quá bằng chứng
+## 20. Writing Reports That Stay Within the Evidence
 
-Một báo cáo tốt luôn phân biệt **đã quan sát** với **giả thuyết**. Ví dụ:
+A good report always separates **observed facts** from **hypotheses**. Examples:
 
-**Chưa đủ bằng chứng:**
-> Container có exit code 137 lúc 15:04 UTC. Hiện chưa có lastState reason hoặc kernel/cgroup logs; chưa thể kết luận OOMKilled. Cần lấy runtime termination reason, probe/rollout events và memory events đúng cgroup.
+**Insufficient evidence:**
+> Container exited with code 137 at 15:04 UTC. Neither `lastState` reason nor kernel/cgroup logs are available yet; cannot conclude `OOMKilled`. Need runtime termination reason, probe/rollout events, and memory events for the exact cgroup.
 
-**Có cơ sở mạnh cho OS OOM kill:**
-> Container X báo lastState reason=OOMKilled, exitCode=137 lúc 15:04 UTC; kernel log xác nhận memcg OOM victim là Java PID 3451 trong cùng cgroup và memory.events oom_kill tăng. Có thể xác nhận cơ chế kết thúc là kernel memory cgroup OOM kill. Nguyên nhân tăng memory cụ thể vẫn cần điều tra heap/native/cache/workload.
+**Strong basis for OS OOM kill:**
+> Container X reported `lastState` `reason=OOMKilled`, `exitCode=137` at 15:04 UTC; kernel logs confirm the memcg OOM victim was Java PID 3451 in the same cgroup and `memory.events` `oom_kill` incremented. Termination mechanism is confirmed as a kernel memory cgroup OOM kill. The specific driver of memory growth still requires investigating heap/native/cache/workload.
 
-**Có cơ sở mạnh cho JVM/native fatal error:**
-> hs_err_pid3451.log có header fatal SIGSEGV và problematic frame ở libnative.so, trùng PID/timestamp với core dump. Đây là JVM/native fatal crash; chưa chứng minh libnative.so là nguyên nhân ban đầu nếu có memory corruption từ trước. Không có evidence OOM killer trong cửa sổ đã kiểm tra.
+**Strong basis for JVM/native fatal error:**
+> `hs_err_pid3451.log` shows a fatal `SIGSEGV` header and problematic frame in `libnative.so`, matching the PID/timestamp of the core dump. This is a JVM/native fatal crash; `libnative.so` is not yet proved to be the original root cause if earlier memory corruption occurred. No OOM killer evidence appears in the inspected window.
 
-**Không nên viết:**
-> “Exit 137 => Java bị hết heap; tăng -Xmx.”
+**Do not write:**
+> “Exit 137 => Java ran out of heap; increase `-Xmx`.”
 
-Câu này nhầm **trạng thái kết thúc**, **nguồn memory** và **hành động khắc phục**. Tăng heap dưới một container limit cố định thậm chí có thể làm native headroom giảm và khiến OOMKill thường xuyên hơn.
+This statement conflates **termination status**, **memory source**, and **remediation**. Increasing heap under a fixed container limit can even shrink native headroom and make `OOMKill` happen more often.
 
-## 21. Runbook rút gọn khi nhận báo động “JVM chết”
+## 21. Concise Runbook Upon Receiving a “JVM Died” Alert
 
 ~~~text
-[1] Đúng process đã chết?
-    |-- Không: điều tra hang/unresponsive/dependency trước
-    '-- Có: ghi PID/containerID/podUID/node/start-end UTC
+[1] Did the process actually die?
+    |-- No: investigate hang / unresponsiveness / dependencies first
+    '-- Yes: record PID/containerID/podUID/node/start-end UTC
           |
           v
-[2] Có hs_err của đúng PID/thời điểm?
-    |-- Có: điều tra JVM/native fatal error + core/agents/JDK
-    '-- Không hoặc thiếu: chưa kết luận, tiếp tục OS evidence
+[2] Is there an hs_err matching the PID/timestamp?
+    |-- Yes: investigate JVM/native fatal error + core/agents/JDK
+    '-- No or incomplete: do not conclude yet; gather OS evidence
           |
           v
-[3] Exit là normal, explicit code hay signal?
-    |-- exit code custom: xem Java exception/System.exit/wrapper
-    |-- SIGTERM: xem deploy/probe/service manager/stop
-    |-- SIGKILL: xem kernel OOM, cgroup, controller grace, operator
-    '-- SIGSEGV/SIGABRT/SIGBUS: xem native/JVM fault/core
+[3] Was exit normal, explicit code, or signal?
+    |-- custom exit code: check Java exception / System.exit / wrapper
+    |-- SIGTERM: check deploy / probe / service manager / stop
+    |-- SIGKILL: check kernel OOM, cgroup, controller grace, operator
+    '-- SIGSEGV/SIGABRT/SIGBUS: check native/JVM fault/core
           |
           v
 [4] OOM evidence?
-    |-- reason OOMKilled + đúng kernel/cgroup/time:
-    |      xác nhận kernel/cgroup kill, tìm nguồn memory
-    |-- Java OutOfMemoryError nhưng không có OS kill:
-    |      điều tra JVM exception/resource area
-    '-- Chỉ exit 137:
-           chưa đủ, thu runtime/kubelet/kernel records
+    |-- reason OOMKilled + matching kernel/cgroup/time:
+    |      confirm kernel/cgroup kill, find memory source
+    |-- Java OutOfMemoryError with no OS kill:
+    |      investigate JVM exception / resource region
+    '-- Only exit 137:
+           insufficient; collect runtime/kubelet/kernel records
           |
           v
-[5] Ghép bằng chứng, phản chứng, scope và quyết định sửa
+[5] Correlate evidence, counter-evidence, scope, and decide fix
 ~~~
 
-Nhánh trên là hướng suy luận, **không phải thứ tự cứng**. Nếu có status OOMKilled rất rõ từ orchestrator, nên thu kernel/cgroup logs ngay vì dễ hết retention, rồi quay lại xem hs_err/Java logs. Nếu chỉ có hs_err nhưng kernel cũng OOM kill về sau, phải dựng timeline xem cái nào xảy ra trước và PID nào bị kill.
+The flow above is a reasoning guide, **not a rigid sequence**. If the orchestrator clearly shows `OOMKilled`, grab kernel/cgroup logs immediately before retention expires, then return to `hs_err`/Java logs. If `hs_err` exists yet the kernel also OOM-killed later, build a timeline to see which happened first and which PID was killed.
 
-## 22. Checklist điều tra và bàn giao
+## 22. Investigation and Handover Checklist
 
-- [ ] Tôi xác nhận process thực sự kết thúc, không chỉ app bị treo.
-- [ ] Tôi biết đúng PID, instance, container ID/pod UID, node, start/end time và JVM version.
-- [ ] Tôi phân biệt Java exception/OOME, System.exit, Runtime.halt, JVM fatal error, SIGTERM/SIGKILL và OOM killer.
-- [ ] Tôi đã tìm hs_err và kiểm tra path/permissions/timestamp; không suy “vắng file = OS kill”.
-- [ ] Nếu có hs_err, tôi đọc fatal header, signal, problematic frame, native/JVM frames và VM arguments.
-- [ ] Tôi đã lấy process/container status, không chỉ một exit code tổng quát.
-- [ ] Với 137, tôi tìm evidence SIGKILL và sender/reason; không tự động coi là OOMKilled.
-- [ ] Với OOMKilled, tôi lấy kernel/cgroup memory events và memory trend đúng phạm vi.
-- [ ] Tôi không nhầm Java heap OutOfMemoryError với container OOMKilled; có xét native/direct/cache/thread memory.
-- [ ] Tôi kiểm tra probe, rollout, grace period, watchdog, systemd-oomd và node eviction.
-- [ ] Tôi phân biệt core dump, heap dump, hs_err, JFR/GC logs và kernel evidence.
-- [ ] Tôi không dùng PID mới hoặc memory snapshot sau restart làm evidence cho process cũ.
-- [ ] Tôi so mốc thời gian theo UTC, hiểu clock skew và log retention.
-- [ ] Tôi có ít nhất một giả thuyết cạnh tranh và một phép kiểm chứng có thể bác bỏ giả thuyết chính.
-- [ ] Tôi bảo vệ dữ liệu trong hs_err/core/heap dumps và có chính sách lưu, xóa, phân quyền.
-- [ ] Kết luận nêu **cơ chế termination**, **root cause giả thuyết**, **độ tin cậy** và **việc cần đo tiếp**.
+- [ ] Confirmed the process actually terminated, not just that the app hung.
+- [ ] Identified the exact PID, instance, container ID/pod UID, node, start/end times, and JVM version.
+- [ ] Distinguished Java exceptions/OOME, `System.exit`, `Runtime.halt`, JVM fatal errors, `SIGTERM`/`SIGKILL`, and the OOM killer.
+- [ ] Searched for `hs_err` and checked paths/permissions/timestamps; did not infer “missing file = OS kill.”
+- [ ] If `hs_err` exists, read fatal header, signal, problematic frame, native/JVM frames, and VM arguments.
+- [ ] Pulled process/container status, not just a bare exit code.
+- [ ] For 137, sought `SIGKILL` evidence plus sender/reason; did not assume `OOMKilled` automatically.
+- [ ] For `OOMKilled`, collected properly scoped kernel/cgroup memory events and memory trends.
+- [ ] Did not confuse Java heap `OutOfMemoryError` with container `OOMKilled`; checked native/direct/cache/thread memory.
+- [ ] Checked probes, rollouts, grace periods, watchdogs, `systemd-oomd`, and node eviction.
+- [ ] Distinguished core dumps, heap dumps, `hs_err`, JFR/GC logs, and kernel evidence.
+- [ ] Did not use a new PID or post-restart memory snapshot as evidence for the old process.
+- [ ] Aligned timestamps in UTC, accounting for clock skew and log retention.
+- [ ] Formulated at least one competing hypothesis and a check that could falsify the primary hypothesis.
+- [ ] Protected sensitive data in `hs_err`/core/heap dumps with retention, deletion, and access policies.
+- [ ] Conclusion states **termination mechanism**, **root-cause hypothesis**, **confidence level**, and **next measurements**.
 
-## 23. Kết luận
+## 23. Conclusion
 
-Điểm phân biệt quan trọng nhất:
+The most critical distinction:
 
-**JVM tự ghi fatal error** nghĩa là cơ chế reporting của VM có cơ hội chạy và có thể tạo **hs_err** (thường kèm signal/native/VM context). **Hệ điều hành hoặc bộ điều phối chấm dứt tiến trình** có thể dùng SIGTERM/SIGKILL; với SIGKILL, JVM không kịp chạy shutdown hooks hoặc tạo những artifact theo quy trình bình thường.
+**The JVM self-reporting a fatal error** means the VM's reporting mechanism had a chance to run and could write **`hs_err`** (usually with signal/native/VM context). **The OS or orchestrator terminating the process** may use `SIGTERM`/`SIGKILL`; with `SIGKILL`, the JVM has no time to run shutdown hooks or produce normal diagnostic artifacts.
 
-Nhưng thực tế có thêm các nhánh: Java exception, OutOfMemoryError, System.exit, Runtime.halt, native SIGSEGV, kernel/cgroup OOM kill, systemd-oomd, kubelet evictions, liveness restarts và wrapper statuses. Vì vậy không được lấy một dấu vết (exit 137, vắng hs_err, một dòng OOME hay pod restart) làm toàn bộ kết luận.
+In practice there are more branches: Java exceptions, `OutOfMemoryError`, `System.exit`, `Runtime.halt`, native `SIGSEGV`, kernel/cgroup OOM kills, `systemd-oomd`, kubelet evictions, liveness restarts, and wrapper exit statuses. Therefore, never turn a single clue (exit 137, missing `hs_err`, one OOME line, or a pod restart) into the entire conclusion.
 
-Một quá trình điều tra tốt đi theo chuỗi:
+A sound investigation follows this chain:
 
-**Xác minh process/instance → thu hs_err/Java logs → đối chiếu exit/signal/reason → đọc kernel/cgroup/orchestrator timeline → phân biệt cơ chế kết thúc với nguyên nhân sâu → sửa có kiểm chứng.**
+**Verify process/instance → collect `hs_err`/Java logs → correlate exit/signal/reason → read kernel/cgroup/orchestrator timeline → separate termination mechanism from root cause → apply a verified fix.**
 
-### Tài liệu tham khảo
+### References
 
-- Oracle JDK 21, Java launcher/HotSpot flags (-XX:ErrorFile, HeapDumpOnOutOfMemoryError...): https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html
-- Oracle JDK 21, jcmd (VM flags, JFR, native memory commands khi được hỗ trợ): https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
+- Oracle JDK 21, Java launcher/HotSpot flags (`-XX:ErrorFile`, `HeapDumpOnOutOfMemoryError`...): https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html
+- Oracle JDK 21, `jcmd` (VM flags, JFR, native memory commands when supported): https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
 - Oracle Java 21, Troubleshooting Guide: https://docs.oracle.com/en/java/javase/21/troubleshoot/
-- Linux kernel cgroup v2 (memory.events, memory.events.local, memory.max): https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html
-- Linux signal(7): https://man7.org/linux/man-pages/man7/signal.7.html
+- Linux kernel cgroup v2 (`memory.events`, `memory.events.local`, `memory.max`): https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html
+- Linux `signal(7)`: https://man7.org/linux/man-pages/man7/signal.7.html
 - Kubernetes, Node-pressure eviction: https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/
 - Kubernetes, Debug Running Pods: https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/

@@ -1,208 +1,208 @@
-# 7.4 Kết nối JMX cục bộ qua management agent và vai trò của Attach API
+# 7.4 Local JMX connections via the management agent and the role of the Attach API
 
-Một ứng dụng Java đang chạy có thể gặp tăng độ trễ, rò rỉ bộ nhớ, luồng bị chặn hoặc cấu hình JVM khác với dự kiến. Để xem các chỉ số quản trị mà **không tự sửa mã ứng dụng**, một công cụ như JConsole có thể kết nối vào JVM cùng máy và đọc các MBean của nền tảng. Nhưng quá trình này thường có hai bước kỹ thuật riêng biệt: **attach tới JVM mục tiêu** và **kết nối đến JMX management agent** mà JVM đó cung cấp.
+A running Java application can experience rising latency, memory leaks, blocked threads, or unexpected JVM settings. To inspect management metrics **without modifying application source code**, a tool such as JConsole can connect to a JVM on the same machine and read platform MBeans. Yet this process typically involves two distinct technical steps: **attaching to the target JVM** and **connecting to the JMX management agent** provided by that JVM.
 
-Hiểu sai hai bước dẫn đến những nhận định phổ biến nhưng nguy hiểm: “cứ mở port JMX là xem được local”, “Attach API chính là giao thức JMX”, “không thấy PID trong jps tức JVM không chạy”, hoặc “đóng JConsole thì management agent cũng dừng”. Bài này giải thích từng cơ chế trên **Java 17+**, khi nào management agent có thể được kích hoạt lúc JVM đã chạy, cách dùng `jconsole`, `jcmd` và `com.sun.tools.attach.VirtualMachine`, cách đọc MXBean từ connector và cách kiểm soát rủi ro.
+Confusing these two steps leads to common yet dangerous misconceptions: "just open a JMX port to view locally," "the Attach API is the JMX protocol," "not seeing a PID in jps means the JVM isn't running," or "closing JConsole stops the management agent." This lesson explains each mechanism on **Java 17+**, when the management agent can be started dynamically on a running JVM, how to use `jconsole`, `jcmd`, and `com.sun.tools.attach.VirtualMachine`, how to read MXBeans from a connector, and how to control risk.
 
-**Phạm vi:** JMX **cục bộ** phục vụ chẩn đoán một JVM cụ thể. Các ví dụ có bước attach hoặc khởi động agent là **thao tác thay đổi trạng thái JVM mục tiêu**; chỉ chạy trên tiến trình bạn có quyền quản trị, tốt nhất trong môi trường thực hành/staging. Kết nối JMX từ xa, cấu hình xác thực/TLS và triển khai production là một chủ đề liên quan nhưng không được dùng làm cách “sửa nhanh” cho lỗi local attach.
+**Scope:** **Local** JMX for diagnosing a specific JVM. Examples that attach or start an agent are **operations that modify target JVM state**; run them only on processes you are authorized to manage, ideally in practice or staging environments. Remote JMX connections, authentication/TLS configuration, and production deployment are related topics and must never be used as a "quick fix" for local attach failures.
 
-## 1. Ba thành phần cần phân biệt
+## 1. Three components to distinguish
 
-| Thành phần | Nhiệm vụ | Không phải |
+| Component | Responsibility | Is not |
 | --- | --- | --- |
-| **Platform MBeanServer** | Đăng ký/cho truy vấn MBean, MXBean của JVM và ứng dụng; có thể truy cập trong cùng JVM | Một socket nghe từ máy khác hoặc một Java process khác |
-| **JMX management agent / JMX connector** | Xuất giao diện `MBeanServerConnection` qua địa chỉ kết nối để JMX client truy vấn | Cơ chế tìm PID hoặc cấp quyền OS để attach |
-| **Attach API** (module `jdk.attach`) | Cho phép một công cụ JVM tiếp cận JVM đích đã chạy, đọc một số properties, khởi động management agent hoặc load agent khi được hỗ trợ | Bản thân giao thức truy vấn `MemoryMXBean`/`ThreadMXBean` trên JMX |
+| **Platform MBeanServer** | Registers and serves JVM and application MBeans/MXBeans; directly accessible inside the same JVM | A socket listening for remote hosts or a separate Java process |
+| **JMX management agent / JMX connector** | Exposes `MBeanServerConnection` over a connector address for JMX clients to query | The PID discovery mechanism or OS permission mechanism to attach |
+| **Attach API** (module `jdk.attach`) | Lets a JVM tool reach a running target JVM, read certain properties, start the management agent, or load an agent when supported | The protocol itself for querying `MemoryMXBean`/`ThreadMXBean` over JMX |
 
-Một sơ đồ đường đi:
+A path diagram:
 
 ```text
-JVM mục tiêu (PID đã xác định)
+Target JVM (verified PID)
 ┌───────────────────────────────────────────────────────┐
 │ Application / JVM                                     │
 │  ├─ Platform MBeanServer                              │
 │  │    ├─ java.lang:type=Runtime                       │
 │  │    ├─ java.lang:type=Memory                        │
 │  │    ├─ java.lang:type=Threading                     │
-│  │    └─ MBeans của ứng dụng (nếu có)                  │
-│  ├─ Local JMX management agent / connector (nếu bật)  │
-│  └─ Attach listener/provider (nếu hỗ trợ và cho phép) │
+│  │    └─ Application MBeans (if any)                  │
+│  ├─ Local JMX management agent / connector (if active)│
+│  └─ Attach listener/provider (if supported & allowed) │
 └───────────────▲───────────────────▲───────────────────┘
                 │                   │
        Attach API (PID)      JMX connector
-       lấy address, có thể   JMXServiceURL →
-       kích hoạt agent       JMXConnector →
-                │           MBeanServerConnection
+       reads address, may    JMXServiceURL →
+       activate agent        JMXConnector →
+                │            MBeanServerConnection
                 └──────────┬────────┘
-                     Tool cùng máy:
-                    JConsole / client Java
+                      Same-host tool:
+                     JConsole / Java client
 ```
 
-Quan trọng:
+Crucially:
 
-- `ManagementFactory.getPlatformMBeanServer()` **trong cùng JVM** cho quyền dùng MBeanServer trực tiếp, không cần Attach API hay local JMX connector.
-- `VirtualMachine.attach(pid)` giúp công cụ tiếp cận JVM mục tiêu qua cơ chế attach, **chưa đồng nghĩa đã kết nối JMX**.
-- `VirtualMachine.startLocalManagementAgent()` yêu cầu JVM mục tiêu khởi động local management agent và trả địa chỉ connector.
-- `JMXConnectorFactory.connect(new JMXServiceURL(address))` mới là bước tạo phiên JMX client.
-- `connector.close()` đóng kết nối của client; `vm.detach()` giải phóng phiên attach; cả hai **không mặc định dừng local management agent** đã được bật.
+- `ManagementFactory.getPlatformMBeanServer()` **inside the same JVM** gives direct MBeanServer access with no Attach API or local JMX connector needed.
+- `VirtualMachine.attach(pid)` lets a tool reach the target JVM via the attach mechanism, **which does not mean JMX is connected yet**.
+- `VirtualMachine.startLocalManagementAgent()` asks the target JVM to start its local management agent and returns the connector address.
+- `JMXConnectorFactory.connect(new JMXServiceURL(address))` is the step that establishes the JMX client session.
+- `connector.close()` closes the client connection; `vm.detach()` releases the attach session; neither **automatically stops the local management agent** once enabled.
 
-## 2. JMX có gì đáng quan sát khi chẩn đoán JVM?
+## 2. What is worth observing via JMX during JVM diagnostics?
 
-JMX là Java Management Extensions, mô hình chuẩn hóa MBean có **attributes**, **operations**, **notifications** và một namespace `ObjectName`. Một số MBean nền tảng rất hữu ích:
+JMX is Java Management Extensions, a standardized MBean model with **attributes**, **operations**, **notifications**, and an `ObjectName` namespace. Several platform MBeans are especially useful:
 
-| ObjectName | Nhóm quan sát | Điều cần lưu ý |
+| ObjectName | Observation group | Notes |
 | --- | --- | --- |
-| `java.lang:type=Runtime` | JVM uptime/start, VM version, input arguments | Arguments/properties có thể chứa secret |
-| `java.lang:type=Memory` | Heap, non-heap usage, GC request operation | Phân biệt đọc chỉ số với gọi operation có tác động |
-| `java.lang:type=Threading` | Số thread, deadlock/stack info, CPU time tùy hỗ trợ | Lấy nhiều stack trace có chi phí |
-| `java.lang:type=ClassLoading` | Class count, total loaded/unloaded | Không nói được toàn bộ classpath |
-| `java.lang:type=OperatingSystem` | CPU count, load average; extension cho CPU/RAM tùy JDK | Có giới hạn container/sampling |
-| `java.lang:type=Compilation` | JIT compiler info/time tùy hỗ trợ | Không có ở mọi VM |
-| `java.lang:type=GarbageCollector,name=*` | GC counts và time theo collector | Tên collector/semantics khác nhau |
-| `java.nio:type=BufferPool,name=*` | Direct/mapped buffer stats khi có | Không phải tổng RSS |
-| MBean do ứng dụng tạo | Hàng đợi, pool, trạng thái business, thao tác quản trị | Có thể có operation thay đổi production |
+| `java.lang:type=Runtime` | JVM uptime/start, VM version, input arguments | Arguments/properties may contain secrets |
+| `java.lang:type=Memory` | Heap, non-heap usage, GC request operation | Distinguish reading metrics from invoking impactful operations |
+| `java.lang:type=Threading` | Thread counts, deadlock/stack info, optional CPU time | Collecting many stack traces carries overhead |
+| `java.lang:type=ClassLoading` | Class count, total loaded/unloaded | Does not reveal the entire classpath |
+| `java.lang:type=OperatingSystem` | CPU count, load average; JDK extensions for CPU/RAM | Subject to container/sampling limitations |
+| `java.lang:type=Compilation` | JIT compiler info/time where supported | Not present on every VM |
+| `java.lang:type=GarbageCollector,name=*` | GC counts and time per collector | Collector names/semantics vary |
+| `java.nio:type=BufferPool,name=*` | Direct/mapped buffer stats when available | Not total RSS |
+| Application-created MBeans | Queues, pools, business state, admin actions | May expose operations that mutate production |
 
-Không phải mọi MBean chỉ đọc. Một `MBeanServerConnection` có thể cho phép `setAttribute` hoặc `invoke` nếu quyền và MBean cho phép. Ví dụ một application MBean có operation “reload”, “clear”, “shutdown”; người dùng JConsole có thể vô tình thay đổi trạng thái runtime khi nhấn thao tác. **Chỉ xem attributes/notifications đã chọn**, không thử invoke/modify trên production chỉ để biết có gì.
+Not every MBean is read-only. An `MBeanServerConnection` can allow `setAttribute` or `invoke` if permissions and the MBean permit. For example, an application MBean might expose "reload," "clear," or "shutdown"; a JConsole user could accidentally mutate runtime state by clicking an operation. **Inspect only chosen attributes/notifications**, and never test invoke/modify in production just to see what exists.
 
-### 2.1. ObjectName và MXBean không phải địa chỉ kết nối
+### 2.1. ObjectName and MXBeans are not connection addresses
 
-`java.lang:type=Memory` là **tên đối tượng quản trị trong MBeanServer**, không phải host:port. Nó được sử dụng sau khi đã có `MBeanServerConnection`:
+`java.lang:type=Memory` is the **managed object name inside the MBeanServer**, not a host:port. It is used after you already hold an `MBeanServerConnection`:
 
 ```java
 import javax.management.ObjectName;
 
-// Trong code có MBeanServerConnection connection:
+// Inside code holding MBeanServerConnection connection:
 ObjectName memoryName =
         new ObjectName("java.lang:type=Memory");
 Object heap = connection.getAttribute(memoryName, "HeapMemoryUsage");
 ```
 
-Đoạn mã chỉ minh họa, không biên dịch độc lập nếu chưa khai báo `connection`. Qua JMX Open Types, thuộc tính `HeapMemoryUsage` có thể được ánh xạ sang `CompositeData`, không phải `MemoryUsage` Java object ở mọi cách truy cập thô. Nếu muốn interface Java, có thể tạo proxy đúng MXBean.
+This snippet is illustrative only and will not compile standalone without declaring `connection`. Via JMX Open Types, the `HeapMemoryUsage` attribute maps to `CompositeData`, not a `MemoryUsage` Java object under raw access. If you want a Java interface, create an appropriate MXBean proxy.
 
-### 2.2. JMX in-process, JMX local và JMX remote
+### 2.2. In-process JMX, local JMX, and remote JMX
 
-| Kiểu | Cách truy cập | Điều kiện |
+| Mode | Access mechanism | Conditions |
 | --- | --- | --- |
-| **In-process** | `ManagementFactory.getPlatformMBeanServer()` hoặc `getRuntimeMXBean()` | Code đang chạy **trong chính JVM**; không attach |
-| **Local JMX** | `jconsole <pid>` hoặc Attach API lấy connector address rồi kết nối | Cùng môi trường local có thể attach; OS permission/namespace/agent support |
-| **Remote JMX** | RMI JMX connector với `host:port`/service URL, auth/TLS/network policies | Phải cấu hình, bảo vệ và vận hành riêng; không suy từ việc local attach dùng được |
+| **In-process** | `ManagementFactory.getPlatformMBeanServer()` or `getRuntimeMXBean()` | Code runs **inside the same JVM**; no attach |
+| **Local JMX** | `jconsole <pid>` or Attach API retrieves connector address, then connects | Same attachable local environment; OS permissions/namespace/agent support |
+| **Remote JMX** | RMI JMX connector with `host:port`/service URL, auth/TLS/network policies | Must be configured, secured, and operated separately; cannot be inferred from local attach working |
 
-“Local” **không đồng nghĩa** không có giao tiếp socket hoặc không có rủi ro. Connector có thể dùng RMI và các endpoint riêng nhưng được giới hạn theo cơ chế truy cập local. Khả năng được phép truy cập thường dựa vào quyền OS cùng user và cơ chế attach, không phải nhập password JMX remote. Nếu user có thể attach vào JVM, người đó đã nắm quyền quản trị đáng kể đối với tiến trình.
+"Local" **does not mean** zero socket communication or zero risk. The connector may still use RMI and private endpoints restricted via local access controls. Access authorization generally relies on matching OS user permissions and the attach mechanism rather than entering a remote JMX password. Any user permitted to attach to a JVM already wields substantial administrative control over that process.
 
-## 3. Khi nào local management agent xuất hiện?
+## 3. When does the local management agent appear?
 
-### 3.1. Đường khởi động có sẵn và đường kích hoạt theo nhu cầu
+### 3.1. Startup configuration vs. on-demand activation
 
-Historically, có thể chỉ định khi khởi động:
+Historically, you could specify at startup:
 
 ```bash
 java -Dcom.sun.management.jmxremote -jar app.jar
 ```
 
-Trên Java SE hiện đại với hỗ trợ Attach API, **không bắt buộc** truyền property này ngay từ đầu chỉ để JConsole local theo cách thông thường. Công cụ local có thể attach và kích hoạt management agent khi cần, nếu JVM **cho phép attach** và runtime có thành phần quản lý.
+On modern Java SE with Attach API support, passing this property upfront is **not required** for typical local JConsole access. Local tools can attach and activate the management agent on demand if the JVM **permits attach** and the runtime includes management components.
 
-Không nên suy ra mọi Java 17 runtime đều attach được: chính sách bảo mật, `-XX:+DisableAttachMechanism` trên HotSpot, image tạo bằng `jlink`, container namespace, permission hoặc thiếu tool/provider có thể làm thất bại. Đây là khả năng của một tổ hợp runtime–OS–policy, không phải lời hứa mọi JVM sẵn sàng cho quản trị local.
+Do not assume every Java 17 runtime is attachable: security policies, `-XX:+DisableAttachMechanism` on HotSpot, custom `jlink` images, container namespaces, permissions, or missing tools/providers can cause failures. It is a capability of a specific runtime–OS–policy combination, not a promise that every JVM is ready for local management.
 
-### 3.2. Điều kiện để công cụ như JConsole kết nối local
+### 3.2. Requirements for tools like JConsole to connect locally
 
-Những điều thường cần xác minh:
+Things commonly verified:
 
-1. JVM mục tiêu tồn tại và PID được xác định **trong đúng PID namespace**.
-2. Công cụ chạy trên hệ thống hỗ trợ local attach tới JVM đó; theo tài liệu JConsole và `jcmd`, thường cần **cùng user/effective UID**, đôi khi có yêu cầu group/OS permissions tương ứng.
-3. Phiên bản JDK client/target và attach provider tương thích.
-4. Runtime mục tiêu không chặn dynamic attach và có modules/management facilities cần thiết.
-5. Tên file/socket/temporary directory sử dụng bởi attach có thể truy cập, an toàn và không bị permission/namespace policy ngăn cản.
-6. Quy trình vận hành cho phép khởi động local agent trên JVM đang chạy.
+1. The target JVM exists and its PID is identified **within the right PID namespace**.
+2. The tool runs on a system supporting local attach to that JVM; per JConsole and `jcmd` docs, this usually requires **the same user / effective UID**, and sometimes matching group/OS permissions.
+3. Client/target JDK versions and attach providers are compatible.
+4. The target runtime does not block dynamic attach and includes required management modules/facilities.
+5. Attach files/sockets/temporary directories are accessible, secure, and not blocked by permission or namespace policies.
+6. Operational procedures permit starting the local agent on a live JVM.
 
-**Kết nối “cùng host”** là mô hình mặc định. Một trình duyệt trên laptop không tự truy cập được local connector trong Linux container chỉ vì bạn biết PID của JVM trên server. Đừng dùng `ssh -L` hoặc mở remote port theo kiểu ngẫu nhiên để biến JMX local thành “JMX remote tạm”; transport, bảo mật và đối tượng lắng nghe không hoạt động theo giả định đó.
+**Same-host connection** is the baseline model. A browser or tool on your laptop cannot automatically reach a local connector inside a Linux container just because you know the server JVM's PID. Never use ad-hoc `ssh -L` or random remote ports to turn local JMX into "temporary remote JMX"; transports, security, and bound listeners do not work under that assumption.
 
-### 3.3. Trên Windows và Linux
+### 3.3. On Windows and Linux
 
-Trên Windows, tài liệu JDK lưu ý local monitoring cần thư mục tạm mặc định đặt trên filesystem cho phép permissions đủ mạnh, chẳng hạn NTFS; FAT không cung cấp kiểm soát phù hợp. Trên Linux/macOS, file/socket attach và uid/gid/mount namespace có thể ảnh hưởng truy cập.
+On Windows, JDK docs note that local monitoring requires the default temporary directory to reside on a filesystem supporting strong permissions, such as NTFS; FAT lacks proper access controls. On Linux/macOS, attach files/sockets and uid/gid/mount namespaces affect access.
 
-Trong container, user trong JVM, user chạy tool trên host, PID nhìn thấy và mount namespace có thể khác; `jps`/`jcmd -l` đôi khi không liệt kê JVM trong container khác. Vì vậy **“không tìm thấy trong danh sách” khác “process không chạy”**.
+Inside containers, the JVM's user, the host tool's user, visible PIDs, and mount namespaces may differ; `jps`/`jcmd -l` sometimes fail to list JVMs in separate containers. Hence **"missing from the list" is different from "process not running."**
 
-## 4. Dùng JConsole để kết nối cục bộ
+## 4. Using JConsole to connect locally
 
-### 4.1. Bắt đầu bằng PID chính xác
+### 4.1. Starting with the exact PID
 
-Với JDK có công cụ `jconsole`, chạy:
+With a JDK providing `jconsole`, run:
 
 ```bash
-# Liệt kê một số JVM hiện thấy trong namespace của công cụ.
+# List JVMs visible within the tool's current namespace.
 jcmd -l
 
-# Mở GUI JConsole và kết nối JVM có PID ví dụ.
+# Launch JConsole GUI and connect to the JVM with an example PID.
 jconsole 12345
 ```
 
-`12345` chỉ là PID minh họa. `jconsole` không có trên mọi headless/minimal runtime image và đòi hỏi môi trường đồ họa phù hợp. Khi không truyền PID, JConsole thường hiển thị danh sách JVM local có thể quan sát và chọn. Lệnh `jconsole 12345` trực tiếp chọn PID đó theo tài liệu công cụ.
+`12345` is merely an illustrative PID. `jconsole` is absent from many headless/minimal runtime images and requires a graphical display environment. When launched with no PID, JConsole typically shows a selectable list of observable local JVMs. Passing `jconsole 12345` connects directly to that PID per tool documentation.
 
-Với Java 17, JConsole có thể sử dụng Attach API để kết nối JVM có thể attach dù chưa chủ động bật management agent lúc startup. Đây là lý do bạn không nhất thiết cần port JMX remote hoặc khởi động lại Java chỉ để quan sát local.
+On Java 17, JConsole can use the Attach API to connect to attachable JVMs even if the management agent was not explicitly enabled at startup. That is why you do not necessarily need a remote JMX port or a Java restart just for local observation.
 
-### 4.2. Một phiên quan sát nên xem gì?
+### 4.2. What should an observation session inspect?
 
-Sau khi kết nối đúng JVM, ưu tiên các tab và dữ liệu **đọc-only**:
+Once connected to the right JVM, prioritize **read-only** tabs and views:
 
-- **Overview:** heap, threads, classes và CPU quan sát tổng quan; giới hạn sampling/UI.
-- **Memory:** heap, non-heap, memory pools, cảnh báo khi tiến sát giới hạn. Không bấm thao tác gọi GC để “đo thử” trên production.
-- **Threads:** thread count, deadlock monitor và stack của thread khi được phép; lưu ý tác động khi lấy nhiều stack trace.
-- **Classes:** số class đã load/unload; không phải snapshot mọi bytecode.
-- **VM Summary:** VM/version, arguments, system properties, runtime/cpu thông tin có thể chứa dữ liệu nhạy cảm.
-- **MBeans:** xem Attributes và Notifications có ích. Cẩn trọng với Operations hoặc attributes có thể chỉnh.
+- **Overview:** high-level heap, threads, classes, and CPU; limited by sampling/UI.
+- **Memory:** heap, non-heap, memory pools, warnings near limits. Never click GC triggers to "test" in production.
+- **Threads:** thread counts, deadlock monitoring, and thread stacks when authorized; note the overhead of capturing many stack traces.
+- **Classes:** loaded/unloaded class counts; not a snapshot of all bytecode.
+- **VM Summary:** VM/version, arguments, system properties, runtime/CPU info that may contain sensitive data.
+- **MBeans:** viewing Attributes and Notifications is helpful. Be cautious with Operations or editable attributes.
 
-Khi cần sự cố spike ngắn vài chục mili giây, polling GUI của JConsole thường không đủ chi tiết. Chọn JFR, GC logs hoặc profiler phù hợp; không tăng tốc độ refresh GUI liên tục rồi tin số liệu trở thành tracing chính xác.
+For brief spikes lasting tens of milliseconds, JConsole GUI polling usually lacks sufficient granularity. Choose JFR, GC logs, or an appropriate profiler; never crank GUI refresh rates endlessly thinking it turns into accurate tracing.
 
-### 4.3. Tác động của JConsole
+### 4.3. Impact of JConsole
 
-JConsole là chương trình Java có GUI và việc kết nối/thu thập dữ liệu cũng tốn tài nguyên của JVM mục tiêu. Tài liệu Oracle cảnh báo **không khuyến khích chạy JConsole local trên production** vì chính JConsole tiêu thụ tài nguyên. Đối với production, ưu tiên metrics/exporter hoặc hệ thống quản trị được thiết kế sẵn, hạn chế local GUI và tuân thủ quy trình truy cập. Không làm thay đổi trạng thái JVM chỉ để lấy một screenshot.
+JConsole is a Java GUI application, and its connection/data collection consumes resources on the target JVM. Oracle documentation warns **against running local JConsole in production** because JConsole itself consumes resources. For production, prefer metrics/exporters or purpose-built management tooling, limit local GUIs, and follow access procedures. Never mutate JVM state just to grab a screenshot.
 
-## 5. Vai trò của Attach API (`jdk.attach`)
+## 5. Role of the Attach API (`jdk.attach`)
 
-### 5.1. VirtualMachine là phiên attach, không phải JMX client
+### 5.1. VirtualMachine is an attach session, not a JMX client
 
-Package `com.sun.tools.attach` thuộc module `jdk.attach`. API chính:
+Package `com.sun.tools.attach` lives in module `jdk.attach`. Core APIs:
 
-| API | Tác dụng | Lưu ý |
+| API | Effect | Notes |
 | --- | --- | --- |
-| `VirtualMachine.list()` | Liệt kê các VM mà installed attach providers biết | Không phải toàn bộ JVM trên cluster/container khác |
-| `VirtualMachine.attach(String id)` | Tạo phiên attach tới VM theo identifier, thường là PID | Có thể ném `AttachNotSupportedException`, `IOException` |
-| `VirtualMachine.getAgentProperties()` | Đọc properties của agent trong JVM đích | Khác system properties; có thể có địa chỉ local connector |
-| `VirtualMachine.startLocalManagementAgent()` | Khởi động local JMX management agent và trả service address | **Thay đổi trạng thái JVM đích**, không đơn thuần là read-only |
-| `VirtualMachine.startManagementAgent(Properties)` | Khởi động management agent với cấu hình **remote**; cần property port | Không dùng cho bài toán local attach thông thường |
-| `VirtualMachine.getSystemProperties()` | Đọc system properties của JVM đích | Có thể tiết lộ secret; không dump bừa |
-| `VirtualMachine.loadAgent(...)` | Tải agent Java vào JVM đích | Là công việc khác, có rủi ro cao hơn; không dùng để đọc MBeans thuần |
-| `VirtualMachine.detach()` | Giải phóng phiên attach | Không tắt JMX connector đã bật |
+| `VirtualMachine.list()` | Lists VMs known to installed attach providers | Not every JVM across clusters or separate containers |
+| `VirtualMachine.attach(String id)` | Opens an attach session to a VM by identifier, usually PID | Can throw `AttachNotSupportedException`, `IOException` |
+| `VirtualMachine.getAgentProperties()` | Reads agent properties inside target JVM | Distinct from system properties; may hold local connector address |
+| `VirtualMachine.startLocalManagementAgent()` | Starts local JMX management agent and returns service address | **Mutates target JVM state**, not purely read-only |
+| `VirtualMachine.startManagementAgent(Properties)` | Starts management agent with **remote** config; requires port property | Not for standard local attach workflows |
+| `VirtualMachine.getSystemProperties()` | Reads system properties of target JVM | Can expose secrets; do not dump indiscriminately |
+| `VirtualMachine.loadAgent(...)` | Loads a Java agent into target JVM | Different task with higher risk; not for plain MBean reads |
+| `VirtualMachine.detach()` | Releases the attach session | Does not shut down an enabled JMX connector |
 
-Một công cụ thường mở phiên attach ngắn: xác định địa chỉ connector đã được xuất, hoặc khởi động local agent nếu chưa có; sau đó **detach**. Từ thời điểm có `JMXServiceURL`, phần giao tiếp tiếp tục qua JMX connector, không dùng mỗi lần gọi `getAttribute()` qua Attach API.
+A tool typically opens a brief attach session: look up an already-published connector address, or start the local agent if absent; then **detach**. From the moment a `JMXServiceURL` is obtained, communication proceeds over the JMX connector rather than issuing every `getAttribute()` through the Attach API.
 
-### 5.2. Local connector address ở đâu?
+### 5.2. Where is the local connector address stored?
 
-HotSpot management agent thường lưu thông tin connector trong **agent properties** với key:
+The HotSpot management agent typically stores connector info inside **agent properties** under the key:
 
 ```text
 com.sun.management.jmxremote.localConnectorAddress
 ```
 
-Đây là key thuộc cách triển khai JDK management agent, khác `com.sun.management.jmxremote.port` cho remote agent. Địa chỉ là chuỗi JMX service URL — thường có định dạng RMI dài và thành phần có thể khác ở từng JVM. **Không tự chế service URL** từ PID, host hoặc suy ra port cố định.
+This key belongs to the JDK management agent implementation, unlike `com.sun.management.jmxremote.port` for remote agents. Its value is a JMX service URL string — typically a long RMI format whose components vary per JVM. **Never fabricate a service URL** from a PID, host, or guessed fixed port.
 
-Một quy trình hợp lý:
+A sound workflow:
 
 ```text
-Attach đến JVM mục tiêu bằng identifier/PID
+Attach to target JVM by identifier/PID
     |
     v
 getAgentProperties().getProperty(localConnectorAddress)
     |
-    +-- Có address --> giữ address
+    +-- Has address --> keep address
     |
-    +-- Chưa có ----> startLocalManagementAgent()
+    +-- Missing ------> startLocalManagementAgent()
                            |
                            v
-                      nhận address
+                      receive address
     |
     v
-detach khỏi JVM (finally)
+detach from JVM (finally)
     |
     v
 JMXConnectorFactory.connect(JMXServiceURL(address))
@@ -211,35 +211,35 @@ JMXConnectorFactory.connect(JMXServiceURL(address))
 MBeanServerConnection
     |
     v
-Đọc MBeans/MXBeans có quyền, sau đó close connector
+Read authorized MBeans/MXBeans, then close connector
 ```
 
-`startLocalManagementAgent()` được thêm từ Java 8 và trả địa chỉ connector có thể parse bằng `new JMXServiceURL(String)`. Nếu không có địa chỉ, không tiếp tục bằng một URL phỏng đoán. Trường hợp JVM mới/chậm khởi động hoặc attach lỗi cần retry theo chính sách, **không** vòng lặp attach liên tục gây áp lực lên tiến trình.
+`startLocalManagementAgent()` was added in Java 8 and returns a connector address parseable by `new JMXServiceURL(String)`. If no address is returned, never proceed with a guessed URL. When a JVM is starting slowly or attach fails, retry only according to policy—**never** spin in an attach loop that pressures the process.
 
-### 5.3. Khác biệt quan trọng với `startManagementAgent(Properties)`
+### 5.3. Critical difference from `startManagementAgent(Properties)`
 
-Trong Java 17:
+In Java 17:
 
-- `startLocalManagementAgent()` khởi động **local** agent và trả service address trực tiếp.
-- `startManagementAgent(Properties)` yêu cầu cấu hình agent, tối thiểu `com.sun.management.jmxremote.port`; nó nằm ở nhánh **remote management**, cần xử lý xác thực, TLS, RMI hostname/port, firewall và network policy.
+- `startLocalManagementAgent()` starts the **local** agent and returns the service address directly.
+- `startManagementAgent(Properties)` requires agent configuration, minimally `com.sun.management.jmxremote.port`; it belongs to the **remote management** path, requiring authentication, TLS, RMI hostname/port, firewall, and network policy handling.
 
-**Không** gọi `startManagementAgent` với một port tùy ý hoặc `-Dcom.sun.management.jmxremote.authenticate=false` chỉ để thay thế bước local connect bị chặn. Mở remote port không phải cách khắc phục lỗi Attach API, có thể làm tăng bề mặt tấn công nghiêm trọng.
+**Never** call `startManagementAgent` with an arbitrary port or `-Dcom.sun.management.jmxremote.authenticate=false` just to work around a blocked local connect. Opening a remote port is not a fix for Attach API failures and can drastically widen the attack surface.
 
-### 5.4. Attach không phải không có tác động
+### 5.4. Attach is not zero-impact
 
-Attach có thể yêu cầu target VM xử lý command, tạo attach listener, đọc properties hoặc khởi động agent. Trong ngữ cảnh incident:
+Attaching can ask the target VM to handle commands, spawn an attach listener, read properties, or start an agent. During an incident:
 
-- `attach` và `getAgentProperties` là các thao tác lấy thông tin, nhưng vẫn có chi phí/điều kiện quyền;
-- `startLocalManagementAgent` **thay đổi trạng thái**, khởi tạo connector và tài nguyên bên trong process;
-- `loadAgent` có thể làm thay đổi hành vi ứng dụng và không nằm trong lộ trình “chỉ đọc MBean”;
-- kết nối JMX có thể gọi operation ghi nếu tool có quyền;
-- trên server nhiều JVM, attach nhầm PID có thể tạo nhiễu hoặc tác động sai process.
+- `attach` and `getAgentProperties` are information-gathering steps, yet still carry overhead and permission requirements;
+- `startLocalManagementAgent` **mutates state**, initializing a connector and internal resources inside the process;
+- `loadAgent` can alter application behavior and is outside a "read MBeans only" workflow;
+- a JMX connection can invoke mutating operations if the tool holds permissions;
+- on multi-JVM hosts, attaching to the wrong PID can add noise or impact the wrong process.
 
-Hãy xác minh authorization, PID+start time và lưu thay đổi đã thực hiện; nếu đang trong môi trường production bị giới hạn, dùng phép đo sẵn có thay vì cố vượt chính sách.
+Verify authorization, PID+start time, and log changes made; in restricted production environments, use existing telemetry instead of trying to bypass policy.
 
-## 6. Java 17+ runnable: đọc MBean của chính JVM (không cần Attach API)
+## 6. Runnable Java 17+: reading MBeans of the same JVM (no Attach API needed)
 
-Bước này chứng minh **MBeanServer tồn tại trong cùng JVM** mà không cần local management connector. Lưu file **`LocalMBeanProbe.java`**:
+This step proves the **MBeanServer exists inside the same JVM** without needing a local management connector. Save **`LocalMBeanProbe.java`**:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -268,14 +268,14 @@ public class LocalMBeanProbe {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17:
+Compile and run with JDK 17:
 
 ```bash
 javac LocalMBeanProbe.java
 java LocalMBeanProbe
 ```
 
-**Stdout chính xác** với platform MBeanServer chuẩn:
+**Exact stdout** on a standard platform MBeanServer:
 
 ```text
 runtimeRegistered=true
@@ -284,17 +284,17 @@ uptimeIsLong=true
 heapIsCompositeData=true
 ```
 
-Vì `getAttribute()` hoạt động trực tiếp trên platform MBeanServer trong **cùng JVM**, chương trình không hề attach hoặc mở local JMX connector. Bốn dòng cũng không tiết lộ giá trị heap, input arguments hay process identity.
+Because `getAttribute()` operates directly against the platform MBeanServer in the **same JVM**, the program performs no attach and opens no local JMX connector. The four lines also avoid exposing heap values, input arguments, or process identity.
 
-**Điểm học tập:** object name và schema MBean như `Uptime`/`HeapMemoryUsage` không thay đổi về ý nghĩa khi truy cập từ local JMX client; chỉ **đường kết nối tới MBeanServer** thay đổi.
+**Learning point:** ObjectNames and MBean schemas like `Uptime`/`HeapMemoryUsage` do not change meaning when accessed from a local JMX client; only the **connection path to the MBeanServer** changes.
 
-## 7. Java 17+ runnable: một JVM mục tiêu và một công cụ Attach/JMX client
+## 7. Runnable Java 17+: a target JVM and an Attach/JMX client tool
 
-Ví dụ end-to-end gồm **hai chương trình và hai terminal** chạy trên cùng máy trong môi trường thực hành. Công cụ sẽ tìm địa chỉ local connector, chỉ khởi động agent nếu chưa có, sau đó đọc hai MBean nền tảng qua JMX.
+This end-to-end example uses **two programs and two terminals** on the same machine in a practice environment. The tool locates the local connector address, starts the agent only if missing, and reads two platform MBeans over JMX.
 
-### 7.1. Chương trình JVM mục tiêu
+### 7.1. Target JVM program
 
-Lưu file **`LocalJmxTarget.java`**:
+Save **`LocalJmxTarget.java`**:
 
 ```java
 public class LocalJmxTarget {
@@ -308,24 +308,24 @@ public class LocalJmxTarget {
 }
 ```
 
-Chạy trong **Terminal A**:
+Run in **Terminal A**:
 
 ```bash
 javac LocalJmxTarget.java
 java LocalJmxTarget
 ```
 
-Ví dụ output:
+Example output:
 
 ```text
 targetPid=12345
 ```
 
-PID chỉ là **ví dụ**, thay bằng PID thật hiện ra. Mục tiêu ngủ 120 giây cho phép kết nối, sau đó tiến trình kết thúc tự nhiên. Nếu hết thời gian trước khi kết nối, chạy lại chương trình và dùng PID mới. Không tự attach vào JVM production thay cho ví dụ. Không bật `-XX:+DisableAttachMechanism` khi thực hành quy trình Attach API.
+The PID is **illustrative**—replace it with the actual PID printed. The target sleeps for 120 seconds to allow connection, then exits naturally. If it times out before you connect, rerun it and use the new PID. Never attach to a production JVM instead of the example. Do not pass `-XX:+DisableAttachMechanism` when practicing the Attach API flow.
 
-### 7.2. Client Java dùng Attach API rồi JMX
+### 7.2. Java client using Attach API then JMX
 
-Lưu file **`AttachLocalJmxClient.java`**:
+Save **`AttachLocalJmxClient.java`**:
 
 ```java
 import com.sun.tools.attach.VirtualMachine;
@@ -389,14 +389,14 @@ public class AttachLocalJmxClient {
 }
 ```
 
-Biên dịch và chạy trong **Terminal B** với JDK 17 hỗ trợ `jdk.attach`, thay `12345` bằng PID thật:
+Compile and run in **Terminal B** on a JDK 17 supporting `jdk.attach`, replacing `12345` with the real PID:
 
 ```bash
 javac --add-modules jdk.attach AttachLocalJmxClient.java
 java --add-modules jdk.attach AttachLocalJmxClient 12345
 ```
 
-Khi JDK/OS cho phép attach đúng JVM đang chạy, agent và connector hoạt động, **stdout xác định** là:
+When the JDK/OS permits attaching to the running JVM and both agent and connector work, the **deterministic stdout** is:
 
 ```text
 runtimeRegistered=true
@@ -404,38 +404,38 @@ memoryRegistered=true
 uptimeIsLong=true
 ```
 
-Nếu attach thất bại, chương trình có thể ném exception và **không có stdout như trên**; kết quả thành công này là một điều kiện học tập, không phải lời hứa chạy được với mọi PID/container/JDK. Chạy client với quyền OS tương ứng với target; không thử tăng quyền hoặc bật remote port khi không đủ quyền.
+If attach fails, the program may throw an exception and **produce none of the stdout above**; this successful output represents a learning environment condition, not a guarantee across every PID, container, or JDK. Run the client with OS permissions matching the target; never escalate privileges or open remote ports when lacking permission.
 
-### 7.3. Giải thích từng bước và vòng đời tài nguyên
+### 7.3. Step-by-step walkthrough and resource lifecycle
 
-1. `VirtualMachine.attach(args[0])` tạo phiên tới JVM có identifier/PID được cung cấp. Việc truyền PID **không tự xác thực danh tính ứng dụng**; cần xác minh service/container/version trước.
-2. `getAgentProperties().getProperty(LOCAL_ADDRESS_KEY)` kiểm tra agent đã xuất local connector hay chưa. Không in cả properties vì có thể chứa thông tin nhạy cảm.
-3. Nếu chưa có, `startLocalManagementAgent()` khởi động agent và trả address; đây là một thay đổi trạng thái của JVM mục tiêu.
-4. `finally { vm.detach(); }` đảm bảo phiên attach kết thúc ngay cả khi đọc properties/khởi động agent thất bại.
-5. `JMXServiceURL` parse address trả từ JVM; `JMXConnectorFactory.connect` tạo phiên JMX. **JMX** là cơ chế dùng để đọc MBean, còn **Attach API** chỉ giúp bootstrap/local discovery.
-6. `isRegistered` và `getAttribute("Uptime")` là các truy vấn JMX read-only. Những method khác của MBean có thể không read-only.
-7. `try (JMXConnector ...)` đóng client connection. Agent mà ta đã bật **không bị dừng bởi detach hoặc close**.
+1. `VirtualMachine.attach(args[0])` opens a session to the JVM with the given identifier/PID. Passing a PID **does not validate application identity**; verify service/container/version first.
+2. `getAgentProperties().getProperty(LOCAL_ADDRESS_KEY)` checks whether the agent has already published a local connector. Do not print all properties, as they may contain sensitive details.
+3. If missing, `startLocalManagementAgent()` starts the agent and returns the address; this is a state change inside the target JVM.
+4. `finally { vm.detach(); }` ensures the attach session closes even if reading properties or starting the agent fails.
+5. `JMXServiceURL` parses the address returned by the JVM; `JMXConnectorFactory.connect` opens the JMX session. **JMX** is the mechanism for reading MBeans, while the **Attach API** merely handles bootstrap/local discovery.
+6. `isRegistered` and `getAttribute("Uptime")` are read-only JMX queries. Other MBean methods might not be read-only.
+7. `try (JMXConnector ...)` closes the client connection. The agent we started **is not stopped by `detach` or `close`**.
 
-**Không in địa chỉ connector vào log công khai.** Địa chỉ có thể mang thông tin endpoint, biến theo runtime và không nên bị xem như credential hoặc cấu hình dành cho mọi client từ xa.
+**Never log the connector address publicly.** The address can carry endpoint details, varies per runtime, and must not be treated as a credential or static configuration for remote clients.
 
-### 7.4. Tại sao không dùng `loadAgent("management-agent.jar")` cũ?
+### 7.4. Why not use the old `loadAgent("management-agent.jar")`?
 
-Các hướng dẫn JDK cũ có thể đề cập việc tìm file `lib/management-agent.jar` để gọi `loadAgent`. Ở Java 17, `VirtualMachine.startLocalManagementAgent()` là API trực tiếp và rõ mục đích hơn; **không giả định file JAR quản lý kiểu cũ còn tồn tại** trong layout runtime của JDK hiện tại. `loadAgent` dùng cho Java instrumentation agent có hợp đồng khác, không cần thiết để kết nối local JMX.
+Older JDK guides mention locating `lib/management-agent.jar` and calling `loadAgent`. In Java 17, `VirtualMachine.startLocalManagementAgent()` is the direct, purpose-built API; **never assume legacy management JAR files still exist** in modern JDK runtime layouts. `loadAgent` is for Java instrumentation agents with a different contract and is unnecessary for local JMX connections.
 
-### 7.5. Giới hạn trong ví dụ
+### 7.5. Limitations in the example
 
-- Mục tiêu chỉ ngủ 120 giây; nếu chạy chậm hoặc hết hạn thì client sẽ attach vào PID không còn tồn tại.
-- Không chạy trên máy khác rồi nhập PID target: attach là thao tác cùng môi trường local, không phải API HTTP/RPC từ xa.
-- Không tự chạy client bên trong JVM đích: nhiều HotSpot/JDK hạn chế self-attach mặc định; ví dụ chủ động dùng **hai process**.
-- Một `jlink` image tùy biến có thể thiếu `jdk.management.agent`/các module/tool cần thiết. Test trên runtime image tương đương production khi so tính khả dụng.
-- Exceptions/độ trễ của attach/JMX là tình huống thật cần log có kiểm soát; ví dụ để `main throws Exception` cho dễ học, không phải error-handling chuẩn trong hệ thống giám sát.
-- Việc local JMX dùng RMI transport không có nghĩa bạn phải tự chọn/đặt host:port hay mở một inbound remote management port.
+- The target sleeps only 120 seconds; if you wait too long or it expires, the client tries to attach to a vanished PID.
+- Do not run the client on another machine and pass the target PID: attach is a local-environment operation, not a remote HTTP/RPC API.
+- Do not run the client inside the target JVM itself: many HotSpot/JDK builds restrict self-attach by default; the example intentionally uses **two processes**.
+- A custom `jlink` image may omit `jdk.management.agent` or required modules/tools. Test availability on a runtime image matching production.
+- Attach/JMX exceptions and delays are real operational conditions requiring controlled logging; the example uses `main throws Exception` for readability, not production-grade error handling.
+- Local JMX using RMI transport does not mean you pick/assign a host:port yourself or open an inbound remote management port.
 
-## 8. Dùng `jcmd` để kiểm tra management agent mà không viết client
+## 8. Using `jcmd` to inspect the management agent without writing a client
 
-Với HotSpot JDK 17 có `jcmd`, có thể kiểm tra trước bằng công cụ dòng lệnh. Các lệnh ở đây thực hiện trên một JVM **đã được xác định đúng PID**, quyền phù hợp và theo quy trình vận hành.
+On HotSpot JDK 17 with `jcmd`, you can inspect status first via CLI. Run these commands only against a JVM with a **verified PID**, appropriate permissions, and operational approval.
 
-### 8.1. Kiểm tra command được hỗ trợ
+### 8.1. Checking supported commands
 
 ```bash
 jcmd -l
@@ -444,293 +444,293 @@ jcmd 12345 help
 jcmd 12345 help ManagementAgent.status
 ```
 
-`jcmd -l` có giới hạn khi liệt kê JVM trong container riêng; nếu không thấy PID nhưng có bằng chứng từ platform/process tool, **không** tự suy ra JVM đã chết. `jcmd` và `jconsole` đều cần cơ chế attach/phân quyền phù hợp; một số môi trường phân tách user/mount/PID namespace khiến lệnh chạy từ host không quan sát được process.
+`jcmd -l` has limitations listing JVMs inside separate containers; if a PID does not appear yet platform/process tools show it running, **never** conclude the JVM crashed. Both `jcmd` and `jconsole` require proper attach/authorization; user/mount/PID namespace isolation can prevent host-run commands from seeing containerized processes.
 
-### 8.2. Xem status và khởi động local agent
+### 8.2. Checking status and starting the local agent
 
 ```bash
-# Đọc trạng thái management agent; không khởi động agent.
+# Read management agent status; does not start the agent.
 jcmd 12345 ManagementAgent.status
 
-# Bước CÓ THAY ĐỔI trạng thái: chỉ chạy khi được cho phép.
+# STATE-CHANGING step: run only when authorized.
 jcmd 12345 ManagementAgent.start_local
 
-# Xác minh lại sau thao tác.
+# Re-verify after the action.
 jcmd 12345 ManagementAgent.status
 ```
 
-`ManagementAgent.start_local` trong tài liệu `jcmd` JDK 17 được mô tả là khởi động local management agent, tác động thấp. “Impact: Low” không có nghĩa miễn cần quyền hoặc không tạo tài nguyên; vẫn ghi lại thay đổi khi điều tra production.
+`ManagementAgent.start_local` in JDK 17 `jcmd` docs is described as starting the local management agent with low impact. "Impact: Low" does not waive authorization or mean zero resource creation; always record the change during production investigations.
 
-**Không nhầm lẫn:** `ManagementAgent.stop` theo tài liệu `jcmd` là lệnh dừng **remote management agent**. Không mô tả nó như lệnh “chắc chắn dừng toàn bộ local management connector” hay cách rollback an toàn cho mọi JVM. Khi cần disable connector sau sự cố, xem cơ chế hỗ trợ thực của JDK và thay đổi theo quy trình; không gõ bừa stop.
+**Avoid confusion:** `ManagementAgent.stop` per `jcmd` documentation stops the **remote** management agent. Do not describe it as a command that "reliably stops all local management connectors" or a universal rollback across every JVM. When disabling connectors after an incident, consult your JDK's exact supported mechanism and follow change procedures rather than running `stop` blindly.
 
-### 8.3. Phân biệt `jcmd` và JMX
+### 8.3. Distinguishing `jcmd` from JMX
 
-`jcmd` gửi **diagnostic commands** tới HotSpot JVM qua kênh attach; nó **không cần** local JMX connector chạy sẵn để xử lý các lệnh tương ứng. Vì vậy:
+`jcmd` sends **diagnostic commands** to the HotSpot JVM over the attach channel; it **does not require** a running local JMX connector to execute its commands. Therefore:
 
-- `jcmd <pid> VM.version` có thể hoạt động dù chưa bật local management agent.
-- `jcmd <pid> ManagementAgent.start_local` là một cách bootstrap local management connector.
-- `jcmd <pid> Thread.print` cho thread dump mà không phải gọi JMX ThreadMXBean.
-- `jcmd <pid> GC.heap_dump ...` có mức tác động cao hơn nhiều; **không dùng để chứng minh “JMX kết nối được”**.
+- `jcmd <pid> VM.version` can work even before the local management agent is enabled.
+- `jcmd <pid> ManagementAgent.start_local` is one way to bootstrap the local management connector.
+- `jcmd <pid> Thread.print` captures a thread dump without calling JMX `ThreadMXBean`.
+- `jcmd <pid> GC.heap_dump ...` carries much higher impact; **never use it merely to prove "JMX works."**
 
-Dùng đúng công cụ theo câu hỏi cần trả lời; không tải agent hoặc tạo heap dump chỉ vì JConsole chưa kết nối được.
+Use the right tool for the question at hand; never load agents or trigger heap dumps just because JConsole hasn't connected.
 
-## 9. Các nguyên nhân local attach/JMX không hoạt động
+## 9. Why local attach/JMX fails
 
-### 9.1. Không tìm thấy PID hoặc attach provider
+### 9.1. PID or attach provider not found
 
-**Triệu chứng:** `jps` hoặc `jcmd -l` không thấy JVM; `VirtualMachine.attach(...)` ném `AttachNotSupportedException`.
+**Symptom:** `jps` or `jcmd -l` omits the JVM; `VirtualMachine.attach(...)` throws `AttachNotSupportedException`.
 
-Kiểm tra tuần tự:
+Check in order:
 
-1. PID có còn tồn tại? JVM có restart và PID đã thay đổi không?
-2. PID thuộc namespace nào? Host PID có khác container PID không?
-3. Đang chạy tool trong môi trường nào, cùng node/container hay không?
-4. JDK client có `jdk.attach`, provider tương thích, tools hiện diện?
-5. JVM target có hỗ trợ và cho phép attach? Có flag `-XX:+DisableAttachMechanism` trên HotSpot không?
-6. File/socket attach hoặc temporary directory có bị hạn chế bởi permission, user, mount namespace hoặc security policy không?
+1. Does the PID still exist? Did the JVM restart with a new PID?
+2. Which namespace does the PID belong to? Does the host PID differ from the container PID?
+3. Where is the tool running—same node/container or separate?
+4. Does the client JDK include `jdk.attach`, a compatible provider, and required tools?
+5. Does the target JVM support and allow attach? Is `-XX:+DisableAttachMechanism` set on HotSpot?
+6. Are attach files/sockets or the temporary directory blocked by permissions, user mismatch, mount namespaces, or security policies?
 
-Không nhầm sự kiện `jcmd -l` không liệt kê JVM container khác với bằng chứng JVM không chạy. Nếu dùng `VirtualMachine.list()`, danh sách cũng chỉ gồm các VM mà attach providers thấy, không có tính toàn cục.
+Never mistake `jcmd -l` not listing a JVM in another container for proof that the JVM is not running. `VirtualMachine.list()` likewise lists only VMs visible to local attach providers, not globally.
 
-### 9.2. Khác user hoặc quyền truy cập process
+### 9.2. User mismatch or process access permissions
 
-**Triệu chứng:** attach thất bại vì permission, nhưng ứng dụng vẫn khỏe.
+**Symptom:** attach fails due to permissions while the application remains healthy.
 
-Local tools như `jconsole` thường yêu cầu chạy bằng cùng user identity với Java process; `jcmd` theo tài liệu JDK yêu cầu cùng effective user/group. Còn có thể có OS hardening, SELinux/AppArmor, container sandbox hay Windows ACL.
+Local tools like `jconsole` generally require running as the same user identity as the Java process; `jcmd` per JDK docs requires the same effective user/group. OS hardening, SELinux/AppArmor, container sandboxes, or Windows ACLs may also block access.
 
-Không tìm cách vô hiệu hóa xác thực, đổi permissions của toàn `/tmp`, chạy mọi tool bằng root hoặc mở port JMX không password để né lỗi. Phương án đúng là dùng đường quản trị được phê duyệt, chạy công cụ trong namespace/user thích hợp hoặc sử dụng telemetry đã được triển khai.
+Never disable authentication, widen permissions on all of `/tmp`, run every tool as root, or open passwordless JMX ports to dodge the error. Instead use approved admin pathways, run tools inside the proper namespace/user, or rely on pre-deployed telemetry.
 
-### 9.3. JVM đã chặn attach hoặc không có management agent
+### 9.3. JVM blocked attach or lacks management agent
 
-**Triệu chứng:** PID chính xác, permission có vẻ hợp lệ nhưng không attach/khởi động agent được.
+**Symptom:** PID is accurate and permissions appear valid, yet attach/agent startup fails.
 
-Khả năng:
+Possibilities:
 
-- JVM đã khởi động với `-XX:+DisableAttachMechanism` (HotSpot);
-- bản runtime image tùy biến thiếu thành phần quản lý hoặc Attach provider;
-- target không phải HotSpot/JDK tương thích với provider phía client;
-- attach listener không sẵn sàng, process đang khởi động/đang dừng hoặc quá tải;
-- policy bảo mật ngăn dynamic agent/attach.
+- JVM started with `-XX:+DisableAttachMechanism` (HotSpot);
+- custom runtime image lacks management components or the Attach provider;
+- target is not a HotSpot/JDK compatible with the client's provider;
+- attach listener is unready, or the process is starting, shutting down, or overloaded;
+- security policy forbids dynamic agents/attach.
 
-Không tự đề xuất đổi `-XX:+DisableAttachMechanism` hoặc bổ sung agent trên production khi đây là ràng buộc bảo mật có chủ đích. Thay đổi policy cần đánh giá và triển khai theo quản trị thay đổi.
+Never propose removing `-XX:+DisableAttachMechanism` or injecting agents in production when that flag is an intentional security boundary. Policy changes require review and formal change management.
 
-### 9.4. Attach thành công nhưng JMX connect lỗi
+### 9.4. Attach succeeds yet JMX connect fails
 
-**Triệu chứng:** `startLocalManagementAgent()` trả address, nhưng `JMXConnectorFactory.connect(...)` ném `IOException` hoặc lỗi RMI/transport.
+**Symptom:** `startLocalManagementAgent()` returns an address, yet `JMXConnectorFactory.connect(...)` throws `IOException` or an RMI/transport error.
 
-Xem:
+Check:
 
-- address có đến từ **đúng JVM instance**? Sau restart, connector address cũ hết hiệu lực.
-- Tiến trình mục tiêu đã dừng hoặc bị kill giữa attach và connect?
-- Đường mạng/loopback/hostname có vấn đề trong namespace hiện tại?
-- Temporary directory/socket/file permission, OS resource limits và JMX agent logs?
-- Client có JMX RMI transport/module tương ứng và runtime hỗ trợ?
-- Có sửa URL thủ công, đưa local address vào máy khác hoặc cố đổi thành hostname bên ngoài không?
+- Did the address come from the **exact target JVM instance**? After a restart, old connector addresses are invalid.
+- Did the target process stop or get killed between attach and connect?
+- Are loopback/hostname/network settings broken in the current namespace?
+- Temporary directory/socket/file permissions, OS resource limits, and JMX agent logs?
+- Does the client have the JMX RMI transport/module and compatible runtime support?
+- Did anything manually edit the URL, copy a local address to another host, or swap in an external hostname?
 
-Địa chỉ local do agent tạo không phải một endpoint remote ổn định. Lấy address **từ target ở phiên điều tra hiện tại**. Với container/network namespace khác, một địa chỉ RMI local có thể không truy cập được từ môi trường tool dù attach tìm được PID; cần cân nhắc kiến trúc và quyền của hệ thống.
+The local address created by the agent is not a stable remote endpoint. Always retrieve the address **from the target during the active investigation**. Across differing container/network namespaces, a local RMI address may be unreachable from the tool's environment even when attach locates the PID; evaluate system architecture and permissions carefully.
 
-### 9.5. Kết nối JMX được nhưng MBean/attribute thiếu
+### 9.5. JMX connects yet an MBean/attribute is missing
 
-Không nhất thiết là lỗi connect. Kiểm tra:
+This is not necessarily a connection error. Check:
 
-- `ObjectName` có đúng không? MBean ứng dụng có đăng ký chưa?
-- Runtime/JDK vendor khác có cung cấp custom MXBean không?
-- Attribute có phải readable theo `MBeanInfo`? Kiểu Open Type có bị nhầm với Java type thông thường?
-- MBean bị unregister trong khi client truy vấn?
-- Đang kết nối đúng process/version không?
-- Có quyền đọc attribute nhưng bị hạn chế thao tác quản trị không?
+- Is the `ObjectName` accurate? Has the application registered the MBean yet?
+- Does a different runtime/JDK vendor provide that custom MXBean?
+- Is the attribute readable per `MBeanInfo`? Was an Open Type confused with a plain Java type?
+- Was the MBean unregistered while the client queried it?
+- Are you connected to the right process/version?
+- Do you have permission to read attributes while administrative operations are restricted?
 
-Ví dụ `java.lang:type=Memory` có thể tồn tại nhưng một MBean tên `com.example:type=Cache` chưa được ứng dụng đăng ký. Đừng kết luận “local JMX bị lỗi” từ việc một custom MBean không tìm thấy.
+For example, `java.lang:type=Memory` may exist while an application bean `com.example:type=Cache` has not been registered yet. Never conclude "local JMX is broken" just because a custom MBean wasn't found.
 
-## 10. Phân biệt local JMX với remote JMX/RMI về bảo mật
+## 10. Security differences between local JMX and remote JMX/RMI
 
-### 10.1. Local connector dùng OS permissions, không mặc định có login
+### 10.1. Local connector relies on OS permissions, not a default login prompt
 
-Theo tài liệu JMX management agent, local monitoring sử dụng một connector private theo cơ chế local/Attach. JConsole local thông thường hoạt động với cùng user của JVM mục tiêu và không yêu cầu nhập password/access file như remote JMX. Đây không phải “chế độ bảo mật trống”; nó dựa vào bảo vệ OS/identity. Người có quyền truy cập local tương đương có thể ảnh hưởng đáng kể tới process.
+Per JMX management agent docs, local monitoring uses a private connector via the local/Attach mechanism. Standard local JConsole runs as the same user as the target JVM and does not prompt for passwords or access files like remote JMX. This is not "zero security"; it relies on OS/identity protections. Anyone with equivalent local access can significantly impact the process.
 
-Không bao giờ suy ra rằng vì local JMX không hỏi mật khẩu thì mở remote JMX với:
+Never infer that because local JMX skips a password prompt, opening remote JMX with:
 
 ```properties
 com.sun.management.jmxremote.authenticate=false
 com.sun.management.jmxremote.ssl=false
 ```
 
-là an toàn. Hai property trên là **ví dụ cấu hình không an toàn cho remote exposure**, không phải hướng dẫn triển khai. Không áp dụng trong production hoặc mở port publicly.
+is safe. Those two properties are an **example of an insecure remote exposure configuration**, not a deployment guide. Never apply them in production or expose ports publicly.
 
-### 10.2. Remote agent có các ràng buộc khác
+### 10.2. Remote agents carry different constraints
 
-Remote JMX thường dùng RMI, có `com.sun.management.jmxremote.port`, có thể cần thêm `com.sun.management.jmxremote.rmi.port`, `java.rmi.server.hostname`, firewall rules, xác thực và TLS. Các thiết lập này được quản lý bởi chính sách vận hành chứ không nên tự phát sinh để “truy cập localhost của server”.
+Remote JMX usually uses RMI, involving `com.sun.management.jmxremote.port`, and often `com.sun.management.jmxremote.rmi.port`, `java.rmi.server.hostname`, firewall rules, authentication, and TLS. These settings belong to operational policy rather than ad-hoc workarounds to "reach the server's localhost."
 
-Nếu cần quan sát production ở máy khác, ưu tiên kênh đã chuẩn hóa như metrics exporter được bảo vệ, JFR được thu có kiểm soát hoặc remote JMX được vận hành phê duyệt. Tunneling/port-forwarding không tự bảo đảm chính sách xác thực của JMX.
+To observe production from another host, prefer standardized paths like secured metrics exporters, controlled JFR collection, or properly operated remote JMX. Tunneling or port-forwarding does not by itself satisfy JMX authentication policy.
 
-### 10.3. Rủi ro của MBean operation
+### 10.3. Risks of MBean operations
 
-Không chỉ “read metrics”:
+It is not just "reading metrics":
 
-- Một MBean có thể cung cấp operation dừng/khởi tạo lại tác vụ, reload config hoặc xóa cache.
-- `MemoryMXBean.gc()` có thể yêu cầu GC, ảnh hưởng hiệu năng.
-- Việc thu ThreadInfo chi tiết với lượng thread lớn có thể có overhead.
-- Một custom MBean có thể expose secrets trong attributes hoặc operations.
+- An MBean may expose operations to stop/restart tasks, reload configs, or evict caches.
+- `MemoryMXBean.gc()` can trigger a GC request, impacting performance.
+- Capturing detailed `ThreadInfo` across large thread counts carries overhead.
+- A custom MBean may expose secrets in attributes or operations.
 
-Do đó cấp quyền JMX local nên tương xứng quyền quản trị hệ thống và audit khi có thể. Công cụ học tập trong bài chỉ dùng `isRegistered` và `getAttribute` trên standard MBeans.
+Therefore, local JMX access should match system-administration privilege levels and be audited where possible. The learning tools in this lesson use only `isRegistered` and `getAttribute` on standard MBeans.
 
-## 11. Quy trình chẩn đoán an toàn cho một JVM đang chạy
+## 11. Safe diagnostic workflow for a running JVM
 
-### Bước 1 — Chốt câu hỏi cần trả lời
+### Step 1 — Lock down the question to answer
 
-Ví dụ: “JVM checkout-3 có tăng thread count trước khi p99 tăng không?” hoặc “Heap usage hiện tại có gần limit không?”. Đừng attach/JConsole chỉ vì “muốn xem tất cả thông tin”. Nếu có metrics/JFR/log đã thu được và đủ trả lời, ưu tiên nguồn ít tác động nhất.
+For example: "Did `checkout-3`'s thread count rise before p99 spiked?" or "Is current heap usage near its limit?" Never attach or open JConsole just to "look at everything." If already-collected metrics, JFR, or logs answer the question, prefer the lowest-impact source.
 
-### Bước 2 — Xác minh đúng instance
+### Step 2 — Verify the exact instance
 
-Ghi service, host/node, pod/container ID, PID, JVM start time và build/version. PID có thể bị tái sử dụng. Một container có PID 1 trong khi host thấy PID khác. Một JConsole mở từ máy phát triển không tự quan sát được JVM trên cloud node.
+Record service, host/node, pod/container ID, PID, JVM start time, and build/version. PIDs get reused. A container may have PID 1 internally while the host sees a different PID. JConsole on a developer laptop cannot directly observe a JVM on a cloud node.
 
-### Bước 3 — Kiểm tra quyền và cơ chế có sẵn
+### Step 3 — Check permissions and available mechanisms
 
-- Công cụ local được chạy với user/namespace phù hợp?
-- JDK tools/module `jdk.attach` có sẵn?
-- Runtime/attach policy có cho phép hay không?
-- Có agent/management connector đã bật không, có thể kiểm tra `ManagementAgent.status` nếu `jcmd` hỗ trợ?
+- Is the local tool running under the right user/namespace?
+- Are JDK tools and module `jdk.attach` present?
+- Does runtime/attach policy permit attaching?
+- Is a management agent/connector already active, verifiable via `ManagementAgent.status` if `jcmd` is available?
 
-Nếu policy ngăn attach, **dừng tại đây** và chọn đường quan sát đã được phê duyệt; không bypass.
+If policy forbids attach, **stop here** and use an approved observability path; do not bypass.
 
-### Bước 4 — Kết nối bằng đường ít thay đổi nhất
+### Step 4 — Connect via the least-invasive path
 
-Nếu tool đã có address local connector hợp lệ, không cần bật lại agent. Nếu chưa có, `jconsole <pid>` hoặc `startLocalManagementAgent()` là đường chuẩn khi được phép. Không sử dụng remote port để giải quyết local attach.
+If the tool already finds a valid local connector address, do not restart the agent. Otherwise, `jconsole <pid>` or `startLocalManagementAgent()` is the standard path when authorized. Never open a remote port to bypass local attach issues.
 
-### Bước 5 — Chỉ đọc MBean cần thiết
+### Step 5 — Read only necessary MBeans
 
-Ví dụ `RuntimeMXBean` để xem uptime/start/VM version, `MemoryMXBean` để đọc usage, `ThreadMXBean` để xem counts. Tránh dump toàn bộ system properties/command line, khởi chạy operations hay lưu heap dump không cần thiết. Với JMX GUI, đừng bấm buttons có khả năng thay đổi state.
+For instance, `RuntimeMXBean` for uptime/start/VM version, `MemoryMXBean` for usage, and `ThreadMXBean` for counts. Avoid dumping all system properties/command lines, invoking operations, or saving unnecessary heap dumps. In the JMX GUI, never click buttons that can mutate state.
 
-### Bước 6 — Giới hạn tần suất và thời gian
+### Step 6 — Bound frequency and duration
 
-JConsole/MBean sampling có overhead. Đo một vài lần với khoảng vừa đủ, hoặc dùng exporter hạ tầng đã có. Khi cần nhiều samples, lên lịch ghi evidence có danh tính/timestamp rõ ràng; không poll liên tục trong JVM đang chịu áp lực.
+JConsole/MBean sampling has overhead. Sample a few times at sensible intervals, or rely on existing infrastructure exporters. When capturing multiple samples, record clear identities and timestamps; never poll aggressively against a JVM already under pressure.
 
-### Bước 7 — Đóng client và ghi trạng thái cuối
+### Step 7 — Close the client and record final state
 
-`vm.detach()` trong `finally`; `JMXConnector.close()` trong try-with-resources; đóng GUI JConsole khi xong. Ghi rõ agent có được khởi động trong incident hay đã tồn tại, vì đóng tool **không chắc dừng agent**. Không tự dùng `ManagementAgent.stop` như cleanup local nếu chưa xác minh semantics.
+Call `vm.detach()` in `finally`; close `JMXConnector` via try-with-resources; exit the JConsole GUI when done. Document whether the agent was started during the incident or already running, because closing the tool **does not guarantee the agent stopped**. Never use `ManagementAgent.stop` as local cleanup without verifying its exact semantics.
 
-### Bước 8 — Đối chiếu bằng chứng độc lập
+### Step 8 — Corroborate with independent evidence
 
-Thời điểm lấy MBean sample, JFR/GC logs, application logs, metrics và traces cần cùng timezone/timestamp/instance. Một `HeapMemoryUsage` tại thời điểm t không trực tiếp chứng minh heap leak; cần xu hướng, GC behavior và workload. MBean là nguồn dữ liệu, không phải kết luận tự động.
+MBean samples, JFR/GC logs, application logs, metrics, and traces must share aligned timezones, timestamps, and instance IDs. One `HeapMemoryUsage` reading at time *t* does not prove a heap leak on its own; you need trends, GC behavior, and workload context. MBeans are a data source, not an automatic diagnosis.
 
-## 12. Bảng chọn công cụ nhanh
+## 12. Quick tool-selection table
 
-| Tình huống | Công cụ / đường truy cập ưu tiên | Điều cần tránh |
+| Scenario | Preferred tool / access path | What to avoid |
 | --- | --- | --- |
-| Muốn xem MBean trong code cùng JVM | `ManagementFactory.getPlatformMBeanServer()` | Attach vào chính JVM không cần thiết |
-| Muốn xem vài chỉ số GUI trên máy dev | `jconsole <pid>` | Mở remote port không auth |
-| Muốn kết nối local tự động bằng Java | `VirtualMachine.attach` → địa chỉ → `JMXConnector` | Nhầm Attach API thành JMX data channel |
-| Muốn biết agent có hoạt động? | `jcmd <pid> ManagementAgent.status` nếu hỗ trợ | Tạo agent mới ngay khi chưa cần |
-| Muốn bật local agent khi đủ quyền | `startLocalManagementAgent()` hoặc `ManagementAgent.start_local` | Tự đặt remote JMX port |
-| Muốn thread dump một lần | `jcmd <pid> Thread.print` với tác động được cân nhắc | Mở GUI/poll stack liên tục nếu không cần |
-| Muốn heap trend/p99 liên tục | Metrics/JMX exporter chuẩn và quan sát có kiểm soát | Dùng JConsole GUI cho production long-running |
-| Không thấy PID trong container | Kiểm tra đúng namespace/user, process identity | Kết luận JVM đã chết hoặc cố nâng quyền tùy tiện |
-| Attach bị security policy chặn | Dùng observability đã cấp hoặc yêu cầu thay đổi policy | Bypass bằng port remote mở công khai |
-| JMX connected nhưng custom MBean thiếu | `queryNames`/`getMBeanInfo`, application registration | Kết luận lỗi JMX transport |
-| Sau khi attach xong muốn cleanup | `detach`, `close` và ghi thay đổi agent | Nghĩ detach tự shutdown agent |
+| Read MBeans from code in the same JVM | `ManagementFactory.getPlatformMBeanServer()` | Unnecessarily attaching to own JVM |
+| View a few GUI charts on a dev machine | `jconsole <pid>` | Opening an unauthenticated remote port |
+| Connect locally via Java code | `VirtualMachine.attach` → address → `JMXConnector` | Confusing Attach API with the JMX data channel |
+| Check if the agent is already active? | `jcmd <pid> ManagementAgent.status` if supported | Starting a new agent prematurely |
+| Start local agent when authorized | `startLocalManagementAgent()` or `ManagementAgent.start_local` | Picking an arbitrary remote JMX port |
+| Capture a one-off thread dump | `jcmd <pid> Thread.print` weighing impact | Leaving GUI polling stacks continuously |
+| Track continuous heap trends / p99 | Standard metrics/JMX exporters under control | Long-running JConsole GUI against production |
+| PID missing inside a container | Verify namespace/user and process identity | Concluding the JVM crashed or escalating privileges blindly |
+| Attach blocked by security policy | Use approved observability or request policy change | Bypassing via public unauthenticated remote port |
+| JMX connected yet custom MBean missing | `queryNames`/`getMBeanInfo`, app registration | Blaming JMX transport |
+| Cleaning up after attach | `detach`, `close`, and record agent state | Assuming `detach` shuts down the agent |
 
-## 13. Một số tình huống điều tra minh họa
+## 13. Illustrative investigation scenarios
 
-### Tình huống A — Không bật JMX từ startup vẫn kết nối local được
+### Scenario A — Local connection works even without startup JMX flags
 
-**Bối cảnh:** một Java 17 service chạy bằng `java -jar app.jar`, không có `com.sun.management.jmxremote.port`, developer muốn quan sát heap trên staging.
+**Context:** a Java 17 service launches with `java -jar app.jar` and no `com.sun.management.jmxremote.port`; a developer wants to inspect heap in staging.
 
-**Quy trình:** xác định PID đúng, chạy `jconsole <pid>` bằng cùng user, chọn process và quan sát Memory. Nếu VM cho phép attach, JConsole có thể yêu cầu local management agent khởi động lúc cần.
+**Workflow:** identify the exact PID, run `jconsole <pid>` as the same user, select the process, and watch Memory. If the VM permits attach, JConsole can ask the local management agent to start on demand.
 
-**Kết luận:** không có port remote không có nghĩa không thể local JMX; Attach API cung cấp đường bootstrap agent. Nếu policy chặn attach, đó có thể là thiết kế bảo mật cần tôn trọng.
+**Conclusion:** lacking a remote port does not preclude local JMX; the Attach API provides agent bootstrapping. If policy blocks attach, that may be an intentional security control to respect.
 
-### Tình huống B — `jcmd -l` không thấy JVM trong container
+### Scenario B — `jcmd -l` misses a JVM inside a container
 
-**Bối cảnh:** Java process chạy trong container với PID 1; trên host có `jcmd -l` nhưng không thấy JVM.
+**Context:** a Java process runs inside a container as PID 1; on the host, `jcmd -l` does not list the JVM.
 
-**Điều tra:** xác minh container ID, PID namespace, user, mount/tmp namespace và JDK versions. Dùng công cụ ở đúng môi trường được phê duyệt hoặc metrics sẵn có. Đừng lấy PID 1 trên host vì nó có thể là system init chứ không phải JVM.
+**Investigation:** verify container ID, PID namespace, user, mount/tmp namespace, and JDK versions. Run tools inside the approved target environment or rely on existing metrics. Never attach to PID 1 on the host—that is likely system init, not the JVM.
 
-**Kết luận:** visibility của attach provider không phải bản kiểm kê mọi JVM. Đường kết nối local phải được giải quyết cùng ranh giới namespace và permissions.
+**Conclusion:** attach provider visibility is not an inventory of all JVMs. Local connectivity must respect namespace and permission boundaries.
 
-### Tình huống C — Kết nối được rồi JVM restart giữa phiên
+### Scenario C — JVM restarts mid-session after connecting
 
-**Bối cảnh:** client nhận JMXServiceURL lúc 12:00:00; 12:00:01 JVM bị restart, PID có thể tái sử dụng.
+**Context:** the client retrieves a `JMXServiceURL` at 12:00:00; at 12:00:01 the JVM restarts, possibly reusing the PID.
 
-**Diễn giải:** URL cũ trở nên stale; `JMXConnectorFactory.connect` có thể lỗi transport. Không retry bằng địa chỉ cũ vô hạn; xác định instance mới, lấy PID/connector address mới và đối chiếu JVM start time. Không ghép metrics qua hai đời JVM thành một chuỗi liên tục.
+**Interpretation:** the old URL becomes stale; `JMXConnectorFactory.connect` may fail at the transport layer. Never retry the old address indefinitely; locate the new instance, obtain the new PID/connector address, and verify JVM start time. Never stitch metrics across two JVM lifetimes into one continuous series.
 
-### Tình huống D — User nghĩ `ManagementAgent.stop` có thể “hoàn tác” local startup
+### Scenario D — User thinks `ManagementAgent.stop` "undoes" local startup
 
-**Bối cảnh:** sau khi dùng `jcmd ManagementAgent.start_local`, người vận hành định chạy `ManagementAgent.stop`.
+**Context:** after running `jcmd ManagementAgent.start_local`, an operator plans to run `ManagementAgent.stop`.
 
-**Kiểm chứng:** tài liệu `jcmd` mô tả `ManagementAgent.stop` cho **remote** management agent. Vì vậy không bảo đảm local connector dừng theo kỳ vọng. Phải ghi lại trạng thái và làm theo runbook của phiên bản JDK/môi trường. **Detach/close không dừng agent**; nếu chính sách yêu cầu disable local attach, giải pháp thường thuộc startup/security policy hoặc vòng đời tiến trình, không phải một nút “tắt” tùy tiện.
+**Verification:** `jcmd` docs specify `ManagementAgent.stop` for the **remote** management agent. It is not guaranteed to stop the local connector as expected. Record the state and follow the runbook for your JDK/environment. **`detach`/`close` do not stop the agent**; if policy prohibits local attach, the control belongs in startup/security policy or process lifecycle, not an ad-hoc "off" switch.
 
-### Tình huống E — JConsole hiển thị MBean nhưng thao tác gây ảnh hưởng
+### Scenario E — JConsole shows an MBean whose operation causes impact
 
-**Bối cảnh:** một custom application MBean cho phép `clearCache()` và `reloadConfig()`.
+**Context:** a custom application MBean exposes `clearCache()` and `reloadConfig()`.
 
-**Rủi ro:** JConsole không chỉ hiển thị attributes mà còn có mục Operations. Người quản trị dùng nhầm operation trên production có thể thay đổi ứng dụng.
+**Risk:** JConsole shows not only attributes but also Operations. An administrator accidentally triggering an operation in production can disrupt the application.
 
-**Phòng tránh:** xác định trước attributes cần đọc, giới hạn role/authorization, không dùng thao tác mutate trên production nếu chưa được phê duyệt, và audit các operation quản trị.
+**Prevention:** identify target attributes beforehand, enforce role/authorization limits, avoid mutating operations in production without approval, and audit administrative invocations.
 
-## 14. Lỗi tư duy và cấu hình phổ biến
+## 14. Common conceptual and configuration mistakes
 
-1. **Đồng nhất Attach API với giao thức JMX.** Attach giúp tìm/khởi động connector; JMXConnector mới trao đổi MBean calls.
-2. **Tin rằng thiếu `-Dcom.sun.management.jmxremote` thì JConsole local không hoạt động.** JDK 17 có thể kích hoạt agent qua attach theo nhu cầu.
-3. **Mở port remote để “sửa” lỗi local attach.** Có nguy cơ phơi bày management interface.
-4. **Tự tạo JMXServiceURL từ PID.** Address phải lấy từ agent/Attach API.
-5. **Bỏ qua cùng user và PID namespace.** Local attach bị điều kiện OS/container chi phối.
-6. **Thấy `jcmd -l` trống rồi tuyên bố không có JVM.** Công cụ có giới hạn visibility.
-7. **Không gọi `detach` trong finally.** Rò phiên attach hoặc giữ tài nguyên trong tool.
-8. **Không `close` JMXConnector.** Có thể giữ connection/resources quá lâu.
-9. **Giả định detach/close tự dừng local agent.** Agent có vòng đời riêng.
-10. **Tin `ManagementAgent.stop` luôn dừng local connector.** Lệnh JDK 17 mô tả remote management stop.
-11. **Dùng mã cũ tải `management-agent.jar` trên Java 17.** Có API `startLocalManagementAgent()` trực tiếp.
-12. **Bỏ qua `-XX:+DisableAttachMechanism`/jlink modules.** Không phải runtime nào cũng cho dynamic attach.
-13. **Attach nhầm PID sau restart hoặc PID reuse.** Cần thêm JVM start time/container identity.
-14. **Nhầm `java.lang:type=Runtime` với hostname/port.** ObjectName là tên MBean, không phải connector endpoint.
-15. **Đọc raw `getSystemProperties` và ghi tất cả lên issue.** Có thể rò credential, endpoint, file path.
-16. **Bấm operation trong JConsole khi đang “chỉ quan sát”.** MBean có thể có operation làm thay đổi runtime.
-17. **Cho rằng cùng host là đủ để kết nối qua Docker namespace.** PID/UID/mount/network namespace có thể khác.
-18. **Poll JMX cực dày để bắt spike mili giây.** Overhead và độ phân giải thường không phù hợp; dùng JFR/traces.
-19. **Đồng nhất local và remote JMX security.** Local dựa OS permissions; remote cần thiết kế auth/TLS/network riêng.
-20. **Không giữ mốc UTC và identity cho snapshot.** Số heap/threads không nối được với sự cố cụ thể.
-21. **Tin `startLocalManagementAgent()` chỉ read-only.** Nó khởi động agent trong JVM mục tiêu, có tác động.
-22. **Gọi một MXBean operation có thể thay đổi state để “test kết nối”.** Chỉ cần `isRegistered`/`getAttribute` là đủ cho phép đo read-only.
+1. **Equating the Attach API with the JMX protocol.** Attach locates/starts the connector; `JMXConnector` handles MBean calls.
+2. **Believing local JConsole fails without `-Dcom.sun.management.jmxremote`.** JDK 17 can activate the agent on demand via attach.
+3. **Opening a remote port to "fix" local attach errors.** Exposes the management interface unnecessarily.
+4. **Constructing `JMXServiceURL` manually from a PID.** The address must come from the agent/Attach API.
+5. **Ignoring matching user and PID namespaces.** Local attach is governed by OS/container boundaries.
+6. **Seeing empty `jcmd -l` and declaring no JVM is running.** The tool has visibility limits.
+7. **Forgetting `detach` in `finally`.** Leaks attach sessions or holds tool resources.
+8. **Forgetting to `close` `JMXConnector`.** Keeps connections/resources open longer than needed.
+9. **Assuming `detach`/`close` stops the local agent.** The agent has its own lifecycle.
+10. **Believing `ManagementAgent.stop` always stops the local connector.** JDK 17 docs define it for remote management stop.
+11. **Using legacy `management-agent.jar` loading code on Java 17.** Use the direct `startLocalManagementAgent()` API.
+12. **Ignoring `-XX:+DisableAttachMechanism` or `jlink` modules.** Not every runtime allows dynamic attach.
+13. **Attaching to the wrong PID after restarts or PID reuse.** Correlate with JVM start time and container identity.
+14. **Confusing `java.lang:type=Runtime` with a hostname/port.** ObjectName names an MBean, not a connector endpoint.
+15. **Reading raw `getSystemProperties` and pasting all of it into an issue.** Can leak credentials, endpoints, and file paths.
+16. **Clicking operations in JConsole while "just observing."** MBeans can expose state-mutating operations.
+17. **Assuming same-host suffices across Docker namespaces.** PID/UID/mount/network namespaces can all differ.
+18. **Polling JMX intensely to catch millisecond spikes.** Overhead and resolution are unsuitable; use JFR/traces.
+19. **Equating local and remote JMX security.** Local relies on OS permissions; remote needs dedicated auth/TLS/network design.
+20. **Omitting UTC timestamps and identity on snapshots.** Heap/thread numbers cannot be tied to a specific incident otherwise.
+21. **Believing `startLocalManagementAgent()` is read-only.** It starts an agent inside the target JVM, causing a state change.
+22. **Invoking a state-changing MXBean operation to "test connectivity."** `isRegistered`/`getAttribute` suffices for read-only verification.
 
-## 15. Checklist trước, trong và sau khi dùng local JMX
+## 15. Checklist before, during, and after using local JMX
 
-- [ ] Đã xác định JVM đích bằng PID + start time + host/container ID?
-- [ ] Đã hiểu đâu là platform MBeanServer, đâu là JMX connector, đâu là Attach API?
-- [ ] Đang cần in-process access, local JMX hay thật sự là remote JMX?
-- [ ] Tài khoản chạy tool có user/namespace/permission tương ứng và được phê duyệt?
-- [ ] JVM có Attach provider, không bị policy chặn và có management modules?
-- [ ] Đã kiểm tra management agent sẵn có trước khi yêu cầu khởi động mới?
-- [ ] Nếu cần local connector, địa chỉ có do chính JVM cung cấp?
-- [ ] Đã dùng `detach` trong `finally` và `JMXConnector.close()` khi xong?
-- [ ] Đã tránh in agent properties/connector address, system properties và args nhạy cảm?
-- [ ] Chỉ đọc những MBean attributes cần thiết, không invoke operation mutate?
-- [ ] Đã giới hạn GUI polling/thu mẫu theo tác động chấp nhận được?
-- [ ] Đã ghi timestamp UTC, JVM identity, metric unit và sampling window?
-- [ ] Đã phân biệt “đóng client” với “dừng management agent”?
-- [ ] Có đối chiếu logs/JFR/metrics/GC và ghi rõ hạn chế bằng chứng?
-- [ ] Không mở remote JMX không auth/TLS để xử lý lỗi local attach?
+- [ ] Identified the target JVM via PID + start time + host/container ID?
+- [ ] Clear on what is platform MBeanServer, JMX connector, and Attach API?
+- [ ] Do you need in-process access, local JMX, or genuinely remote JMX?
+- [ ] Does the tool's account have matching user/namespace/permissions and approval?
+- [ ] Does the JVM have the Attach provider, no policy block, and management modules?
+- [ ] Checked whether the management agent is already active before requesting startup?
+- [ ] If using a local connector, was the address provided by the JVM itself?
+- [ ] Used `detach` in `finally` and `JMXConnector.close()` when done?
+- [ ] Avoided printing sensitive agent properties/connector addresses, system properties, and arguments?
+- [ ] Read only necessary MBean attributes without invoking mutating operations?
+- [ ] Bounded GUI polling/sampling to acceptable overhead?
+- [ ] Recorded UTC timestamp, JVM identity, metric units, and sampling window?
+- [ ] Distinguished "closing the client" from "stopping the management agent"?
+- [ ] Corroborated with logs/JFR/metrics/GC and documented evidence limitations?
+- [ ] Avoided opening unauthenticated/unencrypted remote JMX to bypass local attach errors?
 
-### Bài tập tự kiểm tra
+### Self-check exercises
 
-**Bài 1:** Một chương trình Java 17 hoạt động bình thường nhưng không truyền `com.sun.management.jmxremote.port`. Bạn muốn xem `MemoryMXBean` từ JConsole trên máy dev. Có nhất thiết restart với remote port không? **Không**; nếu cùng user, target cho attach và có agent support, `jconsole <pid>` có thể bootstrap local management agent.
+**Exercise 1:** A Java 17 program runs normally without `com.sun.management.jmxremote.port`. You want to view `MemoryMXBean` in JConsole on your dev machine. Must you restart it with a remote port? **No**; under the same user, if the target permits attach and supports the agent, `jconsole <pid>` can bootstrap the local management agent.
 
-**Bài 2:** Công cụ Java đã gọi `VirtualMachine.attach(pid)` thành công. Có thể ngay lập tức gọi `vm.getAttribute("java.lang:type=Memory")` không? **Không**: `VirtualMachine` không là `MBeanServerConnection`. Phải lấy/start local connector, tạo `JMXConnector`, rồi truy vấn qua connection.
+**Exercise 2:** A Java tool calls `VirtualMachine.attach(pid)` successfully. Can it immediately call `vm.getAttribute("java.lang:type=Memory")`? **No**: `VirtualMachine` is not an `MBeanServerConnection`. You must retrieve/start the local connector, create a `JMXConnector`, and query through the connection.
 
-**Bài 3:** Sau khi `startLocalManagementAgent`, công cụ gọi `vm.detach()` và `connector.close()`. Agent đã tắt chắc chắn chưa? **Chưa**. Hai thao tác giải phóng phiên client/attach; management agent có vòng đời khác.
+**Exercise 3:** After `startLocalManagementAgent`, the tool calls `vm.detach()` and `connector.close()`. Is the agent guaranteed to be shut down? **No**. Those two calls release the client/attach sessions; the management agent has a separate lifecycle.
 
-**Bài 4:** Một JVM trong container có PID 1 nhưng `jcmd 1 VM.version` trên host không trả thông tin JVM. Có thể kết luận JVM crash không? **Không**. PID namespace khác nhau; cần xác định host/container PID đúng, user và visibility.
+**Exercise 4:** A containerized JVM runs as PID 1, yet `jcmd 1 VM.version` on the host returns no JVM info. Can you conclude the JVM crashed? **No**. PID namespaces differ; verify the true host/container PID, user, and visibility.
 
-**Bài 5:** MBeanServer chứa custom MBean `com.example:type=Cache` với operation `evictAll`. Chỉ cần kiểm tra MBean tồn tại, nên gọi operation không? **Không**. `isRegistered`/`getMBeanInfo` hoặc đọc attribute có quyền phù hợp đáp ứng yêu cầu, không làm thay đổi cache.
+**Exercise 5:** The MBeanServer holds custom MBean `com.example:type=Cache` with an `evictAll` operation. If you only need to verify the MBean exists, should you invoke the operation? **No**. `isRegistered`/`getMBeanInfo` or reading an authorized attribute verifies existence without wiping the cache.
 
-## Tài liệu tham khảo
+## References
 
-- Oracle Java SE 17, [Monitoring and Management Using JMX Technology](https://docs.oracle.com/en/java/javase/17/management/monitoring-and-management-using-jmx-technology.html): local/remote monitoring, management agent, Attach API, bảo mật và properties.
-- Oracle Java SE 17, [Using JConsole](https://docs.oracle.com/en/java/javase/17/management/using-jconsole.html): danh sách JVM local, `jconsole <pid>`, quản lý thông qua GUI.
-- Oracle Java SE 17, [`jconsole` command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jconsole.html): cú pháp local PID và remote host:port/JMX URL.
-- Oracle Java SE 17, [`com.sun.tools.attach.VirtualMachine`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.attach/com/sun/tools/attach/VirtualMachine.html): attach, properties, `startLocalManagementAgent`, `startManagementAgent` và detach.
-- Oracle Java SE 17, [`com.sun.tools.attach` package](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.attach/com/sun/tools/attach/package-summary.html): các loại exception và attach provider.
-- Oracle Java SE 17, [`jcmd` command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): `ManagementAgent.status`, `start_local`, `stop`, impact và quyền.
-- Oracle Java SE 17, [`ManagementFactory` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ManagementFactory.html): platform MBeanServer và các ObjectName/MXBean.
-- Oracle Java SE 17, [`JMXConnectorFactory`](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/javax/management/remote/JMXConnectorFactory.html) và [`JMXServiceURL`](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/javax/management/remote/JMXServiceURL.html): kết nối tới connector server.
-- Oracle Java SE 17, [Diagnostic Tools](https://docs.oracle.com/en/java/javase/17/troubleshoot/diagnostic-tools.html): JConsole, giới hạn và cách phối hợp công cụ JVM.
+- Oracle Java SE 17, [Monitoring and Management Using JMX Technology](https://docs.oracle.com/en/java/javase/17/management/monitoring-and-management-using-jmx-technology.html): local/remote monitoring, management agent, Attach API, security, and properties.
+- Oracle Java SE 17, [Using JConsole](https://docs.oracle.com/en/java/javase/17/management/using-jconsole.html): local JVM list, `jconsole <pid>`, GUI management.
+- Oracle Java SE 17, [`jconsole` command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jconsole.html): local PID and remote host:port/JMX URL syntax.
+- Oracle Java SE 17, [`com.sun.tools.attach.VirtualMachine`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.attach/com/sun/tools/attach/VirtualMachine.html): attach, properties, `startLocalManagementAgent`, `startManagementAgent`, and detach.
+- Oracle Java SE 17, [`com.sun.tools.attach` package](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.attach/com/sun/tools/attach/package-summary.html): exception types and attach providers.
+- Oracle Java SE 17, [`jcmd` command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): `ManagementAgent.status`, `start_local`, `stop`, impact, and permissions.
+- Oracle Java SE 17, [`ManagementFactory` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ManagementFactory.html): platform MBeanServer and ObjectNames/MXBeans.
+- Oracle Java SE 17, [`JMXConnectorFactory`](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/javax/management/remote/JMXConnectorFactory.html) and [`JMXServiceURL`](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/javax/management/remote/JMXServiceURL.html): connecting to the connector server.
+- Oracle Java SE 17, [Diagnostic Tools](https://docs.oracle.com/en/java/javase/17/troubleshoot/diagnostic-tools.html): JConsole, limitations, and combining JVM tools.
 
-**Kết luận:** Với local JMX, **Attach API là phương tiện tìm/kích hoạt local management connector**, còn **JMXConnector là phương tiện truy vấn MBeans**. Một phép điều tra đáng tin cậy luôn đi từ xác minh đúng JVM → kiểm tra quyền/attach → lấy địa chỉ agent hợp lệ → chỉ đọc MBean cần thiết → đóng phiên và ghi thay đổi đã thực hiện. Không đánh đổi bảo mật remote JMX để khắc phục một sự cố attach cục bộ.
+**Conclusion:** For local JMX, **the Attach API is the mechanism to locate/activate the local management connector**, whereas **JMXConnector is the mechanism to query MBeans**. A reliable investigation always proceeds from verifying the exact JVM → checking permissions/attach → obtaining a valid agent address → reading only necessary MBeans → closing sessions and recording changes made. Never compromise remote JMX security to work around a local attach failure.

@@ -1,21 +1,21 @@
-# Quản lý nhiều lớp đầu ra, lớp lồng nhau và tên nhị phân khi biên dịch Java trong bộ nhớ
+# Managing Multiple Output Classes, Nested Classes, and Binary Names in In-Memory Java Compilation
 
-## 1. Một nguồn Java có thể tạo nhiều tệp class
+## 1. One Java Source Can Produce Multiple Class Files
 
-JavaCompiler API (`javax.tools`) hỗ trợ compile mã nguồn trong bộ nhớ. Một compilation unit chứa `Outer` có thể tạo ra `Outer.class`, `Outer$Nested.class`, `Outer$Inner.class`, `Outer$1.class` và các class top-level khác. Vì thế không thể giả định mỗi source trả đúng một byte array. Một file manager đúng phải nhận **mọi callback `getJavaFileForOutput`** và lưu từng output dưới **binary name** do compiler cung cấp.
+The JavaCompiler API (`javax.tools`) supports compiling source code in memory. A compilation unit containing `Outer` can emit `Outer.class`, `Outer$Nested.class`, `Outer$Inner.class`, `Outer$1.class`, and other top-level classes. Therefore, you cannot assume each source returns a single byte array. A proper file manager must handle **every `getJavaFileForOutput` callback** and store each output under the **binary name** supplied by the compiler.
 
-Phân biệt các tên:
+Distinguishing the names:
 
-| Đối tượng | Source/canonical name | Binary name | Đường dẫn JAR |
+| Construct | Source/canonical name | Binary name | JAR path |
 | --- | --- | --- | --- |
 | Top-level | `demo.Outer` | `demo.Outer` | `demo/Outer.class` |
 | Static nested | `demo.Outer.Nested` | `demo.Outer$Nested` | `demo/Outer$Nested.class` |
 | Non-static inner | `demo.Outer.Inner` | `demo.Outer$Inner` | `demo/Outer$Inner.class` |
-| Anonymous class | Không có canonical name | Có thể `demo.Outer$1` với javac | `demo/Outer$1.class` |
+| Anonymous class | No canonical name | May be `demo.Outer$1` with javac | `demo/Outer$1.class` |
 
-Không đoán suffix của local/anonymous classes; tên binary là kết quả của compiler, không phải chính sách đặt tên của ứng dụng. `ClassLoader.loadClass` và `Class.forName` nhận **binary name**, không nhận canonical name của nested class.
+Do not guess suffixes of local/anonymous classes; the binary name is an output of the compiler, not an application naming policy. `ClassLoader.loadClass` and `Class.forName` accept **binary names**, not canonical names of nested classes.
 
-## 2. Kiến trúc file manager và classloader
+## 2. File Manager and ClassLoader Architecture
 
 ```text
 JavaFileObject SOURCE
@@ -25,7 +25,7 @@ JavaCompiler.getTask(...).call()
         |
         v
 ForwardingJavaFileManager.getJavaFileForOutput
-        | mỗi className, Kind.CLASS
+        | per className, Kind.CLASS
         v
 Map<String, byte[]> (binaryName -> class bytes)
         |
@@ -36,11 +36,11 @@ MemoryClassLoader.findClass(binaryName)
 defineClass(binaryName, bytes, 0, bytes.length)
 ```
 
-File manager cần tạo `ByteArrayOutputStream` **riêng** cho từng `className`. Khi compile thất bại, không publish các bytecode partial. Khi compile thành công, snapshot toàn bộ map, truyền cho loader mới. Giữ API chung ở parent loader để không vô tình nạp trùng interface SPI.
+The file manager must create a **separate** `ByteArrayOutputStream` for each `className`. When compilation fails, do not publish partial bytecodes. When compilation succeeds, snapshot the entire map and pass it to a new loader. Keep shared APIs in the parent loader so SPI interfaces are not accidentally loaded twice.
 
-## 3. Ví dụ Java 17+ đầy đủ
+## 3. Complete Java 17+ Example
 
-Tạo file `MemoryCompilerExample.java`. Ví dụ biên dịch một source chứa top-level, nested, inner và anonymous class; lưu các binary names; load và gọi method bằng reflection.
+Create the file `MemoryCompilerExample.java`. The example compiles a single source containing a top-level, nested, inner, and anonymous class; stores the binary names; and loads and invokes methods via reflection.
 
 ```java
 import javax.tools.*;
@@ -183,14 +183,14 @@ public final class MemoryCompilerExample {
 }
 ```
 
-Biên dịch và chạy với JDK 17+ (không chỉ runtime thiếu `jdk.compiler`):
+Compile and run with JDK 17+ (not a runtime missing `jdk.compiler`):
 
 ```bash
 javac --release 17 MemoryCompilerExample.java
 java MemoryCompilerExample
 ```
 
-Output dự kiến với `javac` của JDK 17:
+Expected output with JDK 17 `javac`:
 
 ```text
 Outputs:
@@ -203,37 +203,37 @@ Anonymous: anonymous
 Inner: inner
 ```
 
-`TreeMap` làm danh sách output có thứ tự ổn định khi in, **không phải** compiler bảo đảm thứ tự callback. Tên `demo.Outer$1` là kết quả với source này trên `javac`, không phải tên nên đoán khi sinh code. Class `Outer$Inner` nhận outer instance như tham số constructor tổng hợp, khác với static nested class.
+`TreeMap` gives the printed output list a deterministic order; it is **not** guaranteed by the compiler's callback order. The name `demo.Outer$1` is the result for this source on `javac`, not a name that should be guessed when generating code. The `Outer$Inner` class receives the outer instance as a synthetic constructor parameter, unlike a static nested class.
 
-## 4. Những bất biến cần giữ khi có nhiều class output
+## 4. Invariants to Maintain When There Are Multiple Output Classes
 
-### Một callback, một output độc lập
+### One Callback, One Independent Output
 
-Mỗi lần compiler gọi `getJavaFileForOutput(location, className, kind, sibling)`, cần trả một `JavaFileObject` có stream độc lập. Nếu bạn chỉ lưu `lastOutput`, bytecode trước đó bị mất, dẫn tới `NoClassDefFoundError` khi outer class tham chiếu inner/anonymous class.
+Every time the compiler calls `getJavaFileForOutput(location, className, kind, sibling)`, you must return a `JavaFileObject` with an independent stream. If you only store `lastOutput`, earlier bytecode is lost, leading to `NoClassDefFoundError` when the outer class references inner/anonymous classes.
 
-### Binary name là key, không phải source filename
+### Binary Name as the Key, Not the Source Filename
 
-Map nên mang dạng `Map<String, byte[]>` với key như `demo.Outer$Inner`. Không dùng key `Outer.java`, không thay `$` bằng `.` và không tự tạo tên `$1`. `defineClass` phải được gọi với binary name phù hợp với tên thực trong bytecode; nếu sai, JVM có thể báo `NoClassDefFoundError: wrong name`.
+The map should take the form `Map<String, byte[]>` with keys like `demo.Outer$Inner`. Do not use the key `Outer.java`, do not replace `$` with `.`, and do not invent `$1` names yourself. `defineClass` must be called with the binary name matching the actual name in the bytecode; if mismatched, the JVM may report `NoClassDefFoundError: wrong name`.
 
-### Publish sau thành công
+### Publish Only After Success
 
-`CompilationTask.call()` trả `Boolean`: `false` nghĩa biên dịch thất bại. Một số `.class` có thể đã được xuất ra trước khi lỗi xảy ra; đây là tập partial và **không nên publish**. Collect diagnostics, bỏ collector, để lần compile mới dùng trạng thái mới.
+`CompilationTask.call()` returns a `Boolean`: `false` means compilation failed. Some `.class` files may already have been emitted before the error occurred; this is a partial set and **must not be published**. Collect diagnostics, discard the collector, and let the next compilation run use fresh state.
 
-### Class identity và phiên bản
+### Class Identity and Versioning
 
-Một class runtime được định danh bởi binary name cùng defining classloader. Không `defineClass` lần hai với cùng tên trong cùng loader; thường nhận `LinkageError`. Muốn nạp phiên bản mới với cùng binary name, dùng **loader mới** và chuyển registry/instance có kiểm soát. Parent loader nên giữ service API chung để plugin class có thể được cast sang SPI interface.
+A runtime class is identified by its binary name together with its defining class loader. Do not call `defineClass` a second time with the same name in the same loader; you will typically get `LinkageError`. To load a new version with the same binary name, use a **new loader** and switch registries/instances in a controlled manner. The parent loader should hold the shared service API so plugin classes can be cast to the SPI interface.
 
-## 5. Compile nhiều source units và nhiều lượt
+## 5. Compiling Multiple Source Units and Multiple Passes
 
-Đầu vào của `JavaCompiler.getTask` có thể là nhiều `JavaFileObject.Kind.SOURCE`. Một task chứa `demo.A` và `demo.B` có thể tạo `demo.A`, `demo.A$Nested`, `demo.B`, cùng các class phụ khác. Collector phải nhận tất cả outputs từ cả task, không lọc theo tên main source.
+The input to `JavaCompiler.getTask` can be multiple `JavaFileObject.Kind.SOURCE` instances. One task containing `demo.A` and `demo.B` can produce `demo.A`, `demo.A$Nested`, `demo.B`, plus auxiliary classes. The collector must capture all outputs from the entire task, not filter by the main source name.
 
-Với nhiều lượt biên dịch liên tiếp, nếu lượt sau phụ thuộc bytecode chỉ tồn tại trong memory của lượt trước, việc override `getJavaFileForOutput` **chưa đủ**. Compiler cần tìm input classes: file manager có thể phải triển khai `list`, `getJavaFileForInput`, `inferBinaryName` và API liên quan để cung cấp classpath/module path trong bộ nhớ. Runtime `MemoryClassLoader` không tự khiến JavaCompiler nhìn thấy mọi class đã nạp.
+For multiple consecutive compilation passes, if a later pass depends on bytecode existing only in memory from an earlier pass, overriding `getJavaFileForOutput` **is not enough**. The compiler needs to locate input classes: the file manager may have to implement `list`, `getJavaFileForInput`, `inferBinaryName`, and related APIs to provide an in-memory classpath/module path. The runtime `MemoryClassLoader` does not automatically make `JavaCompiler` see loaded classes.
 
-Với annotation processing, compiler còn có thể sinh source mới và class outputs mới. Không giả định số lượng outputs biết trước hoặc chỉ có những class xuất hiện tường minh trong source ban đầu.
+With annotation processing, the compiler can also generate new sources and new class outputs. Do not assume the number of outputs is known in advance or limited to classes appearing explicitly in the initial source.
 
-## 6. Đóng gói và lưu bytecode
+## 6. Packaging and Storing Bytecode
 
-Muốn xuất map bytecode thành JAR, chuyển binary name sang resource path: thay `.` của package bằng `/`, **giữ `$` nguyên** rồi nối `.class`. Ví dụ:
+To export a bytecode map into a JAR, convert each binary name to a resource path: replace package `.` with `/`, **keep `$` intact**, and append `.class`. For example:
 
 ```text
 demo.Outer        -> demo/Outer.class
@@ -241,7 +241,7 @@ demo.Outer$Inner  -> demo/Outer$Inner.class
 demo.Outer$1      -> demo/Outer$1.class
 ```
 
-Ví dụ đoạn code trong method có `classes: Map<String, byte[]>` và `jarPath: Path`:
+Example snippet inside a method having `classes: Map<String, byte[]>` and `jarPath: Path`:
 
 ```java
 try (java.util.jar.JarOutputStream output =
@@ -256,33 +256,33 @@ try (java.util.jar.JarOutputStream output =
 }
 ```
 
-Nếu dùng SPI, JAR còn cần `META-INF/services/<service FQCN>` hoặc JPMS module metadata đúng kiến trúc. Chỉ lưu `.class` chưa đủ nếu plugin cần resource files, manifest hay descriptor.
+If using SPI, the JAR also needs `META-INF/services/<service FQCN>` or proper JPMS module metadata matching the architecture. Storing only `.class` files is insufficient if the plugin needs resource files, a manifest, or descriptors.
 
-## 7. Lỗi phổ biến và cách chẩn đoán
+## 7. Common Errors and How to Diagnose Them
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách sửa |
+| Symptom | Common cause | Fix |
 | --- | --- | --- |
-| `ClassNotFoundException` với `demo.Outer.Inner` | Dùng canonical name | Gọi `loadClass("demo.Outer$Inner")` |
-| `NoClassDefFoundError` cho `Outer$1` | Collector không lưu anonymous output | Lưu mọi callback output |
-| `NoClassDefFoundError: wrong name` | Key khác binary name trong bytecode | Lấy đúng `className` từ compiler |
-| `LinkageError` duplicate definition | Define lại cùng class trong loader | Dùng loader mới khi rebuild |
-| `ClassCastException` sang SPI | Plugin loader tự định nghĩa API trùng | Chia sẻ API qua parent |
-| Compiler lượt sau không thấy class cũ | Chỉ có output manager, không có input support | Bổ sung in-memory input lookup |
-| Thất bại nhưng vẫn có `.class` partial | Publish map trước khi kiểm tra `call()` | Chỉ publish khi compile thành công |
-| Memory tăng sau nhiều lần compile | Host giữ reference tới loader cũ | Dọn lifecycle và reference |
+| `ClassNotFoundException` for `demo.Outer.Inner` | Used canonical name | Call `loadClass("demo.Outer$Inner")` |
+| `NoClassDefFoundError` for `Outer$1` | Collector did not store anonymous output | Store every output callback |
+| `NoClassDefFoundError: wrong name` | Map key differs from binary name in bytecode | Use the exact `className` from the compiler |
+| `LinkageError` duplicate definition | Redefining the same class in the same loader | Use a new loader when rebuilding |
+| `ClassCastException` to SPI | Plugin loader defined a duplicate API | Share the API via the parent |
+| Next compiler pass cannot see old classes | Output manager only, no input support | Add in-memory input lookup |
+| Failed yet partial `.class` files exist | Published map before checking `call()` | Publish only when compilation succeeds |
+| Memory grows after repeated compilations | Host retains references to old loaders | Manage lifecycles and references |
 
-## 8. Checklist triển khai
+## 8. Implementation Checklist
 
-- [ ] Kiểm tra có system compiler; dùng JDK phù hợp.
-- [ ] Source URI đúng binary name top-level và đuôi `.java`.
-- [ ] Ghi mọi `getJavaFileForOutput` theo `className`, mỗi output có stream riêng.
-- [ ] Không đoán tên inner/local/anonymous class.
-- [ ] Snapshot output chỉ sau compile thành công.
-- [ ] Nạp toàn bộ output bằng một loader nhất quán; giữ SPI chung ở parent.
-- [ ] Tạo loader mới cho phiên bản class mới khi trùng tên.
-- [ ] Nếu compile nhiều lượt có dependency trong memory, hỗ trợ class input lookup.
-- [ ] Khi xuất JAR, giữ `$` trong entry name và bổ sung resources/SPI metadata.
-- [ ] Viết test cho outer, nested, inner, anonymous class và error diagnostics.
-- [ ] Không coi compile trong bộ nhớ là sandbox: code chạy với quyền JVM host.
+- [ ] Verify the system compiler is available; use a suitable JDK.
+- [ ] Source URI matches the top-level binary name and `.java` extension.
+- [ ] Record every `getJavaFileForOutput` call by `className`, each with its own stream.
+- [ ] Do not guess inner/local/anonymous class names.
+- [ ] Snapshot outputs only after compilation succeeds.
+- [ ] Load all outputs with a consistent loader; keep shared SPIs in the parent.
+- [ ] Create a new loader for a new class version when names overlap.
+- [ ] If compiling across multiple passes with in-memory dependencies, support class input lookup.
+- [ ] When exporting a JAR, preserve `$` in entry names and include resources/SPI metadata.
+- [ ] Write tests for outer, nested, inner, anonymous classes, and error diagnostics.
+- [ ] Do not treat in-memory compilation as a sandbox: code runs with host JVM privileges.
 
-**Kết luận:** một compilation unit Java có thể tạo nhiều `.class`, nên output unit không phải source file mà là **class với binary name cụ thể**. Lưu tất cả bytes từ compiler theo đúng tên, đưa chúng vào một classloader phù hợp và quản lý phiên bản/diagnostics cẩn thận giúp tránh lỗi thiếu class, sai tên hoặc xung đột định nghĩa.
+**Conclusion:** a Java compilation unit can produce multiple `.class` files, so the output unit is not the source file but **a class with a specific binary name**. Storing all bytes from the compiler under the exact names, feeding them into an appropriate class loader, and carefully managing versioning/diagnostics helps avoid missing classes, mismatched names, or definition conflicts.

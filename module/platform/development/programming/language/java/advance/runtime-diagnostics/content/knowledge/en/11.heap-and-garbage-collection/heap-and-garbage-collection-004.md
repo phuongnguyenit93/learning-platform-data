@@ -1,31 +1,31 @@
-# 11.4 Đọc GC log theo collector đang dùng thay vì áp một mô hình vùng nhớ cố định
+# 11.4 Reading GC logs according to the active collector instead of forcing a fixed memory-region model
 
-## 1. Vấn đề cần giải quyết
+## 1. Problem to solve
 
-GC log là nhật ký các hoạt động thu gom rác của JVM: thời điểm, nguyên nhân, pha xử lý, thời gian tạm dừng ứng dụng và một số thống kê bộ nhớ. **Cùng một dòng “GC” không mang cùng ý nghĩa trên mọi garbage collector.** Cách đọc đúng bắt đầu bằng việc xác nhận JVM/JDK và collector đang chạy, sau đó mới dùng thuật ngữ, trạng thái và giới hạn của collector đó để giải thích log.
+A GC log is a journal of the JVM's garbage collection activities: timestamps, causes, processing phases, application pause durations, and memory statistics. **The same word "GC" does not carry the same meaning across all garbage collectors.** Reading logs properly starts with confirming the running JVM/JDK and collector, and only then using that collector's terminology, states, and limits to interpret the log.
 
-Không nên mặc định heap của mọi JVM đều là ba vùng vật lý cố định “Eden → Survivor → Old”, rồi suy ra rằng mọi lần GC đều là “minor GC” hoặc “full GC”. Mô hình này hữu ích để nhập môn collector phân thế hệ truyền thống, nhưng:
+You should not assume every JVM heap consists of three fixed physical regions "Eden → Survivor → Old", and infer from there that every GC event is either a "minor GC" or a "full GC". That model is helpful as an introduction to traditional generational collectors, but:
 
-- **Serial/Parallel** quản lý young/old theo cách phù hợp với thuật toán của chúng và thường thực hiện thu gom trong các khoảng *stop-the-world* (STW).
-- **G1** vẫn có khái niệm young/old, nhưng heap được chia thành nhiều **region**; vai trò eden, survivor, old có thể được gán cho các region khác nhau theo thời gian. Nó dùng young collection, mixed collection và concurrent marking.
-- **ZGC** dành phần lớn công việc cho các pha concurrent. Với **JDK 21**, cần phân biệt ZGC một thế hệ (khi chỉ bật `-XX:+UseZGC`) và **Generational ZGC** (khi bật thêm `-XX:+ZGenerational`).
-- **Shenandoah trong JDK 21** là collector concurrent, không phân thế hệ theo kiểu young/old truyền thống; khả năng sử dụng phụ thuộc bản phân phối JDK và nền tảng.
+- **Serial/Parallel** manage young/old according to their algorithms and generally perform collections in *stop-the-world* (STW) intervals.
+- **G1** still has young/old concepts, but the heap is partitioned into many **regions**; eden, survivor, and old roles can be assigned to different regions over time. It uses young collections, mixed collections, and concurrent marking.
+- **ZGC** puts most of its work into concurrent phases. With **JDK 21**, distinguish single-generation ZGC (when only `-XX:+UseZGC` is enabled) from **Generational ZGC** (when `-XX:+ZGenerational` is also enabled).
+- **Shenandoah in JDK 21** is a concurrent collector that is not generational in the traditional young/old sense; availability depends on the JDK distribution and platform.
 
-> Phạm vi: chủ yếu là HotSpot/JDK 17–21, lấy JDK 21 làm mốc cho các lựa chọn ZGC. Tên pha, tag, cấu trúc dòng và cờ hỗ trợ có thể đổi giữa bản JDK, nhà phân phối và chế độ collector. Luôn đối chiếu phiên bản thực tế, không suy diễn từ ví dụ minh họa.
+> Scope: primarily HotSpot/JDK 17–21, using JDK 21 as the reference point for ZGC options. Phase names, tags, line structures, and supported flags can change across JDK releases, vendors, and collector modes. Always verify against the actual version rather than inferring from illustrative examples.
 
-### Sau bài này, người đọc có thể
+### After this lesson, the reader will be able to
 
-1. Xác nhận collector và cấu hình JVM đã tạo ra một GC log.
-2. Phân biệt **GC pause**, **concurrent phase**, **GC cycle** và **heap occupancy**.
-3. Đọc các sự kiện đặc trưng của Serial/Parallel, G1, ZGC và Shenandoah mà không ép tất cả về một sơ đồ vùng nhớ.
-4. Đánh giá dấu hiệu áp lực cấp phát, lượng đối tượng còn sống, Full/degenerated GC, allocation stall và tương quan với độ trễ ứng dụng.
-5. Đưa ra giả thuyết có thể kiểm chứng bằng log cùng số liệu JVM/OS, thay vì kết luận rò rỉ bộ nhớ chỉ từ một dòng GC.
+1. Confirm which collector and JVM configuration produced a GC log.
+2. Distinguish **GC pause**, **concurrent phase**, **GC cycle**, and **heap occupancy**.
+3. Read characteristic events of Serial/Parallel, G1, ZGC, and Shenandoah without forcing all of them into a single region diagram.
+4. Assess signals of allocation pressure, live object volume, Full/degenerated GC, allocation stalls, and correlation with application latency.
+5. Formulate testable hypotheses using logs alongside JVM/OS metrics, rather than concluding a memory leak from a single GC line.
 
-## 2. Xác định bối cảnh **trước khi** phân tích một dòng
+## 2. Establish context **before** analyzing a line
 
-### 2.1. Phiên bản Java, collector và thông số heap
+### 2.1. Java version, collector, and heap parameters
 
-Khi có quyền truy cập JVM đang chạy, dùng các lệnh sau (thay `12345` bằng PID thật):
+When you have access to a running JVM, use the following commands (replace `12345` with the real PID):
 
 ```bash
 java -version
@@ -36,109 +36,109 @@ jcmd 12345 GC.heap_info
 jcmd 12345 VM.log list
 ```
 
-- `java -version` mô tả JDK được gọi trong terminal hiện tại; **có thể khác** JDK của tiến trình đang điều tra.
-- `VM.command_line` cho biết lệnh khởi chạy tiến trình, bao gồm các lựa chọn `-XX:+Use...GC` nếu được truyền.
-- `VM.flags` cho biết trạng thái cờ JVM ở tiến trình đó, kể cả các lựa chọn đã được JVM quyết định tự động. Lệnh và output phụ thuộc JDK; đối chiếu thêm dòng khởi tạo GC trong log.
-- `GC.heap_info` là ảnh chụp cấu trúc/thống kê heap mà JVM hỗ trợ tại thời điểm gọi, không phải lịch sử đầy đủ.
-- `VM.log list` giúp kiểm tra cấu hình Unified Logging hiện hành. `jcmd` cần quyền attach phù hợp và JDK có công cụ này.
+- `java -version` describes the JDK invoked in the current terminal; **it may differ** from the JDK of the process under investigation.
+- `VM.command_line` shows the process launch command, including `-XX:+Use...GC` options if passed.
+- `VM.flags` shows the JVM flag states on that process, including options chosen automatically by the JVM. Commands and output depend on the JDK; cross-check the GC initialization line in the log.
+- `GC.heap_info` is a snapshot of heap structure/statistics supported by the JVM at invocation time, not a full history.
+- `VM.log list` helps inspect the active Unified Logging configuration. `jcmd` requires appropriate attach permissions and a JDK containing this tool.
 
-Ví dụ log khởi động thường có dòng đại loại `[info][gc] Using G1`, `Using Parallel`, `Using Serial`, `Using ZGC` hoặc `Using Shenandoah`. **Đừng xác định collector bằng việc thấy từ “young”, “old” hay “heap” xuất hiện ngẫu nhiên trong một dòng.**
+Startup logs typically contain a line like `[info][gc] Using G1`, `Using Parallel`, `Using Serial`, `Using ZGC`, or `Using Shenandoah`. **Do not identify the collector merely by seeing the words "young", "old", or "heap" appear casually in a line.**
 
-Một số lựa chọn minh họa cho **JDK 21**:
+Illustrative choices for **JDK 21**:
 
-| Collector/chế độ | Cờ chọn điển hình | Cách hiểu heap và nhịp GC |
+| Collector/mode | Typical selection flags | How to understand heap and GC cadence |
 | --- | --- | --- |
-| Serial | `-XX:+UseSerialGC` | Young/old, công việc thu gom chủ yếu STW và tuần tự |
-| Parallel | `-XX:+UseParallelGC` | Young/old, thu gom STW với nhiều GC worker; ưu tiên thông lượng |
-| G1 | `-XX:+UseG1GC` | Young/old là vai trò của các region; young/mixed pauses và concurrent marking |
-| ZGC một thế hệ (JDK 21) | `-XX:+UseZGC` | Không áp sơ đồ Eden/Survivor/Old truyền thống; nhiều pha concurrent |
-| Generational ZGC (JDK 21) | `-XX:+UseZGC -XX:+ZGenerational` | Phân biệt thu gom thế hệ trẻ/già theo thuật toán ZGC; vẫn có concurrent work |
-| Shenandoah (JDK 21) | `-XX:+UseShenandoahGC` | Concurrent marking/evacuation/update references; không mặc định young/old |
+| Serial | `-XX:+UseSerialGC` | Young/old; collection work is primarily STW and sequential |
+| Parallel | `-XX:+UseParallelGC` | Young/old; STW collection with multiple GC workers; prioritizes throughput |
+| G1 | `-XX:+UseG1GC` | Young/old are roles of regions; young/mixed pauses and concurrent marking |
+| Single-generation ZGC (JDK 21) | `-XX:+UseZGC` | Does not impose a traditional Eden/Survivor/Old diagram; many concurrent phases |
+| Generational ZGC (JDK 21) | `-XX:+UseZGC -XX:+ZGenerational` | Distinguishes young/old generation collections per ZGC's algorithm; still includes concurrent work |
+| Shenandoah (JDK 21) | `-XX:+UseShenandoahGC` | Concurrent marking/evacuation/update references; no default young/old split |
 
-G1 là lựa chọn mặc định phổ biến của HotSpot JDK 21, nhưng quyết định thực tế có thể phụ thuộc môi trường, kích thước máy, bản JDK hoặc cờ khởi chạy. Đặc biệt, **không áp mặc định ZGC của JDK mới lên JDK 21**; xác nhận `ZGenerational` từ cấu hình khi phân tích log.
+G1 is a common default on HotSpot JDK 21, though the actual choice can depend on environment, machine size, JDK build, or startup flags. In particular, **do not assume a newer JDK's ZGC default applies to JDK 21**; confirm `ZGenerational` from configuration when analyzing logs.
 
-### 2.2. Bật Unified Logging đúng mục tiêu
+### 2.2. Enabling targeted Unified Logging
 
-Ví dụ chạy ứng dụng có ghi sự kiện GC và safepoint ra file; có thể dùng nguyên một dòng lệnh trên terminal:
+Example of running an application that writes GC and safepoint events to a file; can be entered as a single terminal command:
 
 ```bash
 java -Xms256m -Xmx256m -Xlog:gc*,safepoint=info:file=gc-%p-%t.log:time,uptime,level,tags:filecount=5,filesize=20m -jar app.jar
 ```
 
-Ý nghĩa:
+Meaning:
 
-- `gc*` nhận các nhóm tag chứa `gc`; mức mặc định là `info`. `safepoint=info` thêm thông tin safepoint. Tag `gc,heap` hoặc `gc,phases` chỉ xuất hiện khi JVM có phát log cho tag/mức tương ứng.
-- `time,uptime,level,tags` là các phần thông tin đi kèm (*decorators*); `uptime` thuận tiện để dựng lại thứ tự, `time` thuận tiện khi đối chiếu APM/request log.
-- `%p` là PID và `%t` là thời điểm JVM khởi động trong tên file, giúp tránh trộn log nhiều tiến trình.
-- `filecount=5,filesize=20m` cấu hình xoay vòng file; cần giữ đủ khoảng thời gian xảy ra sự cố. Các con số kích thước chỉ là mục tiêu gần đúng.
-- `-Xms`/`-Xmx` trong ví dụ là tham số thí nghiệm; dùng giá trị phù hợp với ứng dụng thật. Heap tối đa không đồng nghĩa giới hạn bộ nhớ RSS/container.
+- `gc*` matches tag groups containing `gc`; default level is `info`. `safepoint=info` adds safepoint information. Tags like `gc,heap` or `gc,phases` appear only when the JVM emits logs for the corresponding tag/level.
+- `time,uptime,level,tags` are accompanying metadata (*decorators*); `uptime` is convenient for reconstructing ordering, and `time` is convenient when aligning with APM/request logs.
+- `%p` is PID and `%t` is the JVM start timestamp in the filename, helping prevent logs from multiple processes from mixing.
+- `filecount=5,filesize=20m` configures file rotation; ensure enough retention to cover the incident window. Size numbers are approximate targets.
+- `-Xms`/`-Xmx` in the example are experimental parameters; use values appropriate for the real application. Max heap is not synonymous with RSS/container memory limit.
 
-Khi cần tìm lý do chọn kích thước vùng hay thời gian pha, có thể tăng có chọn lọc:
+When needing to inspect why region sizes or phase durations were chosen, you can selectively increase detail:
 
 ```bash
 java -Xlog:gc*=info,gc+heap=debug,gc+ergo=debug:file=gc-detail.log:time,uptime,level,tags:filecount=5,filesize=20m -jar app.jar
 ```
 
-`-Xlog:help` liệt kê mức và tag mà **JDK đang dùng** hỗ trợ. Mức `debug`/`trace` làm log lớn hơn và có thể tăng overhead; chỉ bật đủ để trả lời câu hỏi cụ thể. Thông thường `-Xlog:gc` là mức khảo sát ban đầu, `-Xlog:gc*` cho bối cảnh rộng hơn. Đối với ứng dụng đang chạy, có thể xem/điều chỉnh cấu hình log qua `jcmd ... VM.log` khi quyền và phiên bản cho phép.
+`-Xlog:help` lists the levels and tags supported by **the JDK in use**. `debug`/`trace` levels make logs larger and can increase overhead; enable only enough to answer specific questions. Typically `-Xlog:gc` is an initial survey level, and `-Xlog:gc*` provides broader context. For an already-running application, you can inspect/adjust log configuration via `jcmd ... VM.log` when permissions and version allow.
 
-## 3. Giải mã cú pháp, không vội kết luận
+## 3. Decoding syntax without jumping to conclusions
 
-Ví dụ **giả lập về hình dạng** một dòng G1 (số liệu được đặt để giải thích cú pháp, không phải output bảo đảm của chương trình phía dưới):
+**Synthesized shape example** of a G1 line (numbers are invented to explain syntax, not guaranteed output of the program below):
 
 ```text
 [2026-10-29T10:30:00.000+0700][12.345s][info][gc] GC(12) Pause Young (Normal) (G1 Evacuation Pause) 120M->48M(256M) 6.700ms
 ```
 
-| Thành phần | Đọc như thế nào | Không được suy ra |
+| Component | How to read it | What must NOT be inferred |
 | --- | --- | --- |
-| `2026-...` | Thời gian theo đồng hồ của JVM/máy | Mọi đồng hồ service đều đồng bộ tuyệt đối |
-| `12.345s` | Uptime JVM tại sự kiện | Ứng dụng đã nhận request đúng từng ấy giây |
-| `info`, `gc` | Mức log và tag set | Tất cả pha/cause đã được ghi ở mức này |
-| `GC(12)` | ID để liên kết các bản ghi thuộc sự kiện/chu kỳ GC | Là request ID, thread ID hoặc “12 lần Full GC” |
-| `Pause Young ...` | Tên sự kiện theo **G1**; có một khoảng STW | Cứ thấy `Young` thì trên mọi collector đều có một Eden vật lý cố định |
-| `120M->48M(256M)` | Heap sử dụng trước → sau; dung lượng heap được trình bày trong ngữ cảnh dòng này | Bộ nhớ RSS giảm đúng 72 MB, hay `256M` nhất thiết là `-Xmx` |
-| `6.700ms` | Thời lượng được báo cho sự kiện pause | Toàn bộ concurrent cycle, hoặc 100% thời gian gián đoạn request |
+| `2026-...` | Wall-clock time according to the JVM/machine clock | That every service's clock is strictly synchronized |
+| `12.345s` | JVM uptime at the event | That the application has been serving requests for that exact duration |
+| `info`, `gc` | Log level and tag set | That all phases/causes are recorded at this level |
+| `GC(12)` | ID linking records belonging to a GC event/cycle | That it is a request ID, thread ID, or "12 Full GCs" |
+| `Pause Young ...` | Event name under **G1**; involves an STW interval | That seeing `Young` means every collector has a fixed physical Eden |
+| `120M->48M(256M)` | Heap used before → after; heap capacity shown in this line's context | That RSS dropped by exactly 72 MB, or that `256M` is necessarily `-Xmx` |
+| `6.700ms` | Reported duration for the pause event | The entire concurrent cycle, or 100% of request interruption time |
 
-Các dòng `[gc,heap]`, `[gc,phases]` cùng `GC(12)` có thể bổ sung các giai đoạn và thay đổi vùng. Cần đọc **cả cụm sự kiện**, không kết luận từ một con số `before->after`.
+Lines tagged `[gc,heap]` and `[gc,phases]` with the same `GC(12)` can add phases and region changes. Read **the entire event group**, rather than concluding from a single `before->after` number.
 
-Phân biệt bốn khái niệm:
+Distinguish four concepts:
 
-- **STW pause:** ứng dụng phải dừng ở một pha GC; tác động trực tiếp đến latency, nhưng mức tác động lên từng request còn phụ thuộc thời điểm request.
-- **Concurrent phase:** GC và ứng dụng có thể cùng chạy; thời lượng pha có thể dài hơn pause nhiều lần. Đây vẫn là chi phí CPU/băng thông bộ nhớ, nhưng **không có nghĩa ứng dụng dừng trong toàn bộ thời lượng đó**.
-- **GC cycle:** chuỗi các pha/collection liên quan đến một lượt công việc. Trên collector concurrent, một cycle có thể gồm nhiều đoạn concurrent và pause; trên G1 cũng có nhiều young/mixed collection quanh concurrent marking.
-- **Live set / post-GC occupancy:** lượng heap còn bị giữ sau thu gom. Chỉ là một tín hiệu về đối tượng đang sống, không tự chứng minh memory leak. Các bộ đệm, cache, class metadata, direct buffer và native memory có vòng đời riêng.
+- **STW pause:** the application must stop during a GC phase; directly impacts latency, though the impact on an individual request depends on request timing.
+- **Concurrent phase:** GC and the application can run simultaneously; phase duration can be many times longer than a pause. This still incurs CPU/memory-bandwidth cost, but **does not mean the application was stopped for that entire duration**.
+- **GC cycle:** a sequence of phases/collections related to a unit of work. On concurrent collectors, a cycle can contain multiple concurrent segments and pauses; on G1 there are also multiple young/mixed collections around concurrent marking.
+- **Live set / post-GC occupancy:** the amount of heap retained after collection. This is only a signal of live objects, not proof of a memory leak on its own. Buffers, caches, class metadata, direct buffers, and native memory have separate lifecycles.
 
-## 4. Đọc theo collector đang chạy
+## 4. Reading by active collector
 
-### 4.1. Serial và Parallel: phân thế hệ nhưng STW là trọng tâm
+### 4.1. Serial and Parallel: generational with STW at the core
 
-Với Serial/Parallel, thường cần quan sát:
+For Serial/Parallel, you typically observe:
 
-- **Young GC:** cố gắng lấy lại bộ nhớ chứa nhiều đối tượng sống ngắn. Một cause như `Allocation Failure` có thể chỉ là lý do bình thường để kích hoạt young collection, **không tự đồng nghĩa lỗi cấp phát hay sắp `OutOfMemoryError`**.
-- **Full GC / Old collection:** thường tốn kém hơn, có thể liên quan áp lực bộ nhớ cũ, ergonomics, explicit GC hoặc tình huống khác. Đọc **cause** và heap trước/sau để biết bối cảnh.
-- **Promotion và survivor:** đối tượng sống qua lần young GC có thể được chuyển đến survivor/old; nếu mức sử dụng old sau GC liên tục tăng, cần điều tra retention và tốc độ cấp phát.
-- **Parallel GC có nhiều worker** nhưng các pha thu gom thông thường vẫn là STW. “Parallel” không có nghĩa “concurrent với application”.
+- **Young GC:** attempts to reclaim memory holding many short-lived objects. A cause like `Allocation Failure` can simply be the normal trigger for a young collection, **not automatically an allocation error or an imminent `OutOfMemoryError`**.
+- **Full GC / Old collection:** usually more expensive, potentially linked to old-memory pressure, ergonomics, explicit GC, or other conditions. Read **cause** and before/after heap for context.
+- **Promotion and survivor:** objects surviving young GCs may move to survivor/old; if post-GC old usage keeps climbing, investigate retention and allocation rate.
+- **Parallel GC uses multiple workers**, yet regular collection phases remain STW. "Parallel" does not mean "concurrent with the application".
 
-Dạng log minh họa (tên và số tùy bản JDK):
+Illustrative log shape (exact names and numbers depend on JDK version):
 
 ```text
 GC(7) Pause Young (Allocation Failure) 90M->28M(128M) 12.300ms
 GC(8) Pause Full (Ergonomics) 118M->74M(128M) 95.600ms
 ```
 
-Câu hỏi nên đặt ra: Full GC có lặp lại không? Sau Full GC heap còn bao nhiêu? Thời gian pause có vượt ngân sách độ trễ? Đối tượng sống dài hạn có gia tăng qua nhiều chu kỳ không? Đừng áp “mixed collection” của G1 vào Parallel chỉ vì cả hai đều có old generation.
+Questions to ask: Are Full GCs repeating? How much heap remains after a Full GC? Do pause durations exceed the latency budget? Are long-lived objects growing across cycles? Do not apply G1's "mixed collection" concept to Parallel merely because both have an old generation.
 
-### 4.2. G1: đọc **region và collection set**, không tưởng tượng ba khối liên tục
+### 4.2. G1: read **regions and collection sets**, not three contiguous blocks
 
-G1 phân heap thành các **region**. Một region có thể đóng vai trò eden, survivor, old hoặc humongous; các region cùng vai trò không bắt buộc liền nhau. Hai loại pause quen thuộc:
+G1 divides the heap into **regions**. A region can act as eden, survivor, old, or humongous; regions sharing a role do not have to be contiguous. Two familiar pause types:
 
-- **`Pause Young (Normal)`:** chọn một *collection set* gồm young regions; live objects được di chuyển sang survivor hoặc old regions. Eden bị làm trống sau collection **không đồng nghĩa tất cả đối tượng trong eden đã chết**.
-- **`Pause Young (Mixed)`:** sau khi concurrent marking xác định region phù hợp, G1 có thể thu gom một số **old regions cùng young regions**. “Mixed” không phải Full GC.
-- **`Concurrent Start`, `Concurrent Mark Cycle`, `Remark`, `Cleanup`:** mô tả các mốc phát hiện đối tượng còn sống, chuẩn bị chọn region old để thu gom. Một số pha là concurrent, còn initial-mark/remark và phần cleanup có các pause STW. Không cộng toàn bộ thời gian concurrent vào tổng GC pause.
-- **`Humongous regions`:** đối tượng lớn (xấp xỉ từ nửa kích thước một region theo quy tắc G1) có xử lý riêng. Nhiều humongous allocations có thể gây áp lực fragmentation/khởi động marking sớm.
-- **`Pause Full` hoặc `Evacuation Failure`:** cảnh báo cần xem kỹ việc thiếu chỗ di chuyển đối tượng, tốc độ cấp phát, thời điểm marking và số region trống; không phải phản ứng bắt buộc của mọi lần “old đầy”.
+- **`Pause Young (Normal)`:** selects a *collection set* of young regions; live objects are evacuated to survivor or old regions. Eden becoming empty after collection **does not mean all objects in eden were dead**.
+- **`Pause Young (Mixed)`:** after concurrent marking identifies suitable regions, G1 can collect a subset of **old regions alongside young regions**. "Mixed" is not a Full GC.
+- **`Concurrent Start`, `Concurrent Mark Cycle`, `Remark`, `Cleanup`:** mark milestones for discovering live objects and preparing old region selection. Some phases are concurrent, while initial-mark/remark and parts of cleanup have STW pauses. Do not add all concurrent duration into total GC pause time.
+- **`Humongous regions`:** large objects (roughly from half a region size under G1's rules) receive special handling. Heavy humongous allocations can cause fragmentation pressure or trigger marking early.
+- **`Pause Full` or `Evacuation Failure`:** warns you to inspect insufficient evacuation space, allocation rate, marking timing, and free region count; it is not an automatic response to every "old full" state.
 
-Ví dụ diễn giải nhiều dòng cùng sự kiện (**minh họa, không phải transcript thực đo**):
+Example interpreting multiple lines for the same event (**illustrative, not a real measured transcript**):
 
 ```text
 GC(20) Pause Young (Normal) (G1 Evacuation Pause) 160M->72M(256M) 8.000ms
@@ -147,9 +147,9 @@ GC(20) Survivor regions: 4->5(8)
 GC(20) Old regions: 32->34
 ```
 
-Diễn giải: G1 vừa có young evacuation pause 8 ms. Eden regions đã được giải phóng; một phần đối tượng có thể sống sót và được đặt trong survivor hoặc thăng lên old. Old region count tăng từ 32 lên 34 **không tự chứng minh leak**; cần xem chuỗi nhiều lần GC, lượng old còn sống và tải ứng dụng. Số region trong các dòng minh họa không phải số MB; kích thước region phải lấy từ log khởi tạo/cấu hình.
+Interpretation: G1 just ran an 8 ms young evacuation pause. Eden regions were freed; some objects may have survived and been placed in survivor or promoted to old. Old region count rising from 32 to 34 **does not prove a leak by itself**; inspect a series of many GCs, live old data, and application load. Region counts in these illustrative lines are not MB; region size must be obtained from startup logs/configuration.
 
-Nếu thấy:
+If you see:
 
 ```text
 Pause Young (Concurrent Start) ...
@@ -159,68 +159,68 @@ Pause Cleanup ...
 Pause Young (Mixed) ...
 ```
 
-hãy đọc đây là diễn biến đặc trưng của G1: kích hoạt/conduct marking, hoàn thiện thông tin liveness, rồi chọn các old region để thu gom dần. Không đổi các dòng này thành “Minor → Major” theo khung Serial GC.
+read this as G1's characteristic progression: triggering/conducting marking, finalizing liveness information, and then selecting old regions to reclaim incrementally. Do not translate these lines into "Minor → Major" under a Serial GC framework.
 
-**Cách tiếp cận khi G1 có pause dài:** kiểm tra tần suất, phân vị pause; loại pause young/mixed/full; `gc+phases` để tìm phần mất thời gian (ví dụ scan remembered set, object copy); `gc+heap` xem eden/survivor/old/humongous; đầu vào như allocation rate, live set và số CPU sẵn có. Mục tiêu `-XX:MaxGCPauseMillis` là **soft goal**, không phải bảo đảm mọi pause nhỏ hơn ngưỡng.
+**Approach when G1 has long pauses:** check pause frequency and percentiles; pause types young/mixed/full; `gc+phases` to locate where time goes (such as scanning remembered sets or object copy); `gc+heap` to see eden/survivor/old/humongous; and inputs like allocation rate, live set, and available CPUs. The `-XX:MaxGCPauseMillis` target is a **soft goal**, not a guarantee that every pause stays below the threshold.
 
-### 4.3. ZGC: phân biệt phiên bản và **pause với concurrent work**
+### 4.3. ZGC: distinguish versions and **pauses vs. concurrent work**
 
-ZGC hướng tới pause ngắn bằng cách thực hiện phần lớn công việc đồng thời với ứng dụng. Trong **JDK 21**:
+ZGC aims for short pauses by performing most work concurrently with the application. In **JDK 21**:
 
-- `-XX:+UseZGC` chọn chế độ **non-generational**; không tìm “Eden/Survivor/Old” như bắt buộc phải có.
-- `-XX:+UseZGC -XX:+ZGenerational` chọn **Generational ZGC**, có logic thu gom theo thế hệ; tên sự kiện có thể phản ánh các chu kỳ trẻ/già. Đừng giả định cách gắn nhãn giữa JDK 21 và JDK khác giống nhau.
-- Các thông báo như **`Pause Mark Start`/`Pause Mark End`** (tùy chế độ), **`Concurrent ...`**, **`Garbage Collection (...)`** và thống kê heap cần đặt trong cùng cycle. Một cycle mất hàng chục hoặc hàng trăm mili giây **không có nghĩa** ứng dụng dừng liên tục trong chừng đó thời gian.
-- **Allocation Stall** hoặc tín hiệu GC không theo kịp tốc độ cấp phát có thể quan trọng hơn một pause đơn lẻ. Xem mức heap được giữ lại, `-Xmx`, `-XX:SoftMaxHeapSize` nếu dùng, tốc độ allocation và ngân sách CPU cho GC workers.
-- ZGC có thể thay đổi committed/uncommitted memory; hãy phân biệt **heap used**, **heap committed**, **heap reserved/max** và **RSS**. Một lần reclaim object không nhất thiết lập tức làm giảm RSS.
+- `-XX:+UseZGC` selects **non-generational** mode; do not look for "Eden/Survivor/Old" as mandatory.
+- `-XX:+UseZGC -XX:+ZGenerational` selects **Generational ZGC**, which includes generational collection logic; event names may reflect young/old cycles. Do not assume labeling is identical between JDK 21 and other JDKs.
+- Messages such as **`Pause Mark Start`/`Pause Mark End`** (mode-dependent), **`Concurrent ...`**, **`Garbage Collection (...)`**, and heap statistics must be read within the same cycle. A cycle taking tens or hundreds of milliseconds **does not mean** the application stopped continuously for that long.
+- **Allocation Stalls** or signals that GC cannot keep pace with allocation rate can matter more than an isolated pause. Check retained heap, `-Xmx`, `-XX:SoftMaxHeapSize` if used, allocation rate, and CPU budget for GC workers.
+- ZGC can change committed/uncommitted memory; distinguish **heap used**, **heap committed**, **heap reserved/max**, and **RSS**. Reclaiming objects does not necessarily reduce RSS immediately.
 
-Câu hỏi chính khi đọc ZGC: collector có đang hoàn thành công việc concurrent đủ nhanh để cung cấp chỗ cho allocation mới? Có allocation stall hay áp lực CPU không? Pause STW thực tế dài bao nhiêu? Không cố “suy ra Eden bị đầy” từ một log không có Eden.
+Key questions when reading ZGC: is the collector finishing concurrent work fast enough to supply space for new allocations? Are there allocation stalls or CPU pressure? How long are the actual STW pauses? Do not try to "infer Eden is full" from a log that has no Eden.
 
-### 4.4. Shenandoah JDK 21: concurrent evacuation và đường thoát khi thiếu bộ nhớ
+### 4.4. Shenandoah JDK 21: concurrent evacuation and fallback paths under memory pressure
 
-Shenandoah trên các bản JDK 21 có hỗ trợ là collector concurrent, **không phân thế hệ** như Serial/Parallel. Các pha có thể gồm:
+Shenandoah on supported JDK 21 builds is a concurrent collector, **not generational** like Serial/Parallel. Phases can include:
 
-- `Pause Init Mark` và `Pause Final Mark`: mốc STW tương ứng của marking.
-- `Concurrent marking`, `Concurrent evacuation`, `Concurrent update references` hoặc các pha cleanup: công việc phần lớn chạy bên cạnh application.
-- **Degenerated GC**: một phần công việc concurrent phải chuyển sang STW để hoàn tất khi không theo kịp; **Full GC** là đường xử lý nặng hơn. Đây là dấu hiệu nên điều tra áp lực cấp phát, heap headroom và khả năng cấp CPU.
-- **Pacing/heuristics**: collector có thể làm chậm một số allocation để tránh hết chỗ. Độ trễ ứng dụng có thể thay đổi ngay cả khi các pause được ghi nhận còn ngắn.
+- `Pause Init Mark` and `Pause Final Mark`: corresponding STW milestones for marking.
+- `Concurrent marking`, `Concurrent evacuation`, `Concurrent update references`, or cleanup phases: work mostly running alongside the application.
+- **Degenerated GC**: part of the concurrent work must fall back to STW to finish when it cannot keep up; **Full GC** is the heavier fallback path. This is a sign to investigate allocation pressure, heap headroom, and CPU availability.
+- **Pacing/heuristics**: the collector may slow down some allocations to avoid running out of space. Application latency can shift even when recorded pauses remain short.
 
-Đọc theo **pha mark → evacuate → update references**, số lần fallback, áp lực cấp phát và các pause; không yêu cầu phải xuất hiện chỉ số “Old generation after GC”. Kiểm tra khả năng hỗ trợ của bản JDK đang dùng trước khi áp cờ `-XX:+UseShenandoahGC`.
+Read along the **mark → evacuate → update references** phases, fallback counts, allocation pressure, and pauses; do not expect an "Old generation after GC" metric to appear. Verify support in your JDK distribution before applying `-XX:+UseShenandoahGC`.
 
-## 5. Phân tích có hệ thống: từ log đến giả thuyết
+## 5. Systematic analysis: from logs to hypotheses
 
-### 5.1. Trình tự đọc một cửa sổ sự cố
+### 5.1. Sequence for reading an incident window
 
-1. **Chốt cửa sổ thời gian:** request latency/p99 tăng lúc nào, node/pod nào, PID và JVM uptime tương ứng? Tránh nối log của các tiến trình hoặc container đã restart.
-2. **Định danh JVM/collector:** version, cờ chọn GC, heap min/max, CPU quota, container memory limit, dòng `Using ...`.
-3. **Phân loại sự kiện:** pause STW, concurrent phase/cycle, Full/degenerated GC, allocation stall, explicit GC. Giữ nguyên tên gốc của collector.
-4. **Đo tác động:** số pause mỗi phút; thời lượng max/p95/p99 của **pause**; tổng thời gian STW trong cửa sổ; thời gian và tần suất các concurrent cycle **ghi riêng**. Phân vị GC pause không thay thế phân vị request latency.
-5. **Đọc xu hướng heap:** used trước/sau GC theo thời gian, sức chứa heap, live set ước lượng, số old/humongous regions nếu là G1; với ZGC/Shenandoah đọc chỉ số tương ứng chúng thực sự ghi.
-6. **Kiểm tra cơ chế:** G1 có kịp concurrent marking trước khi old pressure tăng? ZGC/Shenandoah có allocation stall/degenerated/full? Parallel/Serial có Full GC lặp dày? Thời gian safepoint có vượt riêng thời gian GC pause không?
-7. **Đối chiếu dữ liệu ngoài GC:** allocation rate, heap histogram/JFR khi có điều kiện, CPU/GC threads, RSS/native memory, container OOMKilled, request trace, thread dumps. Chỉ kết luận khi các nguồn số liệu nhất quán.
+1. **Lock the time window:** when did request latency/p99 spike, on which node/pod, and with which PID and JVM uptime? Avoid stitching logs across restarted processes or containers.
+2. **Identify JVM/collector:** version, GC selection flags, heap min/max, CPU quota, container memory limit, and `Using ...` line.
+3. **Classify events:** STW pause, concurrent phase/cycle, Full/degenerated GC, allocation stall, explicit GC. Keep the collector's original names.
+4. **Measure impact:** pauses per minute; max/p95/p99 duration of **pauses**; total STW time in the window; duration and frequency of concurrent cycles **tracked separately**. GC pause percentiles do not replace request latency percentiles.
+5. **Read heap trends:** used before/after GC over time, heap capacity, estimated live set, old/humongous region counts if G1; for ZGC/Shenandoah read the metrics they actually report.
+6. **Check mechanisms:** did G1 finish concurrent marking before old pressure grew? Did ZGC/Shenandoah have allocation stalls/degenerated/full? Did Parallel/Serial have frequent repeating Full GCs? Did safepoint time exceed GC pause time alone?
+7. **Correlate non-GC data:** allocation rate, heap histogram/JFR when feasible, CPU/GC threads, RSS/native memory, container OOMKilled, request traces, thread dumps. Only conclude when data sources agree.
 
-Có thể ghi kết quả điều tra vào bảng nhỏ:
+You can summarize findings in a small table:
 
-| Quan sát đã kiểm chứng | Giả thuyết hợp lý | Bằng chứng bổ sung cần tìm |
+| Verified observation | Reasonable hypothesis | Additional evidence to seek |
 | --- | --- | --- |
-| G1 young pauses dày nhưng post-GC heap ổn định | Tải tạo nhiều đối tượng sống ngắn | Allocation rate, JFR allocations, CPU và p99 |
-| G1 mixed pauses tăng; sau Full GC mức sử dụng vẫn cao | Live set lớn, cache/retention hoặc bộ nhớ cấp phát sát giới hạn | Heap histogram/dump, kích thước heap, old/humongous regions |
-| ZGC concurrent cycles dài, có allocation stall | Allocation lấn át khả năng reclaim hoặc CPU/heap headroom thiếu | Logs của stall, allocation rate, CPU quota, committed/used heap |
-| Shenandoah chuyển sang degenerated/full | Concurrent cycle không theo kịp áp lực bộ nhớ | Thời điểm fallback, headroom, pacing và GC heuristics |
-| Request chậm nhưng GC pauses rất ngắn | Nguyên nhân có thể ở CPU, safepoint khác, lock, I/O hoặc mạng | Request tracing, thread/CPU profiling, safepoint log |
+| Frequent G1 young pauses but stable post-GC heap | Workload creates many short-lived objects | Allocation rate, JFR allocations, CPU, and p99 |
+| Increasing G1 mixed pauses; post-Full GC usage stays high | Large live set, cache/retention, or allocation close to limit | Heap histogram/dump, heap size, old/humongous regions |
+| Long ZGC concurrent cycles with allocation stalls | Allocation outpaces reclamation or CPU/heap headroom is lacking | Stall logs, allocation rate, CPU quota, committed/used heap |
+| Shenandoah falls back to degenerated/full | Concurrent cycle cannot keep up with memory pressure | Fallback timestamps, headroom, pacing, and GC heuristics |
+| Slow requests while GC pauses are very short | Cause may lie in CPU, other safepoints, locks, I/O, or network | Request tracing, thread/CPU profiling, safepoint logs |
 
-Những cột “giả thuyết” **chưa phải kết luận**. Ví dụ `after-GC` tăng sau ba sự kiện có thể là cache đang warm up; cần nhìn cả khoảng vận hành ổn định và biết retention được thiết kế ra sao.
+The "hypothesis" column is **not yet a conclusion**. For instance, `after-GC` rising over three events might be a warming cache; inspect a steady-operation window and understand how retention is designed.
 
-### 5.2. Ba tình huống hay bị đọc sai
+### 5.2. Three commonly misread scenarios
 
-**Tình huống A — “Old regions tăng, chắc chắn leak.”** G1 có thể chuyển đối tượng sống lâu từ young sang old; old tăng trong giai đoạn warm up là bình thường. Hãy so sánh mức sau những lần reclaim có khả năng thu hồi old (mixed/full), xu hướng qua nhiều chu kỳ, lưu lượng request/cache và dữ liệu heap object. Không dùng riêng số region old trong một young pause để kết luận leak.
+**Scenario A — "Old regions increased, definitely a leak."** G1 can promote long-lived objects from young to old; old growth during warm-up is normal. Compare levels after collections capable of reclaiming old (mixed/full), trends over many cycles, request/cache traffic, and heap object data. Do not use old region counts from a single young pause alone to conclude a leak.
 
-**Tình huống B — “Concurrent Mark Cycle 850 ms nghĩa là request đứng 850 ms.”** Phần lớn concurrent marking chạy song song với application; chỉ các pha `Pause ...` cụ thể mới phản ánh STW của GC. Đồng thời, concurrent work vẫn cạnh tranh CPU/băng thông bộ nhớ, nên latency có thể xấu đi **gián tiếp**. Cần đặt cạnh pause/safepoint và trace request.
+**Scenario B — "Concurrent Mark Cycle took 850 ms, meaning requests froze for 850 ms."** Most concurrent marking runs alongside the application; only specific `Pause ...` phases reflect GC STW stops. At the same time, concurrent work still competes for CPU/memory bandwidth, so latency can degrade **indirectly**. Place it alongside pause/safepoint logs and request traces.
 
-**Tình huống C — “Chỉ có 2 ms pause nên GC không liên quan.”** Với ZGC/Shenandoah, allocation stall, pacing, CPU contention hoặc degenerated/full fallback vẫn có thể ảnh hưởng latency. Phải xem cả tín hiệu concurrent và tài nguyên máy, không chỉ max pause.
+**Scenario C — "Only 2 ms pauses, so GC is unrelated."** With ZGC/Shenandoah, allocation stalls, pacing, CPU contention, or degenerated/full fallbacks can still impact latency. Inspect concurrent signals and machine resources too, not just max pause.
 
-## 6. Thí nghiệm Java 17+/21 có thể tự chạy
+## 6. Runnable Java 17+/21 experiment
 
-Tạo file `GcLogDemo.java` với nội dung dưới đây. Chương trình liên tục cấp phát mảng 64 KiB, giữ lại tối đa 64 mảng gần nhất và đọc byte của mảng vừa loại ra để tránh biến toàn bộ thao tác thành cấp phát không quan sát được. Đây là workload minh họa, không đại diện benchmark production.
+Create `GcLogDemo.java` with the content below. The program continuously allocates 64 KiB arrays, retains at most the 64 most recent arrays, and reads a byte from the evicted array to avoid turning the entire loop into unobservable allocations. This is an illustrative workload, not a representative production benchmark.
 
 ```java
 import java.util.ArrayDeque;
@@ -247,29 +247,29 @@ public class GcLogDemo {
 }
 ```
 
-Biên dịch và chạy với G1:
+Compile and run with G1:
 
 ```bash
 javac GcLogDemo.java
 java -Xms64m -Xmx64m -XX:+UseG1GC -Xlog:gc*=info:file=g1.log:time,uptime,level,tags:filecount=3,filesize=10m GcLogDemo
 ```
 
-**Stdout của chương trình** (không tính log GC ghi riêng vào file):
+**Program stdout** (excluding GC logs written separately to file):
 
 ```text
 retained=64, checksum=1011840
 ```
 
-Giải thích: trong 8.000 vòng lặp, chỉ 64 mảng cuối còn trong deque; 7.936 mảng được lấy ra để cộng byte đầu không dấu. Mẫu byte 0..255 lặp đúng 31 lần nên tổng là `31 × (0 + ... + 255) = 1.011.840`. Kích thước heap 64 MiB tạo điều kiện quan sát nhiều lần GC; tần suất, số ID, tên sự kiện và pause phụ thuộc JDK/máy, **không có stdout GC cố định**.
+Explanation: across 8,000 iterations, only the last 64 arrays remain in the deque; 7,936 arrays are removed to sum their unsigned first byte. The byte pattern 0..255 repeats exactly 31 times, so the sum is `31 × (0 + ... + 255) = 1,011,840`. The 64 MiB heap size encourages multiple GCs to observe; frequency, IDs, event names, and pauses depend on JDK/machine, so **there is no fixed GC stdout**.
 
-Lần lượt thử trên bản JDK hỗ trợ, cùng workload và cấu hình heap:
+Try sequentially on a supported JDK, with the same workload and heap configuration:
 
 ```bash
 java -Xms64m -Xmx64m -XX:+UseParallelGC -Xlog:gc*=info:file=parallel.log:uptime,level,tags GcLogDemo
 java -Xms64m -Xmx64m -XX:+UseG1GC -Xlog:gc*=info:file=g1-again.log:uptime,level,tags GcLogDemo
 ```
 
-Với **JDK 21** và các collector được build hỗ trợ, có thể thử thêm ZGC/Shenandoah, nhưng cần kiểm tra cờ, heap tối thiểu và tài nguyên platform trước khi so sánh:
+With **JDK 21** and builds supporting these collectors, you can also test ZGC/Shenandoah, though verify flags, minimum heap, and platform resources before comparing:
 
 ```bash
 java -Xms64m -Xmx64m -XX:+UseZGC -Xlog:gc*=info:file=zgc21.log:uptime,level,tags GcLogDemo
@@ -277,38 +277,38 @@ java -Xms64m -Xmx64m -XX:+UseZGC -XX:+ZGenerational -Xlog:gc*=info:file=zgc-gen2
 java -Xms64m -Xmx64m -XX:+UseShenandoahGC -Xlog:gc*=info:file=shenandoah21.log:uptime,level,tags GcLogDemo
 ```
 
-**Bài tập đọc log:** với mỗi file, tìm dòng nhận diện collector, liệt kê tên các sự kiện, tách pause STW ra khỏi concurrent work, ghi nhận thời gian pause lớn nhất và xu hướng heap sau collection. Sau đó nêu **hai điểm khác nhau trong cách diễn giải**, chẳng hạn G1 có young/mixed region phases còn ZGC một thế hệ của JDK 21 không có sơ đồ Eden/Old để áp trực tiếp. Không so sánh “collector nào tốt nhất” chỉ từ demo quá nhỏ này; một thí nghiệm tin cậy cần workload thật, warm-up, nhiều lần đo, cùng giới hạn CPU/RAM và tiêu chí latency/throughput.
+**Log-reading exercise:** for each file, find the collector identification line, list event names, separate STW pauses from concurrent work, note the longest pause, and note the post-collection heap trend. Then state **two differences in interpretation**, such as G1 having young/mixed region phases while single-generation ZGC in JDK 21 has no Eden/Old diagram to apply directly. Do not declare "which collector is best" from this tiny demo alone; a reliable experiment needs realistic workload, warm-up, multiple runs, identical CPU/RAM limits, and latency/throughput criteria.
 
-## 7. Lỗi phổ biến và cách tự kiểm tra
+## 7. Common mistakes and self-checks
 
-| Nhận định sai | Cách sửa |
+| Misconception | Correction |
 | --- | --- |
-| “Mọi collector đều có Eden, Survivor, Old vật lý cố định.” | Dùng sơ đồ collector đang chạy: region roles của G1, non-generational hay generational ZGC, concurrent Shenandoah. |
-| “`Allocation Failure` trong young GC là `OutOfMemoryError`.” | Đó có thể là trigger collection thông thường; phải tìm bằng chứng OOME, repeated failures hoặc không reclaim đủ chỗ. |
-| “`Concurrent` = ứng dụng dừng.” | Chỉ các pha STW/pause cụ thể dừng application; concurrent work vẫn có thể gây tranh chấp tài nguyên. |
-| “`Pause Young (Mixed)` là Full GC.” | Với G1, mixed chọn một phần old regions cộng young regions; Full GC có cơ chế/phạm vi khác. |
-| “`before->after(capacity)` là RAM của process.” | Phần lớn là thống kê Java heap trong ngữ cảnh collector; RSS/native/direct/metaspace cần công cụ riêng. |
-| “Một dòng `Old regions` tăng chứng minh leak.” | Cần xem nhiều chu kỳ, warm-up, live set và heap object retention. |
-| “Tổng thời gian tất cả dòng `gc` là GC pause time.” | Có dòng start/end/phases lặp ý nghĩa và pha concurrent; chỉ cộng sự kiện pause theo đúng định nghĩa, tránh double count. |
-| “Cờ collector mặc định giống nhau ở mọi JDK.” | Đối chiếu JDK cụ thể, startup log và VM flags; đặc biệt chế độ ZGC giữa các release. |
-| “GC log giải thích toàn bộ latency.” | Ghép với safepoint, CPU, request traces, I/O, lock và số liệu OS/container. |
+| "Every collector has fixed physical Eden, Survivor, and Old." | Use the active collector's model: G1 region roles, non-generational vs. generational ZGC, concurrent Shenandoah. |
+| "`Allocation Failure` in young GC means `OutOfMemoryError`." | That can be a normal collection trigger; look for OOME evidence, repeated failures, or inability to reclaim space. |
+| "`Concurrent` = application paused." | Only specific STW/pause phases stop the application; concurrent work can still cause resource contention. |
+| "`Pause Young (Mixed)` is a Full GC." | On G1, mixed selects a subset of old regions plus young regions; Full GC has a different mechanism and scope. |
+| "`before->after(capacity)` is process RAM." | It is primarily Java heap stats in the collector's context; RSS/native/direct/metaspace require separate tools. |
+| "One line of `Old regions` increasing proves a leak." | Inspect many cycles, warm-up, live set, and heap object retention. |
+| "Summing durations across all `gc` lines gives GC pause time." | Start/end/phases lines repeat meaning and concurrent phases exist; sum only pause events by exact definition to avoid double counting. |
+| "Default collector flags are identical across JDKs." | Check the exact JDK, startup logs, and VM flags; especially ZGC modes across releases. |
+| "GC logs explain all latency." | Combine with safepoints, CPU, request traces, I/O, locks, and OS/container metrics. |
 
-## 8. Checklist kết luận cho một GC incident
+## 8. Conclusion checklist for a GC incident
 
-- [ ] Ghi rõ **JDK version, vendor/build, PID, collector, collector mode, `-Xms`/`-Xmx`, CPU và container limits**.
-- [ ] Chỉ ra **đúng loại sự kiện** trong log (young/mixed/full, concurrent cycle, allocation stall, degenerated...) và phạm vi pause thực tế.
-- [ ] Thống kê pause theo **cửa sổ thời gian của sự cố**, phân biệt concurrent duration và STW; dùng timestamp/uptime nhất quán.
-- [ ] Đối chiếu **heap used trước/sau GC**, live-set trend và số liệu riêng collector (G1 region/humongous, ZGC stalls, Shenandoah fallback...).
-- [ ] Phân biệt **quan sát**, **giả thuyết** và **bằng chứng bổ sung** trước khi đề xuất tăng heap, đổi collector hay sửa ứng dụng.
-- [ ] Nếu cần thay đổi cấu hình, đo lại bằng **cùng workload/giới hạn tài nguyên**, so sánh cả throughput, p95/p99 latency, CPU và footprint.
+- [ ] State **JDK version, vendor/build, PID, collector, collector mode, `-Xms`/`-Xmx`, CPU, and container limits**.
+- [ ] Identify the **exact event types** in the log (young/mixed/full, concurrent cycle, allocation stall, degenerated...) and actual pause scope.
+- [ ] Aggregate pauses over the **incident time window**, separating concurrent duration from STW; use consistent timestamps/uptimes.
+- [ ] Compare **heap used before/after GC**, live-set trend, and collector-specific metrics (G1 regions/humongous, ZGC stalls, Shenandoah fallbacks...).
+- [ ] Separate **observations**, **hypotheses**, and **supporting evidence** before proposing heap increases, collector changes, or application fixes.
+- [ ] If changing configuration, re-measure with **the same workload/resource limits**, comparing throughput, p95/p99 latency, CPU, and footprint.
 
-**Nguyên tắc cốt lõi:** bắt đầu bằng “Collector nào, JDK nào, pha nào, pause hay concurrent, heap metric nào?” rồi mới trả lời “Điều gì đang làm ứng dụng chậm hoặc cạn bộ nhớ?”. Không dùng một mô hình vùng nhớ cố định để gán ý nghĩa cho mọi GC log.
+**Core principle:** start with "Which collector, which JDK, which phase, pause or concurrent, which heap metric?" before answering "What is slowing down the application or exhausting memory?". Do not force a fixed memory-region model onto every GC log.
 
-## Tài liệu đối chiếu
+## Reference documentation
 
-- Oracle JDK 21 — [Available Collectors](https://docs.oracle.com/en/java/javase/21/gctuning/available-collectors.html): cơ chế và lựa chọn Serial, Parallel, G1, ZGC.
-- Oracle JDK 21 — [Garbage-First Garbage Collector](https://docs.oracle.com/en/java/javase/21/gctuning/garbage-first-g1-garbage-collector1.html): region, young/mixed collection, concurrent marking.
-- Oracle JDK 21 — [java command / Unified JVM Logging](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html): cú pháp `-Xlog`, tags, decorators, rotation và cờ GC.
+- Oracle JDK 21 — [Available Collectors](https://docs.oracle.com/en/java/javase/21/gctuning/available-collectors.html): mechanisms and selection for Serial, Parallel, G1, ZGC.
+- Oracle JDK 21 — [Garbage-First Garbage Collector](https://docs.oracle.com/en/java/javase/21/gctuning/garbage-first-g1-garbage-collector1.html): regions, young/mixed collection, concurrent marking.
+- Oracle JDK 21 — [java command / Unified JVM Logging](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html): `-Xlog` syntax, tags, decorators, rotation, and GC flags.
 - Oracle JDK 21 — [jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): `VM.command_line`, `VM.flags`, `GC.heap_info`, `VM.log`.
-- OpenJDK/Inside Java — [Introducing Generational ZGC](https://inside.java/2023/11/28/gen-zgc-explainer/): phân biệt chế độ ZGC trong JDK 21.
-- Red Hat OpenJDK 21 — [Using Shenandoah GC](https://docs.redhat.com/en/documentation/red_hat_build_of_openjdk/21/html-single/using_shenandoah_garbage_collector_with_red_hat_build_of_openjdk_21/index): phases, logging, heuristics và giới hạn môi trường.
+- OpenJDK/Inside Java — [Introducing Generational ZGC](https://inside.java/2023/11/28/gen-zgc-explainer/): distinguishing ZGC modes in JDK 21.
+- Red Hat OpenJDK 21 — [Using Shenandoah GC](https://docs.redhat.com/en/documentation/red_hat_build_of_openjdk/21/html-single/using_shenandoah_garbage_collector_with_red_hat_build_of_openjdk_21/index): phases, logging, heuristics, and environment constraints.

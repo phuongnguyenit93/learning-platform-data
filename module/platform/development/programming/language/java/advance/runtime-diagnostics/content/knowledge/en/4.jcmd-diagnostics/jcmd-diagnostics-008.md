@@ -1,84 +1,84 @@
-# 4.8 — Vai trò bổ sung và trạng thái experimental của jstack, jmap, jinfo và jstat
+# 4.8 — Complementary Roles and Experimental Status of jstack, jmap, jinfo, and jstat
 
-## 1. Vì sao cần biết bốn công cụ này khi đã có jcmd?
+## 1. Why know these four tools when jcmd already exists?
 
-Khi chẩn đoán một JVM đang chạy, `jcmd` là công cụ tổng hợp để gửi diagnostic command đến tiến trình đích. Tuy nhiên, tài liệu, runbook và câu lệnh của nhiều hệ thống vẫn sử dụng bốn tiện ích JDK chuyên biệt: **`jstack`**, **`jmap`**, **`jinfo`** và **`jstat`**. Chúng không hoàn toàn giống nhau: mỗi công cụ trả lời một nhóm câu hỏi và có đặc điểm về dữ liệu, cách truy cập, chi phí và độ ổn định riêng.
+When diagnosing a running JVM, `jcmd` is the unified tool for sending diagnostic commands to the target process. However, documentation, runbooks, and scripts on many systems still use four specialized JDK utilities: **`jstack`**, **`jmap`**, **`jinfo`**, and **`jstat`**. They are not completely identical: each tool answers a specific group of questions and has its own data format, access mechanism, cost, and stability characteristics.
 
-Mục tiêu bài học:
+Lesson objectives:
 
-1. Nhận diện chính xác **vai trò bổ sung** của từng công cụ và tình huống nên dùng.
-2. Biết các thao tác `jcmd` tương ứng khi có, đồng thời nhận ra những nơi **không có thay thế một-một**.
-3. Hiểu nhãn **experimental and unsupported** trong tài liệu công cụ Java SE 17: nó có nghĩa gì cho runbook, automation và nâng cấp JDK.
-4. Đọc được các ví dụ lệnh hợp lệ, phát hiện sai phạm vi PID, sai phiên JVM hoặc nguy cơ tác động tới production.
-5. Áp dụng một luồng chẩn đoán thực tế: xác minh mục tiêu → đặt câu hỏi → chọn bằng chứng → đối chiếu trước khi kết luận.
+1. Accurately identify the **complementary role** of each tool and when to use it.
+2. Know the corresponding `jcmd` operations where available, while recognizing areas where **there is no one-to-one replacement**.
+3. Understand the **experimental and unsupported** label in Java SE 17 tool specifications: what it means for runbooks, automation, and JDK upgrades.
+4. Read valid command examples and spot wrong PID scope, wrong JVM instance, or production impact risks.
+5. Apply a practical diagnostic flow: verify target → frame question → choose evidence → cross-check before concluding.
 
-> **Nguyên tắc:** “Experimental/unsupported” mô tả mức cam kết hỗ trợ và khả năng tương thích của **công cụ dòng lệnh**; không mặc định rằng công cụ bị xóa hoặc vô dụng. Ngược lại, việc một công cụ vẫn chạy được trên máy bạn không biến cú pháp/output của nó thành một hợp đồng ổn định cho mọi JDK.
+> **Principle:** "Experimental/unsupported" describes the support commitment and compatibility contract of the **command-line tool**; do not assume the tool has been removed or is useless. Conversely, the fact that a tool runs on your machine does not turn its syntax or output into a stable contract across every JDK.
 
-## 2. Bản đồ nhanh: jstack / jmap / jinfo / jstat so với jcmd
+## 2. Quick map: jstack / jmap / jinfo / jstat compared to jcmd
 
-| Công cụ | Câu hỏi chính | Ví dụ đặc trưng | `jcmd` liên quan | Điều cần phân biệt |
+| Tool | Primary question | Typical example | Related `jcmd` | Key distinction |
 | --- | --- | --- | --- | --- |
-| **`jstack`** | Các Java thread đang chạy/chờ ở đâu, có tranh chấp lock không? | `jstack -l <pid>` | `jcmd <pid> Thread.print -l` | Snapshot thread/lock, không phải CPU profiler hay lịch sử |
-| **`jmap`** | Heap có các class/đối tượng nào; cần heap dump không? | `jmap -histo <pid>`; `jmap -dump:format=b,file=... <pid>` | `GC.class_histogram`, `GC.heap_dump`, `GC.heap_info` | Có thể tốn tài nguyên, gọi GC hoặc tạo file lớn; không tự chứng minh leak |
-| **`jinfo`** | Runtime flags và system properties hiện tại là gì? | `jinfo -flags <pid>`; `jinfo -sysprops <pid>` | `VM.flags`, `VM.command_line`, `VM.system_properties`; khi cho phép mới xét `VM.set_flag` | Một số chế độ **đổi flag**, không chỉ đọc; properties có thể chứa secret |
-| **`jstat`** | Các bộ đếm JVM/GC biến đổi như thế nào qua thời gian? | `jstat -gcutil -t <pid> 1000 5` | `PerfCounter.print` và các command GC chỉ cung cấp **một phần góc nhìn**; JFR/metrics hỗ trợ theo thời gian | `jstat` là lấy mẫu counter theo chu kỳ, không có `jcmd` tương đương từng cột |
+| **`jstack`** | Where are Java threads running/waiting, and is there lock contention? | `jstack -l <pid>` | `jcmd <pid> Thread.print -l` | Thread/lock snapshot, not a CPU profiler or history |
+| **`jmap`** | Which classes/objects are in the heap; is a heap dump needed? | `jmap -histo <pid>`; `jmap -dump:format=b,file=... <pid>` | `GC.class_histogram`, `GC.heap_dump`, `GC.heap_info` | Can consume heavy resources, trigger GC, or write huge files; does not prove a leak on its own |
+| **`jinfo`** | What are the current runtime flags and system properties? | `jinfo -flags <pid>`; `jinfo -sysprops <pid>` | `VM.flags`, `VM.command_line`, `VM.system_properties`; consider `VM.set_flag` only when authorized | Some modes **modify flags**, not strictly read-only; properties may hold secrets |
+| **`jstat`** | How do JVM/GC counters change over time? | `jstat -gcutil -t <pid> 1000 5` | `PerfCounter.print` and GC commands give only **a partial view**; JFR/metrics cover time series | `jstat` samples counters periodically; no exact column-for-column `jcmd` equivalent |
 
-**Đặt theo loại bằng chứng:**
+**Categorized by evidence type:**
 
-- `jstack` → **thread dump** tại thời điểm chụp.
-- `jmap` → **class histogram** hoặc **heap dump**, chủ yếu cho bộ nhớ Java.
-- `jinfo` → **cấu hình runtime** và một số flag có thể thay đổi.
-- `jstat` → **chuỗi mẫu thống kê JVM**, đặc biệt GC/heap/class loading/compilation.
+- `jstack` → **thread dump** at capture time.
+- `jmap` → **class histogram** or **heap dump**, mainly for Java heap memory.
+- `jinfo` → **runtime configuration** and certain dynamically changeable flags.
+- `jstat` → **JVM statistical time series**, especially GC/heap/class loading/compilation.
 
-Cùng một triệu chứng như “độ trễ tăng” có thể cần hơn một công cụ: `jstat` cho thấy GC xảy ra dày hơn, `jstack` kiểm tra thread có bị khóa, và JFR bổ sung phân tích CPU/GC/lock theo thời gian. Bản đồ trên dùng để **chọn đúng bằng chứng**, không phải để chạy mọi lệnh một lượt.
+A single symptom such as "latency increased" may require more than one tool: `jstat` reveals whether GC became more frequent, `jstack` checks whether threads are blocked, and JFR adds CPU/GC/lock analysis over time. The map above is for **choosing the right evidence**, not running every command at once.
 
-## 3. “Experimental and unsupported” thực sự có nghĩa gì?
+## 3. What does "Experimental and unsupported" actually mean?
 
-Các trang lệnh **`jstack`**, **`jmap`**, **`jinfo`** và **`jstat`** trong **Oracle Java SE 17 Tool Specifications** đều ghi chú rằng command là **experimental and unsupported**. Tài liệu mô tả rằng công cụ hoặc option của chúng có thể đổi hoặc không còn được cung cấp ở một phiên bản JDK tương lai.
+The manual pages for **`jstack`**, **`jmap`**, **`jinfo`**, and **`jstat`** in the **Oracle Java SE 17 Tool Specifications** all note that the command is **experimental and unsupported**. The documentation explains that these tools or their options may change or no longer be provided in a future JDK release.
 
-### 3.1. Ba hệ quả vận hành
+### 3.1. Three operational consequences
 
-1. **Không giả định giao diện ổn định giữa JDK/vendor.** Option, tên cột, định dạng output, khả năng attach và lệnh thay thế có thể khác nhau. Trước khi dùng, kiểm tra tool thực tế với `-help`/`-options` và JDK đang vận hành.
-2. **Không xây automation phụ thuộc chặt vào output văn bản.** Đặc biệt, tài liệu `jstat` cảnh báo không nên viết script parse output vì định dạng có thể thay đổi. Nếu bắt buộc parse, gắn phiên bản công cụ, kiểm tra header, ghi lại rủi ro nâng cấp và có test phù hợp.
-3. **Không coi “unsupported” đồng nghĩa “luôn lỗi”.** Công cụ vẫn có thể nằm trong JDK 17 và chạy hữu ích trong môi trường đáp ứng điều kiện. Điều phải thay đổi là mức độ thận trọng khi thiết kế quy trình phụ thuộc vào nó.
+1. **Do not assume a stable interface across JDKs/vendors.** Options, column names, output formatting, attach capability, and replacement commands can differ. Before use, check the actual tool with `-help`/`-options` against the running JDK.
+2. **Do not build automation tightly coupled to text output.** Specifically, `jstat` docs warn against writing scripts that parse output because formats may change. If parsing is unavoidable, pin tool versions, validate headers, document upgrade risks, and maintain proper tests.
+3. **Do not treat "unsupported" as "always broken".** The tools can still ship in JDK 17 and run usefully when prerequisites are met. What changes is the level of caution required when building processes that depend on them.
 
-### 3.2. “Experimental tool” khác với “experimental VM option”
+### 3.2. "Experimental tool" differs from "experimental VM option"
 
-Ba khái niệm thường bị trộn:
+Three concepts are often conflated:
 
-| Khái niệm | Ví dụ | Ý nghĩa |
+| Concept | Example | Meaning |
 | --- | --- | --- |
-| **Experimental/unsupported tool** | Nhãn trên tài liệu `jmap`, `jstat` | Giao diện công cụ không được cam kết hỗ trợ/ổn định như API Java SE chuẩn |
-| **Experimental HotSpot VM option** | Một số `-XX:...` cần `-XX:+UnlockExperimentalVMOptions` | Nhóm tùy chọn khởi động JVM có chính sách mở khóa riêng |
-| **Preview feature của Java language** | Tính năng ngôn ngữ dùng `--enable-preview` | Cơ chế thử nghiệm tính năng ngôn ngữ/API ở các bản Java cụ thể |
+| **Experimental/unsupported tool** | Label in `jmap`, `jstat` docs | Tool interface has no support/stability commitment like standard Java SE APIs |
+| **Experimental HotSpot VM option** | Certain `-XX:...` requiring `-XX:+UnlockExperimentalVMOptions` | Category of JVM startup options with its own unlock policy |
+| **Java language preview feature** | Language features requiring `--enable-preview` | Mechanism for trying language/API features in specific Java releases |
 
-**Không cần thêm `-XX:+UnlockExperimentalVMOptions` chỉ để gọi `jstack`/`jmap`/`jinfo`/`jstat`.** Cờ này quản lý nhóm JVM startup options, **không thay đổi** trạng thái hỗ trợ của các command-line tools.
+**You do not need to add `-XX:+UnlockExperimentalVMOptions` just to invoke `jstack`/`jmap`/`jinfo`/`jstat`.** That flag governs JVM startup options and **does not change** the support status of command-line tools.
 
-### 3.3. Đừng ngoại suy từ bản JDK này sang bản khác
+### 3.3. Do not extrapolate from one JDK release to another
 
-Bài sử dụng **cú pháp tham khảo của JDK 17**. Với JDK mới hơn, GraalVM, OpenJ9, runtime đóng gói tối giản hoặc vendor khác, cần xác nhận tính hiện diện và hành vi thực tế. `java -version` của shell chưa chứng minh đó là Java của tiến trình đích; đối chiếu `jcmd <pid> VM.version` khi attach được và đường dẫn executable của tiến trình.
+This lesson uses **JDK 17 reference syntax**. On newer JDKs, GraalVM, OpenJ9, minimal packaged runtimes, or other vendors, verify actual presence and behavior. The shell's `java -version` does not prove it is the target process's Java; verify with `jcmd <pid> VM.version` when attachable and check the process's executable path.
 
-Nếu công cụ không có hoặc không tương thích, **lựa chọn thay thế** nên dựa trên câu hỏi chẩn đoán: `jcmd`, JFR, OS metrics, logs hoặc công cụ do vendor hỗ trợ. Không chỉ đổi tên executable rồi giả định dữ liệu tương đương hoàn toàn.
+If a tool is missing or incompatible, choose an **alternative** based on the diagnostic question: `jcmd`, JFR, OS metrics, logs, or vendor-supported tools. Do not merely swap executable names and assume completely identical data.
 
-## 4. jstack — chụp stack của các Java thread
+## 4. jstack — capturing Java thread stacks
 
-### 4.1. jstack trả lời được câu hỏi gì?
+### 4.1. What questions can jstack answer?
 
-`jstack` in stack trace của nhiều Java thread trong một JVM. Trên JDK 17, cú pháp cơ bản:
+`jstack` prints stack traces of Java threads in a JVM. On JDK 17, basic syntax:
 
 ```bash
 jstack <pid>
 jstack -l <pid>
 ```
 
-`-l` in thêm thông tin về lock. Kết quả giúp nhận ra thread:
+`-l` prints additional lock information. Results help identify threads in:
 
-- `RUNNABLE`: có thể thực thi từ góc nhìn JVM; **không tự chứng minh** đang sử dụng CPU.
-- `BLOCKED`: đang đợi quyền vào Java monitor (ví dụ `synchronized`).
-- `WAITING` / `TIMED_WAITING`: đợi qua cơ chế `wait`, `join`, `park`, `sleep` hoặc các dạng chờ tương ứng.
-- Chuỗi thread cùng đợi một monitor, hoặc nhiều worker kẹt trong chỗ gọi I/O/connection pool.
+- `RUNNABLE`: runnable from the JVM's perspective; **does not by itself prove** active CPU consumption.
+- `BLOCKED`: waiting to enter a Java monitor (e.g., `synchronized`).
+- `WAITING` / `TIMED_WAITING`: waiting via `wait`, `join`, `park`, `sleep`, or equivalent mechanisms.
+- Chains of threads waiting on one monitor, or many workers stuck inside I/O or connection-pool calls.
 
-Ví dụ một đoạn **minh họa**:
+**Illustrative** snippet:
 
 ```text
 "worker-7" #31 ... java.lang.Thread.State: BLOCKED
@@ -86,93 +86,93 @@ Ví dụ một đoạn **minh họa**:
     - waiting to lock <0x...> (a java.lang.Object)
 ```
 
-Dấu `<0x...>`, số thread, frame và cách trình bày là minh họa; không phải output cố định. Từ **một** ảnh chụp không thể biết thời gian thread đã chờ. Với sự cố kéo dài, thu 2–3 dump cách nhau vài giây, kèm timestamp và metrics; tránh liên tục lấy dump nếu JVM nhiều thread.
+Addresses like `<0x...>`, thread numbers, frames, and layout are illustrative, not fixed output. From **one** snapshot you cannot tell how long a thread has been waiting. For sustained stalls, collect 2–3 dumps a few seconds apart with timestamps and metrics; avoid continuous dumping if the JVM has many threads.
 
-### 4.2. Lệnh jcmd thường dùng thay thế
+### 4.2. Common jcmd alternative
 
 ```bash
 jcmd <pid> Thread.print -l
 ```
 
-Đây là đường tiếp cận phổ biến để lấy **thread dump** qua diagnostic command. Hai công cụ cùng phục vụ điều tra thread nhưng không được giả định output byte-for-byte giống nhau ở mọi JDK. Trước khi chạy lệnh nặng hơn, có thể hỏi:
+This is the common approach for taking a **thread dump** via diagnostic commands. Both tools serve thread investigations, yet do not assume byte-for-byte identical output across all JDKs. Before running a heavier command, you can query:
 
 ```bash
 jcmd <pid> help Thread.print
 ```
 
-Các tùy chọn và mức impact cần lấy từ **JVM thực tế**. `Thread.print` có thể tạo output lớn và tốn thời gian nếu ứng dụng có rất nhiều thread.
+Options and impact level must be taken from the **actual JVM**. `Thread.print` can produce huge output and take time if the application has very many threads.
 
-### 4.3. Lỗi thường gặp
+### 4.3. Common mistakes
 
-- Kết luận có deadlock chỉ vì nhiều thread `WAITING`. Thread pool rỗi thường `WAITING` ở điểm lấy task; cần xem stack và quan hệ lock.
-- Đọc thread dump của PID đã restart, rồi gắn kết quả cho phiên ứng dụng cũ.
-- Quy tất cả `RUNNABLE` thành CPU hotspot; cần JFR/CPU profiling và số đo CPU để xác thực.
-- Dùng thread dump để trả lời “đối tượng nào giữ RAM” — câu hỏi đó thuộc heap analysis, không phải stack hiện tại.
+- Concluding a deadlock exists just because many threads are `WAITING`. Idle thread pools normally sit in `WAITING` while polling for tasks; examine stacks and lock relationships.
+- Reading a thread dump from a restarted PID and attributing it to the old application instance.
+- Equating every `RUNNABLE` thread with a CPU hotspot; use JFR/CPU profiling and CPU metrics to confirm.
+- Using a thread dump to answer "which object holds RAM"—that belongs to heap analysis, not current stacks.
 
-**Chọn `jstack`/`Thread.print` khi:** request bị treo, nghi lock contention, deadlock, thread pool cạn hoặc muốn đối chiếu trạng thái thread với spike latency.
+**Choose `jstack`/`Thread.print` when:** requests hang, lock contention or deadlock is suspected, thread pools are exhausted, or you want to correlate thread states with a latency spike.
 
-## 5. jmap — histogram, heap dump và quan hệ giữ bộ nhớ
+## 5. jmap — histograms, heap dumps, and memory retention
 
-### 5.1. Xem phân bố class/instance
+### 5.1. Viewing class/instance distribution
 
-`jmap` giúp xem thông tin liên quan heap của JVM đích. Ví dụ JDK 17:
+`jmap` inspects heap-related information of the target JVM. JDK 17 examples:
 
 ```bash
 jmap -histo <pid>
 ```
 
-Histogram thường có class name, số lượng instance và dung lượng nông (shallow bytes), không phải retained size hay đường tham chiếu. Lệnh tương ứng trong `jcmd`:
+A histogram typically shows class name, instance count, and shallow bytes—not retained size or reference paths. The corresponding `jcmd` command:
 
 ```bash
 jcmd <pid> GC.class_histogram
 ```
 
-**Lưu ý hiệu năng:** cả histogram và dump có thể gây chi phí đáng kể phụ thuộc heap và trạng thái JVM; hãy xem help/impact và chạy khi có mục tiêu điều tra rõ ràng. Nếu cần phân biệt object “đang còn sống”, tài liệu JDK 17 có:
+**Performance note:** both histograms and dumps can incur substantial cost depending on heap size and JVM state; check help/impact and run with a clear investigative purpose. When distinguishing "live" objects, JDK 17 docs list:
 
 ```bash
 jmap -histo:live <pid>
 ```
 
-Chế độ `:live` chỉ đếm live objects, nhưng có thể tác động tới hoạt động GC và latency; đừng sử dụng làm metric monitoring thường xuyên. `GC.class_histogram` có tùy chọn `-all` với ý nghĩa bao gồm cả unreachable objects; **không** mặc định ghép `:live` với một option `jcmd` khác theo cú pháp giống hệt.
+The `:live` mode counts only live objects, which can impact GC activity and latency; do not use it as routine monitoring. `GC.class_histogram` has an `-all` option to include unreachable objects; **do not** blindly pair `:live` with another `jcmd` option assuming identical syntax.
 
-### 5.2. Tạo heap dump HPROF
+### 5.2. Creating an HPROF heap dump
 
-Khi nghi object giữ quá lâu, cần heap dump để phân tích với Eclipse Memory Analyzer (MAT) hoặc công cụ tương đương.
+When objects appear retained too long, a heap dump is needed for analysis in Eclipse Memory Analyzer (MAT) or equivalent tools.
 
-Ví dụ `jmap` trên JDK 17:
+`jmap` example on JDK 17:
 
 ```bash
 jmap -dump:format=b,file=/var/tmp/service-heap.hprof <pid>
 ```
 
-Nếu thêm `live`:
+Adding `live`:
 
 ```bash
 jmap -dump:live,format=b,file=/var/tmp/service-live.hprof <pid>
 ```
 
-`-dump:...` là một nhóm suboptions của **`jmap`**, không phải option chung cho `jcmd`. Với `jcmd`:
+`-dump:...` is a group of suboptions for **`jmap`**, not a general option for `jcmd`. With `jcmd`:
 
 ```bash
 jcmd <pid> GC.heap_dump /var/tmp/service-heap.hprof
 ```
 
-Tài liệu JDK 17 ghi `GC.heap_dump` có **impact cao**, phụ thuộc heap size/content, và mặc định yêu cầu full GC trừ khi dùng `-all`. Vì thế không coi đây là thao tác xem cấu hình vô hại. `jmap` và `jcmd` có **cú pháp, mặc định và chi tiết triển khai khác nhau**; khi muốn so live/all objects phải đọc help đúng runtime.
+JDK 17 docs classify `GC.heap_dump` as **high impact**, depending on heap size/content, and by default it requests a full GC unless `-all` is used. Therefore, never treat it as a harmless config-reading action. `jmap` and `jcmd` have **different syntax, defaults, and implementation details**; read the target runtime's help when comparing live vs. all objects.
 
-**Đường dẫn output quan trọng:** file dump được tạo theo filesystem và quyền của **JVM đích**, có thể là đường dẫn trong container chứ không phải thư mục của terminal bên ngoài. Heap dump có thể chiếm vài GB, gây pause/I/O lớn và chứa token, session, dữ liệu người dùng. Cần đủ đĩa, quyền lưu trữ và chính sách kiểm soát truy cập trước khi tạo.
+**Output path matters:** dump files are created using the **target JVM's** filesystem and permissions, which may be a container path rather than your external terminal's directory. A heap dump can be several GB, cause major pauses/I/O, and contain tokens, sessions, and user data. Ensure sufficient disk, storage permissions, and access controls before creating one.
 
-### 5.3. Đọc kết quả đúng cách
+### 5.3. Interpreting results accurately
 
-- Histogram cho biết class/instance nào chiếm bộ nhớ, **không tự chứng minh memory leak**.
-- **Shallow size** là kích thước trực tiếp của object; **retained size** phụ thuộc đồ thị tham chiếu. Muốn tìm ai giữ object, cần dominator tree và path to GC roots từ heap dump.
-- Heap Java lớn có thể do cache hợp lệ hoặc tải tăng. Đối chiếu heap used sau GC qua thời gian, allocation rate và hành vi nghiệp vụ.
-- Heap dump không đại diện cho mọi **native/off-heap memory**, memory-mapped file hoặc file descriptors; không suy luận tất cả RSS cao đều là Java heap leak.
+- A histogram shows which classes/instances occupy memory; it **does not by itself prove a memory leak**.
+- **Shallow size** is the direct size of an object; **retained size** depends on the reference graph. To find what retains objects, inspect the dominator tree and paths to GC roots from a heap dump.
+- A large Java heap can result from valid caches or higher load. Correlate post-GC heap used over time, allocation rate, and business behavior.
+- A heap dump does not capture all **native/off-heap memory**, memory-mapped files, or file descriptors; do not assume every high RSS issue is a Java heap leak.
 
-**Chọn `jmap`/`GC.class_histogram`/`GC.heap_dump` khi:** có nghi vấn giữ object, heap tăng sau nhiều chu kỳ GC, OOM do Java heap, hoặc cần phân tích retained graph.
+**Choose `jmap`/`GC.class_histogram`/`GC.heap_dump` when:** object retention is suspected, heap grows across multiple GC cycles, Java heap OOM occurs, or retained-graph analysis is needed.
 
-## 6. jinfo — flags, system properties và cấu hình JVM
+## 6. jinfo — flags, system properties, and JVM configuration
 
-`jinfo` cung cấp thông tin cấu hình của tiến trình Java. Trên JDK 17:
+`jinfo` provides configuration details of a Java process. On JDK 17:
 
 ```bash
 jinfo -flags <pid>
@@ -180,11 +180,11 @@ jinfo -sysprops <pid>
 jinfo -flag <flag-name> <pid>
 ```
 
-- `-flags`: các JVM command-line flags mà công cụ hiển thị.
-- `-sysprops`: system properties của Java runtime đích.
-- `-flag <name>`: xem giá trị của một flag cụ thể theo cú pháp JDK đang sử dụng.
+- `-flags`: JVM command-line flags displayed by the tool.
+- `-sysprops`: system properties of the target Java runtime.
+- `-flag <name>`: read the value of a specific flag per the active JDK's syntax.
 
-Một số chế độ `-flag` của `jinfo` **có thể thay đổi flag**:
+Certain `-flag` modes of `jinfo` **can modify flags**:
 
 ```text
 jinfo -flag +<boolean-flag> <pid>
@@ -192,9 +192,9 @@ jinfo -flag -<boolean-flag> <pid>
 jinfo -flag <flag-name>=<value> <pid>
 ```
 
-Đây là **mẫu cú pháp mô tả**, không phải khuyến nghị chạy trên production: chỉ những flag được runtime cho phép chỉnh động mới có thể thay đổi, và giá trị phải hợp lệ. Một thay đổi có thể kéo dài cho đến khi JVM dừng hoặc cấu hình được hoàn nguyên.
+These are **illustrative syntax patterns**, not recommendations to run in production: only flags allowed by the runtime to be dynamically modified can change, and values must be valid. A change can persist until the JVM stops or the setting is reverted.
 
-### 6.1. Các lệnh jcmd liên quan
+### 6.1. Related jcmd commands
 
 ```bash
 jcmd <pid> VM.command_line
@@ -202,24 +202,24 @@ jcmd <pid> VM.flags
 jcmd <pid> VM.system_properties
 ```
 
-`VM.command_line` giúp đối chiếu launch command/JVM arguments; `VM.flags` và `VM.system_properties` cung cấp các lát cắt cấu hình. Có thể xem trợ giúp:
+`VM.command_line` cross-checks the launch command/JVM arguments; `VM.flags` and `VM.system_properties` provide configuration slices. You can inspect help:
 
 ```bash
 jcmd <pid> help VM.flags
 jcmd <pid> help VM.set_flag
 ```
 
-**`VM.set_flag` là command thay đổi cấu hình**, không phải bản sao chỉ-đọc của `jinfo -flags`. Không thử chỉnh flag chỉ để “xác minh công cụ hoạt động”. `VM.flags -all` (nếu được hỗ trợ trên JVM đích) có thể in phạm vi flags rộng hơn `VM.flags` mặc định.
+**`VM.set_flag` is a configuration-changing command**, not a read-only twin of `jinfo -flags`. Never test modifying a flag just to "verify the tool works". `VM.flags -all` (if supported on the target JVM) prints a broader flag set than default `VM.flags`.
 
-### 6.2. Hệ quả bảo mật
+### 6.2. Security implications
 
-System properties và command-line arguments có thể chứa database URLs, API tokens, tên tài khoản, đường dẫn nhạy cảm hoặc cấu hình bảo mật. Bất kỳ việc lấy `jinfo -sysprops` hay `jcmd VM.system_properties` đều cần quyền truy cập phù hợp và loại bỏ dữ liệu bí mật trước khi gửi log/đính kèm ticket.
+System properties and command-line arguments can contain database URLs, API tokens, account names, sensitive paths, or security settings. Any collection of `jinfo -sysprops` or `jcmd VM.system_properties` requires appropriate permissions and secret redaction before sharing logs or attaching to tickets.
 
-**Chọn `jinfo`/`VM.flags` khi:** cần so sánh cấu hình thực tế với deployment, kiểm tra flag GC/JIT/memory, hoặc tìm sự khác biệt giữa hai JVM. Với thông số ứng dụng, phải phân biệt **startup flag**, **system property**, **environment variable** và **cấu hình ứng dụng**; chúng không đồng nhất.
+**Choose `jinfo`/`VM.flags` when:** comparing effective runtime settings against deployment configs, verifying GC/JIT/memory flags, or spotting differences between two JVMs. For application settings, separate **startup flags**, **system properties**, **environment variables**, and **app config**; they are not identical.
 
-## 7. jstat — chuỗi thống kê JVM theo khoảng thời gian
+## 7. jstat — periodic JVM statistical series
 
-`jstat` khác ba công cụ trên ở chỗ nó chủ yếu **lấy mẫu các counters JVM theo chu kỳ**. Điển hình:
+`jstat` differs from the three tools above in that it primarily **samples JVM counters periodically**. Typical usage:
 
 ```bash
 jstat -options
@@ -227,69 +227,69 @@ jstat -gcutil <pid> 1000 5
 jstat -gcutil -t <pid> 1000 5
 ```
 
-Giải nghĩa `jstat -gcutil -t <pid> 1000 5`:
+Breaking down `jstat -gcutil -t <pid> 1000 5`:
 
-1. `-gcutil`: lấy nhóm thống kê tóm tắt GC.
-2. `-t`: thêm cột **Timestamp** là số giây kể từ lúc JVM đích bắt đầu, **không phải giờ UTC**.
-3. `<pid>`: VM identifier (vmid) cục bộ ở ví dụ này.
-4. `1000`: interval mặc định tính bằng **mili giây**, tức 1 giây giữa các mẫu.
-5. `5`: số mẫu hữu hạn để lấy. **Nếu bỏ count**, lệnh có thể tiếp tục in cho đến khi JVM kết thúc hoặc được dừng.
+1. `-gcutil`: collects the GC summary statistics set.
+2. `-t`: adds a **Timestamp** column showing seconds since the target JVM started, **not UTC wall-clock time**.
+3. `<pid>`: local VM identifier (vmid) in this example.
+4. `1000`: sampling interval in **milliseconds** by default, i.e., 1 second between samples.
+5. `5`: finite sample count. **If count is omitted**, the command keeps printing until the JVM exits or the command is stopped.
 
-### 7.1. Hiểu cột và giới hạn
+### 7.1. Understanding columns and limits
 
-Các cột phổ biến của `-gcutil` trên HotSpot có thể gồm tỉ lệ dùng các vùng memory, số GC và thời gian GC. Tên/ý nghĩa cụ thể **phụ thuộc JDK, collector và phiên bản công cụ**. Ví dụ:
+Common `-gcutil` columns on HotSpot can include memory region utilization percentages, GC counts, and GC times. Exact names/meanings **depend on JDK, collector, and tool version**. Examples:
 
-- `YGC`: số sự kiện young GC theo định nghĩa thống kê của collector tương ứng.
-- `YGCT`: tổng thời gian young GC đã ghi.
-- `FGC` và `FGCT`: số lần và thời gian full GC theo cơ chế JVM/collector tương ứng.
-- `GCT`: tổng thời gian GC tích lũy theo cách runtime báo cáo.
-- `E`/`O`/`M`: có thể phản ánh mức sử dụng Eden, old generation, metaspace ở cấu hình phân thế hệ thích hợp.
+- `YGC`: number of young GC events as defined by that collector's statistics.
+- `YGCT`: total recorded young GC time.
+- `FGC` and `FGCT`: count and time of full GCs per the corresponding JVM/collector mechanism.
+- `GCT`: cumulative total GC time as reported by the runtime.
+- `E`/`O`/`M`: can reflect Eden, old generation, and metaspace utilization in applicable generational setups.
 
-Không khẳng định JVM dùng collector nào chỉ từ một cột, và không cố áp nghĩa của generational collector lên mọi collector. Đối chiếu `java -version` của tiến trình, collector flags và mô tả option thực tế. Các dấu `-` hoặc `0` có thể biểu thị không có vùng/không hỗ trợ/counter chưa cập nhật tùy ngữ cảnh.
+Do not declare which collector a JVM uses from a single column, and do not force generational-collector meanings onto every collector. Cross-check the process's `java -version`, collector flags, and actual option descriptions. Dashes `-` or `0` can indicate an absent space, unsupported counter, or unupdated metric depending on context.
 
-**Đọc các cột tích lũy:** nếu `YGC` tăng từ 12 lên 14 trong 5 giây, đó là hai sự kiện theo bộ đếm trong cửa sổ quan sát, không phải “14 lần mỗi giây”. Cần lấy hiệu hai mẫu và chia cho khoảng thời gian thực. `YGCT` cũng là thời gian tích lũy, không phải độ dài của GC vừa xảy ra.
+**Reading cumulative columns:** if `YGC` rises from 12 to 14 over 5 seconds, that represents two counter events in the observation window, not "14 GCs per second". Subtract two samples and divide by the elapsed time. `YGCT` is likewise cumulative time, not the duration of the latest GC.
 
-### 7.2. Ưu điểm và giới hạn của sampling
+### 7.2. Strengths and limits of sampling
 
-- Hữu ích để xem **xu hướng ngắn hạn**, GC frequency, tỉ lệ dùng heap và dấu hiệu GC pause tăng.
-- Không cho biết object nào giữ bộ nhớ lâu (cần heap dump), thread nào gây latency (cần dump/JFR) hoặc riêng từng request chậm (cần log/trace).
-- Dữ liệu chịu ảnh hưởng thời điểm lấy mẫu; một pause ngắn có thể bị “lọt” qua khoảng 1 giây. Thu mẫu không thay thế latency histogram hay JFR event timeline.
-- JVM phải có dữ liệu performance instrumentation khả dụng; cấu hình, quyền và môi trường có thể khiến `jstat` không lấy được counters.
-- **Không parse cứng output văn bản trong automation.** Oracle JDK 17 cảnh báo định dạng `jstat` có thể thay đổi giữa các release.
+- Useful for viewing **short-term trends**, GC frequency, heap occupancy ratios, and rising GC pause signals.
+- Does not tell you which objects retain memory (needs heap dump), which threads cause latency (needs thread dump/JFR), or individual slow requests (needs logs/traces).
+- Data is affected by sampling instants; a brief pause can slip between 1-second samples. Sampling does not replace latency histograms or JFR event timelines.
+- The JVM must expose readable performance instrumentation data; configuration, permissions, and environment can prevent `jstat` from reading counters.
+- **Do not hard-parse text output in automation.** Oracle JDK 17 warns that `jstat` formatting can change between releases.
 
-### 7.3. jcmd có thay thế jstat không?
+### 7.3. Does jcmd replace jstat?
 
 ```bash
 jcmd <pid> PerfCounter.print
 jcmd <pid> GC.heap_info
 ```
 
-`PerfCounter.print` có thể in performance counters của JVM, còn `GC.heap_info` cung cấp ảnh chụp heap tổng quan. **Không có một lời gọi `jcmd` mặc định tạo đúng cùng bảng `jstat -gcutil`, cùng cột, ý nghĩa và sampling interval.** Khi cần chuỗi thời gian lâu dài có nhãn service, dùng metrics instrumentation/monitoring phù hợp; khi cần giải thích từng event GC và tác động latency, cân nhắc GC logs/JFR.
+`PerfCounter.print` prints JVM performance counters, while `GC.heap_info` gives a general heap snapshot. **There is no default single `jcmd` call producing the exact `jstat -gcutil` table with identical columns, semantics, and sampling interval.** When you need long-term service-labeled time series, use proper metrics instrumentation/monitoring; when explaining individual GC events and latency impact, consider GC logs/JFR.
 
-**Chọn `jstat` khi:** cần quan sát số liệu GC/heap theo khoảng ngắn để thu hẹp sự cố, hoặc gặp runbook cũ có `jstat -gcutil` và muốn hiểu cách diễn giải đúng.
+**Choose `jstat` when:** you need short-interval GC/heap counters to narrow down an issue, or you encounter legacy runbooks using `jstat -gcutil` and need to interpret them accurately.
 
-## 8. Bảng quy đổi lệnh: giống mục đích nhưng không hoàn toàn tương đương
+## 8. Command mapping table: similar goals, not completely identical
 
-| Nhu cầu | Câu lệnh công cụ chuyên biệt (JDK 17) | Lựa chọn `jcmd` | Kiểm tra khác biệt |
+| Need | Specialized tool command (JDK 17) | `jcmd` option | Differences to verify |
 | --- | --- | --- | --- |
-| Stack của các Java thread | `jstack -l <pid>` | `jcmd <pid> Thread.print -l` | Nội dung/format phụ thuộc runtime; đều là snapshot |
-| Histogram heap | `jmap -histo <pid>` | `jcmd <pid> GC.class_histogram` | Bộ object và hành vi GC có thể khác theo option |
-| Histogram chỉ live objects | `jmap -histo:live <pid>` | Đọc `help GC.class_histogram` và options thực tế | Không áp ánh xạ option 1:1 theo tên |
-| Tạo heap dump | `jmap -dump:format=b,file=/tmp/h.hprof <pid>` | `jcmd <pid> GC.heap_dump /tmp/h.hprof` | Path thuộc target, overhead cao, semantics GC/default cần đọc kỹ |
-| Flags | `jinfo -flags <pid>` | `jcmd <pid> VM.flags` | Phạm vi flags hiển thị không nhất thiết trùng |
-| System properties | `jinfo -sysprops <pid>` | `jcmd <pid> VM.system_properties` | Dữ liệu nhạy cảm, cần redaction |
-| Đọc một flag | `jinfo -flag <name> <pid>` | `jcmd <pid> VM.flags -all` nếu phù hợp | `VM.flags` là danh sách; cách lọc khác |
-| Chuỗi thống kê GC | `jstat -gcutil -t <pid> 1000 5` | `PerfCounter.print`, `GC.heap_info`, metrics/JFR bổ sung | Không có cùng semantics/output/sampling mặc định |
+| Java thread stacks | `jstack -l <pid>` | `jcmd <pid> Thread.print -l` | Content/format depend on runtime; both are snapshots |
+| Heap histogram | `jmap -histo <pid>` | `jcmd <pid> GC.class_histogram` | Included objects and GC behavior can vary by option |
+| Live-objects-only histogram | `jmap -histo:live <pid>` | Check `help GC.class_histogram` and actual options | Do not assume 1:1 option-name mapping |
+| Create heap dump | `jmap -dump:format=b,file=/tmp/h.hprof <pid>` | `jcmd <pid> GC.heap_dump /tmp/h.hprof` | Path belongs to target, high overhead, verify GC/default semantics |
+| Flags | `jinfo -flags <pid>` | `jcmd <pid> VM.flags` | Displayed flag scope need not match identically |
+| System properties | `jinfo -sysprops <pid>` | `jcmd <pid> VM.system_properties` | Sensitive data, requires redaction |
+| Read single flag | `jinfo -flag <name> <pid>` | `jcmd <pid> VM.flags -all` if suitable | `VM.flags` prints a list; filtering differs |
+| GC statistical series | `jstat -gcutil -t <pid> 1000 5` | `PerfCounter.print`, `GC.heap_info`, plus metrics/JFR | Lacks identical default semantics/output/sampling |
 
-**Điều chỉnh flag:** `jinfo -flag ...` hoặc `jcmd ... VM.set_flag` chỉ nên dùng khi có yêu cầu vận hành riêng, hiểu rõ tính “manageable” của flag và biết cách xác minh/hoàn nguyên. Bảng này chủ yếu dành cho **chẩn đoán và so sánh**, không cho phép tự động thay đổi runtime.
+**Modifying flags:** `jinfo -flag ...` or `jcmd ... VM.set_flag` should only be used with explicit operational approval, clear understanding of whether a flag is "manageable", and a way to verify/revert. This table is primarily for **diagnostics and comparison**, not ad-hoc runtime mutation.
 
-**Đối với core dump/JVM đã crash:** `jcmd` và các lệnh attach live process không phải công cụ đọc core dump. Trên HotSpot có **`jhsdb`** với các chế độ như `jstack`/`jmap`/`jinfo` cho trường hợp Serviceability Agent và core dump, tùy nền tảng/quyền/tính tương thích. Đây là nhánh xử lý **khác** với gửi diagnostic command tới JVM đang chạy; không dùng cú pháp `jstack <executable> <core>` của bài JDK 8 rồi áp nguyên xi cho JDK 17.
+**For core dumps / crashed JVMs:** `jcmd` and live-process attach commands are not core-dump readers. HotSpot provides **`jhsdb`** with `jstack`/`jmap`/`jinfo` modes for Serviceability Agent and core dumps, subject to platform/permission/compatibility constraints. That is a **separate branch** from sending diagnostic commands to a live JVM; never take JDK 8's `jstack <executable> <core>` syntax and apply it verbatim to JDK 17.
 
-## 9. Thực hành Java 17+: quan sát một JVM nhỏ bằng cả bốn công cụ
+## 9. Java 17+ hands-on: observing a small JVM with all four tools
 
-### 9.1. Tạo ứng dụng mục tiêu
+### 9.1. Create the target application
 
-Tạo file **`ToolingTarget.java`**:
+Create file **`ToolingTarget.java`**:
 
 ```java
 public class ToolingTarget {
@@ -301,35 +301,35 @@ public class ToolingTarget {
 }
 ```
 
-Đây là **một chương trình Java hoàn chỉnh**, không dùng thư viện ngoài JDK. Biên dịch và chạy trong terminal 1:
+This is a **complete Java program** with no libraries outside the JDK. Compile and run in terminal 1:
 
 ```bash
 javac --release 17 ToolingTarget.java
 java ToolingTarget
 ```
 
-**Stdout chính xác nếu chương trình chạy hết 50 giây bình thường:**
+**Exact stdout if the program runs the full 50 seconds normally:**
 
 ```text
 READY
 DONE
 ```
 
-`READY` được in ngay và `DONE` sau khoảng 50 giây. Nếu chủ động dừng chương trình hoặc lỗi trước khi sleep xong thì sẽ không có `DONE`, đây là **lần chạy bị ngắt**.
+`READY` prints immediately and `DONE` after about 50 seconds. If stopped early or failing before sleep finishes, `DONE` will not appear—that is an **interrupted run**.
 
-### 9.2. Tìm đúng PID
+### 9.2. Find the exact PID
 
-Khi terminal 1 đã in `READY`, trong terminal 2 **cùng máy/namespace**:
+Once terminal 1 prints `READY`, in terminal 2 on the **same machine/namespace**:
 
 ```bash
 jcmd -l
 ```
 
-Tìm dòng ứng với main class `ToolingTarget`. Giả sử PID là `18432` (chỉ là con số minh họa), trước khi thực hiện thao tác khác cần xác minh process start time và owner bằng công cụ OS phù hợp.
+Locate the row matching main class `ToolingTarget`. Suppose the PID is `18432` (illustrative only); before running further actions, verify process start time and owner using appropriate OS tools.
 
-### 9.3. Thử lệnh có tác động thấp trước
+### 9.3. Try low-impact commands first
 
-Thay `18432` bằng PID thực tế:
+Replace `18432` with your actual PID:
 
 ```bash
 jcmd 18432 VM.version
@@ -340,124 +340,124 @@ jinfo -flags 18432
 jstat -gcutil -t 18432 1000 3
 ```
 
-**Kỳ vọng:**
+**Expectations:**
 
-- `jstack -l` có thể thấy thread `main` ở `TIMED_WAITING` với `java.lang.Thread.sleep` trong lúc ứng dụng ngủ; vị trí và format thay đổi theo runtime.
-- `jinfo -flags` in danh sách flags/JVM options; không có output cố định giống mọi máy.
-- `jstat -gcutil -t ... 1000 3` thường in header và **3 dòng mẫu** theo nhịp khoảng 1 giây nếu VM có counter và công cụ hỗ trợ.
-- `jcmd VM.version` xác nhận đúng runtime đích.
+- `jstack -l` can show the `main` thread in `TIMED_WAITING` at `java.lang.Thread.sleep` while sleeping; exact positions and formatting vary by runtime.
+- `jinfo -flags` prints a list of flags/JVM options; there is no identical fixed output across all machines.
+- `jstat -gcutil -t ... 1000 3` typically prints a header and **3 sample rows** roughly 1 second apart if the VM exposes counters and the tool supports it.
+- `jcmd VM.version` confirms the right target runtime.
 
-Để xem histogram trên **JVM demo nhỏ** sau khi cân nhắc impact:
+To inspect a histogram on the **small demo JVM** after weighing impact:
 
 ```bash
 jmap -histo 18432
 ```
 
-Histogram là dữ liệu động; ứng dụng và class library có thể tải object ở thời điểm khác nhau, không kỳ vọng giá trị giống hệt nhau. Đừng dùng histogram để suy ra “leak” từ một snapshot. Trong bài này **không cần tạo heap dump hoặc chỉnh JVM flag**.
+Histograms are dynamic data; the application and class library may load objects at different times, so do not expect identical counts. Never infer a "leak" from a single snapshot. In this lesson, **there is no need to create a heap dump or change JVM flags**.
 
-### 9.4. Tại sao output các công cụ không được ghi sẵn?
+### 9.4. Why is tool output not pre-written?
 
-Ngoại trừ hai dòng stdout của `ToolingTarget`, mỗi lệnh chẩn đoán quan sát JVM tại **thời điểm thực**: PID, số thread, GC counter, flag, class histogram, runtime build và owner khác nhau giữa máy. Chép một “output mẫu” cố định dễ khiến người học nhầm là giá trị chuẩn. Kiểm tra chính là **đúng process, lệnh không lỗi và nội dung tương ứng với mục đích**.
+Aside from `ToolingTarget`'s two stdout lines, every diagnostic command observes the JVM in **real time**: PID, thread count, GC counters, flags, class histogram, runtime build, and owner vary across machines. Copying a fixed "sample output" misleads learners into treating dynamic values as constants. The true checks are **right process, zero command errors, and output aligned with your goal**.
 
-### 9.5. Kiểm chứng phần thực hành
+### 9.5. Hands-on verification
 
-Mã `ToolingTarget.java` được biên dịch thành công ở chế độ `javac --release 17`. Trên một JVM OpenJDK chạy thử, các lệnh `jcmd VM.version`, `jcmd Thread.print -l`, `jstack -l`, `jinfo -flags`, `jstat -gcutil -t` và `jmap -histo` đều chạy thành công trên JVM demo. Bài cố ý không hứa trước giá trị output động hoặc hành vi đồng nhất giữa vendor.
+`ToolingTarget.java` compiled cleanly with `javac --release 17`. On a tested OpenJDK JVM, `jcmd VM.version`, `jcmd Thread.print -l`, `jstack -l`, `jinfo -flags`, `jstat -gcutil -t`, and `jmap -histo` all executed cleanly against the demo JVM. This lesson intentionally avoids promising fixed dynamic numbers or identical vendor behavior.
 
-## 10. Chọn công cụ theo tình huống
+## 10. Choosing tools by scenario
 
-### 10.1. Request treo, thread pool hết slot
+### 10.1. Hung requests, thread pool out of slots
 
-1. Dùng metrics/log khoanh cửa sổ request bị treo, xác nhận instance/PID.
-2. `jstack -l <pid>` hoặc `jcmd <pid> Thread.print -l` để xem thread states và lock ownership.
-3. Lấy vài snapshot có timestamp cách nhau hợp lý, đối chiếu thread liên tục ở cùng chỗ đợi.
-4. Nếu cần timeline, JFR ghi monitor contention/thread park/CPU samples để kiểm chứng.
-5. Không gọi heap dump chỉ vì một thread đang `BLOCKED`.
+1. Use metrics/logs to bracket the hung-request window and confirm instance/PID.
+2. Run `jstack -l <pid>` or `jcmd <pid> Thread.print -l` to inspect thread states and lock ownership.
+3. Capture several reasonably spaced timestamped snapshots to spot threads repeatedly waiting at the same point.
+4. If a timeline is needed, use JFR for monitor contention/thread park/CPU samples.
+5. Do not trigger a heap dump just because one thread is `BLOCKED`.
 
-### 10.2. Heap used sau GC tăng đều, nghi cache giữ object
+### 10.2. Post-GC heap used climbs steadily, suspected cache retention
 
-1. Dùng metrics, GC logs hoặc `jstat -gcutil -t` để xem xu hướng heap/GC và xác định giai đoạn tăng.
-2. Nếu đã có đủ bằng chứng, dùng `jmap -histo` hoặc `GC.class_histogram` để tìm class/instance nổi bật, nhận thức rõ chi phí.
-3. Khi cần trả lời **ai giữ object**, cân nhắc HPROF từ `GC.heap_dump`/`jmap -dump` với kế hoạch impact và dung lượng.
-4. Phân tích dominator tree và GC roots trong MAT, so baseline và mô hình lưu trữ/cache.
-5. Không kết luận “nhiều object” là leak nếu dữ liệu vẫn được thiết kế giữ lại.
+1. Use metrics, GC logs, or `jstat -gcutil -t` to examine heap/GC trends and pinpoint the growth phase.
+2. Once sufficient evidence exists, use `jmap -histo` or `GC.class_histogram` to spot prominent classes/instances while respecting cost.
+3. When you must answer **who retains objects**, consider an HPROF dump from `GC.heap_dump`/`jmap -dump` with an impact and space plan.
+4. Inspect the dominator tree and GC roots in MAT against baseline and cache/storage design.
+5. Do not call "many objects" a leak if that data is intentionally retained by design.
 
-### 10.3. GC pause tăng sau thay đổi cấu hình
+### 10.3. GC pauses increase after a config change
 
-1. `jinfo -flags` hoặc `jcmd VM.flags` để đọc thiết lập runtime; đừng suy từ lệnh `java -version` trong shell.
-2. `jstat -gcutil` hoặc metrics để đối chiếu tần suất/thời gian GC trong cùng cửa sổ.
-3. Dùng GC logs/JFR để xem loại event, pause duration và nguyên nhân theo timeline.
-4. Nếu cần thay đổi flags, thực hiện theo thay đổi cấu hình được phép, có phương án hoàn nguyên và kiểm chứng.
+1. Run `jinfo -flags` or `jcmd VM.flags` to read actual runtime settings; do not infer from the shell's `java -version`.
+2. Use `jstat -gcutil` or metrics to compare GC frequency/time in the same window.
+3. Use GC logs/JFR to examine event types, pause durations, and causes over the timeline.
+4. If flags must change, follow authorized configuration change procedures with rollback and verification.
 
-### 10.4. CPU rất cao nhưng không có exception
+### 10.4. Very high CPU with no exceptions
 
-1. `jstat` giúp loại trừ/khẳng định nghi vấn GC pressure, **không chứng minh** code CPU hotspot.
-2. `jstack` cho điểm thời gian, `RUNNABLE` không trực tiếp đồng nghĩa consuming CPU.
-3. JFR execution samples hoặc CPU profiler thích hợp hơn để định vị phương thức nóng.
-4. Kết hợp process CPU/GC/traffic, tránh gọi heap dump chỉ vì CPU cao.
+1. `jstat` helps rule out or confirm GC pressure, **not** prove code CPU hotspots.
+2. `jstack` gives point-in-time snapshots; `RUNNABLE` does not directly equate to burning CPU.
+3. JFR execution samples or a CPU profiler are better suited to locate hot methods.
+4. Combine process CPU/GC/traffic metrics; avoid taking a heap dump merely because CPU is high.
 
-## 11. Những ranh giới vận hành phải kiểm tra
+## 11. Operational boundaries you must check
 
-### 11.1. Định danh đúng JVM
+### 11.1. Identify the right JVM
 
-PID chỉ có nghĩa trong một OS/PID namespace và có thể được tái sử dụng. Chọn đúng **host, pod/container, PID, start time, owner và command line** trước khi dùng lệnh chẩn đoán. Với nhiều replica, main class/JAR giống nhau chưa đủ.
+A PID has meaning only inside an OS/PID namespace and can be reused. Verify **host, pod/container, PID, start time, owner, and command line** before running diagnostic commands. With multiple replicas, identical main class/JAR names are insufficient.
 
-### 11.2. Quyền và khả năng truy cập
+### 11.2. Permissions and access capability
 
-Các lệnh attach vào JVM có thể yêu cầu cùng effective user/group và môi trường attach được phép. `-XX:+DisableAttachMechanism` có thể khiến `jcmd`/các công cụ attach không hoạt động. `jstat` còn phụ thuộc việc performance counters được phơi bày và đọc được. Một JVM không xuất hiện trong `jcmd -l` hay `jps` **không chứng minh** nó không tồn tại.
+JVM attach tools can require matching effective user/group and an allowed attach environment. `-XX:+DisableAttachMechanism` can disable `jcmd` and attach tools. `jstat` also depends on performance counters being exposed and readable. A JVM missing from `jcmd -l` or `jps` **does not prove** it does not exist.
 
-### 11.3. Container và runtime tối giản
+### 11.3. Containers and minimal runtimes
 
-Container có thể dùng PID nội bộ `1` trong khi host thấy PID khác. Một image JRE nhỏ hoặc custom runtime bằng `jlink` có thể không kèm `jstack`/`jmap`/`jinfo`/`jstat`. Khi công cụ thiếu, sử dụng JDK tương thích ở nơi chẩn đoán được ủy quyền, đồng thời tuân theo mapping namespace và chính sách attach; không ép nhập PID host vào command trong container mà chưa xác định.
+A container can use internal PID `1` while the host sees a different PID. A slim JRE image or custom `jlink` runtime may lack `jstack`/`jmap`/`jinfo`/`jstat`. When tools are missing, use a compatible JDK in an authorized diagnostic context while respecting namespace mapping and attach policies; never pass a host PID into a container command without verifying.
 
-### 11.4. Chi phí và thông tin nhạy cảm
+### 11.4. Cost and sensitive data
 
-| Thao tác | Rủi ro chính | Cách kiểm soát |
+| Action | Main risk | Control measure |
 | --- | --- | --- |
-| Lấy thread dump nhiều lần | Nhiều thread tạo output lớn, tăng overhead tại thời điểm chụp | Chỉ lấy đủ snapshot, có timestamp và giới hạn tần suất |
-| Class histogram/heap dump | GC/pause, I/O, RAM/đĩa; HPROF có dữ liệu nhạy cảm | Đánh giá impact, dung lượng, nơi lưu, retention và quyền truy cập |
-| In system properties/command line | Lộ credentials, connection strings, token | Không đăng nguyên output; redaction trước khi chia sẻ |
-| Đổi manageable flag | Thay đổi hành vi runtime ngoài mục tiêu quan sát | Chỉ theo quy trình được ủy quyền; biết cách hoàn nguyên |
-| Poll `jstat` không giới hạn count | Log quá lớn, command chạy dai, tăng tải và chi phí lưu | Dùng interval/count hữu hạn cho điều tra ngắn |
-| Parse output experimental | Script hỏng âm thầm sau nâng cấp JDK | Đối chiếu tool/JDK version; ưu tiên API/metrics ổn định cho automation |
+| Taking repeated thread dumps | Many threads yield huge output and capture-time overhead | Take only enough timestamped snapshots and cap frequency |
+| Class histogram / heap dump | GC/pauses, I/O, RAM/disk; HPROF holds sensitive data | Assess impact, capacity, storage location, retention, and access permissions |
+| Printing system properties / command line | Exposes credentials, connection strings, tokens | Never post raw output; redact before sharing |
+| Changing manageable flags | Alters runtime behavior beyond observation goal | Act only via authorized process; know how to revert |
+| Polling `jstat` without count | Huge logs, long-running command, extra load and storage cost | Use finite interval and count for short investigations |
+| Parsing experimental output | Scripts break silently after JDK upgrades | Pin tool/JDK versions; prefer stable APIs/metrics for automation |
 
-**Không đánh đồng “experimental” với “không nên bao giờ dùng”:** trên một JVM tương thích, chúng vẫn hữu ích trong sự cố. Nhưng **chi phí và tính đúng đắn của bằng chứng** quan trọng hơn sự quen tay với một lệnh cụ thể.
+**Do not equate "experimental" with "never use":** on a compatible JVM, these tools remain valuable during incidents. Still, **evidence cost and accuracy** matter more than muscle memory for a specific command.
 
-## 12. Các lỗi phổ biến và cách sửa
+## 12. Common mistakes and fixes
 
-| Sai lầm | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| “Experimental nghĩa là phải bật JVM experimental flag” | Thêm flag không liên quan, nhầm cơ chế JVM | Phân biệt command-line tool với `-XX:+UnlockExperimentalVMOptions` |
-| “Unsupported nghĩa là JDK 17 không có công cụ” | Bỏ qua một nguồn bằng chứng đang khả dụng | Kiểm tra `-help`, runtime và man page đúng JDK |
-| “jcmd thay thế 100% mọi lệnh jstat” | Kỳ vọng sai format/counters/interval | Dùng metrics/JFR cho timeline, `PerfCounter.print` khi phù hợp |
-| “jstack RUNNABLE = thread đó ăn CPU” | Chẩn đoán CPU sai | Dùng CPU samples và đối chiếu CPU process |
-| “jmap -histo cho biết ai giữ object” | Nhầm shallow histogram với retained graph | Phân tích HPROF, dominator/GC roots |
-| “jinfo -flag luôn chỉ đọc” | Có thể làm đổi runtime flag | Phân biệt `-flag name` với `-flag +name` hoặc `name=value` |
-| “GC count 20 nghĩa là 20 GC/giây” | Nhầm counter tích lũy với tốc độ | Tính hiệu giữa hai mẫu và thời gian thực |
-| “Bỏ count cho jstat cũng chỉ lấy một lần” | Công cụ tiếp tục in dữ liệu | Chỉ định interval và count hữu hạn |
-| “Đổi sang JDK mới nhưng parser jstat vẫn ổn” | Biến động header/columns làm sai metrics | Không parse cứng; kiểm thử theo version hoặc chọn API ổn định |
-| “Heap dump nằm ở thư mục shell đang đứng” | Không tìm được file, hết quota container | Phân biệt redirect phía client với file do JVM đích tạo |
-| “Không attach được thì JVM không chạy” | Bỏ sót incident | Kiểm tra quyền, namespace, PID lifecycle, vendor/JDK và perfdata |
-| “Có công cụ nghĩa là có quyền dùng trên production” | Thao tác tốn tài nguyên hoặc lộ dữ liệu | Đọc help, impact, owner và quy trình vận hành trước |
+| "Experimental means enabling the JVM experimental flag" | Adds unrelated flags, confuses JVM mechanisms | Separate command-line tools from `-XX:+UnlockExperimentalVMOptions` |
+| "Unsupported means JDK 17 lacks the tool" | Misses an available source of evidence | Check `-help`, runtime, and man pages for the exact JDK |
+| "jcmd replaces 100% of jstat commands" | Wrong expectations on format/counters/intervals | Use metrics/JFR for timelines, `PerfCounter.print` where suitable |
+| "jstack RUNNABLE = that thread is eating CPU" | Wrong CPU diagnosis | Use CPU samples and correlate with process CPU |
+| "jmap -histo shows who retains objects" | Confuses shallow histogram with retained graph | Analyze HPROF, dominators/GC roots |
+| "jinfo -flag is always read-only" | Can alter a runtime flag | Distinguish `-flag name` from `-flag +name` or `name=value` |
+| "GC count 20 means 20 GCs/sec" | Confuses cumulative counter with rate | Subtract two samples and divide by real elapsed time |
+| "Omitting count in jstat still takes one sample" | Command keeps printing continuously | Specify finite interval and count |
+| "Upgrading JDK leaves jstat parsers intact" | Header/column shifts corrupt metrics | Avoid brittle parsing; test per version or use stable APIs |
+| "Heap dump lands in my shell's current directory" | Cannot find file, exhausts container quota | Distinguish client-side redirection from target-JVM file writes |
+| "Cannot attach means the JVM is not running" | Misses active incident | Check permissions, namespaces, PID lifecycle, vendor/JDK, and perfdata |
+| "Having the tool means permission to run in production" | Resource-heavy action or data leak | Read help, impact, owner, and operational procedures first |
 
-## 13. Checklist dùng trong thực tế
+## 13. Practical checklist
 
-- [ ] Xác minh đúng phiên JVM: **host/namespace, PID, process start time, owner, launch command**.
-- [ ] Xác định câu hỏi: thread, heap/object, runtime config hay chuỗi thống kê GC.
-- [ ] Đọc **help** và kiểm tra tool/JDK/vendor; ghi nhớ bốn công cụ được Oracle JDK 17 đánh dấu **experimental/unsupported**.
-- [ ] Ưu tiên `jcmd` tương ứng khi cần và khả dụng; không áp đặt phép đổi tên một-một cho mọi options hoặc `jstat`.
-- [ ] Kiểm tra impact, khả năng GC, kích thước dump, quyền ghi và vị trí file của JVM đích.
-- [ ] Không đổi flag nếu mục tiêu chỉ là quan sát; không chia sẻ system properties/heap dump chưa làm sạch.
-- [ ] Lấy đủ nhiều mẫu cho **xu hướng**, đủ ngữ cảnh cho **snapshot**, và đối chiếu ít nhất một nguồn khác.
-- [ ] Ghi kết quả cùng timestamp, PID/start time, JDK version, command, tham số và trạng thái thành công/lỗi.
-- [ ] Khi nâng cấp JDK, kiểm tra lại runbook và script phụ thuộc output tool experimental.
+- [ ] Verify the exact JVM instance: **host/namespace, PID, process start time, owner, launch command**.
+- [ ] Clarify the question: threads, heap/objects, runtime config, or GC statistical series.
+- [ ] Read **help** and verify tool/JDK/vendor; remember the four tools are marked **experimental/unsupported** by Oracle JDK 17.
+- [ ] Prefer corresponding `jcmd` commands when suitable and available; do not force 1:1 option renaming or assume identical `jstat` output.
+- [ ] Check impact, GC likelihood, dump size, write permissions, and target JVM file path.
+- [ ] Do not alter flags when the goal is purely observation; never share unsanitized system properties or heap dumps.
+- [ ] Collect enough samples for **trends**, enough context for **snapshots**, and corroborate with at least one independent source.
+- [ ] Record results with timestamp, PID/start time, JDK version, command, parameters, and success/error status.
+- [ ] When upgrading JDKs, re-validate runbooks and scripts relying on experimental tool output.
 
-## 14. Tài liệu chính thức (JDK 17)
+## 14. Official documentation (JDK 17)
 
-- [Oracle — jstack](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jstack.html): command in Java thread stack traces, `-l`, ghi chú experimental/unsupported.
-- [Oracle — jmap](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jmap.html): class histogram, heap dump options, ghi chú experimental/unsupported.
-- [Oracle — jinfo](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jinfo.html): đọc flags/properties và các hình thức cập nhật flag, ghi chú experimental/unsupported.
-- [Oracle — jstat](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jstat.html): VM statistics, `-gcutil`, `-t`, interval/count, và cảnh báo parse output.
-- [Oracle — jcmd](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): danh sách diagnostic commands, syntax, help và impact.
-- [Oracle — java launcher](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html): `-XX:+DisableAttachMechanism` và các nhóm VM startup options.
+- [Oracle — jstack](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jstack.html): command printing Java thread stack traces, `-l`, experimental/unsupported note.
+- [Oracle — jmap](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jmap.html): class histogram, heap dump options, experimental/unsupported note.
+- [Oracle — jinfo](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jinfo.html): reading flags/properties and flag-update forms, experimental/unsupported note.
+- [Oracle — jstat](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jstat.html): VM statistics, `-gcutil`, `-t`, interval/count, and output-parsing warning.
+- [Oracle — jcmd](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): diagnostic command list, syntax, help, and impact.
+- [Oracle — java launcher](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html): `-XX:+DisableAttachMechanism` and VM startup option groups.
 
-**Kết luận kỹ thuật:** `jstack` hỗ trợ xem **thread**, `jmap` hỗ trợ xem **heap**, `jinfo` hỗ trợ xem **cấu hình JVM**, còn `jstat` hỗ trợ theo dõi **statistics theo thời gian**. `jcmd` bao phủ nhiều mục đích nhưng không hoàn toàn thay thế cú pháp, dữ liệu và sampling của bốn công cụ. Hiểu rõ nhãn experimental/unsupported, kiểm tra phiên JDK và mức tác động trước khi sử dụng sẽ giúp bằng chứng đáng tin cậy hơn và quy trình chẩn đoán ít rủi ro hơn.
+**Technical conclusion:** `jstack` helps inspect **threads**, `jmap` helps inspect **heap**, `jinfo` helps inspect **JVM configuration**, and `jstat` helps track **statistics over time**. `jcmd` covers many of these goals without completely replacing the syntax, data, and sampling of all four tools. Understanding the experimental/unsupported label, verifying JDK compatibility, and assessing impact beforehand will keep your evidence trustworthy and your diagnostic workflow low-risk.

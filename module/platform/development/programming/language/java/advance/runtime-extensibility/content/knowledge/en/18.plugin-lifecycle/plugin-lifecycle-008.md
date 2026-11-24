@@ -1,61 +1,61 @@
-# Hủy callback, lịch chạy, executor và đóng tài nguyên do plugin sở hữu
+# Canceling Callbacks, Schedules, Executors, and Closing Plugin-Owned Resources
 
-## 1. Vì sao dừng plugin không đơn giản là gọi stop()?
+## 1. Why Is Stopping a Plugin Not as Simple as Calling stop()?
 
-Một plugin có thể được host nạp động, khởi tạo, bật rồi vô hiệu hóa hoặc thay phiên bản mà **không khởi động lại JVM**. Trong thời gian hoạt động, plugin có thể đăng ký listener vào event bus của host, lên lịch tác vụ lặp lại, tạo thread/executor, mở kết nối hoặc giữ các `AutoCloseable` khác. Chỉ thay trạng thái từ `ACTIVE` sang `STOPPED` không tự hủy những thứ ấy.
+A plugin in an application can be dynamically loaded, initialized, enabled, and then disabled or replaced by the host **without restarting the JVM**. While active, the plugin may register listeners on the host's event bus, schedule recurring tasks, create threads/executors, open connections, or hold other `AutoCloseable` resources. Merely changing state from `ACTIVE` to `STOPPED` does not automatically cancel those things.
 
-Nếu một callback còn trong registry của host, registry có thể tiếp tục gọi vào plugin đã “dừng”. Nếu một task hoặc thread còn chạy, nó có thể giữ đối tượng plugin, `Class<?>` hoặc classloader cũ. Một JAR được tháo khỏi danh sách plugin không có nghĩa các class của nó được JVM giải phóng. Vì vậy, **quản lý vòng đời phải bao gồm tháo đăng ký, hủy công việc và đóng tài nguyên thực sự**.
+If a callback remains in the host's registry, the registry can keep calling into a “stopped” plugin. If a task or thread is still running, it can retain the plugin object, `Class<?>`, or old classloader. Removing a JAR from the plugin list does not mean the JVM has freed its classes. Therefore, **lifecycle management must include deregistration, work cancellation, and actual resource closing**.
 
-Bốn nhóm cần kiểm soát:
+Four categories to control:
 
-| Nhóm do plugin sở hữu | Cơ chế có thể tạo ra | Thao tác kết thúc thích hợp |
+| Plugin-Owned Category | Mechanisms That Can Create It | Appropriate Termination Action |
 |---|---|---|
-| Callback / listener / subscription | `eventBus.register(...)`, `addListener(...)`, callback của host | Gọi handle `unsubscribe()` / `close()` / `removeListener(...)` tương ứng |
-| Lịch chạy / task đã hẹn | `ScheduledExecutorService.schedule(...)`, `scheduleAtFixedRate(...)`, timer của host | Giữ `ScheduledFuture<?>` hoặc token và gọi `cancel(...)` |
-| Executor / worker thread | `ExecutorService`, `ScheduledExecutorService`, thread tự tạo | Ngừng nhận task, `shutdown()` hoặc `shutdownNow()` tùy chính sách, `awaitTermination(...)`, bảo đảm worker thực sự kết thúc |
-| Tài nguyên I/O và đăng ký bên ngoài | File, stream, socket, watcher, DB connection, `AutoCloseable`, hook/registry | `close()`/`dispose()`/`unregister()` theo đúng API, thường theo thứ tự ngược lúc cấp phát |
+| Callbacks / listeners / subscriptions | `eventBus.register(...)`, `addListener(...)`, host callbacks | Invoke corresponding `unsubscribe()` / `close()` / `removeListener(...)` handle |
+| Schedules / deferred tasks | `ScheduledExecutorService.schedule(...)`, `scheduleAtFixedRate(...)`, host timers | Retain `ScheduledFuture<?>` or token and call `cancel(...)` |
+| Executors / worker threads | `ExecutorService`, `ScheduledExecutorService`, self-created threads | Stop accepting tasks, `shutdown()` or `shutdownNow()` per policy, `awaitTermination(...)`, ensure workers actually exit |
+| I/O resources and external registrations | Files, streams, sockets, watchers, DB connections, `AutoCloseable`, hooks/registries | `close()`/`dispose()`/`unregister()` per API, usually in reverse order of allocation |
 
-**Nguyên tắc quyền sở hữu:** thành phần **nào tạo hoặc được giao quyền quản lý tài nguyên** phải có trách nhiệm đóng/thu hồi tài nguyên ấy. Plugin không được tùy tiện đóng executor hoặc kết nối **dùng chung do host sở hữu**; thay vào đó plugin hủy các task/subscription của mình và trả lại quyền điều khiển cho host.
+**Ownership principle:** whichever component **creates or is delegated management authority over a resource** is responsible for closing/reclaiming that resource. Plugins must not arbitrarily close **shared host-owned** executors or connections; instead, plugins cancel their own tasks/subscriptions and return control to the host.
 
-## 2. Thứ tự dừng an toàn
+## 2. Safe Shutdown Order
 
-Một quy trình thực dụng:
+A practical sequence:
 
 ```text
-Host yêu cầu STOP / UNLOAD
+Host requests STOP / UNLOAD
           |
           v
-Đánh dấu STOPPING, chặn công việc mới
+Mark STOPPING, block new work
           |
           v
-Hủy đăng ký listener/callback ở host
+Unregister listeners/callbacks on host
           |
           v
-Hủy các lịch chạy và task đã xếp hàng
+Cancel schedules and queued tasks
           |
           v
-Dừng executor/worker do plugin sở hữu
+Stop plugin-owned executors/workers
           |
           v
-Đợi công việc đang chạy kết thúc (bounded wait)
+Wait for running work to finish (bounded wait)
           |
           v
-Đóng tài nguyên I/O, session, connection, watcher
+Close I/O resources, sessions, connections, watchers
           |
           v
-Gỡ tham chiếu từ host/registry/cache, trạng thái STOPPED
+Drop references from host/registry/cache, state STOPPED
           |
           v
-Chỉ khi hết tham chiếu mới có cơ hội GC/unload classloader
+Only once references are gone can GC/classloader unloading occur
 ```
 
-Trình tự cụ thể phụ thuộc phụ thuộc tài nguyên. Mấu chốt là **không đóng một đối tượng đang bị task sử dụng** rồi tiếp tục cho task đó chạy. Đôi khi một resource phải đóng sớm để đánh thức worker đang chờ I/O; host nên thiết kế stop protocol rõ ràng cho trường hợp ấy.
+The exact sequence depends on resource dependencies. The key is **never closing an object while a task is still using it** and letting that task keep running. Sometimes a resource must be closed early to wake up a worker blocked on I/O; the host should design an explicit stop protocol for that case.
 
-### 2.1. Chặn công việc mới trước
+### 2.1. Block New Work First
 
-Khi nhận tín hiệu dừng, đặt `accepting=false` (có thể dùng `AtomicBoolean`), đổi trạng thái sang `STOPPING` và từ chối đăng ký tác vụ mới. Nếu làm ngược lại, một callback đang chạy có thể tiếp tục lên lịch công việc ngay sau khi host đã hủy các task cũ.
+Upon receiving a stop signal, set `accepting=false` (for example with an `AtomicBoolean`), transition state to `STOPPING`, and reject new task submissions. If done in the reverse order, a running callback can keep scheduling new work right after the host cancels old tasks.
 
-Một kiểm tra tối thiểu bên trong callback:
+A minimal check inside a callback:
 
 ```java
 if (!accepting.get()) {
@@ -64,62 +64,62 @@ if (!accepting.get()) {
 handleEvent(event);
 ```
 
-Đây là **đoạn minh họa**: `accepting` là `AtomicBoolean`, `event` và `handleEvent` do ứng dụng định nghĩa. Kiểm tra cờ không đủ để chứng minh không còn callback nào đang thực thi: callback có thể đã qua điều kiện trước khi host đặt cờ false. Với plugin có yêu cầu dừng mạnh, phải **đợi hoặc phối hợp các callback in-flight** trước khi đóng tài nguyên mà chúng đang sử dụng.
+This is an **illustrative snippet**: `accepting` is an `AtomicBoolean`, while `event` and `handleEvent` are application-defined. Checking a flag is not enough to prove no callbacks are currently executing: a callback may have passed the check just before the host set the flag to false. For plugins with strict stop requirements, you must **wait for or coordinate in-flight callbacks** before closing resources they use.
 
-### 2.2. Hủy đăng ký ở nơi đăng ký
+### 2.2. Unregister Where Registered
 
-Nếu plugin đăng ký vào event bus của host:
+If a plugin registers on the host's event bus:
 
 ```java
 AutoCloseable subscription = eventBus.register(listener);
 ```
 
-hãy giữ **handle đăng ký** để gọi `subscription.close()` khi dừng. Đây là API minh họa do host định nghĩa, không phải API chuẩn của tất cả event bus.
+retain the **registration handle** so you can call `subscription.close()` when stopping. This is an illustrative host-defined API, not a universal API across all event buses.
 
-Các API thực tế có dạng khác: `removeListener(listener)`, `unsubscribe()`, `Disposable.dispose()`, `Registration.close()`. Quan trọng là phải giữ đúng listener/registration token; tạo một lambda mới có nội dung giống nhau **không đảm bảo** xóa được lambda đã đăng ký.
+Real APIs vary: `removeListener(listener)`, `unsubscribe()`, `Disposable.dispose()`, `Registration.close()`. Crucially, retain the exact listener/registration token; creating a new lambda with identical code **is not guaranteed** to remove the previously registered lambda.
 
 ```java
-// KHÔNG đảm bảo xóa listener đã đăng ký:
+// NOT guaranteed to remove the registered listener:
 bus.addListener(event -> onEvent(event));
-bus.removeListener(event -> onEvent(event)); // lambda khác object!
+bus.removeListener(event -> onEvent(event)); // different lambda object!
 ```
 
-Đây là ví dụ **sai có chủ đích**, chỉ minh họa identity của lambda. Cách đúng là lưu listener hoặc handle:
+This is an **intentionally wrong** example solely illustrating lambda identity. The right way is to store the listener or handle:
 
 ```java
 Consumer<Event> listener = event -> onEvent(event);
 bus.addListener(listener);
-// ... khi dừng:
+// ... on stop:
 bus.removeListener(listener);
 ```
 
-Đoạn này giả định `Event`, `bus` và `onEvent` tồn tại trong API của host.
+This snippet assumes `Event`, `bus`, and `onEvent` exist in the host API.
 
-**Unregister không phải luôn đồng nghĩa drain:** nếu hệ thống đã sao chép danh sách listener để dispatch, một invocation vẫn có thể chạy sau lúc `removeListener` được gọi. Plugin manager cần kết hợp chặn công việc mới, draining các invocation đang chạy hoặc chính sách cho phép hoàn thành trước khi resource bị đóng.
+**Unregistering does not always mean drained:** if the system copied the listener list for dispatch, an invocation can still run after `removeListener` is called. The plugin manager must combine blocking new work, draining in-flight invocations, or a policy allowing completion before resources are closed.
 
-## 3. Hủy ScheduledFuture: cancel là yêu cầu, không phải phép dừng cưỡng bức
+## 3. Canceling ScheduledFuture: cancel Is a Request, Not Forced Termination
 
-Khi tạo task:
+When creating a task:
 
 ```java
 ScheduledFuture<?> heartbeat = scheduler.scheduleAtFixedRate(
         this::sendHeartbeat, 0, 10, TimeUnit.SECONDS);
 ```
 
-hãy lưu `heartbeat`. Lúc dừng:
+save `heartbeat`. When stopping:
 
 ```java
 heartbeat.cancel(true);
 ```
 
-`Future.cancel(mayInterruptIfRunning)` có ý nghĩa:
+`Future.cancel(mayInterruptIfRunning)` semantics:
 
-- `cancel(false)`: cố hủy các lần chạy chưa bắt đầu; nếu task đang chạy, không yêu cầu ngắt thread chạy task đó.
-- `cancel(true)`: cũng **yêu cầu ngắt** thread đang chạy task; không có bảo đảm mã task sẽ lập tức kết thúc. Một số tác vụ không hỗ trợ interrupt, bỏ qua interrupt hoặc đang xử lý I/O theo cách khác.
-- `cancel` trả `boolean` theo trạng thái hủy của Future; `true` không có nghĩa mọi tác dụng phụ của task đã được hoàn tác hay mã task đã dừng hoàn toàn.
-- `isCancelled()` và `isDone()` giúp quan sát trạng thái Future, nhưng một task đã nhận interrupt vẫn có thể cần thêm thời gian dọn dẹp.
+- `cancel(false)`: attempts to cancel runs that have not started; if the task is running, does not request interrupting its thread.
+- `cancel(true)`: also **requests interruption** of the thread running the task; there is no guarantee task code will exit immediately. Some tasks do not support interrupts, ignore interrupts, or handle I/O differently.
+- `cancel` returns a `boolean` reflecting the Future's cancellation state; `true` does not mean all task side effects were rolled back or task code has stopped completely.
+- `isCancelled()` and `isDone()` help observe Future state, yet a task that received an interrupt may still need time for cleanup.
 
-Mã task nên **hợp tác với hủy**, ví dụ kiểm tra `Thread.currentThread().isInterrupted()` khi làm việc theo vòng lặp; nếu bắt `InterruptedException` mà không tiếp tục ném, cần khôi phục cờ interrupt bằng `Thread.currentThread().interrupt()` rồi thoát ở thời điểm an toàn.
+Task code should **cooperate with cancellation**, such as checking `Thread.currentThread().isInterrupted()` in loops; if catching `InterruptedException` without propagating it, restore the interrupt flag via `Thread.currentThread().interrupt()` and exit at a safe point.
 
 ```java
 try {
@@ -130,26 +130,26 @@ try {
 }
 ```
 
-Đây là đoạn ví dụ ở trong một phương thức trả `void`, không phải chương trình độc lập. Không nên bắt `InterruptedException` rồi tiếp tục chạy vòng lặp vô hạn như chưa hề có lệnh dừng.
+This is an example inside a `void` method, not a standalone program. Never catch `InterruptedException` and continue an infinite loop as if no stop command occurred.
 
-**Khác nhau giữa hủy một Future và dừng cả executor:** `heartbeat.cancel(true)` chỉ tác động tới task đó; `scheduler.shutdown()` / `shutdownNow()` tác động tới executor do plugin sở hữu. Nếu plugin đăng ký nhiều lịch, phải quản lý tất cả Futures/tokens, không chỉ lịch cuối cùng.
+**Difference between canceling one Future and stopping an entire executor:** `heartbeat.cancel(true)` affects only that task; `scheduler.shutdown()` / `shutdownNow()` affects the plugin-owned executor. If a plugin registers multiple schedules, manage all Futures/tokens, not just the last one.
 
-Đối với `ScheduledThreadPoolExecutor`, việc giữ lại các task đã hủy trong hàng đợi có thể ảnh hưởng bộ nhớ; cấu hình `setRemoveOnCancelPolicy(true)` hữu ích khi có nhiều hủy/đăng ký trong quá trình chạy. Đây là API của **ScheduledThreadPoolExecutor**, không phải phương thức trên mọi `ScheduledExecutorService`.
+For `ScheduledThreadPoolExecutor`, retaining canceled tasks in the queue can impact memory; configuring `setRemoveOnCancelPolicy(true)` is helpful when canceling and re-registering frequently at runtime. This API belongs to **`ScheduledThreadPoolExecutor`**, not every `ScheduledExecutorService`.
 
-## 4. ExecutorService: shutdown(), shutdownNow() và awaitTermination()
+## 4. ExecutorService: shutdown(), shutdownNow(), and awaitTermination()
 
-| API | Tác dụng | Cạm bẫy |
+| API | Effect | Pitfalls |
 |---|---|---|
-| `shutdown()` | Không nhận task mới; cố hoàn tất các task đã gửi trước đó | Task dài/vô hạn có thể ngăn executor kết thúc |
-| `shutdownNow()` | Cố dừng các task đang thực thi (thường bằng interrupt), không xử lý các task chờ và trả danh sách task chưa bắt đầu | Không đảm bảo task đang chạy đã dừng; phải phối hợp mã task |
-| `awaitTermination(timeout, unit)` | Đợi executor kết thúc hoặc hết hạn thời gian | `false` nghĩa là chưa kết thúc trong hạn; không được coi là đã quiescent |
-| `isShutdown()` | Cho biết đã yêu cầu shutdown | Không chứng minh mọi task đã ngừng |
-| `isTerminated()` | Cho biết tất cả task đã hoàn tất sau shutdown | Có thể kiểm tra trước khi đóng resource mà task dùng |
+| `shutdown()` | Accepts no new tasks; tries to finish previously submitted tasks | Long/infinite tasks can prevent the executor from terminating |
+| `shutdownNow()` | Attempts to stop running tasks (usually via interrupt), skips queued tasks, and returns unstarted tasks | Does not guarantee running tasks have stopped; task code must cooperate |
+| `awaitTermination(timeout, unit)` | Waits for the executor to terminate or the timeout to expire | `false` means not terminated within the deadline; must not be treated as quiescent |
+| `isShutdown()` | Indicates shutdown was requested | Does not prove all tasks have stopped |
+| `isTerminated()` | Indicates all tasks completed after shutdown | Can be checked before closing resources used by tasks |
 
-Mẫu dừng theo hai pha phổ biến (tùy mức độ ưu tiên graceful shutdown):
+A common two-phase shutdown pattern (depending on how strongly graceful shutdown is prioritized):
 
 ```java
-// Đoạn minh họa trong một method có thể ném InterruptedException.
+// Illustrative snippet inside a method that may throw InterruptedException.
 executor.shutdown();
 if (!executor.awaitTermination(2, TimeUnit.SECONDS)) {
     executor.shutdownNow();
@@ -159,53 +159,53 @@ if (!executor.awaitTermination(2, TimeUnit.SECONDS)) {
 }
 ```
 
-Đây là mã dừng **executor do plugin sở hữu**, không áp dụng cho executor chung của host. Nếu luồng dừng bị interrupt, mã thực tế thường chuyển sang `shutdownNow()`, khôi phục cờ interrupt và báo lại để host xử lý. Không dùng `Thread.stop()` như một cách “dừng chắc chắn”: cơ chế đó không an toàn và đã bị deprecated.
+This code stops a **plugin-owned executor**; never apply it to a shared host executor. If the stopping thread is interrupted, real code typically falls back to `shutdownNow()`, restores the interrupt flag, and reports back for the host to handle. Never use `Thread.stop()` as a “guaranteed stop”: that mechanism is unsafe and deprecated.
 
-**Scheduled executor có điểm cần xem riêng:** với `ScheduledThreadPoolExecutor`, chính sách mặc định sau `shutdown()` có thể cho phép delayed task đã đăng ký trước tiếp tục chạy theo điều kiện của nó; tác vụ định kỳ có quy tắc tiếp tục khác. Nếu plugin phải ngừng ngay tất cả lịch, nên **hủy từng Future theo ownership** và sau đó shutdown executor. Đừng giả định chỉ gọi `shutdown()` sẽ lập tức hủy mọi lịch.
+**Scheduled executors have a special caveat:** with `ScheduledThreadPoolExecutor`, the default policy after `shutdown()` can allow previously registered delayed tasks to continue running under certain conditions; periodic tasks have different continuation rules. If a plugin must immediately stop all schedules, **cancel each Future by ownership** and then shut down the executor. Never assume calling `shutdown()` alone cancels every schedule immediately.
 
-## 5. Đóng tài nguyên với AutoCloseable và thứ tự phụ thuộc
+## 5. Closing Resources with AutoCloseable and Dependency Order
 
-Nhiều tài nguyên như `InputStream`, `OutputStream`, `Socket`, `WatchService`, `Connection` (JDBC), `ExecutorService` qua cơ chế shutdown, hoặc các handle đăng ký do host cung cấp cần được giải phóng theo contract cụ thể.
+Many resources—such as `InputStream`, `OutputStream`, `Socket`, `WatchService`, JDBC `Connection`, `ExecutorService` via shutdown, or host-supplied registration handles—must be released according to their specific contract.
 
-### 5.1. Dùng try-with-resources khi phạm vi rõ ràng
+### 5.1. Use try-with-resources When Scope Is Clear
 
 ```java
 try (InputStream input = Files.newInputStream(path)) {
-    // Đọc dữ liệu do plugin sở hữu.
+    // Read plugin-owned data.
 }
 ```
 
-Đây là đoạn minh họa, giả định `path` và các import `java.nio.file.Files`, `java.io.InputStream`. Java gọi `close()` ngay khi rời khối, kể cả khi có exception. Với nhiều tài nguyên trong cùng `try`, Java đóng chúng **theo thứ tự ngược lúc khai báo** và ghi lại lỗi close dưới dạng suppressed exceptions khi cần.
+This is an illustrative snippet assuming `path` and imports for `java.nio.file.Files` and `java.io.InputStream`. Java calls `close()` as soon as control exits the block, even on exception. With multiple resources in the same `try`, Java closes them **in reverse order of declaration** and records close errors as suppressed exceptions when needed.
 
-### 5.2. Plugin sống dài hơn một method
+### 5.2. Plugins Living Longer Than a Single Method
 
-Plugin thường có vòng đời kéo dài qua nhiều lời gọi; không thể bọc toàn bộ plugin trong try-with-resources ở `start()` rồi đóng ngay lập tức. Thay vào đó, plugin **lưu handle** đến lúc `stop/close`. Nên giải phóng theo thứ tự ngược khi cấp phát khi các phụ thuộc cho phép.
+Plugins usually live across many calls; you cannot wrap the entire plugin in `try-with-resources` inside `start()` and close it immediately. Instead, the plugin **stores handles** until `stop/close`. Release them in reverse order of allocation when dependencies allow.
 
-Ví dụ:
+Example:
 
 ```text
-start(): mở DB connection -> tạo watcher -> đăng ký listener -> lên lịch task
-stop():  chặn task mới -> hủy listener -> hủy task
-         -> đợi worker dừng -> đóng watcher -> đóng DB connection
+start(): open DB connection -> create watcher -> register listener -> schedule task
+stop():  block new tasks -> unregister listener -> cancel task
+         -> wait for workers to stop -> close watcher -> close DB connection
 ```
 
-Nếu watcher cần DB connection để dừng hoặc flush, thứ tự ngược là hợp lý. Nếu một task đang chờ trên socket, cần đóng socket sớm để giải phóng task trước khi hoàn tất shutdown; đây là ngoại lệ phải được thiết kế rõ ràng.
+If the watcher needs the DB connection to stop or flush, reverse order makes sense. If a task is blocked waiting on a socket, closing the socket early may be required to unblock the task before finishing shutdown; that exception must be explicitly designed.
 
-**Mỗi handle chỉ nên có một owner rõ ràng**. Nếu host đưa shared connection hoặc shared executor vào plugin, plugin không tự đóng nó, mà chỉ trả lại subscription/task handles thuộc mình.
+**Every handle should have one clear owner.** If the host passes a shared connection or shared executor into the plugin, the plugin does not close it on its own, and instead returns only its own subscription/task handles.
 
-### 5.3. Dọn tiếp khi một close() thất bại
+### 5.3. Continue Cleaning Up When One close() Fails
 
-Giả sử plugin có ba tài nguyên: listener, executor và file. Nếu listener `close()` ném exception, không được bỏ qua việc dừng executor và đóng file. Dùng các khối `try/finally` hoặc một cơ chế tổng hợp lỗi để **tiếp tục cleanup**, đồng thời báo lỗi gốc và gắn các lỗi phụ làm `suppressed`.
+Suppose a plugin owns three resources: a listener, an executor, and a file. If the listener's `close()` throws an exception, you must not skip stopping the executor and closing the file. Use `try/finally` blocks or an error-aggregation mechanism to **continue cleanup**, reporting the primary error with subsequent errors attached as `suppressed`.
 
-Trong một thiết kế lớn, có thể quản lý tài nguyên theo một “cleanup stack” với các `AutoCloseable`, đóng lần lượt theo thứ tự ngược khi dừng. Tuy nhiên, đừng giả định `AutoCloseable.close()` tự idempotent: một số implementation có thể ném lỗi nếu đóng hai lần; lớp quản lý plugin cần bảo vệ trạng thái dừng.
+In a larger design, resources can be managed in a “cleanup stack” of `AutoCloseable`s, closing them one by one in reverse order on stop. However, do not assume every `AutoCloseable.close()` is idempotent on its own: some implementations may throw if closed twice; the plugin management layer must guard stop state.
 
-## 6. Ví dụ Java 17 chạy được: listener + lịch chạy + executor + resource
+## 6. Runnable Java 17 Example: Listener + Schedule + Executor + Resource
 
-Ví dụ trong **một tệp Java**, không dùng thư viện ngoài. Host quản lý một event bus đơn giản; plugin tự sở hữu một scheduler và resource. Plugin giữ `AutoCloseable` registration token, `ScheduledFuture` của heartbeat, rồi đóng tất cả khi host gọi `close()`.
+This example fits in **one Java file** with no external libraries. The host manages a simple event bus; the plugin owns a scheduler and a resource. The plugin retains the `AutoCloseable` registration token and the heartbeat `ScheduledFuture`, then closes everything when the host calls `close()`.
 
-Để stdout **xác định và dễ so sánh**, heartbeat được lên lịch bắt đầu sau **1 ngày**; chương trình dừng plugin ngay sau sự kiện đầu tiên. Điều này chỉ là lựa chọn kiểm thử, không phải chu kỳ heartbeat được đề xuất cho hệ thống thật.
+To keep stdout **deterministic and easy to compare**, the heartbeat is scheduled with an initial delay of **1 day**; the program stops the plugin right after the first event. This is solely a testing choice, not a recommended heartbeat interval for real systems.
 
-**Tệp `PluginCleanupDemo.java`:**
+**File `PluginCleanupDemo.java`:**
 
 ```java
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -362,22 +362,22 @@ public final class PluginCleanupDemo {
             plugin.close();
         }
 
-        plugin.close(); // Lời gọi thứ hai không dọn lặp.
+        plugin.close(); // Second call does not repeat cleanup.
         System.out.println("listeners.after=" + bus.listenerCount());
-        bus.publish("second"); // Listener đã được gỡ.
+        bus.publish("second"); // Listener has been removed.
         System.out.println("done");
     }
 }
 ```
 
-**Biên dịch/chạy với JDK 17+** trong thư mục chứa file:
+**Compile/run with JDK 17+** in the directory containing the file:
 
 ```powershell
 javac PluginCleanupDemo.java
 java PluginCleanupDemo
 ```
 
-**Stdout của ví dụ khi chạy bình thường:**
+**Stdout of the example during a normal run:**
 
 ```text
 plugin=active
@@ -390,42 +390,42 @@ listeners.after=0
 done
 ```
 
-Phân tích điều đã xảy ra:
+Analyzing what happened:
 
-1. `start()` mở trạng thái nhận sự kiện, đăng ký listener và đặt lịch heartbeat; không có heartbeat nào chạy vì delay 1 ngày.
-2. Host publish sự kiện `first`, listener thấy `accepting=true` và in `callback=first`.
-3. Host gọi `close()` trong `finally`. Plugin đặt `accepting=false` **trước** khi hủy đăng ký.
-4. Registration token làm `listeners.remove(...)`; event bus không còn giữ callback của plugin.
-5. `heartbeat.cancel(true)` hủy lịch; `shutdownNow()` và `awaitTermination(...)` kết thúc scheduler trước khi resource bị đóng.
-6. Resource in `resource=closed` đúng một lần; plugin in `plugin=stopped`.
-7. `plugin.close()` lần thứ hai không lặp cleanup. Số listener là `0` và publish `second` không còn gọi callback; cuối cùng in `done`.
+1. `start()` enables event acceptance, registers the listener, and schedules the heartbeat; no heartbeat fires due to the 1-day delay.
+2. The host publishes the `first` event; the listener sees `accepting=true` and prints `callback=first`.
+3. The host calls `close()` in `finally`. The plugin sets `accepting=false` **before** unregistering.
+4. The registration token triggers `listeners.remove(...)`; the event bus no longer holds the plugin's callback.
+5. `heartbeat.cancel(true)` cancels the schedule; `shutdownNow()` and `awaitTermination(...)` finish stopping the scheduler before the resource is closed.
+6. The resource prints `resource=closed` exactly once; the plugin prints `plugin=stopped`.
+7. The second `plugin.close()` does not repeat cleanup. Listener count is `0`, publishing `second` no longer invokes the callback, and `done` is printed at the end.
 
-Ví dụ cố ý để toàn bộ publish và stop ở **cùng main thread** nhằm có stdout xác định; khi host dispatch callback đồng thời trên thread khác, cần cơ chế draining bổ sung. `AutoCloseable` token trong ví dụ là **một API do event bus demo thiết kế**; hệ framework thực tế sẽ có kiểu token/phương thức hủy riêng.
+The example intentionally keeps all publishing and stopping on **the same main thread** for deterministic stdout; when the host dispatches callbacks concurrently on other threads, additional draining mechanisms are needed. The `AutoCloseable` token in the example is **an API designed by the demo event bus**; real frameworks will have their own token/unregistration types.
 
-**Giới hạn mẫu demo:** nếu `awaitTermination` hết hạn, ví dụ **ném lỗi thay vì đóng resource có thể còn bị worker dùng**; trong production, host phải đánh dấu trạng thái cleanup chưa hoàn tất, có cơ chế retry/escalation hoặc cô lập tiến trình. Nếu `close()` bị ngắt, phải tiếp tục theo chính sách dừng, không được tuyên bố plugin đã dỡ hoàn toàn. Ví dụ cũng chỉ tổng hợp lỗi từ `registration.close()`; hệ thống thực tế nên bọc và tổng hợp lỗi từ **mọi** bước cleanup.
+**Demo limitations:** if `awaitTermination` times out, the example **throws an error instead of closing a resource that may still be in use by a worker**; in production, the host must record an incomplete-cleanup state, have a retry/escalation mechanism, or isolate the process. If `close()` is interrupted, it must proceed per stop policy and never claim the plugin unloaded cleanly. The example also aggregates errors only from `registration.close()`; real systems should wrap and aggregate errors from **every** cleanup step.
 
-## 7. Tránh callback in-flight và race condition khi unload
+## 7. Avoiding In-Flight Callbacks and Race Conditions on Unload
 
-### 7.1. Unregister không chờ callback đang chạy
+### 7.1. Unregistering Does Not Wait for Running Callbacks
 
-Giả sử event bus dùng `CopyOnWriteArrayList` như ví dụ. Khi thread A đang duyệt snapshot listener, thread B gọi `remove(listener)`. Thread A **vẫn có thể giữ reference và gọi listener** từ snapshot cũ. Tương tự, nếu callback đã bắt đầu trước khi `accepting` chuyển false, nó có thể tiếp tục thao tác với resource.
+Suppose the event bus uses `CopyOnWriteArrayList` as in the example. While thread A is iterating a listener snapshot, thread B calls `remove(listener)`. Thread A **can still hold a reference and invoke the listener** from the old snapshot. Likewise, if a callback already started before `accepting` became false, it can continue operating on resources.
 
-Vì vậy, việc “listener count bằng 0” chỉ chứng minh **không còn đăng ký mới** trong danh sách live, không chứng minh **không còn callback in-flight**. Với callback dùng file/socket/DB, host cần một trong các cơ chế:
+Therefore, “listener count equals 0” only proves **no new registrations remain** in the live list; it does not prove **no callbacks are in-flight**. For callbacks touching files/sockets/DBs, the host needs one of these mechanisms:
 
-- Event bus có API `unregisterAndDrain(...)` hoặc đợi invocation còn chạy.
-- Plugin dùng bộ đếm `inFlight`, một `Phaser`, lock/counter hoặc một cơ chế lifecycle gate để đợi những callback đã nhận vào hoàn tất.
-- Mọi callback được chuyển qua executor do plugin sở hữu, ngăn nhận task mới và đợi executor quiescent trước khi đóng resource.
-- Định nghĩa deadline: nếu callback không chịu dừng, host ghi nhận plugin chưa hoàn tất unload thay vì dùng resource đã đóng.
+- An event bus API such as `unregisterAndDrain(...)` or waiting for active invocations.
+- The plugin using an `inFlight` counter, a `Phaser`, locks/counters, or a lifecycle gate to wait for already-admitted callbacks to finish.
+- Routing all callbacks through a plugin-owned executor, rejecting new tasks and waiting for the executor to quiesce before closing resources.
+- Defining a deadline: if a callback refuses to stop, the host records an incomplete unload rather than pulling closed resources out from under it.
 
-### 7.2. Khi shutdown tranh chấp với việc schedule()
+### 7.2. When Shutdown Races with schedule()
 
-Một tác vụ có thể đang cố `scheduler.schedule(...)` cùng lúc host gọi shutdown. Hãy đặt cờ `STOPPING` trước, rồi ngăn hoặc từ chối schedule mới. Nếu vẫn có race, `RejectedExecutionException` sau shutdown là trạng thái dự kiến cần xử lý, không nên tự động tạo executor mới để “cứu” một plugin đang dừng.
+A task may try calling `scheduler.schedule(...)` at the exact time the host calls shutdown. Set the `STOPPING` flag first, then prevent or reject new schedules. If a race still occurs, `RejectedExecutionException` after shutdown is an expected condition to handle—do not automatically spin up a new executor to “rescue” a stopping plugin.
 
-Nếu plugin tạo thêm `CompletableFuture` hoặc chain callback ngoài scheduler do mình sở hữu, cần kiểm kê **tất cả** nguồn tạo công việc và cơ chế hủy/phối hợp tương ứng. `CompletableFuture.cancel(true)` có quy tắc riêng và không bảo đảm ngắt mã đang thực hiện; phải kiểm tra contract của từng abstraction.
+If the plugin creates additional `CompletableFuture`s or callback chains outside its own scheduler, inventory **every** source of work and its corresponding cancellation/coordination mechanism. `CompletableFuture.cancel(true)` has its own semantics and does not guarantee interrupting running code; check the contract of each abstraction.
 
-### 7.3. Chặn lời gọi sau stop ở API công khai
+### 7.3. Blocking Post-Stop Calls at Public APIs
 
-Các entry point do host gọi như `handleRequest()` hoặc `onMessage()` nên kiểm tra state, tránh truy cập resource đã đóng. Một enum trạng thái điển hình:
+Host-invoked entry points such as `handleRequest()` or `onMessage()` should check state to avoid accessing closed resources. A typical state enum:
 
 ```text
 NEW -> STARTING -> ACTIVE -> STOPPING -> STOPPED
@@ -433,119 +433,119 @@ NEW -> STARTING -> ACTIVE -> STOPPING -> STOPPED
           +---------> FAILED -> CLEANUP_ATTEMPTED
 ```
 
-Đây là state machine **do host/plugin manager định nghĩa**, không phải lifecycle do JVM tự cấp. Nếu `start()` thất bại giữa chừng, vẫn phải thu hồi registration/executor/resource đã tạo trước đó. Nếu `stop()` thất bại, trạng thái phải phản ánh lỗi cleanup, thay vì luôn gắn nhãn `STOPPED` và quên các task còn chạy.
+This is a state machine **defined by the host/plugin manager**, not a lifecycle automatically provided by the JVM. If `start()` fails midway, previously created registrations/executors/resources must still be reclaimed. If `stop()` fails, the state must reflect cleanup failure rather than always labeling `STOPPED` and forgetting running tasks.
 
-## 8. Ownership và cleanup theo từng loại tài nguyên
+## 8. Ownership and Cleanup by Resource Type
 
-| Đối tượng / quyền | Owner thông thường | Thao tác plugin nên làm khi dừng |
+| Object / Handle | Typical Owner | What the Plugin Should Do on Stop |
 |---|---|---|
-| Event bus do host cung cấp | Host | Chỉ đóng subscription token hoặc remove listener của plugin |
-| Executor riêng tạo bởi plugin | Plugin | Ngăn submit, hủy Future, shutdown, bounded await, giải phóng tham chiếu |
-| Executor chung do host cấp | Host | Hủy **task của plugin**, không shutdown cả executor của host |
-| `ScheduledFuture` của heartbeat | Plugin hoặc owner registration | `cancel(...)` rồi bảo đảm scheduler/task đã quiescent |
-| File stream / socket / watcher plugin mở | Plugin | `close()` sau khi các task dùng nó dừng; kiểm tra lỗi |
-| Client DB/HTTP được host chia sẻ | Host hoặc scope quản lý được giao | Không tự đóng client chung; trả lại lease/handle nếu có |
-| Executor thread do plugin tạo | Plugin | Yêu cầu kết thúc, tránh thread sống qua unload |
-| `ThreadLocal` của worker sống lâu | Thành phần sở hữu worker | Gỡ giá trị khi rời task, tránh giữ instance/classloader cũ |
-| `Thread.contextClassLoader` | Thread/executor owner | Phục hồi context classloader sau khi gọi code plugin nếu từng thay |
-| MBean, registry, listener OS/GUI | Bên đăng ký hoặc plugin | Unregister/dispose tương ứng; đừng để host giữ reference tới plugin |
+| Host-provided event bus | Host | Only close the plugin's subscription token or remove its listener |
+| Dedicated executor created by plugin | Plugin | Block submissions, cancel Futures, shut down, bounded await, drop references |
+| Shared executor supplied by host | Host | Cancel **only the plugin's tasks**; never shut down the host's executor |
+| Heartbeat `ScheduledFuture` | Plugin or registration owner | `cancel(...)` and confirm scheduler/task quiescence |
+| File stream / socket / watcher opened by plugin | Plugin | `close()` after tasks using it have stopped; check errors |
+| DB/HTTP client shared by host | Host or assigned scope | Do not close the shared client; return lease/handle if any |
+| Worker threads created by plugin | Plugin | Request termination; prevent threads outliving unload |
+| `ThreadLocal` on long-lived workers | Worker owner | Clear value on task exit; avoid retaining old instances/classloaders |
+| `Thread.contextClassLoader` | Thread/executor owner | Restore context classloader after calling plugin code if modified |
+| MBeans, registries, OS/GUI listeners | Registrant or plugin | Unregister/dispose appropriately; do not leave host holding plugin refs |
 
-**Dọn metadata và registry của host:** khi plugin dừng, host cần xóa entry trong routing table, lookup cache, service registry hoặc danh sách command nếu chúng giữ instance plugin, callback hoặc lớp provider cũ. Đây có thể là nguyên nhân leak ngay cả khi plugin đã đóng mọi file.
+**Cleaning up host metadata and registries:** when a plugin stops, the host must remove entries from routing tables, lookup caches, service registries, or command lists if they hold old plugin instances, callbacks, or provider classes. These can cause leaks even after the plugin closes every file.
 
-**Đừng tự đóng tài nguyên shared:** plugin A không được gọi `hostExecutor.shutdownNow()` nếu plugin B còn dùng executor đó. Phân biệt ownership ở API thiết kế ngay từ đầu, ví dụ truyền `Executor` không có quyền shutdown hoặc cấp riêng `TaskHandle` cho các công việc plugin đăng ký.
+**Never close shared resources:** plugin A must not call `hostExecutor.shutdownNow()` while plugin B still uses that executor. Enforce ownership in API design from the start—for example, pass an `Executor` without shutdown methods or issue a dedicated `TaskHandle` for plugin-submitted tasks.
 
-## 9. Nguy cơ classloader leak khi đóng plugin
+## 9. Risk of ClassLoader Leaks When Closing a Plugin
 
-Trong hệ dùng `URLClassLoader` hoặc `ModuleLayer` riêng cho plugin, Java không cung cấp “unload lớp ngay lập tức” chỉ bằng cách xóa JAR khỏi thư mục hay gọi `close()` trên loader. Class unloading phụ thuộc khả năng thu gom classloader định nghĩa lớp và các object còn liên quan.
+In systems using a dedicated `URLClassLoader` or `ModuleLayer` per plugin, Java provides no “instant class unload” merely by deleting a JAR from a directory or calling `close()` on the loader. Class unloading depends on garbage collection of the classloader that defined the classes and all related objects.
 
-Những nguồn giữ tham chiếu thường gặp:
+Common reference-retention sources:
 
-1. **Thread còn chạy**: stack frame, target runnable, `ThreadLocal` hoặc context classloader có thể giữ lớp/plugin loader.
-2. **`ScheduledFuture` và hàng đợi executor**: task lambda/`Runnable` có thể capture `this` của plugin; scheduler chưa shutdown vẫn giữ task.
-3. **Event bus/registry của host**: listener lambda capture plugin instance và được host giữ lâu dài.
-4. **Cache tĩnh hoặc singleton phía host**: map giữ `Class`, `Method`, callback hoặc provider object từ plugin.
-5. **ServiceLoader/provider cache, logging hook, MBean, file watcher**: cơ chế tích hợp giữ callback hoặc class cũ.
-6. **Thread context class loader (TCCL)**: thread pool do host sở hữu từng đổi TCCL sang pluginLoader nhưng quên phục hồi.
+1. **Still-running threads**: stack frames, target `Runnable`s, `ThreadLocal`s, or context classloaders can retain plugin classes/loaders.
+2. **`ScheduledFuture` and executor queues**: task lambdas/`Runnable`s may capture the plugin's `this`; an un-shutdown scheduler keeps the task alive.
+3. **Host event bus/registries**: listener lambdas capture plugin instances and are retained long-term by the host.
+4. **Static caches or singletons on the host side**: maps retaining `Class`, `Method`, callbacks, or provider objects from the plugin.
+5. **ServiceLoader/provider caches, logging hooks, MBeans, file watchers**: integration points retaining callbacks or old classes.
+6. **Thread context class loader (TCCL)**: a host-owned thread pool had its TCCL switched to `pluginLoader` and forgot to restore it.
 
-`URLClassLoader.close()` giúp đóng các tài nguyên do loader quản lý, nhưng không tự dừng worker và không bảo đảm class được GC. Đừng đóng loader **trước khi** các tác vụ/plugin callback cần dùng lớp/tài nguyên của loader đã kết thúc. Thứ tự thường là: **stop plugin → ngừng background work → unregister → close I/O → gỡ tham chiếu → close loader**. Thời điểm garbage collection/unload là quyết định của JVM, không có bảo đảm tức thì.
+`URLClassLoader.close()` closes resources managed by the loader, yet does not stop workers on its own and does not guarantee classes are GC'd. Never close the loader **before** tasks/plugin callbacks needing classes/resources from that loader have finished. The usual sequence is: **stop plugin → stop background work → unregister → close I/O → drop references → close loader**. When GC/unloading occurs is up to the JVM, with no instant guarantee.
 
-### Kiểm tra rò rỉ
+### Checking for Leaks
 
-Có thể dùng kiểm thử integration theo vòng:
+You can run looped integration tests:
 
-- Load một plugin bằng classloader riêng.
-- Tạo listener, schedule và tài nguyên thử.
-- Stop/unload plugin.
-- Kiểm tra registry không còn listener/task, executor terminated và các resource báo đã close.
-- Lặp lại nhiều vòng để quan sát thread count, heap, file handle và lượng classloader còn giữ.
-- Nếu dùng `WeakReference<ClassLoader>` để quan sát, đừng coi một lần gọi `System.gc()` là phép chứng minh đầy đủ: GC không bảo đảm xảy ra theo yêu cầu.
+- Load a plugin with a dedicated classloader.
+- Create sample listeners, schedules, and resources.
+- Stop/unload the plugin.
+- Verify the registry holds no remaining listeners/tasks, the executor terminated, and resources report closed.
+- Repeat across multiple cycles to observe thread counts, heap usage, file handles, and retained classloaders.
+- If using `WeakReference<ClassLoader>` to observe reclamation, do not treat a single `System.gc()` call as complete proof: GC is not guaranteed on demand.
 
-## 10. Xử lý lỗi và thời gian dừng
+## 10. Error Handling and Stop Duration
 
-### 10.1. Không để cleanup dừng ở lỗi đầu tiên
+### 10.1. Never Stop Cleanup at the First Error
 
-Một lời gọi `registration.close()` có thể lỗi trong khi scheduler và file vẫn cần đóng. Production nên gom lỗi:
+A `registration.close()` call may throw while the scheduler and files still need closing. Production code should aggregate errors:
 
 ```text
-- Dừng nhận công việc mới.
-- Thử unregister callback; ghi lại failure nếu có.
-- Thử cancel lịch; ghi lại failure nếu có.
-- Shutdown executor; đợi trong deadline và ghi nhận timeout.
-- Nếu không còn task sử dụng resource, thử đóng resource; ghi nhận lỗi.
-- Báo lại trạng thái cleanup và các lỗi kèm suppressed exceptions.
+- Stop accepting new work.
+- Attempt to unregister callbacks; record failure if any.
+- Attempt to cancel schedules; record failure if any.
+- Shut down executor; wait within deadline and record timeout.
+- If no tasks remain using the resource, attempt to close the resource; record error.
+- Report cleanup status and errors with suppressed exceptions.
 ```
 
-Không nuốt ngoại lệ rồi in “stopped” nếu vẫn còn worker chưa dừng. `InterruptedException` trong thread thực hiện cleanup cần được xử lý theo chính sách: thường yêu cầu dừng nhanh, khôi phục interrupt flag, báo host và không khẳng định dỡ sạch plugin.
+Never swallow exceptions and print “stopped” while workers are still running. `InterruptedException` in the cleanup thread must be handled per policy: usually exit promptly, restore the interrupt flag, notify the host, and do not claim clean unloading.
 
-### 10.2. Timeout không phải thanh công
+### 10.2. Timeout Is Not Success
 
-Khi `awaitTermination(5, TimeUnit.SECONDS)` trả `false`, host biết **chưa chứng minh được executor terminated**. Có thể tăng thời gian theo chính sách, cảnh báo, cách ly tiến trình plugin, hoặc từ chối unload để tránh thao tác với resource đã đóng. Không ép hủy bằng `Thread.stop()`.
+When `awaitTermination(5, TimeUnit.SECONDS)` returns `false`, the host knows **executor termination has not been proven**. Depending on policy, it can extend the wait, alert, isolate the plugin process, or refuse to unload to avoid operating on closed resources. Never force-kill via `Thread.stop()`.
 
-Với hệ thống chứa plugin không đáng tin, chạy plugin trong **tiến trình cách ly** có thể giúp host thực thi giới hạn thời gian/tài nguyên tốt hơn. Classloader hay TCCL không phải sandbox an toàn.
+For systems hosting untrusted plugins, running plugins in **isolated processes** allows the host to enforce time and resource limits cleanly. Classloaders or TCCL are not a security sandbox.
 
-### 10.3. ShutdownGraceful và ShutdownImmediate là hai chính sách
+### 10.3. Graceful Shutdown vs. Immediate Shutdown Are Two Policies
 
-Plugin xử lý giao dịch có thể cần **graceful shutdown**: từ chối yêu cầu mới, chờ hoàn thành giao dịch trong một deadline, flush dữ liệu rồi đóng connection. Plugin xử lý nhiệm vụ thuần tính toán có thể ưu tiên **cancel/interrupt** ngay. Không dùng cùng thứ tự/timeout một cách máy móc cho mọi plugin; hợp đồng lifecycle phải xác định semantics của các tác vụ in-flight.
+A transaction-processing plugin may need **graceful shutdown**: reject new requests, wait for in-flight transactions within a deadline, flush data, then close connections. A pure compute plugin may prefer immediate **cancel/interrupt**. Do not apply the exact same order/timeouts mechanically to every plugin; the lifecycle contract must specify in-flight task semantics.
 
-## 11. Checklist trước khi coi plugin đã dừng
+## 11. Checklist Before Treating a Plugin as Stopped
 
-- [ ] Trạng thái đã chuyển sang `STOPPING` trước khi đóng registry/task?
-- [ ] Không còn lời gọi mới từ host đến plugin?
-- [ ] Mọi listener/subscription đã được unregister, và callback đang chạy được drain hoặc xử lý rõ?
-- [ ] Tất cả scheduled task / timer / retry loop đã cancel?
-- [ ] Executor do plugin sở hữu đã shutdown; đã kiểm tra `isTerminated()` hoặc `awaitTermination(...)`?
-- [ ] Mã task hợp tác với `interrupt`; không có worker sống bất thường?
-- [ ] Các tài nguyên plugin tạo đã close, kể cả khi một close khác thất bại?
-- [ ] Không vô tình đóng shared resource do host/plugin khác sở hữu?
-- [ ] Registry/cache/TCCL/ThreadLocal của host không còn giữ plugin?
-- [ ] `close()` idempotent và xử lý startup failure?
-- [ ] Trạng thái cuối cùng phản ánh đúng `STOPPED` hay `FAILED_TO_STOP`, có log/cause?
+- [ ] State transitioned to `STOPPING` before tearing down registries/tasks?
+- [ ] No new calls arriving from host to plugin?
+- [ ] All listeners/subscriptions unregistered, and in-flight callbacks drained or explicitly handled?
+- [ ] All scheduled tasks / timers / retry loops canceled?
+- [ ] Plugin-owned executors shut down; `isTerminated()` or `awaitTermination(...)` verified?
+- [ ] Task code cooperates with `interrupt`; no stray workers still alive?
+- [ ] Plugin-created resources closed, even when another close failed?
+- [ ] Shared resources owned by host or other plugins left untouched?
+- [ ] Host registries/caches/TCCL/ThreadLocals no longer retaining the plugin?
+- [ ] `close()` is idempotent and handles startup failures?
+- [ ] Final state accurately reflects `STOPPED` vs. `FAILED_TO_STOP`, with logs/causes?
 
-Danh sách này là **tiêu chí nghiệm thu** cho một plugin manager, không phải một hành động JVM tự làm.
+This list is an **acceptance criterion** for a plugin manager, not behavior the JVM performs automatically.
 
-## 12. Bài tập và câu hỏi ôn tập
+## 12. Exercises and Review Questions
 
-1. **Vì sao unregister listener chưa đủ để đóng resource ngay?** Vì callback đã bắt đầu hoặc đang nằm trong snapshot dispatch có thể tiếp tục chạy.
-2. **`ScheduledFuture.cancel(true)` có đảm bảo task đã dừng chưa?** Không. Nó yêu cầu hủy/interrupt; task phải hợp tác và có thể cần đợi termination.
-3. **Khi nào dùng `shutdown()` và khi nào dùng `shutdownNow()`?** Tùy chính sách graceful vs immediate; với cả hai, vẫn cần kiểm tra tác vụ đã chấm dứt.
-4. **Plugin được host cấp shared executor có được gọi `shutdownNow()` không?** Thông thường không; plugin chỉ hủy công việc mình sở hữu.
-5. **Vì sao Java không thể unload plugin chỉ bằng cách close URLClassLoader?** Vì thread, registry, task, cache, provider hoặc đối tượng khác vẫn có thể giữ tham chiếu tới loader/class.
-6. **Tại sao close nên idempotent?** Host có thể gọi stop nhiều lần hoặc gọi cleanup sau startup failure; dọn lặp có thể ném lỗi, đóng nhầm tài nguyên hoặc làm sai trạng thái.
-7. **Nếu awaitTermination timeout, có nên đánh dấu STOPPED thành công không?** Không; phải ghi nhận chưa hoàn tất, thực hiện escalation hoặc isolation phù hợp.
+1. **Why isn't unregistering a listener enough to close resources immediately?** Because a callback that already started or sits in a dispatch snapshot may still execute.
+2. **Does `ScheduledFuture.cancel(true)` guarantee the task has stopped?** No. It requests cancellation/interruption; the task must cooperate and may need awaiting termination.
+3. **When do you use `shutdown()` vs. `shutdownNow()`?** Depends on graceful vs. immediate policy; in both cases, you still must verify tasks terminated.
+4. **May a plugin given a host-shared executor call `shutdownNow()`?** Normally no; the plugin only cancels work it owns.
+5. **Why can't Java unload a plugin solely by closing `URLClassLoader`?** Because threads, registries, tasks, caches, providers, or other objects may still retain references to the loader/classes.
+6. **Why should `close` be idempotent?** The host may call stop multiple times or call cleanup after a startup failure; repeated cleanup can throw errors, close the wrong resources, or corrupt state.
+7. **If `awaitTermination` times out, should `STOPPED` be marked successful?** No; incomplete shutdown must be recorded and appropriate escalation or isolation applied.
 
-**Thực hành 1:** đổi delay heartbeat thành `0` và chu kỳ `100` mili-giây; quan sát một số heartbeat khi plugin hoạt động. Để kiểm thử xác định, dùng latch thay vì dựa vào `Thread.sleep`, và bảo đảm sau stop không còn tick mới.
+**Practice 1:** change the heartbeat delay to `0` and period to `100` milliseconds; observe a few heartbeats while the plugin is active. For deterministic tests, use latches instead of relying on `Thread.sleep`, and verify no new ticks occur after stop.
 
-**Thực hành 2:** giả lập lỗi trong `registration.close()`. Chỉnh cleanup để vẫn dừng scheduler và đóng resource, cuối cùng ném lỗi gốc cùng các lỗi phụ dưới dạng `suppressed`.
+**Practice 2:** simulate an error in `registration.close()`. Update cleanup so it still stops the scheduler and closes the resource, ultimately throwing the original error with secondary errors attached as `suppressed`.
 
-**Thực hành 3:** tạo hai plugin dùng chung host event bus nhưng mỗi plugin có scheduler riêng. Stop plugin A và kiểm tra plugin B vẫn nhận sự kiện; sau đó stop B và xác minh listener count bằng 0.
+**Practice 3:** create two plugins sharing the host event bus, each with its own scheduler. Stop plugin A and verify plugin B still receives events; then stop B and verify listener count reaches 0.
 
-**Thực hành 4:** truyền executor dùng chung từ host thay vì tạo riêng trong plugin. Thiết kế API chỉ trả về token `cancelTask()`; xác nhận stop plugin A không shutdown executor của B.
+**Practice 4:** pass a shared executor from the host instead of creating one per plugin. Design an API returning only a `cancelTask()` token; confirm stopping plugin A does not shut down B's executor.
 
-## Tài liệu tham khảo
+## References
 
 - Oracle Java SE 17 — `ExecutorService`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html
 - Oracle Java SE 17 — `ScheduledExecutorService`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ScheduledExecutorService.html
-- Oracle Java SE 17 — `Future` và `cancel(boolean)`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html
+- Oracle Java SE 17 — `Future` and `cancel(boolean)`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html
 - Oracle Java SE 17 — `ScheduledThreadPoolExecutor`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ScheduledThreadPoolExecutor.html
 - Oracle Java SE 17 — `AutoCloseable`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/AutoCloseable.html
-- Oracle Java SE 17 — `URLClassLoader` và `close()`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html
+- Oracle Java SE 17 — `URLClassLoader` and `close()`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html

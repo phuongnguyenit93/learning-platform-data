@@ -1,97 +1,97 @@
-# Lấy JavaCompiler qua ToolProvider và xử lý kết quả null
+# Obtaining JavaCompiler via ToolProvider and Handling a Null Result
 
-Java hỗ trợ **biên dịch mã Java ngay khi ứng dụng đang chạy** bằng API trong gói javax.tools. Điểm vào phổ biến là **ToolProvider.getSystemJavaCompiler()**, trả về đối tượng JavaCompiler của runtime hiện tại **nếu có compiler**. Lời gọi này **có thể trả về null**: một ứng dụng Java chạy được không có nghĩa môi trường đó có khả năng biên dịch Java source.
+Java supports **compiling Java code while an application is running** using the API in the `javax.tools` package. The common entry point is **ToolProvider.getSystemJavaCompiler()**, which returns a `JavaCompiler` object for the current runtime **if a compiler is available**. This call **can return null**: a runnable Java application does not mean that environment has the capability to compile Java source.
 
-Đây là vấn đề quan trọng trong hệ thống **runtime extensibility**: host có thể nhận source của plugin, biên dịch thành bytecode rồi nạp lớp mới. Nếu host chạy trên runtime image rút gọn, môi trường triển khai không có module compiler, hoặc dùng nhầm bản Java runtime, tính năng này phải có cách xử lý rõ ràng thay vì ném NullPointerException.
+This is a critical concern in a **runtime extensibility** system: the host may receive plugin source code, compile it into bytecode, and load the new class. If the host runs on a slimmed-down runtime image, a deployment environment lacking the compiler module, or the wrong Java runtime, this feature must handle it cleanly instead of throwing a `NullPointerException`.
 
-Kết quả cần đạt sau bài học:
+Learning outcomes after this lesson:
 
-1. Biết lấy đúng **javax.tools.JavaCompiler** từ **javax.tools.ToolProvider** và kiểm tra null **trước** khi sử dụng.
-2. Hiểu vì sao có Java runtime nhưng không có Java compiler, đặc biệt với JDK 9+ và ảnh runtime tạo bằng **jlink**.
-3. Chọn chính sách xử lý khi compiler vắng mặt: **fail-fast**, **vô hiệu hóa tính năng có thông báo**, hoặc sử dụng phương án biên dịch thay thế đã được triển khai có chủ đích.
-4. Phân biệt **không có compiler** với **có compiler nhưng biên dịch thất bại**; thu thập diagnostics, đóng file manager và quản lý output/class loader.
-5. Chạy được ví dụ Java 17 đầy đủ, với kết quả cố định trong hai trường hợp có và không có compiler.
+1. Know how to obtain **javax.tools.JavaCompiler** properly from **javax.tools.ToolProvider** and check for null **before** using it.
+2. Understand why a Java runtime may exist without a Java compiler, especially with JDK 9+ and runtime images built with **jlink**.
+3. Choose a handling policy when the compiler is absent: **fail-fast**, **disabling the feature with a clear message**, or using an intentionally implemented alternative compilation strategy.
+4. Distinguish **compiler unavailable** from **compiler available but compilation failed**; collect diagnostics, close the file manager, and manage outputs/class loaders.
+5. Run a complete Java 17 example with deterministic results in both the compiler-present and compiler-absent cases.
 
-## 1. JavaCompiler và ToolProvider thực sự làm gì?
+## 1. What Do JavaCompiler and ToolProvider Actually Do?
 
-Hai kiểu cần import:
+Two types to import:
 
 ~~~java
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 ~~~
 
-Trong Java 9 trở đi, các API này thuộc **module java.compiler**. Chúng là giao diện và cơ chế tìm công cụ; **module java.compiler không đồng nghĩa với module thực thi compiler**. Trong bản phân phối JDK 17 thông dụng, compiler hệ thống được cung cấp bởi **module jdk.compiler**.
+From Java 9 onward, these APIs belong to **module java.compiler**. They are the interfaces and tool-lookup mechanism; **the java.compiler module is not synonymous with the compiler implementation module**. In standard JDK 17 distributions, the system compiler is provided by **module jdk.compiler**.
 
-Lời gọi cơ bản:
+Basic invocation:
 
 ~~~java
 JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 if (compiler == null) {
-    // Runtime hiện tại không cung cấp system Java compiler.
+    // The current runtime does not provide a system Java compiler.
 } else {
-    // Có thể tiếp tục cấu hình và gọi trình biên dịch.
+    // You can proceed to configure and invoke the compiler.
 }
 ~~~
 
-Hợp đồng trả về có hai trường hợp:
+The return contract has two cases:
 
-| Kết quả | Ý nghĩa | Hành động tiếp theo |
+| Result | Meaning | Next Action |
 | --- | --- | --- |
-| Khác null | Runtime hiện tại cung cấp đối tượng compiler hệ thống | Chọn input, output, options; gọi getTask hoặc run; xử lý kết quả |
-| null | Runtime hiện tại **không cung cấp** compiler hệ thống mà ToolProvider có thể lấy | Thực thi chính sách dự phòng hoặc báo không hỗ trợ; **không** gọi phương thức trên null |
+| Non-null | The current runtime provides the system compiler object | Choose inputs, outputs, options; call `getTask` or `run`; handle result |
+| null | The current runtime **does not provide** a system compiler obtainable by ToolProvider | Execute fallback policy or report unsupported; **do not** call methods on null |
 
-Theo tài liệu Java SE 17, cách triển khai JDK trả compiler do **jdk.compiler** cung cấp nếu module này khả dụng, nếu không thì trả **null**. API cho phép môi trường Java có javax.tools mà không bắt buộc có implementation của compiler.
+According to Java SE 17 documentation, the JDK implementation returns the compiler provided by **jdk.compiler** if that module is available, and otherwise returns **null**. The API allows a Java environment to include `javax.tools` without requiring a compiler implementation.
 
-**Điểm cần phân biệt:**
+**Points to distinguish:**
 
-- **JavaCompiler** là API lập trình, không phải đối tượng tự có sẵn trên mọi JVM.
-- **ToolProvider.getSystemJavaCompiler()** tìm **compiler của runtime đang chạy tiến trình Java**; nó không tự duyệt biến PATH để chạy file javac.exe hoặc một lệnh javac bất kỳ.
-- Một chương trình đã được biên dịch thành .class/.jar chỉ cần JVM có thể thực thi bytecode; điều đó không chứng minh runtime có compiler để tạo bytecode mới.
-- Có thể dùng ServiceLoader tìm những implementation JavaCompiler khác do ứng dụng chủ động cung cấp, nhưng **không thể coi đây là fallback tự động** của getSystemJavaCompiler. Nếu có fallback, ứng dụng phải chọn/kiểm tra nó một cách tường minh.
+- **JavaCompiler** is a programmatic API, not an object automatically present in every JVM.
+- **ToolProvider.getSystemJavaCompiler()** looks up **the compiler of the runtime running the current Java process**; it does not scan the `PATH` variable to execute `javac.exe` or an arbitrary `javac` command.
+- A program already compiled into `.class`/`.jar` only needs a JVM capable of executing bytecode; that does not prove the runtime has a compiler to produce new bytecode.
+- You can use `ServiceLoader` to discover other `JavaCompiler` implementations explicitly supplied by the application, but **this cannot be treated as an automatic fallback** of `getSystemJavaCompiler`. If a fallback exists, the application must select/verify it explicitly.
 
-### Đừng nhầm ToolProvider này với API tên gần giống
+### Do Not Confuse This ToolProvider with Similarly Named APIs
 
-Trong mã trên, kiểu chính xác là **javax.tools.ToolProvider**. Java còn có các API cung cấp công cụ khác trong JDK, bao gồm java.util.spi.ToolProvider và các tool provider riêng. Chúng không thay thế trực tiếp hợp đồng của **javax.tools.JavaCompiler**, và có thể có cơ chế gọi khác. Khi thiết kế host plugin sử dụng JavaCompiler.CompilationTask, hãy import đúng gói javax.tools.
+In the code above, the exact type is **javax.tools.ToolProvider**. Java also has other tool-providing APIs in the JDK, including `java.util.spi.ToolProvider` and individual tool providers. They are not direct replacements for the **javax.tools.JavaCompiler** contract and may have different invocation mechanisms. When designing a plugin host that uses `JavaCompiler.CompilationTask`, import the `javax.tools` package specifically.
 
-## 2. Vì sao getSystemJavaCompiler() trả null?
+## 2. Why Does getSystemJavaCompiler() Return Null?
 
-Trường hợp null **không nhất thiết là lỗi mã Java**. Đó là tín hiệu môi trường chạy không có system Java compiler phù hợp.
+A null result **is not necessarily a bug in your Java code**. It is a signal that the runtime environment lacks a suitable system Java compiler.
 
-### 2.1. Chạy bằng runtime không bao gồm trình biên dịch
+### 2.1. Running on a Runtime Without a Compiler
 
-Trong các hệ Java cũ, người học thường gặp tình huống ứng dụng được khởi động bằng **JRE** thay vì **JDK**. Trên Java 9+, mô hình phân phối đã thay đổi: bản JDK thông dụng có compiler, nhưng có thể tạo **custom runtime image** chỉ chứa các module cần thiết để chạy ứng dụng. Một image như vậy có thể có module java.compiler (API) mà **không có jdk.compiler** (implementation).
+In older Java systems, learners often encountered an application launched with a **JRE** instead of a **JDK**. On Java 9+, the distribution model changed: typical JDK distributions include a compiler, yet you can build a **custom runtime image** containing only the modules needed to run the application. Such an image may contain module `java.compiler` (the API) while **lacking `jdk.compiler`** (the implementation).
 
-Ví dụ ứng dụng chỉ cần tính năng web và đọc file lúc bình thường; nhà vận hành có thể tạo image bằng jlink để giảm kích thước. Khi plugin upload source mới, host đột ngột cần compiler nhưng image không có nó. Nếu code dùng ngay compiler.getTask(...), hệ quả thường là NullPointerException ở runtime.
+For example, an application normally only needs web features and file I/O; operators may build a `jlink` image to reduce footprint. When a plugin uploads new source, the host suddenly needs a compiler, but the image lacks it. If the code immediately calls `compiler.getTask(...)`, the typical result is a `NullPointerException` at runtime.
 
-### 2.2. Tiến trình dùng bản java khác với bản bạn kiểm tra ở terminal
+### 2.2. The Process Uses a Different Java Binary Than What You Checked in the Terminal
 
-Trên máy có nhiều bản JDK/runtime, câu lệnh java mà IDE, Docker entrypoint, service manager hay container thực sự chạy **có thể khác** bản java/javac bạn gõ tại terminal.
+On a machine with multiple JDKs/runtimes, the `java` binary that the IDE, Docker entrypoint, service manager, or container actually runs **may differ** from the `java`/`javac` you type in a terminal.
 
-Ví dụ:
+For example:
 
 ~~~text
-Shell của người phát triển:
+Developer's shell:
   javac -version  -> javac 17.x
 
-Container ứng dụng:
-  /opt/app-runtime/bin/java ...  -> custom runtime không có jdk.compiler
+Application container:
+  /opt/app-runtime/bin/java ...  -> custom runtime without jdk.compiler
 
-Kết quả:
-  ToolProvider.getSystemJavaCompiler() trong container -> null
+Result:
+  ToolProvider.getSystemJavaCompiler() inside container -> null
 ~~~
 
-Hai dòng trên là **tình huống minh họa**, không phải stdout cố định của một lệnh. ToolProvider chịu sự quyết định của runtime **bên trong tiến trình**, không phải compiler mà người quản trị tình cờ tìm thấy ở một thư mục khác.
+The lines above are an **illustrative scenario**, not fixed stdout of a command. `ToolProvider` is governed by the runtime **inside the process**, not a compiler an administrator happens to find in another directory.
 
-### 2.3. Module hoặc ảnh đóng gói không cho compiler tham gia
+### 2.3. Modules or Packaging Exclude the Compiler
 
-Trên JDK 17, module **jdk.compiler** là một phần cài đặt compiler. Khi tạo image bằng jlink, hoặc giới hạn các module mà runtime quan sát được, module compiler có thể không khả dụng. Cũng có thể ứng dụng chạy dưới chế độ native image/embedded JVM có tập công cụ khác với JDK phát triển.
+On JDK 17, module **jdk.compiler** is part of the compiler installation. When building an image with `jlink`, or restricting the modules observable to the runtime, the compiler module may be unavailable. The application may also run under native image/embedded JVM modes whose tooling differs from a development JDK.
 
-Chỉ kiểm tra java.version hoặc Java 17 không đủ để kết luận có compiler. Cách kiểm tra **dứt khoát theo hợp đồng API** vẫn là gọi ToolProvider.getSystemJavaCompiler() rồi xét null.
+Checking `java.version` or "Java 17" alone is not enough to conclude a compiler is present. The **definitive check per the API contract** remains calling `ToolProvider.getSystemJavaCompiler()` and checking for null.
 
-## 3. Cách kiểm tra đơn giản nhất trước khi dùng compiler
+## 3. Simplest Check Before Using the Compiler
 
-Tạo file **CompilerProbe.java**:
+Create file **CompilerProbe.java**:
 
 ~~~java
 import javax.tools.JavaCompiler;
@@ -107,92 +107,92 @@ public final class CompilerProbe {
 }
 ~~~
 
-Chạy bằng **JDK 17+**:
+Run with **JDK 17+**:
 
 ~~~bash
 javac -encoding UTF-8 CompilerProbe.java
 java CompilerProbe
 ~~~
 
-Nếu runtime đang chạy có system compiler:
+If the running runtime has a system compiler:
 
 ~~~text
 SYSTEM_COMPILER_AVAILABLE
 ~~~
 
-Nếu không có:
+If not:
 
 ~~~text
 SYSTEM_COMPILER_UNAVAILABLE
 ~~~
 
-Đây là **hai nhánh có điều kiện**; không phải một lệnh duy nhất luôn in cả hai dòng. Bản ứng dụng dùng để tạo file .class có thể được biên dịch trên máy build, rồi **file .class** được chuyển sang image tối giản để thử nhánh null.
+These are **two conditional branches**; not a single run that always prints both lines. The application used to generate `.class` files can be compiled on a build machine, and then **the `.class` file** can be copied to a minimal image to test the null branch.
 
-Tại sao ví dụ tách biên dịch và thực thi? Bởi một runtime không có compiler vẫn **chạy được CompilerProbe.class** nếu có java.base và java.compiler phù hợp. Đó chính là ý nghĩa của trường hợp null: **chạy mã Java được** nhưng **không biên dịch mã Java mới được** qua system compiler.
+Why does the example separate compilation from execution? Because a runtime without a compiler can still **execute `CompilerProbe.class`** if it has `java.base` and `java.compiler`. That is the exact meaning of the null case: **can run Java code**, but **cannot compile new Java code** via the system compiler.
 
-## 4. Xử lý null đúng nghiệp vụ: không có một chính sách cho mọi hệ thống
+## 4. Handling Null Properly for Business Needs: No Single Policy Fits All Systems
 
-Lời gọi getSystemJavaCompiler() không tự biết tính năng biên dịch lúc chạy là **bắt buộc** hay **tùy chọn**. Host phải tự quyết định chính sách.
+The `getSystemJavaCompiler()` call does not know whether runtime compilation is **mandatory** or **optional**. The host must decide the policy itself.
 
-### 4.1. Fail-fast khi plugin source compilation là tính năng bắt buộc
+### 4.1. Fail-Fast When Plugin Source Compilation Is Mandatory
 
-Nếu hệ thống không thể phục vụ yêu cầu khi thiếu compiler, báo lỗi ngay ở giai đoạn kiểm tra cấu hình hoặc khi khởi tạo dịch vụ biên dịch; tránh trì hoãn tới lúc người dùng upload plugin.
+If the system cannot serve requests without a compiler, fail immediately during configuration validation or when initializing the compilation service; avoid deferring failure until a user uploads a plugin.
 
 ~~~java
-// Đoạn mã minh họa, đặt trong lớp dịch vụ biên dịch của ứng dụng.
+// Illustrative snippet, placed inside the application's compilation service class.
 private static JavaCompiler requireSystemCompiler() {
     JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     if (compiler == null) {
         throw new IllegalStateException(
-                "Runtime hiện tại không có system Java compiler; "
-                + "hãy chạy với JDK/runtime image có jdk.compiler");
+                "No system Java compiler is available in the current runtime; "
+                + "run with a JDK/runtime image that includes jdk.compiler");
     }
     return compiler;
 }
 ~~~
 
-Ưu điểm: cấu hình triển khai sai được phát hiện sớm và có lỗi rõ ràng. Không nên thay bằng Objects.requireNonNull với thông báo chung chung nếu quản trị viên cần hiểu module nào đang thiếu; thông báo ngoại lệ phải chỉ ra cách sửa.
+Advantage: deployment misconfiguration is detected early with a clear error. Avoid replacing this with `Objects.requireNonNull` and a generic message if administrators need to understand which module is missing; the exception message should indicate how to fix it.
 
-Nếu ứng dụng vận hành trên cluster, có thể chạy capability check trong health/startup validation; chỉ quảng cáo dịch vụ compile là khả dụng khi kiểm tra thành công. Dù startup có compiler, các lỗi ở lần compile sau vẫn phải được xử lý riêng.
+If the application runs on a cluster, you can run a capability check during health/startup validation and advertise the compile service as available only when the check passes. Even if a compiler is present at startup, errors in subsequent compilations must still be handled separately.
 
-### 4.2. Graceful degradation khi biên dịch chỉ là tính năng tùy chọn
+### 4.2. Graceful Degradation When Compilation Is Only Optional
 
-Nếu ứng dụng vẫn có thể đọc/khởi chạy plugin đã biên dịch sẵn mà không cần biên dịch source, thay vì làm ứng dụng chết, hãy vô hiệu hóa **duy nhất** tính năng biên dịch.
+If the application can still load/run precompiled plugins without compiling source, disable **only** the compilation feature rather than crashing the application.
 
 ~~~java
-// Đoạn minh họa trong một phương thức dịch vụ.
+// Illustrative snippet inside a service method.
 JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
 if (compiler == null) {
     return "COMPILE_FEATURE_DISABLED";
 }
 
-// Tiếp tục sử dụng compiler khi khác null.
+// Continue using compiler when non-null.
 ~~~
 
-Đoạn code trên chỉ minh họa nhánh điều khiển và giả định phương thức đang trả String; **không phải chương trình chạy độc lập**. Khi đưa vào host thật, nên dùng một kết quả có kiểu như CompileResult với status **UNAVAILABLE**, thay vì mã chuỗi tự do.
+The snippet above only illustrates a control-flow branch and assumes the method returns `String`; **it is not a standalone runnable program**. When integrating into a real host, use a typed result such as `CompileResult` with status **UNAVAILABLE** instead of free-form string codes.
 
-Ví dụ response API có thể là HTTP 503 khi tính năng được cấu hình là tạm thời không khả dụng, hoặc lỗi cấu hình/feature flag riêng nếu môi trường này không hỗ trợ compile một cách có chủ đích. Đừng giả vờ compilation đã thành công và đừng biến lỗi “không có compiler” thành “source người dùng sai”.
+For instance, an API response might be HTTP 503 when the feature is configured as temporarily unavailable, or a specific configuration/feature-flag error if this environment intentionally does not support compilation. Do not pretend compilation succeeded, and do not turn a "no compiler" error into "user source is invalid."
 
-### 4.3. Cơ chế dự phòng phải có ranh giới rõ
+### 4.3. Fallback Mechanisms Must Have Clear Boundaries
 
-Các lựa chọn khác:
+Other options:
 
-- **Build trước khi triển khai**: CI dùng JDK biên dịch plugin, runtime chỉ nạp artifact đã ký/kiểm tra.
-- **Compiler service tách biệt**: host gửi source đến worker/service biên dịch được quản lý riêng, nhận artifact có kiểm tra tính toàn vẹn.
-- **Compiler implementation khác**: chỉ dùng nếu có implementation được kiểm chứng, hỗ trợ javax.tools.JavaCompiler và đã tích hợp có chủ ý.
+- **Build before deployment**: CI uses a JDK to compile plugins, and the runtime only loads signed/verified artifacts.
+- **Dedicated compiler service**: the host sends source to a separately managed compilation worker/service and receives an integrity-verified artifact.
+- **Another compiler implementation**: use only if a vetted implementation supporting `javax.tools.JavaCompiler` is intentionally integrated.
 
-Không viết fallback tùy tiện thành **Runtime.exec("javac ...")** rồi tin rằng hệ thống đã an toàn: cách này dùng một process/toolchain khác với ToolProvider, phải xác định executable path, classpath, timeout, stdin/stdout/stderr, quyền hệ điều hành, nguồn input, resource limits và chính sách bảo mật. Không xử lý null bằng cách “cài đặt compiler trong lúc đang chạy” nếu host production không có quyền/chu trình quản lý phần mềm tương ứng.
+Do not casually write a fallback like **`Runtime.exec("javac ...")`** and assume the system is safe: that uses a different process/toolchain than `ToolProvider`, requiring you to define the executable path, classpath, timeouts, stdin/stdout/stderr, OS permissions, input sources, resource limits, and security policy. Do not handle null by "installing a compiler at runtime" if the production host lacks the corresponding permissions/software lifecycle.
 
-### 4.4. Tránh lỗi lập trình phổ biến
+### 4.4. Avoiding a Common Programming Mistake
 
 ~~~java
-// SAI: có thể ném NullPointerException ngay khi chạy trên runtime không có compiler.
+// WRONG: may throw NullPointerException immediately on a runtime without a compiler.
 JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 compiler.run(null, System.out, System.err, "-version");
 ~~~
 
-Bản đúng:
+Correct version:
 
 ~~~java
 JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -206,23 +206,23 @@ if (compiler == null) {
 }
 ~~~
 
-Hai đoạn mã là **snippets** có thể đặt trong main hoặc một phương thức phù hợp; không phải hai class độc lập. Lệnh **-version** chỉ minh họa cách gọi API run; với nghiệp vụ biên dịch thực, nên dùng **getTask** và diagnostics để kiểm soát input/output. Đối với run, kết quả được biểu diễn bằng **mã thoát int**; đối với getTask(...).call(), đó là kết quả **Boolean** theo hợp đồng CompilationTask. Đừng trộn hai loại kết quả.
+Both code snippets are **snippets** to be placed inside `main` or a suitable method; they are not two standalone classes. The **-version** argument only illustrates calling the `run` API; for actual compilation workflows, use **getTask** and diagnostics to control inputs/outputs. For `run`, the result is represented as an **int exit code**; for `getTask(...).call()`, it is a **Boolean** per the `CompilationTask` contract. Do not mix the two result types.
 
-## 5. Ví dụ Java 17 độc lập: lấy compiler, biên dịch source lúc chạy và nạp class
+## 5. Standalone Java 17 Example: Obtaining the Compiler, Compiling Source at Runtime, and Loading a Class
 
-Ví dụ dưới đây kết hợp đầy đủ:
+The example below combines everything:
 
-1. Gọi **ToolProvider.getSystemJavaCompiler()**.
-2. Nếu null: in thông báo, **không** tạo file manager hoặc gọi getTask.
-3. Nếu khác null: tạo một JavaFileObject chứa source code được kiểm soát.
-4. Biên dịch source vào một thư mục tạm bằng **JavaCompiler.getTask(...)**.
-5. Kiểm tra **Boolean.TRUE.equals(task.call())**, xem diagnostics khi thất bại.
-6. Nạp file .class được tạo bằng URLClassLoader, gọi một phương thức public tĩnh.
-7. Đóng StandardJavaFileManager và URLClassLoader, rồi xóa thư mục tạm.
+1. Call **ToolProvider.getSystemJavaCompiler()**.
+2. If null: print a message and **do not** create a file manager or call `getTask`.
+3. If non-null: create a `JavaFileObject` containing controlled source code.
+4. Compile the source into a temporary directory using **JavaCompiler.getTask(...)**.
+5. Check **Boolean.TRUE.equals(task.call())** and inspect diagnostics on failure.
+6. Load the generated `.class` file with a `URLClassLoader` and invoke a static public method.
+7. Close `StandardJavaFileManager` and `URLClassLoader`, then delete the temporary directory.
 
-Đây là ví dụ dành cho **source tin cậy do chính ứng dụng tạo ra**, không phải mẫu sandbox để biên dịch/chạy source từ người dùng chưa được tin cậy.
+This example is for **trusted source generated by the application itself**, not a sandbox pattern for compiling/running source from untrusted users.
 
-### 5.1. File hoàn chỉnh: RuntimeCompilerDemo.java
+### 5.1. Complete File: RuntimeCompilerDemo.java
 
 ~~~java
 import java.io.IOException;
@@ -365,18 +365,18 @@ public final class RuntimeCompilerDemo {
 }
 ~~~
 
-**Lưu file đúng tên RuntimeCompilerDemo.java**, encoding UTF-8. Ví dụ dùng Java text blocks, List.of và Stream.toList(), nên yêu cầu **JDK 17+** để biên dịch chính chương trình ví dụ.
+**Save the file with the exact name `RuntimeCompilerDemo.java`**, UTF-8 encoding. The example uses Java text blocks, `List.of`, and `Stream.toList()`, so it requires **JDK 17+** to compile the example program itself.
 
-### 5.2. Lệnh biên dịch và chạy
+### 5.2. Compile and Run Commands
 
-Trong thư mục chứa RuntimeCompilerDemo.java:
+In the directory containing `RuntimeCompilerDemo.java`:
 
 ~~~bash
 javac -encoding UTF-8 RuntimeCompilerDemo.java
 java RuntimeCompilerDemo
 ~~~
 
-Với **JDK 17 đầy đủ**, system compiler sẵn có, thư mục tạm ghi được và mã nguồn tin cậy của ví dụ không bị thay đổi, stdout chính xác:
+With a **full JDK 17**, system compiler available, writable temporary directory, and the example's trusted source unchanged, exact stdout is:
 
 ~~~text
 compiler=available
@@ -384,46 +384,46 @@ compile=success
 loaded=Hello dynamic
 ~~~
 
-Khi cùng file class RuntimeCompilerDemo.class chạy trên runtime **có API java.compiler nhưng không có compiler implementation**, stdout là:
+When the same `RuntimeCompilerDemo.class` file runs on a runtime **that has the `java.compiler` API but lacks a compiler implementation**, stdout is:
 
 ~~~text
 compiler=unavailable
 ~~~
 
-Chỉ **một trong hai nhánh** chạy tại một thời điểm. Lỗi I/O, quyền ghi, class loading hoặc những vấn đề hệ thống khác là các lỗi riêng có thể khiến chương trình ném exception; ví dụ này cố ý khai báo throws Exception để người học quan sát rõ. Trong sản phẩm cần chuyển chúng thành kết quả có kiểu, telemetry và xử lý vòng đời thích hợp.
+Only **one of the two branches** runs at a time. I/O errors, write permissions, class loading, or other system issues are separate failures that can cause the program to throw an exception; this example intentionally declares `throws Exception` so learners can observe clearly. In production, convert them into typed results, telemetry, and appropriate lifecycle handling.
 
-### 5.3. Giải thích các điểm then chốt
+### 5.3. Key Points Explained
 
-**Kiểm tra null xảy ra trước mọi tác vụ compile.** Nhờ vậy không có code nào gọi compiler.getStandardFileManager khi compiler là null. Bước này cũng không thực hiện I/O không cần thiết khi tính năng compile không khả dụng.
+**The null check happens before any compile operation.** That way no code calls `compiler.getStandardFileManager` when `compiler` is null. This step also avoids unnecessary I/O when compilation is unavailable.
 
-**SourceFromString** là JavaFileObject có Kind.SOURCE và URI dạng string:///generated/Hello.java. Nó mô tả input cho compiler; đây không phải lớp động đã được JVM nạp. Compiler sẽ tạo bytecode thực sự khi task được gọi.
+**SourceFromString** is a `JavaFileObject` with `Kind.SOURCE` and a URI like `string:///generated/Hello.java`. It describes input for the compiler; it is not a dynamic class already loaded by the JVM. The compiler generates actual bytecode when `task` is invoked.
 
-**StandardJavaFileManager** được lấy từ compiler và đóng bằng try-with-resources. JavaCompiler API có thể tái sử dụng file manager giữa nhiều compilation tasks, nhưng host cần quản lý lifecycle và thread-safety theo thiết kế, không tự chia sẻ tùy ý giữa các tác vụ đồng thời.
+**StandardJavaFileManager** is obtained from the compiler and closed via try-with-resources. The `JavaCompiler` API allows reusing a file manager across multiple compilation tasks, yet the host must manage lifecycle and thread safety by design rather than sharing it arbitrarily across concurrent tasks.
 
-**--release 17** yêu cầu compiler tạo code cho nền tảng Java 17; **-d** chọn nơi ghi .class; **-proc:none** tắt annotation processing trong lần biên dịch minh họa. Tắt annotation processing không biến compiler thành sandbox tuyệt đối.
+**--release 17** tells the compiler to target Java 17 platform code; **-d** chooses where `.class` files are written; **-proc:none** disables annotation processing for this demo compilation. Disabling annotation processing does not turn the compiler into an absolute sandbox.
 
-**Boolean.TRUE.equals(task.call())** tránh phụ thuộc vào việc task trả một Boolean boxed cụ thể; đó là bước kiểm tra biên dịch thành công. Đây là kết quả **sau khi đã có compiler**, khác hoàn toàn với việc compiler có thể null lúc đầu.
+**Boolean.TRUE.equals(task.call())** avoids depending on the task returning a specific boxed `Boolean`; it checks whether compilation succeeded. This is the result **after already having a compiler**, completely different from `compiler` potentially being null at the start.
 
-**URLClassLoader** nạp file class từ thư mục tạm. Đối tượng Class được định nghĩa trong một loader mới, không tự xuất hiện vào classpath hệ thống của ứng dụng. Cần quản lý loader riêng theo phiên plugin và tránh giữ tham chiếu class/instance sau khi plugin đã kết thúc. Khi nạp class bằng Class.forName(name, true, loader), JVM có thể khởi tạo lớp đó và thực thi mã, vì vậy chỉ dùng source **đã tin cậy** trong ví dụ.
+**URLClassLoader** loads the class file from the temporary directory. The `Class` object is defined in a new loader and does not automatically appear on the application's system classpath. Manage loaders per plugin version and avoid retaining class/instance references after the plugin ends. Calling `Class.forName(name, true, loader)` can initialize the class and execute code, so only use **trusted** source in this example.
 
-**Cleanup** đóng loader trước rồi xóa .class và thư mục tạm theo thứ tự đường dẫn từ sâu đến nông. Trên hệ thật, cần thêm xử lý riêng cho trường hợp xóa thất bại, process crash hoặc artifact được cache ngoài vòng đời yêu cầu.
+**Cleanup** closes the loader first, then deletes `.class` files and the temporary directory from deepest path to shallowest. In a real system, add handling for deletion failures, process crashes, or artifacts cached beyond a request's lifetime.
 
-## 6. Phân biệt ba tầng lỗi: compiler vắng mặt, source sai, và môi trường compile lỗi
+## 6. Distinguishing Three Error Layers: Absent Compiler, Invalid Source, and Compilation Environment Failure
 
-Những vấn đề dưới đây thường bị đánh đồng dù cách khắc phục khác nhau:
+The issues below are often conflated even though their fixes differ:
 
-| Tầng | Dấu hiệu quan sát | Ý nghĩa | Xử lý phù hợp |
+| Layer | Observed Symptom | Meaning | Appropriate Handling |
 | --- | --- | --- | --- |
-| **Khả năng (capability)** | ToolProvider.getSystemJavaCompiler() == null | Runtime không cung cấp system compiler | Fail-fast hoặc disable compile, sửa runtime/deployment, chọn fallback được cấu hình |
-| **Tác vụ biên dịch** | Compiler khác null nhưng task.call() không thành công | Source, options, dependency, classpath/module path hoặc annotation processing có vấn đề | Thu diagnostics, báo lỗi có ngữ cảnh, giữ runtime ổn định |
-| **Hạ tầng/vòng đời** | IOException, lỗi file manager, lỗi tạo thư mục, nạp class, LinkageError, phản chiếu hoặc I/O | Có thể compile được nhưng filesystem, phụ thuộc, class loader hoặc mã đã nạp thất bại | Phân loại lỗi, cleanup, log, retry chỉ khi an toàn |
+| **Capability** | `ToolProvider.getSystemJavaCompiler() == null` | Runtime does not provide a system compiler | Fail-fast or disable compilation, fix runtime/deployment, choose configured fallback |
+| **Compilation task** | Compiler is non-null but `task.call()` fails | Source, options, dependencies, classpath/module path, or annotation processing failed | Collect diagnostics, report contextual error, keep runtime stable |
+| **Infrastructure/lifecycle** | `IOException`, file manager failure, directory creation failure, class loading, `LinkageError`, reflection, or I/O | Compilation may have succeeded, but filesystem, dependencies, class loader, or loaded code failed | Classify error, clean up, log, retry only when safe |
 
-Một compiler object khác null **không chứng minh** source nào cũng được chấp nhận. Ngược lại, không có compiler **không phải** lỗi cú pháp source. Khi ghi log hoặc trả API, nên có mã kết quả riêng.
+A non-null compiler object **does not prove** arbitrary source will be accepted. Conversely, lacking a compiler **is not** a source syntax error. When logging or returning API responses, use distinct result codes.
 
-Ví dụ status kiểu dữ liệu:
+Example status data type:
 
 ~~~java
-// MẪU THIẾT KẾ THÀNH PHẦN, KHÔNG PHẢI CHƯƠNG TRÌNH ĐỘC LẬP.
+// COMPONENT DESIGN PATTERN, NOT A STANDALONE PROGRAM.
 enum CompileStatus {
     UNAVAILABLE,
     SUCCESS,
@@ -432,36 +432,36 @@ enum CompileStatus {
 }
 ~~~
 
-Sử dụng enum và một CompileResult chứa diagnostics để phân biệt lỗi lành mạnh hơn so với chỉ trả boolean. Nếu thành công nhưng bước nạp class sau đó thất bại, hãy ghi nhận riêng trạng thái **LOAD_FAILED**, vì đó là một giai đoạn khác với compilation.
+Using an enum and a `CompileResult` containing diagnostics distinguishes failures more cleanly than returning just a boolean. If compilation succeeds but the subsequent class-loading step fails, record a separate **LOAD_FAILED** status, as that belongs to a different stage than compilation.
 
-### 6.1. JavaCompiler.run khác getTask.call
+### 6.1. JavaCompiler.run vs. getTask.call
 
-Một cách gọi compiler đơn giản:
+A simpler way to invoke the compiler:
 
 ~~~java
-// Đoạn này giả định compiler khác null.
+// This snippet assumes compiler is non-null.
 int status = compiler.run(
         null, System.out, System.err,
         "-d", "build", "src/demo/Example.java");
 ~~~
 
-- **run(...)** nhận các đường dẫn/options dạng String tương tự tool command line và trả **int**: 0 biểu thị thành công theo quy ước của tool; kết quả khác 0 báo lỗi.
-- **getTask(...)** cho phép truyền JavaFileObject, DiagnosticListener, file manager, options và classes; trả CompilationTask với **call()** có kết quả Boolean.
-- Nếu cần compiler input in-memory và báo lỗi có vị trí trong source, **getTask + DiagnosticCollector** thường phù hợp hơn.
-- **Đừng** xem trạng thái null của ToolProvider giống với null của một kết quả compilation. Chúng xảy ra ở hai tầng khác nhau.
+- **run(...)** accepts String paths/options similar to the command-line tool and returns an **int**: 0 indicates success per tool convention; non-zero indicates failure.
+- **getTask(...)** accepts `JavaFileObject`, `DiagnosticListener`, file manager, options, and classes; returns a `CompilationTask` whose **call()** produces a `Boolean`.
+- If you need in-memory compiler inputs and source-location error reporting, **getTask + DiagnosticCollector** is usually more suitable.
+- **Do not** treat `ToolProvider`'s null state the same as a compilation result being null or false. They occur at two different layers.
 
-Đoạn run ở trên chỉ minh họa API, cần tồn tại file src/demo/Example.java và thư mục/đường ghi hợp lệ khi chạy thực tế; nó **không phải chương trình độc lập**.
+The `run` snippet above only illustrates the API; when actually run, `src/demo/Example.java` and a valid writable directory/path must exist; it **is not a standalone program**.
 
-### 6.2. Diagnostics giúp hiển thị lỗi source chính xác hơn
+### 6.2. Diagnostics Enable More Accurate Source Error Reporting
 
-JavaCompiler có thể báo loại, file, dòng, cột và thông điệp của lỗi:
+`JavaCompiler` can report error kind, file, line, column, and message:
 
 ~~~java
 DiagnosticCollector<JavaFileObject> errors =
         new DiagnosticCollector<>();
 
-// Cần JavaCompiler và JavaFileManager hợp lệ để tạo task.
-// Sau task.call():
+// Requires a valid JavaCompiler and JavaFileManager to create the task.
+// After task.call():
 for (Diagnostic<? extends JavaFileObject> d
         : errors.getDiagnostics()) {
     System.out.println(d.getKind()
@@ -470,35 +470,35 @@ for (Diagnostic<? extends JavaFileObject> d
 }
 ~~~
 
-Đây là **snippet chẩn đoán** đặt sau một task thực sự dùng đối tượng errors, không phải code chạy riêng. Dùng Locale.ROOT giúp hành vi thông điệp rõ hơn nhưng **không** bảo đảm một chuỗi chẩn đoán chữ-đúng 100% trên mọi bản compiler/vendor/JDK. Đừng viết test brittle dựa vào nguyên văn tiếng Anh của diagnostic.
+This is a **diagnostic snippet** placed after an actual task using the `errors` collector, not standalone code. Passing `Locale.ROOT` makes message behavior more predictable, yet it **does not** guarantee an identical verbatim diagnostic string across every compiler/vendor/JDK version. Do not write brittle tests asserting exact English diagnostic text.
 
-Các diagnostic source có thể lộ dữ liệu người dùng, tên file, classpath hoặc đường dẫn tạm. Trên server, cần giới hạn dung lượng, ẩn thông tin nhạy cảm khi log, và trả diagnostics tới đúng chủ thể có quyền xem source.
+Source diagnostics can leak user data, filenames, classpath entries, or temporary paths. On a server, cap diagnostic size, redact sensitive details in logs, and return diagnostics only to principals authorized to view the source.
 
-## 7. Chẩn đoán runtime khi compiler bị null
+## 7. Diagnosing a Null Compiler at Runtime
 
-Khi ứng dụng production ghi nhận không có compiler, làm theo thứ tự:
+When a production application reports no compiler is available, follow this order:
 
-### Bước 1 — xác định runtime thực sự đang chạy
+### Step 1 — Identify the Actual Running Runtime
 
-Chạy đúng executable hoặc vào process/container đang chạy ứng dụng:
+Run the exact executable or enter the process/container running the application:
 
 ~~~bash
 java -version
 java --list-modules
 ~~~
 
-Với bản phân phối JDK và cấu hình quyền phù hợp, có thể kiểm tra:
+With an appropriate JDK distribution and permissions, you can also check:
 
 ~~~bash
 javac -version
 ~~~
 
-**Chú ý:** lệnh javac trong shell chỉ xác nhận file javac mà shell tìm thấy. Nó **không phải bằng chứng** ToolProvider trong tiến trình server có thể trả JavaCompiler; hai tiến trình có thể sử dụng đường runtime hoặc image khác nhau.
+**Note:** the `javac` command in a shell only confirms the `javac` binary that the shell finds. It **is not proof** that `ToolProvider` inside the server process can return a `JavaCompiler`; the two processes may use different runtimes or images.
 
-Trong code đang chạy, ghi thông tin tối thiểu được phép:
+In running code, log the minimal permitted information:
 
 ~~~java
-// Snippet chẩn đoán, đặt vào phương thức đang chạy của host.
+// Diagnostic snippet, placed in a running host method.
 System.out.println("java.version=" +
         System.getProperty("java.version"));
 System.out.println("java.home=" +
@@ -507,21 +507,21 @@ System.out.println("compiler.present=" +
         (ToolProvider.getSystemJavaCompiler() != null));
 ~~~
 
-Đây là snippet để hỗ trợ chẩn đoán. Không xuất tràn đường dẫn, biến môi trường hoặc cấu hình nhạy cảm vào response công khai.
+This snippet is for diagnostic support. Do not expose full paths, environment variables, or sensitive configuration in public responses.
 
-### Bước 2 — kiểm tra module compiler
+### Step 2 — Check the Compiler Module
 
-Trong JDK 17, **javax.tools** nằm ở **java.compiler**, còn implementation compiler hệ thống nằm ở **jdk.compiler**. Tìm module trong kết quả **java --list-modules** của đúng runtime. Có thể kiểm tra module trong boot layer ở thời điểm chạy:
+In JDK 17, **javax.tools** resides in **java.compiler**, while the system compiler implementation resides in **jdk.compiler**. Look for the module in the **java --list-modules** output of that exact runtime. You can check the boot layer at runtime:
 
 ~~~java
-// Chỉ là phép kiểm tra phụ trợ, không thay ToolProvider.
+// Only an auxiliary check, not a replacement for ToolProvider.
 boolean compilerModuleResolved =
         ModuleLayer.boot().findModule("jdk.compiler").isPresent();
 ~~~
 
-Một bản runtime không có jdk.compiler thường không có system Java compiler. Tuy nhiên không viết code ứng dụng chỉ dựa vào tên module để quyết định kết quả: **getSystemJavaCompiler() == null** vẫn là kiểm tra công khai trực tiếp theo API.
+A runtime lacking `jdk.compiler` typically lacks a system Java compiler. However, do not write application logic that decides solely by module name: **`getSystemJavaCompiler() == null`** remains the direct public API check.
 
-Nếu code tự đóng gói thành named module và import javax.tools, descriptor thông thường cần:
+If the code is packaged as a named module and imports `javax.tools`, the descriptor typically needs:
 
 ~~~java
 module demo.runtime.compiler.host {
@@ -529,11 +529,11 @@ module demo.runtime.compiler.host {
 }
 ~~~
 
-**requires java.compiler** giúp module host đọc API javax.tools. Nó không bảo đảm image được đóng gói có compiler implementation. Tránh khai báo requires jdk.compiler chỉ vì muốn sử dụng JavaCompiler: đó là module triển khai công cụ, trong khi code host chỉ cần API công khai của java.compiler; việc đóng gói và cấp quyền khả dụng compiler là một quyết định runtime/deployment khác.
+**requires java.compiler** allows the host module to read the `javax.tools` API. It does not guarantee the packaged image contains a compiler implementation. Avoid declaring `requires jdk.compiler` merely to use `JavaCompiler`: that is a tool implementation module, whereas host code only needs the public API from `java.compiler`; packaging and provisioning compiler availability is a separate runtime/deployment decision.
 
-### Bước 3 — kiểm tra custom image/jlink
+### Step 3 — Inspect Custom Image / jlink
 
-Từ một JDK 17 đầy đủ, có thể tạo image chỉ mang API javax.tools nhưng **không** mang system compiler để kiểm thử nhánh null:
+From a full JDK 17, you can build an image containing only the `javax.tools` API **without** the system compiler to test the null branch:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods" \
@@ -543,13 +543,13 @@ jlink --module-path "$JAVA_HOME/jmods" \
 ./image-no-compiler/bin/java -cp . CompilerProbe
 ~~~
 
-Nếu CompilerProbe.class đã được biên dịch trước bằng JDK đầy đủ, output kỳ vọng là:
+If `CompilerProbe.class` was precompiled with a full JDK, the expected output is:
 
 ~~~text
 SYSTEM_COMPILER_UNAVAILABLE
 ~~~
 
-Để tạo image có implementation compiler, thêm **jdk.compiler**:
+To build an image with the compiler implementation, add **jdk.compiler**:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods" \
@@ -559,31 +559,31 @@ jlink --module-path "$JAVA_HOME/jmods" \
 ./image-with-compiler/bin/java -cp . CompilerProbe
 ~~~
 
-Trên một JDK 17 đầy đủ và image được tạo đúng, output kỳ vọng:
+On a full JDK 17 with a properly built image, the expected output is:
 
 ~~~text
 SYSTEM_COMPILER_AVAILABLE
 ~~~
 
-Hai lệnh jlink là **hai lần tạo image khác nhau**. Thư mục output phải chưa tồn tại; JAVA_HOME phải trỏ tới một JDK có thư mục jmods và jlink; chạy trong Bash trên Linux/macOS/Git Bash. Trên Windows, dùng cú pháp đường dẫn, biến môi trường và executable phù hợp. Với module graph của ứng dụng thực, phải thêm tất cả module còn cần thiết thay vì chỉ lấy tối thiểu từ minh họa.
+The two `jlink` commands represent **two separate image builds**. Output directories must not already exist; `JAVA_HOME` must point to a JDK containing `jmods` and `jlink`; run in Bash on Linux/macOS/Git Bash. On Windows, use the appropriate path syntax, environment variables, and executable. For a real application's module graph, include all additional required modules rather than just the minimal set from the demo.
 
-**Không dùng jlink như một thao tác “sửa nóng” tại runtime**. Hãy thay đổi image trong pipeline build/deploy, kiểm thử nó trong môi trường giống production và phát hành lại. Một image gọn cho production chỉ cần biên dịch **trước khi đóng gói** nếu không muốn cài compiler trong runtime.
+**Do not use `jlink` as a runtime "hotfix."** Update the image in your build/deploy pipeline, test it in a production-like environment, and redeploy. A slim production image only needs compilation **before packaging** if you do not want a compiler installed at runtime.
 
-### Bước 4 — xem launcher và container deployment
+### Step 4 — Check Launcher and Container Deployment
 
-Tại Dockerfile, entrypoint, service unit và cấu hình IDE:
+In your Dockerfile, entrypoint, service unit, and IDE configuration:
 
-- Xác minh **java executable** thực sự khởi động host, không chỉ JAVA_HOME trên máy phát triển.
-- Xác minh runtime image/container có **jdk.compiler**, hoặc đã chuyển tính năng compile sang build/worker chuyên dụng.
-- Nếu dùng nhiều runtime layers, xác minh mỗi workload cần biên dịch đều chạy trong image tương ứng.
-- Kiểm tra các tùy chọn giới hạn module hoặc tạo module layer; đừng suy luận từ danh sách JAR trên disk.
-- Sau khi sửa image, chạy CompilerProbe bằng **chính executable triển khai** trước khi bật feature compile cho người dùng.
+- Verify the **java executable** that actually starts the host, not just `JAVA_HOME` on a developer laptop.
+- Verify the runtime image/container includes **jdk.compiler**, or that compilation has been offloaded to a dedicated build/worker service.
+- If using multiple runtime layers, verify every workload requiring compilation runs in the corresponding image.
+- Check options that restrict modules or create module layers; do not infer from JAR files sitting on disk.
+- After fixing the image, run `CompilerProbe` with **the exact deployed executable** before enabling the compile feature for users.
 
-## 8. Kiểm thử nhánh null ngay cả khi máy phát triển có compiler
+## 8. Testing the Null Branch Even When the Dev Machine Has a Compiler
 
-Nếu máy phát triển luôn chạy JDK đầy đủ, nhánh null dễ không bao giờ được chạy. Cách kiểm thử tốt là **tiêm khả năng truy xuất compiler**, không tìm mẹo làm hỏng biến PATH.
+If a developer machine always runs a full JDK, the null branch can easily go unexecuted. A good way to test is to **inject compiler retrieval**, rather than trying to break `PATH`.
 
-Ví dụ ngắn:
+Short example:
 
 ~~~java
 import java.util.function.Supplier;
@@ -603,121 +603,121 @@ public final class CompilerPolicyDemo {
 }
 ~~~
 
-Biên dịch:
+Compile:
 
 ~~~bash
 javac -encoding UTF-8 CompilerPolicyDemo.java
 java CompilerPolicyDemo
 ~~~
 
-Dòng thứ nhất **luôn** là:
+The first line is **always**:
 
 ~~~text
 simulated=UNAVAILABLE
 ~~~
 
-Dòng thứ hai tùy runtime là **actual=AVAILABLE** hoặc **actual=UNAVAILABLE**. Đây là kiểm thử chính sách xử lý null độc lập với việc máy phát triển có compiler hay không. Với unit test thật, nên tiêm Supplier/CompilerProvider vào một CompileService và khẳng định nhánh UNAVAILABLE không gọi thêm file manager, không ghi output và có error status đúng. Không cần tự cài giả JavaCompiler chỉ để kiểm tra nhánh null đơn giản.
+The second line depends on the runtime: **actual=AVAILABLE** or **actual=UNAVAILABLE**. This tests the null-handling policy independently of whether the dev machine has a compiler. In real unit tests, inject a `Supplier`/`CompilerProvider` into a `CompileService` and assert that the `UNAVAILABLE` branch does not invoke the file manager, writes no output, and returns the right error status. You do not need to mock `JavaCompiler` itself just to test a simple null branch.
 
-Đồng thời cần một integration test bằng **runtime image không có compiler** như mục 7 để xác minh điều kiện triển khai thực sự, vì test dùng Supplier giả không chứng minh image production được đóng gói đúng.
+At the same time, include an integration test using a **runtime image without a compiler** as in Section 7 to verify actual deployment conditions, because a test with a fake `Supplier` does not prove the production image is packaged correctly.
 
-### Ma trận kiểm thử nên có
+### Recommended Test Matrix
 
-| Trường hợp | Kỳ vọng |
+| Case | Expectation |
 | --- | --- |
-| Full JDK 17, source hợp lệ | Compiler khác null, biên dịch thành công, có artifact hợp lệ |
-| Full JDK 17, source lỗi cú pháp | Compiler khác null nhưng compilation thất bại, diagnostics có lỗi |
-| Custom image có java.compiler nhưng thiếu jdk.compiler | ToolProvider trả null; host báo UNAVAILABLE/disable theo chính sách |
-| Source hợp lệ nhưng thư mục output không ghi được | Báo infrastructure error; cleanup, không kết luận compiler vắng mặt |
-| Biên dịch thành công nhưng nạp class lỗi | Báo load/link error riêng, không gộp thành null compiler |
-| Có hai yêu cầu compile đồng thời | Input/output riêng, file manager/lifecycle hợp lệ, không ghi đè artifact |
-| Plugin không tin cậy | Không chạy source/class đã tạo trong host process nếu không có ranh giới cách ly được đánh giá phù hợp |
+| Full JDK 17, valid source | Non-null compiler, compilation succeeds, valid artifact produced |
+| Full JDK 17, source with syntax error | Non-null compiler, compilation fails, diagnostics contain errors |
+| Custom image with `java.compiler` but missing `jdk.compiler` | `ToolProvider` returns null; host reports `UNAVAILABLE`/disables per policy |
+| Valid source, unwritable output directory | Reports infrastructure error; cleans up, does not conclude compiler is absent |
+| Compilation succeeds, class loading fails | Reports separate load/link error, does not conflate with null compiler |
+| Two concurrent compile requests | Separate inputs/outputs, valid file manager/lifecycle, no artifact overwrite |
+| Untrusted plugin | Do not execute generated source/classes in the host process without an appropriately evaluated isolation boundary |
 
-## 9. Vòng đời JavaCompiler trong một hệ plugin
+## 9. JavaCompiler Lifecycle in a Plugin System
 
-Đối với host thường xuyên biên dịch code động, kiểm tra null là **bước đầu**, không thay thế thiết kế lifecycle.
+For a host that frequently compiles dynamic code, checking for null is **the first step**, not a substitute for lifecycle design.
 
-### 9.1. Khi nào kiểm tra?
+### 9.1. When to Check?
 
-- **Ở startup**: nếu host bắt buộc có compiler, kiểm tra sớm và từ chối bật chức năng khi thiếu.
-- **Ở capability/feature initialization**: nếu optional, ghi nhận khả năng compile để giao diện/REST API hiển thị đúng.
-- **Trước mỗi lần dùng trong service**: code vẫn nên có guard rõ ràng, đặc biệt ở ranh giới tích hợp và trong test.
+- **At startup**: if the host requires a compiler, check early and refuse to enable the feature when missing.
+- **At capability/feature initialization**: if optional, record compilation capability so UI/REST APIs reflect it accurately.
+- **Before each use in the service**: code should still keep an explicit guard, especially at integration boundaries and in tests.
 
-Không cache một biến boolean từ startup rồi bỏ kiểm tra logic sử dụng về sau nếu mã có thể chạy trong nhiều mode hoặc đối tượng compiler được cung cấp khác nhau. Ngược lại, cũng không cần tra cứu lặp đi lặp lại một cách vô ích ở mỗi dòng code; một service được khởi tạo với compiler hoặc trạng thái UNAVAILABLE có thể làm rõ phụ thuộc.
+Do not cache a boolean at startup and omit usage-site checks if code can run in multiple modes or receive different compiler instances. Conversely, no need to look it up redundantly on every line; a service initialized with either a compiler or an `UNAVAILABLE` state makes the dependency clear.
 
-### 9.2. Không trộn file và class loader của nhiều plugin
+### 9.2. Do Not Mix Files and Class Loaders Across Plugins
 
-Mỗi lần compile nên có:
+Each compilation should have:
 
-1. Input source được định danh rõ (binary class name, package).
-2. Tập tùy chọn cố định và được kiểm soát: --release, classpath/module-path, -d, -proc:none nếu không muốn annotation processors.
-3. Output directory hoặc in-memory JavaFileManager riêng cho lần biên dịch.
-4. Diagnostics liên kết với đúng yêu cầu/tenant.
-5. Class loader hoặc module layer gắn với phiên plugin; API chung được chia sẻ phù hợp để không nhân bản kiểu.
-6. Quy trình commit/rollback artifact, đóng manager/loader và dọn file tạm.
-7. Giới hạn tải, số request, kích thước source/artifact và quan sát latency.
+1. Clearly identified input sources (binary class name, package).
+2. A fixed, controlled set of options: `--release`, classpath/module-path, `-d`, `-proc:none` if annotation processors are unwanted.
+3. A dedicated output directory or in-memory `JavaFileManager` for that compilation.
+4. Diagnostics tied to the right request/tenant.
+5. A class loader or module layer tied to the plugin version; shared APIs properly shared to avoid duplicating types.
+6. An artifact commit/rollback workflow, closing managers/loaders and cleaning temporary files.
+7. Load limits, request limits, source/artifact size caps, and latency observability.
 
-Một đối tượng JavaCompiler có thể tạo nhiều CompilationTask, nhưng không suy ra file manager được chia sẻ tự do giữa các thread. Với quy mô lớn, cần hiểu hợp đồng cụ thể của implementation và điều phối compile jobs; thường **đơn giản hơn khi mỗi task có một file manager/output scope riêng**.
+One `JavaCompiler` instance can create multiple `CompilationTask` objects, but do not assume a file manager can be freely shared across threads. At scale, understand the implementation's specific contract and coordinate compile jobs; it is usually **simpler for each task to have its own file manager/output scope**.
 
-### 9.3. Phân biệt compiler với class loader
+### 9.3. Distinguishing Compiler from Class Loader
 
-**Biên dịch thành công** tạo .class, không tự cài class vào application class loader. Muốn thực thi plugin vừa biên dịch, host còn phải đưa artifact vào class loader hoặc module layer thích hợp, kiểm tra type compatibility, vòng đời và phạm vi quyền của mã mới. Đây là bước sau JavaCompiler.
+**Successful compilation** produces `.class` files; it does not automatically install classes into the application class loader. To execute a freshly compiled plugin, the host must also pass the artifact to an appropriate class loader or module layer, verify type compatibility, lifecycle, and code permissions. This happens after `JavaCompiler`.
 
-Không cố dùng ToolProvider để “hot reload” một Class đã được loader cũ định nghĩa: cùng defining loader không thể định nghĩa lại class bình thường bằng cách ghi đè .class trên disk. Thực hiện cập nhật plugin bằng lớp/loader phiên mới hoặc cơ chế instrument được thiết kế riêng; dọn tham chiếu phiên cũ theo chính sách.
+Do not try to use `ToolProvider` to "hot reload" a `Class` already defined by an old loader: the same defining loader cannot normally redefine a class simply by overwriting `.class` files on disk. Perform plugin updates using a new versioned class/loader or a dedicated instrumentation mechanism; release old version references per policy.
 
-## 10. Bảo mật khi biên dịch lúc chạy
+## 10. Security When Compiling at Runtime
 
-**Có JavaCompiler không đồng nghĩa được phép biên dịch hoặc nạp source tùy ý.** Nếu source đến từ người dùng không tin cậy:
+**Having `JavaCompiler` does not mean it is safe to compile or load arbitrary source.** If source comes from untrusted users:
 
-- Bản thân giai đoạn **biên dịch** có thể tiêu thụ CPU, RAM, disk và thông tin classpath đáng kể. Annotation processors có thể chạy mã, do đó cân nhắc **-proc:none** nếu không cần processors; nếu cần processors, chỉ tin cậy danh sách và nguồn processor được cho phép.
-- Giai đoạn **nạp hoặc thực thi bytecode** là nguy cơ khác: code có thể đọc file, truy cập mạng, dùng reflection hoặc gọi API host theo quyền tiến trình. Dùng URLClassLoader đơn thuần **không phải sandbox**.
-- Không coi Java SecurityManager (đã deprecated ở các JDK hiện đại) là ranh giới an toàn chung cho mọi phiên bản; cần isolation cấp process/container/VM, chính sách hệ điều hành, giới hạn tài nguyên và môi trường chạy được kiểm soát.
-- Không cho source tự chọn tùy ý classpath/module path, compiler flags, output directory hay file path; validate input, chặn path traversal và tránh ghi đè artifact quan trọng.
-- Có timeout, quota, giới hạn diagnostics, dọn file tạm, theo dõi compilation jobs và chính sách hủy/cô lập khi vượt giới hạn. **CompilerTask.call() không có tham số timeout riêng**; nếu cần hủy compilation độc hại/treo, cách ly trong worker process giúp giới hạn và dừng an toàn hơn.
-- Khi dùng compiler service bên ngoài, xác thực request, kiểm tra artifact trả về, ghi nhận version compiler và bảo vệ secrets; lỗi service không phải đồng nghĩa ToolProvider trả null.
+- The **compilation** phase itself can consume significant CPU, RAM, disk, and classpath information. Annotation processors can execute code, so consider **-proc:none** when processors are not needed; if processors are needed, trust only an allowlisted set and source of processors.
+- The **bytecode loading or execution** phase is another risk: code can read files, access the network, use reflection, or invoke host APIs with the process's privileges. Using `URLClassLoader` alone **is not a sandbox**.
+- Do not treat Java `SecurityManager` (deprecated in modern JDKs) as a general security boundary across versions; you need process/container/VM-level isolation, OS policies, resource limits, and a controlled execution environment.
+- Do not let source arbitrarily choose classpath/module path, compiler flags, output directory, or file paths; validate inputs, block path traversal, and prevent overwriting critical artifacts.
+- Enforce timeouts, quotas, diagnostic limits, temporary file cleanup, compilation job tracking, and cancellation/isolation policies when limits are exceeded. **`CompilationTask.call()` has no built-in timeout parameter**; if you need to abort a malicious/hung compilation, isolating it in a worker process allows safer bounding and termination.
+- When using an external compiler service, authenticate requests, verify returned artifacts, record compiler versions, and protect secrets; service failures are not equivalent to `ToolProvider` returning null.
 
-Đối với mã tự sinh nội bộ, vẫn nên quy định đường dẫn output và cleanup để ngăn lỗi vận hành; biện pháp bảo mật mạnh tùy mức độ tin cậy của source, dependency và nơi thực thi plugin.
+Even for internally generated code, define output paths and cleanup rules to prevent operational issues; the strength of security controls depends on trust level of sources, dependencies, and where plugins execute.
 
-## 11. Những hiểu nhầm hay gặp
+## 11. Common Misconceptions
 
-**“Chạy Java 17 thì chắc chắn có javac trong API.”** Sai. Java SE bảo đảm các interface cần thiết nhưng không đòi hỏi mọi runtime đều cung cấp compiler. Custom image có thể bỏ jdk.compiler.
+**“Running Java 17 guarantees `javac` is in the API.”** False. Java SE guarantees the required interfaces, not that every runtime ships a compiler. Custom images can omit `jdk.compiler`.
 
-**“Thêm import javax.tools.ToolProvider là đủ.”** Sai. Import và việc có module java.compiler không tự tạo compiler implementation. Cần kiểm tra kết quả trả về.
+**“Adding `import javax.tools.ToolProvider` is enough.”** False. Importing and having the `java.compiler` module do not create a compiler implementation. Always check the return value.
 
-**“Nếu máy có javac trên PATH, getSystemJavaCompiler không thể null.”** Sai. API tìm system tool của runtime hiện tại, không chạy một shell tìm lệnh javac.
+**“If `javac` is on the machine's `PATH`, `getSystemJavaCompiler` cannot be null.”** False. The API looks up the system tool of the current runtime, not by running a shell to find `javac`.
 
-**“JavaCompiler null là do source Java sai cú pháp.”** Sai. Khi null, thậm chí chưa có compilation task; lỗi source chỉ xuất hiện sau khi đã lấy được compiler và biên dịch.
+**“A null `JavaCompiler` is caused by invalid Java source syntax.”** False. When it is null, no compilation task even exists yet; source errors only appear after obtaining a compiler and compiling.
 
-**“Compiler khác null nghĩa là task chắc chắn thành công.”** Sai. Lỗi syntax, classpath, dependencies, annotation processor, I/O hoặc option vẫn có thể làm task thất bại.
+**“A non-null compiler means the task is guaranteed to succeed.”** False. Syntax, classpath, dependencies, annotation processors, I/O, or options can still make the task fail.
 
-**“Chỉ cần requires java.compiler thì chắc chắn có compiler.”** Sai. Dòng này cho phép module đọc API javax.tools; implementation có thể vắng mặt khỏi image.
+**“Just `requires java.compiler` guarantees a compiler exists.”** False. That directive lets the module read the `javax.tools` API; the implementation may be absent from the image.
 
-**“Có thể chữa null bằng java.util.spi.ToolProvider hoặc getSystemToolClassLoader.”** Không đúng như fallback chung. Đó là API/đường đi khác; trong JDK 17, phương thức **getSystemToolClassLoader()** của javax.tools.ToolProvider đã deprecated và implementation luôn trả null, không nên dựa vào nó.
+**“You can work around null with `java.util.spi.ToolProvider` or `getSystemToolClassLoader`.”** Incorrect as a general fallback. Those are different APIs/paths; in JDK 17, `javax.tools.ToolProvider.getSystemToolClassLoader()` is deprecated and its implementation always returns `null`, so do not rely on it.
 
-**“Tắt annotation processing làm mã người dùng an toàn.”** Không đúng. Nó giảm một kênh thực thi mã lúc compile, nhưng không bảo vệ khi code đã biên dịch được nạp/chạy. Cần ranh giới tin cậy và cách ly.
+**“Disabling annotation processing makes user code safe.”** Incorrect. It closes one code-execution vector during compilation, yet provides no protection when compiled code is loaded/run. You still need trust boundaries and isolation.
 
-**“Biên dịch được rồi thì class tự xuất hiện trong ứng dụng.”** Sai. Sau compilation còn việc nạp bytecode qua loader/module layer đúng, kiểm tra API identity và quản lý lifecycle.
+**“Once compiled, the class automatically appears in the application.”** False. After compilation comes loading bytecode through the right loader/module layer, checking API identity, and managing lifecycle.
 
-## 12. Checklist triển khai
+## 12. Deployment Checklist
 
-Trước khi bật tính năng biên dịch plugin lúc chạy, kiểm tra:
+Before enabling runtime plugin compilation, verify:
 
-- **Runtime**: xác định chính xác Java executable đang chạy host và cấu trúc runtime image thực tế.
-- **API**: dùng đúng javax.tools.ToolProvider và javax.tools.JavaCompiler.
-- **Null guard**: xét null trước mọi getStandardFileManager/getTask/run.
-- **Chính sách**: xác định compile là bắt buộc hay tùy chọn; có thông báo và status riêng cho UNAVAILABLE.
-- **Module**: ứng dụng named module có requires java.compiler; image nếu cần compiler hệ thống có module jdk.compiler.
-- **Input**: source, encoding, binary name, release target và dependency path được kiểm soát.
-- **Kết quả**: phân biệt compiler null, compilation false và exception của hạ tầng.
-- **Diagnostics**: thu lỗi có vị trí hợp lệ, giới hạn dữ liệu log và tránh phụ thuộc nguyên văn thông điệp của một vendor/JDK.
-- **Resource**: đóng file manager, class loader, output streams; dọn thư mục tạm và xử lý lỗi cleanup.
-- **Security**: không chạy bytecode người dùng không tin cậy ngay trong tiến trình host; có isolation/quota/timeout thích hợp.
-- **Kiểm thử**: test full JDK, image thiếu compiler, source hợp lệ/không hợp lệ, lỗi output và load class; theo dõi tính năng sau triển khai.
+- **Runtime**: identify the exact Java executable running the host and the actual runtime image layout.
+- **API**: use `javax.tools.ToolProvider` and `javax.tools.JavaCompiler` properly.
+- **Null guard**: check for null before any `getStandardFileManager`/`getTask`/`run` call.
+- **Policy**: decide whether compilation is mandatory or optional; provide distinct messaging and status for `UNAVAILABLE`.
+- **Modules**: named-module applications declare `requires java.compiler`; images needing a system compiler include module `jdk.compiler`.
+- **Inputs**: source, encoding, binary name, release target, and dependency paths are controlled.
+- **Results**: distinguish null compiler, `false` compilation, and infrastructure exceptions.
+- **Diagnostics**: collect errors with valid locations, bound logged data, and avoid relying on exact vendor/JDK diagnostic wording.
+- **Resources**: close file managers, class loaders, and output streams; clean temporary directories and handle cleanup errors.
+- **Security**: never run untrusted user bytecode directly in the host process; apply appropriate isolation/quotas/timeouts.
+- **Testing**: test on full JDK, compiler-less image, valid/invalid sources, output failures, and class loading; monitor the feature after rollout.
 
-**Tóm lại:** ToolProvider.getSystemJavaCompiler() là cách trực tiếp để hỏi runtime có cung cấp **system Java compiler** hay không. **null là một kết quả hợp lệ của API** cần được xử lý như một nhánh năng lực hệ thống; chỉ khi compiler khác null mới tạo compilation task, đánh giá kết quả compile và tiến hành nạp plugin. Thiết kế đúng còn đòi hỏi runtime image phù hợp, diagnostics rõ ràng, đóng tài nguyên và ranh giới bảo mật cho mã động.
+**Summary:** `ToolProvider.getSystemJavaCompiler()` is the direct way to ask the runtime whether it provides a **system Java compiler**. **null is a valid API result** that must be handled as a system-capability branch; only when the compiler is non-null should you create a compilation task, evaluate its result, and proceed to load the plugin. Proper design also requires an appropriate runtime image, clear diagnostics, resource closing, and security boundaries for dynamic code.
 
-## Tài liệu tham khảo chính thức
+## Official References
 
-- [Java SE 17 — javax.tools.ToolProvider](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/ToolProvider.html): hợp đồng getSystemJavaCompiler() và điều kiện trả null.
-- [Java SE 17 — javax.tools.JavaCompiler](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html): getTask, run, getStandardFileManager và CompilationTask.
-- [Java SE 17 — javax.tools package](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/package-summary.html): framework tools/diagnostics và phạm vi API.
-- [JDK 17 — jlink](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jlink.html): xây dựng runtime image theo module.
+- [Java SE 17 — javax.tools.ToolProvider](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/ToolProvider.html): `getSystemJavaCompiler()` contract and null return conditions.
+- [Java SE 17 — javax.tools.JavaCompiler](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html): `getTask`, `run`, `getStandardFileManager`, and `CompilationTask`.
+- [Java SE 17 — javax.tools package](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/package-summary.html): tools/diagnostics framework and API scope.
+- [JDK 17 — jlink](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jlink.html): building modular runtime images.

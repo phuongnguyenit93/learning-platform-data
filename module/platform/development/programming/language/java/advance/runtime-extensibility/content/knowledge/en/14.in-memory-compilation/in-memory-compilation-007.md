@@ -1,41 +1,41 @@
-# Giới hạn kích thước nguồn, đầu ra và thời gian của công việc biên dịch trong bộ nhớ
+# Limiting Source Size, Output, and Duration of In-Memory Compilation Jobs
 
-JavaCompiler (JSR 199, package javax.tools) cho phép nhận mã nguồn Java dưới dạng String/JavaFileObject, biên dịch và lưu các file .class vào bộ nhớ. Cách này phù hợp với công cụ kiểm tra bài tập, hệ thống sinh mã, biểu thức động và dịch vụ biên dịch do host quản lý. Tuy nhiên, nếu người dùng gửi mã nguồn quá lớn, yêu cầu tạo quá nhiều bytecode hoặc một cấu trúc mã khiến compiler làm việc rất lâu, một tác vụ có thể tiêu thụ phần lớn tài nguyên JVM.
+JavaCompiler (JSR 199, package `javax.tools`) enables accepting Java source code as Strings/JavaFileObjects, compiling it, and storing `.class` files in memory. This suits grading tools, code generation systems, dynamic expressions, and host-managed compilation services. However, if a user submits overly large source code, triggers excessive bytecode generation, or supplies a code construct that makes the compiler work for a long time, a single task can consume most of the JVM's resources.
 
-Bài này thiết kế và thực nghiệm **ba giới hạn riêng**: dung lượng đầu vào, kích thước/đếm đầu ra và thời gian thực hiện. Điểm cốt lõi là phân biệt **giới hạn logic mà JavaCompiler/file manager có thể kiểm tra** với **giới hạn tài nguyên cứng** chỉ thực sự đáng tin khi biên dịch chạy trong tiến trình được giám sát và cô lập.
+This lesson designs and experiments with **three distinct limits**: input size, output size/count, and execution duration. The core point is distinguishing **logical limits that `JavaCompiler`/file managers can check** from **hard resource limits** that are only truly reliable when compilation runs inside a monitored and isolated process.
 
-## 1. Vì sao giới hạn đầu vào đơn lẻ chưa đủ?
+## 1. Why Is a Single Input Limit Not Enough?
 
-Giả sử API nhận một file nguồn Java 8 KiB. Kích thước nhỏ không bảo đảm công việc biên dịch nhẹ: source có thể tạo nhiều anonymous/nested classes, kích hoạt suy luận kiểu phức tạp hoặc chứa biểu thức khiến compiler tốn CPU và heap. Ngược lại, một file nguồn hợp lệ lớn hơn một vài KB chưa chắc phức tạp. Vì vậy chính sách nên kiểm tra nhiều mặt:
+Suppose an API receives an 8 KiB Java source file. A small size does not guarantee lightweight compilation: the source might generate many anonymous/nested classes, trigger complex type inference, or contain expressions that consume heavy compiler CPU and heap. Conversely, a valid source file larger than a few KB is not necessarily complex. Policies should therefore check multiple dimensions:
 
-| Tài nguyên | Rủi ro nếu không kiểm soát | Nơi đặt giới hạn |
+| Resource | Risk if uncontrolled | Where to enforce the limit |
 | --- | --- | --- |
-| Số byte UTF-8 nguồn | Request body, JSON/String, parse và diagnostic chiếm RAM | Cổng nhận request, **trước khi** đọc hết body |
-| Số đơn vị UTF-16 và số source files | Có thể đã tạo nhiều String/file object; tên tệp và tổng dung lượng vượt mức | Input validator trước getTask |
-| Số class files tạo ra | Nhiều class/inner class làm tăng số entry và metadata | JavaFileManager.getJavaFileForOutput |
-| Tổng byte .class sinh ra | Chiếm bộ nhớ khi giữ bytecode trong ByteArrayOutputStream/Map | OutputStream do file manager cấp, kiểm tra từng lần ghi |
-| Diagnostic và text compiler | Nhiều lỗi có thể gây log amplification, response rất lớn | DiagnosticListener và Writer bị giới hạn dung lượng lưu |
-| Thời gian chờ (wall-clock) | Request hoặc worker bị giữ lâu | Deadline khi chờ Future hoặc child process |
-| CPU, heap, native memory thực tế | Một tác vụ làm suy giảm hoặc ngừng JVM host | Tiến trình riêng và giới hạn từ OS/container |
-| Số tác vụ đồng thời | Nhiều job nhỏ cộng lại vượt tài nguyên | Queue + concurrency cap ở tầng scheduler |
+| Source UTF-8 byte count | Request body, JSON/String, parsing, and diagnostics consume RAM | Request ingress, **before** reading the full body |
+| UTF-16 code unit count and source file count | Many Strings/file objects already allocated; filenames and total size exceed bounds | Input validator before `getTask` |
+| Number of generated class files | Many classes/inner classes inflate entry counts and metadata | `JavaFileManager.getJavaFileForOutput` |
+| Total `.class` bytes emitted | Consumes memory when holding bytecode in `ByteArrayOutputStream`/Map | `OutputStream` returned by file manager, checked on every write |
+| Diagnostics and compiler text | Many errors can cause log amplification and huge responses | Bounded `DiagnosticListener` and `Writer` storage |
+| Wait time (wall-clock) | Request or worker held open for too long | Deadline when waiting on `Future` or child process |
+| Actual CPU, heap, native memory | One task degrades or crashes the host JVM | Separate process and OS/container limits |
+| Concurrent task count | Many small jobs add up and exhaust resources | Queue + concurrency cap at the scheduler layer |
 
-**Không có một tham số JavaCompiler chuẩn nào mang nghĩa "biên dịch tối đa 2 giây và 64 MiB RAM".** API cung cấp các điểm mở rộng để kiểm soát file I/O và nhận diagnostics; việc cưỡng chế CPU, heap hay vòng đời của tác vụ phải do tầng thực thi đảm nhận.
+**There is no standard `JavaCompiler` parameter meaning "compile for at most 2 seconds and 64 MiB RAM".** The API provides extension points to control file I/O and receive diagnostics; enforcing CPU, heap, or task lifecycles must be handled by the execution layer.
 
-Những con số dùng trong lab là **ví dụ**, không phải định mức an toàn được Java bảo đảm: tối đa 8.192 đơn vị UTF-16, 8.192 byte UTF-8 nguồn, 8 class files, tổng 65.536 byte .class, 5 thông báo diagnostic được giữ với tối đa 160 ký tự mỗi thông báo, 1.024 ký tự text compiler bổ sung và 2 giây chờ Future.
+The numbers used in the lab are **examples**, not safety thresholds guaranteed by Java: at most 8,192 UTF-16 units, 8,192 source UTF-8 bytes, 8 class files, 65,536 total `.class` bytes, 5 retained diagnostic messages capped at 160 characters each, 1,024 characters of auxiliary compiler text, and a 2-second `Future` wait.
 
-## 2. Giới hạn đầu vào: đo gì và đo ở thời điểm nào?
+## 2. Input Limits: What to Measure and When?
 
-Một String trong Java được truy cập theo đơn vị UTF-16. String.length() **không phải** số byte UTF-8: tiếng Việt, ký tự Unicode ngoài BMP và escape có thể cho kích thước byte khác nhau. Nếu API nhận dữ liệu từ mạng, cần phân biệt:
+A Java `String` is indexed by UTF-16 code units. `String.length()` is **not** the UTF-8 byte count: Vietnamese text, non-BMP Unicode characters, and escapes can produce different byte sizes. If an API receives data over the network, distinguish:
 
-- **Request bytes**: số byte đi qua mạng, có thể bị nén trước khi gửi; phải đặt quota cho cả kích thước nén và sau giải nén nếu cho phép Content-Encoding.
-- **Decoded source bytes**: số byte khi mã nguồn được mã hóa theo UTF-8, thích hợp cho chính sách dung lượng source artifact.
-- **String length**: số đơn vị UTF-16 đang giữ trong heap, dùng để chặn sơ bộ trước khi mã hóa lại.
-- **Số file và tổng byte của cả batch**: không chỉ giới hạn riêng từng file; 100 file x 8 KiB vẫn là tổng dung lượng đáng kể.
+- **Request bytes**: bytes transmitted over the wire, which may be compressed before sending; set quotas for both compressed size and decompressed size if `Content-Encoding` is allowed.
+- **Decoded source bytes**: byte count when the source is encoded as UTF-8, appropriate for source artifact size policies.
+- **String length**: UTF-16 units held on the heap, useful as an early gate before re-encoding.
+- **File count and batch total bytes**: do not limit only individual files; 100 files × 8 KiB is still a substantial total.
 
-Một kiểm tra đơn giản sau khi String đã được tạo:
+A simple check after the `String` has already been created:
 
 ~~~java
-// Minh họa: áp dụng trước khi tạo compilation task.
+// Illustration: applied before creating the compilation task.
 if (source.length() > 8_192) {
     throw new IllegalArgumentException("source UTF-16 length limit");
 }
@@ -44,30 +44,30 @@ if (source.getBytes(StandardCharsets.UTF_8).length > 8_192) {
 }
 ~~~
 
-Đoạn trên **chưa bảo vệ tầng nhận HTTP** vì input đã được đọc thành String. Với dịch vụ thực, hãy dừng đọc khi vượt quota tại InputStream/BodyPublisher/parser, giới hạn số lượng phần tử và tổng số byte trước khi tạo các String lớn. Chỉ sau đó mới chuyển thành JavaFileObject để compiler sử dụng.
+The snippet above **does not protect the HTTP ingress layer** because the input has already been read into a `String`. In a real service, stop reading when exceeding the quota at the `InputStream`/`BodyPublisher`/parser level, bounding item counts and total bytes before constructing large `String` objects. Only after that should you wrap them into `JavaFileObject` instances for the compiler.
 
-Đặt chính sách rõ về encoding (UTF-8), package/class name, tên file hợp lệ, một hay nhiều compilation units và danh sách tùy chọn compiler được phép. Không nhận nguyên một command-line options string do người dùng ghép tùy ý; các tùy chọn có thể thay đổi classpath, processor, nơi ghi output hoặc hành vi của compiler.
+Set explicit policies for encoding (UTF-8), package/class names, valid filenames, single vs. multiple compilation units, and allowed compiler options. Never accept a raw command-line options string concatenated arbitrarily by users; options can alter the classpath, processors, output paths, or compiler behavior.
 
-## 3. Giới hạn đầu ra: không đợi tới khi bytecode đã được tạo hết
+## 3. Output Limits: Do Not Wait Until All Bytecode Is Emitted
 
-Trong biên dịch trong bộ nhớ, ta thường triển khai:
+In in-memory compilation, we typically implement:
 
-- **SimpleJavaFileObject** cho source: getCharContent trả về String.
-- **ForwardingJavaFileManager** bọc standard file manager và ghi đè getJavaFileForOutput để nhận class file.
-- **JavaFileObject output** với openOutputStream trả về stream riêng, có thể ghi bytecode vào ByteArrayOutputStream.
-- **DiagnosticListener** ghi nhận lỗi/warning, thay vì để mọi thông báo trôi tự do vào bộ đệm không giới hạn.
+- **`SimpleJavaFileObject`** for sources: `getCharContent` returns a `String`.
+- **`ForwardingJavaFileManager`** wrapping the standard file manager and overriding `getJavaFileForOutput` to intercept class files.
+- **Output `JavaFileObject`** whose `openOutputStream` returns a dedicated stream writing bytecode into a `ByteArrayOutputStream`.
+- **`DiagnosticListener`** capturing errors/warnings, instead of letting unbounded messages accumulate in an unlimited buffer.
 
-Một cách kiểm tra sai là sau khi compilationTask.call() đã hoàn tất, tính tổng kích thước của các mảng byte rồi mới quyết định "quá giới hạn". Khi ấy bộ nhớ có thể đã bị tiêu thụ. Tốt hơn, **trước mỗi write(byte[], off, len), kiểm tra còn đủ quota rồi mới ghi**. Nếu hết quota, báo IOException và đánh dấu output bị vượt giới hạn.
+A flawed check is summing byte array sizes after `compilationTask.call()` finishes and only then deciding "over limit". By that time, memory has already been consumed. Better: **before each `write(byte[], off, len)`, check remaining quota before writing**. If the quota is exhausted, throw `IOException` and mark the output as over-limit.
 
-Cần thêm quota **số lượng file .class**: rất nhiều file rỗng hoặc file nhỏ vẫn có overhead của object, hash map, URI và metadata. Không chỉ tính số byte của một class riêng; phải tính **tổng** output của tất cả các class do cùng một task tạo ra.
+You also need a quota on **the number of `.class` files**: very many empty or tiny files still carry object, hash map, URI, and metadata overhead. Do not count bytes for only a single class; count the **sum** of outputs across all classes emitted by the same task.
 
-Một byte quota ở file manager **không đồng nghĩa heap quota**. Compiler còn giữ AST, symbol table, constant pool, diagnostics và temporary buffers trong RAM. ByteArrayOutputStream có thể cấp phát dư capacity và toByteArray() còn sao chép mảng. Vì vậy mức giới hạn bytecode thực tế không ràng buộc toàn bộ RAM sử dụng.
+A byte quota in the file manager **is not equivalent to a heap quota**. The compiler also holds ASTs, symbol tables, constant pools, diagnostics, and temporary buffers in RAM. `ByteArrayOutputStream` can over-allocate capacity and `toByteArray()` copies the array. Thus a bytecode cap does not bound total RAM usage.
 
-## 4. Lab Java 17+: compiler trong bộ nhớ với quota và soft timeout
+## 4. Java 17+ Lab: In-Memory Compiler with Quotas and Soft Timeout
 
-Ví dụ sau là **một chương trình hoàn chỉnh**. Nó biên dịch một class Java từ String, lưu các .class tạo ra trong memory map, chặn tổng bytecode và số file, giới hạn số diagnostic được lưu, hạn chế text writer, rồi chờ tối đa một khoảng thời gian. Nó không thực thi class mới biên dịch.
+The following example is **a complete program**. It compiles a Java class from a `String`, stores emitted `.class` files in a memory map, caps total bytecode and file count, limits stored diagnostics, bounds the text writer, and waits up to a timeout. It does not execute the newly compiled class.
 
-File duy nhất: **BudgetCompilerDemo.java**. Chạy trên **JDK 17+**, không cần thư viện bên ngoài.
+Single file: **BudgetCompilerDemo.java**. Runs on **JDK 17+**, requiring no external libraries.
 
 ~~~java
 import java.io.ByteArrayOutputStream;
@@ -138,7 +138,7 @@ public final class BudgetCompilerDemo {
         }
     }
 
-    // Lưu có giới hạn; không dùng DiagnosticCollector giữ mọi diagnostic.
+    // Bounded storage; do not use DiagnosticCollector which retains every diagnostic.
     private static final class LimitedDiagnostics
             implements DiagnosticListener<JavaFileObject> {
         private final List<String> kept = new ArrayList<>();
@@ -156,7 +156,7 @@ public final class BudgetCompilerDemo {
         }
     }
 
-    // Chặn lượng text phụ mà compiler ghi qua tham số Writer của getTask.
+    // Cap auxiliary text written by the compiler via the Writer parameter of getTask.
     private static final class LimitedWriter extends Writer {
         private final StringBuilder buffer = new StringBuilder();
         private boolean truncated;
@@ -187,7 +187,7 @@ public final class BudgetCompilerDemo {
         @Override public void close() {}
     }
 
-    // Chỉ giữ class bytecode trong bộ nhớ, không ghi class ra thư mục.
+    // Keep class bytecode only in memory; do not write classes to a directory.
     private static final class LimitedFileManager
             extends ForwardingJavaFileManager<StandardJavaFileManager> {
         private final Map<String, byte[]> classes = new HashMap<>();
@@ -200,7 +200,7 @@ public final class BudgetCompilerDemo {
         }
 
         private void reserve(int amount) throws IOException {
-            // Phép trừ tránh overflow khi cộng số lượng đã dùng.
+            // Subtraction avoids overflow when adding to the amount already used.
             if (amount < 0 || amount > MAX_CLASS_BYTES - outputBytes) {
                 limitReached = true;
                 throw new IOException("class bytes quota exceeded");
@@ -253,7 +253,7 @@ public final class BudgetCompilerDemo {
             };
         }
 
-        // Không cho tác vụ ghi thêm file resource/source ra đĩa.
+        // Disallow the task from writing additional resource/source files to disk.
         @Override
         public FileObject getFileForOutput(
                 Location location, String packageName,
@@ -313,7 +313,7 @@ public final class BudgetCompilerDemo {
     private static Result compileWithBudget(
             String binaryName, String source, Path emptyClasspath) {
 
-        // Chặn nhanh trước khi tạo JavaFileObject/CompilationTask.
+        // Fast-fail before creating JavaFileObject/CompilationTask.
         if (source.length() > MAX_SOURCE_CHARS) {
             return empty("SOURCE_LIMIT");
         }
@@ -322,7 +322,7 @@ public final class BudgetCompilerDemo {
             return empty("SOURCE_LIMIT");
         }
 
-        // Daemon thread chỉ phục vụ lab: không tạo hard deadline CPU/heap.
+        // Daemon thread is for lab purposes only: does not enforce a hard CPU/heap deadline.
         ExecutorService executor = Executors.newSingleThreadExecutor(job -> {
             Thread worker = new Thread(job, "compiler-demo-worker");
             worker.setDaemon(true);
@@ -334,23 +334,23 @@ public final class BudgetCompilerDemo {
         try {
             return future.get(WAIT_MILLIS, TimeUnit.MILLISECONDS);
         } catch (TimeoutException ex) {
-            future.cancel(true); // Chỉ yêu cầu interrupt; có thể vẫn đang chạy.
+            future.cancel(true); // Only requests interruption; may still be running.
             return empty("SOFT_TIMEOUT");
         } catch (InterruptedException ex) {
             future.cancel(true);
             Thread.currentThread().interrupt();
             return empty("INTERRUPTED");
         } catch (ExecutionException ex) {
-            // Trong sản phẩm thật: log exception/cause, không trả stack trace cho client.
+            // In production: log exception/cause; do not return stack traces to the client.
             return empty("COMPILER_FAILURE");
         } finally {
-            executor.shutdownNow(); // Best effort, không bảo đảm thread dừng ngay.
+            executor.shutdownNow(); // Best effort; does not guarantee the thread stops immediately.
         }
     }
 
     public static void main(String[] args) throws Exception {
-        // Thư mục classpath trống dùng để tránh thấy class của host.
-        // Mã nguồn và .class của ví dụ vẫn được giữ trong bộ nhớ.
+        // Empty classpath directory used to avoid seeing host classes.
+        // The example source and .class outputs are still kept in memory.
         Path emptyClasspath = Files.createTempDirectory("empty-javac-cp-");
         try {
             String source =
@@ -367,7 +367,7 @@ public final class BudgetCompilerDemo {
             System.out.println("diagnosticsStored="
                     + normal.diagnosticsStored());
 
-            // Bị từ chối trước bước biên dịch.
+            // Rejected before the compilation step.
             Result huge = compileWithBudget(
                     "demo.Hello", "x".repeat(MAX_SOURCE_BYTES + 1),
                     emptyClasspath);
@@ -379,27 +379,27 @@ public final class BudgetCompilerDemo {
 }
 ~~~
 
-Lưu ý về mã:
+Notes on the code:
 
-- Result giữ metadata để minh họa. Trong hệ thống thật, có thể giữ Map<String, byte[]> ở **kết quả thành công đã xác minh** để nạp class sau đó. Bài lab cố tình không thực thi bytecode.
-- Sự kiện getJavaFileForOutput được tính vào số file; từng lệnh write đặt quota trước khi bytes được giữ lại. Nếu compiler bắt một IOException thành diagnostic hoặc RuntimeException, cờ limitReached vẫn giúp phân loại trường hợp quota class output.
-- Bài lab dùng standard file manager cho classpath/JDK module lookup, nhưng redirect **class output** vào bộ nhớ. Một thư mục tạm rỗng được tạo chỉ để chỉ định classpath; đây không phải nơi lưu file .class.
-- Tùy chọn **-proc:none** chặn annotation processing. Điều này giảm một nguồn thực thi code bên ngoài trong quá trình compile, nhưng không biến JavaCompiler thành sandbox. Không truyền options, classpath hoặc processor path tùy ý từ request.
-- LimitedDiagnostics chỉ giới hạn **số thông điệp được giữ** và ký tự lưu mỗi thông điệp; bản thân compiler vẫn có thể sinh nhiều diagnostics hoặc tạo message lớn trước khi callback nhận được.
-- LimitedWriter chặn số ký tự được giữ từ writer bổ sung. Nó không thể giới hạn lượng CPU/heap mà compiler dùng để tạo chuỗi trước khi gọi write.
-- Chặn bằng IOException là một cơ chế **kiểm soát output của lab**. Compiler/provider tùy triển khai có thể ném lỗi khác; mọi bản ghi bytes sinh được trước khi thất bại phải bị loại bỏ, **không phát hành class khi status khác OK**.
-- Nếu SOFT_TIMEOUT xảy ra, task có thể vẫn chạy ở daemon thread và còn tham chiếu tới input, file manager hoặc classpath. Vì vậy chương trình này dùng để học cơ chế giới hạn, **không đủ để phục vụ mã nguồn không tin cậy trong một JVM dùng chung**.
+- `Result` retains metadata for demonstration. In a real system, you can retain `Map<String, byte[]>` in a **verified successful result** to load classes afterward. The lab deliberately does not execute the bytecode.
+- Each `getJavaFileForOutput` event counts toward the file count; every `write` call checks the quota before retaining bytes. Even if the compiler catches an `IOException` and turns it into a diagnostic or `RuntimeException`, the `limitReached` flag still classifies the class-output quota violation.
+- The lab uses the standard file manager for classpath/JDK module lookup, while redirecting **class output** into memory. An empty temporary directory is created solely to specify the classpath; it is not where `.class` files are stored.
+- The **`-proc:none`** option disables annotation processing. This reduces one vector of external code execution during compilation, without turning `JavaCompiler` into a sandbox. Never pass arbitrary options, classpaths, or processor paths from a request.
+- `LimitedDiagnostics` caps only **the number of retained messages** and characters stored per message; the compiler itself may still generate many diagnostics or construct large messages before the callback receives them.
+- `LimitedWriter` caps the number of characters retained from the auxiliary writer. It cannot limit the CPU/heap used by the compiler to construct strings before calling `write`.
+- Aborting via `IOException` is a **lab output-control mechanism**. Different compiler/provider implementations might throw different errors; any bytes recorded before failure must be discarded, and **no class must be published when status is not OK**.
+- If `SOFT_TIMEOUT` occurs, the task may still be running on the daemon thread and holding references to inputs, the file manager, or the classpath. Thus this program is meant for learning quota mechanics, and is **not sufficient for serving untrusted source code inside a shared JVM**.
 
-### 4.1. Build và chạy
+### 4.1. Build and Run
 
-Dùng JDK 17+:
+Using JDK 17+:
 
 ~~~bash
 javac -encoding UTF-8 BudgetCompilerDemo.java
 java BudgetCompilerDemo
 ~~~
 
-Với input bình thường, compiler hoàn thành trong thời gian chờ và sinh một class. Stdout kỳ vọng:
+With normal input, the compiler finishes within the wait limit and produces one class. Expected stdout:
 
 ~~~text
 status=OK
@@ -410,64 +410,64 @@ diagnosticsStored=0
 oversize=SOURCE_LIMIT
 ~~~
 
-Những dòng kết quả này giả định compiler hoàn thành trước **2 giây** trên máy có tài nguyên đủ. Nếu máy quá tải hoặc JVM khởi động compiler chậm hơn thời hạn lab, trạng thái có thể là SOFT_TIMEOUT: **timeout theo thời gian thực không phải hành vi đầu ra tất định**. Không dùng con số 2 giây làm yêu cầu tương thích xuyên máy; chọn deadline dựa vào đo đạc latency thực tế và mức dịch vụ.
+These output lines assume the compiler finishes within **2 seconds** on a machine with sufficient resources. If the machine is overloaded or the JVM initializes the compiler slower than the lab's deadline, the status can be `SOFT_TIMEOUT`: **wall-clock timeouts are not deterministic output behavior**. Do not use 2 seconds as a cross-machine compatibility requirement; choose deadlines based on measured latency and service levels.
 
-Nếu chạy chương trình với Java runtime không chứa module jdk.compiler, ToolProvider.getSystemJavaCompiler() có thể trả null. Hãy chạy bằng bản phân phối JDK có compiler. Không cần thêm source file riêng, không cần tải dependency bên ngoài và không cần chuyển class vào classpath host.
+If running the program on a Java runtime lacking the `jdk.compiler` module, `ToolProvider.getSystemJavaCompiler()` may return `null`. Run with a JDK distribution that includes the compiler. No separate source file, external dependencies, or host classpath changes are required.
 
-### 4.2. Tại sao ba hạn mức đều có ích?
+### 4.2. Why All Three Limits Are Useful
 
-Ở nhánh normal: source được kiểm tra trước khi compiler bắt đầu; file manager nhận và chặn từng byte bytecode; host chỉ chờ trong deadline đã đặt. Ở nhánh oversize: chuỗi bị từ chối trước khi tạo task; status được gán rõ ràng là SOURCE_LIMIT.
+In the normal branch: the source is checked before the compiler starts; the file manager receives and gates every byte of bytecode; the host waits only up to the set deadline. In the oversize branch: the string is rejected before creating the task; the status is explicitly `SOURCE_LIMIT`.
 
-Một trường hợp khó hơn: input chỉ 2 KiB nhưng khi compile tạo 30 class. Counter ở getJavaFileForOutput phát hiện vượt **MAX_CLASS_FILES** dù tổng byte còn nhỏ. Trường hợp khác tạo một class 100 KiB: reserve(...) phát hiện vượt **MAX_CLASS_BYTES** ngay khi write vượt ngưỡng. Cả hai phải là OUTPUT_LIMIT và không trả artifact một phần cho người dùng.
+A trickier case: a 2 KiB input that compiles into 30 classes. The counter in `getJavaFileForOutput` catches exceeding **`MAX_CLASS_FILES`** even while total bytes remain small. Another case emits a single 100 KiB class: `reserve(...)` catches exceeding **`MAX_CLASS_BYTES`** the moment a write crosses the threshold. Both must result in `OUTPUT_LIMIT` and never return a partial artifact to the caller.
 
-Nếu cú pháp sai, compiler có thể báo COMPILATION_ERROR, nhưng listener chỉ giữ tối đa MAX_DIAGNOSTICS thông báo đầu tiên, mỗi thông báo tối đa MAX_DIAG_CHARS. Nếu compiler cố ghi text khác vượt MAX_OTHER_TEXT, mã sẽ đánh dấu COMPILER_TEXT_LIMIT. Các giới hạn output là độc lập với kết quả parse/type-check.
+If syntax is invalid, the compiler can report `COMPILATION_ERROR`, while the listener retains at most the first `MAX_DIAGNOSTICS` messages, each at most `MAX_DIAG_CHARS`. If the compiler attempts to write auxiliary text beyond `MAX_OTHER_TEXT`, the code flags `COMPILER_TEXT_LIMIT`. Output limits are independent of parse/type-check outcomes.
 
-## 5. Timeout trong JVM: giới hạn thời gian chờ khác giới hạn CPU
+## 5. Timeouts in the JVM: Wait Timeout vs. CPU Limit
 
-Trong demo, Future.get(timeout, TimeUnit.MILLISECONDS) **đặt giới hạn thời gian mà thread gọi đợi kết quả**. Khi hết hạn, future.cancel(true) thử interrupt worker. Điều đó **không có nghĩa** thread của compiler đã dừng. Compiler có thể đang tính toán mà không kiểm tra interrupt, giữ heap/cpu và còn tiếp tục trong khi API đã trả SOFT_TIMEOUT.
+In the demo, `Future.get(timeout, TimeUnit.MILLISECONDS)` **sets a limit on how long the calling thread waits for a result**. Upon expiration, `future.cancel(true)` attempts to interrupt the worker. That **does not mean** the compiler thread has stopped. The compiler might be computing without checking interrupts, holding heap/CPU, and continuing after the API has returned `SOFT_TIMEOUT`.
 
-Cũng cần lưu ý:
+Also note:
 
-- Future.isDone() sau cancel có thể cho biết trạng thái future đã kết thúc theo hợp đồng Future, **không xác nhận mọi công việc đang chạy đã dừng**.
-- ExecutorService.shutdownNow() cố ngắt công việc đang chạy nhưng tài liệu JDK không bảo đảm nó sẽ dừng một task không hợp tác.
-- Một daemon thread vẫn tiêu thụ tài nguyên khi JVM còn sống; đánh dấu daemon chỉ giúp JVM có thể kết thúc mà không cần đợi thread đó.
-- Một request bị timeout nhưng worker chưa kết thúc vẫn phải được tính vào **số job đang tiêu thụ tài nguyên**, không thể lập tức trả slot concurrency cho người dùng khác như thể job đã dừng thật.
-- Cố ép dừng thread qua Thread.stop() không phải một giải pháp quản lý compiler an toàn. Cần cô lập ở mức tiến trình nếu yêu cầu cưỡng chế.
+- `Future.isDone()` after cancel may report the future as finished per the `Future` contract, **without confirming that all running work has stopped**.
+- `ExecutorService.shutdownNow()` attempts to interrupt running tasks, but JDK documentation does not guarantee it will stop an uncooperative task.
+- A daemon thread still consumes resources while the JVM is alive; marking it daemon only allows the JVM to exit without waiting for that thread.
+- A timed-out request whose worker has not exited must still count toward **resource-consuming active jobs**; you cannot immediately hand its concurrency slot to another user as if the job had actually stopped.
+- Trying to force-stop a thread with `Thread.stop()` is not a safe compiler management solution. Process-level isolation is required if forced termination is needed.
 
-Vì vậy cần đặt tên trạng thái và SLA chính xác: **SOFT_TIMEOUT** nghĩa là caller đã dừng chờ; không cam kết ngân sách CPU/RAM của compiler đã được cưỡng chế.
+Therefore, name statuses and SLAs accurately: **`SOFT_TIMEOUT`** means the caller stopped waiting; it does not promise that the compiler's CPU/RAM budget was enforced.
 
-Một lỗi tinh tế là đóng file manager, xóa classpath tạm hoặc phát hành output **ngay sau khi Future.get hết hạn** trong khi worker còn đang sử dụng các object ấy. Thiết kế thực tế phải bảo đảm tài nguyên có owner và lifecycle thống nhất. Nếu compiler không thể bị ngắt an toàn, cần chuyển công việc sang process worker có thể kết thúc được trước khi cleanup.
+A subtle bug is closing the file manager, deleting the temporary classpath, or publishing outputs **immediately after `Future.get` expires** while the worker is still using those objects. A real design must ensure resources have unified ownership and lifecycles. If the compiler cannot be safely interrupted, move the work into a worker process that can be terminated before cleanup.
 
-## 6. Kiến trúc nên dùng khi cần giới hạn cứng
+## 6. Architecture to Use When Hard Limits Are Required
 
-Để biên dịch mã từ nhiều người dùng hoặc nguồn chưa tin cậy, thiết kế chắc chắn hơn:
+To compile code from multiple users or untrusted sources, a stronger design is:
 
 ~~~text
 HTTP/request gateway
     |
-    | quota byte/source count + xác thực + queue limit
+    | byte/source count quota + authentication + queue limit
     v
 scheduler (max concurrent compiles, per-tenant budget)
     |
     v
 isolated compiler worker process/container
-    |   JDK version cố định, -proc:none
-    |   allowlisted options, classpath riêng
+    |   pinned JDK version, -proc:none
+    |   allowlisted options, dedicated classpath
     |   OS/container CPU + memory + process + filesystem limits
-    |   in-memory source/class output với quota
+    |   in-memory source/class output with quotas
     |
-    +--> response chỉ khi compile thành công, output/diagnostics đủ điều kiện
+    +--> response only on successful compile, eligible output/diagnostics
     |
-    +--> timeout/vi phạm quota: terminate worker, cleanup, đánh dấu FAILED
+    +--> timeout/quota violation: terminate worker, cleanup, mark FAILED
 ~~~
 
-Một worker process có thể tiếp tục dùng **javax.tools.JavaCompiler và memory file manager** như lab; việc tách process không buộc phải chuyển sang compile qua file trên đĩa. Nguồn đi vào worker có thể qua IPC được kiểm soát; trả lại bytecode qua giao thức có giới hạn kích thước. Host phải xác minh message length trước khi cấp phát.
+A worker process can continue using **`javax.tools.JavaCompiler` and an in-memory file manager** just like the lab; separating processes does not force compiling via files on disk. Sources can enter the worker over controlled IPC, and bytecode can be returned via a size-bounded protocol. The host must verify message lengths before allocating buffers.
 
-Nếu chấp nhận compiler CLI javac trong process riêng, host có thể đặt timeout ở Process (mã dưới là **đoạn minh họa, chưa phải chương trình độc lập**):
+If accepting the `javac` CLI compiler in a separate process, the host can set a timeout on `Process` (the code below is an **illustrative snippet, not a standalone program**):
 
 ~~~java
-// Giả định đường dẫn executable, source file, classpath và output dir
-// đều do host kiểm soát; output được redirect để tránh nghẽn pipe.
+// Assumes the executable path, source file, classpath, and output dir
+// are all host-controlled; output is redirected to avoid pipe blocking.
 Process process = new ProcessBuilder(
         javacPath,
         "--release", "17",
@@ -490,108 +490,108 @@ if (process.exitValue() != 0) {
 }
 ~~~
 
-Ở đây Process.waitFor(timeout, unit) trả về false nếu deadline hết, và destroyForcibly() yêu cầu kết thúc process. Đây là **đường cưỡng chế hữu ích hơn Future.cancel(true)**, nhưng chưa đầy đủ cho sản phẩm thật:
+Here `Process.waitFor(timeout, unit)` returns `false` if the deadline expires, and `destroyForcibly()` requests process termination. This is a **more useful enforcement path than `Future.cancel(true)`**, though still incomplete for production:
 
-- Child process có thể tạo process con; cần quản lý **process tree/process group/container** phù hợp với OS, không chỉ kill một PID.
-- Sau destroyForcibly, process có thể chưa chết tức thì; waitFor() tiếp giúp thu dọn nhưng cần chính sách tổng deadline và xử lý lỗi OS.
-- Đầu ra compiler, stdout/stderr, file trong output dir, log và lượng IPC đều phải bị giới hạn. Mã trên discard text để tránh tắc pipe, nên **không thu diagnostics**; sản phẩm cần thiết kế bộ đọc có quota riêng nếu muốn trả thông báo lỗi.
-- Java process dùng -Xmx chỉ giới hạn một phần Java heap; native memory, CPU, file descriptors, process count và filesystem cần thêm ràng buộc của container/cgroup/Windows Job Objects hoặc cơ chế tương đương.
-- Compile bằng javac CLI xuất ra thư mục file; nếu yêu cầu giữ bytecode hoàn toàn trong bộ nhớ, chạy JavaCompiler API **bên trong process cô lập**, rồi truyền kết quả qua IPC bị chặn kích thước.
+- A child process can spawn child processes; you must manage the **process tree/process group/container** appropriately for the OS, not just kill a single PID.
+- After `destroyForcibly`, the process may not die instantly; calling `waitFor()` afterward helps reap it, though you still need an overall deadline policy and OS error handling.
+- Compiler outputs, stdout/stderr, files in the output directory, logs, and IPC volume must all be bounded. The code above discards text to avoid pipe deadlocks, so it **captures no diagnostics**; production systems need bounded readers if error messages must be returned.
+- A Java process using `-Xmx` bounds only part of the Java heap; native memory, CPU, file descriptors, process count, and filesystem usage require container/cgroup/Windows Job Objects or equivalent constraints.
+- Compiling with the `javac` CLI writes files to a directory; if bytecode must stay entirely in memory, run the `JavaCompiler` API **inside the isolated process** and send results back over size-bounded IPC.
 
-Tính chất hard limit phụ thuộc tầng thực thi OS/container và cấu hình tài nguyên. Process.kill không tự thiết lập giới hạn heap, CPU, disk hoặc chống mọi side effect của một tiến trình có quyền rộng.
+Hard-limit enforcement depends on the OS/container execution layer and resource configuration. `Process.kill` does not itself impose heap, CPU, or disk limits, nor prevent every side effect of an over-privileged process.
 
-## 7. Chính sách an toàn cho classpath, processor và runtime
+## 7. Security Policy for Classpath, Processors, and Runtime
 
-Một dịch vụ biên dịch động có thêm bề mặt tấn công ngoài kích thước nguồn. Các lựa chọn kiểm soát quan trọng:
+A dynamic compilation service has an attack surface beyond source size. Key controls:
 
-| Thành phần | Chính sách nên áp dụng | Lý do |
+| Component | Recommended policy | Reason |
 | --- | --- | --- |
-| JDK và --release | Ghim JDK worker và phiên bản ngôn ngữ/target được hỗ trợ | Kết quả dễ tái lập, tránh API không tương thích |
-| Annotation processing | Mặc định -proc:none; chỉ bật với processor đã xét duyệt | Processor là mã có thể được thực thi khi compile |
-| Classpath/module path | Cho phép danh sách dependency kiểm chứng, không tự nối toàn classpath host | Hạn chế ảnh hưởng và rò thông tin từ host |
-| Compiler options | Tạo danh sách option ở server, không chấp nhận tham số tùy ý từ client | Tránh thay đường nạp/ghi file và thay chính sách |
-| File manager | Ghi nhận ClassOutput và cấm/kiểm soát các loại output khác | Không bỏ lọt file/resource do task sinh ra |
-| Diagnostics | Cap số lượng, kích thước text và nội dung trả về | Tránh log amplification hoặc lộ source không cần thiết |
-| Compiled artifact | Chỉ publish sau status OK, size check và kiểm tra class names | Không dùng bytecode từ job lỗi/timeout |
-| Execution | Không chạy class vừa biên dịch trong JVM host có quyền lớn | Biên dịch thành công không chứng minh code an toàn |
+| JDK and `--release` | Pin worker JDK and supported language/target version | Reproducible results, prevents incompatible APIs |
+| Annotation processing | Default `-proc:none`; enable only vetted processors | Processors are code executable during compilation |
+| Classpath/module path | Allowlist vetted dependencies; never blindly forward full host classpath | Limits impact and information leakage from the host |
+| Compiler options | Construct option list server-side; reject arbitrary flags from clients | Prevents altering file read/write paths and policies |
+| File manager | Capture `ClassOutput` and forbid/control all other output kinds | Avoids leaking task-generated files/resources |
+| Diagnostics | Cap count, text size, and returned details | Prevents log amplification or unnecessary source exposure |
+| Compiled artifact | Publish only after `OK` status, size checks, and class name validation | Never use bytecode from failed/timed-out jobs |
+| Execution | Never run freshly compiled classes in a high-privilege host JVM | Successful compilation does not prove code is safe |
 
-Một class có thể biên dịch thành công rồi khi được nạp/khởi tạo sẽ truy cập file, network, tạo thread hoặc dùng nhiều CPU. JavaCompiler **không kiểm chứng tính an toàn của chương trình sinh ra**. Vì thế nếu cần chạy chương trình của người dùng, execution phải có sandbox/process isolation và hạn mức riêng, tách khỏi ngân sách compile.
+A class can compile cleanly and then, upon loading/initialization, access files, open network connections, spawn threads, or burn CPU. `JavaCompiler` **does not verify the safety of the generated program**. Therefore, if user programs must be executed, execution requires its own sandbox/process isolation and separate budgets, decoupled from compilation budgets.
 
-Có thể dùng danh sách tên binary, hash artifact, phiên bản JDK, byte count, diagnostic count và thời gian thực tế để audit; tránh log toàn bộ source khi không cần và bảo vệ thông tin nhạy cảm trong diagnostics.
+You can log binary names, artifact hashes, JDK version, byte counts, diagnostic counts, and actual duration for auditing; avoid logging full sources unnecessarily and protect sensitive details inside diagnostics.
 
-## 8. Cách đo, tính ngân sách và xử lý tính đồng thời
+## 8. Measuring, Budgeting, and Handling Concurrency
 
-Giới hạn theo một job không đủ nếu host chấp nhận nhiều job cùng lúc. Giả sử mỗi job có output cap 64 KiB, nhưng compile có thể dùng hàng trăm MiB heap tạm; 100 job song song vẫn có thể quá tải. Dịch vụ cần thêm:
+Per-job limits are insufficient if the host accepts many jobs simultaneously. Even if each job has a 64 KiB output cap, compiling can temporarily use hundreds of MiB of heap; 100 concurrent jobs can still overload the host. The service also needs:
 
-1. **Concurrency ceiling**: số worker compiler/process tối đa, có giới hạn riêng cho từng tenant.
-2. **Bounded queue**: giới hạn số request đang chờ và thời gian chờ hàng đợi; trả BUSY/429 khi đầy thay vì tích lũy vô hạn.
-3. **Admission control**: kiểm tra source quota ngay trước khi vào queue hoặc trước khi dành worker, tránh giữ nhiều body đã decode.
-4. **Deadline tổng**: xác định rõ thời gian gồm thời gian queue, startup JVM, compiler initialization, compile, gửi kết quả và cleanup hay chỉ phần compile; không trộn các thước đo.
-5. **Per-process resource quotas**: CPU, RAM, số process, file descriptors, dung lượng đĩa và output IPC.
-6. **Metrics**: tổng bytes nguồn, class count/bytes, diagnostics retained/truncated, queue wait, run wall time, CPU time nếu có nguồn số đo tin cậy, timeout/kill rate.
-7. **Lifecycle cleanup**: hủy job và chắc chắn worker/process đã thoát trước khi tái sử dụng slot. Nếu worker bị timeout nhưng vẫn sống, phải theo dõi nó như một job đang chạy.
-8. **Result cache có điều kiện**: nếu cần cache biên dịch, key phải bao gồm hash source, JDK/version, compiler options và dependency set. Cache cũng cần giới hạn dung lượng/TTL.
+1. **Concurrency ceiling**: maximum number of compiler workers/processes, with per-tenant limits.
+2. **Bounded queue**: cap waiting requests and queue wait time; return `BUSY`/429 when full instead of queuing without bound.
+3. **Admission control**: check source quotas right before queuing or assigning a worker, avoiding buffering many decoded bodies.
+4. **End-to-end deadline**: define clearly whether duration covers queueing, JVM startup, compiler initialization, compilation, result transfer, and cleanup, or compilation alone; never mix metrics.
+5. **Per-process resource quotas**: CPU, RAM, process count, file descriptors, disk space, and IPC output.
+6. **Metrics**: total source bytes, class count/bytes, diagnostics retained/truncated, queue wait, wall-clock runtime, CPU time where reliably measured, and timeout/kill rates.
+7. **Lifecycle cleanup**: cancel the job and verify the worker/process has exited before reusing the slot. If a worker timed out yet remains alive, track it as an active job.
+8. **Conditional result cache**: if caching compilations, keys must include source hash, JDK/version, compiler options, and dependency set. The cache also needs size/TTL limits.
 
-Một deadline chỉ tính từ lúc worker bắt đầu có thể để request nằm chờ không giới hạn. Một deadline tính từ lúc nhận request phải còn đủ thời gian cho các giai đoạn sau; một job đã hết hạn trong queue nên bị loại trước khi compiler được tạo.
+A deadline measured only from when the worker starts can leave requests waiting indefinitely in the queue. A deadline measured from request arrival must leave enough time for downstream stages; a job that already expired in the queue should be rejected before starting a compiler.
 
-Trong file manager nhiều tác vụ, đừng dùng một counter static toàn JVM cho mọi job nếu không thiết kế concurrency đúng. Lab tạo một LimitedFileManager mới cho mỗi invocation và ghi output trên thread compiler của job đó; counter thuộc **một task**, không chia sẻ giữa các công việc đang biên dịch song song.
+In a multi-task file manager, never share a JVM-global static counter across all jobs without proper concurrency design. The lab creates a fresh `LimitedFileManager` per invocation and writes outputs on that job's compiler thread; counters belong to **a single task**, not shared across concurrent compilation jobs.
 
-## 9. Thực nghiệm thêm để hiểu giới hạn
+## 9. Further Experiments to Understand Limits
 
-Các thí nghiệm sau được thực hiện với chính chương trình lab, thay đổi **một chính sách mỗi lần** rồi build lại:
+The following experiments can be performed on the lab program itself, changing **one policy at a time** and rebuilding:
 
-### A. Quá giới hạn source
+### A. Exceeding Source Limit
 
-Giữ source là "x".repeat(MAX_SOURCE_BYTES+1). Kết quả mong đợi SOURCE_LIMIT xảy ra **trước khi submit compiler task**, nên không có bytecode hoặc diagnostic do compiler tạo. Khi request đã được chuyển thành String, giới hạn của lab chỉ chống phát sinh thêm công việc, chưa bảo vệ heap đã dùng để nhận request.
+Keep the source as `"x".repeat(MAX_SOURCE_BYTES+1)`. Expected `SOURCE_LIMIT` occurs **before submitting the compiler task**, so no bytecode or compiler diagnostics are produced. Once a request has already been materialized as a `String`, the lab's check only prevents further work, without protecting the heap already spent receiving the request.
 
-### B. Quá số class files
+### B. Exceeding Class File Count
 
-Đổi MAX_CLASS_FILES thành 0 rồi chạy với mã nguồn Hello hợp lệ. getJavaFileForOutput sẽ đánh dấu output limit khi compiler yêu cầu class đầu tiên. Job phải trả OUTPUT_LIMIT hoặc COMPILER_FAILURE tùy cách lỗi IOException được compiler/driver diễn giải; trường hợp không thành công không được publish artifact. Với code lab, nếu task.call trả về và limitReached được quan sát sau đó, trạng thái là OUTPUT_LIMIT. Khi cần ổn định mã lỗi giữa compiler implementation, hãy bắt/chuẩn hóa cause trong tầng worker.
+Change `MAX_CLASS_FILES` to `0` and run with valid `Hello` source. `getJavaFileForOutput` flags the output limit when the compiler requests the first class. The job should return `OUTPUT_LIMIT` or `COMPILER_FAILURE` depending on how `IOException` is interpreted by the compiler/driver; unsuccessful runs must never publish artifacts. With the lab code, if `task.call` returns and `limitReached` is observed afterward, the status is `OUTPUT_LIMIT`. When consistent error codes across compiler implementations are needed, catch/normalize causes in the worker layer.
 
-### C. Quá số byte .class
+### C. Exceeding `.class` Byte Count
 
-Đổi MAX_CLASS_BYTES thành 64. Compiler sẽ bắt đầu sinh class output nhưng write vượt quota. Không dùng một byte array lớn rồi chỉ kiểm tra chiều dài cuối cùng; file manager phải dừng trước lần ghi làm vượt mức. Kiểm tra count và flag, xác nhận class kết quả không được phát hành.
+Change `MAX_CLASS_BYTES` to `64`. The compiler begins emitting class output, but writes exceed the quota. Do not collect into one large byte array and check length only at the end; the file manager must abort before the write that crosses the threshold. Inspect the count and flag, confirming the resulting class is not published.
 
-### D. Diagnostic nhiều hoặc quá dài
+### D. Too Many or Overlong Diagnostics
 
-Đưa một source cố tình có nhiều lỗi cú pháp và type-check. LimitedDiagnostics lưu tối đa 5 chuỗi, mỗi chuỗi bị cắt về tối đa 160 ký tự nội dung message (không tính prefix kind). Tuy nhiên, compiler vẫn có thể đã dựng thông điệp gốc dài: cap này giới hạn **bộ nhớ trong collection của listener**, không hạn chế hoàn toàn chi phí compiler.
+Supply a source deliberately containing many syntax and type-checking errors. `LimitedDiagnostics` stores at most 5 strings, each truncated to at most 160 message characters (excluding the kind prefix). However, the compiler may still have constructed long original messages: this cap bounds **memory inside the listener's collection**, not the entire compiler cost.
 
-### E. Soft timeout
+### E. Soft Timeout
 
-Giảm WAIT_MILLIS xuống 1 rồi chạy lặp vài lần. Có thể thấy SOFT_TIMEOUT ngay cả với chương trình nhỏ vì khởi tạo compiler cũng tốn thời gian. Đây là lý do phải đo latency và không suy từ "timed out" rằng tác vụ trong JVM đã bị kill. Không biến thử nghiệm này thành bài stress trên máy dùng chung nếu không thể theo dõi worker còn sống.
+Reduce `WAIT_MILLIS` to `1` and run repeatedly several times. You can observe `SOFT_TIMEOUT` even for tiny programs because initializing the compiler takes time. This demonstrates why you must measure latency and never infer from "timed out" that the in-JVM task was killed. Do not turn this experiment into a stress test on a shared machine if you cannot track still-alive workers.
 
-### F. Cùng source nhưng nhiều job đồng thời
+### F. Same Source, Many Concurrent Jobs
 
-Bắn nhiều yêu cầu cùng lúc qua scheduler có queue. Dù source và output mỗi job vẫn nằm trong quota, CPU/heap/latency tổng có thể tăng rất mạnh. Giới hạn số worker và reject khi hết capacity là điều bắt buộc cho hệ thống multi-tenant.
+Send many simultaneous requests through a queued scheduler. Even when each job's source and output stay within quota, aggregate CPU/heap/latency can spike dramatically. Bounding worker count and rejecting when out of capacity is mandatory for multi-tenant systems.
 
-## 10. Bảng lỗi thường gặp khi thiết kế quota biên dịch
+## 10. Common Pitfalls When Designing Compilation Quotas
 
-| Triệu chứng | Nguyên nhân thường gặp | Hướng sửa |
+| Symptom | Common cause | Fix |
 | --- | --- | --- |
-| API hết RAM trước khi compiler bắt đầu | Đọc request thành String rồi mới kiểm tra quá lớn | Quota khi stream/decode và giới hạn tổng số file |
-| Source ASCII chạy nhưng tiếng Việt vượt byte limit | Nhầm length() với số byte UTF-8 | Kiểm tra cả UTF-16 length và UTF-8 byte count |
-| Bytecode vượt cap dù có kiểm tra sau call() | Đã chứa hết ByteArrayOutputStream trước khi kiểm tra | Chặn từng write trong output stream |
-| Hàng trăm class nhỏ làm heap tăng | Chỉ giới hạn byte mà quên giới hạn số class | Cap số file output, metadata và tổng byte |
-| Log/diagnostics chiếm bộ nhớ | DiagnosticCollector hoặc Writer/response không giới hạn | Listener và Writer có quota; giới hạn response |
-| Future báo timeout nhưng CPU vẫn cao | cancel(true) là ngắt hợp tác, compiler có thể không dừng | Process isolation, kill và cleanup thực sự |
-| Gặp timeout nhưng scheduler nhận job mới ngay | Đã thả permit dù worker chưa dừng | Chỉ release capacity sau khi worker/process thực sự kết thúc |
-| Compiler đọc dependency host hoặc chạy processor lạ | Dùng mặc định classpath/processor path hoặc options do client điều khiển | Classpath và options do host kiểm soát, -proc:none |
-| Bắt lỗi limit rồi trả class output một phần | Stream đã ghi được vài byte trước thất bại | Chỉ phát hành artifact khi toàn bộ task thành công và hợp lệ |
-| Sau biên dịch code chạy và truy cập tài nguyên host | Nhầm biên dịch với sandbox thực thi | Thực thi riêng trong môi trường cô lập |
+| API runs out of RAM before compiler starts | Read request into a `String` before checking size | Enforce quotas during streaming/decoding and cap total file count |
+| ASCII source works, Vietnamese exceeds byte limit | Confused `length()` with UTF-8 byte count | Check both UTF-16 length and UTF-8 byte count |
+| Bytecode exceeds cap despite post-`call()` check | Buffered entire `ByteArrayOutputStream` before checking | Gate every `write` in the output stream |
+| Hundreds of tiny classes inflate heap | Capped bytes but forgot to cap class count | Cap output file count, metadata, and total bytes |
+| Logs/diagnostics exhaust memory | Unbounded `DiagnosticCollector`, `Writer`, or response | Apply quotas to listener and writer; cap response size |
+| `Future` reports timeout while CPU stays high | `cancel(true)` is cooperative interruption; compiler may not stop | Use process isolation, real termination, and cleanup |
+| On timeout, scheduler immediately admits a new job | Released permit while worker was still running | Release capacity only after worker/process actually exits |
+| Compiler reads host dependencies or runs unknown processors | Used default classpath/processor path or client-controlled options | Host-controlled classpath and options, `-proc:none` |
+| Limit error caught, yet partial class output returned | Stream had already written some bytes before failure | Publish artifacts only when the entire task succeeds and passes checks |
+| After compilation, code runs and accesses host resources | Confused compilation with an execution sandbox | Execute separately inside an isolated environment |
 
-## 11. Checklist áp dụng và tài liệu tham khảo
+## 11. Deployment Checklist and References
 
-Trước khi đưa dịch vụ biên dịch trong bộ nhớ vào môi trường có người dùng thật, xác định cụ thể:
+Before deploying an in-memory compilation service to real users, explicitly verify:
 
-- Nguồn đầu vào được giới hạn **ở nơi nhận bytes**, cả số file lẫn tổng kích thước sau decode.
-- JavaCompiler nhận compilation units và compiler options do server kiểm soát, có version và classpath cố định, tắt annotation processing trừ khi chủ động cho phép.
-- Mọi class output được tính quota **trong quá trình ghi**, có giới hạn số entry và tổng byte; output không chuẩn hoặc artifact lỗi bị loại bỏ.
-- Diagnostics, writer text, response size và log đều có giới hạn riêng; thông tin lỗi phải đủ hữu ích nhưng không làm tăng tải vô hạn.
-- Timeout được định nghĩa rõ là **soft wait deadline** hay **hard process termination**, và tên trạng thái phản ánh chính xác.
-- Worker vẫn đang chạy sau timeout không bị coi như đã giải phóng tài nguyên. Với mã không tin cậy, worker nên nằm trong process/container có giới hạn CPU/RAM/đĩa và cơ chế kill.
-- Scheduler áp dụng queue/concurrency/tenant budget, kiểm thử các tình huống SOURCE_LIMIT, OUTPUT_LIMIT, COMPILATION_ERROR, SOFT_TIMEOUT và thất bại của worker.
-- Bytecode sau khi biên dịch không được chạy trong cùng host JVM chỉ vì compiler báo OK; thực thi cần chính sách cách ly riêng.
+- Input sources are bounded **at byte ingress**, covering both file count and post-decode total size.
+- `JavaCompiler` receives server-controlled compilation units and options, with a pinned version and classpath, and annotation processing disabled unless explicitly authorized.
+- Every class output is metered **during writes**, with caps on entry count and total bytes; non-standard outputs or failed artifacts are discarded.
+- Diagnostics, writer text, response size, and logs each have dedicated caps; error details stay useful without causing unbounded load.
+- Timeouts are clearly defined as either **soft wait deadlines** or **hard process terminations**, with status names accurately reflecting which one.
+- Workers still running after a timeout are not treated as having freed resources. For untrusted code, workers should live in a process/container with CPU/RAM/disk limits and a kill mechanism.
+- The scheduler enforces queue, concurrency, and tenant budgets, and tests cover `SOURCE_LIMIT`, `OUTPUT_LIMIT`, `COMPILATION_ERROR`, `SOFT_TIMEOUT`, and worker failures.
+- Compiled bytecode is never executed inside the same host JVM merely because the compiler returned OK; execution requires its own isolation policy.
 
-**Tài liệu JDK 17:** [JavaCompiler](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html), [JavaFileManager và ForwardingJavaFileManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/ForwardingJavaFileManager.html), [DiagnosticListener](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/DiagnosticListener.html), [Future.cancel](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html), [ExecutorService.shutdownNow](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html) và [Process.waitFor/destroyForcibly](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Process.html).
+**JDK 17 Documentation:** [JavaCompiler](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html), [JavaFileManager and ForwardingJavaFileManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/ForwardingJavaFileManager.html), [DiagnosticListener](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/DiagnosticListener.html), [Future.cancel](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html), [ExecutorService.shutdownNow](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html), and [Process.waitFor/destroyForcibly](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Process.html).
 
-Kết luận thực hành: **kiểm tra source trước task; chặn output tại file manager; giới hạn diagnostics và text; phân biệt timeout chờ Future với việc thực sự dừng compiler; dùng cô lập tiến trình khi cần cưỡng chế tài nguyên**. Bốn ranh giới này giúp dịch vụ biên dịch trong bộ nhớ có hành vi lỗi đoán trước được và tránh biến một request Java thành nguyên nhân làm quá tải toàn bộ host.
+Practical conclusion: **validate sources before creating the task; gate outputs in the file manager; bound diagnostics and writer text; distinguish waiting on a `Future` timeout from actually stopping the compiler; and use process isolation when hard resource enforcement is required**. These four boundaries keep an in-memory compilation service's failure behavior predictable and prevent a single Java request from overloading the entire host.

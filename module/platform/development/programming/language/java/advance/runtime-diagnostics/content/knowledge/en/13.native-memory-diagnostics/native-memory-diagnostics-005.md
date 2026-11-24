@@ -1,69 +1,69 @@
-# 13.5 Thiết lập baseline rồi đọc `summary.diff` hoặc `detail.diff`
+# 13.5 Setting a Baseline and Reading `summary.diff` or `detail.diff`
 
-## Mục tiêu bài học
+## Lesson Objectives
 
-Khi bộ nhớ của tiến trình Java tăng, một ảnh chụp tức thời không đủ để biết **bộ nhớ tăng từ khi nào, ở nhóm nào và có tiếp tục tăng khi tải đã trở về bình thường không**. Native Memory Tracking (NMT) của HotSpot có cơ chế **baseline** để so sánh lượng bộ nhớ JVM đang quản lý ở những thời điểm khác nhau.
+When a Java process's memory grows, a point-in-time snapshot is not enough to know **when memory started growing, in which category, and whether it keeps growing after load returns to normal**. HotSpot's Native Memory Tracking (NMT) provides a **baseline** mechanism to compare JVM-managed memory across different points in time.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Bật mức NMT phù hợp ngay khi khởi động JVM và kiểm tra nó đã hoạt động.
-2. Chọn thời điểm baseline sau warm-up, thu thập `summary.diff` theo các pha tải và đọc dấu `+`/`-` đúng nghĩa.
-3. Dùng `detail.diff` để đi sâu từ nhóm bộ nhớ đang tăng tới các điểm cấp phát/ánh xạ bộ nhớ mà HotSpot ghi nhận.
-4. Phân biệt `reserved`, `committed`, số lượng allocation và bộ nhớ vật lý RSS; nhận diện giới hạn của NMT.
-5. Viết kết luận chẩn đoán có bằng chứng, tránh gọi mọi delta dương là native memory leak.
+1. Enable the appropriate NMT level at JVM startup and verify it is active.
+2. Choose a baseline time after warm-up, collect `summary.diff` across load phases, and interpret `+`/`-` signs accurately.
+3. Use `detail.diff` to drill down from a growing memory category to the HotSpot-recorded allocation sites/memory mappings.
+4. Distinguish `reserved`, `committed`, allocation counts, and physical RSS memory; recognize NMT's limitations.
+5. Write evidence-backed diagnostic conclusions without labeling every positive delta a native memory leak.
 
-> **Phạm vi:** Bài tập trung vào đo biến động bộ nhớ native của **HotSpot JVM** bằng NMT trong Java 17+/21. NMT cũng liệt kê vùng Java Heap mà VM đã reserve/commit, nhưng không thay thế heap profiler, GC log hay phép đo RSS của hệ điều hành.
+> **Scope:** This lesson focuses on measuring native memory changes in the **HotSpot JVM** using NMT in Java 17+/21. NMT also lists the Java Heap reserved/committed by the VM, but does not replace heap profilers, GC logs, or OS RSS measurements.
 
-## 1. Baseline là gì, và tại sao cần diff?
+## 1. What Is a Baseline, and Why Do You Need a Diff?
 
-NMT ghi nhận lượng bộ nhớ mà **bản thân HotSpot JVM** sử dụng/đặt chỗ, tổng hợp theo nhóm như `Java Heap`, `Class`, `Thread`, `Code`, `GC`, `Compiler`, `Internal`, `Other` và `Native Memory Tracking`. Tên, cấu trúc nhóm và mức chi tiết có thể khác giữa bản JDK.
+NMT records memory used/reserved by the **HotSpot JVM itself**, aggregated into categories such as `Java Heap`, `Class`, `Thread`, `Code`, `GC`, `Compiler`, `Internal`, `Other`, and `Native Memory Tracking`. Category names, structure, and level of detail may vary between JDK versions.
 
-Khi gọi:
+When invoking:
 
-- `VM.native_memory summary`: xem **ảnh chụp hiện tại** theo nhóm.
-- `VM.native_memory baseline`: lưu một **mốc tham chiếu** trong tiến trình JVM đang chạy.
-- `VM.native_memory summary.diff`: xem giá trị hiện tại **và chênh lệch so với baseline gần nhất**, theo nhóm.
-- `VM.native_memory detail.diff`: xem chênh lệch chi tiết hơn theo call site/vùng virtual memory nếu JVM đã bật mức `detail`.
+- `VM.native_memory summary`: view the **current snapshot** by category.
+- `VM.native_memory baseline`: store a **reference checkpoint** inside the running JVM process.
+- `VM.native_memory summary.diff`: view current values **and deltas relative to the most recent baseline**, by category.
+- `VM.native_memory detail.diff`: view more detailed deltas by call site/virtual memory region if the JVM was started with `detail`.
 
-Phân biệt ba thời điểm:
+Distinguish three points in time:
 
-| Thời điểm | Sự kiện | Cách hiểu |
+| Time | Event | How to Interpret |
 | --- | --- | --- |
-| T0 | Ứng dụng warm-up xong; tạo baseline | Mốc để tính delta |
-| T1 | Vừa chạy một vòng tải | `summary.diff` tại T1 cho `T1 - T0` |
-| T2 | Đã giảm tải, queue xử lý xong | `summary.diff` tại T2 vẫn là `T2 - T0`, **không phải `T2 - T1`** |
+| T0 | Application finishes warm-up; baseline created | Reference point for computing deltas |
+| T1 | Just ran one load cycle | `summary.diff` at T1 gives `T1 - T0` |
+| T2 | Load reduced, queues drained | `summary.diff` at T2 is still `T2 - T0`, **not `T2 - T1`** |
 
-**Baseline là phép so chênh lệch trong cùng một JVM, không phải ảnh chụp hệ điều hành hay chứng cứ leak.** Lần gọi `summary.diff`/`detail.diff` không tự đặt baseline mới. Gọi lại `baseline` sẽ **thay mốc cũ**; từ đó mọi diff mới được tính theo mốc vừa tạo. Khi JVM khởi động lại, baseline của tiến trình cũ không còn hiệu lực.
+**A baseline is a delta comparison within the same JVM, not an OS snapshot or proof of a leak.** Calling `summary.diff`/`detail.diff` does not automatically set a new baseline. Calling `baseline` again **replaces the old reference point**; from then on, all new diffs are computed against the newly created checkpoint. When the JVM restarts, the previous process's baseline is no longer valid.
 
-Một delta tăng chứng minh **mức sử dụng được NMT theo dõi ở thời điểm đo cao hơn mốc**, chưa chứng minh dữ liệu vô dụng hoặc không thể giải phóng. Ngược lại, delta gần 0 cũng không loại trừ các đỉnh tăng bộ nhớ tạm thời giữa hai lần đo.
+A positive delta proves **NMT-tracked usage at measurement time is higher than at the baseline**, not that the data is useless or unfreeable. Conversely, a near-zero delta does not rule out temporary memory spikes between two measurements.
 
-## 2. Trước khi đo: bật NMT đúng cấp độ
+## 2. Before Measuring: Enable NMT at the Right Level
 
-NMT mặc định tắt; phải bật bằng cờ JVM khi **khởi động tiến trình**. Không thể dùng `jcmd` bật hoặc bật lại NMT đã tắt trên tiến trình đang chạy.
+NMT is disabled by default; it must be enabled with a JVM flag **at process startup**. You cannot use `jcmd` to enable or re-enable disabled NMT on an already running process.
 
-| Mức NMT | Cờ JVM | Đọc được | Khi nên dùng |
+| NMT Level | JVM Flag | What Can Be Read | When to Use |
 | --- | --- | --- | --- |
-| Tắt | `-XX:NativeMemoryTracking=off` (mặc định) | Không có báo cáo NMT hữu ích | Khi không cần thu thập |
-| Summary | `-XX:NativeMemoryTracking=summary` | Tổng hợp theo nhóm và `summary.diff` | Điều tra ban đầu, overhead thấp hơn detail |
-| Detail | `-XX:NativeMemoryTracking=detail` | Tổng hợp, call site/vùng ánh xạ, `summary.diff` và `detail.diff` | Đã khoanh vùng vấn đề và cần tìm nguồn sâu hơn |
+| Off | `-XX:NativeMemoryTracking=off` (default) | No useful NMT report | When collection is not needed |
+| Summary | `-XX:NativeMemoryTracking=summary` | Category summaries and `summary.diff` | Initial investigation, lower overhead than detail |
+| Detail | `-XX:NativeMemoryTracking=detail` | Summaries, call sites/mapped regions, `summary.diff`, and `detail.diff` | Problem category narrowed down and deeper source tracing needed |
 
-Ví dụ **khởi động ứng dụng JAR có thật** với mức summary:
+Example **launching an actual JAR application** with summary mode:
 
 ```bash
 java -XX:NativeMemoryTracking=summary -Xms256m -Xmx1g -jar app.jar
 ```
 
-`app.jar` chỉ là tên minh họa; dùng JAR ứng dụng thực tế và giữ nguyên các cấu hình JVM khác của môi trường khi thiết kế thí nghiệm. Khi cần `detail.diff`, khởi động JVM **mới** với:
+`app.jar` is only an illustrative name; use your real application JAR and keep the environment's other JVM settings intact when designing experiments. When `detail.diff` is needed, start a **new** JVM with:
 
 ```bash
 java -XX:NativeMemoryTracking=detail -Xms256m -Xmx1g -jar app.jar
 ```
 
-NMT có chi phí: tài liệu Oracle JDK mô tả overhead hiệu năng khoảng **5–10%** khi bật, và tracking có tiêu thụ bộ nhớ riêng. Vì vậy phép đo NMT hữu ích để phân tích **xu hướng và phân bổ theo nhóm**, nhưng phải tính đến overhead, đặc biệt khi so với một tiến trình không bật NMT hoặc khi chạy production.
+NMT has a cost: Oracle JDK documentation describes roughly **5–10%** performance overhead when enabled, and tracking consumes its own memory. Thus, NMT measurements are useful for analyzing **trends and category breakdowns**, but overhead must be accounted for—especially when comparing against a process without NMT or running in production.
 
-### Kiểm tra PID, mức NMT và khả năng attach
+### Verifying PID, NMT Level, and Attach Capability
 
-Trong terminal khác, dùng đúng JDK `jcmd` tương thích và quyền người dùng được phép attach vào tiến trình:
+In another terminal, use a compatible JDK `jcmd` and a user account authorized to attach to the process:
 
 ```bash
 jcmd -l
@@ -71,68 +71,68 @@ jcmd 12345 VM.native_memory summary scale=KB
 jcmd 12345 help VM.native_memory
 ```
 
-**Thay `12345` bằng PID Java thực**, không chạy nguyên số minh họa. `jcmd -l` liệt kê các tiến trình Java có thể nhìn thấy; trong container, namespace PID và quyền attach có thể khác host. Nếu lệnh báo NMT không được bật, cần khởi động lại ứng dụng với cờ thích hợp. Nếu `detail.diff` không khả dụng vì mức tracking là `summary`, không thể nâng mức đó bằng `jcmd` trên JVM hiện tại.
+**Replace `12345` with the real Java PID**; do not run the illustrative number literally. `jcmd -l` lists visible Java processes; inside containers, PID namespaces and attach permissions may differ from the host. If the command reports NMT is not enabled, restart the application with the appropriate flag. If `detail.diff` is unavailable because tracking is at `summary`, you cannot upgrade that level via `jcmd` on the current JVM.
 
-## 3. Chọn baseline cho một phép đo có ý nghĩa
+## 3. Choosing a Baseline for a Meaningful Measurement
 
-Điểm bắt đầu không nhất thiết là lúc vừa khởi động JVM. Class loading, JIT compilation, connection pools, cache khởi tạo và GC subsystem có thể làm các nhóm tăng nhanh trong warm-up; nếu baseline quá sớm, diff sau đó chủ yếu đo **khởi động** chứ không đo tác động của workload đang điều tra.
+The starting point does not have to be immediately at JVM launch. Class loading, JIT compilation, connection pools, cache initialization, and the GC subsystem can grow categories rapidly during warm-up; if you baseline too early, subsequent diffs mainly measure **startup** rather than the workload under investigation.
 
-Quy trình có đối chứng:
+Controlled workflow:
 
-1. **Cố định môi trường:** ghi JDK/vendor/version, GC, `-Xms`/`-Xmx`, cờ liên quan memory, container limit, số thread và phiên bản ứng dụng.
-2. **Warm-up đến trạng thái ổn định:** xử lý một lượng request đại diện, xác nhận pool/cache/class loading tương đối ổn định; đây là trạng thái T0.
-3. **Lưu báo cáo tuyệt đối trước mốc:** `summary` hoặc `detail` giúp đối chiếu khi đọc các delta.
-4. **Tạo baseline một lần ở T0.** Ghi timestamp bên ngoài hoặc vào nhật ký thí nghiệm.
-5. **Áp tải có kiểm soát:** lưu RPS, request đồng thời, kích thước payload, queue depth, class/session/cache count và hệ số thay đổi.
-6. **Đọc diff định kỳ tại T1, T2…** mà không gọi lại baseline, để cùng so với T0.
-7. **Hạ tải và chờ hoàn tất công việc đang chạy**, đọc T3. Nếu nhóm nào vẫn tăng, kiểm tra owner/lifecycle trước khi kết luận.
-8. Chỉ **rebaseline** khi chủ động bắt đầu cửa sổ điều tra mới (ví dụ muốn đo riêng từ T2 đến T3); ghi rõ mốc đã đổi.
+1. **Fix the environment:** record JDK/vendor/version, GC, `-Xms`/`-Xmx`, memory-related flags, container limits, thread count, and application version.
+2. **Warm up to steady state:** process a representative volume of requests and confirm pools/caches/class loading are relatively stable; this is state T0.
+3. **Save an absolute report before the checkpoint:** `summary` or `detail` helps provide context when reading deltas.
+4. **Create a baseline once at T0.** Record the timestamp externally or in your experiment log.
+5. **Apply controlled load:** record RPS, concurrency, payload size, queue depth, class/session/cache counts, and scaling factors.
+6. **Read diffs periodically at T1, T2…** without calling `baseline` again, so all compare against T0.
+7. **Reduce load and wait for in-flight work to finish**, then read T3. If any category remains elevated, verify owner/lifecycle before concluding.
+8. Only **rebaseline** when intentionally starting a new investigation window (e.g., measuring solely from T2 to T3); clearly note the changed reference point.
 
-Thứ tự khuyến nghị là **baseline sau warm-up → đo tải ổn định → tăng tải → hạ tải → đo sau hồi phục**. Cùng một loại workload phải được lặp lại đủ lâu để phân biệt xu hướng tăng bền với allocation tạm thời.
+The recommended sequence is **baseline after warm-up → measure steady load → increase load → reduce load → measure post-recovery**. Repeat the same type of workload long enough to distinguish a sustained upward trend from temporary allocations.
 
-### Chuỗi lệnh thực tế với mức `summary`
+### Practical Command Sequence with `summary`
 
-Giả sử JVM đã chạy với `-XX:NativeMemoryTracking=summary` và PID thật là `12345`. Các lệnh sau là ví dụ cho terminal Linux/macOS hoặc shell Bash:
+Suppose the JVM is running with `-XX:NativeMemoryTracking=summary` and the real PID is `12345`. The following commands are examples for a Linux/macOS terminal or Bash shell:
 
 ```bash
 PID=12345
 
-# T0: ứng dụng đã warm-up, lưu ảnh chụp tuyệt đối.
+# T0: application warmed up, save absolute snapshot.
 jcmd "$PID" VM.native_memory summary scale=KB > nmt-t0-summary.txt
 
-# Đặt mốc. Lệnh này làm mới baseline dùng cho các diff kế tiếp.
+# Set checkpoint. This resets the baseline used by subsequent diffs.
 jcmd "$PID" VM.native_memory baseline
 
-# T1: sau một pha tải ổn định.
+# T1: after a steady-load phase.
 jcmd "$PID" VM.native_memory summary.diff scale=KB > nmt-t1-summary.diff.txt
 
-# T2: sau khi tăng tải nhưng không đổi baseline.
+# T2: after increasing load without changing the baseline.
 jcmd "$PID" VM.native_memory summary.diff scale=KB > nmt-t2-summary.diff.txt
 
-# T3: hạ tải, đợi queue/task cần hoàn thành và đọc lại.
+# T3: after reducing load, waiting for queues/tasks to drain, and reading again.
 jcmd "$PID" VM.native_memory summary.diff scale=KB > nmt-t3-summary.diff.txt
 
-# Xem giá trị tuyệt đối hiện tại khi cần giải thích delta.
+# View current absolute values when needed to explain deltas.
 jcmd "$PID" VM.native_memory summary scale=KB > nmt-t3-summary.txt
 ```
 
-Phần ghi chú `T1/T2/T3` biểu diễn thao tác áp/hạ tải được thực hiện **giữa các lệnh**; bản thân những lệnh NMT không tạo workload, không chờ queue drain và không đo RSS. Trên PowerShell, thay cú pháp biến Bash bằng PID trực tiếp (ví dụ `jcmd 12345 ...`) hoặc biến PowerShell `$pidOfJava`, tránh dùng biến đặc biệt `$PID` của PowerShell.
+The comments `T1/T2/T3` represent load ramp-up/ramp-down actions performed **between commands**; the NMT commands themselves do not generate workload, wait for queues to drain, or measure RSS. On PowerShell, replace Bash variable syntax with the literal PID (e.g., `jcmd 12345 ...`) or a PowerShell variable `$pidOfJava`, avoiding PowerShell's special `$PID` variable.
 
-**Vì sao chọn `scale=KB`?** Khi chênh lệch nhỏ, dùng MB/GB có thể làm số liệu bị làm tròn thành 0 ở một số mục. Lưu báo cáo dạng KB để so và chỉ đổi sang MB/GB khi trình bày. `scale` đổi đơn vị hiển thị, không đổi lượng bộ nhớ.
+**Why choose `scale=KB`?** For small deltas, using MB/GB can round some entries down to 0. Save reports in KB for comparison and convert to MB/GB only when presenting. `scale` changes the display unit, not the underlying memory amount.
 
-## 4. Đọc đúng `summary.diff`
+## 4. Reading `summary.diff` Correctly
 
-NMT thường trình bày hai khái niệm độc lập:
+NMT generally presents two independent concepts:
 
-| Trường | Ý nghĩa | Hiểu sai cần tránh |
+| Field | Meaning | Misconception to Avoid |
 | --- | --- | --- |
-| `reserved` | Dung lượng **không gian địa chỉ ảo được dành trước** | Không đồng nghĩa RAM vật lý đã được sử dụng |
-| `committed` | Dung lượng vùng nhớ VM đã **commit** theo cơ chế quản lý bộ nhớ | Không đồng nghĩa RSS, không phải lượng Java object còn sống |
-| `malloc` | Bộ nhớ cấp phát qua cơ chế malloc mà HotSpot theo dõi | Không bao quát mọi thư viện native ngoài HotSpot |
-| `mmap` | Vùng ánh xạ/đặt chỗ và commit có liên quan | Cần đọc reserved và committed riêng; không cộng chồng tùy tiện với tổng nhóm |
-| `#` sau mục như `thread`, `classes`, `malloc` | Số luồng, lớp hoặc lần cấp phát được báo cáo theo ngữ cảnh | Không luôn là số Java object hay số request |
+| `reserved` | Size of **pre-reserved virtual address space** | Does not equal physical RAM in use |
+| `committed` | Size of memory regions the VM has **committed** under its memory management | Does not equal RSS, nor live Java object size |
+| `malloc` | Memory allocated via HotSpot-tracked malloc paths | Does not cover all native libraries outside HotSpot |
+| `mmap` | Mapped/reserved regions and associated commits | Read reserved and committed separately; do not blindly double-count with category total |
+| `#` after items like `thread`, `classes`, `malloc` | Number of threads, classes, or allocations reported in context | Not always Java object count or request count |
 
-Ví dụ đầu ra **giả lập để luyện cách đọc**; đã rút gọn nhiều nhóm, không phải ảnh chụp của một ứng dụng cụ thể:
+**Mock output example for practicing reading**; many categories are omitted, and it is not a snapshot of a specific application:
 
 ```text
 Native Memory Tracking:
@@ -152,64 +152,64 @@ Total: reserved=4000000KB +65536KB, committed=500000KB +28672KB
 -                     Other (reserved=30000KB +16384KB,
                             committed=30000KB +16384KB)
 
-... (các nhóm còn lại được lược bỏ)
+... (remaining categories omitted)
 ```
 
-Diễn giải **trên từng dòng**:
+Line-by-line interpretation:
 
-- `Total committed=500000KB +28672KB`: ở thời điểm đo NMT báo tổng committed là 500.000 KB, **cao hơn baseline 28.672 KB**; không có nghĩa “vừa tăng 28.672 KB kể từ lần diff trước”.
-- `Thread reserved +32768KB` cùng `thread #250 +32`: hiện có thêm 32 luồng so với baseline và nhiều không gian stack/thread được đặt chỗ hơn. Đây là hướng kiểm tra thread pool, thread dump và vòng đời luồng. **Reserved tăng không chứng minh có 32 MB RAM đang resident**.
-- `Class committed +6144KB` và `classes +900`: có thêm class được giữ/tải so với baseline; có thể là warm-up, nạp plugin/class động hợp lệ, hoặc class loader chưa được giải phóng. Đếm số class loader, class unload và kiểm tra metaspace trước khi gọi leak.
-- `Other committed +16384KB`: nhóm `Other` tăng 16 MB. Đây là dấu hiệu để kiểm tra allocation phù hợp trong JVM, **không thể quy ngay cho direct buffer hoặc một thư viện cụ thể** chỉ vì tên nhóm.
-- `Java Heap reserved` bằng giá trị cố định: có thể đơn giản là `-Xmx`/heap reservation ổn định. NMT không nói đối tượng Java nào còn sống; cần thêm GC/heap used nếu nghi giữ tham chiếu ở Java heap.
+- `Total committed=500000KB +28672KB`: at measurement time NMT reports total committed of 500,000 KB, **28,672 KB higher than the baseline**; it does not mean "just increased by 28,672 KB since the previous diff".
+- `Thread reserved +32768KB` with `thread #250 +32`: there are 32 more threads than at baseline and more stack/thread space reserved. This points to checking thread pools, thread dumps, and thread lifecycles. **Higher reserved does not prove 32 MB of RAM is resident.**
+- `Class committed +6144KB` and `classes +900`: more classes are retained/loaded than at baseline; this could be warm-up, valid dynamic/plugin class loading, or uncollected class loaders. Count class loaders, check class unloading, and inspect metaspace before calling it a leak.
+- `Other committed +16384KB`: the `Other` category grew by 16 MB. This signals checking relevant JVM allocations, **not automatically blaming direct buffers or a specific library** based on the name alone.
+- `Java Heap reserved` at a fixed value: may simply be stable `-Xmx`/heap reservation. NMT does not tell you which Java objects are alive; use GC/heap-used metrics if Java heap retention is suspected.
 
-### Đọc dấu `+` và `-`
+### Reading `+` and `-` Signs
 
-- `committed=12000KB +4096KB`: hiện tại 12.000 KB, **tăng ròng 4.096 KB so với mốc**.
-- `committed=12000KB -2048KB`: hiện tại 12.000 KB, **giảm ròng 2.048 KB so với mốc**.
-- `committed=12000KB` không có hậu tố delta trong một dòng diff: thường không có thay đổi được hiển thị ở độ phân giải đó.
-- `classes #6000 +900`: hiện có 6.000 class theo cách đếm của báo cáo, cao hơn baseline 900 class.
+- `committed=12000KB +4096KB`: currently 12,000 KB, **net increase of 4,096 KB relative to baseline**.
+- `committed=12000KB -2048KB`: currently 12,000 KB, **net decrease of 2,048 KB relative to baseline**.
+- `committed=12000KB` with no delta suffix in a diff line: typically no visible change at that display resolution.
+- `classes #6000 +900`: currently 6,000 classes per the report's counter, 900 more than at baseline.
 
-Dấu `+`/`-` trên từng nhóm thể hiện **thay đổi ròng tại thời điểm lấy mẫu**, có thể gồm allocation và deallocation đã xảy ra trong khoảng. Không thể cộng các dòng con và dòng tổng của chính nhóm đó thành một tổng mới; chúng thường trình bày **cùng lượng bộ nhớ ở các mức phân rã khác nhau**. Tổng toàn JVM còn gồm các nhóm không xuất hiện trong trích đoạn.
+`+`/`-` signs per category represent **net change at sampling time**, which can combine allocations and deallocations that occurred in the interval. Do not add a category's sub-lines and its total line into a new total; they usually show **the same memory at different levels of breakdown**. The JVM-wide total also includes categories not shown in the excerpt.
 
-### So sánh ba lần diff cùng baseline
+### Comparing Three Diffs Against the Same Baseline
 
-Một bảng nhật ký **minh họa** (các delta đều so với T0, đơn vị MB; workload giả định):
+**Illustrative** log table (all deltas relative to T0, in MB; hypothetical workload):
 
-| Mốc | Active threads | Delta Thread committed | Delta Class committed | Delta Other committed | Ý nghĩa cần kiểm tra |
+| Checkpoint | Active Threads | Delta Thread Committed | Delta Class Committed | Delta Other Committed | What to Check |
 | --- | ---: | ---: | ---: | ---: | --- |
-| T0: baseline | 80 | 0 | 0 | 0 | Mốc tham chiếu |
-| T1: tải đều | 100 | +3 | +2 | +12 | Tăng cùng workload |
-| T2: tăng tải | 150 | +8 | +3 | +30 | Concurrency và allocation tăng |
-| T3: tải trở về nền | 82 | +1 | +3 | +1 | Thread/Other gần hồi phục; Class vẫn giữ thêm 3 MB |
+| T0: baseline | 80 | 0 | 0 | 0 | Reference checkpoint |
+| T1: steady load | 100 | +3 | +2 | +12 | Growth with workload |
+| T2: increased load | 150 | +8 | +3 | +30 | Concurrency and allocations increased |
+| T3: load back to baseline | 82 | +1 | +3 | +1 | Thread/Other nearly recovered; Class still retains +3 MB |
 
-Kết luận sơ bộ hợp lý: hai nhóm `Thread` và `Other` có tính **đảo ngược theo tải**, nên chưa thấy bằng chứng giữ tăng liên tục sau hồi phục; `Class` còn cao hơn baseline cần đối chiếu class loading hợp lệ với class loader còn sống. **Không** suy rằng “Class +3 MB = leak” nếu thiếu bằng chứng các class đáng ra đã unload.
+Reasonable preliminary conclusion: `Thread` and `Other` appear **reversible with load**, showing no evidence of sustained post-recovery growth yet; `Class` remains above baseline and needs comparison between legitimate class loading and live class loaders. Do **not** infer "Class +3 MB = leak" without evidence that classes should have unloaded.
 
-Nếu T3 vẫn giữ `Other +30 MB` dù queue đã trống, đó là **điểm nghi vấn**, chưa phải kết luận. Cần lặp thêm chu kỳ, xem `detail.diff` (nếu được bật) và kiểm chứng owner/allocator.
+If T3 still held `Other +30 MB` despite empty queues, that is a **suspect point**, not yet a verdict. Repeat cycles, inspect `detail.diff` (if enabled), and verify owner/allocator.
 
-## 5. Khi nào dùng `detail.diff` và cách đọc
+## 5. When to Use `detail.diff` and How to Read It
 
-`summary.diff` giúp trả lời “**nhóm nào** tăng?”. Khi một nhóm liên tục tăng trong những lần đo có thể so sánh, `detail.diff` trả lời sâu hơn “**điểm cấp phát nào hoặc vùng địa chỉ ảo nào** thay đổi?”. Muốn dùng được báo cáo này, JVM phải khởi động với:
+`summary.diff` answers "**which category** is growing?". When a category grows consistently across comparable measurements, `detail.diff` answers more deeply "**which allocation site or virtual address region** changed?". To use this report, the JVM must start with:
 
 ```bash
 java -XX:NativeMemoryTracking=detail -Xms256m -Xmx1g -jar app.jar
 ```
 
-Trong terminal khác, sau warm-up:
+In another terminal, after warm-up:
 
 ```bash
 PID=12345
 jcmd "$PID" VM.native_memory detail scale=KB > nmt-t0-detail.txt
 jcmd "$PID" VM.native_memory baseline
 
-# Sau khi chạy workload đã ghi nhận:
+# After running the recorded workload:
 jcmd "$PID" VM.native_memory summary.diff scale=KB > nmt-t1-summary.diff.txt
 jcmd "$PID" VM.native_memory detail.diff scale=KB > nmt-t1-detail.diff.txt
 ```
 
-Với mức `detail`, bạn có thể đọc **cả** summary và detail. Nếu chỉ bật mức `summary`, không thể kỳ vọng `detail.diff` chỉ vì đã gọi `baseline`.
+At `detail` level, you can read **both** summary and detail. If only `summary` was enabled, do not expect `detail.diff` just because `baseline` was called.
 
-Một mảnh ví dụ **mô phỏng** nội dung call site (địa chỉ, tên hàm và lượng cấp phát chỉ mang tính minh họa):
+A **simulated** snippet of call-site content (addresses, function names, and allocation sizes are illustrative only):
 
 ```text
 [0x00007fff01234567] ExampleHotSpotAllocator::allocate(...)
@@ -219,112 +219,112 @@ Một mảnh ví dụ **mô phỏng** nội dung call site (địa chỉ, tên h
                  (reserved=65536KB +32768KB, committed=8192KB +4096KB)
 ```
 
-Cách tiếp cận:
+How to approach it:
 
-1. Ở dòng `malloc`: 20.480 KB là tổng lượng hiện tại tại call site này; `+16384KB` là phần tăng so với baseline. `#480 +384` biểu thị số allocation đang được NMT báo cáo cho ngữ cảnh này, tăng 384, **không phải 384 Java object hoặc 384 request**.
-2. Ở dòng vùng địa chỉ: phân biệt `reserved +32768KB` với `committed +4096KB`. Chỉ nhìn reserved rất dễ phóng đại tác động lên RAM thực.
-3. Tìm **call site có delta committed/malloc tăng bền vững** qua những phép đo cùng workload; nhóm tổng chỉ là điểm xuất phát.
-4. Liên hệ call site với subsystem Java/HotSpot tương ứng và số đo nghiệp vụ: số thread, class loader, direct/mapped buffer, queue, worker/cache.
-5. Kiểm tra deallocation khi workload kết thúc và xem xu hướng nhiều chu kỳ. Một call site có delta dương trong lúc ứng dụng vẫn giữ dữ liệu hợp lệ không mặc nhiên leak.
+1. On the `malloc` line: 20,480 KB is the current total at this call site; `+16384KB` is the increase over baseline. `#480 +384` shows the allocation count NMT reports for this context, up by 384—**not 384 Java objects or 384 requests**.
+2. On the address-region line: separate `reserved +32768KB` from `committed +4096KB`. Looking only at reserved easily exaggerates real RAM impact.
+3. Look for **call sites with steadily growing committed/malloc deltas** across measurements with the same workload; category totals are only the starting point.
+4. Connect the call site to the corresponding Java/HotSpot subsystem and operational metrics: thread counts, class loaders, direct/mapped buffers, queues, workers/caches.
+5. Check deallocation when the workload stops and watch trends across multiple cycles. A call site with a positive delta while the app holds legitimate data is not automatically a leak.
 
-Nội dung `detail` phụ thuộc bản JDK, biểu tượng debug/symbols, nền tảng và loại phân bổ. Một số dòng có thể là call stack nội bộ HotSpot, `mmap`/virtual memory map thay vì `malloc`. **Điểm cấp phát tăng là nơi cần điều tra, không tự động là lỗi ở đúng hàm đó.** Có thể owner ở lớp cao hơn đã yêu cầu giữ bộ nhớ hợp lệ; ngược lại, owner sống lâu vô ý khiến vùng cấp phát vẫn tồn tại.
+`detail` content depends on JDK version, debug symbols, platform, and allocation type. Some lines may show internal HotSpot call stacks or `mmap`/virtual memory maps rather than `malloc`. **A growing allocation site is where to investigate, not automatically a bug in that exact function.** A higher-level owner may legitimately need the memory; conversely, an unintentionally long-lived owner can keep the allocation alive.
 
-Detail tracking tốn tài nguyên hơn summary và tạo báo cáo dài. Với môi trường quan trọng, lên kế hoạch thời gian đo, dung lượng lưu kết quả và tác động vận hành.
+Detail tracking uses more resources than summary and generates long reports. For critical environments, plan measurement duration, storage space for outputs, and operational impact.
 
-## 6. Từ `summary.diff` sang giả thuyết nguyên nhân
+## 6. From `summary.diff` to Root-Cause Hypotheses
 
-Sau khi biết nhóm tăng, phải nối dữ liệu NMT với phép đo khác:
+Once you know which category is growing, connect NMT data with other measurements:
 
-| Nhóm tăng trong NMT | Câu hỏi tiếp theo | Nguồn bằng chứng bổ sung |
+| Growing NMT Category | Next Question | Additional Evidence Sources |
 | --- | --- | --- |
-| `Thread`: reserved/committed và `thread #` tăng | Đây là thread pool đang scale theo tải hay luồng không kết thúc? | `jcmd <pid> Thread.print`, metric live thread, executor pool/queue, lifecycle |
-| `Class`: class count, metaspace committed tăng | Có nạp class/lambda/proxy mới liên tục? Class loader nào đáng ra phải unload? | JFR class load/unload, `jcmd <pid> VM.classloader_stats`, class loader retention |
-| `Code`/`Compiler` tăng | JIT còn trong warm-up, hay có compile activity bất thường? | Code cache, compilation metrics/JFR, thời gian ổn định |
-| `GC` tăng | JVM/collector có mở rộng cấu trúc GC phù hợp heap/workload? | GC logs, heap committed, collector/config |
-| `Other`/`Internal` tăng | Có buffer/off-heap hoặc allocation HotSpot nào liên quan? | `detail.diff`, direct/mapped BufferPoolMXBean, JFR, thành phần sử dụng native |
-| `Java Heap` committed tăng | VM commit thêm heap hay live Java object tăng? | GC log, heap used sau các GC tương đương, heap dump/histogram |
-| `Native Memory Tracking` tăng | Có phải overhead bản thân công cụ đo? | NMT tracking overhead, snapshot cùng cấu hình |
+| `Thread`: reserved/committed and `thread #` rising | Is a thread pool scaling with load, or are threads failing to terminate? | `jcmd <pid> Thread.print`, live thread metrics, executor pool/queue, lifecycle |
+| `Class`: class count, metaspace committed rising | Are new classes/lambdas/proxies continuously loaded? Which class loader should have unloaded? | JFR class load/unload, `jcmd <pid> VM.classloader_stats`, class loader retention |
+| `Code`/`Compiler` rising | Is JIT still warming up, or is there abnormal compilation activity? | Code cache, compilation metrics/JFR, stabilization time |
+| `GC` rising | Is the JVM/collector expanding GC structures to match heap/workload? | GC logs, heap committed, collector/config |
+| `Other`/`Internal` rising | Are buffers/off-heap or HotSpot allocations involved? | `detail.diff`, direct/mapped `BufferPoolMXBean`, JFR, native-using components |
+| `Java Heap` committed rising | Is the VM committing more heap, or are live Java objects growing? | GC logs, heap used after comparable GCs, heap dump/histogram |
+| `Native Memory Tracking` rising | Is this overhead of the measurement tool itself? | NMT tracking overhead, snapshots under same config |
 
-Trong Java, kiểm tra direct/mapped buffer bằng các số đo ở `java.nio:type=BufferPool` (JMX) hoặc `BufferPoolMXBean` có thể giúp đối chiếu. **Không mặc định** mọi byte NMT `Other` là direct buffer: cách gắn category phụ thuộc đường cấp phát và phiên bản JVM. Đồng thời `BufferPoolMXBean` chỉ phản ánh các pool mà JVM công bố, không bao quát mọi `malloc` của mã JNI.
+In Java, checking direct/mapped buffers via `java.nio:type=BufferPool` (JMX) or `BufferPoolMXBean` helps cross-check. **Do not assume** every byte in NMT `Other` is a direct buffer: categorization depends on the allocation path and JVM version. Also, `BufferPoolMXBean` only reflects pools exposed by the JVM, not every `malloc` in JNI code.
 
-### Ba kịch bản chẩn đoán
+### Three Diagnostic Scenarios
 
-**Kịch bản A — Thread tăng khi traffic tăng.** T1 thấy `Thread reserved +64 MB`, thread count `+64`; khi traffic trở về bình thường và executor hạ số luồng, T3 còn `+2`. Đây có thể là scale theo tải. Xác minh bằng thread dump và pool config; nếu số luồng tiếp tục đi lên qua các vòng tải giống nhau dù công việc đã kết thúc, kiểm tra thread creation và cleanup.
+**Scenario A — Thread grows as traffic rises.** T1 shows `Thread reserved +64 MB`, thread count `+64`; when traffic returns to normal and the executor scales down threads, T3 drops to `+2`. This may be load-driven scaling. Verify with thread dumps and pool config; if thread counts keep climbing across identical load cycles even after work finishes, check thread creation and cleanup.
 
-**Kịch bản B — Class tăng qua nhiều lần nạp plugin.** Sau mỗi lần reload, `Class committed` và số class/class loader cùng tăng; T3 không giảm dù phiên cũ đáng lẽ không dùng nữa. Đây là nghi vấn class loader retention. NMT chỉ khoanh nhóm; cần xem classloader stats, các tham chiếu giữ loader cũ, thread, registry/listener và kiểm chứng sau sửa. Không mặc nhiên gắn tên `metaspace leak` cho giai đoạn warm-up.
+**Scenario B — Class grows across repeated plugin reloads.** After each reload, `Class committed` and class/class-loader counts grow together; T3 does not drop even though old versions should no longer be used. This suggests class loader retention. NMT only isolates the category; check classloader stats, references holding old loaders, threads, registries/listeners, and verify after fixing. Do not automatically call warm-up a `metaspace leak`.
 
-**Kịch bản C — RSS tăng nhưng NMT ít đổi.** Process RSS tăng 300 MB trong khi tổng `committed` được NMT theo dõi gần như đứng yên. Điều này **không bác bỏ** vấn đề native memory: NMT không bao quát cấp phát ngoài HotSpot (ví dụ thư viện JNI tự gọi malloc), và committed cũng không đồng nhất RSS. Kiểm tra `/proc/<pid>/smaps`, `smaps_rollup`, `pmap`/native profiler tùy OS, memory mapping, thread stacks, container/cgroup và thư viện native liên quan.
+**Scenario C — RSS grows while NMT barely changes.** Process RSS grows by 300 MB while NMT-tracked total `committed` stays nearly flat. This **does not rule out** a native memory issue: NMT does not cover allocations outside HotSpot (e.g., JNI libraries calling malloc directly), and committed is not identical to RSS. Inspect `/proc/<pid>/smaps`, `smaps_rollup`, `pmap`/native profilers depending on OS, memory mappings, thread stacks, container/cgroup, and relevant native libraries.
 
-## 7. Quy trình điều tra thực hành từng bước
+## 7. Step-by-Step Practical Investigation Workflow
 
-**Bước 1 — Xác định triệu chứng chính xác.** Có phải RSS/cgroup tăng, Java heap used tăng, OOME ở native allocation, hay chỉ vùng `reserved` rất lớn? Vẽ đồ thị ít nhất một khoảng workload đại diện, không căn cứ vào một số duy nhất.
+**Step 1 — Define the exact symptom.** Is RSS/cgroup rising, Java heap used rising, native allocation OOMing, or just a large `reserved` region? Plot at least one representative workload interval rather than relying on a single number.
 
-**Bước 2 — Chọn chế độ NMT.** Bắt đầu với `summary` nếu chưa biết nhóm nào. Chọn `detail` khi đã có khả năng tái hiện và cần allocation sites; kế hoạch khởi động lại với cờ `detail` là một phần của phép thử.
+**Step 2 — Choose the NMT mode.** Start with `summary` if the category is unknown. Choose `detail` when reproducible and allocation sites are needed; planning a restart with `detail` is part of the test.
 
-**Bước 3 — Ghi một baseline có ý nghĩa.** Chỉ sau warm-up theo mục tiêu bài thử. Lưu giá trị tuyệt đối, timestamp, PID, phiên bản JDK và cấu hình, workload hiện tại.
+**Step 3 — Record a meaningful baseline.** Only after warm-up matching your test goal. Save absolute values, timestamp, PID, JDK version and config, and current workload.
 
-**Bước 4 — Đo nhiều mốc cùng baseline.** Thu `summary.diff` tại tải ổn định, tăng tải, sau khi hạ tải và sau thời gian hồi phục hợp lý. Đặt các delta cạnh request concurrency, active threads, queue depth, class count, buffer usage.
+**Step 4 — Measure multiple checkpoints on the same baseline.** Capture `summary.diff` at steady load, peak load, after load drop, and after reasonable recovery. Place deltas next to request concurrency, active threads, queue depth, class counts, and buffer usage.
 
-**Bước 5 — Chọn nhóm có tăng bền.** Quan sát `committed` và `malloc`/`mmap` phù hợp, không đánh đồng `reserved` với RSS; kiểm tra liệu tăng phù hợp warm-up/working set có giới hạn hay không.
+**Step 5 — Pick the category with sustained growth.** Watch `committed` and relevant `malloc`/`mmap`, without equating `reserved` to RSS; check whether growth matches warm-up or a bounded working set.
 
-**Bước 6 — Đi sâu bằng detail và công cụ bổ sung.** Truy call site có delta tăng, xem allocation owner và lifecycle. Khi thiếu coverage NMT, chuyển sang số đo OS/native profiler hoặc công cụ chuyên cho JNI.
+**Step 6 — Drill down with detail and complementary tools.** Trace call sites with growing deltas and check allocation owner and lifecycle. Where NMT lacks coverage, switch to OS metrics/native profilers or JNI-specific tools.
 
-**Bước 7 — Đưa ra giả thuyết có thể bác bỏ.** Ví dụ “cứ 1.000 lần reload plugin, số class loader cũ tăng, Class committed tăng dù không còn request dùng plugin cũ”. Thiết kế phép thử hạ tải/cleanup cho giả thuyết.
+**Step 7 — Form a falsifiable hypothesis.** For example, "every 1,000 plugin reloads, old class loader count rises and Class committed increases even when no requests use old plugins." Design a load-drop/cleanup test for the hypothesis.
 
-**Bước 8 — Sửa rồi đo lại cùng điều kiện.** Đặt baseline mới sau warm-up của phiên bản đã sửa, so xu hướng delta theo *cùng thời lượng, cùng traffic, cùng trình tự*. Có thể so các bản snapshot tuyệt đối giữa hai JVM, nhưng **không lấy diff nội bộ của JVM A áp sang baseline JVM B**.
+**Step 8 — Fix and re-measure under identical conditions.** Set a new baseline after warm-up on the fixed version and compare delta trends across *the same duration, same traffic, and same sequence*. You can compare absolute snapshots between two JVMs, but **never apply an internal diff of JVM A against JVM B's baseline**.
 
-### Mẫu nhật ký đo cho một phiên
+### Session Measurement Log Template
 
-| Trường cần ghi | Ví dụ |
+| Field to Record | Example |
 | --- | --- |
 | JVM, PID, NMT | JDK 21, PID 12345, `detail` |
-| Heap/config | `-Xms256m -Xmx1g`, collector và container limit ghi riêng |
-| Baseline | T0 sau 5 phút warm-up đại diện |
+| Heap/config | `-Xms256m -Xmx1g`, collector and container limits noted separately |
+| Baseline | T0 after 5 minutes of representative warm-up |
 | Workload | RPS, concurrency, payload size, key cardinality, queue length |
-| Mốc | T1 sau tải đều, T2 sau stress, T3 sau hạ tải |
-| Báo cáo lưu | `nmt-t0-detail.txt`; các file `summary.diff`/`detail.diff` |
-| Nhóm thay đổi | Delta reserved và committed, số thread/class/allocation |
-| Giả thuyết | Tăng theo pool, cache/buffer hợp lệ, hoặc owner không được cleanup |
-| Phép kiểm chứng | So lifecycle/counter, hạ tải, lặp chu kỳ và snapshot bổ sung |
+| Checkpoints | T1 after steady load, T2 after stress, T3 after load drop |
+| Saved reports | `nmt-t0-detail.txt`; `summary.diff`/`detail.diff` files |
+| Changing categories | Reserved and committed deltas, thread/class/allocation counts |
+| Hypothesis | Pool scaling, legitimate cache/buffer, or uncleaned owner |
+| Verification test | Compare lifecycles/counters, drop load, repeat cycles, and take extra snapshots |
 
-## 8. Lỗi thường gặp khi đọc diff
+## 8. Common Mistakes When Reading Diffs
 
-**1. “`reserved +1 GB` nghĩa là JVM ăn thêm 1 GB RAM.”** Sai. Reserved là không gian địa chỉ ảo; xem committed và RSS/cgroup. Java heap hoặc compressed class space có thể reserve diện tích lớn từ sớm mà chưa commit tương ứng.
+**1. "`reserved +1 GB` means the JVM uses 1 GB more RAM."** False. Reserved is virtual address space; check committed and RSS/cgroup. Java heap or compressed class space can reserve large areas early without corresponding commits.
 
-**2. “`committed +100 MB` chắc chắn memory leak.”** Chưa đủ. Có thể có heap expansion, pool/cache warm-up, JIT, thread count tăng theo concurrency. Đặt câu hỏi liệu bộ nhớ có trở về nền/plateau sau khi workload kết thúc và có owner hợp lệ hay không.
+**2. "`committed +100 MB` is definitely a memory leak."** Insufficient. Heap expansion, pool/cache warm-up, JIT, or concurrency-driven thread growth could explain it. Ask whether memory returns to baseline/plateaus after workload ends and has a legitimate owner.
 
-**3. “Chạy `summary.diff` hai lần cho ra thay đổi giữa hai lần.”** Sai. Cả hai so với baseline gần nhất. Muốn so riêng T2 với T1 phải tạo baseline mới tại T1 và ghi rõ sự thay đổi mốc, hoặc tự trừ số đo tuyệt đối theo cùng đơn vị/quy tắc.
+**3. "Running `summary.diff` twice gives the change between those two runs."** False. Both compare against the most recent baseline. To compare T2 against T1 specifically, set a new baseline at T1 and note the reference change, or subtract absolute figures using consistent units/rules.
 
-**4. “Có thể bật `detail.diff` giữa chừng mà không restart.”** Không. NMT tracking level được thiết lập khi khởi động. Nếu mức hiện tại là `summary` thì cần một JVM khác khởi động với `detail`.
+**4. "You can enable `detail.diff` mid-flight without restarting."** No. The NMT tracking level is set at startup. If the current level is `summary`, you need another JVM started with `detail`.
 
-**5. “Class count tăng là class loader leak.”** Không nhất thiết. Khởi động/JIT, dynamic proxy/lambda và module hợp lệ đều có thể tăng class count. Cần xem class unloading, số loader không còn được dùng và đường giữ loader cũ.
+**5. "Rising class count means a class loader leak."** Not necessarily. Startup/JIT, dynamic proxies/lambdas, and legitimate modules can all raise class counts. Check class unloading, unused loaders, and retention paths keeping old loaders alive.
 
-**6. “NMT ổn định thì không có JNI/native leak.”** Sai. NMT không theo dõi toàn bộ allocation do thư viện native bên ngoài HotSpot thực hiện. RSS hoặc memory cgroup có thể tăng độc lập với báo cáo NMT.
+**6. "If NMT is stable, there is no JNI/native leak."** False. NMT does not track all allocations performed by native libraries outside HotSpot. RSS or cgroup memory can grow independently of NMT reports.
 
-**7. “`detail.diff` chỉ thẳng dòng Java gây leak.”** Không. Nó cho thấy **call site HotSpot** và vùng virtual memory được theo dõi, không phải lời giải trực tiếp cho đồ thị owner Java hoặc mọi thư viện native. Cần liên hệ stack, subsystem và vòng đời đối tượng.
+**7. "`detail.diff` points straight to the leaking Java line."** No. It shows **HotSpot call sites** and tracked virtual memory regions, not a direct answer for the Java owner graph or every native library. Correlate with stacks, subsystems, and object lifecycles.
 
-**8. “Diff âm đã chứng minh toàn bộ bộ nhớ được giải phóng.”** Không. Đó là giảm **ròng so với baseline** ở nhóm/đơn vị đo; vẫn có thể còn allocation sống lâu, fragmentation hoặc phần memory ngoài phạm vi NMT.
+**8. "A negative diff proves all memory was freed."** No. It shows a **net decrease relative to baseline** in that category/unit; long-lived allocations, fragmentation, or memory outside NMT's scope can still remain.
 
-**9. “Baseline ngay khi process start giúp đo mọi thứ tốt hơn.”** Không hẳn. Nếu mục tiêu là bộ nhớ tăng do workload sau warm-up, mốc quá sớm trộn cả class loading, code cache và pool initialization. Chọn baseline theo câu hỏi đang điều tra, và ghi rõ thời điểm.
+**9. "Baselining right at process start always measures everything better."** Not necessarily. If the goal is post-warm-up workload growth, an overly early checkpoint mixes in class loading, code cache, and pool initialization. Choose the baseline to match your question, and record the timestamp.
 
-**10. “Đổi `scale=MB` làm tiết kiệm bộ nhớ hơn.”** Không. Đây chỉ là đơn vị hiển thị; với delta nhỏ có thể làm tròn mất tín hiệu. Dùng KB khi cần theo dõi tăng nhỏ nhưng kéo dài.
+**10. "Switching to `scale=MB` saves more memory."** No. It is only a display unit; for small deltas it can round away the signal. Use KB when tracking small but persistent growth.
 
-## 9. Checklist chốt kết luận
+## 9. Conclusion Sign-Off Checklist
 
-Trước khi viết báo cáo “native memory leak”, hãy xác nhận:
+Before writing a "native memory leak" report, confirm:
 
-- [ ] Đúng PID/JDK, JVM bật `-XX:NativeMemoryTracking=summary` hoặc `detail` **từ lúc khởi động**.
-- [ ] T0 được đặt sau warm-up phù hợp; biết mọi lần `baseline` đã gọi và diff tham chiếu tới mốc nào.
-- [ ] Có nhiều mốc ở tải tương đương và giai đoạn hạ tải; không suy xu hướng từ một ảnh chụp.
-- [ ] Đọc `reserved` và `committed` tách biệt, không đánh đồng với RSS hoặc Java heap live objects.
-- [ ] Nhóm tăng có delta lặp lại và được đối chiếu với thread/class/buffer/queue/workload metrics.
-- [ ] Nếu cần, `detail.diff` xác định được HotSpot call site/vùng VM cần điều tra; đã cân nhắc phần ngoài coverage NMT.
-- [ ] Có giả thuyết về owner, giới hạn và thời điểm giải phóng bộ nhớ, cùng phép thử để bác bỏ hoặc xác nhận.
-- [ ] Sau thay đổi, cùng phép thử cho thấy bộ nhớ đạt plateau hoặc trở về nền mong đợi, và hiệu năng/chức năng vẫn đạt yêu cầu.
+- [ ] Correct PID/JDK; JVM started with `-XX:NativeMemoryTracking=summary` or `detail` **from launch**.
+- [ ] T0 set after appropriate warm-up; all `baseline` calls are known and which checkpoint each diff references.
+- [ ] Multiple checkpoints under comparable load and load-drop phases; no trend inferred from a single snapshot.
+- [ ] `reserved` and `committed` interpreted separately, not equated with RSS or live Java heap objects.
+- [ ] Growing category shows repeatable deltas and is cross-checked with thread/class/buffer/queue/workload metrics.
+- [ ] Where needed, `detail.diff` identified HotSpot call sites/VM regions to investigate; out-of-scope NMT regions were considered.
+- [ ] Clear hypothesis on owner, bounds, and release timing, with a test to falsify or confirm it.
+- [ ] After the fix, the same test shows memory plateauing or returning to expected baseline while performance/functionality remain acceptable.
 
-**Thông điệp cốt lõi:** `baseline` cố định thời điểm so sánh; `summary.diff` chỉ ra **nhóm bộ nhớ nào thay đổi**; `detail.diff` đưa bạn gần hơn đến **nơi HotSpot cấp phát/ánh xạ bộ nhớ**. Cả ba là công cụ thu thập bằng chứng, còn kết luận leak cần xu hướng qua thời gian và xác minh vòng đời owner.
+**Core message:** `baseline` fixes the comparison timestamp; `summary.diff` shows **which memory category changed**; `detail.diff` brings you closer to **where HotSpot allocated/mapped memory**. All three are evidence-gathering tools, while confirming a leak requires time-series trends and owner-lifecycle verification.
 
-### Tài liệu tham khảo chính thức
+### Official References
 
 - Oracle JDK 21 — *Native Memory Tracking*: https://docs.oracle.com/en/java/javase/21/vm/native-memory-tracking.html
 - Oracle JDK 21 — *Diagnostic Tools / Native Memory Tracking*: https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html

@@ -1,118 +1,118 @@
-# Bài thực hành: Thêm quy tắc kịch bản với `Bindings` riêng và xử lý trường hợp thiếu engine
+# Hands-On: Adding Scripted Rules with Isolated `Bindings` and Handling Missing Engines
 
-## 1. Bối cảnh và kết quả cần đạt
+## 1. Context and Expected Outcomes
 
-Giả sử một ứng dụng Java cho phép bổ sung **quy tắc xét duyệt yêu cầu** ở runtime. Mỗi lượt kiểm tra có dữ liệu riêng của một người dùng, chẳng hạn `amount`, `limit` và `verified`. Người vận hành muốn dùng một script để quyết định `ALLOW` hoặc `DENY`, thay quy tắc mà không sửa mã gọi dịch vụ; hệ thống đồng thời phải hoạt động an toàn khi **không có script engine được cài**.
+Suppose a Java application allows adding **request approval rules** at runtime. Each evaluation has per-user data such as `amount`, `limit`, and `verified`. Operators want to use a script to decide `ALLOW` or `DENY`, swapping rules without changing the service's caller code; at the same time, the system must fail safely when **no script engine is installed**.
 
-Java Scripting API (JSR 223, `javax.script`, module chuẩn `java.scripting`) cung cấp các thành phần phù hợp:
+The Java Scripting API (JSR 223, `javax.script`, standard module `java.scripting`) provides the necessary building blocks:
 
-- `ScriptEngineManager`: tìm hoặc đăng ký một `ScriptEngineFactory`, rồi tạo `ScriptEngine` theo tên.
-- `ScriptEngine`: thực thi chuỗi script với `eval(...)`.
-- `Bindings`: ánh xạ biến–giá trị được cung cấp cho script; mỗi request có thể có **một bộ riêng**.
-- `ScriptContext`: cấu hình `ENGINE_SCOPE`, `GLOBAL_SCOPE` và kênh I/O.
-- `ScriptException`: báo lỗi kịch bản mà caller phải phân loại và xử lý.
+- `ScriptEngineManager`: locates or registers a `ScriptEngineFactory`, then creates a `ScriptEngine` by name.
+- `ScriptEngine`: executes a script string via `eval(...)`.
+- `Bindings`: variable-to-value map supplied to a script; each request can receive **its own separate instance**.
+- `ScriptContext`: configures `ENGINE_SCOPE`, `GLOBAL_SCOPE`, and I/O channels.
+- `ScriptException`: reports script errors that the caller must classify and handle.
 
-**Yêu cầu quan trọng của bài thực hành:** nếu không tìm thấy engine, script lỗi, hoặc kết quả không đúng hợp đồng Boolean, **không được âm thầm chấp nhận request**. Ví dụ biểu diễn kết quả bằng enum gồm `ALLOW`, `DENY`, `MISSING_ENGINE`, `SCRIPT_ERROR`, `INVALID_RESULT`; tất cả trạng thái khác `ALLOW` đều là **không cấp quyền** khi đưa vào quyết định nghiệp vụ.
+**Key requirement of this exercise:** if no engine is found, the script fails, or the result does not conform to the Boolean contract, **never silently approve the request**. For example, represent outcomes with an enum containing `ALLOW`, `DENY`, `MISSING_ENGINE`, `SCRIPT_ERROR`, and `INVALID_RESULT`; every state other than `ALLOW` **denies authorization** in the business decision.
 
-Sau bài này, bạn có thể:
+After this exercise, you will be able to:
 
-1. Đăng ký một engine thử nghiệm, kiểm tra khả năng tìm engine bằng tên.
-2. Cấp `Bindings` riêng cho Alice và Bob, không để trạng thái phiên này ghi đè phiên kia.
-3. Thêm quy tắc kiểm tra cờ `verified`, xem kết quả thay đổi từ `ALLOW` thành `DENY`.
-4. Xử lý trường hợp engine vắng mặt và script không hợp lệ theo **fail closed**.
-5. Phân biệt lỗi lookup, lỗi biên dịch/thực thi script, kết quả sai kiểu, và các vấn đề bảo mật hoặc chạy đồng thời.
-6. Biên dịch và chạy một chương trình **Java 17** chỉ dùng JDK, với stdout có thể kiểm tra.
+1. Register a test engine and verify engine lookup by name.
+2. Provide separate `Bindings` for Alice and Bob without one evaluation's state overwriting the other.
+3. Add a rule checking the `verified` flag and observe the result change from `ALLOW` to `DENY`.
+4. Handle missing engines and invalid scripts using a **fail-closed** policy.
+5. Distinguish lookup errors, script compilation/execution errors, wrong result types, and security or concurrency issues.
+6. Compile and run a **Java 17** program using only the JDK, with verifiable stdout.
 
-## 2. Lưu ý quan trọng về Java 17: có API không có nghĩa có engine
+## 2. Important Note About Java 17: Having the API Does Not Mean Having an Engine
 
-`javax.script` là **API chuẩn**. Nó không bảo đảm rằng JVM được cài sẵn engine JavaScript, Python hay ngôn ngữ bất kỳ.
+`javax.script` is a **standard API**. It does not guarantee that the JVM comes with a built-in engine for JavaScript, Python, or any other language.
 
-Trong JDK cũ, Nashorn từng là JavaScript engine đi kèm; Nashorn đã bị loại khỏi JDK từ **Java 15**. Vì vậy, trên Java 17, lệnh:
+In older JDKs, Nashorn was bundled as the JavaScript engine; Nashorn was removed from the JDK in **Java 15**. Therefore, on Java 17, the call:
 
 ```java
 ScriptEngine engine =
         new ScriptEngineManager().getEngineByName("JavaScript");
 ```
 
-**có thể trả `null`**, và trên môi trường Java 17 tiêu chuẩn không cài thêm provider, thông thường bạn không có JavaScript engine mặc định. Không viết code giả định `getEngineByName("JavaScript")` chắc chắn thành công.
+**can return `null`**, and on a standard Java 17 environment without extra providers installed, you typically have no default JavaScript engine. Never write code assuming `getEngineByName("JavaScript")` will always succeed.
 
-Có hai cách triển khai phần thực hành:
+There are two ways to run this hands-on exercise:
 
-- **Cách A (chạy độc lập, bài này sử dụng):** tự đăng ký một `ScriptEngineFactory` nhỏ mang tên `toy-rule`, hỗ trợ đúng một số biểu thức quy tắc. Nhờ đó mọi ví dụ chạy được với JDK 17, không cần tải dependency hay phụ thuộc tên engine mà máy đã cài.
-- **Cách B (triển khai thực tế):** thêm JSR 223 provider của ngôn ngữ bạn chọn vào runtime, xác minh service registration/class loader và lấy engine bằng tên mà provider công bố. Cần dùng **cú pháp của engine thực tế**, không tự xem mã `toy-rule` là JavaScript.
+- **Approach A (standalone, used in this lesson):** manually register a tiny `ScriptEngineFactory` named `toy-rule` supporting a small set of rule expressions. All examples then run on JDK 17 without downloading dependencies or relying on whatever engine happens to be installed locally.
+- **Approach B (real-world deployment):** add the JSR 223 provider for your chosen language to the runtime, verify service registration/class loader visibility, and look up the engine by the name advertised by that provider. You must use **the real engine's syntax**, not assume `toy-rule` strings are JavaScript.
 
-Engine `toy-rule` bên dưới là một **bộ diễn giải tối giản dành riêng cho học tập**. Nó nhận vài chuỗi quy tắc có định nghĩa sẵn, không phải bộ thông dịch JavaScript đầy đủ, không cho chạy biểu thức tùy ý và không đại diện cho một sandbox.
+The `toy-rule` engine below is a **minimal interpreter built strictly for learning**. It accepts a few predefined rule strings; it is not a full JavaScript interpreter, does not execute arbitrary expressions, and does not represent a sandbox.
 
-## 3. Thiết kế bài toán và ranh giới dữ liệu
+## 3. Problem Design and Data Boundaries
 
-Ta xét mỗi request như sau:
+We model each request as follows:
 
-| Thuộc tính | Java type | Ý nghĩa |
+| Property | Java type | Meaning |
 |---|---|---|
-| `user` | `String` | Tên để nhận biết dữ liệu minh họa, không dùng để tự cấp quyền |
-| `amount` | `int` | Giá trị yêu cầu |
-| `limit` | `int` | Giới hạn cho phép |
-| `verified` | `boolean` | Trạng thái đã xác minh |
+| `user` | `String` | Name to identify sample data, never used to auto-grant access |
+| `amount` | `int` | Requested value |
+| `limit` | `int` | Allowed threshold |
+| `verified` | `boolean` | Verification status |
 
-Quy tắc ban đầu:
+Initial rule:
 
 ```text
 amount <= limit
 ```
 
-Quy tắc bổ sung yêu cầu xác minh:
+Extended rule requiring verification:
 
 ```text
 amount <= limit && verified
 ```
 
-Dữ liệu ví dụ:
+Sample data:
 
-| Yêu cầu | `amount` | `limit` | `verified` | Quy tắc 1 | Quy tắc 2 |
+| Request | `amount` | `limit` | `verified` | Rule 1 | Rule 2 |
 |---|---:|---:|---|---|---|
 | Alice | 80 | 100 | `false` | `ALLOW` | `DENY` |
 | Bob | 150 | 100 | `true` | `DENY` | `DENY` |
-| Alice sau khi xác minh | 80 | 100 | `true` | `ALLOW` | `ALLOW` |
+| Alice after verification | 80 | 100 | `true` | `ALLOW` | `ALLOW` |
 
-Hai quy tắc được chọn bằng **chuỗi cấu hình** truyền cho `eval`, chứ không phải hai phương thức Java public riêng biệt của host. Trong mô hình sản phẩm thật, rule ID, version, source text và quyền thay đổi nên được lưu có kiểm soát; nội dung từ người dùng cuối không nên tự trở thành script được chạy với quyền server.
+The two rules are selected by a **configuration string** passed to `eval`, rather than two separate public Java methods on the host. In a real product, rule IDs, versions, source text, and edit permissions should be stored under strict control; end-user input must never become a script executed with server privileges.
 
-Các trạng thái của bộ gọi:
+Caller state flow:
 
 ```text
-                  Đọc cấu hình tên engine / rule
+                  Read configured engine name / rule
                               |
                               v
                   ScriptEngineManager lookup
                          /          \
-                     null          có engine
+                     null          engine found
                       |               |
                       v               v
-              MISSING_ENGINE    Tạo Bindings riêng
+              MISSING_ENGINE    Create isolated Bindings
                                       |
                                       v
                                  eval(rule)
                                /    |      \
-                            lỗi   kết quả   Boolean
-                             |      sai       |
-                             v       v        v
+                           error  wrong    Boolean
+                             |    result     |
+                             v      v        v
                         SCRIPT_ERROR INVALID_RESULT
                                               |
-                                       true hoặc false
+                                       true or false
                                        /           \
                                       v             v
                                     ALLOW          DENY
 ```
 
-**Không có đường nào từ `MISSING_ENGINE`, `SCRIPT_ERROR` hay `INVALID_RESULT` sang `ALLOW`**. Đây là chính sách chủ động, không phải hành vi tự động của mọi script engine.
+**There is no path from `MISSING_ENGINE`, `SCRIPT_ERROR`, or `INVALID_RESULT` to `ALLOW`**. This is an explicit policy, not an automatic behavior of every script engine.
 
-## 4. `Bindings` riêng là gì và vì sao cần?
+## 4. What Are Isolated `Bindings` and Why Do We Need Them?
 
-`Bindings` về bản chất là một `Map<String,Object>` có ràng buộc về tên biến. Nếu mọi request cùng dùng `engine.put("user", ...)` trên một engine được chia sẻ, các biến trong **default `ENGINE_SCOPE`** có thể bị request này ghi đè request khác.
+`Bindings` is essentially a `Map<String,Object>` constrained to variable-name keys. If every request calls `engine.put("user", ...)` on a shared engine, variables in the **default `ENGINE_SCOPE`** can be overwritten by one request while another runs.
 
-Ví dụ **không phù hợp** với ranh giới nhiều người dùng:
+Example **unsuitable** for multi-user boundaries:
 
 ```java
-// Minh họa phản ví dụ; giả định "engine" tồn tại.
+// Illustrative counterexample; assumes "engine" exists.
 engine.put("amount", 80);
 engine.put("user", "Alice");
 engine.eval(rule);
@@ -122,9 +122,9 @@ engine.put("user", "Bob");
 engine.eval(rule);
 ```
 
-Ở đây `put(...)` sửa `ENGINE_SCOPE` mặc định. Nó không tạo một phiên riêng cho từng lần chạy. Nếu host còn giữ trạng thái khác hoặc chạy nhiều thread đồng thời, hành vi càng khó dự đoán.
+Here `put(...)` mutates the default `ENGINE_SCOPE`. It does not create a separate session for each execution. If the host retains other state or runs multiple threads concurrently, behavior becomes even more unpredictable.
 
-Cách tách dữ liệu theo lượt:
+Separating data per evaluation:
 
 ```java
 Bindings alice = engine.createBindings();
@@ -135,9 +135,9 @@ alice.put("verified", false);
 Object result = engine.eval("amount <= limit", alice);
 ```
 
-Với `eval(script, bindings)`, các bindings được truyền vào là **`ENGINE_SCOPE` cho lần đánh giá đó**; đây không phải lệnh thay vĩnh viễn bindings mặc định của engine. Tuy nhiên, kiểu overload này có thể dùng các thành phần khác từ context mặc định của engine, bao gồm **`GLOBAL_SCOPE`**. Do đó nó không tự cách ly toàn bộ trạng thái.
+With `eval(script, bindings)`, the passed bindings act as **`ENGINE_SCOPE` for that evaluation**; this does not permanently replace the engine's default bindings. However, this overload may still draw other parts from the engine's default context, including **`GLOBAL_SCOPE`**. Hence it does not automatically isolate all state.
 
-Trong bài thực hành, ta dùng cách tường minh hơn:
+In this exercise, we use a more explicit setup:
 
 ```java
 SimpleScriptContext context = new SimpleScriptContext();
@@ -147,11 +147,11 @@ context.setBindings(new SimpleBindings(), ScriptContext.GLOBAL_SCOPE);
 Object result = engine.eval("amount <= limit", context);
 ```
 
-Mỗi request có cả `ENGINE_SCOPE` riêng lẫn một `GLOBAL_SCOPE` rỗng riêng. Nhờ vậy ta không vô tình dùng chung global bindings được `ScriptEngineManager` gắn cho các engine do manager tạo. Việc cách ly `Bindings` vẫn **không** đồng nghĩa toàn bộ state nội bộ engine hoặc các đối tượng mutable bên trong map được cách ly.
+Each request gets both its own `ENGINE_SCOPE` and its own empty `GLOBAL_SCOPE`. Thus we never accidentally share global bindings attached by `ScriptEngineManager` to engines it creates. Isolating `Bindings` still **does not** mean internal engine state or mutable objects placed inside the map are isolated.
 
-## 5. Ba ranh giới phải kiểm tra trước khi chạy quy tắc
+## 5. Three Boundaries to Check Before Running Rules
 
-### 5.1. Tìm engine đúng tên
+### 5.1. Looking up the right engine by name
 
 ```java
 ScriptEngine engine = manager.getEngineByName(configuredName);
@@ -160,13 +160,13 @@ if (engine == null) {
 }
 ```
 
-Đây là **trích đoạn** trong class của phần 7. `getEngineByName` có thể trả `null` khi không có factory được đăng ký/khám phá dưới tên đó. Bất kỳ bước nào cần dùng engine phải nằm **sau** kiểm tra null, nếu không có thể gặp `NullPointerException` và che mất nguyên nhân thực sự.
+This is an **excerpt** from the class in section 7. `getEngineByName` returns `null` when no factory is registered or discovered under that name. Any code using the engine must appear **after** the null check; otherwise a `NullPointerException` can occur and obscure the true cause.
 
-Đừng tự động lấy một engine **khác ngôn ngữ/cú pháp** khi thiếu engine bắt buộc. Nếu sản phẩm có fallback nghiệp vụ, fallback phải được thiết kế và phê duyệt riêng, không phải kiểu “không có engine thì cứ cho phép”.
+Never fall back automatically to an engine of **another language/syntax** when the required engine is missing. If a product has a business fallback, that fallback must be designed and approved separately, never "no engine, so allow".
 
-### 5.2. Kết quả phải đúng hợp đồng
+### 5.2. Results must adhere to the contract
 
-Một script engine JSR 223 có thể trả `Object`: `null`, `String`, `Number`, `Boolean` hoặc kiểu đặc thù của ngôn ngữ. Với quy tắc xét duyệt, **chỉ nhận `Boolean`**:
+A JSR 223 script engine can return any `Object`: `null`, `String`, `Number`, `Boolean`, or a language-specific type. For authorization rules, **accept only `Boolean`**:
 
 ```java
 Object raw = engine.eval(rule, context);
@@ -177,26 +177,26 @@ return new Outcome(
         result ? Decision.ALLOW : Decision.DENY, bindings);
 ```
 
-Không tự ép kiểu `Boolean` bằng cast mù quáng; không hiểu chuỗi `"true"` là quyền cho phép nếu hợp đồng chưa quy định. Việc chuyển đổi kiểu thiếu kiểm soát có thể khiến script hoặc provider khác hành vi ngoài mong muốn.
+Do not cast blindly to `Boolean`; do not treat `"true"` strings as permission unless the contract explicitly specifies it. Uncontrolled type coercion can cause scripts or different providers to behave unexpectedly.
 
-### 5.3. Lỗi script không phải quyết định chấp nhận
+### 5.3. Script errors are never approval decisions
 
 ```java
 try {
     Object raw = engine.eval(rule, context);
-    // Kiểm tra kết quả theo hợp đồng đã chọn.
+    // Validate result per the chosen contract.
 } catch (ScriptException e) {
     return new Outcome(Decision.SCRIPT_ERROR, bindings);
 }
 ```
 
-Đây là **minh họa**; chương trình đầy đủ bên dưới có logic kiểm tra kiểu. `ScriptException` biểu thị lỗi script, không nên nuốt rồi trả `ALLOW`. Trong ứng dụng thật, cần log **đã làm sạch** `ruleId`, phiên bản rule và request ID, tránh ghi dữ liệu nhạy cảm của `Bindings` hay toàn bộ script vào log.
+This is an **illustration**; the complete program below includes the type check. `ScriptException` signals a script failure and must not be swallowed to return `ALLOW`. In a real application, log **sanitized** `ruleId`, rule version, and request ID, avoiding dumping sensitive `Bindings` data or entire scripts into logs.
 
-Các lỗi nghiêm trọng như `Error`, lỗi cấu hình JVM hoặc provider khởi tạo thất bại không nhất thiết là `ScriptException`; hãy quản lý chúng tại ranh giới worker/supervisor phù hợp, không `catch(Throwable)` rồi coi là quyết định nghiệp vụ hợp lệ.
+Serious failures like `Error`, JVM configuration errors, or provider initialization failures are not necessarily `ScriptException`; manage them at the appropriate worker/supervisor boundary rather than catching `Throwable` and treating it as a valid business decision.
 
-## 6. Kiến trúc chương trình thực hành
+## 6. Exercise Program Architecture
 
-Ta dùng **một file nguồn** `ScriptRuleLab.java` để giảm sai sót khi biên dịch. Các thành phần bên trong:
+We use a **single source file** `ScriptRuleLab.java` to minimize compilation mistakes. Components inside:
 
 ```text
 ScriptRuleLab
@@ -207,9 +207,9 @@ ScriptRuleLab
   |
   +-- RuleFactory implements ScriptEngineFactory
   |       |
-  |       +-- tên engine "toy-rule"
-  |       +-- công bố THREADING = null
-  |       +-- tạo RuleEngine
+  |       +-- engine name "toy-rule"
+  |       +-- declares THREADING = null
+  |       +-- creates RuleEngine
   |
   +-- RuleEngine extends AbstractScriptEngine
   |       |
@@ -224,22 +224,22 @@ ScriptRuleLab
   |       +-- Boolean type check
   |       +-- fail-closed status mapping
   |
-  +-- main(): các kịch bản kiểm thử
+  +-- main(): test scenarios
 ```
 
-**Quy ước riêng của toy engine:**
+**Toy engine conventions:**
 
-- `"amount <= limit"` trả Boolean dựa trên hai biến Integer trong context.
-- `"amount <= limit && verified"` trả Boolean và yêu cầu cờ `verified`.
-- `"return text"` cố ý trả `String` để kiểm tra `INVALID_RESULT`.
-- Bất kỳ chuỗi khác ném `ScriptException("Unsupported rule")`.
-- Khi tính một quy tắc Boolean, engine ghi `lastDecision` vào **`ENGINE_SCOPE` của context truyền vào**. Đây là phép đo minh họa việc state không bị trộn giữa Alice và Bob.
+- `"amount <= limit"` returns Boolean using two Integer variables in context.
+- `"amount <= limit && verified"` returns Boolean and requires the `verified` flag.
+- `"return text"` intentionally returns a `String` to test `INVALID_RESULT`.
+- Any other string throws `ScriptException("Unsupported rule")`.
+- When evaluating a Boolean rule, the engine writes `lastDecision` into **`ENGINE_SCOPE` of the passed context**. This measurement demonstrates that state is not mixed between Alice and Bob.
 
-Các chuỗi này **không phải cú pháp JavaScript đầy đủ**; ta dùng chúng làm một DSL nhỏ. Để hỗ trợ ngôn ngữ tổng quát, cần cài script engine thật hoặc xây parser/evaluator đầy đủ, không chỉ thêm một nhánh `switch`.
+These strings **are not full JavaScript syntax**; we use them as a tiny DSL. To support a general-purpose language, install a real script engine or build a proper parser/evaluator rather than adding more `switch` branches.
 
-## 7. Chương trình Java 17 hoàn chỉnh
+## 7. Complete Java 17 Program
 
-Tạo tệp `ScriptRuleLab.java` với đúng mã sau. Không có dependency bên thứ ba; sử dụng `javax.script` của JDK.
+Create `ScriptRuleLab.java` with the exact code below. No third-party dependencies are needed; it uses the JDK's `javax.script`.
 
 ```java
 import java.io.IOException;
@@ -427,19 +427,19 @@ public final class ScriptRuleLab {
 }
 ```
 
-### Mục đích của từng phần
+### Purpose of each part
 
-**`RuleFactory`** là một factory hợp lệ của JSR 223. Nó công bố tên `"toy-rule"`, những thông tin cơ bản và tạo instance của `RuleEngine`. Ta đăng ký tên engine **chủ động** qua `manager.registerEngineName(...)`, không phải trông chờ ServiceLoader tìm plugin trên một máy chưa cài provider.
+**`RuleFactory`** is a valid JSR 223 factory. It advertises the name `"toy-rule"` along with basic metadata and creates `RuleEngine` instances. We **explicitly** register the engine name via `manager.registerEngineName(...)` instead of waiting for ServiceLoader to discover a plugin on a machine with no provider installed.
 
-**`RuleEngine`** thừa kế `AbstractScriptEngine`. Nó hiện thực `eval(String, ScriptContext)`, `eval(Reader, ScriptContext)`, `createBindings()` và `getFactory()`. Đây là những điểm cần thiết để ví dụ thể hiện đúng cách một engine thực thi qua JSR 223. `getParameter("THREADING")` trả `null` vì toy engine **không công bố khả năng chạy script đồng thời trên cùng instance**.
+**`RuleEngine`** extends `AbstractScriptEngine`. It implements `eval(String, ScriptContext)`, `eval(Reader, ScriptContext)`, `createBindings()`, and `getFactory()`. These are what the example needs to properly demonstrate engine execution through JSR 223. `getParameter("THREADING")` returns `null` because the toy engine **does not claim thread safety for concurrent script execution on the same instance**.
 
-**`evaluate(...)`** luôn lấy một engine mới từ manager, tạo `Bindings` mới, tạo `SimpleScriptContext` mới, rồi đánh giá rule. Vì vậy ví dụ **không có hai request đồng thời dùng chung một engine instance**. `Outcome` có chứa `Bindings` **chỉ để bài thực hành có thể xác minh state và object identity**; trong service production, không đưa map mutable của request vào response cho client.
+**`evaluate(...)`** always retrieves a fresh engine from the manager, creates fresh `Bindings`, creates a fresh `SimpleScriptContext`, and then evaluates the rule. Thus the example **never shares a single engine instance across concurrent requests**. `Outcome` holds `Bindings` **solely so the exercise can verify state and object identity**; in a production service, never return a mutable request map in a client response.
 
-**`main()`** chạy các test theo thứ tự ổn định để chứng minh cả thành công và các nhánh lỗi. Nó không phụ thuộc JavaScript/Nashorn được cài sẵn.
+**`main()`** runs test scenarios in deterministic order to prove both success and failure branches. It does not depend on JavaScript/Nashorn being installed.
 
-## 8. Biên dịch, chạy và kiểm tra stdout
+## 8. Compiling, Running, and Verifying Stdout
 
-Cài JDK 17 trở lên, lưu file `ScriptRuleLab.java` ở thư mục tùy chọn, mở terminal trong thư mục đó.
+Install JDK 17 or newer, save `ScriptRuleLab.java` in a directory of your choice, and open a terminal in that directory.
 
 ### Linux/macOS
 
@@ -455,9 +455,9 @@ javac --release 17 -encoding UTF-8 ScriptRuleLab.java
 java ScriptRuleLab
 ```
 
-Nếu `javac` không được tìm thấy, cần kiểm tra `PATH`/`JAVA_HOME` và đảm bảo đang dùng JDK có compiler. Nếu code được đặt trong named module thay vì chạy trên classpath như bài này, cần khai báo `requires java.scripting;` trong `module-info.java`.
+If `javac` is not found, check `PATH`/`JAVA_HOME` and make sure you are using a JDK that includes a compiler. If the code is placed in a named module instead of running on the classpath as here, declare `requires java.scripting;` in `module-info.java`.
 
-**Stdout trên đường chạy thành công của chương trình:**
+**Stdout on a successful run of the program:**
 
 ```text
 Rule 1 / Alice: ALLOW
@@ -473,26 +473,26 @@ Invalid result: INVALID_RESULT
 Factory THREADING: null
 ```
 
-Đầu ra không in stack trace vì demo chuyển những lỗi script đã biết thành trạng thái rõ ràng. Với runtime có provider ngoài được đăng ký trùng tên giả định `__missing_engine_demo_229__`, nhánh “missing” cần đổi sang một tên không có nhà cung cấp để kiểm thử; trên môi trường demo bình thường, tên thử nghiệm đó không tồn tại.
+Output prints no stack traces because the demo converts known script errors into explicit statuses. In an environment where an external provider happens to register the exact dummy name `__missing_engine_demo_229__`, change the "missing" test to an unregistered name; on a normal demo machine, that test name does not exist.
 
-## 9. Đi từng bước qua kết quả
+## 9. Walking Through the Results Step by Step
 
-### 9.1. `Rule 1`: thêm quy tắc cơ bản
+### 9.1. `Rule 1`: adding a basic rule
 
-Trong `main`:
+In `main`:
 
 ```java
 Outcome a = evaluate(manager, "toy-rule", "amount <= limit", alice);
 Outcome b = evaluate(manager, "toy-rule", "amount <= limit", bob);
 ```
 
-Alice có `80 <= 100` nên `ALLOW`. Bob có `150 <= 100` sai nên `DENY`. Cả hai chạy **cùng một source rule**, nhưng với các giá trị trong hai `Bindings` khác nhau.
+Alice has `80 <= 100`, yielding `ALLOW`. Bob has `150 <= 100` false, yielding `DENY`. Both execute **the same rule source**, but with values inside two different `Bindings`.
 
-Nếu định nghĩa quy tắc như một cấu hình ứng dụng, thứ có thể đổi giữa các lần triển khai là `rule` (chuỗi), còn hàm `evaluate(manager, engineName, rule, request)` không cần đổi cách gọi. Tuy nhiên, trong toy engine, tập cú pháp được hỗ trợ là hữu hạn và đã nằm trong implementation.
+When defining rules as application configuration, what changes across deployments is `rule` (the string), while `evaluate(manager, engineName, rule, request)` requires no signature or call-site changes. However, in the toy engine, the supported syntax is finite and hard-coded in the implementation.
 
-### 9.2. Kiểm chứng `Bindings` riêng biệt
+### 9.2. Verifying separate `Bindings`
 
-Hai dòng:
+The lines:
 
 ```text
 Bindings distinct: true
@@ -500,68 +500,68 @@ Alice lastDecision: true
 Bob lastDecision: false
 ```
 
-cho thấy `a.bindings()` và `b.bindings()` là **hai object khác nhau**. Toy engine ghi `lastDecision` vào `ENGINE_SCOPE` của context tương ứng; Alice giữ `true`, Bob giữ `false`. Nó không ghi biến `lastDecision` vào scope mặc định của manager.
+show that `a.bindings()` and `b.bindings()` are **two distinct objects**. The toy engine writes `lastDecision` into `ENGINE_SCOPE` of the corresponding context; Alice holds `true` and Bob holds `false`. It does not write `lastDecision` into the manager's default scope.
 
-Việc có hai map riêng là điều kiện quan trọng nhưng **chưa phải cam kết cô lập tuyệt đối**:
+Having two separate maps is an important condition, yet **not an absolute guarantee of isolation**:
 
-- Nếu cả hai map cùng tham chiếu một `ArrayList` hay connection mutable, state của object đó vẫn có thể dùng chung.
-- Nếu engine giữ static field hoặc global state riêng bên ngoài Bindings, tạo bindings mới không tự reset chúng.
-- Nếu context dùng `GLOBAL_SCOPE` chung từ `ScriptEngineManager`, biến global vẫn có thể rò. Bài này đặt `GLOBAL_SCOPE` rỗng riêng cho mỗi lượt chạy.
+- If both maps reference the same mutable `ArrayList` or connection, that object's state can still be shared.
+- If the engine maintains static fields or global state outside Bindings, creating new bindings will not reset them.
+- If the context uses the shared `GLOBAL_SCOPE` from `ScriptEngineManager`, global variables can leak. This exercise assigns a fresh empty `GLOBAL_SCOPE` to each evaluation.
 
-### 9.3. Thêm quy tắc xác minh
+### 9.3. Adding the verification rule
 
-Đổi source từ:
+Change the source from:
 
 ```text
 amount <= limit
 ```
 
-sang:
+to:
 
 ```text
 amount <= limit && verified
 ```
 
-Đối với Alice chưa xác minh (`verified=false`), kết quả đổi từ `ALLOW` sang `DENY`. Với cùng Alice đã xác minh (`true`), kết quả là `ALLOW`.
+For unverified Alice (`verified=false`), the outcome changes from `ALLOW` to `DENY`. For the same Alice once verified (`true`), the outcome is `ALLOW`.
 
-Đó là mục tiêu “**thêm quy tắc kịch bản**”: điều kiện xét duyệt thay đổi qua **source rule** và dữ liệu được truyền vào, còn host giữ nguyên giao diện `evaluate(...)`. Khi dùng một engine thực có parser/ngôn ngữ riêng, script có thể linh hoạt hơn nhiều; nhưng cũng phải có version, kiểm thử và kiểm soát quyền chỉnh sửa.
+That is the goal of "**adding scripted rules**": approval criteria change via **rule source** and input data while the host keeps the `evaluate(...)` interface unchanged. With a real engine that has its own parser/language, scripts can be far more expressive; yet they still require versioning, testing, and edit-permission controls.
 
-### 9.4. Thiếu engine được nhận diện trước `eval`
+### 9.4. Missing engine detected before `eval`
 
-Lệnh:
+The call:
 
 ```java
 Outcome missing = evaluate(
         manager, "__missing_engine_demo_229__", "amount <= limit", alice);
 ```
 
-thử tìm một engine dưới tên chưa đăng ký. `manager.getEngineByName(...)` trả `null`, vì thế hàm trả `MISSING_ENGINE` **trước khi tạo Bindings và trước khi thực thi script**.
+attempts to look up an engine under an unregistered name. `manager.getEngineByName(...)` returns `null`, so the method returns `MISSING_ENGINE` **before creating Bindings and before running any script**.
 
-Trường hợp này khác `SCRIPT_ERROR`:
+This differs from `SCRIPT_ERROR`:
 
-- **`MISSING_ENGINE`:** không có provider/engine phù hợp với tên cấu hình.
-- **`SCRIPT_ERROR`:** đã lấy được engine nhưng script không được hỗ trợ, sai cú pháp hoặc engine phát sinh `ScriptException` khi chạy.
+- **`MISSING_ENGINE`:** no provider/engine matches the configured name.
+- **`SCRIPT_ERROR`:** an engine was obtained, but the script is unsupported, has syntax errors, or threw `ScriptException` at runtime.
 
-Trong production, chúng cần thông báo và hướng chẩn đoán khác nhau. Việc phân biệt giúp người vận hành không mất thời gian sửa script khi thực tế thiếu dependency của engine.
+In production, they need different alerts and diagnostic paths. Separating them prevents operators from wasting time debugging a script when an engine dependency is actually missing.
 
-### 9.5. Script lỗi và kết quả sai kiểu
+### 9.5. Faulty scripts and wrong result types
 
-Toy engine cố ý chỉ hiểu hai biểu thức Boolean, cộng một test trả `String`. Với source `"amount >>> limit"`, nó ném `ScriptException`, nên status là `SCRIPT_ERROR`.
+The toy engine intentionally recognizes only two Boolean expressions plus one test returning `String`. For `"amount >>> limit"`, it throws `ScriptException`, yielding status `SCRIPT_ERROR`.
 
-Với `"return text"`, `eval()` trả `"not a boolean"`, nhưng hợp đồng xét duyệt **chỉ nhận Boolean**, nên status là `INVALID_RESULT`.
+For `"return text"`, `eval()` returns `"not a boolean"`, and since the authorization contract **accepts only Boolean**, the status is `INVALID_RESULT`.
 
-Một hệ thống thiếu kiểm tra có thể viết:
+An unchecked system might write:
 
 ```java
-// PHẢN VÍ DỤ: sai hợp đồng, có thể ClassCastException hoặc lỗi logic.
+// COUNTEREXAMPLE: breaks contract, risks ClassCastException or logic errors.
 boolean allowed = (Boolean) engine.eval(rule, context);
 ```
 
-Ở đây một script hợp lệ về mặt ngôn ngữ nhưng trả String làm chương trình lỗi. Kiểm tra `instanceof Boolean` bảo đảm chỉ kết quả đúng kiểu mới được xét thành `ALLOW`/`DENY`.
+Here a syntactically valid script returning a String crashes the program. Checking `instanceof Boolean` ensures only properly typed outcomes map to `ALLOW`/`DENY`.
 
-## 10. Luồng thực thi an toàn của một request
+## 10. Safe Execution Flow for a Request
 
-Đối với API thực tế, có thể tách `evaluate(...)` và **điểm áp dụng quyết định**:
+In a real API, separate `evaluate(...)` from **where the decision is enforced**:
 
 ```text
 HTTP / Batch / Message Request
@@ -602,41 +602,41 @@ HTTP / Batch / Message Request
                 Audit safe metadata
 ```
 
-Trong một phương thức dịch vụ ngoài demo, quyết định có thể được áp bằng:
+In a service method outside the demo, enforcement might look like:
 
 ```java
 boolean approved = outcome.decision() == Decision.ALLOW;
 ```
 
-Đây là **trích đoạn** nằm trong scope có `outcome` và `Decision`, không phải file độc lập. Với `MISSING_ENGINE`, `SCRIPT_ERROR`, `INVALID_RESULT` và `DENY`, `approved` đều là `false`.
+This is an **excerpt** within a scope that has `outcome` and `Decision`, not a standalone file. For `MISSING_ENGINE`, `SCRIPT_ERROR`, `INVALID_RESULT`, and `DENY`, `approved` is `false`.
 
-**Fail closed không có nghĩa mất mọi khả năng phục hồi.** Bạn có thể trả status chính xác để vận hành sửa dependency/rule; có thể cho client retry sau khi cấu hình được sửa. Nhưng cơ chế phục hồi phải không chuyển một lỗi kỹ thuật thành chấp thuận nghiệp vụ ngoài ý muốn.
+**Fail-closed does not preclude recovery.** You can return an accurate status so operators can fix the dependency/rule, and allow clients to retry once configuration is restored. However, recovery must never turn a technical fault into an unintended business approval.
 
-## 11. Những gì `Bindings` cô lập được và không cô lập được
+## 11. What `Bindings` Does and Does Not Isolate
 
-### 11.1. `ENGINE_SCOPE` và `GLOBAL_SCOPE`
+### 11.1. `ENGINE_SCOPE` and `GLOBAL_SCOPE`
 
-`SimpleScriptContext` có hai scope chính:
+`SimpleScriptContext` has two main scopes:
 
-| Scope | Dùng vào việc gì | Rủi ro khi chia sẻ |
+| Scope | What it is for | Risk if shared |
 |---|---|---|
-| `ENGINE_SCOPE` | Biến theo từng lượt eval, phiên, hoặc engine context | Nếu dùng map mặc định chung giữa requests, request có thể ghi đè biến |
-| `GLOBAL_SCOPE` | Các biến dùng chung ở phạm vi rộng hơn | Dữ liệu tenant A có thể hiển thị cho tenant B nếu đặt chung |
+| `ENGINE_SCOPE` | Variables for a single eval, session, or engine context | Sharing a default map across requests allows requests to overwrite variables |
+| `GLOBAL_SCOPE` | Wider shared variables | Tenant A's data may become visible to tenant B if shared |
 
-Trong ví dụ, sau khi tạo map local bằng `engine.createBindings()`, mã gắn:
+In the example, after creating a local map via `engine.createBindings()`, the code attaches:
 
 ```java
 context.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
 context.setBindings(new SimpleBindings(), ScriptContext.GLOBAL_SCOPE);
 ```
 
-Nhờ vậy cả hai scope đều được **quy định rõ**. Nếu chỉ dùng `engine.eval(rule, bindings)` với một engine có context mặc định, implementation có thể thừa hưởng các thành phần khác của context mặc định, bao gồm global scope; điều này phải được đánh giá với engine cụ thể.
+Thus both scopes are **explicitly bounded**. Calling only `engine.eval(rule, bindings)` on an engine with a default context may inherit other parts of that default context, including global scope; you must evaluate this behavior for your specific engine.
 
-Khi một biến cùng tên có mặt ở cả `ENGINE_SCOPE` và `GLOBAL_SCOPE`, tra cứu theo scope thông thường ưu tiên `ENGINE_SCOPE`. Vì thế việc vô tình đặt một secret trong global bindings vẫn nguy hiểm: một script có thể thấy dữ liệu đó khi không bị shadow.
+When the same variable name exists in both `ENGINE_SCOPE` and `GLOBAL_SCOPE`, scoped lookup typically prefers `ENGINE_SCOPE`. Therefore, accidentally placing a secret in global bindings remains risky: a script can read it whenever it is not shadowed.
 
-### 11.2. Một map mới không phải deep copy
+### 11.2. A new map is not a deep copy
 
-Ví dụ minh họa về dữ liệu mutable:
+Illustrative example with mutable data:
 
 ```java
 List<String> shared = new java.util.ArrayList<>();
@@ -647,35 +647,35 @@ alice.put("items", shared);
 bob.put("items", shared);
 ```
 
-Mặc dù `alice != bob`, cả hai map cùng tham chiếu list `shared`. Một engine có khả năng gọi method Java trên object đó có thể làm thay đổi list mà bên còn lại thấy.
+Although `alice != bob`, both maps reference the same `shared` list. An engine capable of calling Java methods on that object can mutate the list seen by the other evaluation.
 
-Trong hệ thống thực, nên chỉ truyền các kiểu dữ liệu đã cho phép, immutable hoặc DTO đã được kiểm soát; không đưa connection, credential, registry nội bộ hay object host có quyền cao vào script chỉ vì nó chạy trong `Bindings` khác.
+In a real system, pass only allowed, immutable types or controlled DTOs; never expose connections, credentials, internal registries, or privileged host objects to scripts simply because they run with separate `Bindings`.
 
-### 11.3. Không giả định engine có thể dùng chung nhiều luồng
+### 11.3. Never assume an engine can be shared across threads
 
-`ScriptEngineFactory.getParameter("THREADING")` mô tả cam kết concurrency của provider. Các giá trị Java Scripting API xác định gồm:
+`ScriptEngineFactory.getParameter("THREADING")` describes the provider's concurrency guarantee. Values defined by the Java Scripting API are:
 
-| Giá trị | Ý nghĩa |
+| Value | Meaning |
 |---|---|
-| `null` | Factory không bảo đảm engine thread-safe; không được dùng một engine thực thi script đồng thời |
-| `"MULTITHREADED"` | Engine hỗ trợ thực thi script đồng thời; tác động trạng thái có thể nhìn thấy qua các thread |
-| `"THREAD-ISOLATED"` | Thỏa `MULTITHREADED` và bảo đảm về các symbol được cô lập theo thread |
-| `"STATELESS"` | Thỏa các mức trước và script không thay đổi mapping trong `ENGINE_SCOPE` bindings |
+| `null` | Factory does not guarantee thread-safety; never execute scripts concurrently on one engine |
+| `"MULTITHREADED"` | Engine supports concurrent script execution; state effects may be visible across threads |
+| `"THREAD-ISOLATED"` | Satisfies `MULTITHREADED` and isolates symbols per thread |
+| `"STATELESS"` | Satisfies the levels above and scripts do not mutate mappings in `ENGINE_SCOPE` bindings |
 
-Cần chú ý `"STATELESS"` không hứa rằng script không có side effect tới file, network hay object mutable; chỉ liên quan nghĩa đã quy định cho mapping trong scope.
+Note that `"STATELESS"` does not promise that scripts have no side effects on files, networks, or mutable objects; it pertains strictly to mappings inside the scope.
 
-Trong demo, `RuleFactory.getParameter("THREADING") == null`. Hàm `evaluate(...)` lấy engine mới cho từng lần gọi, không có hai request song song vào **cùng một** `RuleEngine` instance. Khi tối ưu bằng engine pool hoặc shared engine, cần đánh giá vòng đời, reset state, concurrency và ranh giới tenant trước khi dùng lại.
+In the demo, `RuleFactory.getParameter("THREADING") == null`. `evaluate(...)` obtains a new engine per invocation so two concurrent requests never enter **the same** `RuleEngine` instance. Before optimizing with an engine pool or shared engine, evaluate lifecycle, state resets, concurrency, and tenant boundaries.
 
-## 12. Cách phát triển từ toy rule sang engine thật
+## 12. Evolving from Toy Rules to a Real Engine
 
-Bài thực hành này nhằm hiểu **JSR 223 và cách quản lý trạng thái**, không yêu cầu dùng ngôn ngữ JavaScript. Nếu ứng dụng chọn một engine được cài thêm, luồng kiểm tra có thể là:
+This exercise teaches **JSR 223 and state management**, rather than requiring JavaScript specifically. When adopting an installed engine, the check flow can look like:
 
 ```java
 ScriptEngineManager manager = new ScriptEngineManager();
 ScriptEngine engine = manager.getEngineByName("JavaScript");
 
 if (engine == null) {
-    // Không có provider phù hợp: fail closed / báo cấu hình thiếu.
+    // No matching provider: fail closed / report missing configuration.
 } else {
     ScriptEngineFactory factory = engine.getFactory();
     System.out.println(factory.getEngineName());
@@ -684,74 +684,74 @@ if (engine == null) {
 }
 ```
 
-Đây là **đoạn code minh họa**, không phải một chương trình độc lập. `getEngineByName("JavaScript")` có thể trả `null`; tên thực tế, cú pháp và cách đăng ký phụ thuộc provider đã cài.
+This is an **illustrative snippet**, not a standalone program. `getEngineByName("JavaScript")` can return `null`; actual names, syntax, and registration depend on the installed provider.
 
-Muốn đưa vào sản phẩm, cần thực hiện theo thứ tự:
+To move to production, follow these steps in order:
 
-1. Chọn ngôn ngữ/engine có tài liệu và JSR 223 integration phù hợp phiên bản Java.
-2. Cài đúng artifact cùng các dependency, đăng ký factory qua SPI hoặc cơ chế cấu hình được hỗ trợ.
-3. Xác minh `getEngineByName(configuredName)` thực sự tạo được engine và ghi nhận tên/version/provider.
-4. Viết một rule nhỏ theo **cú pháp thật** của ngôn ngữ và kiểm tra nó trả Boolean đúng hợp đồng.
-5. Truyền dữ liệu request qua `Bindings` hoặc `ScriptContext` tách biệt; không chắp script bằng cách nối input thô.
-6. Kiểm tra `THREADING`, khả năng reuse engine, cách reset state, lifetime và policy multitenancy.
-7. Thiết kế allowlist quyền/capability và process isolation nếu script không tin cậy; class loader riêng không phải sandbox.
-8. Kiểm thử `null`, syntax error, wrong type, timeout, side effect và rollback.
+1. Select a documented language/engine with JSR 223 integration compatible with your Java version.
+2. Install the exact artifact and its dependencies, registering the factory via SPI or a supported configuration mechanism.
+3. Verify `getEngineByName(configuredName)` actually returns an engine and log its name/version/provider.
+4. Write a small rule in **the language's real syntax** and verify it returns Boolean as contracted.
+5. Pass request data via isolated `Bindings` or `ScriptContext`; never build scripts by concatenating raw input.
+6. Check `THREADING`, engine reuse safety, state reset behavior, lifetime, and multitenancy policies.
+7. Design permission/capability allowlists and process isolation if scripts are untrusted; a custom class loader is not a sandbox.
+8. Test `null`, syntax errors, wrong types, timeouts, side effects, and rollbacks.
 
-**Cảnh báo:** không phải mọi provider dùng cùng tên `"JavaScript"`, cùng kiểu giá trị Boolean hoặc cùng semantics khi xuất bản host object. Đừng sao chép trực tiếp source `"amount <= limit && verified"` sang một engine khác mà không xem đó có phải cú pháp hợp lệ và cách truy cập `Bindings` của ngôn ngữ ấy hay không.
+**Warning:** not all providers share the same `"JavaScript"` name, Boolean representation, or host-object exposure semantics. Never copy `"amount <= limit && verified"` directly into another engine without checking whether it is valid syntax and how that language reads `Bindings`.
 
-## 13. Tình huống thiếu engine trong môi trường thật
+## 13. Missing Engine Scenarios in Real Environments
 
-Nguyên nhân thường gặp:
+Common causes:
 
-- Chạy **JDK 17 tiêu chuẩn** nhưng quên thêm script engine bên thứ ba.
-- Có JAR engine trên compile classpath, nhưng runtime classpath/module path thiếu dependency.
-- Provider có tên khác tên được cấu hình.
-- `META-INF/services/javax.script.ScriptEngineFactory` hoặc khai báo module `provides` không được đóng gói đúng đối với kiểu triển khai tương ứng.
-- Engine nằm ở class loader/module layer mà `ScriptEngineManager` hiện tại không nhìn thấy.
-- Provider khởi tạo lỗi do thiếu dependency hay tương thích phiên bản; đây không nhất thiết chỉ biểu hiện bằng `null`, có thể là lỗi khi khám phá/khởi tạo.
+- Running **standard JDK 17** while forgetting to add a third-party script engine.
+- Engine JAR is on the compile classpath, but dependencies are missing from the runtime classpath/module path.
+- Provider advertises a different name than the configured one.
+- `META-INF/services/javax.script.ScriptEngineFactory` or the module `provides` declaration was not packaged properly for the implementation type.
+- Engine lives in a class loader or module layer invisible to the current `ScriptEngineManager`.
+- Provider fails to initialize due to missing dependencies or version mismatches; this does not always manifest merely as `null`—it may throw during discovery or instantiation.
 
-Cách phân tích: tách **không tìm thấy factory** khỏi **factory có nhưng khởi tạo lỗi** và **engine chạy script lỗi**. Có thể kiểm tra các `ScriptEngineFactory` khám phá được bằng `manager.getEngineFactories()` khi hữu ích, nhưng lưu ý danh sách discovery không nhất thiết phản ánh cách đăng ký thủ công từng tên trong manager giống ví dụ toy.
+How to analyze: separate **factory not found** from **factory found but failed to initialize** and **engine failed while running script**. Inspect discovered factories with `manager.getEngineFactories()` when helpful, noting that the discovery list does not necessarily reflect names manually registered on a manager as in the toy example.
 
-Nếu thiếu engine trên production, đừng làm kiểu:
+If an engine is missing in production, never do this:
 
 ```java
-// PHẢN VÍ DỤ: tuyệt đối tránh với rule xét duyệt.
+// COUNTEREXAMPLE: strictly avoid for authorization rules.
 if (engine == null) {
     return true;
 }
 ```
 
-Chính sách gợi ý: fail closed, báo `MISSING_ENGINE` hoặc lỗi cấu hình rõ ràng, cảnh báo người vận hành, giữ lại version rule hiện hành và không đánh dấu request là được phép.
+Recommended policy: fail closed, return `MISSING_ENGINE` or an explicit configuration error, alert operators, retain the active rule version, and never mark the request approved.
 
-## 14. Kiểm thử tự động và chấp nhận kết quả
+## 14. Automated Testing and Result Acceptance
 
-Một bộ kiểm thử cho rule engine ít nhất phải xác minh:
+A test suite for the rule engine should verify at least:
 
-| Test case | Engine | Script | Dữ liệu | Kết quả mong muốn |
+| Test case | Engine | Script | Data | Expected result |
 |---|---|---|---|---|
 | Basic allow | `toy-rule` | `amount <= limit` | Alice 80/100 | `ALLOW` |
 | Basic deny | `toy-rule` | `amount <= limit` | Bob 150/100 | `DENY` |
-| Isolation | `toy-rule` | Cùng script | Alice/Bob | Hai `Bindings` khác tham chiếu và `lastDecision` riêng |
+| Isolation | `toy-rule` | Same script | Alice/Bob | Distinct `Bindings` references and separate `lastDecision` |
 | Rule upgrade, missing verification | `toy-rule` | `amount <= limit && verified` | Alice false | `DENY` |
 | Rule upgrade, verified | `toy-rule` | `amount <= limit && verified` | Alice true | `ALLOW` |
-| Missing engine | Tên không được đăng ký | Bất kỳ | Alice | `MISSING_ENGINE`, không gọi eval |
+| Missing engine | Unregistered name | Any | Alice | `MISSING_ENGINE`, eval not called |
 | Invalid syntax | `toy-rule` | `amount >>> limit` | Alice | `SCRIPT_ERROR` |
 | Invalid return type | `toy-rule` | `return text` | Alice | `INVALID_RESULT` |
-| Factory metadata | `toy-rule` | Không cần eval | — | `THREADING=null` |
-| Concurrency | Provider theo version thực tế | Nhiều request | Dữ liệu khác nhau | Không truy cập chung sai và tuân thủ factory threading contract |
+| Factory metadata | `toy-rule` | No eval needed | — | `THREADING=null` |
+| Concurrency | Real provider | Multiple requests | Different data | No invalid shared access; honors factory threading contract |
 
-Có thể tăng độ khó bằng test property-based cho các giá trị sát ranh giới:
+Increase rigor with property-based tests around boundary values:
 
-- `amount == limit` phải cho `ALLOW` theo quy tắc `<=` nếu không có điều kiện bổ sung.
-- `amount > limit` phải cho `DENY`.
-- Khi dùng quy tắc `&& verified`, phải có **cả hai** điều kiện đúng.
-- Input âm, tràn số, limit không hợp lệ hoặc data types không đúng contract cần được **validate ở tầng request** trước khi cấp cho script. Demo dùng `int` để tập trung vào API, không thay validation nghiệp vụ.
+- `amount == limit` must yield `ALLOW` under `<=` when no extra conditions apply.
+- `amount > limit` must yield `DENY`.
+- With `&& verified`, **both** conditions must be true.
+- Negative inputs, integer overflow, invalid limits, or contract-violating types must be **validated at the request layer** before reaching the script. The demo uses `int` to focus on the API, not to replace business validation.
 
-Đối với một script engine bên thứ ba, kiểm thử cả việc biến có thể được ghi lại vào `Bindings` sau eval, biến trong global scope và các object Java được chia sẻ; đừng chỉ kiểm tra Boolean output.
+For a third-party script engine, also test whether variables can be written back to `Bindings` after eval, global-scope variables, and shared Java objects; do not test only Boolean outputs.
 
-## 15. Quy tắc thay đổi phiên bản và vận hành
+## 15. Versioning and Operational Rules
 
-Một quy tắc cần có **vòng đời** nếu được dùng cho quyết định quan trọng:
+A rule requires a **lifecycle** when used for critical decisions:
 
 ```text
 Draft rule source
@@ -775,43 +775,43 @@ Evaluate each request with snapshot of version N
 Log rule ID/version + status + duration
 ```
 
-Tránh sửa một chuỗi rule dùng chung “ngay giữa” một request mà không xác định version. Nếu rule được đọc từ registry động, caller nên chụp một **snapshot bất biến** gồm engine name, source text, version và policy tại đầu request. Nhờ vậy log/debug có thể tái hiện request đã dùng bản quy tắc nào.
+Avoid mutating a shared rule string "mid-flight" during a request without versioning. When reading rules from a dynamic registry, callers should capture an **immutable snapshot** containing engine name, source text, version, and policy at the start of the request. Logs and debugging can then reproduce exactly which rule version evaluated the request.
 
-Các biện pháp thực tế:
+Practical safeguards:
 
-- **Fail fast khi startup:** kiểm tra engine bắt buộc có sẵn và script syntax hợp lệ trước khi nhận traffic, nhưng vẫn xử lý thiếu engine an toàn tại runtime.
-- **Fail closed tại runtime:** không dùng default allow khi engine/service lỗi.
-- **Quota và timeout:** một script không tin cậy có thể lặp vô hạn, dùng nhiều bộ nhớ hoặc I/O. `Future.cancel(true)`/`Thread.interrupt()` không buộc code không hợp tác phải dừng; dùng ranh giới process/OS nếu cần cưỡng chế.
-- **Bảo mật:** hạn chế quyền đối tượng host truyền cho script; không đưa secret vào bindings chung; xem xét filesystem, network và native access.
-- **Threading:** không dùng lại engine nếu factory không bảo đảm hoặc không có cơ chế sở hữu độc quyền; `Bindings` riêng không tự làm engine thread-safe.
-- **Kiểm soát dữ liệu:** phân biệt lỗi rule, thiếu provider và quyết định từ chối hợp lệ; không gửi source/bindings có thể chứa PII sang log không bảo vệ.
-- **Chuyển version an toàn:** mỗi request nên gắn rule version cố định để audit; có khả năng rollback rule và hiểu side effect của các request đã xử lý.
+- **Fail fast at startup:** verify required engines exist and rule syntax is valid before serving traffic, while still handling missing engines safely at runtime.
+- **Fail closed at runtime:** never default to allow when an engine or service errors.
+- **Quotas and timeouts:** untrusted scripts can loop infinitely, allocate excessive memory, or block on I/O. `Future.cancel(true)`/`Thread.interrupt()` cannot force uncooperative code to stop; use process/OS boundaries if hard termination is needed.
+- **Security:** restrict privileges of host objects passed to scripts; never put secrets in shared bindings; review filesystem, network, and native access.
+- **Threading:** never reuse an engine unless its factory guarantees safety or exclusive ownership is enforced; separate `Bindings` alone does not make an engine thread-safe.
+- **Data hygiene:** distinguish rule failures, missing providers, and legitimate denials; avoid sending source/bindings that may contain PII into unprotected logs.
+- **Safe version transitions:** tag each request with an immutable rule version for auditing; support rollback and account for side effects of already-processed requests.
 
-## 16. Bài tập mở rộng
+## 16. Extension Exercises
 
-1. **Thêm quy tắc mới:** mở rộng toy engine cho source `"amount < limit && verified"`; kiểm thử `amount == limit` bị từ chối, nhưng `amount < limit` với verified true được cho phép.
-2. **Thêm dữ liệu user:** bổ sung key `"country"` và quy tắc chỉ áp dụng một số quốc gia. Cần quyết định chính sách khi key thiếu: `SCRIPT_ERROR`, `DENY` hay một mã chuyên biệt? Giải thích tại sao không chấp nhận tự động.
-3. **Chứng minh isolation:** thêm `context.setAttribute("trace", user, ENGINE_SCOPE)` trong engine; chạy ba request xen kẽ và chứng minh mỗi binding map giữ trace của mình.
-4. **Chứng minh lỗi global:** tạm dùng một `ScriptEngineManager` có global bindings chứa `"region" = "X"`, bỏ đoạn gắn `GLOBAL_SCOPE` riêng và quan sát biến global được nhìn thấy ở cả hai context; sau đó khôi phục cách cô lập an toàn.
-5. **Thử thiếu engine:** thay `"toy-rule"` bằng tên không đăng ký và bảo đảm chương trình trả `MISSING_ENGINE`, không đi vào `createBindings` hay `eval`.
-6. **Thử script lỗi:** sửa rule thành chuỗi không được hỗ trợ. Kiểm tra `SCRIPT_ERROR` khác `DENY` và vẫn bị từ chối trong chính sách cấp quyền.
-7. **Thử kết quả không Boolean:** tạo một nhánh trả `null`, `Integer` hoặc `String`; cần trả `INVALID_RESULT`, không ép về Boolean.
-8. **Dùng một engine thật:** cài provider JSR 223 phù hợp Java 17, ánh xạ `Bindings` theo cú pháp ngôn ngữ, đánh giá một rule Boolean và kiểm tra `THREADING`. Nếu provider không có mặt, luôn giữ xử lý `null`.
-9. **Thay version động:** lưu record `RuleSpec(id, version, engineName, source)` bất biến; ghi version vào audit log và cho phép rollback sau khi kiểm thử.
-10. **Tách trust boundary:** giả sử rule do người dùng internet nộp, thiết kế một worker process có quota CPU/RAM, network allowlist, timeout và protocol request/response thay vì thực thi cùng JVM với host.
+1. **Add a new rule:** extend the toy engine to support `"amount < limit && verified"`; test that `amount == limit` is denied while `amount < limit` with verified true is allowed.
+2. **Add user data:** add a `"country"` key and a rule applying only to certain countries. Decide the policy when the key is missing: `SCRIPT_ERROR`, `DENY`, or a dedicated code? Explain why auto-allowing is wrong.
+3. **Prove isolation:** add `context.setAttribute("trace", user, ENGINE_SCOPE)` in the engine; run three interleaved requests and prove each binding map keeps its own trace.
+4. **Demonstrate global leak:** temporarily give a `ScriptEngineManager` global bindings containing `"region" = "X"`, remove the isolated `GLOBAL_SCOPE` assignment, and observe the global variable visible across both contexts; then restore safe isolation.
+5. **Test missing engine:** replace `"toy-rule"` with an unregistered name and ensure the program returns `MISSING_ENGINE` without entering `createBindings` or `eval`.
+6. **Test script error:** change the rule to an unsupported string. Verify `SCRIPT_ERROR` is distinct from `DENY` and still denied by authorization policy.
+7. **Test non-Boolean result:** add a branch returning `null`, `Integer`, or `String`; it must return `INVALID_RESULT` without coercing to Boolean.
+8. **Use a real engine:** install a JSR 223 provider compatible with Java 17, bind `Bindings` using the language's syntax, evaluate a Boolean rule, and inspect `THREADING`. Keep the `null` check in case the provider is absent.
+9. **Dynamic version swap:** store an immutable `RuleSpec(id, version, engineName, source)` record; record the version in audit logs and support rollback after testing.
+10. **Separate trust boundary:** assuming rules are submitted by internet users, design a worker process with CPU/RAM quotas, network allowlists, timeouts, and a request/response protocol rather than running inside the host JVM.
 
-## 17. Checklist hoàn thành bài thực hành
+## 17. Exercise Completion Checklist
 
-- [ ] Tạo được một `ScriptEngineFactory` tên `toy-rule` và đăng ký bằng `registerEngineName`.
-- [ ] Tìm engine bằng `getEngineByName`, **kiểm tra `null` trước khi dùng**.
-- [ ] Tạo `Bindings` mới cho từng request qua `engine.createBindings()`.
-- [ ] Đưa đúng kiểu dữ liệu `amount`, `limit`, `verified` vào từng map.
-- [ ] Dùng `SimpleScriptContext` với `ENGINE_SCOPE` riêng và `GLOBAL_SCOPE` không chia sẻ.
-- [ ] `eval(...)` trả Boolean hợp lệ mới được đổi thành `ALLOW`/`DENY`.
-- [ ] Có riêng kết quả `MISSING_ENGINE`, `SCRIPT_ERROR` và `INVALID_RESULT`.
-- [ ] Rule mới `amount <= limit && verified` hoạt động và đổi kết quả theo `verified`.
-- [ ] Chạy được 11 dòng stdout đúng ở phần 8 với JDK 17+.
-- [ ] Không coi `Bindings` riêng là sandbox hoặc bảo đảm thread-safe.
-- [ ] Quyết định nghiệp vụ **chỉ** cấp quyền khi status là `ALLOW`.
+- [ ] Created a `ScriptEngineFactory` named `toy-rule` and registered it with `registerEngineName`.
+- [ ] Looked up the engine with `getEngineByName`, **checking for `null` before use**.
+- [ ] Created fresh `Bindings` per request via `engine.createBindings()`.
+- [ ] Put properly typed `amount`, `limit`, and `verified` values into each map.
+- [ ] Used `SimpleScriptContext` with an isolated `ENGINE_SCOPE` and an unshared `GLOBAL_SCOPE`.
+- [ ] Only valid Boolean outputs from `eval(...)` map to `ALLOW`/`DENY`.
+- [ ] Distinct outcomes exist for `MISSING_ENGINE`, `SCRIPT_ERROR`, and `INVALID_RESULT`.
+- [ ] The new rule `amount <= limit && verified` works and changes outcome based on `verified`.
+- [ ] Produced the exact 11 lines of stdout in section 8 on JDK 17+.
+- [ ] Isolated `Bindings` are not mistaken for a sandbox or thread-safety guarantee.
+- [ ] Business decisions grant access **only** when status is `ALLOW`.
 
-**Kết luận:** thêm quy tắc bằng JSR 223 không chỉ là gọi `ScriptEngine.eval`. Một giải pháp đúng cần **tìm engine an toàn**, **truyền `Bindings` riêng và scope rõ ràng cho mỗi lần đánh giá**, **xác minh kiểu dữ liệu trả về**, và **xử lý thiếu provider hoặc lỗi script theo chính sách fail closed**. Đó là nền tảng để chuyển từ bài thực hành nhỏ sang hệ thống quy tắc động có thể kiểm thử, quan sát và vận hành.
+**Conclusion:** Adding rules with JSR 223 is more than calling `ScriptEngine.eval`. A sound solution requires **safe engine lookup**, **passing isolated `Bindings` and explicit scopes per evaluation**, **validating the return type**, and **handling missing providers or script failures with a fail-closed policy**. That forms the foundation for scaling a small exercise into a testable, observable, and operable dynamic rule system.

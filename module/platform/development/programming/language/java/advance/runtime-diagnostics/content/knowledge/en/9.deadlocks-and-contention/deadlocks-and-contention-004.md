@@ -1,72 +1,72 @@
-# 9.4 Chẩn đoán synchronized, ReentrantLock, Condition, Object.wait và LockSupport.park
+# 9.4 Diagnosing synchronized, ReentrantLock, Condition, Object.wait, and LockSupport.park
 
-Một ứng dụng Java có thể **vẫn chạy, CPU thấp, không xuất exception nhưng mọi request mới đều timeout**. Trong trường hợp đó, phần khó không phải tìm “có bao nhiêu thread WAITING”, mà là lần theo quan hệ: **thread nào đang giữ tài nguyên**, **thread nào đang chờ để lấy khóa**, **thread nào chờ một điều kiện được báo**, **ai sẽ báo điều kiện** và **điều gì ngăn bước tiếp theo xảy ra**.
+A Java application may **remain running with low CPU and emit no exceptions, yet every new request times out**. In that case, the hard part is not finding “how many threads are WAITING,” but tracing relationships: **which thread holds the resource**, **which thread is waiting to acquire the lock**, **which thread is waiting for a condition signal**, **who will send the signal**, and **what is preventing the next step from happening**.
 
-Năm API/cơ chế thường xuất hiện trên thread dump liên quan trực tiếp câu hỏi này:
+Five APIs/mechanisms commonly appearing in thread dumps relate directly to this question:
 
-1. `synchronized` — monitor lock nội tại của một Java object.
-2. `ReentrantLock` — khóa độc quyền có reentrancy, lựa chọn try/timed/interruptible acquisition và khả năng quan sát queue.
-3. `Condition` — hàng chờ điều kiện gắn với một `Lock`, thường là `ReentrantLock`.
-4. `Object.wait()` / `notify()` / `notifyAll()` — wait-set trên object monitor, chỉ dùng khi sở hữu monitor.
-5. `LockSupport.park()` / `unpark()` — primitive cấp thấp dùng một permit trên mỗi thread, được nhiều cơ chế AQS/pool/condition triển khai ở bên dưới.
+1. `synchronized` — the intrinsic monitor lock of a Java object.
+2. `ReentrantLock` — an exclusive lock with reentrancy, try/timed/interruptible acquisition options, and queue observability.
+3. `Condition` — a condition wait queue associated with a `Lock`, typically `ReentrantLock`.
+4. `Object.wait()` / `notify()` / `notifyAll()` — the wait-set on an object monitor, usable only while owning that monitor.
+5. `LockSupport.park()` / `unpark()` — a low-level primitive using one permit per thread, used underneath by many AQS/pool/condition implementations.
 
-**Các cơ chế trên không tương đương.** `synchronized` và `ReentrantLock` điều khiển **mutual exclusion**. `Object.wait` và `Condition.await` dùng để **chờ một điều kiện logic** và *tạm nhả đúng khóa liên quan* khi chờ. `LockSupport.park` chỉ ngừng lập lịch thread cho tới khi có permit, interrupt hoặc spurious wakeup: bản thân nó **không nhả monitor/ReentrantLock đang giữ**, cũng không biết predicate nghiệp vụ.
+**These mechanisms are not equivalent.** `synchronized` and `ReentrantLock` control **mutual exclusion**. `Object.wait` and `Condition.await` are used to **wait for a logical condition** and *temporarily release the associated lock* while waiting. `LockSupport.park` merely suspends scheduling the thread until a permit, interrupt, or spurious wakeup arrives: by itself it **does not release any held monitor or `ReentrantLock`**, nor does it know any business predicate.
 
-Bài học tập trung vào **chẩn đoán treo và tranh chấp**, không chỉ vào cách dùng cú pháp. Các ví dụ dùng Java 17+ và tài liệu Java SE 21; thread state, định dạng dump và độ đầy đủ của dữ liệu phụ thuộc JDK/JVM/OS/công cụ, đặc biệt trong môi trường virtual threads.
+This lesson focuses on **diagnosing hangs and contention**, not merely syntax usage. Examples use Java 17+ and Java SE 21 documentation; thread states, dump formats, and data completeness depend on JDK/JVM/OS/tools, especially in virtual-thread environments.
 
-## 1. Bảng so sánh năm cơ chế trước khi xem thread dump
+## 1. Comparison Table of the Five Mechanisms Before Inspecting Thread Dumps
 
-| Cơ chế | Đối tượng đồng bộ chính | Làm gì khi chờ? | Lock có được nhả khi chờ? | Dấu hiệu thường gặp |
+| Mechanism | Primary Synchronization Target | What Happens When Waiting? | Is the Lock Released While Waiting? | Typical Signs |
 | --- | --- | --- | --- | --- |
-| `synchronized(lock)` | Monitor của `lock` | Chờ được vào monitor nếu bị giữ | **Không**, chỉ vào khi lấy được; owner nhả lúc thoát synchronized hoặc thực hiện `wait` trên chính monitor | Contender: `BLOCKED (on object monitor)`, `waiting to lock` |
-| `ReentrantLock.lock()` | Ownable synchronizer/AQS của lock | Chờ owner gọi `unlock` | Waiter chưa có lock; owner vẫn giữ tới khi `unlock` | `WAITING/TIMED_WAITING (parking)` và `ReentrantLock$...Sync` |
-| `Condition.await()` | Condition và `Lock` gắn kèm | Chờ signal/interrupt/timeout/spurious | **Có**, nhả associated lock rồi reacquire trước khi trả về bình thường hoặc throw theo contract | `WAITING/TIMED_WAITING (parking)` trên `ConditionObject` |
-| `Object.wait()` | Wait-set của object monitor | Chờ notify/interrupt/timeout/spurious | **Có**, nhả monitor của **đúng object được wait**, rồi reacquire trước khi trở về | `WAITING/TIMED_WAITING (on object monitor)`, `waiting on` |
-| `LockSupport.park()` | Permit của từng thread; blocker object tùy chọn | Chờ `unpark`/interrupt/spurious/timeout | **Không tự nhả** bất cứ monitor hoặc `ReentrantLock` nào | `WAITING/TIMED_WAITING (parking)`, `parking to wait for` nếu có blocker |
+| `synchronized(lock)` | Monitor of `lock` | Waits to enter the monitor if held | **No**, enters only upon acquisition; owner releases on synchronized exit or calling `wait` on that same monitor | Contender: `BLOCKED (on object monitor)`, `waiting to lock` |
+| `ReentrantLock.lock()` | Ownable synchronizer/AQS of the lock | Waits for owner to call `unlock` | Waiter does not hold the lock yet; owner holds until `unlock` | `WAITING/TIMED_WAITING (parking)` and `ReentrantLock$...Sync` |
+| `Condition.await()` | Condition and its associated `Lock` | Waits for signal/interrupt/timeout/spurious | **Yes**, releases the associated lock and reacquires before returning normally or throwing per contract | `WAITING/TIMED_WAITING (parking)` on `ConditionObject` |
+| `Object.wait()` | Wait-set of an object monitor | Waits for notify/interrupt/timeout/spurious | **Yes**, releases the monitor of the **exact waited object**, then reacquires before returning | `WAITING/TIMED_WAITING (on object monitor)`, `waiting on` |
+| `LockSupport.park()` | Per-thread permit; optional blocker object | Waits for `unpark`/interrupt/spurious/timeout | **Does not automatically release** any monitor or `ReentrantLock` | `WAITING/TIMED_WAITING (parking)`, `parking to wait for` if blocker is set |
 
-*Chú giải:* state là ảnh chụp. `Condition.await()`, `ReentrantLock.lock()` và `LockSupport.park()` có thể cùng hiện `WAITING (parking)`, nhưng **lý do chờ khác nhau**. Phải đọc stack frame và blocker class thay vì gộp thành “thread ngủ”.
+*Legend:* state is a snapshot. `Condition.await()`, `ReentrantLock.lock()`, and `LockSupport.park()` can all appear as `WAITING (parking)`, yet **the reason for waiting differs**. You must inspect stack frames and the blocker class rather than lumping them into “sleeping threads.”
 
-### 1.1 Hai loại chờ cần phân biệt ngay
+### 1.1 Two Wait Categories to Distinguish Immediately
 
-**Chờ khóa để vào critical section**:
+**Waiting for a lock to enter a critical section**:
 
-- `synchronized`: contender chưa lấy monitor, thường `BLOCKED`.
-- `ReentrantLock.lock()`: contender chưa lấy ownable lock, thường park trong AQS.
-- Muốn chẩn đoán: **tìm owner** và đo tại sao owner giữ lâu.
+- `synchronized`: contender has not acquired the monitor yet, typically `BLOCKED`.
+- `ReentrantLock.lock()`: contender has not acquired the ownable lock yet, typically parked in AQS.
+- To diagnose: **find the owner** and measure why the owner holds it so long.
 
-**Chờ điều kiện trong khi phối hợp trạng thái**:
+**Waiting for a condition while coordinating state**:
 
-- `Object.wait()`: waiter đã vào monitor rồi **nhả monitor đó** khi đợi.
-- `Condition.await()`: waiter đã lấy associated `Lock` rồi **nhả khóa** để đợi.
-- `LockSupport.park()`: không có quy tắc tự nhả khóa; phải xem code.
-- Muốn chẩn đoán: **tìm predicate và bên phát signal/notify/unpark**, kiểm tra vòng đời và happens-before.
+- `Object.wait()`: waiter entered the monitor and then **released that monitor** while waiting.
+- `Condition.await()`: waiter acquired the associated `Lock` and then **released the lock** to wait.
+- `LockSupport.park()`: has no automatic lock-release rule; inspect the code.
+- To diagnose: **find the predicate and the signal/notify/unpark sender**, checking lifecycle and happens-before.
 
-Nhầm hai nhóm dẫn đến giải pháp sai: “tăng thread pool” không phá được deadlock, “notifyAll” không giải quyết monitor owner đang bị kẹt I/O, và “unlock” từ thread khác không phải cách sửa `ReentrantLock`.
+Confusing these two groups leads to wrong fixes: “enlarging the thread pool” will not break a deadlock, “notifyAll” will not unblock a monitor owner stuck in I/O, and calling “unlock” from another thread is not how you fix `ReentrantLock`.
 
-## 2. Chẩn đoán synchronized: monitor owner và BLOCKED contender
+## 2. Diagnosing synchronized: Monitor Owners and BLOCKED Contenders
 
-### 2.1 Monitor được lấy ở đâu?
+### 2.1 Where Is the Monitor Acquired?
 
-`synchronized` có thể bao một block:
+`synchronized` can wrap a block:
 
 ```java
 private final Object monitor = new Object();
 
 void update() {
     synchronized (monitor) {
-        // Critical section: chỉ một thread giữ monitor này tại một lúc.
+        // Critical section: only one thread holds this monitor at a time.
         updateSharedState();
     }
 }
 ```
 
-Hoặc một instance method `synchronized` (monitor chính là `this`) hay static synchronized method (monitor là `Class` object của lớp đó). Hai đoạn trên là **code minh họa**, không phải Java file độc lập.
+Or an instance `synchronized` method (the monitor is `this`) or a static synchronized method (the monitor is the `Class` object of that class). Both snippets above are **illustrative code**, not standalone Java files.
 
-Java monitor là reentrant: thread đã giữ monitor có thể lại vào synchronized trên cùng monitor, tăng độ sâu sở hữu; rời từng cấp tương ứng nhả độ sâu, monitor cuối cùng được nhả khi thoát toàn bộ phần synchronized. Việc ném exception cũng đưa control flow rời synchronized theo semantics của Java, không phải yêu cầu manual unlock.
+Java monitors are reentrant: a thread already holding a monitor can reenter `synchronized` on the same monitor, increasing ownership depth; exiting each level decrements depth, and the monitor is finally released upon exiting all synchronized blocks. Throwing an exception also exits synchronized control flow per Java semantics, requiring no manual unlock.
 
-### 2.2 Khi tranh chấp, đọc cả waiter lẫn owner
+### 2.2 Under Contention, Read Both Waiter and Owner
 
-Một thread dump **giả định**:
+A **hypothetical** thread dump:
 
 ```text
 "request-7" ...
@@ -81,39 +81,39 @@ Một thread dump **giả định**:
     - locked <0x0000000711101000> (a java.lang.Object)
 ```
 
-Trong **cùng dump**, ID `<0x0000000711101000>` liên kết người chờ với chủ khóa: `request-2` đang giữ monitor, `request-7` muốn vào. Nhưng `request-2` đang sleep trong critical section; `sleep` **không nhả monitor**. Đây là mẫu **long critical section/lock contention**, **chưa tự động là deadlock** nếu owner có thể thức dậy và nhả monitor.
+Within the **same dump**, ID `<0x0000000711101000>` links the waiter to the lock holder: `request-2` holds the monitor and `request-7` wants to enter. Yet `request-2` is sleeping inside the critical section; `sleep` **does not release the monitor**. This is a **long critical section / lock contention** pattern, **not automatically a deadlock** if the owner can wake up and release the monitor.
 
-Đừng kết luận thread owner phải là `RUNNABLE`: owner có thể ở `WAITING`, `TIMED_WAITING` hoặc đang gọi native I/O trong khi giữ khóa. Cần tìm **mọi held lock markers** và xem stack owner.
+Do not assume an owning thread must be `RUNNABLE`: the owner may be in `WAITING`, `TIMED_WAITING`, or inside native I/O while holding the lock. Find **all held-lock markers** and inspect the owner’s stack.
 
-### 2.3 Đọc marker đúng chiều
+### 2.3 Reading Markers in the Right Direction
 
-| Dòng/field | Ý nghĩa | Sai lầm |
+| Line/Field | Meaning | Mistake |
 | --- | --- | --- |
-| `- waiting to lock <L>` | Thread **chưa có** monitor L; đang cố vào | Gọi thread là owner |
-| `- locked <L>` | Thread **đang giữ** monitor L | Gọi nó là waiter trên L |
-| `getLockInfo()` khi `BLOCKED` | Monitor object contender đang chờ | Nhầm với tất cả locks thread giữ |
-| `getLockOwnerId()` | Owner Java thread ID nếu JVM biết | Dùng như OS PID/nid |
-| `getLockedMonitors()` | Monitors được chụp là held, nếu yêu cầu capture | Mảng rỗng luôn chứng minh không có lock |
-| `getBlockedTime()` | Accumulated monitor contention time khi được bật/hỗ trợ | Chính xác thời gian của blocking event hiện tại |
+| `- waiting to lock <L>` | Thread **does not hold** monitor L yet; trying to enter | Calling the thread the owner |
+| `- locked <L>` | Thread **is holding** monitor L | Calling it a waiter on L |
+| `getLockInfo()` when `BLOCKED` | Monitor object the contender is waiting for | Confusing with all locks the thread holds |
+| `getLockOwnerId()` | Owner’s Java thread ID if known to the JVM | Using it as OS PID/nid |
+| `getLockedMonitors()` | Monitors captured as held, if capture was requested | Empty array always proving no locks are held |
+| `getBlockedTime()` | Accumulated monitor contention time when enabled/supported | Exact duration of the current blocking event |
 
-Nếu có 50 threads cùng chờ một monitor ID, đó có thể là **lock convoy** sau một owner chậm, không nhất thiết 50 deadlocks riêng biệt.
+If 50 threads are all waiting on the same monitor ID, that may be a **lock convoy** behind one slow owner, not necessarily 50 separate deadlocks.
 
-### 2.4 Những cách vô tình giữ monitor quá lâu
+### 2.4 Ways Monitors Are Accidentally Held Too Long
 
-- Gọi API mạng/DB hoặc RPC trong synchronized.
-- Chạy thuật toán CPU nặng khi giữ mutex.
-- Chờ `CountDownLatch.await()`, `Thread.sleep()` hoặc `LockSupport.park()` bên trong synchronized.
-- Gọi callback/plugin code không rõ độ trễ trong critical section.
-- Bật logging I/O đồng bộ hoặc gọi exporter chậm trong monitor.
-- Có hai locks được lấy khác thứ tự giữa các code paths.
+- Calling network/DB APIs or RPCs inside `synchronized`.
+- Running CPU-heavy algorithms while holding a mutex.
+- Waiting on `CountDownLatch.await()`, `Thread.sleep()`, or `LockSupport.park()` inside `synchronized`.
+- Invoking callback/plugin code of unknown latency inside a critical section.
+- Enabling synchronous logging I/O or calling a slow exporter inside a monitor.
+- Acquiring two locks in different orders across code paths.
 
-Khắc phục phải bảo toàn invariant: chỉ chuyển I/O ra ngoài lock khi dữ liệu được snapshot đúng và không tạo race. Không loại bỏ synchronized chỉ vì thấy nhiều `BLOCKED`.
+Fixes must preserve invariants: only move I/O outside a lock when data is snapshotted cleanly without introducing races. Never strip `synchronized` simply because many threads appear `BLOCKED`.
 
-## 3. Chẩn đoán ReentrantLock: ownership, AQS và khả năng timeout
+## 3. Diagnosing ReentrantLock: Ownership, AQS, and Timeouts
 
-### 3.1 ReentrantLock khác monitor ở điểm nào?
+### 3.1 How Does ReentrantLock Differ from a Monitor?
 
-`ReentrantLock` cung cấp mutual exclusion có reentrancy như synchronized nhưng thêm `tryLock()`, `tryLock(timeout, unit)`, `lockInterruptibly()`, `isHeldByCurrentThread()`, `getHoldCount()` và instrumentation về queue. Cú pháp đúng:
+`ReentrantLock` provides reentrant mutual exclusion like `synchronized` while adding `tryLock()`, `tryLock(timeout, unit)`, `lockInterruptibly()`, `isHeldByCurrentThread()`, `getHoldCount()`, and queue instrumentation. Proper syntax:
 
 ```java
 lock.lock();
@@ -124,11 +124,11 @@ try {
 }
 ```
 
-Đây là đoạn minh họa trong một class có biến `lock`. **Đặt `try` ngay sau `lock()` thành công**, không đặt `unlock()` bên ngoài finally hay gọi khi không sở hữu. Nếu thread khác cố `unlock()` một `ReentrantLock` mà nó không giữ, `IllegalMonitorStateException` có thể xảy ra.
+This is an illustrative snippet inside a class with a `lock` field. **Place `try` immediately after `lock()` succeeds**; never put `unlock()` outside `finally` or call it without ownership. If another thread tries to `unlock()` a `ReentrantLock` it does not hold, `IllegalMonitorStateException` can occur.
 
-### 3.2 Vì sao ReentrantLock waiter thường WAITING, không BLOCKED?
+### 3.2 Why Are ReentrantLock Waiters Usually WAITING, Not BLOCKED?
 
-HotSpot implementation dựa trên AQS có thể dùng `LockSupport.park(...)` khi lock bị tranh chấp. Contender sẽ thường được chụp là:
+HotSpot’s AQS-based implementation can use `LockSupport.park(...)` when a lock is contended. A contender will typically be captured as:
 
 ```text
 "worker-lock-waiter" ...
@@ -141,30 +141,30 @@ HotSpot implementation dựa trên AQS có thể dùng `LockSupport.park(...)` k
       (a java.util.concurrent.locks.ReentrantLock$NonfairSync)
 ```
 
-**Không lọc duy nhất `BLOCKED` để tìm lock contention.** Với `ReentrantLock`, tìm AQS/`ReentrantLock.lock` stack và blocker object; owner có thể được liệt kê ở mục `Locked ownable synchronizers` trên một thread khác. Bản dump mô phỏng chỉ để giải thích; phương thức/frame/class có thể khác theo JDK release và fairness mode.
+**Do not filter solely on `BLOCKED` to look for lock contention.** For `ReentrantLock`, look for AQS/`ReentrantLock.lock` stacks and blocker objects; the owner may appear under `Locked ownable synchronizers` on another thread. The simulated dump only illustrates structure; methods/frames/classes vary by JDK release and fairness mode.
 
-### 3.3 Instrumentation trên ReentrantLock mang tính snapshot/ước lượng
+### 3.3 ReentrantLock Instrumentation Is Snapshot/Approximate
 
-| API | Câu trả lời | Hạn chế |
+| API | What It Answers | Limitations |
 | --- | --- | --- |
-| `isLocked()` | Lock có đang được thread nào giữ ở snapshot không? | Kết quả đổi ngay sau đó |
-| `isHeldByCurrentThread()` | Caller hiện có sở hữu lock không? | Chỉ caller, không tìm owner arbitrary |
-| `getHoldCount()` | Số lần caller đã lấy lock theo reentrancy | 0 nếu caller không giữ |
-| `hasQueuedThreads()` | Có threads đang chờ lock không? | Snapshot, không hứa thứ tự fairness |
-| `getQueueLength()` | **Ước lượng** số threads chờ | Không phải độ dài chính xác bất biến |
-| `hasWaiters(condition)` | Có threads đang đợi condition liên quan không? | Caller phải giữ lock khi kiểm tra theo contract |
-| `getWaitQueueLength(condition)` | Ước lượng số condition waiters | Phụ thuộc caller giữ lock và sự biến động |
+| `isLocked()` | Is the lock held by some thread at the snapshot? | Result can change immediately afterward |
+| `isHeldByCurrentThread()` | Does the caller currently own the lock? | Caller only; does not find an arbitrary owner |
+| `getHoldCount()` | Number of reentrant acquisitions by the caller | 0 if caller does not hold it |
+| `hasQueuedThreads()` | Are threads waiting for the lock? | Snapshot; makes no fairness order promise |
+| `getQueueLength()` | **Estimate** of waiting threads | Not an exact invariant count |
+| `hasWaiters(condition)` | Are threads waiting on the associated condition? | Caller must hold the lock when checking per contract |
+| `getWaitQueueLength(condition)` | Estimate of condition waiters | Depends on caller holding lock and concurrent changes |
 
-`getQueueLength()` tăng có thể chỉ ra contention nhưng không cho biết **mỗi thread đã đợi bao lâu**, cũng không tự cho nguyên nhân. Một lock fairness-enabled không bảo đảm mọi thread được CPU scheduling công bằng; `tryLock()` không timeout còn có semantics fairness đặc biệt.
+A rising `getQueueLength()` can indicate contention, yet it does not show **how long each thread has waited** or explain the cause. Enabling fairness does not guarantee fair OS CPU scheduling for every thread; un-timed `tryLock()` also has special fairness semantics.
 
-### 3.4 Khi cần tránh chờ vô hạn
+### 3.4 When Infinite Waiting Must Be Avoided
 
-Với yêu cầu nghiệp vụ có deadline, cân nhắc acquisition có timeout:
+For business requirements with deadlines, consider timed acquisition:
 
 ```java
 boolean acquired = lock.tryLock(200, java.util.concurrent.TimeUnit.MILLISECONDS);
 if (!acquired) {
-    // Trả về lỗi có phân loại hoặc retry có kiểm soát.
+    // Return a classified error or perform a controlled retry.
     return;
 }
 try {
@@ -174,17 +174,17 @@ try {
 }
 ```
 
-Đây là **mã minh họa** với biến `lock`, method `updateSharedState` và return từ method void. Chọn timeout theo SLO và invariants, không chọn 200 ms như “chuẩn Java”. Khi dùng `lockInterruptibly()` hoặc timed `tryLock`, phải xử lý `InterruptedException` đúng chính sách cancellation; không nuốt interrupt rồi tiếp tục vô hạn.
+This is **illustrative code** with a `lock` variable, `updateSharedState` method, and return from a void method. Choose timeouts based on SLOs and invariants, not 200 ms as a “Java standard.” When using `lockInterruptibly()` or timed `tryLock`, handle `InterruptedException` per your cancellation policy; never swallow the interrupt and continue indefinitely.
 
-### 3.5 Fairness không phải thuốc chữa cho mọi contention
+### 3.5 Fairness Is Not a Cure for All Contention
 
-`new ReentrantLock(true)` có thể thiên về waiter lâu hơn theo chính sách fairness, nhưng có thể giảm throughput và không bảo đảm công bằng thread scheduling. Nếu root cause là owner giữ lock trong khi chờ DB 30 giây, bật fairness không làm DB nhanh hơn. Cần đo lock hold time, queue và công việc nằm trong critical section.
+`new ReentrantLock(true)` may favor longer-waiting threads under its fairness policy, yet it can lower throughput and does not guarantee thread scheduling fairness. If the root cause is the owner holding the lock during a 30-second DB wait, enabling fairness will not speed up the DB. Measure lock hold time, queue depth, and work inside the critical section.
 
-## 4. Object.wait(): wait-set, notify và điều kiện logic
+## 4. Object.wait(): Wait-Set, notify, and Logical Conditions
 
-### 4.1 wait() phải được gọi khi đang giữ đúng monitor
+### 4.1 wait() Must Be Called While Holding the Right Monitor
 
-`Object.wait()`, `notify()`, `notifyAll()` đều yêu cầu caller đang sở hữu monitor của **chính object được gọi**. Ví dụ đúng:
+`Object.wait()`, `notify()`, and `notifyAll()` all require the caller to own the monitor of the **exact object being called**. Correct example:
 
 ```java
 private final Object signal = new Object();
@@ -206,27 +206,27 @@ void markReady() {
 }
 ```
 
-Đây là **mảnh lớp minh họa**. Hai phương thức bảo vệ chung predicate `ready` bằng cùng monitor `signal`. Vì dùng vòng `while`, waiter kiểm tra lại điều kiện sau notify, interrupt/timeout hoặc spurious wakeup. `notifyAll()` chỉ đánh thức các waiter; họ vẫn phải giành lại monitor để thoát `wait`. Caller `markReady` vẫn giữ monitor tới khi rời synchronized, **không tự nhả khóa ngay ở dòng notifyAll**.
+This is an **illustrative class fragment**. Both methods protect the shared `ready` predicate with the same `signal` monitor. By using a `while` loop, the waiter rechecks the condition after notify, interrupt/timeout, or spurious wakeup. `notifyAll()` only wakes waiters; they must still reacquire the monitor to return from `wait`. The `markReady` caller keeps holding the monitor until exiting `synchronized`, **not releasing the lock immediately at the `notifyAll` line**.
 
-### 4.2 wait() nhả khóa nào?
+### 4.2 Which Lock Does wait() Release?
 
-Khi `signal.wait()` thực sự đi vào wait-set, thread **nhả monitor `signal`**, kể cả các mức reentrant monitor ownership tương ứng; nó phải reacquire monitor ấy trước khi trở về/throw theo semantics. Nhưng `wait()` **không tự nhả mọi monitor khác** mà thread còn giữ.
+When `signal.wait()` enters the wait-set, the thread **releases the `signal` monitor**, including all reentrant monitor ownership levels on it; it must reacquire that monitor before returning/throwing per semantics. However, `wait()` **does not automatically release any other monitors** the thread holds.
 
-Ví dụ **rủi ro**:
+**Risky** example:
 
 ```java
 synchronized (lockA) {
     synchronized (lockB) {
-        lockB.wait(); // Nhả lockB trong lúc wait, nhưng vẫn giữ lockA.
+        lockB.wait(); // Releases lockB while waiting, but still holds lockA.
     }
 }
 ```
 
-Nếu thread phát `lockB.notifyAll()` cần vào `lockA` trước, hệ thống có thể rơi vào chu trình phụ thuộc. Chẩn đoán phải xem **toàn bộ locks held** của waiter, không chỉ monitor mà nó đang chờ notify.
+If the thread calling `lockB.notifyAll()` needs to enter `lockA` first, the system can fall into a dependency cycle. Diagnostics must inspect **all held locks** of a waiter, not just the monitor it is awaiting notification on.
 
-### 4.3 waiting on khác waiting to lock
+### 4.3 waiting on vs. waiting to lock
 
-Thread đang đợi `Object.wait()` có thể hiện:
+A thread waiting in `Object.wait()` may appear as:
 
 ```text
 "condition-waiter" ...
@@ -235,34 +235,34 @@ Thread đang đợi `Object.wait()` có thể hiện:
     - waiting on <0x0000000711303000> (a java.lang.Object)
 ```
 
-Ở đây `waiting on` là **chờ condition notification**, không phải `waiting to lock` để vào synchronized. Thread đã nhả monitor này trong pha wait. Khi được đánh thức, nó có thể tạm thành `BLOCKED` nếu chưa reacquire được monitor.
+Here `waiting on` means **awaiting condition notification**, not `waiting to lock` to enter `synchronized`. The thread already released this monitor during the wait phase. Once awakened, it may temporarily become `BLOCKED` if it cannot immediately reacquire the monitor.
 
-### 4.4 Lost signal, notify và spurious wakeup
+### 4.4 Lost Signals, notify, and Spurious Wakeups
 
-Lỗi điển hình:
+Typical bug:
 
 ```java
-// Sai mô hình: không có predicate và lock bảo vệ condition.
+// Wrong pattern: no predicate and lock protecting the condition.
 if (!ready) {
-    signal.wait(); // Còn có thể IllegalMonitorStateException.
+    signal.wait(); // Can also throw IllegalMonitorStateException.
 }
 ```
 
-Ngay cả nếu sửa bằng `synchronized` mà chỉ dùng `if`, vẫn có thể sai vì nhiều waiters, thay đổi condition hoặc **spurious wakeup**. Thiết kế đúng là **predicate + lock + vòng while**, không phải chỉ gọi `notify`.
+Even when wrapped in `synchronized`, using `if` alone can still fail due to multiple waiters, condition changes, or **spurious wakeups**. Correct design requires **predicate + lock + while loop**, not merely calling `notify`.
 
-`notify()` chọn một waiter không được chỉ định; nếu có nhiều điều kiện khác nhau trên một wait-set, đánh thức sai waiter có thể gây khó tiến triển. `notifyAll()` thường dễ lập luận hơn khi không có invariant chọn waiter, nhưng có thể gây “thundering herd”. Khi nhiều independent condition queues cần tối ưu, `Condition` có thể phù hợp hơn.
+`notify()` selects an unspecified waiter; if multiple distinct conditions share one wait-set, waking the wrong waiter can stall progress. `notifyAll()` is usually easier to reason about without strict waiter-selection invariants, though it can cause a “thundering herd.” When multiple independent condition queues need optimization, `Condition` can be a better fit.
 
-### 4.5 wait timeout không phải tiến độ bảo đảm
+### 4.5 A wait Timeout Does Not Guarantee Progress
 
-`wait(long timeoutMillis)` trả về sau thông báo, interrupt, timeout hoặc spurious wakeup theo contract. Dùng deadline theo clock/điều kiện và kiểm tra vòng while; **không** mặc định “đã wait 5 giây là state chắc chắn ready”. `wait(0)` nghĩa là chờ vô hạn; không nhầm với không chờ.
+`wait(long timeoutMillis)` returns upon notification, interrupt, timeout, or spurious wakeup per contract. Use clock-based deadlines/conditions and check inside a `while` loop; **never** assume “after waiting 5 seconds, the state is definitely ready.” `wait(0)` means wait indefinitely; do not confuse it with not waiting.
 
-Một số code chặn indefinitely vì producer không bao giờ `notifyAll` hoặc không thay predicate. Đây thường là **missed signal/protocol bug**, không nhất thiết tạo deadlock cycle mà `ThreadMXBean.findDeadlockedThreads()` phát hiện.
+Some code blocks indefinitely because the producer never calls `notifyAll` or never updates the predicate. This is typically a **missed signal / protocol bug**, not necessarily a deadlock cycle detectable by `ThreadMXBean.findDeadlockedThreads()`.
 
-## 5. Condition.await(): condition queue của Lock
+## 5. Condition.await(): A Lock’s Condition Queue
 
-### 5.1 Condition gắn chặt với lock
+### 5.1 Condition Is Tightly Bound to a Lock
 
-Với `ReentrantLock`:
+With `ReentrantLock`:
 
 ```java
 private final java.util.concurrent.locks.ReentrantLock lock =
@@ -293,13 +293,13 @@ void markReady() {
 }
 ```
 
-Đây là **mảnh của class**. `await`/`signal` yêu cầu giữ **associated Lock** theo implementation `ReentrantLock`; gọi `signalAll` mà không giữ lock có thể gây `IllegalMonitorStateException`. `Condition` cung cấp **wait-set riêng** cho một lock, thay vì mọi condition dùng chung một object monitor như `Object.wait/notify`.
+This is a **class fragment**. `await`/`signal` require holding the **associated Lock** per `ReentrantLock`’s implementation; calling `signalAll` without holding the lock throws `IllegalMonitorStateException`. `Condition` provides **separate wait-sets** for one lock, instead of sharing one object monitor wait-set as with `Object.wait/notify`.
 
-### 5.2 await nhả rồi lấy lại lock
+### 5.2 await Releases and Then Reacquires the Lock
 
-Khi `changed.await()` bắt đầu chờ, implementation `ReentrantLock` **nhả hoàn toàn associated lock theo hold count** và khi trở về sẽ giành lại trạng thái ownership tương ứng. Vì vậy thread đang park trên `ConditionObject` **không nhất thiết là owner của ReentrantLock** lúc chụp. Khi được `signal`, nó được chuyển để chờ reacquire; nó **không lập tức chạy** nếu signaling thread vẫn giữ lock.
+When `changed.await()` begins waiting, the `ReentrantLock` implementation **fully releases the associated lock across its hold count** and restores that ownership upon returning. Thus a thread parked on `ConditionObject` **is not necessarily the owner of the `ReentrantLock`** at snapshot time. When signaled, it is moved to wait for lock reacquisition; it **does not immediately run** if the signaling thread still holds the lock.
 
-Sơ đồ:
+Flow:
 
 ```text
 WAITING thread: holds ReentrantLock
@@ -312,11 +312,11 @@ WAITING thread: holds ReentrantLock
    -> eventually unlock in finally
 ```
 
-`signal` đưa waiter ra khỏi condition queue theo semantics của implementation, nhưng **không trực tiếp cấp lock cho waiter ngay lập tức**. Nếu signaler tiếp tục làm việc dài trong lock, waiter vẫn có thể bị kẹt trên acquisition queue.
+`signal` moves a waiter out of the condition queue per implementation semantics, yet **does not immediately hand the lock directly to the waiter**. If the signaler continues doing long work under the lock, the waiter can still remain stuck in the acquisition queue.
 
-### 5.3 Nhận diện Condition trong dump
+### 5.3 Recognizing Condition in a Dump
 
-Ví dụ **mô phỏng**:
+**Simulated** example:
 
 ```text
 "order-consumer" ...
@@ -330,42 +330,42 @@ Ví dụ **mô phỏng**:
       (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)
 ```
 
-Các stack frames bên trong AQS/ForkJoinPool **thay đổi theo JDK**; mẫu chỉ nói cách nhận diện `ConditionObject.await` và blocker loại condition. **Không** suy owner từ `ConditionObject` như đó là `ReentrantLock$Sync` đang bị thread khác giữ. Điều cần tìm tiếp là **ai sẽ gọi `signal/signalAll`, predicate nào phải đúng và liệu producer có thể chạy không**.
+Internal AQS/`ForkJoinPool` stack frames **vary by JDK**; the sample only shows how to identify `ConditionObject.await` and a condition blocker. **Do not** infer an owner from `ConditionObject` as if it were a `ReentrantLock$Sync` held by another thread. What to look for next is **who will call `signal/signalAll`, which predicate must become true, and whether the producer can run**.
 
-### 5.4 Vì sao Condition không phải Object.wait trên chính object Condition
+### 5.4 Why Condition Is Not Object.wait on the Condition Instance
 
-`condition.await()` khác hoàn toàn `condition.wait()`. `Condition` là interface với operations mang semantics gắn với `Lock`; `Object.wait` trên chính instance Condition chỉ là object monitor riêng, **không có quan hệ xác định** với associated lock/condition queue. Không thay `changed.await()` bằng `changed.wait()` hoặc gọi `changed.notify()`.
+`condition.await()` is completely different from `condition.wait()`. `Condition` is an interface whose operations carry semantics tied to `Lock`; `Object.wait` on the `Condition` object itself only uses that object’s intrinsic monitor, having **no defined relationship** with the associated lock/condition queue. Never replace `changed.await()` with `changed.wait()` or call `changed.notify()`.
 
-### 5.5 Phân biệt các biến thể await
+### 5.5 Distinguishing await Variants
 
-| Method | Khả năng thoát chờ | Kỳ vọng chẩn đoán |
+| Method | Ways Out of Wait | Diagnostic Expectations |
 | --- | --- | --- |
-| `await()` | Signal, interrupt, spurious wakeup | Có thể WAITING/parking lâu |
-| `awaitUninterruptibly()` | Signal/spurious; giữ lại thông tin interrupt theo contract | Một interrupt đơn lẻ không nhất thiết giải phóng waiter |
-| `awaitNanos(nanos)` | Signal/interrupt/spurious/timeout, trả remaining nanos | Có thể TIMED_WAITING |
-| `await(time,unit)` | Trả boolean báo signal trước deadline theo contract | Không thay cho kiểm tra predicate |
-| `awaitUntil(Date)` | Dùng deadline tuyệt đối theo wall-clock | Clock changes cần được hiểu đúng |
+| `await()` | Signal, interrupt, spurious wakeup | Can stay in WAITING/parking long-term |
+| `awaitUninterruptibly()` | Signal/spurious; preserves interrupt status per contract | A single interrupt does not necessarily release the waiter |
+| `awaitNanos(nanos)` | Signal/interrupt/spurious/timeout, returns remaining nanos | May show TIMED_WAITING |
+| `await(time,unit)` | Returns boolean indicating signal before deadline per contract | Does not replace checking the predicate |
+| `awaitUntil(Date)` | Uses an absolute wall-clock deadline | Clock changes must be understood properly |
 
-Dù chọn biến thể nào, cần **while(predicate)** và quản lý deadline/interrupt/cancellation. Một timed await trả do timeout không có nghĩa điều kiện đã thành công.
+Whichever variant you choose, use **`while (predicate)`** and manage deadlines/interrupts/cancellation. A timed await returning due to timeout does not mean the condition succeeded.
 
-## 6. LockSupport.park(): permit cấp thấp và những chiếc bẫy
+## 6. LockSupport.park(): Low-Level Permits and Traps
 
-### 6.1 Mỗi thread chỉ có tối đa một permit
+### 6.1 Each Thread Has at Most One Permit
 
-`LockSupport` dùng một permit logic mỗi thread:
+`LockSupport` uses a logical single permit per thread:
 
-- `unpark(thread)` làm permit khả dụng (nếu chưa có).
-- `park()` tiêu thụ permit nếu sẵn có rồi trở về ngay.
-- Nếu chưa có permit, `park` có thể block đến khi được unpark, bị interrupt, timeout (bản timed) hoặc spurious return.
-- Hai lần `unpark` **không tích lũy thành hai permits**.
-- `park` có thể trở về “không có lý do”; caller phải **kiểm tra lại predicate**.
-- `park` không ném `InterruptedException`; thread có thể ở trạng thái interrupt và trả về ngay. Việc xử lý interrupted flag do logic caller quyết định.
+- `unpark(thread)` makes the permit available (if not already available).
+- `park()` consumes the permit if available and returns immediately.
+- If no permit is available, `park` blocks until unparked, interrupted, timed out (timed variants), or spurious return.
+- Two calls to `unpark` **do not accumulate into two permits**.
+- `park` can return “for no reason”; callers must **recheck the predicate**.
+- `park` does not throw `InterruptedException`; a thread may be interrupted and return immediately. Handling the interrupted flag is up to caller logic.
 
-Nhiều primitive như AQS, thread pools và các hệ thống scheduling dùng `park` bên dưới. Vì vậy thấy `Unsafe.park` trong stack **không đủ** kết luận loại bottleneck.
+Many primitives such as AQS, thread pools, and schedulers use `park` underneath. Therefore seeing `Unsafe.park` in a stack **is not enough** to determine the bottleneck type.
 
-### 6.2 park không tự nhả bất kỳ khóa nào
+### 6.2 park Does Not Automatically Release Any Lock
 
-Ví dụ **dễ gây treo**:
+**Hang-prone** example:
 
 ```java
 synchronized (monitor) {
@@ -373,13 +373,13 @@ synchronized (monitor) {
 }
 ```
 
-Code trên minh họa một lỗi thiết kế: nếu thread khác cần vào `synchronized(monitor)` để gọi `unpark(owner)`, producer có thể bị chặn bởi chính monitor mà owner đang giữ. `park` **không có semantics nhả monitor**, khác `monitor.wait()`.
+The code above illustrates a design bug: if another thread needs to enter `synchronized(monitor)` to call `unpark(owner)`, the producer can be blocked by the very monitor the owner holds. `park` **has no monitor-release semantics**, unlike `monitor.wait()`.
 
-Tương tự, nếu giữ `ReentrantLock` khi park, owner vẫn là owner cho đến khi gọi `unlock()`. Không nhầm `WAITING (parking)` với việc thread đã thả mọi locks.
+Similarly, if holding a `ReentrantLock` while parking, the owner remains owner until calling `unlock()`. Never confuse `WAITING (parking)` with the thread having released all locks.
 
-### 6.3 Dùng blocker để hỗ trợ chẩn đoán
+### 6.3 Using Blockers to Aid Diagnostics
 
-`LockSupport.park(blocker)` đặt blocker object mà tools có thể xem bằng `LockSupport.getBlocker(thread)` hoặc `ThreadInfo.getLockInfo()` trong một số trường hợp. Ví dụ:
+`LockSupport.park(blocker)` sets a blocker object that tools can inspect via `LockSupport.getBlocker(thread)` or `ThreadInfo.getLockInfo()` in some cases. Example:
 
 ```java
 while (!canContinue.get()) {
@@ -387,13 +387,13 @@ while (!canContinue.get()) {
 }
 ```
 
-Đây là đoạn minh họa với `AtomicBoolean canContinue`; production nên dùng blocker object có identity rõ (thường là chính synchronizer instance), không nhét customer/request/token vào blocker. `getBlocker` là **snapshot**, có thể trả null sau khi thread đã unpark, và blocker không bắt buộc có owner thread.
+This is an illustrative snippet with an `AtomicBoolean canContinue`; production code should use a blocker object with clear identity (usually the synchronizer instance itself), avoiding placing customer/request/token data inside a blocker. `getBlocker` is a **snapshot**, can return null after the thread unparks, and a blocker is not required to have an owning thread.
 
-### 6.4 unpark trước park khác notify trước wait
+### 6.4 unpark Before park Differs from notify Before wait
 
-`unpark(thread)` có thể xảy ra **trước** `park()` mà vẫn để lại một permit cho lần park kế tiếp (nếu thread đã start và permit chưa bị tiêu thụ); đây là điểm khác với `notify` khi không có waiter: notify không được “tích lại” thành một thông báo tương lai.
+`unpark(thread)` can occur **before** `park()` and still leave a permit for the next `park` (if the thread has started and the permit has not yet been consumed); this differs from `notify` with no waiter: `notify` is not “saved up” for a future wait.
 
-Nhưng permit có thể bị một `park` khác tiêu thụ, kể cả qua code/framework khác; không dựa vào permit đơn lẻ như một **message queue**. Thiết kế đúng cần **state flag/volatile hoặc atomic + loop**:
+However, a permit can be consumed by another `park`, even from other code/frameworks; do not rely on a single permit as a **message queue**. Proper design requires a **state flag / volatile or atomic + loop**:
 
 ```java
 // Consumer:
@@ -405,11 +405,11 @@ ready.set(true);
 LockSupport.unpark(consumerThread);
 ```
 
-Đây là **hai snippet minh họa** ở hai threads; `ready` là một `AtomicBoolean` dùng chung, `blocker` là object, `consumerThread` là reference thread đã được start. Nếu dùng state không có visibility semantics, loop có thể không quan sát được cập nhật dù đã unpark.
+These are **two illustrative snippets** across two threads; `ready` is a shared `AtomicBoolean`, `blocker` is an object, and `consumerThread` is a started thread reference. Using state without visibility semantics can prevent the loop from observing the update despite `unpark`.
 
-### 6.5 Park có thể bị interrupt mà không ném exception
+### 6.5 Park Can Be Interrupted Without Throwing an Exception
 
-Một thread bị interrupt khi đang park có thể trở về, nhưng nếu caller chỉ làm:
+A thread interrupted while parked can return, yet if the caller only writes:
 
 ```java
 while (!ready.get()) {
@@ -417,41 +417,41 @@ while (!ready.get()) {
 }
 ```
 
-và interrupted flag vẫn set, các lần `park()` tiếp theo có thể trả ngay, tạo **busy loop**. Cần quyết định rõ chính sách cancellation (kiểm tra `Thread.currentThread().isInterrupted()`, kết thúc, hoặc xử lý/khôi phục status đúng contract). Không gọi `Thread.interrupted()` bừa bãi vì method đó **xóa interrupt flag** của current thread.
+and the interrupted flag remains set, subsequent `park()` calls can return immediately, creating a **busy loop**. You must define a clear cancellation policy (check `Thread.currentThread().isInterrupted()`, terminate, or handle/restore status per contract). Do not call `Thread.interrupted()` carelessly because that method **clears the current thread’s interrupt flag**.
 
-## 7. Thread state: BLOCKED, WAITING và TIMED_WAITING không phải nguyên nhân
+## 7. Thread States: BLOCKED, WAITING, and TIMED_WAITING Are Not Root Causes
 
-| Thread state | Nguyên nhân có thể gặp | Cần quan sát tiếp |
+| Thread State | Possible Causes | What to Observe Next |
 | --- | --- | --- |
-| `BLOCKED` | Đợi vào/reenter monitor `synchronized` | Monitor ID, `waiting to lock`, owner và held-lock stack |
-| `WAITING` | `Object.wait(0)`, `Condition.await`, `LockSupport.park`, `Thread.join`, pool idle | Stack frame, blocker type, predicate và bên đánh thức |
-| `TIMED_WAITING` | `sleep`, `wait(timeout)`, timed await, `parkNanos/Until`, timed join | Deadline, owner locks giữ khi chờ, thời gian chờ thực |
-| `RUNNABLE` | Chạy Java, đang làm native call, chờ một số dạng I/O | CPU time, OS state, stack changes, syscall/network |
-| `TERMINATED` | Thread đã kết thúc | Không suy quá khứ từ một snapshot sau khi xong |
-| `NEW` | Thread chưa được start | Không phải waiter đang tranh monitor |
+| `BLOCKED` | Waiting to enter/reenter a `synchronized` monitor | Monitor ID, `waiting to lock`, owner, and held-lock stack |
+| `WAITING` | `Object.wait(0)`, `Condition.await`, `LockSupport.park`, `Thread.join`, idle pool | Stack frame, blocker type, predicate, and wake-up sender |
+| `TIMED_WAITING` | `sleep`, `wait(timeout)`, timed await, `parkNanos/Until`, timed join | Deadline, locks held by owner while waiting, actual wait duration |
+| `RUNNABLE` | Running Java, executing native call, waiting on some forms of I/O | CPU time, OS state, stack progression, syscalls/network |
+| `TERMINATED` | Thread has exited | Do not infer history from a post-exit snapshot |
+| `NEW` | Thread has not started | Not a waiter contending for a monitor |
 
-**WAITING không chứng minh nhàn rỗi.** Một thread có thể WAITING ở `CountDownLatch.await` nhưng vẫn giữ một monitor hoặc `ReentrantLock` mà nhiều threads khác cần. Ngược lại, nhiều worker WAITING trên queue vì không có task có thể là **trạng thái bình thường**.
+**WAITING does not prove idleness.** A thread can be `WAITING` in `CountDownLatch.await` while still holding a monitor or `ReentrantLock` needed by many other threads. Conversely, many workers `WAITING` on a queue because there are no tasks can be a **normal state**.
 
-**RUNNABLE không đồng nghĩa chiếm CPU**. Một thread trong native I/O hoặc scheduling cũng có thể được biểu diễn RUNNABLE từ góc nhìn Java. Cần OS CPU/cgroup metrics hoặc JFR để phân biệt.
+**RUNNABLE does not mean consuming CPU**. A thread in native I/O or scheduling wait can also appear `RUNNABLE` from Java’s perspective. OS CPU/cgroup metrics or JFR are needed to distinguish them.
 
-## 8. Thu thread dump và chọn đúng thông tin
+## 8. Capturing Thread Dumps and Selecting the Right Information
 
-### 8.1 Sử dụng jcmd trên HotSpot
+### 8.1 Using jcmd on HotSpot
 
-Trước tiên xác minh đúng PID/JVM instance, JDK tool, quyền và host/container namespace. Sau đó:
+First verify the exact PID/JVM instance, JDK tools, permissions, and host/container namespace. Then:
 
 ```bash
 jcmd 4242 help Thread.print
 jcmd 4242 Thread.print -l
 ```
 
-`4242` là **PID minh họa**. Với HotSpot/JDK hiện đại, `Thread.print -l` yêu cầu kèm thông tin `java.util.concurrent` locks/ownable synchronizers; phiên bản và các flags cụ thể cần kiểm tra bằng `help` của JVM. Đừng nhầm `jcmd -l` (liệt kê JVM) với `jcmd PID Thread.print -l` (thread dump chi tiết).
+`4242` is an **illustrative PID**. On modern HotSpot/JDKs, `Thread.print -l` requests `java.util.concurrent` locks / ownable synchronizers info; verify exact version and flags using the JVM’s `help`. Do not confuse `jcmd -l` (lists JVMs) with `jcmd PID Thread.print -l` (detailed thread dump).
 
-Có thể dùng `jstack -l 4242` nếu công cụ/JDK hiện có và hỗ trợ. Nếu attach bị vô hiệu, JVM đã thoát hoặc PID sai, không tự coi không tạo được dump là deadlock. Thu dump có thể tốn CPU/thời gian và chứa thông tin nhạy cảm; đừng chạy capture loop vô hạn trong production.
+`jstack -l 4242` can be used if available and supported on that JDK. If attach is disabled, the JVM exited, or the PID is wrong, never assume failure to dump means deadlock. Taking dumps can cost CPU/time and contain sensitive data; never run an unbounded capture loop in production.
 
-### 8.2 Đọc marker theo loại chờ
+### 8.2 Reading Markers by Wait Type
 
-Một bộ marker giả định:
+A hypothetical set of markers:
 
 ```text
 "blocked-monitor" ... java.lang.Thread.State: BLOCKED (on object monitor)
@@ -472,17 +472,17 @@ Một bộ marker giả định:
       (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)
 ```
 
-Các dòng viết gọn để giải thích **không phải format đầy đủ thực tế**. Tùy implementation/JDK, nội dung marker/stack thay đổi; hãy đọc đúng giá trị trong cùng artifact, không tự regex cứng mọi JDK.
+These lines are abbreviated for explanation, **not full real output**. Depending on implementation/JDK, marker/stack wording varies; read exact values within the same artifact rather than hardcoding brittle regexes across all JDKs.
 
-- `waiting to lock` → tranh **intrinsic monitor**.
-- `locked` → đang **giữ monitor**.
-- `waiting on` → chờ **Object.wait/notify**.
-- `parking to wait for ...ReentrantLock$...Sync` → có thể đang chờ **ownable ReentrantLock**.
-- `parking to wait for ...ConditionObject` → có thể đang chờ **condition signal**, chưa chắc owner là lock holder đó.
+- `waiting to lock` → contending for an **intrinsic monitor**.
+- `locked` → **holding** a monitor.
+- `waiting on` → waiting for **`Object.wait/notify`**.
+- `parking to wait for ...ReentrantLock$...Sync` → may be waiting on an **ownable `ReentrantLock`**.
+- `parking to wait for ...ConditionObject` → may be waiting for a **condition signal**, not necessarily owned by a lock holder in that way.
 
-### 8.3 Locked ownable synchronizers
+### 8.3 Locked Ownable Synchronizers
 
-Ở phần cuối mỗi thread block, dump với `-l` có thể hiện:
+At the end of each thread block, a dump with `-l` may show:
 
 ```text
 Locked ownable synchronizers:
@@ -490,9 +490,9 @@ Locked ownable synchronizers:
       (a java.util.concurrent.locks.ReentrantLock$NonfairSync)
 ```
 
-Phần này **khác** `- locked <...>` của object monitors. Khi chẩn đoán `ReentrantLock` contention, tìm owner sở hữu **cùng synchronizer identity** trong cùng dump, và xem thread owner đang làm gì. Không lấy object identity từ JVM restart khác hoặc so hash/address bằng một phép chuyển đổi tùy tiện.
+This section **is distinct from** `- locked <...>` for object monitors. When diagnosing `ReentrantLock` contention, find the owner holding the **exact same synchronizer identity** in the same dump and inspect what that owning thread is doing. Never carry object identities across a JVM restart or convert hashes/addresses arbitrarily.
 
-### 8.4 ThreadMXBean: monitor, synchronizer và deadlock
+### 8.4 ThreadMXBean: Monitors, Synchronizers, and Deadlocks
 
 Java API:
 
@@ -504,33 +504,33 @@ if (mx.isObjectMonitorUsageSupported()
 }
 ```
 
-Đây là **mảnh minh họa** trong một method có `import java.lang.management.*`. Mảng `ThreadInfo` biểu diễn **platform threads** mà API hỗ trợ; trong Java 21 virtual threads không được kiểm kê/giám sát toàn bộ bằng interface này. Khi không hỗ trợ monitor/synchronizer usage, việc yêu cầu chụp chi tiết có thể ném `UnsupportedOperationException`.
+This is an **illustrative fragment** inside a method with `import java.lang.management.*`. The `ThreadInfo` array represents **platform threads** supported by the API; in Java 21 virtual threads are not fully inventoried/monitored by this interface. When monitor/synchronizer usage is unsupported, requesting full lock details can throw `UnsupportedOperationException`.
 
-Bảng ánh xạ:
+Mapping table:
 
-| Java API | Điều muốn biết | Lưu ý |
+| Java API | What You Want to Know | Notes |
 | --- | --- | --- |
-| `ThreadInfo.getThreadState()` | State ở snapshot | Có thể thay đổi ngay |
-| `getLockInfo()` | Lock/blocker thread đang chờ nếu có | Blocker không phải lúc nào có owner |
-| `getLockOwnerId()` | Java thread ID của owner nếu biết | `-1` nghĩa không có/không biết |
-| `getLockedMonitors()` | Monitors đang giữ khi đã thu thông tin này | Mảng rỗng có thể vì không request |
-| `getLockedSynchronizers()` | Ownable synchronizers đang giữ | Không liệt kê mọi wait primitive |
-| `getBlockedCount()` | Số lần block monitor entry | Không phải thời gian từng event |
-| `getBlockedTime()` | Total monitor block time khi contention monitoring bật | Có thể `-1` và cần overhead |
-| `getWaitedCount()` | Số lần wait theo semantics API | Không nói liệu thiếu signal |
-| `getWaitedTime()` | Time chờ tích lũy khi được bật/hỗ trợ | Không phải latency histogram |
+| `ThreadInfo.getThreadState()` | State at snapshot | Can change immediately |
+| `getLockInfo()` | Lock/blocker thread is waiting on, if any | Blocker does not always have an owner |
+| `getLockOwnerId()` | Java thread ID of owner, if known | `-1` means none/unknown |
+| `getLockedMonitors()` | Monitors held when this info was captured | Empty array may mean it wasn’t requested |
+| `getLockedSynchronizers()` | Ownable synchronizers held | Does not list every wait primitive |
+| `getBlockedCount()` | Count of monitor entry blocks | Not per-event duration |
+| `getBlockedTime()` | Total monitor block time when contention monitoring is enabled | May be `-1` and adds overhead |
+| `getWaitedCount()` | Wait count per API semantics | Does not indicate missed signals |
+| `getWaitedTime()` | Cumulative wait time when enabled/supported | Not a latency histogram |
 
-`ThreadMXBean.findMonitorDeadlockedThreads()` tìm cycles chờ object monitors; `findDeadlockedThreads()` còn có thể tìm cycles với **ownable synchronizers** khi JVM hỗ trợ. Nhưng không phương thức nào là công cụ tổng quát phát hiện mọi kiểu stuck/livelock/starvation/queue-wait, và không thay JFR/tracing.
+`ThreadMXBean.findMonitorDeadlockedThreads()` finds object-monitor cycles; `findDeadlockedThreads()` can also find cycles with **ownable synchronizers** when supported by the JVM. However, neither method is a general detector for all stuck/livelock/starvation/queue-wait issues, and neither replaces JFR/tracing.
 
-### 8.5 Virtual threads và giới hạn phiên bản
+### 8.5 Virtual Threads and Version Limitations
 
-Java 17 chưa có virtual threads ổn định; Java 21 có. Với virtual threads, stack dumps và handling synchronized/monitor pinning/diagnostic support **khác theo JDK release**. `ThreadMXBean` ở Java 21 hướng tới **platform threads**; một thread pool có vài carrier threads không chứng minh chỉ có vài virtual tasks. Không diễn giải `dumpAllThreads(true,true)` như inventory đầy đủ của virtual threads. Nếu hệ thống dùng virtual threads, chọn tool/format/JFR tương ứng JDK đang chạy.
+Java 17 lacks finalized virtual threads; Java 21 has them. With virtual threads, stack dumps and handling of `synchronized`/monitor pinning/diagnostic support **differ by JDK release**. `ThreadMXBean` in Java 21 targets **platform threads**; a pool with only a few carrier threads does not prove only a few virtual tasks exist. Do not treat `dumpAllThreads(true,true)` as a complete inventory of virtual threads. If the system uses virtual threads, choose tools/formats/JFR suited to that running JDK.
 
-## 9. Đọc code và dựng đồ thị phụ thuộc để tìm nguyên nhân
+## 9. Reading Code and Building a Dependency Graph to Find Root Cause
 
-### 9.1 Mỗi cạnh phải nêu rõ “đang chờ cái gì”
+### 9.1 Each Edge Must Specify “Waiting on What”
 
-Một graph minh họa:
+An illustrative graph:
 
 ```text
 request-B -- wants intrinsic monitor M --> request-A
@@ -538,20 +538,20 @@ request-C -- wants intrinsic monitor M --> request-A
 request-A -- waits for DB connection --> DB pool
 ```
 
-Đây là **lock convoy**, không nhất thiết là Java-level deadlock. Nếu request-A có thể lấy connection và rời monitor, các waiter có thể tiến triển. Chẩn đoán root cause cần xem DB pool, timeouts và lý do critical section bao chứa DB I/O.
+This is a **lock convoy**, not necessarily a Java-level deadlock. If `request-A` can obtain a connection and exit the monitor, the waiters can progress. Diagnosing root cause requires inspecting the DB pool, timeouts, and why the critical section wraps DB I/O.
 
-Một graph khác:
+Another graph:
 
 ```text
 thread-A -- holds lock-X; waits lock-Y --> thread-B
 thread-B -- holds lock-Y; waits lock-X --> thread-A
 ```
 
-Khi owner and wait edges được xác minh **trong cùng JVM/snapshot**, cycle này phù hợp với deadlock. Cần phân biệt lock-X/Y là monitor hay ownable synchronizer để chọn detector và cách sửa lock order.
+When owner and wait edges are verified **within the same JVM/snapshot**, this cycle is consistent with deadlock. Distinguish whether `lock-X/Y` are monitors or ownable synchronizers to choose the right detector and lock-order fix.
 
-### 9.2 Mối phụ thuộc signal không nhất thiết có lock owner
+### 9.2 Signal Dependencies Do Not Always Have a Lock Owner
 
-Ví dụ:
+Example:
 
 ```text
 consumer -- Condition.await() --> signal by producer
@@ -559,30 +559,30 @@ producer -- waits for executor slot --> thread pool
 all pool threads -- waiting for consumer result --> consumer
 ```
 
-Không phải mọi cạnh này có object monitor/ownable owner. Đây có thể là **executor/thread-pool starvation** hoặc protocol chờ vòng, dù `findDeadlockedThreads()` trả `null`. Phải đọc kiến trúc producer/consumer, queue capacity, callbacks và signal conditions. Không dựng một owner giả từ `ConditionObject`.
+Not every edge here has an object monitor or ownable owner. This can be **executor/thread-pool starvation** or a circular wait protocol, even though `findDeadlockedThreads()` returns `null`. You must read the producer/consumer architecture, queue capacity, callbacks, and signal conditions. Never invent a fake owner from `ConditionObject`.
 
-### 9.3 Câu hỏi chẩn đoán theo thứ tự
+### 9.3 Diagnostic Questions in Order
 
-1. **Đúng JVM?** PID + process start time, container/host scope, thời điểm UTC.
-2. **Mục tiêu bất thường?** p95/p99 request, throughput, queue size, timeouts, resource pressure.
-3. **Thread đợi monitor/lock hay đợi condition?** State + stack + blocker.
-4. **Nếu đợi lock, owner là ai?** Lock identity, `- locked`, ownable section, owner ID.
-5. **Nếu đợi signal, ai chịu trách nhiệm phát?** Predicate, producer, notify/signal/unpark, cancellation.
-6. **Owner/producer có tiến triển không?** Nhiều snapshots và application metrics.
-7. **Có cycle chắc chắn hay chỉ chain?** Monitor/ownable graph vs DB/executor/event dependencies.
-8. **Điều gì thay đổi gần thời điểm sự cố?** Deployment, load, flags, thread pool size, dependency latency.
-9. **Giải pháp có giữ invariant và bảo mật không?** Không tùy tiện gọi unlock/notify/interrupt trên JVM production.
+1. **Right JVM?** PID + process start time, container/host scope, UTC timestamp.
+2. **Abnormal target?** Request p95/p99, throughput, queue size, timeouts, resource pressure.
+3. **Waiting on a monitor/lock or waiting on a condition?** State + stack + blocker.
+4. **If waiting on a lock, who is the owner?** Lock identity, `- locked`, ownable section, owner ID.
+5. **If waiting on a signal, who is responsible for sending it?** Predicate, producer, notify/signal/unpark, cancellation.
+6. **Is the owner/producer making progress?** Multiple snapshots and application metrics.
+7. **Is it a definite cycle or just a chain?** Monitor/ownable graph vs. DB/executor/event dependencies.
+8. **What changed near incident onset?** Deployment, load, flags, thread pool size, dependency latency.
+9. **Does the fix preserve invariants and security?** Never arbitrarily call unlock/notify/interrupt on a production JVM.
 
-## 10. Ví dụ Java 17+ hoàn chỉnh: quan sát năm kiểu chờ trong một JVM
+## 10. Complete Java 17+ Example: Observing All Five Wait Types in One JVM
 
-Ví dụ có hai chế độ để phân biệt **kết quả lý thuyết có thể kiểm chứng** và **snapshot runtime không xác định**:
+The example has two modes to separate **verifiable theoretical output** from **non-deterministic runtime snapshots**:
 
-- **Mặc định:** chỉ in sơ đồ semantics, stdout cố định.
-- **`--live`:** tạo các platform threads của chính JVM demo. Chúng mô phỏng monitor owner/contender, ReentrantLock owner/contender, Object.wait waiter, Condition.await waiter và LockSupport.park waiter; lấy snapshot bằng `ThreadMXBean` rồi giải phóng tất cả.
+- **Default:** only prints the semantic table, deterministic stdout.
+- **`--live`:** creates platform threads in the demo JVM itself. They simulate monitor owner/contender, ReentrantLock owner/contender, `Object.wait` waiter, `Condition.await` waiter, and `LockSupport.park` waiter; takes a snapshot via `ThreadMXBean`, then releases everything.
 
-**An toàn của ví dụ:** không tạo deadlock cố ý, không attach JVM khác, không gửi notify/unpark cho thread lạ; dùng cờ điều kiện, latches và `finally`. Snapshot vẫn chịu race nên các dòng live không có stdout cố định.
+**Safety of the example:** creates no intentional deadlock, does not attach to any other JVM, does not send notify/unpark to unrelated threads; uses condition flags, latches, and `finally`. Snapshots are still subject to races, so live lines have no fixed deterministic stdout.
 
-Lưu file `SyncDiagnosticDemo.java`:
+Save the file `SyncDiagnosticDemo.java`:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -670,14 +670,14 @@ public class SyncDiagnosticDemo {
 
         Thread monitorContender = new Thread(() -> {
             synchronized (monitor) {
-                // Chỉ vào khi monitorOwner đã nhả khóa.
+                // Only entered after monitorOwner has released the lock.
             }
         }, "demo-monitor-contender");
 
         Thread lockContender = new Thread(() -> {
             exclusive.lock();
             try {
-                // Chỉ vào khi lockOwner unlock.
+                // Only entered after lockOwner unlocks.
             } finally {
                 exclusive.unlock();
             }
@@ -752,7 +752,7 @@ public class SyncDiagnosticDemo {
                 return;
             }
 
-            // Best-effort: chờ các state rõ hơn, không tạo atomic snapshot.
+            // Best-effort: wait for clearer states, does not create an atomic snapshot.
             for (int attempt = 0; attempt < 100; attempt++) {
                 boolean monitorBlocked =
                         monitorContender.getState() == Thread.State.BLOCKED;
@@ -794,7 +794,7 @@ public class SyncDiagnosticDemo {
 
             for (Thread thread : threads) {
                 if (thread.isAlive()) {
-                    thread.interrupt(); // Lối thoát bổ sung nếu demo bị delay.
+                    thread.interrupt(); // Fallback exit path if the demo is delayed.
                     thread.join(2000);
                 }
             }
@@ -810,14 +810,14 @@ public class SyncDiagnosticDemo {
 }
 ```
 
-Biên dịch và chạy chế độ mặc định:
+Compile and run the default mode:
 
 ```bash
 javac SyncDiagnosticDemo.java
 java SyncDiagnosticDemo
 ```
 
-**Stdout chính xác của chế độ mặc định**:
+**Exact stdout of the default mode**:
 
 ```text
 SYNCHRONIZED_CONTENDER=BLOCKED_ON_MONITOR
@@ -828,81 +828,81 @@ LOCK_SUPPORT_PARK=DOES_NOT_RELEASE_LOCKS
 WAITING_THREAD=NOT_AUTOMATICALLY_DEADLOCKED
 ```
 
-Đây là **khẳng định kiến thức do code in ra**, không phải phép đo thực tế. Để xem threads thật:
+These are **knowledge assertions printed by the code**, not empirical measurements. To observe live threads:
 
 ```bash
 java SyncDiagnosticDemo --live
 ```
 
-Khi `--live`, chương trình in sáu dòng mô hình trước, sau đó là các dòng `ALIAS.state`, `ALIAS.lock_info_present`, `ALIAS.owner_known`, `ALIAS.held_monitors` và `ALIAS.held_ownable` cho bảy threads. Giá trị thay đổi theo JDK/scheduler và thời điểm snapshot; ví dụ có thể thấy `MONITOR_CONTENDER.state=BLOCKED`, `LOCK_CONTENDER.state=WAITING`, `OBJECT_WAITER.state=WAITING`, `CONDITION_WAITER.state=WAITING`, `PARK_WAITER.state=WAITING`, nhưng **đó là kỳ vọng có điều kiện, không phải stdout đã được xác minh**.
+With `--live`, the program prints the six model lines first, followed by `ALIAS.state`, `ALIAS.lock_info_present`, `ALIAS.owner_known`, `ALIAS.held_monitors`, and `ALIAS.held_ownable` for the seven threads. Values vary by JDK/scheduler and snapshot timing; for example, you may see `MONITOR_CONTENDER.state=BLOCKED`, `LOCK_CONTENDER.state=WAITING`, `OBJECT_WAITER.state=WAITING`, `CONDITION_WAITER.state=WAITING`, `PARK_WAITER.state=WAITING`, yet **those are conditional expectations, not verified deterministic stdout**.
 
-### 10.1 Tại sao demo còn có owner đang WAITING?
+### 10.1 Why Does the Demo Have an Owner That Is WAITING?
 
-`monitorOwner` giữ intrinsic monitor và `lockOwner` giữ ReentrantLock khi chờ `releaseOwners.await()`. Vì họ vẫn giữ khóa, hai contenders phải chờ. Đây là tình huống **WAITING owner gây contention**: dù owner đang WAITING ở latch, nó chưa hề nhả monitor/ReentrantLock. Mục đích là học đọc “owner chờ vì sao”, không phải khuyến nghị giữ mutex khi đợi latch trong production.
+`monitorOwner` holds an intrinsic monitor and `lockOwner` holds a `ReentrantLock` while waiting on `releaseOwners.await()`. Because they still hold the locks, the two contenders must wait. This illustrates a **WAITING owner causing contention**: even though the owner is `WAITING` on a latch, it has never released the monitor/ReentrantLock. The purpose is to learn to ask “why is the owner waiting?”, not to recommend holding mutexes while awaiting latches in production.
 
-### 10.2 Tại sao Object.wait và Condition.await xuất hiện khác nhau?
+### 10.2 Why Do Object.wait and Condition.await Behave Differently?
 
-`objectWaiter` gọi `waitObject.wait()` trong synchronized, nhả monitor `waitObject` trong thời gian đợi. `conditionWaiter` gọi `changed.await()` khi giữ `conditionLock`, nhả associated ReentrantLock rồi reacquire khi thức dậy. `parkWaiter` dùng `LockSupport.park(parkBlocker)` và chỉ tiếp tục khi `parkGo` đã được bật/unpark/interrupt hoặc có spurious return; `park` không tự thao tác lock nào.
+`objectWaiter` calls `waitObject.wait()` inside `synchronized`, releasing the `waitObject` monitor while waiting. `conditionWaiter` calls `changed.await()` while holding `conditionLock`, releasing the associated `ReentrantLock` and reacquiring it upon waking. `parkWaiter` uses `LockSupport.park(parkBlocker)` and only proceeds once `parkGo` is set / unparked / interrupted or on spurious return; `park` does not manipulate any lock itself.
 
-### 10.3 Vì sao không in thời gian chờ chính xác?
+### 10.3 Why Not Print Exact Wait Durations?
 
-`ThreadInfo` là ảnh chụp, không phải stopwatch cho một lần chờ. `getBlockedTime()`/`getWaitedTime()` là thời gian tích lũy và có thể `-1` nếu contention monitoring không bật/hỗ trợ. Code demo không thay đổi management flags và không cố tính p95 từ các counters ấy. Khi phân tích latency thực tế, dùng application histogram/JFR/trace đồng bộ thời gian.
+`ThreadInfo` is a snapshot, not a stopwatch for a single wait. `getBlockedTime()`/`getWaitedTime()` are cumulative times and can be `-1` if contention monitoring is disabled/unsupported. The demo code does not mutate management flags and does not try to compute p95 from those counters. When analyzing real latency, use application histograms, JFR, or synchronized-clock traces.
 
-### 10.4 Dọn dẹp sau snapshot
+### 10.4 Cleanup After the Snapshot
 
-Phần `finally` giải phóng latches, đặt predicates, `notifyAll`, `signalAll`, `unpark` và yêu cầu interrupt như đường thoát dự phòng. `join(2000)` giới hạn thời gian chờ join, **không bảo đảm** mọi thread tùy ý trong một ứng dụng đều đã thoát khi deadline hết; ví dụ được thiết kế để chạy xong trong điều kiện bình thường.
+The `finally` block releases latches, sets predicates, calls `notifyAll`, `signalAll`, and `unpark`, and requests interrupts as a fallback exit path. `join(2000)` bounds how long main waits to join, **without guaranteeing** that arbitrary threads in a real application have all exited when the deadline passes; the example is designed to finish cleanly under normal conditions.
 
-Nếu thích dùng mã mẫu để thực nghiệm trên CI, hãy chạy process riêng có timeout tổng, không lặp quá dày trên production. Thread states có race tự nhiên, vì vậy automated tests nên xác minh **invariants/predicate và kết thúc an toàn**, không assert mọi JVM phải in chính xác một trạng thái WAITING tại từng mili giây.
+If you want to run this sample code in CI, run it in a separate process with an overall timeout, and do not repeat tightly in production. Thread states naturally race, so automated tests should assert **invariants/predicates and clean termination**, rather than asserting every JVM prints a specific `WAITING` state at a given millisecond.
 
-## 11. Ba mẫu lỗi chờ thường gặp và cách chẩn đoán
+## 11. Three Common Wait Bug Patterns and How to Diagnose Them
 
-### 11.1 Mất signal do protocol sai
+### 11.1 Lost Signal Due to a Broken Protocol
 
-**Triệu chứng:** consumers `WAITING` ở `Object.wait` hoặc `Condition.await` mãi dù producers từng “gọi notify”.
+**Symptoms:** consumers stay `WAITING` in `Object.wait` or `Condition.await` forever even though producers “called notify.”
 
-**Các câu hỏi:**
+**Questions to ask:**
 
-- Predicate như `queueNotEmpty`, `ready` có thật sự được cập nhật trước signal không?
-- Cả producer/consumer có dùng cùng monitor hoặc cùng associated lock?
-- Waiter dùng `while (!condition) await()` hay chỉ gọi wait mù?
-- Signal xảy ra trước waiter mà **không có state** lưu điều kiện?
-- Có exception/early return khiến signal không thực hiện?
-- Có đổi lock object sau redeploy/DI khiến hai bên chờ **hai object khác nhau**?
+- Are predicates like `queueNotEmpty` or `ready` actually updated before signaling?
+- Do both producer and consumer use the same monitor or the same associated lock?
+- Does the waiter use `while (!condition) await()` or call wait blindly?
+- Did the signal happen before the waiter arrived, with **no state** preserving the condition?
+- Did an exception or early return skip the signal?
+- Did a redeploy/DI change a lock object so the two sides wait on **two different objects**?
 
-**Cách sửa:** điều kiện phải là state có visibility/happens-before được bảo vệ bởi lock hoặc atomic; signal gắn với cập nhật state; waiter luôn recheck. Không chỉ thêm `notifyAll` ở chỗ bất kỳ để “chữa treo” nếu protocol gốc sai.
+**Fix:** the condition must be state with proper visibility/happens-before protected by a lock or atomic; signaling must accompany state updates; waiters must always recheck. Never sprinkle `notifyAll` randomly to “cure a hang” if the underlying protocol is wrong.
 
-### 11.2 Owner giữ mutex trong lúc chờ ngoại lực
+### 11.2 Owner Holding a Mutex While Waiting on External Work
 
-**Triệu chứng:** nhiều threads `BLOCKED` cùng một monitor hoặc WAITING/parking trên cùng ReentrantLock; owner lại sleep, chờ DB/network, latch hoặc completion của task pool.
+**Symptoms:** many threads `BLOCKED` on the same monitor or `WAITING/parking` on the same `ReentrantLock`; meanwhile the owner is sleeping, waiting on DB/network, a latch, or task-pool completion.
 
-**Giả thuyết:** critical section quá rộng hoặc phụ thuộc vòng. Tìm thời gian giữ lock/queue metrics và owner stack trong nhiều snapshots. Nếu owner cần kết quả từ thread đang bị chính lock đó chặn, có thể là cycle. Nếu owner cần DB response nhưng DB vẫn hoạt động, có thể là long hold/convoy.
+**Hypotheses:** overly broad critical section or circular dependency. Check lock hold times / queue metrics and the owner’s stack across multiple snapshots. If the owner needs a result from a thread blocked by that very lock, it may be a cycle. If the owner needs a DB response while the DB is still responsive, it may be a long hold / convoy.
 
-**Cách sửa:** thu hẹp critical section, tránh remote I/O trong mutex, đặt timeout và thiết kế transaction/state update an toàn. Không sửa bằng cách gọi `unlock` từ thread khác hoặc restart ngay khi chưa thu bằng chứng.
+**Fix:** shrink critical sections, keep remote I/O out of mutexes, add timeouts, and design safe transaction/state updates. Never fix by calling `unlock` from another thread or restarting immediately before collecting evidence.
 
-### 11.3 Lock order inversion
+### 11.3 Lock Order Inversion
 
-**Triệu chứng:** thread A giữ L1 muốn L2, thread B giữ L2 muốn L1. Có thể là hai monitors hoặc ownable locks.
+**Symptoms:** thread A holds L1 and wants L2; thread B holds L2 and wants L1. These may be two monitors or ownable locks.
 
-**Khắc phục mang tính thiết kế:** thống nhất thứ tự lấy khóa trên mọi code path, giảm lồng locks, tách shared-state ownership, dùng timed acquisition có rollback/cancellation phù hợp và test under contention. Chọn một thứ tự toàn cục (ví dụ lock ID/ordering key) nếu domain cho phép; không dùng thứ tự ngẫu nhiên giữa threads.
+**Design remediation:** standardize lock acquisition order across all code paths, reduce lock nesting, isolate shared-state ownership, use timed acquisition with proper rollback/cancellation, and test under contention. Pick a global ordering (e.g., by lock ID / ordering key) if the domain allows; never use thread-dependent random orders.
 
-## 12. Phân biệt deadlock, starvation, livelock và contention dài
+## 12. Distinguishing Deadlock, Starvation, Livelock, and Long Contention
 
-| Hiện tượng | Dấu hiệu | Thread dump có thể thấy | Điều cần chứng minh |
+| Phenomenon | Indicators | What a Thread Dump May Show | What Must Be Proven |
 | --- | --- | --- | --- |
-| **Deadlock** | Chu trình phụ thuộc không có đường thoát | Thread A/B chờ khóa của nhau, hoặc broader dependency cycle | Owner/held-lock edges đúng snapshot, không thể tiến triển |
-| **Lock contention** | Nhiều waiter trên cùng lock | `BLOCKED` trên monitor, hoặc AQS park | Owner và thời gian giữ khóa; có tiến triển hay không |
-| **Starvation** | Một số threads lâu không được phục vụ/tài nguyên | Pool threads WAITING, queue lớn, executor thiếu worker | Scheduling/resource allocation và thời gian |
-| **Livelock** | Threads hoạt động nhưng không hoàn thành công việc | RUNNABLE/churn stacks đổi liên tục | Counter tiến triển giả, retry loop, throughput thấp |
-| **Missed signal** | Condition waiter không thức dậy dù business state cần thay đổi | `WAITING (on object monitor)` hoặc `Condition.await` park | Predicate/producer/signal protocol |
-| **External I/O hang** | Thread chờ DB/network/disk | WAITING/RUNNABLE/native stack tùy API | Dependency timeouts, TCP/DB health, owner giữ locks? |
+| **Deadlock** | Dependency cycle with no exit | Threads A/B waiting on each other’s locks, or broader dependency cycle | Owner/held-lock edges in the same snapshot, unable to progress |
+| **Lock contention** | Many waiters on the same lock | `BLOCKED` on monitor, or AQS park | Owner and lock-holding duration; whether progress occurs |
+| **Starvation** | Some threads go unserved/resource-deprived for long periods | Pool threads `WAITING`, large queue, executor short on workers | Scheduling/resource allocation and elapsed time |
+| **Livelock** | Threads remain active but finish no work | `RUNNABLE`/churning stacks changing continuously | False progress counters, retry loops, low throughput |
+| **Missed signal** | Condition waiter does not wake even though business state should have changed | `WAITING (on object monitor)` or `Condition.await` park | Predicate/producer/signal protocol |
+| **External I/O hang** | Thread waits on DB/network/disk | `WAITING`/`RUNNABLE`/native stack depending on API | Dependency timeouts, TCP/DB health, whether owner holds locks |
 
-`findDeadlockedThreads() == null` chỉ nói không tìm thấy **loại cycles mà detector hỗ trợ ở thời điểm đó**. Không loại trừ hang vì I/O, pool starvation, missing signal hay virtual-thread-related liveness vấn đề ngoài phạm vi API.
+`findDeadlockedThreads() == null` only says **no cycle types supported by the detector were found at that instant**. It does not rule out I/O hangs, pool starvation, missing signals, or virtual-thread liveness issues outside API scope.
 
-## 13. ThreadInfo, monitoring và cách chứng minh thời gian kéo dài
+## 13. ThreadInfo, Monitoring, and Proving Duration
 
-### 13.1 Chụp nhiều snapshots có chủ đích
+### 13.1 Taking Purposeful Multiple Snapshots
 
-Một thread dump chỉ là **một ảnh chụp**. Để nói “thread A đã giữ lock 30 giây”, cần chuỗi snapshots có timestamp và identity của **cùng JVM**, hoặc instrumentation đo lock hold duration. Ví dụ:
+A single thread dump is only **one snapshot**. To state “thread A held the lock for 30 seconds,” you need a series of timestamped snapshots from the **same JVM** identity, or instrumentation measuring lock hold duration. Example:
 
 ```text
 12:00:00  T1 --holds M--> 25 waiters
@@ -910,190 +910,190 @@ Một thread dump chỉ là **một ảnh chụp**. Để nói “thread A đã 
 12:00:10  T1 --holds M--> 40 waiters
 ```
 
-Đây là dữ liệu **minh họa**; gợi ý monitor M là bottleneck kéo dài, nhưng chưa nói lý do T1 giữ lâu. Cần stack/source và ứng dụng metrics. Nếu PID/JVM restart giữa các snapshots, Object ID không còn ý nghĩa xuyên run.
+This is **illustrative** data; it suggests monitor M is a sustained bottleneck, yet does not explain why T1 holds it so long. Stack/source and application metrics are needed. If the PID/JVM restarted between snapshots, Object IDs lose meaning across runs.
 
-### 13.2 Contention monitoring không miễn phí
+### 13.2 Contention Monitoring Is Not Free
 
-Nếu `ThreadMXBean.isThreadContentionMonitoringSupported()` trả true, có thể bật monitoring để lấy accumulated blocked/waited time. Tuy nhiên việc bật `setThreadContentionMonitoringEnabled(true)` thay đổi trạng thái JVM và có overhead. Chỉ thực hiện theo quyền/runbook khi cần, không đưa vào demo read-only như mặc định.
+If `ThreadMXBean.isThreadContentionMonitoringSupported()` returns true, monitoring can be enabled to gather accumulated blocked/waited times. However, calling `setThreadContentionMonitoringEnabled(true)` mutates JVM state and incurs overhead. Perform it only with authorization/runbook approval when needed, never as a default in read-only demos.
 
-**Số lần BLOCKED không bằng thời gian BLOCKED.** Tổng time chia count chỉ cho một trung bình thô, không phải p95 hoặc max lock wait. Để phân tích tail latency, dùng JFR events, code instrumentation hoặc metrics histogram phù hợp.
+**`BLOCKED` count does not equal `BLOCKED` time.** Total time divided by count yields only a rough mean, not p95 or max lock wait. To analyze tail latency, use JFR events, code instrumentation, or appropriate latency histograms.
 
-### 13.3 Owner ID chỉ có nghĩa trong đúng JVM
+### 13.3 Owner IDs Only Have Meaning Within the Right JVM
 
-`ThreadInfo.getThreadId()` là Java thread ID; `nid` trong HotSpot dump là native thread ID OS ở một số nền tảng. Không lấy `nid=0x...` làm `ThreadInfo.getThreadId()` rồi so trực tiếp. `getLockOwnerId()` là Java thread ID nếu biết, `-1` khi không có/không biết. Một thread park trên condition/latch không bắt buộc có owner riêng; không tự invent owner vì `getLockInfo()!=null`.
+`ThreadInfo.getThreadId()` is a Java thread ID; `nid` in HotSpot dumps is the OS native thread ID on some platforms. Never treat `nid=0x...` as `ThreadInfo.getThreadId()` and compare them directly. `getLockOwnerId()` is a Java thread ID if known, `-1` if none/unknown. A thread parked on a condition/latch does not necessarily have an owner; never invent an owner just because `getLockInfo() != null`.
 
-### 13.4 Thread dump có thể thiếu dữ liệu
+### 13.4 Thread Dumps Can Miss Data
 
-- JVM/VM version không hỗ trợ locked synchronizer usage.
-- Output bị cắt vì số lượng threads quá lớn.
-- Thread đã kết thúc trước khi capture (`ThreadInfo == null`).
-- Tool không có quyền attach hoặc đang ở container PID namespace khác.
-- Virtual threads không được bao phủ bởi API/tool đang dùng.
-- JVM quá tải làm capture chậm, khiến event đã qua.
+- JVM/VM version does not support locked synchronizer usage.
+- Output truncated because thread count is too large.
+- Thread terminated prior to capture (`ThreadInfo == null`).
+- Tool lacks attach permissions or runs in a different container PID namespace.
+- Virtual threads are not covered by the API/tool in use.
+- Overloaded JVM slows capture so the event passes first.
 
-Do đó “không thấy owner trong dump” là **thiếu bằng chứng**, không phải chủ chắc chắn không tồn tại.
+Therefore “no owner visible in dump” means **missing evidence**, not proof that no owner exists.
 
-## 14. Nhật ký, JFR và metrics bổ sung cho thread dump
+## 14. Logs, JFR, and Metrics That Complement Thread Dumps
 
-Một chẩn đoán tốt nối thread dump với những dữ liệu khác:
+A solid diagnosis connects thread dumps with other data sources:
 
-| Nguồn | Giải đáp | Giới hạn |
+| Source | What It Answers | Limitations |
 | --- | --- | --- |
-| Thread dump/ThreadMXBean | Thread state, stack, lock đang chờ/đang giữ, deadlock graph | Snapshot, không có lịch sử event đầy đủ |
-| JFR | Monitor enter/park, thread events, CPU, execution sampling khi recording có cấu hình | Event availability/threshold và overhead phụ thuộc JDK/recording |
-| Application trace | Request nào đang chờ task/DB/lock, latency path | Cần instrumentation và sampling phù hợp |
-| Metrics thread pool/queue | Active threads, queue depth, rejection, completed tasks | Không tự tìm owner hoặc missing signal |
-| OS/cgroup CPU | CPU saturation/throttling, scheduling pressure | Không trực tiếp giải thích Java lock semantics |
-| DB/network metrics | Pool exhaustion, slow query, timeout, dependency errors | Không cho thấy lock được giữ trong code nếu không đối chiếu stack |
-| GC logs/JFR | Pause/GC event trùng thời gian | Không quy mọi WAITING/BLOCKED cho GC |
+| Thread dump / ThreadMXBean | Thread state, stack, awaited/held locks, deadlock graph | Snapshot; lacks full event history |
+| JFR | Monitor enter/park, thread events, CPU, execution sampling when recording is configured | Event availability/thresholds and overhead depend on JDK/recording |
+| Application traces | Which request is waiting on task/DB/lock, latency path | Requires instrumentation and suitable sampling |
+| Thread pool/queue metrics | Active threads, queue depth, rejections, completed tasks | Does not directly find owners or missed signals |
+| OS/cgroup CPU | CPU saturation/throttling, scheduling pressure | Does not directly explain Java lock semantics |
+| DB/network metrics | Pool exhaustion, slow queries, timeouts, dependency errors | Does not show which lock is held in code without stack correlation |
+| GC logs/JFR | Coinciding pauses/GC events | Never blame every `WAITING`/`BLOCKED` on GC |
 
-Khi thu JFR trong incident, kiểm tra recording profile đã bật sự kiện Java monitor enter/park và threshold phù hợp chưa; event thresholds có thể lọc những lần chờ ngắn. Một stack event trên JFR có thể giúp bổ sung timestamp/duration, nhưng không biến mọi loại `LockSupport.park` thành primitive có owner.
+When capturing JFR during an incident, check whether the recording profile enables Java monitor enter/park events with appropriate thresholds; event thresholds may filter out short waits. A JFR stack event adds timestamps and durations, yet does not turn every `LockSupport.park` into a primitive with an owner.
 
-### 14.1 Đừng tạo quá nhiều artifacts vô ích
+### 14.1 Avoid Creating Useless Artifact Overload
 
-Chụp hàng trăm thread dumps sát nhau trên JVM 10.000 threads có thể tạo overhead và artifact lớn; khi hệ thống vốn đang quá tải, điều này tự làm tình hình xấu hơn. Chọn thời điểm đo có mục tiêu, ví dụ vài snapshots cách nhau vài giây kèm timestamp, hoặc JFR có giới hạn dung lượng/thời gian nếu được phép. Không có cadence mặc định đúng cho mọi JVM.
+Capturing hundreds of back-to-back thread dumps on a 10,000-thread JVM creates heavy overhead and huge artifacts; when a system is already overloaded, this makes matters worse. Choose targeted sampling, e.g., a few snapshots spaced a few seconds apart with timestamps, or size/time-bounded JFR if permitted. No single cadence fits every JVM.
 
-### 14.2 An toàn thông tin khi chia sẻ dump
+### 14.2 Information Security When Sharing Dumps
 
-Thread name, class/package name, đường dẫn, request/session identifier, URL, credentials trong stack frames/message có thể là thông tin nhạy cảm. Lưu raw artifact trong kho có RBAC/retention thích hợp; bản chia sẻ chỉ giữ alias, lock identity mapping, đoạn stack cần thiết và timeline. Không đổi lock IDs tùy tiện khiến mất khả năng nối owner-wait graph; nếu phải redact, dùng mapping nhất quán **trong một incident**.
+Thread names, class/package names, file paths, request/session identifiers, URLs, and credentials inside stack frames/messages can be sensitive data. Store raw artifacts in repositories with proper RBAC/retention; shared excerpts should keep only aliases, lock-identity mappings, relevant stack slices, and timelines. Never randomize lock IDs inconsistently so owner-wait graphs break; if redacting, use a consistent mapping **within one incident**.
 
-## 15. Những lời khuyên sửa lỗi cần tránh
+## 15. Quick-Fix Advice to Avoid
 
-| “Sửa nhanh” thường gặp | Vì sao nguy hiểm/sai | Hướng đúng |
+| Common “Quick Fix” | Why It Is Dangerous/Wrong | Right Direction |
 | --- | --- | --- |
-| Gọi `notifyAll` ở bất kỳ object nào | Notify đúng wait-set mới có ý nghĩa, còn phải đổi predicate | Tìm đúng shared state + monitor và protocol |
-| Gọi `Condition.signal` mà không giữ associated lock | Với ReentrantLock Condition sẽ vi phạm contract | Lấy lock, đổi predicate, signal trong try/finally |
-| Tự gọi `unlock` thay owner | `IllegalMonitorStateException`, vi phạm ownership | Sửa owner code, finally và cancellation |
-| Thay `await` bằng `park` trực tiếp | Park không tự nhả lock, dễ giữ mutex khi đợi | Giữ abstraction Condition cho wait-set |
-| Thêm `Thread.sleep` để “tránh race” | Chỉ che scheduling bug, không có happens-before đúng | Dùng condition/predicate/lock/latch hợp lệ |
-| Dùng `if` thay `while` quanh wait/await | Spurious wakeup/competition có thể làm sai invariant | Vòng while kiểm tra predicate |
-| Xem `WAITING` là idle | Thread có thể giữ lock hoặc chờ producer không thể chạy | Xem held-locks, owner, dependency graph |
-| Tăng thread pool vô hạn | Có thể tăng contention, CPU/context switches | Điều tra queue/owner/blocking dependency |
-| Bật ReentrantLock fairness để chữa mọi thứ | Không sửa critical section dài, có thể giảm throughput | Giảm lock scope, đo hold/wait time |
-| Dùng `Thread.stop()` để phá lock | Không an toàn, có thể phá invariants | Cancellation hợp lệ, timeout, restart theo runbook |
-| Diễn giải `findDeadlockedThreads()==null` là “không treo” | Không bao gồm mọi liveness failure | JFR, traces, queue/protocol analysis |
-| Copy lock ID từ dump sau restart | Object identity khác nhau | So trong cùng JVM instance và snapshot |
-| Thu `jcmd Thread.print` sai PID | Có thể tác động/sao chép nhầm service | Xác minh PID/start time/namespace |
-| Chia sẻ raw dump ra kênh mở | Có thể lộ metadata/identifiers | Redact có kiểm soát và RBAC |
+| Calling `notifyAll` on any arbitrary object | Must notify the exact wait-set and update the predicate | Identify the right shared state + monitor and protocol |
+| Calling `Condition.signal` without holding the associated lock | Violates `ReentrantLock` Condition contract | Acquire lock, update predicate, signal inside `try/finally` |
+| Calling `unlock` on behalf of the owner | `IllegalMonitorStateException`, violates ownership | Fix owner code, `finally`, and cancellation |
+| Replacing `await` directly with `park` | `park` does not release locks, risking holding mutex while waiting | Keep the `Condition` abstraction for wait-sets |
+| Adding `Thread.sleep` to “avoid a race” | Only masks scheduling bugs without proper happens-before | Use valid conditions/predicates/locks/latches |
+| Using `if` instead of `while` around `wait/await` | Spurious wakeups/races can violate invariants | Use a `while` loop checking the predicate |
+| Treating `WAITING` as idle | Thread may hold locks or wait on a blocked producer | Inspect held-locks, owners, and dependency graphs |
+| Increasing thread pools indefinitely | Can increase contention, CPU, and context switches | Investigate queue/owner/blocking dependencies |
+| Enabling `ReentrantLock` fairness to cure everything | Does not shorten long critical sections and may cut throughput | Reduce lock scope, measure hold/wait times |
+| Using `Thread.stop()` to break locks | Unsafe, can break invariants | Valid cancellation, timeouts, or runbook-guided restart |
+| Interpreting `findDeadlockedThreads()==null` as “not hung” | Does not cover all liveness failures | JFR, traces, queue/protocol analysis |
+| Copying lock IDs from a dump after a restart | Object identities differ | Compare within the same JVM instance and snapshot |
+| Capturing `jcmd Thread.print` on the wrong PID | May impact or misread the wrong service | Verify PID/start time/namespace |
+| Sharing raw dumps in open channels | Can leak metadata/identifiers | Controlled redaction and RBAC |
 
-## 16. Quy trình incident: từ triệu chứng đến nguyên nhân và khắc phục
+## 16. Incident Procedure: From Symptom to Cause and Fix
 
-1. **Xác minh target:** service, JVM instance/PID, process start time, JDK release, host/container namespace.
-2. **Ghi triệu chứng và window:** request latency, error rate, throughput, thread pool queue, CPU, DB/network metrics.
-3. **Thu snapshot hợp lệ:** `jcmd PID Thread.print -l` hoặc `ThreadMXBean` có monitor/synchronizer support; ghi UTC timestamp và option.
-4. **Nhóm threads:** `BLOCKED` monitor entry; `WAITING/TIMED_WAITING` trên `Object.wait`, `Condition.await`, AQS/`ReentrantLock`, `LockSupport.park`, pool idle, I/O.
-5. **Với lock contention:** tìm lock identity và owner, đọc held monitors/ownable synchronizers, đọc stack owner.
-6. **Với condition wait:** tìm predicate, producer, signal/notify/unpark protocol, kiểm tra queue/threads có đủ nguồn lực để producer chạy.
-7. **Vẽ đồ thị:** waiter → owner hoặc waiter → signal producer; phân biệt cycle, long hold, queue starvation, missing signal.
-8. **Chụp lại có kiểm soát:** xác nhận trạng thái kéo dài, số waiters tăng, owner stack có tiến triển hay không.
-9. **Đối chiếu evidence khác:** JFR monitor/park events, application traces, DB pool, GC/CPU/cgroup, deployment changes.
-10. **Chọn thay đổi nhỏ nhưng đúng invariant:** giảm scope lock, chuẩn hóa lock order, bổ sung timeouts/cancellation, sửa signal/predicate, tránh blocking I/O dưới mutex.
-11. **Kiểm thử dưới tải/tình huống hỏng:** missed signal, spurious wakeup, interrupt, timeout, double unlock, restart, pool exhaustion.
-12. **Hậu kiểm:** so p95/p99 latency, throughput, queue, lock wait/hold distribution, deadlock detection và error rate; không tuyên bố fix chỉ vì một dump sau đó ít WAITING.
+1. **Verify target:** service, JVM instance/PID, process start time, JDK release, host/container namespace.
+2. **Record symptoms and window:** request latency, error rate, throughput, thread pool queues, CPU, DB/network metrics.
+3. **Capture valid snapshots:** `jcmd PID Thread.print -l` or `ThreadMXBean` with monitor/synchronizer support; record UTC timestamps and options.
+4. **Group threads:** `BLOCKED` monitor entry; `WAITING/TIMED_WAITING` on `Object.wait`, `Condition.await`, AQS/`ReentrantLock`, `LockSupport.park`, idle pool, I/O.
+5. **For lock contention:** find lock identity and owner, read held monitors/ownable synchronizers, and inspect the owner’s stack.
+6. **For condition waits:** find the predicate, producer, signal/notify/unpark protocol, and verify queues/threads have resources for the producer to run.
+7. **Draw the graph:** waiter → owner or waiter → signal producer; distinguish cycles, long holds, queue starvation, and missed signals.
+8. **Re-capture in a controlled way:** confirm whether state persists, waiters grow, and the owner’s stack progresses.
+9. **Cross-check other evidence:** JFR monitor/park events, application traces, DB pool, GC/CPU/cgroup, and recent deployments.
+10. **Choose a minimal invariant-preserving change:** shrink lock scope, standardize lock order, add timeouts/cancellation, fix signal/predicate, avoid blocking I/O under mutexes.
+11. **Test under load and failure modes:** missed signals, spurious wakeups, interrupts, timeouts, double unlocks, restarts, pool exhaustion.
+12. **Post-check:** compare p95/p99 latency, throughput, queues, lock wait/hold distributions, deadlock detection, and error rates; never declare fixed solely because one later dump has fewer `WAITING` threads.
 
-Nếu không có owner/predicate/stack đủ dữ liệu, báo “chưa xác minh”, không tự suy “Java deadlock” từ một dòng `Unsafe.park`.
+If owner/predicate/stack data is insufficient, report “unverified” rather than inferring “Java deadlock” from a single `Unsafe.park` line.
 
-## 17. Checklist chẩn đoán từng cơ chế
+## 17. Per-Mechanism Diagnostic Checklist
 
 ### synchronized
 
-- [ ] Thread chờ là `BLOCKED` trên monitor entry hay chỉ `WAITING` nơi khác?
-- [ ] Marker `waiting to lock` có ID khớp với `- locked` của owner trong cùng dump?
-- [ ] Owner giữ monitor trong lúc sleep/I/O/await/CPU dài?
-- [ ] Có lock-order inversion hoặc nhiều threads chung một monitor?
+- [ ] Is the waiting thread `BLOCKED` on monitor entry or simply `WAITING` elsewhere?
+- [ ] Does the `waiting to lock` ID match the owner’s `- locked` ID in the same dump?
+- [ ] Is the owner holding the monitor during sleep/I/O/await/long CPU work?
+- [ ] Is there lock-order inversion or many threads sharing one monitor?
 
 ### ReentrantLock
 
-- [ ] Có stack AQS/`ReentrantLock.lock` và blocker `...Sync` không?
-- [ ] Owner được nhận diện qua `Locked ownable synchronizers`/owner ID?
-- [ ] `getQueueLength` chỉ là estimate, không phải bằng chứng tuyệt đối?
-- [ ] `tryLock`/`lockInterruptibly`/timeout/cancellation semantics được dùng đúng?
-- [ ] Có `unlock` trong `finally` và đúng thread sở hữu?
+- [ ] Is there an AQS/`ReentrantLock.lock` stack and a `...Sync` blocker?
+- [ ] Is the owner identified via `Locked ownable synchronizers` / owner ID?
+- [ ] Remember `getQueueLength` is only an estimate, not absolute proof?
+- [ ] Are `tryLock`/`lockInterruptibly`/timeout/cancellation semantics used properly?
+- [ ] Is `unlock` in `finally` on the exact owning thread?
 
 ### Object.wait / notify
 
-- [ ] `wait` được gọi dưới đúng monitor?
-- [ ] Predicate chung được đọc/ghi dưới lock và kiểm tra bằng `while`?
-- [ ] Producer thực sự đổi predicate, gọi notify/signal đúng object?
-- [ ] Waiter đã nhả monitor đang wait nhưng còn giữ monitor khác nào?
-- [ ] Có missed signal, spurious wakeup, timeout/interrupt bị xử lý sai?
+- [ ] Is `wait` called while holding the right monitor?
+- [ ] Is the shared predicate read/written under the lock and checked with `while`?
+- [ ] Does the producer actually update the predicate and call notify/signal on the right object?
+- [ ] The waiter released the waited monitor, but what other monitors does it still hold?
+- [ ] Could missed signals, spurious wakeups, or mishandled timeouts/interrupts exist?
 
 ### Condition
 
-- [ ] `await/signal` dùng đúng Condition của associated Lock?
-- [ ] Có `lock.lock()`/`unlock()` đúng phạm vi và `finally`?
-- [ ] `await` nhả/reacquire lock; có nhầm waiter thành owner không?
-- [ ] Producer gọi `signal/signalAll` sau cập nhật predicate và khi giữ lock?
-- [ ] Có nhiều condition queues, signal nhầm queue hay producer không được scheduling?
+- [ ] Do `await/signal` use the exact `Condition` of the associated `Lock`?
+- [ ] Are `lock.lock()`/`unlock()` scoped properly with `finally`?
+- [ ] `await` releases/reacquires the lock; did anyone mistake a waiter for an owner?
+- [ ] Does the producer call `signal/signalAll` after updating the predicate while holding the lock?
+- [ ] With multiple condition queues, could the wrong queue be signaled or the producer be unscheduled?
 
 ### LockSupport.park
 
-- [ ] Có blocker object rõ hay chỉ `Unsafe.park` trống?
-- [ ] Thread có giữ monitor/ReentrantLock trong lúc park không?
-- [ ] `unpark(thread)` được gọi với thread reference đúng và đã start?
-- [ ] Có volatile/atomic predicate, while-loop recheck và spurious handling?
-- [ ] Interrupt status có làm park trở về liên tục thành spin loop?
-- [ ] Không nhầm permit 1-bit với queue nhiều tín hiệu?
+- [ ] Is there a clear blocker object or only bare `Unsafe.park`?
+- [ ] Does the thread hold any monitor/`ReentrantLock` while parked?
+- [ ] Is `unpark(thread)` called with the right started thread reference?
+- [ ] Are there volatile/atomic predicates, `while`-loop rechecks, and spurious-wakeup handling?
+- [ ] Could interrupt status cause `park` to return repeatedly in a spin loop?
+- [ ] Avoid mistaking a 1-bit permit for a multi-signal queue?
 
-## 18. Bài tập tự kiểm tra
+## 18. Self-Check Exercises
 
-**Câu 1.** Thread A `WAITING` trong `CountDownLatch.await()` nhưng có `- locked <M>`; Thread B `BLOCKED` đợi M. Có chắc A đã nhả M vì nó WAITING không?
+**Q1.** Thread A is `WAITING` in `CountDownLatch.await()` yet has `- locked <M>`; Thread B is `BLOCKED` waiting for M. Is A guaranteed to have released M because it is `WAITING`?
 
-**Đáp án:** Không. Latch await không tự nhả monitor M. A vẫn là owner của M; B chờ nó. Phải xem ai sẽ countDown latch và có cần monitor M để làm việc đó không.
+**Answer:** No. Latch await does not release monitor M. A still owns M; B waits for it. You must check who will countDown the latch and whether it needs monitor M to do so.
 
-**Câu 2.** Thread B ở `WAITING (parking)` trong `ReentrantLock.lock()`. Có phải `Thread.State.BLOCKED` mới được gọi là lock contention?
+**Q2.** Thread B is `WAITING (parking)` inside `ReentrantLock.lock()`. Must a state be `Thread.State.BLOCKED` to be called lock contention?
 
-**Đáp án:** Không. `BLOCKED` dành cho monitor entry; ReentrantLock contention thường dùng AQS/park nên biểu diễn WAITING/TIMED_WAITING. Cần xem blocker `...Sync` và owner.
+**Answer:** No. `BLOCKED` applies to monitor entry; `ReentrantLock` contention typically uses AQS/park and shows `WAITING/TIMED_WAITING`. Inspect the `...Sync` blocker and owner.
 
-**Câu 3.** Thread gọi `Object.wait()` bên trong `synchronized(lock)`. Nó có giữ `lock` trong khi đợi không?
+**Q3.** A thread calls `Object.wait()` inside `synchronized(lock)`. Does it keep holding `lock` while waiting?
 
-**Đáp án:** Không, `wait()` nhả monitor của đúng object gọi wait trong thời gian đợi và reacquire trước khi trả về. Nó có thể vẫn giữ các monitor khác.
+**Answer:** No, `wait()` releases the monitor of the exact object it was called on while waiting and reacquires it before returning. It may still hold other monitors.
 
-**Câu 4.** `Condition.await()` có thể được thay bằng `LockSupport.park()` mà giữ nguyên behavior không?
+**Q4.** Can `Condition.await()` be replaced by `LockSupport.park()` while preserving behavior?
 
-**Đáp án:** Không. Condition await nhả associated lock và reacquire; park chỉ chờ permit/interrupt/spurious và không nhả lock. Thay thẳng có thể khiến producer không bao giờ lấy được khóa để signal.
+**Answer:** No. `Condition.await()` releases and reacquires its associated lock; `park` only waits for permit/interrupt/spurious wakeup and releases no lock. Direct replacement can prevent the producer from ever acquiring the lock to signal.
 
-**Câu 5.** Producer gọi `unpark(consumer)` trước khi consumer gọi park. Điều gì xảy ra?
+**Q5.** A producer calls `unpark(consumer)` before the consumer calls `park`. What happens?
 
-**Đáp án:** `unpark` có thể làm permit khả dụng, lần park tiếp theo tiêu thụ permit rồi trả về ngay; không tích lũy nhiều permit. Vẫn cần state/predicate vì có thể có spurious return hoặc permit bị chỗ khác tiêu thụ.
+**Answer:** `unpark` makes the permit available so the next `park` consumes it and returns immediately; multiple permits do not accumulate. State/predicates are still required in case of spurious returns or another call consuming the permit.
 
-**Câu 6.** Một thread `WAITING` ở `ConditionObject.await` nhưng `getLockOwnerId() == -1`. Có nghĩa không có bug?
+**Q6.** A thread is `WAITING` in `ConditionObject.await` with `getLockOwnerId() == -1`. Does that mean there is no bug?
 
-**Đáp án:** Không. Waiter đang chờ condition signal, object chờ có thể không có owner kiểu mutex. Cần tìm producer/predicate/signal path và khả năng tiến triển.
+**Answer:** No. The waiter is awaiting a condition signal, and the waited object may not have a mutex-style owner. You must trace the producer/predicate/signal path and progress capability.
 
-**Câu 7.** `notifyAll` đã được gọi nhưng waiter không chạy ngay. Vì sao?
+**Q7.** `notifyAll` was called, yet the waiter does not run immediately. Why?
 
-**Đáp án:** Signaling thread có thể vẫn giữ monitor; waiter phải reacquire mới trở về `wait()`. Ngoài ra scheduling và predicate có thể khiến nó tiếp tục chờ.
+**Answer:** The signaling thread may still hold the monitor; the waiter must reacquire it before `wait()` returns. Scheduling and predicate rechecks can also keep it waiting.
 
-**Câu 8.** Có 100 threads `BLOCKED` cùng một monitor ID, một owner đang chờ DB. Gọi đây là “100 deadlocks” được không?
+**Q8.** 100 threads are `BLOCKED` on the same monitor ID while one owner waits on the DB. Can we call this “100 deadlocks”?
 
-**Đáp án:** Không. Đây có thể là một lock convoy sau owner giữ critical section quá lâu. Muốn gọi deadlock cần xác minh chu trình phụ thuộc không tiến triển; còn phải xem DB và source code.
+**Answer:** No. This may be a single lock convoy behind an owner holding a critical section too long. Calling it deadlock requires verifying an unresolvable dependency cycle; inspect the DB and source code as well.
 
-**Câu 9.** `findDeadlockedThreads()` trả `null` trong lúc service treo. Nên kết luận?
+**Q9.** `findDeadlockedThreads()` returns `null` while the service is hung. What should we conclude?
 
-**Đáp án:** Chưa tìm thấy cycles được detector hỗ trợ trong snapshot. Service vẫn có thể treo do missed signal, executor starvation, I/O hoặc liveness failures khác.
+**Answer:** No cycles supported by the detector were found in the snapshot. The service can still hang due to missed signals, executor starvation, I/O, or other liveness failures.
 
-**Câu 10.** `getBlockedTime()` trả `-1`. Có phải JVM không có monitor contention?
+**Q10.** `getBlockedTime()` returns `-1`. Does that mean the JVM has no monitor contention?
 
-**Đáp án:** Không. Có thể contention monitoring chưa bật/không hỗ trợ. `-1` không đồng nghĩa 0 ms. Xem support/configuration và chỉ bật monitoring nếu được phép.
+**Answer:** No. Contention monitoring may be disabled or unsupported. `-1` does not mean 0 ms. Check support/configuration and enable monitoring only if authorized.
 
-**Câu 11.** Một thread bị interrupt khi park, sau đó vẫn gọi park liên tục mà không xử lý flag. Rủi ro gì?
+**Q11.** A thread is interrupted while parked and keeps calling `park` without handling the flag. What is the risk?
 
-**Đáp án:** Những lần park tiếp theo có thể trả ngay vì interrupted status, gây busy loop. Phải kiểm tra cancellation/interrupt policy cùng predicate.
+**Answer:** Subsequent `park` calls may return immediately due to the interrupted status, causing a busy loop. You must enforce a cancellation/interrupt policy alongside the predicate.
 
-**Câu 12.** Vì sao thread dump một lần chưa đủ nói owner giữ khóa 30 giây?
+**Q12.** Why is a single thread dump insufficient to say an owner held a lock for 30 seconds?
 
-**Đáp án:** Snapshot chỉ cho thấy một thời điểm. Cần nhiều snapshots, timestamps/JVM instance và instrumentation về lock hold/wait duration hoặc JFR events.
+**Answer:** A snapshot shows only one point in time. You need multiple snapshots with timestamps/JVM identity and lock hold/wait duration instrumentation or JFR events.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 — ThreadInfo](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadInfo.html): state, lock owner, waiting object, monitors và ownable synchronizers.
-- [Java SE 21 — ThreadMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html): thread dumps, contention monitoring và deadlock APIs.
-- [Java SE 21 — Object](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html): `wait`, `notify`, `notifyAll`, monitor ownership, spurious wakeup.
-- [Java SE 21 — ReentrantLock](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/locks/ReentrantLock.html): lock ownership, timed/interruptible acquisition, queue instrumentation, fairness.
-- [Java SE 21 — Condition](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/locks/Condition.html): await/release/reacquire, signals, independent condition queues.
-- [Java SE 21 — LockSupport](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/locks/LockSupport.html): permit, park/unpark, blocker, interrupt và spurious wakeups.
-- [Oracle JDK 21 — jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): `Thread.print` và các options theo JDK.
-- [OpenJDK JEP 444 — Virtual Threads](https://openjdk.org/jeps/444): đặc trưng virtual threads và giới hạn công cụ quan sát theo release.
+- [Java SE 21 — ThreadInfo](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadInfo.html): state, lock owner, waiting object, monitors, and ownable synchronizers.
+- [Java SE 21 — ThreadMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html): thread dumps, contention monitoring, and deadlock APIs.
+- [Java SE 21 — Object](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html): `wait`, `notify`, `notifyAll`, monitor ownership, and spurious wakeups.
+- [Java SE 21 — ReentrantLock](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/locks/ReentrantLock.html): lock ownership, timed/interruptible acquisition, queue instrumentation, and fairness.
+- [Java SE 21 — Condition](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/locks/Condition.html): await/release/reacquire, signals, and independent condition queues.
+- [Java SE 21 — LockSupport](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/locks/LockSupport.html): permits, park/unpark, blockers, interrupts, and spurious wakeups.
+- [Oracle JDK 21 — jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): `Thread.print` and JDK-specific options.
+- [OpenJDK JEP 444 — Virtual Threads](https://openjdk.org/jeps/444): virtual thread characteristics and release-specific observability limits.
 
-**Ghi nhớ:** khi chẩn đoán đồng bộ Java, đừng hỏi mỗi “thread đang WAITING hay BLOCKED?”. Hãy hỏi **đang chờ monitor hay chờ signal/permit? đang giữ lock nào? bên nào có thể làm điều kiện trở thành true?** `Object.wait` và `Condition.await` nhả **đúng** khóa liên quan trong lúc đợi; `LockSupport.park` không nhả khóa; `ReentrantLock` contention thường hiện parking; `synchronized` contention thường hiện BLOCKED. **Ghép state + stack + lock identity + owner/predicate + thời gian** mới đủ phân biệt contention, missed signal, starvation và deadlock.
+**Takeaway:** when diagnosing Java synchronization, do not only ask “is the thread WAITING or BLOCKED?”. Ask **is it waiting on a monitor or a signal/permit? what locks does it hold? who can make the condition true?** `Object.wait` and `Condition.await` release **the exact** associated lock while waiting; `LockSupport.park` releases no locks; `ReentrantLock` contention typically appears as parking; `synchronized` contention typically appears as `BLOCKED`. **Combining state + stack + lock identity + owner/predicate + time** is what separates contention, missed signals, starvation, and deadlock.

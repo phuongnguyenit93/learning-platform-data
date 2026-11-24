@@ -1,22 +1,22 @@
-# Vai trò của findClass, defineClass và ràng buộc khi tự viết ClassLoader trong Java
+# Roles of findClass, defineClass, and Constraints When Writing a Custom ClassLoader in Java
 
-## 1. Bài toán: tại sao cần hiểu hai phương thức này?
+## 1. The Problem: Why Understand These Two Methods?
 
-Trong Java, một lớp không chỉ là tệp `.class` trên đĩa. JVM phải tìm được bytecode, chuyển bytecode thành một đối tượng `Class<?>`, liên kết các kiểu mà bytecode tham chiếu tới và quản lý danh tính lớp trong suốt thời gian chạy. `java.lang.ClassLoader` cung cấp giao diện để một runtime tự quyết định lấy bytecode từ đâu: thư mục riêng, JAR plugin, bộ nhớ, kho nội bộ hoặc nguồn khác.
+In Java, a class is not just a `.class` file on disk. The JVM must locate the bytecode, convert that bytecode into a `Class<?>` object, link the types the bytecode references, and manage class identity throughout execution. `java.lang.ClassLoader` provides the interface allowing a runtime to decide where to fetch bytecode from: a custom directory, a plugin JAR, memory, an internal store, or another source.
 
-Khi viết một class loader tùy biến, hai phương thức thường xuất hiện cạnh nhau nhưng **không làm cùng một việc**:
+When writing a custom class loader, two methods frequently appear side by side yet **do not do the same job**:
 
-- **`findClass(String name)`:** điểm mở rộng để *tìm cách tạo* lớp khi cơ chế nạp mặc định chưa tìm thấy. Thường đọc bytecode từ nguồn do loader quản lý rồi gọi `defineClass`. Nó không tự cung cấp cơ chế parent delegation nếu bị gọi trực tiếp.
-- **`defineClass(String name, byte[] bytes, int offset, int length)`:** phương thức `protected final` của `ClassLoader` yêu cầu JVM định nghĩa một lớp từ bytecode; nó không tìm file, không quyết định tải từ parent hay child và không được override.
-- **`loadClass(String name)` / `loadClass(String name, boolean resolve)`:** cổng nạp lớp dùng cơ chế mặc định: kiểm tra lớp đã nạp, thử parent rồi mới gọi `findClass`. Đây là nơi thực hiện *delegation*, đồng bộ hóa quá trình nạp và tùy chọn resolve.
+- **`findClass(String name)`:** the extension point to *locate and create* a class when the default loading path has not found it. It typically reads bytecode from a source managed by the loader and calls `defineClass`. It does not provide parent delegation on its own if called directly.
+- **`defineClass(String name, byte[] bytes, int offset, int length)`:** a `protected final` method on `ClassLoader` that asks the JVM to define a class from bytecode; it does not search files, decide parent vs. child precedence, and cannot be overridden.
+- **`loadClass(String name)` / `loadClass(String name, boolean resolve)`:** the class-loading entry point using the default mechanism: check already-loaded classes, try the parent, and only then call `findClass`. This is where *delegation*, loading synchronization, and optional resolution happen.
 
-Với một kiến trúc extensibility, sai lầm thường gặp là nghĩ “chỉ cần override `findClass` để nạp tất cả lớp từ plugin”. Trên thực tế, parent có thể đã tải lớp trước, JVM còn áp đặt quy tắc về danh tính, định nghĩa trùng, package, chữ ký, linking và concurrency.
+In an extensibility architecture, a common mistake is thinking "just override `findClass` to load all classes from the plugin." In reality, the parent may have already loaded the class first, and the JVM enforces rules on identity, duplicate definitions, packages, signatures, linking, and concurrency.
 
-**Mục tiêu học tập:** hiểu chính xác luồng nạp, viết được loader nhỏ an toàn theo parent-first, dự đoán class identity, phân biệt lỗi tìm lớp với lỗi định nghĩa và biết những điểm phải xử lý thêm khi chuyển từ ví dụ học tập sang plugin runtime.
+**Learning objective:** understand the loading flow accurately, write a small safe parent-first loader, predict class identity, distinguish class-lookup errors from definition errors, and recognize what else must be handled when moving from a learning example to a plugin runtime.
 
-## 2. Luồng mặc định: loadClass → findClass → defineClass
+## 2. Default Flow: loadClass → findClass → defineClass
 
-Với một lớp tên nhị phân `demo.plugin.HelloGreeter`, hợp đồng `ClassLoader.loadClass(name, resolve)` mặc định có trình tự:
+For a class with binary name `demo.plugin.HelloGreeter`, the default `ClassLoader.loadClass(name, resolve)` contract follows this sequence:
 
 ```text
 caller: loader.loadClass("demo.plugin.HelloGreeter")
@@ -26,78 +26,78 @@ caller: loader.loadClass("demo.plugin.HelloGreeter")
                   |
                   v
        findLoadedClass(name)
-          | đã nạp? -> trả Class đã có
-          v chưa có
-       thử parent.loadClass(name)
-          | tìm được? -> trả Class do parent/ancestor định nghĩa
-          v không tìm được
-       this.findClass(name)           <--- điểm override thường dùng
+          | already loaded? -> return existing Class
+          v not yet
+       try parent.loadClass(name)
+          | found? -> return Class defined by parent/ancestor
+          v not found
+       this.findClass(name)           <--- common override point
           |
           v
-       lấy byte[] từ nguồn riêng
+       fetch byte[] from own source
           |
           v
        this.defineClass(name, bytes, 0, bytes.length)
           |
           v
-       Class<?> do this loader định nghĩa
+       Class<?> defined by this loader
           |
           v
-       nếu resolve == true: resolveClass(result)
+       if resolve == true: resolveClass(result)
           |
           v
-       trả về Class<?>
+       return Class<?>
 ```
 
-Các nhánh thực tế của `loadClass` mặc định:
+The actual branches of default `loadClass`:
 
-1. `findLoadedClass(name)` kiểm tra loader này đã được JVM ghi nhận là *initiating loader* của lớp có tên đó chưa. Kiểm tra này tránh tạo cùng một lớp lần nữa trong chu trình nạp thông thường; class đã trả từ parent cũng có thể được ghi nhận cho initiating loader.
-2. Parent loader được thử trước. Nếu parent không tìm được, phương thức tiếp tục tới `findClass(name)` của child. Khi parent là `null`, JVM dùng cơ chế nạp bootstrap tương ứng, nhưng không nên giả định `null` cho thấy tất cả lớp của platform.
-3. `findClass` là nơi tìm bytecode riêng và **thường** gọi `defineClass`; đây là cách triển khai của ta, không phải điều `findClass` tự thực hiện.
-4. Nếu yêu cầu `resolve=true`, `resolveClass` thực hiện linking. **Resolve khác initialize**: class initializer tĩnh không nhất thiết chạy ngay khi chỉ gọi `loadClass`.
-5. Không tìm được lớp thì báo `ClassNotFoundException`. Bytecode có mặt nhưng không hợp lệ hoặc không liên kết được có thể tạo các lỗi khác thuộc `LinkageError`, không được biến tất cả thành “not found”.
+1. `findLoadedClass(name)` checks whether this loader has already been recorded by the JVM as an *initiating loader* of the class with that name. This check avoids recreating the same class during normal loading; a class returned from the parent can also be recorded for the initiating loader.
+2. The parent loader is tried first. If the parent cannot find it, the method proceeds to `findClass(name)` on the child. When parent is `null`, the JVM uses the corresponding bootstrap loading mechanism, though you should not assume `null` exposes all platform classes.
+3. `findClass` is where custom bytecode is located and **usually** calls `defineClass`; that is our implementation choice, not something `findClass` performs automatically.
+4. If `resolve=true` is requested, `resolveClass` performs linking. **Resolution differs from initialization**: static class initializers do not necessarily run just from calling `loadClass`.
+5. If the class cannot be found, `ClassNotFoundException` is thrown. If bytecode is present yet invalid or unlinkable, other errors under `LinkageError` can arise and must not all be turned into "not found."
 
-Các bước trên diễn tả **implementation mặc định** trong Java 17. Runtime hoặc loader khác có thể override `loadClass` và thay đổi chính sách, nhưng khi đó chủ sở hữu phải tự đảm bảo đồng bộ hóa, recursion, giao ước parent/child và tương thích kiểu.
+The steps above describe the **default implementation** in Java 17. Other runtimes or loaders can override `loadClass` and alter the policy, in which case the author must personally ensure synchronization, recursion safety, parent/child contracts, and type compatibility.
 
-## 3. API nào chịu trách nhiệm cho việc gì?
+## 3. Which API Is Responsible for What?
 
-| Thành phần | Vai trò | Điểm cần nhớ |
+| Component | Role | Key points to remember |
 |---|---|---|
-| `loadClass(String)` | Điểm gọi công khai, nạp theo logic loader | Tương đương gọi overload `loadClass(name, false)` |
-| `loadClass(String, boolean)` | Chu trình nạp mặc định, delegation, lock, resolve tùy chọn | Có thể override, nhưng dễ tạo deadlock/duplicate class nếu sai |
-| `findLoadedClass(String)` | Hỏi JVM về lớp đã được ghi nhận cho loader | `protected final`; không phải “quét file trên đĩa” |
-| `findClass(String)` | Hook để tìm bytecode/lớp ngoài parent | Default ném `ClassNotFoundException` |
-| `defineClass(String, byte[], int, int)` | Chuyển bytecode thành định nghĩa lớp gắn với loader này | `protected final`, có kiểm tra tên/bytecode và ràng buộc JVM |
-| `resolveClass(Class<?>)` | Liên kết lớp được chỉ định | Không phải chạy constructor hay static initializer |
-| `getClassLoadingLock(String)` | Cấp lock cho lượt nạp tên lớp | Default dùng cả loader hoặc lock riêng theo tên nếu parallel-capable |
-| `findResource`/`findResources` | Hook tìm resource của loader | Hoàn toàn khác `findClass`; cần cho cấu hình SPI/resource plugin |
+| `loadClass(String)` | Public call site, loads per the loader's logic | Equivalent to calling overload `loadClass(name, false)` |
+| `loadClass(String, boolean)` | Default loading cycle, delegation, locking, optional resolution | Can be overridden, though mistakes easily cause deadlocks/duplicate classes |
+| `findLoadedClass(String)` | Queries the JVM for a class already recorded for this loader | `protected final`; not a "scan files on disk" operation |
+| `findClass(String)` | Hook to locate bytecode/class outside parent | Default throws `ClassNotFoundException` |
+| `defineClass(String, byte[], int, int)` | Turns bytecode into a class definition bound to this loader | `protected final`, validates name/bytecode and enforces JVM constraints |
+| `resolveClass(Class<?>)` | Links the specified class | Not the same as running constructors or static initializers |
+| `getClassLoadingLock(String)` | Supplies the lock for loading a class name | Default uses the loader itself or a per-name lock if parallel-capable |
+| `findResource`/`findResources` | Hooks to locate resources for this loader | Completely separate from `findClass`; needed for SPI configs/plugin resources |
 
-Tên truyền vào các phương thức nạp là **binary name**, ví dụ `demo.plugin.HelloGreeter` hoặc `demo.plugin.Outer$Inner`. Đường dẫn file tương ứng có thể là `demo/plugin/HelloGreeter.class`, nhưng chuỗi đường dẫn này **không** được truyền làm tên lớp cho `defineClass`.
+Names passed to loading methods are **binary names**, e.g. `demo.plugin.HelloGreeter` or `demo.plugin.Outer$Inner`. The corresponding file path may be `demo/plugin/HelloGreeter.class`, yet that path string must **not** be passed as the class name to `defineClass`.
 
-Khi viết loader, **thường chỉ override `findClass(String)`** và kế thừa cơ chế `loadClass`. Đây là hướng được Javadoc khuyến nghị cho loader tuân theo parent delegation.
+When writing a loader, **usually override only `findClass(String)`** and inherit `loadClass`. This is the approach recommended by Javadoc for loaders following parent delegation.
 
-## 4. Quy tắc class identity: cùng tên chưa chắc cùng lớp
+## 4. Class Identity Rule: Same Name Does Not Guarantee Same Class
 
-JVM phân biệt class theo **tên nhị phân + loader định nghĩa lớp**. Vì vậy:
+The JVM distinguishes classes by **binary name + defining loader**. Therefore:
 
-- Child loader A định nghĩa `demo.plugin.HelloGreeter` và child loader B cũng định nghĩa `demo.plugin.HelloGreeter` từ cùng bytecode: hai đối tượng `Class<?>` **khác nhau**.
-- Một class do parent định nghĩa, khi child tải qua parent delegation, vẫn có `getClassLoader()` trỏ tới **defining loader của parent**, không phải child gọi yêu cầu.
-- Một lớp interface dùng chung, chẳng hạn `demo.api.Greeter`, cần được cả host và plugin tham chiếu tới **cùng định nghĩa**. Nếu plugin định nghĩa bản sao riêng của interface với loader khác, phép ép về interface của host có thể thất bại dù tên package/class giống nhau.
-- Hai lớp cùng tên package nhưng do hai loader khác nhau định nghĩa không tự nhiên thuộc cùng *runtime package*. Quyền truy cập package-private không dựa duy nhất vào chuỗi tên package.
+- Child loader A defines `demo.plugin.HelloGreeter` and child loader B also defines `demo.plugin.HelloGreeter` from the same bytecode: the two `Class<?>` objects are **different**.
+- A class defined by the parent, when loaded by a child via parent delegation, still has `getClassLoader()` pointing to **the parent's defining loader**, not the child that received the request.
+- A shared interface, such as `demo.api.Greeter`, must be referenced by both host and plugin using **the same definition**. If a plugin defines its own copy of the interface in another loader, casting to the host's interface can fail despite identical package/class names.
+- Two classes with the same package name defined by two different loaders do not automatically belong to the same *runtime package*. Package-private access is not granted solely by matching package name strings.
 
-**Initiating loader** là loader mà JVM ghi nhận khi nạp/tham chiếu một lớp; **defining loader** là loader thực sự gọi `defineClass` để định nghĩa lớp đó. Với parent-first, hai vai trò có thể khác nhau. `clazz.getClassLoader()` cho biết defining loader (`null` đối với lớp do bootstrap định nghĩa), không nhất thiết là loader mà ứng dụng gọi `loadClass`.
+The **initiating loader** is the loader recorded by the JVM when loading/referencing a class; the **defining loader** is the loader that actually invoked `defineClass` to define that class. Under parent-first, the two roles can differ. `clazz.getClassLoader()` reports the defining loader (`null` for bootstrap-defined classes), not necessarily the loader on which the application called `loadClass`.
 
-Khi các lớp ở những loader khác nhau tương tác qua chữ ký method/field, JVM còn có **loading constraints** để các tham chiếu kiểu chung không bất đồng. Vi phạm có thể phát sinh dưới dạng `LinkageError`, không phải một lỗi ép kiểu thông thường. Quy tắc thiết kế hữu ích là để API/SPI chung ở loader cha, plugin ở loader con và tránh đóng gói lại bản API không tương thích bên trong từng plugin.
+When classes across different loaders interact through method/field signatures, the JVM also enforces **loading constraints** so shared type references do not disagree. Violations can surface as `LinkageError` rather than an ordinary cast error. A useful design rule is to keep shared APIs/SPIs in a parent loader, plugins in child loaders, and avoid bundling incompatible API copies inside individual plugins.
 
-## 5. Ví dụ Java 17+ chạy độc lập: DirectoryPluginLoader
+## 5. Standalone Runnable Java 17+ Example: DirectoryPluginLoader
 
-Ví dụ sau tạo một SPI ở host, một provider ở thư mục plugin riêng, rồi viết một `ClassLoader` tự tìm bytecode trong thư mục. Kết quả cho thấy `findClass` chỉ định nghĩa implementation khi parent không thấy nó; interface được chia sẻ qua parent.
+The following example creates an SPI in the host, a provider in a separate plugin directory, and a `ClassLoader` that loads bytecode from a directory. The result shows `findClass` defines the implementation only when the parent cannot see it; the interface is shared through the parent.
 
-**Giới hạn cố ý của ví dụ:** chỉ nạp `.class` từ một thư mục đáng tin, theo package `demo.plugin`, không hỗ trợ JAR, manifest, chữ ký, resource, hot reload, module layer hay sandbox. Với plugin đóng gói thành JAR chuẩn, `URLClassLoader` thường thuận tiện và hoàn chỉnh hơn một loader tự viết.
+**Intentional limits of the example:** loads only `.class` files from a trusted directory under package `demo.plugin`, without supporting JARs, manifests, signatures, resources, hot reload, module layers, or sandboxing. For plugins packaged as standard JARs, `URLClassLoader` is usually more convenient and complete than a hand-written loader.
 
-### 5.1. Cấu trúc tệp
+### 5.1. File Structure
 
-Tạo thư mục làm việc `loader-demo/` có nội dung:
+Create working directory `loader-demo/` with:
 
 ```text
 loader-demo/
@@ -105,13 +105,13 @@ loader-demo/
     api/demo/api/Greeter.java
     plugin/demo/plugin/HelloGreeter.java
     host/demo/app/LoaderWalkthrough.java
-  build/                            (tạo khi biên dịch)
+  build/                            (created during compilation)
     api/
     plugin/
     host/
 ```
 
-**Tệp `src/api/demo/api/Greeter.java`:**
+**File `src/api/demo/api/Greeter.java`:**
 
 ```java
 package demo.api;
@@ -121,7 +121,7 @@ public interface Greeter {
 }
 ```
 
-**Tệp `src/plugin/demo/plugin/HelloGreeter.java`:**
+**File `src/plugin/demo/plugin/HelloGreeter.java`:**
 
 ```java
 package demo.plugin;
@@ -139,7 +139,7 @@ public final class HelloGreeter implements Greeter {
 }
 ```
 
-**Tệp `src/host/demo/app/LoaderWalkthrough.java`:**
+**File `src/host/demo/app/LoaderWalkthrough.java`:**
 
 ```java
 package demo.app;
@@ -160,7 +160,7 @@ public final class LoaderWalkthrough {
 
         @Override
         protected Class<?> findClass(String name) throws ClassNotFoundException {
-            // Host/API và JDK tiếp tục đi qua parent-first loadClass.
+            // Host/API and JDK continue through parent-first loadClass.
             if (!name.startsWith("demo.plugin.")) {
                 throw new ClassNotFoundException(name);
             }
@@ -168,7 +168,7 @@ public final class LoaderWalkthrough {
             Path classFile = root.resolve(
                     name.replace('.', '/') + ".class").normalize();
 
-            // Giữ phép đọc nằm trong root của demo.
+            // Keep reads confined within the demo root.
             if (!classFile.startsWith(root)) {
                 throw new ClassNotFoundException(name);
             }
@@ -222,19 +222,19 @@ public final class LoaderWalkthrough {
 }
 ```
 
-**Giải thích implementation:**
+**Implementation explanation:**
 
-1. `DirectoryPluginLoader` chỉ override `findClass`. Inherited `loadClass` đảm nhận lock, kiểm tra cached class và tìm ở parent trước.
-2. `super(parent)` nhận loader đã nạp `Greeter.class`, nên cả host và implementation dùng chung SPI. Tránh dùng `super(null)` trong ví dụ này.
-3. `name.startsWith("demo.plugin.")` khoanh phần lớp cho plugin. Nếu parent đã định nghĩa cùng tên, cơ chế parent-first vẫn ưu tiên parent: prefix trong `findClass` **không tự biến loader thành child-first**.
-4. `root.resolve(name.replace('.', '/') + ".class")` ánh xạ binary name sang path. `normalize` và `startsWith(root)` là kiểm tra biên đơn giản; chúng **chưa** xử lý symlink, race thay file hay mọi rủi ro từ nội dung không tin cậy.
-5. `Files.readAllBytes` lấy nội dung class file. Nếu không thể đọc, phương thức ném `ClassNotFoundException` với nguyên nhân `IOException` được giữ lại. Khi `defineClass` phát hiện bytecode hỏng, lỗi liên kết không bị giấu thành “không tìm thấy”.
-6. `defineClass(name, bytecode, 0, bytecode.length)` là chỗ JVM định nghĩa lớp thuộc `first` hoặc `second`. Nó có thể định nghĩa cùng binary name **ở hai loader khác nhau**, nhưng không được định nghĩa lặp hai lần trong cùng loader.
-7. `asSubclass(Greeter.class)` kiểm tra type compatibility khi lấy implementation. Constructor công khai không tham số của plugin được gọi bằng reflection.
+1. `DirectoryPluginLoader` overrides only `findClass`. Inherited `loadClass` handles locking, checking cached classes, and querying the parent first.
+2. `super(parent)` receives the loader that loaded `Greeter.class`, so both host and implementation share the SPI. Avoid `super(null)` in this example.
+3. `name.startsWith("demo.plugin.")` scopes the classes for the plugin. If the parent already defines the same name, parent-first still favors the parent: a prefix check in `findClass` **does not by itself make the loader child-first**.
+4. `root.resolve(name.replace('.', '/') + ".class")` maps a binary name to a path. `normalize` and `startsWith(root)` are simple boundary checks; they do **not** yet handle symlinks, file-swap races, or all risks from untrusted content.
+5. `Files.readAllBytes` reads the class file contents. If unreadable, the method throws `ClassNotFoundException` preserving the `IOException` cause. When `defineClass` detects malformed bytecode, the linkage error is not hidden as "not found."
+6. `defineClass(name, bytecode, 0, bytecode.length)` is where the JVM defines the class belonging to `first` or `second`. It can define the same binary name **in two different loaders**, yet cannot define it twice in the same loader.
+7. `asSubclass(Greeter.class)` checks type compatibility when obtaining the implementation. The plugin's public no-arg constructor is called via reflection.
 
-### 5.2. Biên dịch và chạy trên Windows PowerShell
+### 5.2. Compiling and Running on Windows PowerShell
 
-Đứng trong thư mục `loader-demo/` và dùng JDK 17 trở lên:
+From `loader-demo/` using JDK 17 or later:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path build/api,build/plugin,build/host | Out-Null
@@ -244,7 +244,7 @@ javac -cp build/api -d build/host src/host/demo/app/LoaderWalkthrough.java
 java -cp "build/api;build/host" demo.app.LoaderWalkthrough
 ```
 
-### 5.3. Biên dịch và chạy trên Linux/macOS
+### 5.3. Compiling and Running on Linux/macOS
 
 ```bash
 mkdir -p build/api build/plugin build/host
@@ -254,9 +254,9 @@ javac -cp build/api -d build/host src/host/demo/app/LoaderWalkthrough.java
 java -cp "build/api:build/host" demo.app.LoaderWalkthrough
 ```
 
-**Quan trọng:** lúc chạy, class path chứa **chỉ** `build/api` và `build/host`. Nếu thêm `build/plugin` vào lệnh `java -cp`, application parent loader có thể tìm `HelloGreeter` trước, khiến ví dụ không còn minh họa đúng ranh giới defining loader.
+**Important:** at runtime, the classpath contains **only** `build/api` and `build/host`. If you add `build/plugin` to the `java -cp` command, the parent application loader may find `HelloGreeter` first, preventing the example from demonstrating the defining-loader boundary properly.
 
-### 5.4. Stdout chính xác
+### 5.4. Exact Stdout
 
 ```text
 providerByFirst=true
@@ -269,185 +269,185 @@ greeting=Hello, Java
 missing=ClassNotFoundException
 ```
 
-**Cách đọc kết quả:**
+**How to read the output:**
 
-- `providerByFirst=true`: class implementation thật sự được `first` định nghĩa vì parent không có `demo.plugin.HelloGreeter`.
-- `sameWithinFirst=true`: gọi `loadClass` lần thứ hai trên `first` trả cùng `Class<?>`; inherited `loadClass` dùng thông tin lớp đã nạp thay vì định nghĩa lặp.
-- `sameNameAcrossLoaders=true` nhưng `sameClassAcrossLoaders=false`: cùng tên và bytecode không đủ để tạo cùng runtime class nếu defining loader khác.
-- `sharedApi=true`: hai class implementation đều implement bản `Greeter` do parent cung cấp. Vì vậy host có thể sử dụng interface chung.
-- `bootstrapString=true`: `java.lang.String` được bootstrap loader định nghĩa (`getClassLoader() == null`); child đã delegate thay vì cố tự định nghĩa lớp nền tảng.
-- `greeting=Hello, Java`: instantiate và gọi phương thức trên provider thành công.
-- `missing=ClassNotFoundException`: không có file implementation nên `findClass` báo không tìm thấy; đây là case khác với bytecode tồn tại nhưng bị lỗi.
+- `providerByFirst=true`: the implementation class was genuinely defined by `first` because the parent lacks `demo.plugin.HelloGreeter`.
+- `sameWithinFirst=true`: calling `loadClass` a second time on `first` returns the same `Class<?>`; inherited `loadClass` reuses the already-loaded class instead of defining it twice.
+- `sameNameAcrossLoaders=true` yet `sameClassAcrossLoaders=false`: identical names and bytecode are not enough to produce the same runtime class when defining loaders differ.
+- `sharedApi=true`: both implementation classes implement the `Greeter` copy supplied by the parent. Hence the host can use the shared interface.
+- `bootstrapString=true`: `java.lang.String` was defined by the bootstrap loader (`getClassLoader() == null`); the child delegated rather than trying to define core classes itself.
+- `greeting=Hello, Java`: instantiating and calling the method on the provider succeeded.
+- `missing=ClassNotFoundException`: the implementation file is missing so `findClass` reports not found; this is distinct from a bytecode file existing yet being invalid.
 
-Ví dụ chạy tuần tự và không sửa tệp plugin khi đang nạp. Nó chưa chứng minh tương thích với môi trường host có SecurityManager, module system, cấu hình module layer hoặc class path bị thay đổi từ bên ngoài.
+The example runs sequentially and does not modify plugin files mid-load. It does not prove compatibility with hosts using a `SecurityManager`, the module system, `ModuleLayer` configurations, or externally mutated classpaths.
 
-## 6. Các ràng buộc của defineClass: bytecode không phải cứ có là nạp được
+## 6. Constraints of defineClass: Having Bytecode Does Not Mean It Can Always Be Loaded
 
-`defineClass` là API có kiểm soát của JVM. Tên phương thức nghe giống “tạo class tùy ý”, nhưng Java bytecode và runtime vẫn phải tuân theo quy tắc ngôn ngữ và máy ảo.
+`defineClass` is a JVM-controlled API. Its method name sounds like "create any class at will," yet Java bytecode and the runtime must still obey language and VM rules.
 
-### 6.1. Tên lớp, dữ liệu bytecode và phiên bản JDK
+### 6.1. Class Names, Bytecode Data, and JDK Versions
 
-- Dùng overload có tên: `defineClass(name, bytes, offset, length)` hoặc overload có `ProtectionDomain`; overload chỉ nhận `byte[]` không kèm tên đã bị deprecated.
-- `name` là binary name dự kiến, ví dụ `demo.plugin.HelloGreeter`, nên khớp tên trong class file. Nếu không khớp, lỗi thường là `NoClassDefFoundError` với thông tin *wrong name*.
-- `offset` và `length` phải nằm trong giới hạn mảng; sai phạm vi sẽ dẫn đến `IndexOutOfBoundsException`.
-- Bytecode phải là cấu trúc `.class` hợp lệ. Bytecode hỏng có thể tạo `ClassFormatError`, bytecode biên dịch cho phiên bản JVM mới hơn có thể tạo `UnsupportedClassVersionError` và bytecode vi phạm kiểm chứng có thể tạo `VerifyError`.
-- Bytecode chứa tham chiếu tới dependency; `defineClass` thành công **không bảo đảm** mọi dependency sẽ link và mọi code có thể chạy. Lỗi liên kết/khởi tạo có thể xảy ra sau đó khi JVM cần đến kiểu hoặc thành viên.
-- Phân biệt **load**, **link** (verify, prepare, resolve có thể diễn ra theo nhu cầu) và **initialize** (thực thi static initializer). `ClassLoader.loadClass` không tương đương `Class.forName(name, true, loader)` hoặc tạo instance.
+- Use an overload that takes a name: `defineClass(name, bytes, offset, length)` or the overload taking `ProtectionDomain`; the overload taking only `byte[]` without a name has been deprecated.
+- `name` is the expected binary name, e.g. `demo.plugin.HelloGreeter`, and must match the name inside the class file. On mismatch, the error is normally `NoClassDefFoundError` mentioning *wrong name*.
+- `offset` and `length` must stay within array bounds; out-of-range values cause `IndexOutOfBoundsException`.
+- Bytecode must have a valid `.class` structure. Corrupted bytecode can throw `ClassFormatError`, bytecode compiled for a newer JVM can throw `UnsupportedClassVersionError`, and bytecode failing verification can throw `VerifyError`.
+- Bytecode holds references to dependencies; a successful `defineClass` **does not guarantee** all dependencies will link or all code can execute. Linking/initialization errors can appear later when the JVM needs a referenced type or member.
+- Distinguish **load**, **link** (verify, prepare, and resolve which may occur on demand), and **initialize** (running static initializers). `ClassLoader.loadClass` is not equivalent to `Class.forName(name, true, loader)` or creating an instance.
 
-Không nên lấy `bytes` từ nguồn không đáng tin rồi xem `defineClass` như một bộ sandbox: kiểm tra bytecode của JVM là kiểm tra cấu trúc/an toàn kiểu, không phải giới hạn hành vi nghiệp vụ của mã được chạy.
+Do not take `bytes` from an untrusted source and treat `defineClass` as a sandbox: JVM bytecode verification checks structural/type safety, not business-behavior boundaries of the executed code.
 
-### 6.2. Không định nghĩa hai lần cùng lớp trong một loader
+### 6.2. Never Define the Same Class Twice in One Loader
 
-Một defining loader không thể định nghĩa cùng binary name hai lần. Trong đường nạp mặc định, `findLoadedClass` và lock giảm nguy cơ định nghĩa trùng. Nếu tự gọi `defineClass` lặp hoặc override `loadClass` sai, JVM có thể ném `LinkageError: attempted duplicate class definition`.
+A defining loader cannot define the same binary name twice. Along the default loading path, `findLoadedClass` and locking prevent duplicate definitions. If you call `defineClass` repeatedly yourself or override `loadClass` incorrectly, the JVM may throw `LinkageError: attempted duplicate class definition`.
 
-Để dùng phiên bản bytecode mới của cùng tên lớp, runtime thường phải tạo **class loader mới**, chuyển tham chiếu và vòng đời plugin sang phiên mới. `reload()` trên cơ chế khám phá dịch vụ hay đọc lại file không “ghi đè” định nghĩa lớp đã tồn tại trong cùng loader.
+To run a new bytecode version of the same class name, the runtime normally must create a **new class loader** and shift references and plugin lifecycle over to the new version. Calling `reload()` on service discovery or re-reading files does not "overwrite" a class definition already existing in the same loader.
 
-### 6.3. Package bị hạn chế, signer và sealing
+### 6.3. Restricted Packages, Signers, and Sealing
 
-- Loader ứng dụng thông thường không được tự định nghĩa lớp có tên thuộc namespace `java.*`; thao tác có thể dẫn đến `SecurityException`. Không dùng custom loader để giả lập hoặc thay thế các class nền tảng của JDK.
-- Các lớp trong một package do **cùng loader** định nghĩa phải thỏa quy tắc nhất quán về bộ chứng chỉ/chữ ký của `CodeSource` khi `defineClass`. Không thể tùy tiện pha class có signer khác nhau trong cùng runtime package.
-- Với loader dựa trên JAR có metadata package, `definePackage(...)` có thể được dùng **trước** `defineClass` để gắn specification/implementation metadata và `sealBase`. Khi `defineClass` tự tạo package ngầm, các thuộc tính đó không được suy ra đầy đủ từ JAR manifest của một loader tự viết.
-- Nếu hỗ trợ sealed package, loader phải **tự thực thi chính sách sealing/nguồn JAR nhất quán** khi nhận class mới. Chỉ đọc file rồi gọi `defineClass` không thay thế toàn bộ quy tắc packaging của `URLClassLoader`.
-- Dùng `getDefinedPackage(name)` để kiểm tra package được loader này định nghĩa; đừng nhầm với `getPackage(name)` cũ có thể trả package của ancestor.
+- Ordinary application loaders cannot define classes in the `java.*` namespace; doing so can raise `SecurityException`. Never use a custom loader to mock or replace core JDK classes.
+- Classes in the same package defined by **the same loader** must satisfy certificate/signer consistency rules of `CodeSource` during `defineClass`. You cannot arbitrarily mix classes with different signers in the same runtime package.
+- For JAR-based loaders carrying package metadata, `definePackage(...)` can be called **before** `defineClass` to attach specification/implementation metadata and `sealBase`. When `defineClass` creates a package implicitly, those attributes are not automatically inferred from JAR manifests by a hand-rolled loader.
+- If supporting sealed packages, the loader must **enforce consistent sealing/JAR-source policies itself** when admitting new classes. Merely reading files and calling `defineClass` does not replicate all packaging rules of `URLClassLoader`.
+- Use `getDefinedPackage(name)` to check packages defined by this loader; do not confuse it with the older `getPackage(name)` which may return an ancestor's package.
 
-Những ràng buộc này ảnh hưởng trực tiếp khi plugin đến từ nhiều JAR hoặc khi người viết loader định nạp class từ một nguồn tổng hợp mà không giữ thông tin package và code source.
+These constraints directly affect setups where plugins span multiple JARs or where a custom loader loads classes from an aggregated store without preserving package and code source metadata.
 
-### 6.4. ProtectionDomain không tự tạo cô lập bảo mật
+### 6.4. ProtectionDomain Does Not Automatically Create Security Isolation
 
-Overload `defineClass(String, byte[], int, int, ProtectionDomain)` gắn một protection domain với class; overload không truyền domain sử dụng default `ProtectionDomain` theo JDK. `SecureClassLoader` còn cung cấp overload dựa trên `CodeSource`.
+The `defineClass(String, byte[], int, int, ProtectionDomain)` overload associates a protection domain with the class; overloads without a domain use a JDK default `ProtectionDomain`. `SecureClassLoader` also provides overloads based on `CodeSource`.
 
-Tuy nhiên, không coi lựa chọn `ProtectionDomain`/class loader là giải pháp chạy plugin độc hại an toàn. Ở Java 17, cơ chế SecurityManager đã được deprecated for removal, và an toàn vận hành còn phụ thuộc môi trường/JDK/chính sách thực tế. Plugin cùng JVM vẫn có khả năng tiêu thụ CPU, bộ nhớ, tạo thread hoặc gây lỗi logic; sandbox đáng tin cậy thường cần ranh giới tiến trình/container/OS và quyền hạn riêng, không chỉ một custom class loader.
+However, do not treat `ProtectionDomain`/class loader choices as a safe solution for running malicious plugins. In Java 17, `SecurityManager` has been deprecated for removal, and operational safety depends on the actual environment/JDK/policies. A plugin in the same JVM can still consume CPU, memory, spawn threads, or cause logic errors; reliable sandboxing typically requires process/container/OS boundaries and separate privileges, not just a custom class loader.
 
-## 7. Delegation: khi nào nên override loadClass?
+## 7. Delegation: When Should You Override loadClass?
 
-**Parent-first** là mặc định và thường là điểm khởi đầu tốt nhất cho SPI/plugin host:
+**Parent-first** is the default and usually the best starting point for SPI/plugin hosts:
 
-1. API chia sẻ, JDK classes, logging contracts và kiểu dữ liệu chung được nạp từ parent.
-2. Plugin implementation và dependency chuyên biệt được tìm ở child khi parent không thấy.
-3. Host có thể cast provider về interface đã nạp từ parent.
+1. Shared APIs, JDK classes, logging contracts, and common data types are loaded from the parent.
+2. Plugin implementations and specialized dependencies are resolved by the child when absent from the parent.
+3. The host can cast providers to interfaces loaded from the parent.
 
-**Child-first** có thể hữu ích nếu cần chọn phiên bản dependency khác giữa các plugin, nhưng việc override `loadClass` phải được thiết kế rõ. Nếu mặc định child-first cho mọi package, plugin có thể nạp lại API chung và làm mất tương thích. Một chính sách thực dụng khi cần child-first là **ưu tiên parent đối với JDK, SPI của host và package được xác định là shared**, còn package thực sự riêng của plugin mới được phép ưu tiên child.
+**Child-first** can be useful when different plugins need different dependency versions, yet overriding `loadClass` must be designed carefully. If you default to child-first for every package, plugins may reload shared APIs and break compatibility. A pragmatic policy when child-first is needed is **parent-first for JDK, host SPIs, and explicitly shared packages**, allowing child-first only for truly plugin-private packages.
 
-Khi override `loadClass(String, boolean)`, mã phải chịu trách nhiệm:
+When overriding `loadClass(String, boolean)`, your code must be responsible for:
 
-- kiểm tra `findLoadedClass` và thực hiện đúng thứ tự truy vấn;
-- khóa đồng bộ bằng `getClassLoadingLock(name)` hoặc cơ chế tương đương;
-- không tạo vòng lặp ủy quyền parent ↔ child;
-- không định nghĩa trùng nếu hai thread đòi cùng lớp;
-- gọi `resolveClass(clazz)` đúng khi `resolve` được yêu cầu;
-- giữ ranh giới API/SPI, package và loader constraints nhất quán.
+- checking `findLoadedClass` and executing the lookup order correctly;
+- synchronizing on `getClassLoadingLock(name)` or an equivalent mechanism;
+- avoiding parent ↔ child delegation cycles;
+- preventing duplicate definitions if two threads request the same class;
+- calling `resolveClass(clazz)` properly when `resolve` is requested;
+- keeping API/SPI boundaries, packages, and loader constraints consistent.
 
-Đừng override `loadClass` chỉ để log hoặc chỉ để đổi chỗ đọc file khi `findClass` đã đáp ứng yêu cầu. Nếu cần child-first, hãy lập bản đồ rõ package nào shared và package nào isolated, rồi viết test kiểm tra các tình huống class identity/method signature trước khi dùng trong runtime.
+Do not override `loadClass` merely to log or change where files are read from when `findClass` already suffices. If you need child-first, explicitly map which packages are shared and which are isolated, and write tests covering class identity and method signature scenarios before using it in runtime.
 
-## 8. Đồng thời: getClassLoadingLock và parallel-capable loader
+## 8. Concurrency: getClassLoadingLock and Parallel-Capable Loaders
 
-Loader có thể được gọi từ nhiều thread trong lúc khởi động ứng dụng hoặc nạp plugin. Nếu hai thread cùng yêu cầu `demo.plugin.HelloGreeter`, một implementation thiếu đồng bộ có thể khiến cả hai cùng thử `defineClass`, dẫn tới duplicate definition và trạng thái lỗi khó tái hiện.
+A loader can be called from multiple threads during application startup or plugin loading. If two threads simultaneously request `demo.plugin.HelloGreeter`, an unsynchronized implementation can let both attempt `defineClass`, causing duplicate definitions and hard-to-reproduce failures.
 
-Inherited `loadClass` của `ClassLoader` mặc định **synchronizes trên giá trị trả về từ `getClassLoadingLock(name)`** trong toàn bộ lượt nạp:
+`ClassLoader`'s inherited `loadClass` by default **synchronizes on the return value of `getClassLoadingLock(name)`** across the loading step:
 
-- Với loader **chưa đăng ký parallel capable**, lock mặc định là chính đối tượng loader. Lượt nạp các tên khác nhau sẽ bị tuần tự hóa trên cùng lock.
-- Với loader đã đăng ký **parallel capable**, có thể dùng lock riêng theo binary name, cho phép các tên lớp khác nhau được nạp song song trong khi tên giống nhau vẫn được bảo vệ.
-- `registerAsParallelCapable()` cần gọi trong khởi tạo tĩnh của lớp loader, trước khi tạo instance, và chỉ thành công nếu các lớp cha liên quan (trừ `Object`) cũng đã đăng ký. Trạng thái này không thể bật/tắt tùy ý trên instance sau đó.
-- Đánh dấu parallel capable **không tự khiến mọi dữ liệu nội bộ thread-safe**: cache, map, jar handle, package definition, resource lookup và cấu trúc phụ phải tương thích concurrency.
+- For a loader **not registered as parallel-capable**, the default lock is the loader instance itself (`this`). Requests to load different names are serialized on the same lock.
+- For a loader **registered as parallel-capable**, a separate lock object can be maintained **per class name**, allowing different class names to load concurrently while requests for the same name stay coordinated.
+- `registerAsParallelCapable()` must be called in the loader class's static initializer, before instances are created, and succeeds only if all relevant superclasses (except `Object`) are also registered. That capability cannot be toggled arbitrarily per instance afterward.
+- Marking a loader parallel-capable **does not automatically make internal data thread-safe**: caches, maps, JAR handles, package definitions, resource lookups, and auxiliary structures must all be concurrency-safe.
 
-Loader thư mục trong mục 5 chỉ dùng inherited `loadClass` và không khai báo parallel capable; đây là lựa chọn đơn giản, dễ hiểu. Nếu nâng cấp để tải đồng thời nhiều lớp, cần kiểm thử tải trùng tên và khác tên, xác minh lock granularity và hành vi parent delegation trước khi tối ưu throughput.
+The directory loader in section 5 uses inherited `loadClass` and does not declare itself parallel-capable; that is a simple, easy-to-follow choice. If upgrading it for concurrent multi-class loading, test both same-name and different-name loads, verify lock granularity, and verify parent delegation behavior before optimizing throughput.
 
-Tránh giữ những khóa tùy ý khi gọi lại code bên ngoài hay loader khác: dependency loading có thể lồng nhau, đặc biệt với plugin A và B phụ thuộc qua lại. Deadlock ở class loading thường khó chẩn đoán hơn lỗi đọc file.
+Avoid holding arbitrary locks while calling external code or other loaders: dependency loading can nest, especially if plugins A and B cross-depend on each other. Class-loading deadlocks are far harder to diagnose than file-read errors.
 
-## 9. Class loading không bao gồm resource loading
+## 9. Class Loading Does Not Include Resource Loading
 
-Một file plugin thường còn có `application.properties`, dữ liệu cấu hình, service descriptor và tài nguyên khác. Override `findClass` chỉ giúp nạp bytecode, **không tự khiến**:
+A plugin archive often also includes `application.properties`, configuration files, service descriptors, and other resources. Overriding `findClass` only loads bytecode and **does not automatically make**:
 
 ```java
 loader.getResource("META-INF/services/demo.api.Greeter");
 ```
 
-trả ra tài nguyên thuộc thư mục plugin. Theo Javadoc Java 17, `findResource(String)` mặc định trả `null`, còn `findResources(String)` mặc định trả enumeration rỗng. Inherited `getResource` sẽ thử parent và sau đó các hook đó; vì vậy custom loader đọc được `.class` chưa chắc đọc được resource.
+return resources from the plugin directory. Per Java 17 Javadoc, default `findResource(String)` returns `null`, and default `findResources(String)` returns an empty enumeration. Inherited `getResource` tries the parent and then those hooks; therefore a custom loader that can read `.class` files may still fail to read resources.
 
-Hệ quả quan trọng với runtime extensibility:
+Important consequences for runtime extensibility:
 
-- `ServiceLoader` trên class path tìm descriptor `META-INF/services/<SPI binary name>` qua cơ chế resource. Nếu loader không công bố resource, service discovery có thể rỗng dù `loader.loadClass("demo.plugin.HelloGreeter")` thành công.
-- Code plugin gọi `Class.getResource*` hoặc `ClassLoader.getResourceAsStream` có thể không tìm được cấu hình đi kèm.
-- Nếu plugin là JAR/URL, hãy cân nhắc `URLClassLoader` và kiểm tra chính sách resource; nếu custom source là bộ nhớ hoặc kho khác, triển khai `findResource`/`findResources` đúng ngữ nghĩa URL/stream thay vì chỉ thêm code `findClass`.
-- Với **named modules**, class/resource visibility và encapsulation theo JPMS còn đặt điều kiện riêng. Không giả định resource trong package của named module luôn được đọc công khai.
+- `ServiceLoader` on the classpath looks up descriptors `META-INF/services/<SPI binary name>` via resource loading. If the loader does not expose resources, service discovery can come up empty even though `loader.loadClass("demo.plugin.HelloGreeter")` succeeds.
+- Plugin code calling `Class.getResource*` or `ClassLoader.getResourceAsStream` may fail to find bundled configurations.
+- If plugins are JARs/URLs, consider `URLClassLoader` and check resource policies; if the custom source is memory or another repository, implement `findResource`/`findResources` with proper URL/stream semantics rather than adding only `findClass`.
+- With **named modules**, JPMS class/resource visibility and encapsulation impose additional rules. Never assume resources inside a named module's package can always be read publicly.
 
-Phần trình diễn mục 5 **không dùng `ServiceLoader`** và không cung cấp `META-INF/services`, nên không đòi hỏi override resource hooks.
+The section 5 demo **does not use `ServiceLoader`** and provides no `META-INF/services`, so it does not require overriding resource hooks.
 
-## 10. Class path loader và named module loader khác nhau ở điểm nào?
+## 10. How Do Classpath Loaders and Named Module Loaders Differ?
 
-Ví dụ trên biên dịch vào class path, nên các lớp do `DirectoryPluginLoader` định nghĩa thuộc **unnamed module** của loader đó. Nó không tự tạo một named module chỉ vì class nằm trong thư mục có package.
+The example above compiles onto the classpath, so classes defined by `DirectoryPluginLoader` belong to that loader's **unnamed module**. It does not automatically create a named module merely because classes sit in package directories.
 
-Java 9+ có thêm overload:
+Java 9+ adds the overload:
 
 ```java
 protected Class<?> findClass(String moduleName, String name);
 ```
 
-Khác với `findClass(String name)` thông thường:
+Unlike ordinary `findClass(String name)`:
 
-- Hook hai tham số nhằm tìm class theo module cụ thể do loader định nghĩa; implementation mặc định gọi hook một tham số chỉ khi `moduleName == null`, còn module name khác `null` thì trả `null`.
-- `ModuleLayer`, cách tạo layer, đóng gói module, exports/opens, package mapping và cách JVM liên kết module với loader cần được xử lý riêng.
-- Override `findClass(String)` để đọc thư mục `.class` **không đủ** để coi runtime đã hỗ trợ đầy đủ các named modules.
-- Loader có thể định nghĩa class từ unnamed module và tham gia môi trường JPMS, nhưng phải kiểm tra ranh giới package/module thực tế trước khi xây plugin isolation.
+- The two-argument hook is intended to locate a class within a specific module defined by the loader; the default implementation delegates to the one-argument hook only when `moduleName == null`, and returns `null` for non-null module names.
+- `ModuleLayer`, layer creation, module packaging, exports/opens, package mappings, and how the JVM associates modules with loaders must be handled separately.
+- Overriding `findClass(String)` to read `.class` files from a directory is **not enough** to claim the runtime fully supports named modules.
+- A loader can define classes from unnamed modules and participate in a JPMS environment, yet you must verify actual package/module boundaries before building plugin isolation.
 
-Chọn loader đơn giản hoặc `URLClassLoader` cho class-path plugin; dùng cơ chế module-layer phù hợp khi hệ thống yêu cầu named module isolation. Đừng coi `ClassLoader` và `ModuleLayer` là hai tên cho cùng một đối tượng.
+Choose a simple loader or `URLClassLoader` for classpath plugins; use proper module-layer mechanisms when the system requires named module isolation. Do not treat `ClassLoader` and `ModuleLayer` as two names for the same object.
 
-## 11. Ràng buộc vận hành khi tự viết loader
+## 11. Operational Constraints When Writing Your Own Loader
 
-### Đường dẫn, tài nguyên và nguồn bytecode
+### Paths, Resources, and Bytecode Sources
 
-Loader mục 5 nhận directory tin cậy. Đưa đầu vào từ người dùng hoặc remote vào triển khai thật phải giải quyết thêm:
+The section 5 loader takes a trusted directory. Bringing user or remote input into a real deployment requires addressing more:
 
-1. **Giới hạn namespace và root:** từ chối tên không đúng phạm vi, canonicalize đường dẫn, kiểm tra symlink/traversal và quyền truy cập file. `normalize()` chỉ xử lý các thành phần đường dẫn từ phía cú pháp, không bảo đảm file cuối cùng nằm dưới thư mục gốc nếu có symlink.
-2. **Tránh đọc file quá lớn:** `Files.readAllBytes` cấp phát theo kích thước file. Với nguồn có thể bị tác động, xác minh giới hạn bytecode và kiểm soát TOCTOU/race đổi file nếu mức tin cậy đòi hỏi.
-3. **Đóng tài nguyên và log nguồn:** mở `InputStream`, JAR, socket hoặc handle bằng vòng đời rõ ràng; log tên lớp, nguồn bytes và tên loader để điều tra lỗi. `defineClass` tự nó không đóng những tài nguyên đó.
-4. **Giữ nguyên lỗi có nghĩa:** trả `ClassNotFoundException` nếu không tìm/đọc được lớp theo hợp đồng; để `LinkageError`/`SecurityException` có ngữ cảnh khi class đã được tìm nhưng JVM từ chối định nghĩa.
-5. **Tính bất biến của bytecode:** không thay bytes giữa lúc kiểm tra/chọn nguồn và lúc định nghĩa mà không có chính sách snapshot; plugin hot swap nên dùng loader mới với state và ownership mới.
-6. **Phân biệt class và resource:** không giả định nạp implementation thành công nghĩa là resource, native library hay SPI descriptor đã được hỗ trợ.
+1. **Namespace and root boundaries:** reject out-of-scope names, canonicalize paths, and check symlinks/traversal and file permissions. `normalize()` only resolves syntactic path segments and does not guarantee the final file stays under the root directory when symlinks exist.
+2. **Avoid reading oversized files:** `Files.readAllBytes` allocates based on file size. For potentially influenced sources, enforce bytecode size limits and handle TOCTOU/file-swap races if trust levels require it.
+3. **Close resources and log sources:** manage opened `InputStream`s, JARs, sockets, or handles with clear lifecycles; log class name, byte source, and loader name for investigation. `defineClass` itself does not close those resources.
+4. **Preserve meaningful errors:** throw `ClassNotFoundException` when a class cannot be found/read per contract; let `LinkageError`/`SecurityException` surface with context when a class was found yet rejected by the JVM.
+5. **Bytecode immutability:** do not swap bytes between inspection/selection and definition without a snapshot policy; plugin hot-swapping should use a fresh loader with fresh state and ownership.
+6. **Separate classes from resources:** do not assume loading an implementation means resources, native libraries, or SPI descriptors are supported.
 
-### Vòng đời và class unloading
+### Lifecycle and Class Unloading
 
-Classloader không có phương thức “unload đúng lớp X”. Lớp đã được định nghĩa không được gỡ ra khỏi **cùng loader** để rồi nạp lại tên đó với bytecode khác. JVM có thể giải phóng lớp khi defining loader và các lớp/instance liên quan không còn được giữ sống, tùy điều kiện GC và runtime.
+A `ClassLoader` has no method to "unload just class X." Once defined, a class is not removed from **the same loader** so that name can be reloaded with different bytecode. The JVM may reclaim classes when their defining loader and all related classes/instances are no longer kept alive, subject to GC and runtime conditions.
 
-Các tham chiếu thường cản việc giải phóng gồm `static` cache ở host, listener/subscription chưa hủy, thread/TCCL, `ThreadLocal`, executor task, reflection metadata và `Class<?>` được giữ trong registry. Với loader giữ JAR/socket, cần đóng handle; khác với loader đọc file rồi thả stream ngay như ví dụ.
+References that commonly block reclamation include host `static` caches, uncancelled listeners/subscriptions, threads/TCCLs, `ThreadLocal`s, executor tasks, reflection metadata, and `Class<?>` entries retained in registries. For loaders holding JARs/sockets, close handles explicitly—unlike the example's loader which reads files and releases streams immediately.
 
-Với hot reload: dựng loader mới, nạp phiên bản plugin mới, chuyển giao lifecycle có kiểm soát, dừng callback cũ, xóa reference rồi đóng tài nguyên của phiên trước. Không kỳ vọng gọi `loadClass` hoặc `findClass` lần nữa trên loader cũ sẽ thay thế lớp đã định nghĩa.
+For hot reload: build a new loader, load the new plugin version, perform a controlled lifecycle handoff, stop old callbacks, clear references, and close the previous version's resources. Do not expect calling `loadClass` or `findClass` again on the old loader to replace an already-defined class.
 
-## 12. Chẩn đoán lỗi đúng tầng
+## 12. Diagnosing Errors at the Right Layer
 
-| Dấu hiệu | Tầng cần xem | Cách kiểm tra |
+| Symptom | Layer to inspect | What to check |
 |---|---|---|
-| `ClassNotFoundException` từ `loadClass` | Discovery/delegation | Đúng binary name chưa? Parent và thư mục plugin nào đang được dùng? File có tồn tại? |
-| `NoClassDefFoundError: wrong name` | Define/link | Tên truyền vào `defineClass` có khớp tên trong class file? |
-| `ClassFormatError` | Bytecode format | Tệp có phải `.class` hợp lệ, bytes có bị cắt/chỉnh sai không? |
-| `UnsupportedClassVersionError` | Bytecode/JDK version | `javac --release` hoặc JDK runtime có phù hợp với class-file version? |
-| `VerifyError` | Bytecode verification | Công cụ sinh/chỉnh bytecode có tạo stack map/instruction hợp lệ? |
-| `LinkageError: duplicate class definition` | Identity/concurrency | Có định nghĩa cùng binary name hai lần trong một loader, bỏ qua cache/lock không? |
-| `LinkageError: loader constraint violation` | Type identity | Có SPI/API trùng tên nhưng khác defining loader không? Quan hệ method signature có xung đột? |
-| `ClassCastException` dù tên in giống nhau | Type identity | So sánh `clazz.getClassLoader()`, `interfaceClass.getClassLoader()` và `Class<?>` thực tế |
-| `SecurityException` khi define | Tên package / signer / policy | Có cố định nghĩa `java.*`, trộn signer hoặc vi phạm policy? |
-| `IllegalAccessError` hoặc `InaccessibleObjectException` | Access/module | Package-private qua loader khác, JPMS exports/opens hoặc reflection access |
-| `ServiceLoader` rỗng dù `loadClass` thành công | Resource/discovery | Loader có tìm được `META-INF/services/...` hoặc cấu hình `uses/provides` đúng chưa? |
-| OOM hoặc không unload sau redeploy | Lifecycle | Còn registry/cache/thread/TCCL giữ class, instance hay loader cũ? |
+| `ClassNotFoundException` from `loadClass` | Discovery/delegation | Is the binary name right? Which parent and plugin directory are used? Does the file exist? |
+| `NoClassDefFoundError: wrong name` | Define/link | Does the name passed to `defineClass` match the name inside the class file? |
+| `ClassFormatError` | Bytecode format | Is the file a valid `.class`, were bytes truncated or corrupted? |
+| `UnsupportedClassVersionError` | Bytecode/JDK version | Do `javac --release` and the runtime JDK match the class-file version? |
+| `VerifyError` | Bytecode verification | Did bytecode generation/manipulation produce valid stack maps/instructions? |
+| `LinkageError: duplicate class definition` | Identity/concurrency | Was the same binary name defined twice in one loader, bypassing cache/locking? |
+| `LinkageError: loader constraint violation` | Type identity | Is there a same-named SPI/API with different defining loaders? Do method signatures conflict? |
+| `ClassCastException` despite matching printed names | Type identity | Compare `clazz.getClassLoader()`, `interfaceClass.getClassLoader()`, and the actual `Class<?>` objects |
+| `SecurityException` during define | Package name / signer / policy | Trying to define `java.*`, mixing signers, or violating policy? |
+| `IllegalAccessError` or `InaccessibleObjectException` | Access/module | Package-private across loaders, JPMS exports/opens, or reflection access |
+| Empty `ServiceLoader` even though `loadClass` succeeds | Resource/discovery | Can the loader find `META-INF/services/...` or is `uses/provides` configured properly? |
+| OOM or failure to unload after redeploy | Lifecycle | Are registries/caches/threads/TCCLs still holding old classes, instances, or loaders? |
 
-Trong log, nên ghi binary name, nguồn bytecode, initiating/defining loader, parent, exception cause và phiên plugin. Không đưa mọi `LinkageError` vào `catch (ClassNotFoundException)`; chúng có ngữ nghĩa khác nhau. Đặc biệt lỗi “file không tồn tại” khác lỗi “file tồn tại nhưng định nghĩa không hợp lệ”.
+In logs, record the binary name, bytecode source, initiating/defining loaders, parent, exception cause, and plugin version. Never catch every `LinkageError` into `catch (ClassNotFoundException)`; they have different meanings. In particular, "file missing" differs from "file exists yet definition is invalid."
 
-## 13. Bộ kiểm thử tối thiểu và quyết định thiết kế
+## 13. Minimum Test Suite and Design Decisions
 
-Trước khi dùng một custom loader trong runtime, viết integration test riêng cho các điểm:
+Before using a custom loader in runtime, write dedicated integration tests covering:
 
-- **Delegation:** class thuộc host/JDK được parent nạp, class implementation riêng của plugin do child định nghĩa; không nạp duplicate SPI.
-- **Cache:** gọi `loadClass` lặp trên một instance trả đúng `Class<?>` đã có, không gọi `defineClass` lần hai.
-- **Identity:** hai loader độc lập nạp cùng tên tạo hai định nghĩa khác nhau; cả hai vẫn implement chung interface host nếu parent được cấu hình đúng.
-- **Missing vs malformed:** thiếu file trả `ClassNotFoundException`; bytecode hỏng/không khớp tên cho lỗi bytecode/linking phù hợp.
-- **Concurrency:** nhiều thread cùng tải một tên và nhiều tên khác; xác minh không duplicate definition, deadlock hoặc đọc dữ liệu nửa chừng.
-- **Package và nguồn JAR:** metadata/chứng chỉ/sealing được xử lý theo chính sách; plugin khác signer không bị ghép sai.
-- **Resource:** provider descriptor/configuration được tìm đúng nếu ứng dụng dựa vào `ServiceLoader`.
-- **Lifecycle:** unload/redeploy loại được listener, cache, reference và handle; TCCL được khôi phục nếu runtime có thay đổi.
-- **Giới hạn nguồn:** path traversal, symbolic link, class file quá lớn, lỗi I/O và JAR không tin cậy được xử lý theo mô hình threat thực tế.
+- **Delegation:** host/JDK classes are loaded by the parent, plugin-private implementations are defined by the child; no duplicate SPI loading.
+- **Caching:** repeated `loadClass` calls on the same instance return the exact cached `Class<?>`, never calling `defineClass` twice.
+- **Identity:** two independent loaders loading the same name create two distinct definitions; both still implement the shared host interface if the parent is configured properly.
+- **Missing vs. malformed:** missing files throw `ClassNotFoundException`; corrupted or mismatched-name bytecode raises the appropriate bytecode/linking error.
+- **Concurrency:** multiple threads loading both the same name and different names concurrently; verify no duplicate definitions, deadlocks, or partial reads.
+- **Packages and JAR sources:** metadata/certificates/sealing follow policy; plugins with different signers are not improperly merged.
+- **Resources:** provider descriptors/configurations are located properly if the application relies on `ServiceLoader`.
+- **Lifecycle:** unload/redeploy cleans up listeners, caches, references, and handles; TCCL is restored if modified by the runtime.
+- **Source boundaries:** path traversal, symbolic links, oversized class files, I/O failures, and untrusted JARs are handled according to the actual threat model.
 
-Khi chỉ cần nạp class từ JAR/URL chuẩn, ưu tiên kiểm tra khả năng dùng `URLClassLoader` hoặc cơ chế module có sẵn trước khi tự viết loader. Chỉ viết `findClass` tùy biến khi thật sự có nguồn bytecode, chính sách resolution hay nhu cầu lifecycle khác biệt mà công cụ chuẩn không đáp ứng.
+When you only need to load classes from standard JARs/URLs, evaluate `URLClassLoader` or built-in module mechanisms first before writing a custom loader. Write custom `findClass` only when you genuinely have a bytecode source, resolution strategy, or lifecycle requirement that standard tools cannot satisfy.
 
-**Quy tắc nhớ:** `loadClass` chọn **đường nạp và delegation**, `findClass` quyết định **tìm lớp ở đâu khi parent chưa giải quyết được**, còn `defineClass` yêu cầu JVM **định nghĩa bytes thành class thuộc loader này**. Mọi quyết định đều chịu ràng buộc class identity, bytecode/linking, package, concurrency và vòng đời.
+**Rule of thumb:** `loadClass` chooses **the loading path and delegation**, `findClass` decides **where to find the class when the parent cannot**, and `defineClass` asks the JVM to **define bytes into a class belonging to this loader**. Every choice is bound by class identity, bytecode/linking, packaging, concurrency, and lifecycle constraints.
 
-**Tài liệu chính thức:** [Java SE 17 ClassLoader Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html), [Java SE 17 SecureClassLoader Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureClassLoader.html) và [JVM Specification — Loading, Linking, and Initializing](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-5.html).
+**Official documentation:** [Java SE 17 ClassLoader Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html), [Java SE 17 SecureClassLoader Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureClassLoader.html), and [JVM Specification — Loading, Linking, and Initializing](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-5.html).

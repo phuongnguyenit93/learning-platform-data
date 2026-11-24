@@ -1,12 +1,12 @@
-# Dùng stream, Provider.type và Provider.get để tách xem kiểu khỏi tạo đối tượng
+# Using stream, Provider.type, and Provider.get to Separate Type Inspection from Object Creation
 
-## 1. Vấn đề: khám phá provider mà chưa muốn khởi tạo tất cả
+## 1. The Problem: Discovering Providers Without Instantiating All of Them
 
-Trong một ứng dụng Java có điểm mở rộng, **service** là hợp đồng mà mã chủ (host) biết trước, thường là interface hoặc abstract class. **Service provider** là triển khai được đăng ký và có thể được tìm thấy khi ứng dụng chạy. Chẳng hạn một ứng dụng xử lý văn bản có hợp đồng TextTransformer, còn các provider bổ sung cách viết hoa, đảo chuỗi hoặc chuẩn hóa.
+In a Java application with extension points, a **service** is the contract known in advance by host code, typically an interface or abstract class. A **service provider** is a registered implementation that can be discovered when the application runs. For example, a text-processing application has a TextTransformer contract, while providers supply uppercase, string-reversal, or normalization implementations.
 
-Đôi khi host chỉ muốn **xem provider nào có khả năng đáp ứng yêu cầu**, rồi mới tạo đối tượng của provider phù hợp. Việc khởi tạo provider có thể kéo theo kiểm tra cấu hình, mở kết nối, cấp phát tài nguyên, đăng ký listener hoặc lỗi do phụ thuộc thiếu. Nếu dùng cách duyệt tạo instance ngay, host có thể phải khởi tạo cả những provider cuối cùng không được chọn.
+Sometimes the host only wants to **inspect which providers can satisfy a request**, and only then create an instance of the chosen provider. Instantiating a provider may trigger configuration checks, opening connections, allocating resources, registering listeners, or errors due to missing dependencies. With eager-instantiation traversal, the host may end up instantiating providers that are never selected.
 
-Từ **Java 9**, ServiceLoader có phương thức **stream()** trả về các mô tả provider, cho phép **xem kiểu trước, tạo instance sau**:
+Since **Java 9**, ServiceLoader provides a **stream()** method returning provider descriptors, allowing **type inspection first, instance creation later**:
 
 ~~~java
 ServiceLoader<TextTransformer> loader =
@@ -20,27 +20,27 @@ ServiceLoader.Provider<TextTransformer> selected = loader.stream()
 TextTransformer transformer = selected.get();
 ~~~
 
-Đây là **mảnh mã minh họa**, giả định TextTransformer và annotation Preferred đã được định nghĩa. Ý nghĩa cốt lõi là:
+This is an **illustrative snippet**, assuming TextTransformer and the Preferred annotation are already defined. The core idea is:
 
-1. **stream()** cho một Stream các **ServiceLoader.Provider<TextTransformer>**, không phải Stream<TextTransformer>.
-2. **p.type()** cho thông tin kiểu **Class<? extends TextTransformer>** để phân loại, lọc, đọc annotation hoặc lấy tên class mà chưa gọi constructor/provider factory để lấy instance.
-3. **p.get()** thực sự yêu cầu một instance TextTransformer từ mô tả provider đã chọn.
+1. **stream()** produces a Stream of **ServiceLoader.Provider<TextTransformer>**, not a Stream<TextTransformer>.
+2. **p.type()** gives the **Class<? extends TextTransformer>** type info for classifying, filtering, reading annotations, or getting the class name without invoking the constructor/provider factory to obtain an instance.
+3. **p.get()** actually requests a TextTransformer instance from the chosen provider descriptor.
 
-Cách tách này còn gọi là **discovery/selection trước, instantiation sau**. Nó hữu ích khi các provider có metadata ở cấp class (ví dụ annotation) và host có thể quyết định bằng metadata ấy.
+This separation is also called **discovery/selection first, instantiation later**. It is useful when providers carry class-level metadata (such as annotations) and the host can decide using that metadata.
 
-## 2. Ba API và kiểu dữ liệu cần nhớ
+## 2. Three APIs and Types to Remember
 
-| API | Kết quả | Có tạo service instance ngay không? | Dùng để |
+| API | Result | Creates service instance immediately? | Used for |
 |---|---|---|---|
-| **ServiceLoader.load(ServiceType.class)** | ServiceLoader<ServiceType> | Không phải thao tác tạo tất cả instance | Tạo bộ nạp theo service và class loader/module context |
-| **loader.stream()** | Stream<ServiceLoader.Provider<ServiceType>> | Không | Duyệt mô tả provider theo nhu cầu khi chạy terminal operation |
-| **provider.type()** | Class<? extends ServiceType> | Không gọi provider constructor/provider method để tạo service instance | Xem kiểu, tên, annotation, metadata kiểu |
-| **provider.get()** | ServiceType | Có yêu cầu tạo/lấy một instance | Bắt đầu sử dụng provider |
-| **loader.iterator()** hoặc vòng **for-each** | Các ServiceType | Có, khi tiến tới phần tử | Duyệt trực tiếp các instance provider |
+| **ServiceLoader.load(ServiceType.class)** | ServiceLoader<ServiceType> | Not an operation that creates all instances | Creating the loader for a service and class loader/module context |
+| **loader.stream()** | Stream<ServiceLoader.Provider<ServiceType>> | No | Traversing provider descriptors on demand when a terminal operation runs |
+| **provider.type()** | Class<? extends ServiceType> | Does not call the provider constructor/provider method to create a service instance | Inspecting type, name, annotations, and type metadata |
+| **provider.get()** | ServiceType | Yes, requests creating/obtaining an instance | Beginning to use the provider |
+| **loader.iterator()** or **for-each** loop | ServiceType instances | Yes, when advancing to an element | Directly iterating provider instances |
 
-Provider ở đây là **java.util.ServiceLoader.Provider<S>**, một nested interface kế thừa **Supplier<S>** và bổ sung **type()**. Không nhầm nó với interface do chính ứng dụng đặt tên *PluginProvider* hay *Factory*: chúng có thể phục vụ cùng mục đích thiết kế, nhưng là những abstraction khác nhau.
+Provider here is **java.util.ServiceLoader.Provider<S>**, a nested interface extending **Supplier<S>** and adding **type()**. Do not confuse it with an application-defined interface named *PluginProvider* or *Factory*: they may serve a similar design purpose, but they are different abstractions.
 
-Sơ đồ luồng xử lý:
+Processing flow diagram:
 
 ~~~text
 ServiceLoader.load(TextTransformer.class)
@@ -54,7 +54,7 @@ ServiceLoader.load(TextTransformer.class)
         filter(p.type())
                |
                v
-        Provider được chọn
+        Selected Provider
                |
              p.get()
                |
@@ -64,15 +64,15 @@ ServiceLoader.load(TextTransformer.class)
           transform(text)
 ~~~
 
-**Phân biệt hai kiểu duyệt:**
+**Distinguishing the two traversal styles:**
 
 ~~~java
-// Mảnh minh họa: thao tác trên instance, mỗi phần tử được tạo khi duyệt đến.
+// Illustrative snippet: operates on instances, each element created when reached.
 for (TextTransformer service : ServiceLoader.load(TextTransformer.class)) {
-    // Đã có instance để gọi nghiệp vụ.
+    // Instance is already available to invoke business logic.
 }
 
-// Mảnh minh họa: thao tác trên mô tả provider trước.
+// Illustrative snippet: operates on provider descriptors first.
 ServiceLoader.load(TextTransformer.class)
         .stream()
         .filter(p -> p.type().getSimpleName().contains("Upper"))
@@ -80,29 +80,29 @@ ServiceLoader.load(TextTransformer.class)
         .forEach(service -> System.out.println(service.transform("java")));
 ~~~
 
-Trong pipeline thứ hai, thao tác **map(Provider::get)** đứng **sau filter**, nên chỉ các provider đi qua bộ lọc mới bị yêu cầu tạo instance. Lưu ý: ngay cả khi chưa tạo instance, việc khám phá, nạp lớp, đọc metadata và liên kết lớp vẫn có thể phát sinh chi phí hoặc lỗi; “lazy” không đồng nghĩa với “không làm bất kỳ công việc nào”.
+In the second pipeline, **map(Provider::get)** is placed **after filter**, so only providers that pass the filter are asked to create an instance. Note: even without creating instances, discovery, class loading, reading metadata, and class linking can still incur cost or errors; "lazy" does not mean "doing no work at all".
 
-## 3. Tính lazy chính xác là gì?
+## 3. What Exactly Is Laziness Here?
 
-**ServiceLoader** khám phá provider **theo nhu cầu**. Việc gọi **stream()** chỉ tạo stream; khi một **terminal operation** như **findFirst()**, **toList()**, **forEach()** hay **collect()** chạy, ServiceLoader mới tiến hành khám phá/nạp provider mà pipeline cần.
+**ServiceLoader** discovers providers **on demand**. Calling **stream()** only creates a stream; when a **terminal operation** such as **findFirst()**, **toList()**, **forEach()**, or **collect()** runs, ServiceLoader proceeds to discover/load the providers the pipeline needs.
 
-- **filter(p -> ...)** là intermediate operation: riêng câu lệnh filter chưa xử lý provider nào.
-- **findFirst()** có thể dừng sau khi gặp provider phù hợp, nên thường không cần duyệt hết mọi provider.
-- **toList()** duyệt toàn bộ phần tử đầu vào; nó lưu các đối tượng Provider trong danh sách, **không tự gọi get()**.
-- **sorted(...)** thường phải quan sát mọi provider để sắp xếp, có thể làm mất lợi thế dừng sớm của findFirst; tuy vậy, sắp xếp theo **p.type()** vẫn không tự tạo service instance.
-- Chỉ khi **get()** được gọi thì ServiceLoader mới yêu cầu đối tượng service (qua constructor hoặc factory method tương ứng).
+- **filter(p -> ...)** is an intermediate operation: the filter statement alone does not process any provider yet.
+- **findFirst()** can stop once a matching provider is found, so it typically does not need to traverse every provider.
+- **toList()** traverses all input elements; it stores Provider objects in a list and **does not automatically call get()**.
+- **sorted(...)** usually must inspect every provider in order to sort, which can negate the early-exit benefit of findFirst; however, sorting by **p.type()** still does not create service instances by itself.
+- Only when **get()** is called does ServiceLoader request the service object (via the corresponding constructor or factory method).
 
-Ví dụ:
+Example:
 
 ~~~java
-// Mảnh minh họa: đọc tên class của mọi provider, chưa gọi get().
+// Illustrative snippet: reads class names of all providers, without calling get().
 List<String> providerNames = ServiceLoader.load(TextTransformer.class)
         .stream()
         .map(p -> p.type().getName())
         .sorted()
         .toList();
 
-// Mảnh minh họa: chỉ tạo/lấy instance của provider được chọn.
+// Illustrative snippet: creates/obtains an instance only for the chosen provider.
 TextTransformer chosen = ServiceLoader.load(TextTransformer.class)
         .stream()
         .filter(p -> p.type().getSimpleName().equals("UppercaseTransformer"))
@@ -111,13 +111,13 @@ TextTransformer chosen = ServiceLoader.load(TextTransformer.class)
         .get();
 ~~~
 
-**Quan trọng:** Việc chỉ dùng **type()** giúp tránh **khởi tạo đối tượng service**, nhưng không bảo đảm không nạp class, không kiểm tra service configuration, không đọc annotation hoặc không xảy ra ServiceConfigurationError. Trong một vài môi trường có classloader tùy biến, các bước đó vẫn tốn thời gian.
+**Important:** Using only **type()** avoids **instantiating the service object**, but does not guarantee no class loading, no service configuration checks, no annotation reading, or no ServiceConfigurationError. In some environments with custom classloaders, those steps still take time.
 
-## 4. Ví dụ Java 17 chạy được: chọn provider theo annotation
+## 4. Runnable Java 17 Example: Selecting a Provider by Annotation
 
-Ví dụ sau chạy trên **classpath**, có hai provider hợp lệ nhưng chỉ khởi tạo provider được chọn. Ta gắn annotation **@PluginKind** lên lớp provider. Khi xem **Provider.type()**, host đọc annotation rồi chọn **upper**, sau đó mới gọi **Provider.get()**.
+The following example runs on the **classpath**, has two valid providers, yet only instantiates the selected provider. We place the **@PluginKind** annotation on the provider classes. When inspecting **Provider.type()**, the host reads the annotation, selects **upper**, and only then calls **Provider.get()**.
 
-Cấu trúc thư mục:
+Directory structure:
 
 ~~~text
 provider-demo/
@@ -136,7 +136,7 @@ provider-demo/
             └── demo.spi.TextTransformer
 ~~~
 
-**Tệp src/demo/spi/TextTransformer.java** — service contract:
+**File src/demo/spi/TextTransformer.java** — service contract:
 
 ~~~java
 package demo.spi;
@@ -146,7 +146,7 @@ public interface TextTransformer {
 }
 ~~~
 
-**Tệp src/demo/spi/PluginKind.java** — annotation metadata giữ được ở runtime:
+**File src/demo/spi/PluginKind.java** — metadata annotation retained at runtime:
 
 ~~~java
 package demo.spi;
@@ -163,9 +163,9 @@ public @interface PluginKind {
 }
 ~~~
 
-Không có **RetentionPolicy.RUNTIME** thì lời gọi **Class.getAnnotation(PluginKind.class)** không đọc được annotation bằng reflection lúc chạy; khi đó bộ lọc dựa vào annotation sẽ không tìm thấy provider.
+Without **RetentionPolicy.RUNTIME**, calling **Class.getAnnotation(PluginKind.class)** cannot read the annotation via reflection at runtime; in that case an annotation-based filter will find no provider.
 
-**Tệp src/demo/plugins/UppercaseTransformer.java** — provider mục tiêu:
+**File src/demo/plugins/UppercaseTransformer.java** — target provider:
 
 ~~~java
 package demo.plugins;
@@ -187,7 +187,7 @@ public final class UppercaseTransformer implements TextTransformer {
 }
 ~~~
 
-**Tệp src/demo/plugins/ReverseTransformer.java** — provider không được chọn:
+**File src/demo/plugins/ReverseTransformer.java** — unselected provider:
 
 ~~~java
 package demo.plugins;
@@ -208,16 +208,16 @@ public final class ReverseTransformer implements TextTransformer {
 }
 ~~~
 
-**Tệp resources/META-INF/services/demo.spi.TextTransformer** — service provider configuration file trên classpath:
+**File resources/META-INF/services/demo.spi.TextTransformer** — service provider configuration file on the classpath:
 
 ~~~text
 demo.plugins.ReverseTransformer
 demo.plugins.UppercaseTransformer
 ~~~
 
-Tên tệp phải đúng **tên binary đầy đủ của service**; nội dung là các tên class provider, mỗi tên một dòng, mã hóa UTF-8. Hai class phải tìm được từ class loader phù hợp, **public**, có constructor **public không tham số**, và triển khai TextTransformer. Classpath configuration này **không sử dụng static provider() factory method**; cơ chế static method áp dụng cho provider được khai báo trong **named module** (giải thích ở phần 6).
+The file name must match the **fully qualified binary name of the service**; its content lists provider class names, one per line, UTF-8 encoded. Both classes must be findable from the appropriate class loader, **public**, have a **public no-argument constructor**, and implement TextTransformer. This classpath configuration **does not use a static provider() factory method**; the static method mechanism applies to providers declared in **named modules** (explained in Section 6).
 
-**Tệp src/demo/Demo.java** — host xem metadata và chỉ tạo instance sau khi chọn:
+**File src/demo/Demo.java** — host inspects metadata and creates an instance only after selection:
 
 ~~~java
 package demo;
@@ -234,7 +234,7 @@ public final class Demo {
         ServiceLoader<TextTransformer> loader =
                 ServiceLoader.load(TextTransformer.class);
 
-        // Khám phá tất cả provider descriptors; chưa gọi constructor service.
+        // Discover all provider descriptors; do not invoke service constructors yet.
         List<Provider<TextTransformer>> providers = loader.stream().toList();
 
         System.out.println("Discovered: " + providers.size());
@@ -263,9 +263,9 @@ public final class Demo {
 }
 ~~~
 
-**Biên dịch và chạy từ thư mục provider-demo** với JDK 17 trở lên.
+**Compile and run from the provider-demo directory** with JDK 17 or later.
 
-Trên macOS/Linux (bash):
+On macOS/Linux (bash):
 
 ~~~bash
 mkdir -p out
@@ -279,7 +279,7 @@ cp -R resources/META-INF out/
 java -cp out demo.Demo
 ~~~
 
-Trên Windows (PowerShell):
+On Windows (PowerShell):
 
 ~~~powershell
 New-Item -ItemType Directory -Force out | Out-Null
@@ -288,7 +288,7 @@ Copy-Item -Recurse -Force resources/META-INF out/
 java -cp out demo.Demo
 ~~~
 
-**Stdout trong môi trường chỉ có hai provider của ví dụ:**
+**Stdout in an environment containing only the two example providers:**
 
 ~~~text
 Discovered: 2
@@ -299,24 +299,24 @@ Construct: UppercaseTransformer
 Result: JAVA
 ~~~
 
-Cách tự xác minh cơ chế:
+How to verify the mechanism yourself:
 
-1. Lúc in số lượng, tên và kiểu provider, chưa thấy dòng **Construct:** nào; danh sách chứa các Provider descriptor chứ chưa chứa hai TextTransformer instance.
-2. **type()** trên từng descriptor cho class tương ứng; bộ lọc đọc **@PluginKind("upper")** mà chưa cần gọi phương thức transform.
-3. Chỉ sau dòng **Before get** mới xuất hiện **Construct: UppercaseTransformer**, do **chosen.get()**.
-4. Không có **Construct: ReverseTransformer** vì chương trình không gọi get() của provider bị loại.
-5. Danh sách tên được **sorted()** để stdout không phụ thuộc thứ tự khám phá. Trong môi trường có thêm provider cùng service trên classpath, kết quả có thể khác; ở ví dụ cô lập này có đúng hai.
+1. When printing the count, names, and types of providers, no **Construct:** line appears yet; the list holds Provider descriptors rather than two TextTransformer instances.
+2. **type()** on each descriptor returns the corresponding class; the filter reads **@PluginKind("upper")** without needing to call the transform method.
+3. Only after the **Before get** line does **Construct: UppercaseTransformer** appear, caused by **chosen.get()**.
+4. There is no **Construct: ReverseTransformer** because the program never calls get() on the excluded provider.
+5. The name list is **sorted()** so stdout does not depend on discovery order. In an environment with extra providers for the same service on the classpath, results may differ; in this isolated example there are exactly two.
 
-**Để thấy lỗi thường gặp:** thử chuyển **.map(Provider::get)** lên *trước* filter bằng metadata. Khi ấy pipeline đang làm việc với **TextTransformer instance** chứ không còn **Provider**, và việc lọc sẽ cần khởi tạo các instance trước. Vì vậy giữ bộ lọc metadata trên Provider và chỉ **get() sau khi chọn**.
+**To observe a common mistake:** try moving **.map(Provider::get)** *before* the metadata filter. At that point the pipeline operates on **TextTransformer instances** instead of **Providers**, and filtering will require creating instances first. Therefore keep metadata filtering on Provider and only call **get() after selection**.
 
-## 5. Các kiểu lựa chọn provider bằng type()
+## 5. Ways to Select Providers Using type()
 
-Không phải mọi lựa chọn đều cần annotation. Nếu metadata được công bố ở cấp class, có thể lọc theo:
+Not every selection requires annotations. If metadata is published at the class level, you can filter by:
 
-### 5.1. Annotation của lớp provider
+### 5.1. Annotation on the Provider Class
 
 ~~~java
-// Mảnh minh họa: @Preferred cần @Retention(RUNTIME).
+// Illustrative snippet: @Preferred requires @Retention(RUNTIME).
 Provider<TextTransformer> p = loader.stream()
         .filter(d -> d.type().isAnnotationPresent(Preferred.class))
         .findFirst()
@@ -324,68 +324,68 @@ Provider<TextTransformer> p = loader.stream()
 TextTransformer service = p.get();
 ~~~
 
-Phù hợp khi cần metadata tĩnh như loại thuật toán, version/capability, mức ưu tiên hoặc trạng thái thử nghiệm. Đảm bảo annotation có ý nghĩa ổn định và không gắn host vào package implementation nếu có thể.
+Suitable when static metadata such as algorithm kind, version/capability, priority level, or experimental status is needed. Ensure annotations have stable semantics and avoid coupling the host to implementation packages where possible.
 
-### 5.2. Tên class hoặc package
+### 5.2. Class or Package Name
 
 ~~~java
-// Mảnh minh họa: dùng tên class để kiểm tra hay chẩn đoán.
+// Illustrative snippet: using class names for inspection or diagnostics.
 List<String> names = loader.stream()
         .map(d -> d.type().getName())
         .sorted()
         .toList();
 ~~~
 
-Tên class hữu ích cho log/diagnostic, nhưng **không phải định danh nghiệp vụ bền vững**. Refactor, shading JAR hoặc thay implementation có thể đổi tên class dù chức năng giữ nguyên. Nếu cấu hình người dùng chọn theo ID, ưu tiên ID có hợp đồng công khai thay vì so khớp tên class cụ thể.
+Class names are useful for logs/diagnostics, but **are not durable business identifiers**. Refactoring, JAR shading, or swapping implementations can change class names even when functionality stays the same. If user configuration selects by ID, prefer an ID with a public contract instead of matching concrete class names.
 
-### 5.3. Điều kiện về kiểu
+### 5.3. Type Conditions
 
 ~~~java
-// Mảnh minh họa: MarkerCapability là một interface khác.
+// Illustrative snippet: MarkerCapability is another interface.
 List<Provider<TextTransformer>> advanced = loader.stream()
         .filter(d -> MarkerCapability.class.isAssignableFrom(d.type()))
         .toList();
 ~~~
 
-Dùng khi hợp đồng cho phép provider triển khai một capability/marker khác; không nên lạm dụng downcast để gọi các phương thức chỉ tồn tại ở implementation. Nếu host cần nghiệp vụ bổ sung, hãy mô hình hóa rõ bằng một interface capability hoặc API mở rộng.
+Use when the contract allows providers to implement an additional capability/marker interface; avoid abusing downcasts to call methods that only exist on an implementation. If the host needs extra business operations, model them explicitly with a capability interface or extension API.
 
-### 5.4. Metadata chỉ có ở instance
+### 5.4. Metadata Available Only on an Instance
 
-Nếu lựa chọn đòi hỏi gọi **service.supports(format)**, đọc cấu hình động hoặc kiểm tra kết nối, **type() không thể cung cấp** thông tin đó. Khi ấy phải khởi tạo đối tượng cần thiết hoặc thiết kế service là **factory/descriptor service** có API metadata rõ ràng, để chính đối tượng provider nhẹ có thể quyết định có tạo đối tượng nghiệp vụ nặng hay không.
+If selection requires calling **service.supports(format)**, reading dynamic configuration, or checking a connection, **type() cannot provide** that information. In that case you must instantiate the necessary objects or design the service as a **factory/descriptor service** with an explicit metadata API, so a lightweight provider object itself can decide whether to create the heavyweight business object.
 
-**Ranh giới thiết kế:** type() cho thông tin **class**, get() cho **instance**. Không suy diễn mọi capability động từ Class, cũng không cố gọi constructor qua reflection từ **type()**.
+**Design boundary:** type() gives **class** information, get() gives an **instance**. Neither infer all dynamic capabilities from Class, nor attempt to invoke constructors via reflection from **type()**.
 
-## 6. Sự khác biệt quan trọng giữa classpath và named module
+## 6. Important Differences Between Classpath and Named Modules
 
-Mục này đặc biệt cần nhớ khi dùng **Provider.type()** để lọc annotation.
+This section is especially important to remember when using **Provider.type()** for annotation filtering.
 
-### 6.1. Provider đăng ký qua META-INF/services trên classpath
+### 6.1. Providers Registered via META-INF/services on the Classpath
 
-Trong ví dụ runnable phía trên, provider class **trực tiếp implements TextTransformer**, và ServiceLoader tạo đối tượng bằng **public no-arg constructor**.
+In the runnable example above, the provider class **directly implements TextTransformer**, and ServiceLoader creates the object using the **public no-arg constructor**.
 
-- **Provider.type()** thường chính là class triển khai đăng ký trong tệp cấu hình.
-- Đọc annotation đặt trên class đó bằng reflection có thể phục vụ lựa chọn.
-- **Provider.get()** thực hiện khởi tạo qua constructor do ServiceLoader quản lý.
-- Tệp cấu hình service và class provider phải có mặt trên classpath/class loader mà host sử dụng.
+- **Provider.type()** is typically the implementation class registered in the configuration file.
+- Reading annotations placed on that class via reflection can be used for selection.
+- **Provider.get()** performs instantiation via the constructor managed by ServiceLoader.
+- The service configuration file and provider class must be present on the classpath/class loader used by the host.
 
-### 6.2. Provider khai báo bằng provides ... with ... trong module-info.java
+### 6.2. Providers Declared with provides ... with ... in module-info.java
 
-Trong named module, provider có thể được khởi tạo theo **hai cách**:
+In a named module, a provider can be instantiated in **two ways**:
 
-1. **Provider constructor:** class triển khai service và có public no-arg constructor.
-2. **Provider method:** provider class khai báo phương thức **public static provider()** không tham số, trả về kiểu gán được cho service. Bản thân provider class có thể **không implements service**.
+1. **Provider constructor:** the class implements the service and has a public no-arg constructor.
+2. **Provider method:** the provider class declares a no-arg **public static provider()** method returning a type assignable to the service. The provider class itself might **not implement the service**.
 
-Ví dụ khai báo module (mảnh minh họa, không thuộc chương trình classpath chạy ở phần 4):
+Module declaration example (illustrative snippets, not part of the runnable classpath program in Section 4):
 
 ~~~java
-// module-info.java của module cung cấp service API
+// module-info.java of the module providing the service API
 module text.spi {
     exports demo.spi;
 }
 ~~~
 
 ~~~java
-// module-info.java của module triển khai
+// module-info.java of the implementation module
 module text.plugins {
     requires text.spi;
     provides demo.spi.TextTransformer
@@ -394,19 +394,19 @@ module text.plugins {
 ~~~
 
 ~~~java
-// module-info.java của module host
+// module-info.java of the host module
 module text.app {
     requires text.spi;
     uses demo.spi.TextTransformer;
 }
 ~~~
 
-Các provider được khai báo trong named module với **provides**. Host khai báo **uses**. Việc khai báo module không có nghĩa host cần **requires** trực tiếp module triển khai; provider nên có thể được thay thế mà host không phải phụ thuộc vào implementation module. Trong deployment module path, cần bảo đảm module provider được resolve vào module graph hoặc layer thích hợp.
+Providers are declared in named modules with **provides**. The host declares **uses**. Module declarations do not mean the host needs to directly **requires** the implementation module; providers should be replaceable without forcing the host to depend on implementation modules. In module-path deployments, ensure provider modules are resolved into the appropriate module graph or layer.
 
-**Trường hợp provider factory method:**
+**Provider factory method case:**
 
 ~~~java
-// Mảnh minh họa cho named module, không phải provider classpath.
+// Illustrative snippet for a named module, not a classpath provider.
 package demo.plugins;
 
 import demo.spi.TextTransformer;
@@ -418,28 +418,28 @@ public final class TransformerSupplier {
 }
 ~~~
 
-Với cấu hình **provides demo.spi.TextTransformer with demo.plugins.TransformerSupplier**, ServiceLoader gọi phương thức **provider()** để lấy instance; factory class không cần implements TextTransformer.
+With configuration **provides demo.spi.TextTransformer with demo.plugins.TransformerSupplier**, ServiceLoader calls the **provider()** method to obtain an instance; the factory class does not need to implement TextTransformer.
 
-**Điểm dễ nhầm:** trong trường hợp provider factory method, **Provider.type() trả về kiểu return đã khai báo của phương thức public static provider()**, *không nhất thiết là TransformerSupplier.class hay class runtime cụ thể của object được trả về*. Nếu chữ ký return là **TextTransformer**, type() có thể chỉ là **TextTransformer.class**. Vì vậy bộ lọc dựa trên annotation đặt ở class implementation thực tế sẽ **không còn hoạt động như trong ví dụ classpath**.
+**Common pitfall:** in the provider factory method case, **Provider.type() returns the declared return type of the public static provider() method**, *not necessarily TransformerSupplier.class or the concrete runtime class of the returned object*. If the return signature is **TextTransformer**, type() may just be **TextTransformer.class**. Consequently, filters relying on annotations placed on the actual implementation class will **no longer work as in the classpath example**.
 
-Để chọn theo metadata trong cả hai cơ chế, nên cân nhắc dùng một **service contract cho descriptor/factory** với các thông tin capability được công bố rõ, hoặc một registry metadata do host quản lý. Không dựa vào phỏng đoán rằng **type() luôn cho class của đối tượng cuối cùng**. Tài liệu API cũng không bảo đảm type() công khai/accessible hoặc có public no-arg constructor; dùng **get()** để lấy service, không tự **newInstance()** từ type().
+To select by metadata across both mechanisms, consider using a **service contract for a descriptor/factory** with explicitly published capability info, or a host-managed metadata registry. Do not rely on assuming **type() always gives the class of the final object**. The API docs also do not guarantee type() is public/accessible or has a public no-arg constructor; use **get()** to obtain the service, do not call **newInstance()** yourself from type().
 
-### 6.3. Không nhầm type() với getClass()
+### 6.3. Do Not Confuse type() with getClass()
 
-| Biểu thức | Đối tượng được mô tả | Khi nào dùng |
+| Expression | What it describes | When to use |
 |---|---|---|
-| **descriptor.type()** | Kiểu provider do ServiceLoader công bố, có thể là return type của provider() | Chọn/lọc theo metadata trước khi khởi tạo |
-| **descriptor.get().getClass()** | Class runtime của instance nhận được | Khi thực sự cần inspect object sau khi khởi tạo |
-| **descriptor.type().getDeclaredConstructor().newInstance()** | Tự thử khởi tạo bằng reflection | **Không nên dùng**: bỏ qua quy tắc provider() và encapsulation, có thể thất bại |
+| **descriptor.type()** | Provider type exposed by ServiceLoader, which may be the return type of provider() | Select/filter by metadata before instantiation |
+| **descriptor.get().getClass()** | Runtime class of the obtained instance | When you actually need to inspect the object after instantiation |
+| **descriptor.type().getDeclaredConstructor().newInstance()** | Manually attempting instantiation via reflection | **Do not use**: bypasses provider() rules and encapsulation, and may fail |
 
-Với named module, package của provider thường **không export** cho host để giữ tính đóng gói. ServiceLoader có thể khởi tạo qua cơ chế quy định, trong khi mã host không có quyền trực tiếp tạo object từ class provider.
+With named modules, the provider's package is usually **not exported** to the host to preserve encapsulation. ServiceLoader can instantiate it through the specified mechanism, whereas host code has no permission to directly construct objects from the provider class.
 
-## 7. Stream, lựa chọn một provider và tránh khởi tạo thừa
+## 7. Streams, Selecting a Single Provider, and Avoiding Extra Instantiation
 
-Một pipeline tốt đặt các phép toán theo thứ tự:
+A good pipeline places operations in order:
 
 ~~~java
-// Mảnh minh họa với @PluginKind và TextTransformer từ ví dụ.
+// Illustrative snippet using @PluginKind and TextTransformer from the example.
 TextTransformer selected = ServiceLoader.load(TextTransformer.class)
         .stream()
         .filter(p -> {
@@ -451,11 +451,11 @@ TextTransformer selected = ServiceLoader.load(TextTransformer.class)
         .get();
 ~~~
 
-Đối chiếu những cấu trúc dễ làm sai:
+Compare against an error-prone structure:
 
 ~~~java
-// Mảnh minh họa: get() trước filter nên có thể tạo mọi instance
-// bị duyệt, dù chỉ chọn được một provider cuối cùng.
+// Illustrative snippet: get() before filter may instantiate every
+// traversed provider, even though only one is finally selected.
 TextTransformer eager = ServiceLoader.load(TextTransformer.class)
         .stream()
         .map(ServiceLoader.Provider::get)
@@ -464,47 +464,47 @@ TextTransformer eager = ServiceLoader.load(TextTransformer.class)
         .orElseThrow();
 ~~~
 
-Trong ví dụ eager, Stream chỉ tạo các instance *khi được duyệt*, không phải tất cả ngay lúc gọi map; tuy nhiên mỗi phần tử được duyệt để kiểm tra đều phải qua **get()**, kể cả phần tử không được chọn. Nếu cần tìm provider theo loại cố định, việc lọc metadata trước get() tiết kiệm khởi tạo đáng kể.
+In the eager example, the Stream only creates instances *as elements are traversed*, not all at once when map is called; however, every element traversed to check the predicate must go through **get()**, including elements that are not selected. If you need to locate a provider by a fixed kind, filtering metadata before get() saves significant instantiation.
 
-Lưu ý các lựa chọn khác:
+Notes on other options:
 
-- **findFirst()** phụ thuộc thứ tự provider được khám phá. Ở named modules, thứ tự giữa các module/layer nhất định không được bảo đảm; không nên dựa vào “provider đầu tiên” để quyết định ưu tiên nghiệp vụ.
-- Nếu có nhiều provider phù hợp, hãy dùng tiêu chí lựa chọn tường minh, ví dụ ID, version/capability hoặc priority rõ ràng, đồng thời định nghĩa cách giải quyết trùng ID/tie.
-- **sorted(Comparator.comparing(p -> p.type().getName()))** tạo thứ tự chẩn đoán ổn định theo tên class nhưng có thể phải duyệt hết các provider; điều đó vẫn khác với tạo hết instance.
-- Khi cần khởi tạo nhiều provider đã chọn, dùng **filter(...).map(Provider::get)**; khi chỉ cần một, **filter(...).findFirst().orElseThrow().get()** diễn đạt ý định rõ hơn.
-- Một **Stream** chỉ được tiêu thụ một lần. Muốn làm hai phép duyệt riêng, tạo stream mới hoặc lưu các **Provider** descriptor vào collection như ví dụ.
+- **findFirst()** depends on provider discovery order. In named modules, order across certain modules/layers is not guaranteed; do not rely on "first provider" to decide business priority.
+- If multiple providers match, use an explicit selection criterion such as ID, version/capability, or explicit priority, and define how duplicate IDs/ties are resolved.
+- **sorted(Comparator.comparing(p -> p.type().getName()))** creates a deterministic diagnostic order by class name but may have to traverse every provider; that is still different from instantiating all of them.
+- When you need to instantiate multiple selected providers, use **filter(...).map(Provider::get)**; when you only need one, **filter(...).findFirst().orElseThrow().get()** expresses the intent more clearly.
+- A **Stream** can only be consumed once. To perform two separate traversals, create a new stream or store the **Provider** descriptors in a collection as shown in the example.
 
-## 8. Cache, reload và vòng đời instance
+## 8. Caching, Reloading, and Instance Lifecycle
 
-**ServiceLoader** quản lý cơ chế tìm/ghi nhớ những provider đã được nạp theo nhu cầu. Tuy nhiên cần tách ba khái niệm:
+**ServiceLoader** manages locating/remembering already-loaded providers on demand. However, three concepts must be separated:
 
-1. **Cache của ServiceLoader:** giúp quá trình duyệt tiếp theo xử lý các provider đã được nạp trước đó theo quy tắc của ServiceLoader.
-2. **Provider descriptor:** mô tả khả năng tạo/lấy service instance; nó không phải chính service instance.
-3. **Vòng đời của instance:** ServiceLoader.Provider.get() chỉ cam kết trả về một instance hợp lệ. Không được tự suy luận rằng mỗi lần get() luôn trả cùng một singleton, cũng không tự suy luận rằng mọi provider đều luôn tạo object mới.
+1. **ServiceLoader's cache:** lets subsequent traversals handle previously loaded providers according to ServiceLoader's rules.
+2. **Provider descriptor:** describes the ability to create/obtain a service instance; it is not the service instance itself.
+3. **Instance lifecycle:** ServiceLoader.Provider.get() only promises to return a valid instance. Do not infer that every call to get() always returns the same singleton, nor infer that every provider always creates a new object.
 
-Nếu cần singleton, per-request, per-session hoặc pool, chính **hợp đồng service/provider** phải quy định. Đặc biệt, provider method của named module có thể trả đối tượng được cache theo chính sách riêng; mã host không nên dựa vào số lần constructor chạy trong môi trường khác với ví dụ.
+If you need singleton, per-request, per-session, or pooled semantics, the **service/provider contract itself** must specify it. In particular, a named module's provider method may return a cached object under its own policy; host code should not depend on how many times a constructor runs in environments different from the example.
 
-**reload()** xóa cache provider của ServiceLoader để việc tìm/nạp có thể thực hiện lại theo cấu hình khả kiến lúc đó. Sau khi gọi **reload()**, cần **bỏ stream/iterator đã tạo trước đó và tạo mới**, vì nguồn của chúng có thể ném **ConcurrentModificationException**. Reload **không tự unload class**, không tự đóng các instance cũ, không bảo đảm tải phiên bản JAR đã thay nếu classloader/module layer không đổi.
+**reload()** clears ServiceLoader's provider cache so lookup/loading can run again against whatever configuration is visible at that time. After calling **reload()**, you must **discard previously created streams/iterators and create new ones**, because their backing source may throw **ConcurrentModificationException**. Reload **does not automatically unload classes**, does not close old instances, and does not guarantee loading a replaced JAR version if the classloader/module layer has not changed.
 
-Nếu plugin giữ tài nguyên, host cần chính sách dừng/đóng riêng. ServiceLoader không thay thế lifecycle manager.
+If plugins hold resources, the host needs its own stop/close policy. ServiceLoader is not a replacement for a lifecycle manager.
 
-## 9. Lỗi, class loader và tính an toàn
+## 9. Errors, Class Loaders, and Safety
 
-### 9.1. ServiceConfigurationError có thể xuất hiện trước và sau get()
+### 9.1. ServiceConfigurationError Can Occur Before and After get()
 
-**ServiceConfigurationError** có thể xảy ra khi:
+**ServiceConfigurationError** can happen when:
 
-- Tệp META-INF/services sai định dạng, class được khai báo không tồn tại, không visible hoặc không triển khai service.
-- Named module có khai báo provider sai quy tắc constructor/provider method.
-- Khi **get()** gọi constructor hoặc static provider() mà phương thức ném exception hoặc provider() trả về null.
-- Quá trình khám phá/nạp service gặp lỗi liên quan đến môi trường/module/classloader.
+- The META-INF/services file is malformed, or the declared class does not exist, is not visible, or does not implement the service.
+- A named module declares a provider violating constructor/provider method rules.
+- When **get()** invokes the constructor or static provider() and the method throws an exception or provider() returns null.
+- Service discovery/loading encounters environment/module/classloader errors.
 
-Với stream, một terminal operation có thể phát lỗi **ngay trong giai đoạn khám phá/type()**, dù chưa gọi get(). Vì vậy cách hiểu “chỉ get() mới có lỗi” là sai.
+With streams, a terminal operation can fail **right during the discovery/type() phase**, even before calling get(). Thus the belief that "only get() can fail" is wrong.
 
-**ServiceConfigurationError kế thừa Error.** Thường nên xử lý nó tại **ranh giới tải plugin** để báo đúng service, provider và cấu hình lỗi; tránh nuốt lỗi rồi âm thầm coi như không có provider. Không có bảo đảm rằng cứ bỏ qua một provider lỗi là có thể duyệt tiếp toàn bộ provider còn lại một cách ổn định.
+**ServiceConfigurationError extends Error.** It is usually best to handle it at the **plugin loading boundary** to report the exact service, provider, and broken configuration; avoid swallowing the error and silently treating it as zero providers. There is no guarantee that skipping one failing provider lets you reliably continue traversing all remaining providers.
 
 ~~~java
-// Mảnh minh họa tại ranh giới plugin loading.
+// Illustrative snippet at the plugin loading boundary.
 try {
     ServiceLoader.load(TextTransformer.class)
             .stream()
@@ -514,35 +514,35 @@ try {
 }
 ~~~
 
-### 9.2. Chọn đúng class loader hoặc module layer
+### 9.2. Choosing the Right Class Loader or Module Layer
 
-- **ServiceLoader.load(ServiceType.class)** dùng **thread context class loader**.
-- **ServiceLoader.load(ServiceType.class, someClassLoader)** dùng class loader chỉ định làm điểm bắt đầu tìm provider.
-- **ServiceLoader.load(moduleLayer, ServiceType.class)** tìm provider trong layer được chỉ định và các layer cha theo quy tắc của API.
+- **ServiceLoader.load(ServiceType.class)** uses the **thread context class loader**.
+- **ServiceLoader.load(ServiceType.class, someClassLoader)** uses the specified class loader as the starting point for locating providers.
+- **ServiceLoader.load(moduleLayer, ServiceType.class)** searches providers in the specified layer and its parent layers according to the API rules.
 
-Nếu API tìm được **0 provider** dù file cấu hình tồn tại, cần kiểm tra service name, classpath/module path, context classloader, resource visibility, **uses/provides** và module resolution. Trong plugin host chạy nhiều ứng dụng/module độc lập, không nên cache một ServiceLoader dùng toàn JVM khi context classloader có thể khác nhau.
+If the API finds **0 providers** even though the configuration file exists, check the service name, classpath/module path, context classloader, resource visibility, **uses/provides**, and module resolution. In a plugin host running multiple independent applications/modules, do not cache a single JVM-wide ServiceLoader when context classloaders can differ.
 
-**ServiceLoader instance không thread-safe.** Không cho nhiều thread cùng thao tác trên một ServiceLoader mà không điều phối. Cũng không dùng **parallel()** trên stream của loader như một cách tăng tốc mặc định; thứ tự, cache và cấu hình provider cần được xử lý an toàn theo hợp đồng.
+**A ServiceLoader instance is not thread-safe.** Do not let multiple threads operate on the same ServiceLoader without coordination. Also do not use **parallel()** on the loader's stream as a default speedup; ordering, caching, and provider configuration must be handled safely per contract.
 
-### 9.3. Không coi việc “chỉ xem kiểu” là sandbox
+### 9.3. Do Not Treat "Type-Only Inspection" as a Sandbox
 
-Không tạo service instance trước khi chọn giúp giảm side effects của **constructor/provider()**, nhưng việc nạp class/đọc metadata vẫn liên quan tới mã và phụ thuộc bên ngoài. Khi **get()** được gọi, code provider thực thi trong process của host. **ServiceLoader không cung cấp cách ly bảo mật**, timeout, hạn ngạch tài nguyên hay tự động rollback plugin lỗi. Nếu cần chạy plugin không tin cậy, thiết kế cơ chế cách ly/giám sát phù hợp bên ngoài ServiceLoader.
+Not creating service instances before selection reduces side effects of **constructor/provider()**, yet loading classes and reading metadata still involve external code and dependencies. Once **get()** is called, provider code executes inside the host process. **ServiceLoader does not provide security isolation**, timeouts, resource quotas, or automatic rollback for faulty plugins. If you need to run untrusted plugins, design appropriate isolation/monitoring outside ServiceLoader.
 
-## 10. Trường hợp lựa chọn nào nên dùng type() và trường hợp nào nên dùng get()?
+## 10. When Should Selection Use type() vs. get()?
 
-| Nhu cầu | Cách đề xuất | Lý do |
+| Need | Recommended Approach | Reason |
 |---|---|---|
-| Liệt kê tên các provider được khai báo để hiển thị/log | **stream().map(p -> p.type().getName())** | Chưa cần service instance |
-| Chọn provider bằng annotation RUNTIME trên provider type | **stream().filter(p -> p.type().getAnnotation(...))** | Lọc trước, get sau |
-| Chọn một provider theo ID ở cấp metadata | **stream + metadata/registry + findFirst + get** | Không khởi tạo provider không được chọn |
-| Chọn theo khả năng động, ví dụ supports(input) trên service | Có thể phải **get()** rồi gọi capability; hoặc thiết kế descriptor/factory service | type() không đại diện trạng thái runtime |
-| Chạy tất cả provider được khám phá | **loader.iterator()** hoặc **stream().map(Provider::get)** | Mỗi provider cần instance để thực thi |
-| Named module có static provider() trả về interface chung | Tránh suy luận class implementation từ **type()** | type() trả declared return type của provider() |
-| Cần đóng/mở plugin, quản lý scope hoặc unload | Bổ sung lifecycle manager/registry/classloader policy | ServiceLoader chỉ giải quyết khám phá và lấy provider |
+| List declared provider names for display/logging | **stream().map(p -> p.type().getName())** | Service instance not needed yet |
+| Select provider by RUNTIME annotation on provider type | **stream().filter(p -> p.type().getAnnotation(...))** | Filter first, get later |
+| Select one provider by metadata-level ID | **stream + metadata/registry + findFirst + get** | Does not instantiate unselected providers |
+| Select by dynamic capability, e.g. supports(input) on service | May need **get()** then check capability; or design a descriptor/factory service | type() does not represent runtime state |
+| Run all discovered providers | **loader.iterator()** or **stream().map(Provider::get)** | Each provider needs an instance to execute |
+| Named module with static provider() returning shared interface | Avoid inferring implementation class from **type()** | type() returns the declared return type of provider() |
+| Need to open/close plugins, manage scope, or unload | Add a lifecycle manager/registry/classloader policy | ServiceLoader only handles discovery and obtaining providers |
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-**Câu 1.** Lệnh sau có tạo tất cả service instance không?
+**Question 1.** Does the following statement create all service instances?
 
 ~~~java
 List<Class<? extends TextTransformer>> types =
@@ -552,40 +552,40 @@ List<Class<? extends TextTransformer>> types =
                 .toList();
 ~~~
 
-**Trả lời:** Không chủ động yêu cầu tạo service instance. Nó duyệt và đọc kiểu của các provider, có thể nạp/kiểm tra class và ném lỗi cấu hình, nhưng không gọi Provider.get().
+**Answer:** It does not actively request creating service instances. It traverses and reads the types of providers, may load/verify classes and throw configuration errors, but does not call Provider.get().
 
-**Câu 2.** Vì sao lọc **p.type().isAnnotationPresent(...)** có thể sai khi named module sử dụng **public static provider()**?
+**Question 2.** Why can filtering with **p.type().isAnnotationPresent(...)** fail when a named module uses **public static provider()**?
 
-**Trả lời:** type() trả về **kiểu trả về đã khai báo** của provider(), có thể chỉ là service interface hoặc một kiểu chung khác. Annotation đặt trên factory class hay class runtime do factory trả về không nhất thiết xuất hiện ở kiểu ấy.
+**Answer:** type() returns the **declared return type** of provider(), which might just be the service interface or another general type. Annotations placed on the factory class or the runtime class returned by the factory do not necessarily appear on that type.
 
-**Câu 3.** Dùng **findFirst().get().transform(...)** có nghĩa là provider luôn là một singleton không?
+**Question 3.** Does using **findFirst().get().transform(...)** mean the provider is always a singleton?
 
-**Trả lời:** Không. Ở đây **get()** là lời gọi trên Provider để nhận một service instance. Hợp đồng singleton/multiple instances thuộc chính sách provider; không suy đoán chỉ từ đoạn code.
+**Answer:** No. Here **get()** is the call on Provider to obtain a service instance. Singleton vs. multiple-instance semantics belong to the provider's policy; do not assume from the snippet alone.
 
-**Câu 4.** Gọi **reload()** có khiến stream tạo trước đó tự động cập nhật danh sách provider không?
+**Question 4.** Does calling **reload()** make a previously created stream automatically refresh its provider list?
 
-**Trả lời:** Không. Stream/iterator cũ phải được bỏ; chúng có thể ném **ConcurrentModificationException** sau khi cache được xóa. Tạo stream mới từ ServiceLoader sau reload và tự quản lý vòng đời các instance cũ.
+**Answer:** No. Old streams/iterators must be discarded; they may throw **ConcurrentModificationException** after the cache is cleared. Create a new stream from ServiceLoader after reload and manage the lifecycle of old instances yourself.
 
-**Câu 5.** Trong ví dụ hoàn chỉnh, vì sao ReverseTransformer không in dòng Construct?
+**Question 5.** In the complete example, why did ReverseTransformer not print a Construct line?
 
-**Trả lời:** Chương trình chỉ duyệt **Provider descriptor** của cả hai class và đọc annotation; chỉ **chosen.get()** trên UppercaseTransformer tạo service instance. Không có lệnh get() cho ReverseTransformer.
+**Answer:** The program only traversed **Provider descriptors** for both classes and read their annotations; only **chosen.get()** on UppercaseTransformer created a service instance. There was no get() call for ReverseTransformer.
 
-## 12. Checklist triển khai thực tế
+## 12. Practical Implementation Checklist
 
-Khi thiết kế một điểm mở rộng có nhiều provider, hãy kiểm tra:
+When designing an extension point with multiple providers, verify:
 
-1. **Service contract** nhỏ và rõ; phương thức, exception, đồng thời và vòng đời được mô tả cụ thể.
-2. **Registration** đúng: tên service file và provider class trên classpath, hoặc **uses/provides** và module resolution cho named modules.
-3. **Metadata dùng để chọn** thực sự có sẵn qua **type()** trong cơ chế provider đang sử dụng; có annotation **RUNTIME** nếu lọc bằng reflection.
-4. **Pipeline** đặt filter/sort bằng metadata trước **Provider.get()** và chỉ tạo instance sau khi quyết định.
-5. **Không dựa vào thứ tự** provider ngẫu nhiên cho chính sách ưu tiên; xử lý provider không có, trùng ID và lỗi cấu hình một cách tường minh.
-6. **Không tự khởi tạo từ type()**: sử dụng **get()** để ServiceLoader thực hiện đúng cơ chế constructor/provider method và module encapsulation.
-7. **Không chia sẻ ServiceLoader đồng thời**; sau **reload()**, tạo stream/iterator mới và quản lý instance cũ đúng vòng đời.
-8. **Kiểm thử tối thiểu:** hai provider, chỉ một được chọn, constructor của provider bị loại không chạy, thiếu provider tạo lỗi phù hợp, trường hợp ServiceConfigurationError và named-module factory method được giải thích/test riêng.
+1. **Service contract** is small and clear; methods, exceptions, concurrency, and lifecycle are explicitly specified.
+2. **Registration** is accurate: service file name and provider class on the classpath, or **uses/provides** and module resolution for named modules.
+3. **Metadata used for selection** is actually available via **type()** under the provider mechanism in use; **RUNTIME** retention is present if filtering via reflection.
+4. **Pipeline** places metadata filtering/sorting before **Provider.get()** and instantiates only after deciding.
+5. **Do not rely on arbitrary provider order** for priority policies; handle missing providers, duplicate IDs, and configuration errors explicitly.
+6. **Do not instantiate manually from type()**: use **get()** so ServiceLoader applies the proper constructor/provider-method rules and module encapsulation.
+7. **Do not share ServiceLoader concurrently**; after **reload()**, create a new stream/iterator and properly manage old instances' lifecycles.
+8. **Minimal tests:** two providers with only one selected, excluded provider's constructor never runs, missing provider produces an appropriate error, and ServiceConfigurationError and named-module factory method cases are explained/tested separately.
 
-**Điểm cần ghi nhớ:** **stream()** đưa ra các descriptor, **Provider.type()** cho phép xem/lọc thông tin kiểu trước khi khởi tạo, còn **Provider.get()** là thời điểm host yêu cầu service instance. Thiết kế chính sách lựa chọn bằng metadata sẽ tận dụng được sự tách biệt này, nhưng luôn phải chú ý sự khác nhau giữa classpath provider và named-module provider factory.
+**Key takeaway:** **stream()** yields descriptors, **Provider.type()** lets you inspect/filter type information before instantiation, and **Provider.get()** is when the host requests a service instance. Designing selection policies around metadata takes full advantage of this separation, while always accounting for the differences between classpath providers and named-module provider factories.
 
-### Tài liệu chuẩn để đối chiếu
+### Standard References
 
 - Oracle Java SE 17 API — **java.util.ServiceLoader**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
 - Oracle Java SE 17 API — **java.util.ServiceLoader.Provider**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.Provider.html

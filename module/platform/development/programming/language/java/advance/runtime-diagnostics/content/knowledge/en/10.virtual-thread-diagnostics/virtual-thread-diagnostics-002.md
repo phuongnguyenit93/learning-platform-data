@@ -1,33 +1,33 @@
-# 10.2. Vì sao số platform thread không đại diện cho tổng số virtual thread
+# 10.2. Why Platform Thread Count Does Not Represent Total Virtual Threads
 
-Trong ứng dụng Java trước đây, người vận hành thường lấy số lượng thread từ `ThreadMXBean`, JConsole, `top -H` hoặc thread dump rồi suy luận mức độ đồng thời: “JVM chỉ có 80 threads thì chắc chỉ có khoảng 80 công việc đang chạy hoặc chờ.” Suy luận này **không đúng** khi ứng dụng sử dụng **virtual threads**.
+In earlier Java applications, operators often took the thread count from `ThreadMXBean`, JConsole, `top -H`, or a thread dump and inferred concurrency from it: "The JVM only has 80 threads, so there must only be around 80 tasks running or waiting." That inference is **false** when an application uses **virtual threads**.
 
-Một JVM có thể có **hàng nghìn virtual threads đang sống, phần lớn chờ I/O**, nhưng chỉ cần một số lượng **platform carrier threads** tương đối nhỏ để thực thi đoạn mã Java khi các virtual threads sẵn sàng chạy. Ngược lại, platform thread count còn bao gồm HTTP workers, JVM service threads và các threads khác, không phải mọi platform thread đều là carrier. Vì vậy, **không tồn tại công thức đơn giản để đổi “số platform threads” thành “tổng số virtual threads”.**
+A JVM can have **thousands of live virtual threads, mostly waiting on I/O**, while needing only a relatively small number of **platform carrier threads** to execute Java code when virtual threads become ready to run. Conversely, the platform thread count also includes HTTP workers, JVM service threads, and other threads—not every platform thread is a carrier. Therefore, **there is no simple formula to convert "number of platform threads" into "total number of virtual threads."**
 
-Bài học này thuộc **10. Virtual thread**, tập trung đúng câu hỏi: **vì sao đếm platform threads không phản ánh tổng số virtual threads, và phải quan sát hai loại thread như thế nào để chẩn đoán chính xác?**
+This lesson belongs to **10. Virtual thread** and focuses directly on the question: **why does counting platform threads fail to reflect total virtual threads, and how should you observe both thread types to diagnose accurately?**
 
-> **Yêu cầu phiên bản:** Virtual threads trở thành tính năng chính thức từ **JDK 21 (JEP 444)**. Các API `Thread.ofVirtual()`, `Thread.isVirtual()` và `Executors.newVirtualThreadPerTaskExecutor()` trong bài dùng **JDK 21+**, **không biên dịch trên Java 17**. Java 19/20 từng cung cấp virtual threads dưới dạng preview với điều kiện khác; không xem đó là API Java 17.
+> **Version requirement:** Virtual threads became a permanent feature in **JDK 21 (JEP 444)**. The `Thread.ofVirtual()`, `Thread.isVirtual()`, and `Executors.newVirtualThreadPerTaskExecutor()` APIs in this lesson require **JDK 21+** and **do not compile on Java 17**. Java 19/20 offered virtual threads as a preview under different conditions; do not treat them as Java 17 APIs.
 
-## 1. Hai loại Java thread, hai mô hình quản lý
+## 1. Two Types of Java Threads, Two Management Models
 
-Từ Java 21, một đối tượng `java.lang.Thread` có thể là **platform thread** hoặc **virtual thread**.
+Starting in Java 21, a `java.lang.Thread` object can be either a **platform thread** or a **virtual thread**.
 
-| Khía cạnh | Platform thread | Virtual thread |
+| Aspect | Platform thread | Virtual thread |
 | --- | --- | --- |
-| Đơn vị Java | Một `Thread` | Một `Thread`, vẫn có identity/stack/exception |
-| Ánh xạ OS | Thường gắn một OS thread trong suốt vòng đời | **Không** giữ một OS thread cố định cho toàn vòng đời |
-| Ai lập lịch? | OS lập lịch OS thread | JVM lập lịch virtual thread lên platform **carrier**; OS lập lịch carrier |
-| Khi chờ I/O được JDK hỗ trợ | Platform/OS thread có thể phải chờ | JVM thường **suspend/unmount** virtual thread, giải phóng carrier |
-| Chi phí khởi tạo/stack | Tương đối cao, OS stack/tài nguyên native | Nhẹ hơn, stack có thể tăng/giảm theo nhu cầu |
-| Phù hợp nhất | Tác vụ đa dạng, threads cần sống lâu | Rất nhiều tác vụ concurrent, chủ yếu **đợi I/O** |
-| Số lượng thường dùng | Bị giới hạn thực tế bởi OS threads và tài nguyên | Có thể lớn hơn platform thread count nhiều lần |
-| Khả năng tăng CPU | Không làm số core tăng | **Không** làm CPU work nhanh hơn hoặc tạo thêm cores |
+| Java unit | A `Thread` | A `Thread`, still possessing identity/stack/exception |
+| OS mapping | Typically bound to one OS thread for its entire lifetime | Does **not** hold a fixed OS thread for its entire lifetime |
+| Who schedules it? | The OS schedules the OS thread | The JVM schedules the virtual thread onto a platform **carrier**; the OS schedules the carrier |
+| When waiting on JDK-supported I/O | The platform/OS thread may have to wait | The JVM typically **suspends/unmounts** the virtual thread, freeing the carrier |
+| Creation/stack cost | Relatively high, OS stack/native resources | Lighter, stack can grow/shrink as needed |
+| Best suited for | Diverse tasks, threads that must be long-lived | Very large numbers of concurrent tasks, mostly **waiting on I/O** |
+| Typical counts | Practically limited by OS threads and resources | Can be many times larger than the platform thread count |
+| Ability to increase CPU | Does not increase core count | Does **not** make CPU work faster or create more cores |
 
-Virtual thread không phải “thread giả” về mặt ngữ nghĩa chương trình. Nó là một `Thread` thật trong Java: có `Thread.currentThread()`, interrupt, `join`, `ThreadLocal`, stack trace, uncaught exception handler và các quy tắc đồng bộ phù hợp. Khác biệt chủ yếu nằm ở **cách JVM gắn việc thực thi đó với OS threads**.
+A virtual thread is not a "fake thread" in program semantics. It is a real `Thread` in Java: it has `Thread.currentThread()`, interrupts, `join`, `ThreadLocal`, stack traces, an uncaught exception handler, and standard synchronization rules. The primary difference lies in **how the JVM binds that execution to OS threads**.
 
-### 1.1. Platform threads: thường một Java thread tương ứng một OS thread
+### 1.1. Platform Threads: Typically One Java Thread Maps to One OS Thread
 
-Ví dụ truyền thống:
+Traditional example:
 
 ~~~java
 Thread platform = Thread.ofPlatform()
@@ -35,13 +35,13 @@ Thread platform = Thread.ofPlatform()
         .start(() -> doWork());
 ~~~
 
-Đây là **đoạn minh họa, không phải chương trình độc lập**; `doWork()` là logic ứng dụng. Khi `platform-worker` tồn tại, nó thường chiếm một OS thread; khi gọi blocking I/O, thread đó có thể bị OS cho chờ, nhưng nền tảng OS thread vẫn gắn với platform thread.
+This is an **illustrative snippet, not a standalone program**; `doWork()` represents application logic. While `platform-worker` exists, it typically occupies an OS thread; when making blocking I/O calls, that thread may be put to wait by the OS, yet the underlying OS thread remains bound to the platform thread.
 
-Một thread pool dùng platform threads có thể giữ nhiều worker chờ task. Pool size 100 không có nghĩa đang xử lý 100 requests thành công: một số có thể idle, một số bị block và một số đang chạy.
+A thread pool backed by platform threads can keep many workers waiting for tasks. A pool size of 100 does not mean 100 requests are being actively processed successfully: some may be idle, some blocked, and some running.
 
-### 1.2. Virtual threads: một Java thread không phải một OS thread
+### 1.2. Virtual Threads: One Java Thread Is Not One OS Thread
 
-Ví dụ từ Java 21:
+Java 21 example:
 
 ~~~java
 Thread virtual = Thread.ofVirtual()
@@ -49,22 +49,22 @@ Thread virtual = Thread.ofVirtual()
         .start(() -> doWork());
 ~~~
 
-Cũng là đoạn minh họa; JDK 21+ mới có `Thread.ofVirtual()`. Virtual thread có thể được **mount** lên một carrier platform thread khi cần thực thi, sau đó **unmount** khi chờ một hoạt động mà runtime hỗ trợ, để carrier chuyển sang chạy virtual thread khác.
+Also an illustrative snippet; JDK 21+ is required for `Thread.ofVirtual()`. A virtual thread can be **mounted** onto a carrier platform thread when it needs to execute, then **unmounted** when waiting on a runtime-supported operation so the carrier can switch to another virtual thread.
 
-`Thread.currentThread()` trong virtual thread trả về **virtual thread đó**, không phải carrier. Java code thường **không có API chuẩn để biết “carrier thread hiện tại của tôi là ai”**; không nên cố đồng nhất virtual-thread ID với OS/native thread ID.
+`Thread.currentThread()` inside a virtual thread returns **that virtual thread**, not the carrier. Java code generally **has no standard API to ask "who is my current carrier thread?"**; do not attempt to equate a virtual-thread ID with an OS/native thread ID.
 
-## 2. Mount, unmount và carrier: lý do cốt lõi của chênh lệch số lượng
+## 2. Mount, Unmount, and Carrier: The Core Reason Counts Diverge
 
-Mô hình khái niệm:
+Conceptual model:
 
 ~~~text
 JVM logical work:
-  VT-1  ─── chạy ── chờ HTTP ─────────── resume ── kết thúc
-  VT-2  ── chạy ── chờ DB ──────────────────────── resume
-  VT-3  ───────────── chạy ── chờ queue ───────── resume
-  VT-4  ───────────────────── chạy ── xong
+  VT-1  ─── run ─── wait HTTP ─────────── resume ── finish
+  VT-2  ── run ─── wait DB ──────────────────────── resume
+  VT-3  ───────────── run ─── wait queue ────────── resume
+  VT-4  ───────────────────── run ─── done
   ...
-  VT-1000 ── chờ I/O / timer / signal
+  VT-1000 ── wait I/O / timer / signal
 
 JVM scheduler:
   carrier-P1 ── VT-1 ── VT-3 ── VT-41 ── ...
@@ -73,92 +73,92 @@ JVM scheduler:
   ...
 
 Operating system:
-  các carrier-P* là các OS threads được OS lập lịch lên CPU cores
+  carrier-P* are OS threads scheduled by the OS onto CPU cores
 ~~~
 
-Sơ đồ **minh họa**, không khẳng định một virtual thread có affinity cố định với carrier. Một virtual thread có thể chạy trên **các carrier khác nhau ở những lần được lên lịch khác nhau**. Một carrier có thể phục vụ **nhiều** virtual threads theo thời gian.
+This diagram is **illustrative** and does not assert that a virtual thread has fixed affinity to a carrier. A virtual thread can run on **different carriers across different scheduling turns**. A carrier can serve **many** virtual threads over time.
 
-**Mount:** JVM gắn execution của virtual thread đang sẵn sàng với một carrier. Code Java tiếp tục chạy trên OS thread mà carrier sử dụng.
+**Mount:** The JVM attaches the execution of a ready virtual thread to a carrier. Java code then runs on the OS thread backing that carrier.
 
-**Unmount:** Khi virtual thread thực hiện một blocking operation hỗ trợ việc tạm dừng, JVM lưu trạng thái thực thi phù hợp và ngắt việc gắn carrier, để carrier có thể chạy virtual thread khác. Khi điều kiện hoàn tất, virtual thread trở lại trạng thái có thể được lập lịch.
+**Unmount:** When the virtual thread performs a blocking operation that supports suspension, the JVM saves the relevant execution state and detaches the carrier so the carrier can run another virtual thread. Once the wait condition completes, the virtual thread returns to a schedulable state.
 
-**Parked/waiting virtual thread vẫn sống:** nó có thể chưa hoàn thành, đang đợi socket, `CountDownLatch`, sleep hoặc I/O, nhưng **không chiếm carrier trong toàn bộ khoảng chờ** nếu hoạt động đó được hỗ trợ unmount và không bị pinning.
+**A parked/waiting virtual thread is still alive:** it may not be finished yet, waiting on a socket, `CountDownLatch`, sleep, or I/O, yet **it does not occupy a carrier for the entire wait** if that operation supports unmounting and is not pinned.
 
-Vì vậy cùng lúc có thể có:
-- 2.000 virtual threads đang sống theo logic ứng dụng;
-- phần lớn đang đợi remote I/O;
-- vài chục platform threads trong JVM, bao gồm carrier và nhiều threads phục vụ mục đích khác;
-- chỉ một số ít virtual threads thực sự chạy code tại một thời điểm.
+Therefore, at the same instant you can have:
+- 2,000 virtual threads alive according to application logic;
+- most of them waiting on remote I/O;
+- a few dozen platform threads in the JVM, including carriers and many other purpose-built threads;
+- only a small number of virtual threads actively executing code at any single moment.
 
-Đây **không phải phép đo thực tế** và không có tỷ lệ mặc định “1 platform = 100 virtual”; tỷ lệ thay đổi theo tải, JDK, OS, kiểu chờ, scheduler, tài nguyên, cấu hình và mã ứng dụng.
+This is **not a real-world measurement**, and there is no default ratio like "1 platform = 100 virtual"; the ratio varies with load, JDK, OS, wait patterns, scheduler, resources, configuration, and application code.
 
-### 2.1. Vì sao “virtual thread đang chờ” không làm OS thread count tăng từng chiếc?
+### 2.1. Why "Waiting Virtual Threads" Do Not Increment OS Thread Count One-for-One
 
-Với platform thread truyền thống, mỗi thread chờ vẫn thường có OS thread tương ứng. Với virtual thread, một thao tác chờ I/O/timer được runtime hỗ trợ có thể làm virtual thread **unmounted**, nên OS thread cũ có thể phục vụ công việc khác. Có nhiều virtual threads “đang sống” nhưng chúng **không cùng chiếm OS threads**.
+With traditional platform threads, each waiting thread typically still holds a corresponding OS thread. With virtual threads, a runtime-supported I/O or timer wait can **unmount** the virtual thread, allowing the underlying OS thread to serve other work. Many virtual threads are "alive," yet they **do not simultaneously occupy OS threads**.
 
-Không phải mọi chỗ chờ đều tự unmount. Có những tình huống **pinning** hoặc native/foreign blocking, thư viện không tương thích hoặc code CPU-bound khiến carrier bị chiếm lâu; chúng làm giảm khả năng mở rộng. Cần xét phiên bản JDK ở phần 9.
+Not every wait unmounts automatically. Scenarios involving **pinning**, native/foreign blocking, incompatible libraries, or CPU-bound code can keep a carrier occupied for a long time, reducing scalability. See Section 9 for JDK version considerations.
 
-### 2.2. Vì sao số carrier cũng không bằng số virtual threads RUNNABLE?
+### 2.2. Why Carrier Count Also Does Not Equal RUNNABLE Virtual Threads
 
-Scheduler có chính sách parallelism, số processors và tình trạng hiện tại. Số carrier đang chạy có thể nhỏ hơn số virtual threads đang sẵn sàng, vì CPU cores hữu hạn. Số platform threads quan sát ở OS còn gồm compiler/GC/JVM service/background threads và platform threads riêng của ứng dụng.
+The scheduler has its own parallelism policy, processor count, and current state. The number of actively running carriers can be smaller than the number of ready virtual threads because CPU cores are finite. The platform thread count observed at the OS level also includes compiler/GC/JVM service/background threads and application-owned platform threads.
 
-Không thể dùng cách đếm platform threads rồi:
-- trừ đi vài thread JVM để lấy số carrier;
-- nhân với một hệ số để suy virtual count;
-- coi số carrier là số requests đang xử lý;
-- suy từ carrier count rằng không có queue hoặc không có blocking.
+You cannot take the platform thread count and:
+- subtract a few JVM threads to get the carrier count;
+- multiply by a constant factor to estimate virtual thread count;
+- treat carrier count as the number of in-flight requests;
+- infer from carrier count that no queuing or blocking is happening.
 
-**Carrier count, virtual-live count, task-inflight count và số cores là các đại lượng khác nhau.**
+**Carrier count, live virtual count, in-flight task count, and core count are distinct quantities.**
 
-## 3. Cần phân biệt bốn phép đếm thường bị trộn
+## 3. Four Counts That Are Commonly Conflated
 
-| Đại lượng | Câu hỏi nó trả lời | Giới hạn |
+| Metric | Question It Answers | Limitations |
 | --- | --- | --- |
-| **Live platform threads** | Bao nhiêu platform threads JVM hiện có? | Không bao gồm virtual threads |
-| **Live virtual threads** | Bao nhiêu virtual `Thread` chưa kết thúc tại thời điểm đo? | Không nhất thiết bằng request đang chạy, CPU-bound hay đang mount |
-| **Active/in-flight tasks hoặc requests** | Bao nhiêu công việc nghiệp vụ chưa hoàn thành? | Một request có thể dùng nhiều tasks/threads, hoặc không dùng thread riêng |
-| **OS native threads** | Kernel có bao nhiêu threads của process? | Không liệt kê từng virtual thread không mount như OS thread |
-| **Carrier pool size/parallelism** | Scheduler đang có bao nhiêu carrier hoặc nhắm mục tiêu chạy song song? | Không đếm total virtual threads và còn phụ thuộc version/config |
+| **Live platform threads** | How many platform threads does the JVM currently have? | Excludes virtual threads |
+| **Live virtual threads** | How many virtual `Thread` instances have not yet terminated at measurement time? | Does not necessarily equal running requests, CPU-bound work, or mounted threads |
+| **Active/in-flight tasks or requests** | How many business units of work are incomplete? | One request may use multiple tasks/threads, or none of its own |
+| **OS native threads** | How many threads does the kernel have for the process? | Does not list unmounted virtual threads as OS threads |
+| **Carrier pool size/parallelism** | How many carriers does the scheduler have or target for parallel execution? | Does not count total virtual threads and depends on version/config |
 
-### 3.1. Ví dụ số học để thấy vì sao không thể quy đổi
+### 3.1. An Arithmetic Example Showing Why Conversion Fails
 
-Giả sử **mang tính minh họa**:
-- 1.000 requests đã bắt đầu, mỗi request sử dụng một virtual thread.
-- 950 virtual threads đang đợi I/O/timer; 50 virtual threads còn lại ở trạng thái sẵn sàng hoặc đang thực thi.
-- JVM có 24 platform threads (bao gồm carriers, GC/compiler và background).
+Consider an **illustrative** scenario:
+- 1,000 requests have started, each using one virtual thread.
+- 950 virtual threads are waiting on I/O/timers; the remaining 50 are ready or executing.
+- The JVM has 24 platform threads (including carriers, GC/compiler, and background threads).
 
-Bạn **không thể** suy số virtual threads là 24, cũng không thể nhân 24 với một hằng số để ra 1.000. Nếu request cũ hoàn tất và request mới bắt đầu, số virtual threads thay đổi độc lập với số platform threads trong một khoảng thời gian.
+You **cannot** conclude there are 24 virtual threads, nor multiply 24 by a constant to get 1,000. As old requests finish and new ones arrive, the virtual thread count changes independently of the platform thread count over time.
 
-Ngay cả khi `platform_count=24` giữa hai snapshots, số virtual có thể từ 100 lên 5.000 rồi xuống 200 mà không có tăng tương xứng ở OS thread count. Điều đó có thể bình thường cho workload I/O-bound. Nhưng nếu 5.000 virtual threads đều chờ một dependency không hồi đáp, hệ thống có thể **nghẽn nghiêm trọng** dù carrier ít và CPU thấp.
+Even if `platform_count=24` across two snapshots, virtual count can swing from 100 to 5,000 and back to 200 without a proportional jump in OS thread count. That can be completely normal for an I/O-bound workload. Conversely, if 5,000 virtual threads are all stuck waiting on an unresponsive dependency, the system can be **severely stalled** despite few carriers and low CPU.
 
-### 3.2. Tổng “đã tạo từ lúc khởi động” khác “đang sống”
+### 3.2. Total "Started Since Startup" Differs from "Currently Live"
 
-- **Started total** là bộ đếm tích lũy, chỉ tăng.
-- **Live** là số đang tồn tại/chưa kết thúc, có thể tăng/giảm.
-- **Runnable/scheduled** là số đang sẵn sàng hoặc đang chạy theo scheduler.
-- **Mounted** là số đang gắn lên carrier ở một thời điểm.
-- **Blocked/waiting** là trạng thái chờ; có thể unmount hoặc bị pin.
+- **Started total** is a cumulative counter that only increases.
+- **Live** is the count currently existing/unterminated, which rises and falls.
+- **Runnable/scheduled** is the count ready or actively running per the scheduler.
+- **Mounted** is the count attached to a carrier at a given instant.
+- **Blocked/waiting** is a waiting state; it may be unmounted or pinned.
 
-Nếu một service nhận 1 triệu requests/ngày, tổng số virtual threads đã tạo có thể 1 triệu, trong khi live tại bất kỳ snapshot nào chỉ vài nghìn. Không được trộn **total started** với **current live** khi so biểu đồ.
+If a service handles 1 million requests/day, total started virtual threads may be 1 million, while live count at any snapshot is only a few thousand. Do not mix **total started** with **current live** when comparing charts.
 
-## 4. Điểm mù quan trọng của `ThreadMXBean`
+## 4. Critical Blind Spot of `ThreadMXBean`
 
-Tài liệu **Java SE 21** quy định rõ `java.lang.management.ThreadMXBean` quản lý/giám sát **platform threads**, **không** hỗ trợ giám sát hoặc quản lý virtual threads. Điều này áp dụng ngay cả khi code tạo rất nhiều virtual threads.
+The **Java SE 21** specification explicitly states that `java.lang.management.ThreadMXBean` manages and monitors **platform threads**, and does **not** support monitoring or managing virtual threads. This holds true even when code creates vast numbers of virtual threads.
 
-| API Java Management | Ý nghĩa trong Java 21+ | Có đếm/liệt kê virtual threads không? |
+| Java Management API | Meaning in Java 21+ | Counts/Lists Virtual Threads? |
 | --- | --- | --- |
-| `getThreadCount()` | Số **live platform threads** hiện tại | **Không** |
-| `getPeakThreadCount()` | Đỉnh số live platform threads | **Không** |
-| `getTotalStartedThreadCount()` | Tổng platform threads đã start từ lúc JVM khởi động | **Không** |
-| `getDaemonThreadCount()` | Live daemon **platform threads** | **Không** |
-| `getAllThreadIds()` | IDs của live **platform threads** | **Không** |
-| `dumpAllThreads(...)` | Stack và lock info của các **platform threads** | **Không** |
-| `getThreadInfo(virtualId)` | Tìm `ThreadInfo` theo Java ID | **`null`** với virtual thread |
-| `findDeadlockedThreads()` | Tìm chu trình deadlock trong phạm vi các platform threads/synchronizers mà API hỗ trợ | **Không** bao quát mọi deadlock của virtual threads |
+| `getThreadCount()` | Current number of **live platform threads** | **No** |
+| `getPeakThreadCount()` | Peak number of live platform threads | **No** |
+| `getTotalStartedThreadCount()` | Total platform threads started since JVM launch | **No** |
+| `getDaemonThreadCount()` | Live daemon **platform threads** | **No** |
+| `getAllThreadIds()` | IDs of live **platform threads** | **No** |
+| `dumpAllThreads(...)` | Stacks and lock info of **platform threads** | **No** |
+| `getThreadInfo(virtualId)` | Looks up `ThreadInfo` by Java ID | **`null`** for a virtual thread |
+| `findDeadlockedThreads()` | Finds deadlock cycles among platform threads/synchronizers supported by the API | **Does not** cover all virtual-thread deadlocks |
 
-Đây không phải bug của MXBean hay dấu hiệu virtual threads chưa được khởi tạo. Đây là **phạm vi chính thức của API**. Vì vậy biểu đồ “JVM Thread Count” trên một hệ thống metrics dựa vào `java.lang:type=Threading` thường phản ánh **platform threads**; muốn biết tổng số virtual threads/requests cần instrument khác.
+This is not an MXBean bug or a sign that virtual threads failed to start. It is the **official scope of the API**. Consequently, a "JVM Thread Count" chart in a metrics system backed by `java.lang:type=Threading` usually reflects **platform threads**; knowing total virtual threads or requests requires separate instrumentation.
 
-### 4.1. Code minh họa cách đọc đúng tên metric
+### 4.1. Illustrative Code for Naming Metrics Accurately
 
 ~~~java
 ThreadMXBean bean = ManagementFactory.getThreadMXBean();
@@ -168,46 +168,46 @@ int platformPeak = bean.getPeakThreadCount();
 long platformStarted = bean.getTotalStartedThreadCount();
 ~~~
 
-Đây là đoạn **minh họa**, cần imports `java.lang.management.ManagementFactory` và `ThreadMXBean`, không phải file Java độc lập. Đặt tên `platformLive` thay vì `allThreads` để ngăn nhầm phạm vi.
+This is an **illustrative** snippet requiring `java.lang.management.ManagementFactory` and `ThreadMXBean` imports, not a standalone Java file. Naming the variable `platformLive` instead of `allThreads` prevents scope confusion.
 
-Nếu có một virtual thread `vt` đang sống:
+If you hold a reference to a live virtual thread `vt`:
 
 ~~~java
 boolean isVirtual = vt.isVirtual();
 long javaId = vt.threadId();
 ThreadInfo missingFromMxBean = bean.getThreadInfo(javaId);
-// missingFromMxBean == null cho virtual thread theo contract Java 21.
+// missingFromMxBean == null for a virtual thread per the Java 21 contract.
 ~~~
 
-Đây cũng là đoạn minh họa, cần import `java.lang.management.ThreadInfo` và biến `vt`. Lưu ý `getThreadInfo(id) == null` còn có thể xảy ra nếu platform thread đã chết/ID không có; **không thể** dùng mỗi `null` để kết luận một ID lạ chắc là virtual thread. Trong ví dụ đã giữ tham chiếu `vt` và xác nhận `vt.isVirtual()`.
+This is also an illustrative snippet requiring `java.lang.management.ThreadInfo` and a `vt` variable. Note that `getThreadInfo(id) == null` can also occur if a platform thread has already died or the ID does not exist; you **cannot** use `null` alone to conclude an unknown ID is a virtual thread. In the example, we hold the `vt` reference and verify `vt.isVirtual()`.
 
-### 4.2. `ThreadGroup.activeCount()` cũng không giải quyết được
+### 4.2. `ThreadGroup.activeCount()` Does Not Solve This Either
 
-Trong Java 21, virtual threads thuộc nhóm thread đặc biệt nhưng **không được tính trong `ThreadGroup.activeCount()` và không được liệt kê bởi `ThreadGroup.enumerate()`**. Vì thế các mẹo cũ như lấy `Thread.activeCount()`/`ThreadGroup.enumerate` không trở thành bộ đếm virtual threads toàn JVM.
+In Java 21, virtual threads belong to a special thread group, yet **they are not counted by `ThreadGroup.activeCount()` and are not enumerated by `ThreadGroup.enumerate()`**. Thus, legacy tricks like `Thread.activeCount()` or `ThreadGroup.enumerate` do not act as a JVM-wide virtual thread counter.
 
-**Không suy số virtual thread** từ:
+**Do not infer virtual thread count** from:
 - `ThreadMXBean.getThreadCount()`;
 - `Thread.activeCount()`/`ThreadGroup.activeCount()`;
 - `ThreadGroup.enumerate(...)`;
-- `ps -L`/`top -H` hoặc danh sách OS threads;
-- thread dump truyền thống chỉ cho platform threads.
+- `ps -L`/`top -H` or OS thread listings;
+- traditional platform-only thread dumps.
 
-Mỗi công cụ có phạm vi riêng; một metric không đề cập virtual threads không nên được đặt tên `total_java_threads`.
+Every tool has its own scope; a metric that excludes virtual threads should never be named `total_java_threads`.
 
-## 5. Chương trình Java 21+ chạy độc lập: 200 virtual threads và phép đếm platform
+## 5. Standalone Java 21+ Program: 200 Virtual Threads vs. Platform Count
 
-Chương trình này cố ý tạo **200 virtual threads**; mỗi thread báo đã bắt đầu rồi **đợi một `CountDownLatch`** để còn sống trong thời gian main lấy mẫu. Chúng không chạy vòng CPU nóng và cũng không tạo 200 platform threads thủ công.
+This program intentionally spawns **200 virtual threads**; each thread signals that it has started and then **waits on a `CountDownLatch`** so it remains alive while `main` samples the counts. They do not spin in a hot CPU loop, nor do they manually create 200 platform threads.
 
-Trong lúc đó:
-- `Thread.isVirtual()` xác nhận từng thread là virtual.
-- `Thread.isAlive()` xác nhận số virtual threads trong tập **do demo giữ tham chiếu**.
-- `ThreadMXBean.getThreadInfo(vt.threadId())` kiểm tra chính thức virtual threads **không có ThreadInfo qua MXBean**.
-- `ThreadMXBean.getThreadCount()` đo **số platform threads**, được in trên **stderr** vì kết quả phụ thuộc JVM/OS.
-- Cuối cùng `release.countDown()` cho threads kết thúc; main `join` để dọn dẹp.
+Meanwhile:
+- `Thread.isVirtual()` confirms each thread is virtual.
+- `Thread.isAlive()` confirms the count of virtual threads in the set **referenced by the demo**.
+- `ThreadMXBean.getThreadInfo(vt.threadId())` formally verifies that virtual threads **have no ThreadInfo via the MXBean**.
+- `ThreadMXBean.getThreadCount()` measures the **number of platform threads**, printed to **stderr** because the value depends on the JVM/OS.
+- Finally, `release.countDown()` lets the threads exit; `main` calls `join` to clean up.
 
-**Đây chỉ là đếm 200 virtual threads do chương trình tạo**, không phải API để thống kê mọi virtual thread của toàn bộ JVM trong ứng dụng production.
+**This only counts the 200 virtual threads created by the program itself**, not an API for enumerating every virtual thread across an entire production JVM.
 
-Lưu tệp **VirtualVsPlatformCountDemo.java**:
+Save the file **`VirtualVsPlatformCountDemo.java`**:
 
 ~~~java
 import java.lang.management.ManagementFactory;
@@ -277,7 +277,7 @@ public final class VirtualVsPlatformCountDemo {
 }
 ~~~
 
-Biên dịch/chạy bằng **JDK 21 trở lên**:
+Compile and run with **JDK 21 or later**:
 
 ~~~bash
 java -version
@@ -285,7 +285,7 @@ javac VirtualVsPlatformCountDemo.java
 java VirtualVsPlatformCountDemo
 ~~~
 
-**Stdout chính xác khi chương trình chạy thành công trong điều kiện scheduling bình thường:**
+**Exact stdout when the program succeeds under normal scheduling conditions:**
 
 ~~~text
 virtual_started=200
@@ -294,61 +294,61 @@ all_virtual=true
 virtual_entries_in_thread_mxbean=0
 ~~~
 
-**Stderr có một dòng với các số phụ thuộc môi trường**, ví dụ **minh họa, không phải số cố định**:
+**Stderr contains one line with environment-dependent numbers**, for example **illustrative, not fixed values**:
 
 ~~~text
 platform_before=7 platform_during=15
 ~~~
 
-Bạn có thể nhận số lớn hơn hoặc nhỏ hơn; không cần và không được ép đúng `7` hay `15`. OS/JVM có thể có GC/compiler/background threads khác và scheduler có thể thay đổi số carriers. Hai dòng output trên hai stream stdout/stderr cũng có thể được terminal hiển thị xen kẽ theo thứ tự khác nhau.
+You may observe higher or lower numbers; you neither need nor should force `7` or `15`. The OS/JVM may have different GC/compiler/background threads, and the scheduler may vary carrier counts. The lines across stdout and stderr may also interleave differently in your terminal.
 
-**Giải thích kết quả:**
-1. `started.await(...)` chỉ trở về thành công khi cả 200 virtual threads đã chạy tới `started.countDown()`. Chúng không thể kết thúc trước khi main release latch (trừ trường hợp tác động bên ngoài đặc biệt).
-2. Vì `release` chưa được mở, cả 200 threads vẫn sống; `all_virtual=true` vì được tạo bằng `Thread.ofVirtual()`.
-3. `virtual_entries_in_thread_mxbean=0` là **thiết kế API Java 21**: `ThreadMXBean` không quản lý virtual threads, dù các thread đó sống và có Java thread IDs.
-4. `platform_during` là snapshot của **live platform threads**, không có nghĩa “chỉ có bao nhiêu requests” hay “đã chuyển 200 virtual thành bấy nhiêu OS threads”.
-5. `release.countDown()` và `join()` giúp không để lại virtual threads treo sau khi demo kết thúc.
+**Result explanation:**
+1. `started.await(...)` only returns cleanly once all 200 virtual threads have executed up to `started.countDown()`. They cannot finish before `main` releases the latch (barring unusual external intervention).
+2. Because `release` has not been triggered yet, all 200 threads remain alive; `all_virtual=true` because they were created with `Thread.ofVirtual()`.
+3. `virtual_entries_in_thread_mxbean=0` is **by Java 21 API design**: `ThreadMXBean` does not manage virtual threads, even though those threads are alive and have Java thread IDs.
+4. `platform_during` is a snapshot of **live platform threads**; it does not mean "only this many requests exist" or "200 virtual threads were converted into this many OS threads."
+5. `release.countDown()` and `join()` ensure no virtual threads are left dangling after the demo finishes.
 
-**Giới hạn và an toàn:** ví dụ tạo 200 tasks có giới hạn, không gây áp lực heap/CPU mạnh. Nếu JVM quá tải đến mức không start đủ virtual threads trong 15 giây, nó ném exception thay vì in bốn dòng trên. `join()` chờ virtual threads kết thúc; với demo chỉ đợi latch đã release, đây là cleanup hợp lệ. Production không nên tạo và giữ hàng triệu virtual threads tùy tiện vì **mỗi virtual thread vẫn dùng heap/stack/context và công việc phía sau vẫn dùng tài nguyên thật**.
+**Limits and safety:** the example creates a bounded 200 tasks and does not put heavy pressure on heap or CPU. If the JVM is so overloaded that it cannot start all virtual threads within 15 seconds, it throws an exception instead of printing those four lines. `join()` waits for virtual threads to finish; for a demo merely waiting on a released latch, this is valid cleanup. Production code should not spawn and retain millions of virtual threads carelessly, because **every virtual thread still consumes heap/stack/context and downstream work still consumes real resources**.
 
-### 5.1. Vì sao chỉ đếm `virtuals.size()` trong demo?
+### 5.1. Why Only Count `virtuals.size()` in the Demo?
 
-Ứng dụng tạo virtual threads nhưng không có API `ThreadMXBean` tương đương để liệt kê tất cả. Việc giữ `List<Thread>` cho 200 tasks chỉ phục vụ **demo** và có thể làm giữ tham chiếu lâu hơn cần thiết. Trong production, không nên giữ toàn bộ references vào từng virtual thread chỉ để tạo một counter; dùng **application metrics** có tăng/giảm đúng lifecycle, hoặc JFR/diagnostic snapshots khi cần điều tra.
+An application creates virtual threads, yet there is no `ThreadMXBean` equivalent API to enumerate them all. Keeping a `List<Thread>` for 200 tasks is strictly for **demo purposes** and would otherwise retain references longer than necessary. In production, do not retain references to every virtual thread just to maintain a counter; use **application metrics** incremented/decremented across the lifecycle, or JFR/diagnostic snapshots when investigating.
 
-### 5.2. Cách tạo virtual thread per task bằng executor
+### 5.2. Creating One Virtual Thread per Task with an Executor
 
-Cách thường dùng hơn cho workload Java 21:
+More idiomatic usage for Java 21 workloads:
 
 ~~~java
 try (var executor = java.util.concurrent.Executors
         .newVirtualThreadPerTaskExecutor()) {
     var future = executor.submit(() ->
             Thread.currentThread().isVirtual());
-    System.out.println(future.get()); // true trên Java 21+
+    System.out.println(future.get()); // true on Java 21+
 }
 ~~~
 
-Đây là **đoạn code minh họa trong một method có `throws Exception`**, không phải chương trình độc lập. Mỗi task được executor này thực thi bằng **một virtual thread mới**, không bằng “pool 200 virtual threads tái sử dụng”. `try-with-resources` đóng executor và đợi nhiệm vụ theo contract Java 21; không nên tạo một executor mới cho từng request trong production khi có thể quản lý lifecycle tập trung.
+This is an **illustrative snippet inside a method declaring `throws Exception`**, not a standalone program. Each task is executed by this executor on **a new virtual thread**, not on a "reusable pool of 200 virtual threads." `try-with-resources` closes the executor and awaits tasks per the Java 21 contract; avoid creating a new executor per request in production when lifecycle can be managed centrally.
 
-**Virtual threads không phải tài nguyên cần pooling theo kiểu platform threads.** Với nhu cầu chặn quá nhiều DB calls, đặt giới hạn ở **DB/HTTP/resource concurrency** (pool connections, semaphore, rate limit, bulkhead), không pool virtual threads để tiết kiệm số virtual threads rồi biến chúng thành bottleneck giả.
+**Virtual threads are not a resource to be pooled like platform threads.** If you need to cap excessive concurrent DB calls, place the limit on **DB/HTTP/resource concurrency** (connection pools, semaphores, rate limits, bulkheads), rather than pooling virtual threads to throttle virtual thread count and turning them into an artificial bottleneck.
 
-## 6. Vì sao thread dumps truyền thống nhìn thiếu virtual threads?
+## 6. Why Traditional Thread Dumps Appear to Miss Virtual Threads
 
-Công cụ quan sát cũng có “phạm vi” giống metrics. Ở các JDK có virtual threads:
+Observability tools have a "scope," just like metrics. On JDKs with virtual threads:
 
-| Nguồn quan sát | Thấy gì? | Điều không nên suy |
+| Observation Source | What Is Visible? | What Not to Infer |
 | --- | --- | --- |
-| `ThreadMXBean.dumpAllThreads(...)` | Platform threads | Đây là toàn bộ virtual + platform |
-| `jcmd PID Thread.print` / dump HotSpot truyền thống | Platform threads; trên JDK mới có thể hiện **mounted virtual threads** | Những virtual threads đang unmounted/waiting đều được liệt kê |
-| `jcmd PID Thread.dump_to_file -format=json FILE` | Bản dump hỗ trợ **cả virtual và platform threads** | Là số đếm liên tục hoặc snapshot hoàn toàn nhất quán |
-| `jcmd PID Thread.dump_to_file -format=text FILE` | Dump text hỗ trợ hai loại | Có mọi chi tiết native/monitor của dump truyền thống |
-| `ps -L`, `top -H`, OS task list | Native/OS threads | Có một OS thread cho mỗi virtual thread |
-| JFR virtual-thread events | Lifecycle và sự kiện hỗ trợ tùy config/JDK | Mọi event luôn bật, luôn đầy đủ hay miễn phí |
-| App/trace metrics | Live/in-flight requests/tasks do ứng dụng instrument | Trùng 1:1 với mọi virtual threads trong JVM |
+| `ThreadMXBean.dumpAllThreads(...)` | Platform threads | That this is all virtual + platform threads |
+| `jcmd PID Thread.print` / traditional HotSpot dump | Platform threads; on newer JDKs may show **mounted virtual threads** | That all unmounted/waiting virtual threads are listed |
+| `jcmd PID Thread.dump_to_file -format=json FILE` | Dump supporting **both virtual and platform threads** | That it is a continuous counter or an atomic snapshot |
+| `jcmd PID Thread.dump_to_file -format=text FILE` | Text dump supporting both kinds | That it has all native/monitor details of a traditional dump |
+| `ps -L`, `top -H`, OS task list | Native/OS threads | That there is one OS thread per virtual thread |
+| JFR virtual-thread events | Lifecycle and events supported per config/JDK | That every event is always enabled, complete, or free |
+| App/trace metrics | Live/in-flight requests/tasks instrumented by the app | That they match 1:1 with every virtual thread in the JVM |
 
-**Từ JDK 21**, công cụ `jcmd` có lệnh `Thread.dump_to_file` để tạo dump text/JSON có virtual threads. Bản dump này có các trường khác với dump HotSpot truyền thống; chi tiết locks/monitor và hình thức output **thay đổi theo JDK**. Vì vậy không nên tự lấy một bản `Thread.print` và khẳng định “chỉ có N Java threads”.
+**Starting in JDK 21**, `jcmd` provides the `Thread.dump_to_file` command to generate text/JSON dumps containing virtual threads. This dump has different fields from traditional HotSpot dumps; lock/monitor details and output formatting **vary across JDK releases**. Never take a single `Thread.print` output and declare "there are only N Java threads."
 
-Ví dụ (PID và file là **giá trị minh họa**, cần quyền attach và đường dẫn đích hợp lệ):
+Examples (PID and file paths are **illustrative values**; valid attach permissions and writable destination paths are required):
 
 ~~~bash
 jcmd -l
@@ -357,43 +357,43 @@ jcmd 12345 Thread.dump_to_file -format=json /tmp/threads.json
 jcmd 12345 Thread.dump_to_file -format=text /tmp/threads.txt
 ~~~
 
-Trên Windows, thay đường dẫn cho phù hợp. `Thread.dump_to_file` có thể ghi rất nhiều dữ liệu khi hàng chục nghìn virtual threads đang sống; cần đủ disk, đường dẫn không công khai, retention và kiểm soát tần suất. Nếu lệnh không có, kiểm tra **phiên bản JDK/công cụ** thực tế qua `jcmd 12345 help` thay vì suy tên tùy tiện.
+On Windows, adjust the paths accordingly. `Thread.dump_to_file` can write very large files when tens of thousands of virtual threads are alive; ensure sufficient disk space, non-public paths, retention policies, and frequency controls. If the command is missing, verify the actual **JDK/tool version** via `jcmd 12345 help` rather than guessing command names.
 
-**Chú ý khác biệt phiên bản:** trên JDK 21, `Thread.print` truyền thống không phải cách đáng tin để liệt kê mọi virtual thread; các JDK mới hơn có thể thể hiện virtual threads **đang mounted** trong HotSpot dump. Nhưng **unmounted virtual threads** không thể được suy đếm từ riêng danh sách OS/carrier threads.
+**Note on version differences:** on JDK 21, traditional `Thread.print` is not a reliable way to list all virtual threads; newer JDKs may display **mounted** virtual threads in HotSpot dumps. Still, **unmounted virtual threads** cannot be inferred or counted from OS/carrier thread lists alone.
 
-### 6.1. Khi nào đọc JSON dump?
+### 6.1. When Should You Read a JSON Dump?
 
-Với virtual-thread-per-task, JSON dump giúp:
-- nhóm theo thread names/stacks và đường gọi nghiệp vụ;
-- thấy nhiều virtual threads đợi ở cùng dependency/queue;
-- tìm pattern của stalled work;
-- đối chiếu timestamp và trace IDs từ logs;
-- phân biệt pressure do nguồn I/O với scheduling/pinning.
+With virtual-thread-per-task, a JSON dump helps you:
+- group by thread names/stacks and business call paths;
+- spot many virtual threads waiting on the same dependency/queue;
+- identify patterns of stalled work;
+- correlate timestamps and trace IDs from logs;
+- separate I/O pressure from scheduling/pinning pressure.
 
-**Không dùng một snapshot để khẳng định deadlock**, không kết luận mọi virtual threads trong snapshot đều chạy CPU. Các dump lớn có chi phí thu thập và xử lý; ưu tiên chỉ tạo khi có mục tiêu chẩn đoán rõ.
+**Do not use a single snapshot to declare a deadlock**, and do not assume every virtual thread in the snapshot is burning CPU. Large dumps carry collection and processing costs; prefer generating them only with a clear diagnostic goal.
 
-## 7. Instrument đúng: đo virtual tasks thay vì đo platform threads
+## 7. Proper Instrumentation: Measure Virtual Tasks Instead of Platform Threads
 
-### 7.1. Đặt tên metric đúng đối tượng
+### 7.1. Name Metrics After What They Actually Measure
 
-Một dashboard tốt nên tách các nhóm:
+A sound dashboard should separate these groups:
 
-| Metric gợi ý | Ý nghĩa | Nguồn |
+| Suggested Metric | Meaning | Source |
 | --- | --- | --- |
 | `jvm.platform.threads.live` | Live platform threads | `ThreadMXBean.getThreadCount()` |
-| `app.virtual.tasks.started_total` | Task virtual đã bắt đầu (cumulative) | Counter ở application boundary |
-| `app.virtual.tasks.completed_total` | Task virtual đã kết thúc | Counter increment trong `finally` |
-| `app.virtual.tasks.inflight` | Task virtual đã bắt đầu nhưng chưa kết thúc | Gauge/counter lifecycle |
-| `app.requests.inflight` | Requests nghiệp vụ chưa hoàn tất | Request lifecycle instrumentation |
-| `app.requests.duration`, `timeout_total` | Latency và lỗi thật | Server/application telemetry |
-| `dependency.connections.active/pending` | Áp lực DB/HTTP resources | Driver/client/pool metrics |
-| `process.cpu`, `container.memory`, `gc.pauses` | Tài nguyên thật | JVM/OS/container metrics |
+| `app.virtual.tasks.started_total` | Virtual tasks started (cumulative) | Counter at the application boundary |
+| `app.virtual.tasks.completed_total` | Virtual tasks finished | Counter incremented in `finally` |
+| `app.virtual.tasks.inflight` | Virtual tasks started but not yet finished | Lifecycle gauge/counter |
+| `app.requests.inflight` | Incomplete business requests | Request lifecycle instrumentation |
+| `app.requests.duration`, `timeout_total` | True latency and failures | Server/application telemetry |
+| `dependency.connections.active/pending` | DB/HTTP resource pressure | Driver/client/pool metrics |
+| `process.cpu`, `container.memory`, `gc.pauses` | Physical resources | JVM/OS/container metrics |
 
-Tên trong bảng **mang tính khuyến nghị**, không phải auto-generated metrics có sẵn trong mọi framework. Phân biệt tasks với requests: một request có thể sinh nhiều virtual tasks hoặc một virtual thread có thể thực thi nhiều bước trong một request. Khi dùng executor per task, đếm **at submission**, **at start**, và **at completion** có thể khác nhau; phải xác định contract.
+The names in this table are **recommendations**, not auto-generated metrics built into every framework. Distinguish tasks from requests: one request may spawn multiple virtual tasks, or one virtual thread may execute multiple steps within a request. With a per-task executor, counting **at submission**, **at start**, and **at completion** can differ; define the contract clearly.
 
-### 7.2. Ví dụ instrument task lifecycle
+### 7.2. Example of Instrumenting Task Lifecycle
 
-Đoạn sau **minh họa**, giả định có `executor`, `Runnable work`, `LongAdder started/completed` và `AtomicInteger inflight`:
+The snippet below is **illustrative**, assuming `executor`, `Runnable work`, `LongAdder started/completed`, and `AtomicInteger inflight`:
 
 ~~~java
 executor.submit(() -> {
@@ -408,198 +408,198 @@ executor.submit(() -> {
 });
 ~~~
 
-Trong trường hợp **một virtual thread mới cho mỗi task** mà executor tạo, counter này đo công việc đã **bắt đầu chạy**, không đo các task mới submit nhưng chưa đến `Runnable`. Nó cũng không tính virtual threads do thư viện khác tạo ngoài wrapper. Nếu task bị reject trước khi Runnable chạy, counter `started` không tăng; metric `submitted/rejected` cần đo ở ranh giới submit riêng.
+When the executor creates **one new virtual thread per task**, this counter measures work that has **started running**, not tasks newly submitted that have not yet entered `Runnable`. It also excludes virtual threads spawned by other libraries outside this wrapper. If a task is rejected before `Runnable` executes, `started` does not increment; `submitted/rejected` metrics must be measured separately at the submission boundary.
 
-**Nguyên tắc đo:**
-- Counter tổng số bắt đầu/kết thúc khác gauge hiện tại; không gộp chúng.
-- `inflight` tăng ở đầu try/finally và giảm ở finally ngay cả khi có exception/cancellation được thực thi trong Runnable.
-- Khi quá trình JVM bị kill, counter in-memory và future cleanup không đủ để tính kết quả bền vững; metrics cần hệ thống thu thập phù hợp.
-- Đặt labels theo service/route/outcome có cardinality được kiểm soát; không đưa mỗi `threadId`/`requestId` thành một metric label.
+**Measurement principles:**
+- Cumulative started/completed counters differ from a current in-flight gauge; never merge them.
+- Increment `inflight` before entering `try/finally` and decrement it in `finally` even if an exception or cancellation occurs inside `Runnable`.
+- If the JVM process is killed, in-memory counters and `finally` cleanup do not persist final state; metrics require a suitable collection pipeline.
+- Keep label cardinality bounded by service/route/outcome; never put every `threadId` or `requestId` into a metric label.
 
-### 7.3. Không có “virtual thread count toàn JVM” tự động từ `ThreadMXBean`
+### 7.3. There Is No Automatic "JVM-Wide Virtual Thread Count" from `ThreadMXBean`
 
-Nếu cần tổng live virtual thread **ở một thời điểm**, phương án thực tế là:
-- instrumentation phạm vi ứng dụng (khi kiểm soát các điểm tạo);
-- JFR lifecycle events được cấu hình có chủ đích nếu cần quan sát rộng hơn;
-- `Thread.dump_to_file` snapshot khi điều tra;
-- công cụ/APIs quản lý scheduler hoặc telemetry có hỗ trợ **đúng phiên bản JDK**.
+If you need total live virtual threads **at a point in time**, practical options are:
+- application-level instrumentation (when you control creation sites);
+- deliberately configured JFR lifecycle events when broader visibility is required;
+- `Thread.dump_to_file` snapshots during investigations;
+- scheduler management tools/APIs or telemetry supporting your **exact JDK version**.
 
-Không tạo một thread registry giữ tham chiếu mạnh mãi mãi chỉ để đếm: sẽ làm tốn heap và cản GC. Cũng không ghi một log cho mỗi virtual-thread start/end ở tải lớn nếu có thể dùng metrics, vì hàng triệu log events có thể trở thành bottleneck.
+Never maintain a thread registry holding strong references forever just to count threads: it wastes heap and blocks GC. Likewise, avoid logging every virtual-thread start/end under heavy load when metrics suffice, as millions of log events can become a bottleneck themselves.
 
-## 8. Khi OS metrics và Java metrics có vẻ “mâu thuẫn”
+## 8. When OS Metrics and Java Metrics Seem to "Contradict" Each Other
 
-### Tình huống A — CPU thấp, 10.000 virtual tasks in-flight
+### Scenario A — Low CPU, 10,000 In-Flight Virtual Tasks
 
-Nếu nhiều virtual threads đang chờ remote API, CPU vẫn có thể thấp và platform thread count ít. Nhưng hệ thống có thể **đang chịu sự cố latency**: request inflight, timeouts, connection pending và memory tăng. Chẩn đoán bằng traces/dependency metrics, không chỉ CPU và platform count.
+If many virtual threads are waiting on a remote API, CPU can remain low and platform thread count small. Yet the system may still be **experiencing a latency incident**: in-flight requests, timeouts, pending connections, and memory all climb. Diagnose with traces and dependency metrics, not just CPU and platform counts.
 
-### Tình huống B — Chỉ 32 platform threads nhưng throughput lớn
+### Scenario B — Only 32 Platform Threads Yet High Throughput
 
-Với workload nhiều I/O waits ngắn, carrier được tái sử dụng giữa nhiều virtual threads, nên throughput có thể tốt dù platform count nhỏ hơn concurrency. Đây là lợi ích scalability, không phải “JVM quên đếm requests”.
+With workloads full of short I/O waits, carriers are reused across many virtual threads, so throughput can be high even when platform count is far smaller than concurrency. That is a scalability benefit, not "the JVM forgetting to count requests."
 
-### Tình huống C — 2.000 virtual threads RUNNABLE và CPU 100%
+### Scenario C — 2,000 RUNNABLE Virtual Threads and 100% CPU
 
-Virtual threads **không tự làm tác vụ CPU-bound nhanh hơn**. Với số core hữu hạn, nhiều virtual threads sẵn sàng chạy sẽ tranh scheduler/CPU; cần giới hạn concurrency của CPU work, tối ưu thuật toán, profiler/JFR. Tạo thêm virtual threads không tạo thêm CPU cores.
+Virtual threads **do not automatically speed up CPU-bound tasks**. With a finite number of cores, many ready virtual threads contend for the scheduler and CPU; you need to bound CPU-work concurrency, optimize algorithms, and use a profiler/JFR. Creating more virtual threads does not create more CPU cores.
 
-### Tình huống D — Virtual count tăng mãi trong khi platform count ổn định
+### Scenario D — Virtual Count Grows Forever While Platform Count Stays Flat
 
-Có thể là **resource leak/liveness issue**: rất nhiều virtual threads đang đợi một response không có timeout, connection pool hay latch không được hoàn tất. Platform count phẳng không chứng minh ứng dụng ổn định; cần đo request age, dependency timeouts, inflight virtual tasks, memory và dump virtual stacks.
+This could be a **resource leak or liveness issue**: vast numbers of virtual threads waiting on a response with no timeout, a connection pool, or a latch that never completes. A flat platform count does not prove the application is healthy; inspect request age, dependency timeouts, in-flight virtual tasks, memory, and virtual stack dumps.
 
-### Tình huống E — Platform count tăng khi tải tăng
+### Scenario E — Platform Count Rises Under Higher Load
 
-Không có nghĩa có từng platform cho mỗi virtual. Scheduler có thể điều chỉnh carrier availability hoặc runtime có các platform threads khác do GC, JIT, networking và app. Cần phân biệt nền tảng, thread names, stack và version trước khi kết luận pinning/cấu hình sai.
+This does not mean there is one platform thread per virtual thread. The scheduler may adjust carrier availability, or the runtime may have other platform threads for GC, JIT, networking, and application code. Examine foundations, thread names, stacks, and version before concluding pinning or misconfiguration.
 
-### Tình huống F — `ThreadMXBean.dumpAllThreads` thấy ít threads, `Thread.dump_to_file` rất lớn
+### Scenario F — `ThreadMXBean.dumpAllThreads` Shows Few Threads, `Thread.dump_to_file` Is Huge
 
-Điều này **phù hợp với đặc tả**: MXBean chỉ trả platform threads, dump hỗ trợ virtual threads liệt kê thêm những virtual còn sống. Cần so **cùng PID/start time và snapshot time**, không coi hai công cụ sai vì số khác nhau.
+This is **consistent with the specification**: the MXBean returns only platform threads, whereas the virtual-thread-aware dump also lists live virtual threads. Compare **the same PID, start time, and snapshot window** rather than assuming one tool is broken because the numbers differ.
 
-## 9. Pinning và thay đổi theo phiên bản JDK
+## 9. Pinning and Changes Across JDK Versions
 
-**Pinning** là trường hợp virtual thread không thể unmount khỏi carrier trong một blocking operation nhất định. Điều này có thể làm giảm scalability vì carrier bị giữ trong lúc virtual thread chờ.
+**Pinning** occurs when a virtual thread cannot unmount from its carrier during a specific blocking operation. This can hurt scalability because the carrier remains occupied while the virtual thread waits.
 
-**JDK 21–23:** tài liệu Java 21 nêu các tình huống pinning đáng chú ý:
-- Virtual thread thực hiện blocking operation khi đang ở trong `synchronized` block/method.
-- Virtual thread ở native/foreign function call.
+**JDK 21–23:** Java 21 documentation highlights notable pinning scenarios:
+- A virtual thread performs a blocking operation while inside a `synchronized` block or method.
+- A virtual thread is inside a native or foreign function call.
 
-Điều này **không làm code sai về kết quả**, nhưng nếu nhiều virtual threads pin carrier lâu, số carrier hữu dụng giảm và tasks khác bị chậm.
+This **does not corrupt program results**, but if many virtual threads pin carriers for long durations, usable carriers shrink and other tasks slow down.
 
-**Từ JDK 24 (JEP 491):** cơ chế monitor đã được cải tiến để **virtual thread có thể unmount khi blocking trong synchronized code**, loại bỏ nguyên nhân pinning phổ biến do Java monitor. **Native/foreign blocking vẫn cần xem xét**, và khả năng hành vi cụ thể phụ thuộc JDK build. Vì vậy không lặp vô điều kiện lời khuyên “mọi `synchronized` đều pin virtual threads” cho JDK 24+.
+**From JDK 24 (JEP 491):** monitor handling was improved so **virtual threads can unmount when blocking inside synchronized code**, eliminating the common Java-monitor cause of pinning. **Native/foreign blocking still requires inspection**, and exact behavior depends on the JDK build. Therefore, do not unconditionally repeat the advice "every `synchronized` pins virtual threads" for JDK 24+.
 
-| Phiên bản | Điểm cần nhớ |
+| Version | Key Points to Remember |
 | --- | --- |
-| Java 17 | Chưa có virtual threads API chính thức |
-| Java 19/20 | Virtual threads ở giai đoạn preview (không phải mặc định như JDK 21) |
-| Java 21 | Virtual threads chính thức; monitor pinning có thể ảnh hưởng khả năng unmount |
-| Java 24+ | JEP 491 cải thiện `synchronized` không pin theo cơ chế cũ; vẫn phải kiểm tra native/foreign và runtime |
-| Các bản mới hơn | Công cụ dump/JFR/scheduler diagnostics có thể thay đổi, đọc tài liệu đúng version |
+| Java 17 | No permanent virtual threads API yet |
+| Java 19/20 | Virtual threads in preview (not enabled by default like JDK 21) |
+| Java 21 | Virtual threads finalized; monitor pinning can affect unmounting |
+| Java 24+ | JEP 491 improves `synchronized` so it does not pin under the old mechanism; still check native/foreign code and runtime |
+| Newer releases | Dump/JFR/scheduler diagnostic tools may evolve; read docs for your exact version |
 
-### 9.1. Dấu hiệu nghi pinning hoặc scheduler pressure
+### 9.1. Signs Suggesting Pinning or Scheduler Pressure
 
-- Throughput kém dù có rất nhiều virtual threads.
-- Nhiều virtual threads cùng stack trong native/blocking path.
-- Traces cho thấy dependency chậm; CPU không cao nhưng carrier bị giữ.
-- JFR có events thích hợp, ví dụ trên JDK 21 `jdk.VirtualThreadPinned` khi vượt ngưỡng cấu hình, hoặc `jdk.VirtualThreadSubmitFailed`.
-- Một số diagnostics `jcmd` cho virtual-thread scheduler/pollers chỉ khả dụng tùy JDK; kiểm tra qua `jcmd PID help`, không giả định JDK 21 có mọi command đời mới.
+- Poor throughput despite a large number of virtual threads.
+- Many virtual threads sharing stacks inside a native/blocking path.
+- Traces showing slow dependencies; CPU is not high yet carriers remain held.
+- Relevant JFR events, such as `jdk.VirtualThreadPinned` exceeding the configured threshold on JDK 21, or `jdk.VirtualThreadSubmitFailed`.
+- Certain `jcmd` diagnostics for virtual-thread schedulers/pollers are only available on specific JDKs; check via `jcmd PID help` rather than assuming JDK 21 has every newer command.
 
-**Không coi việc không thấy pinned event là bằng chứng không có vấn đề**: events phải được hỗ trợ và bật, ngưỡng phải phù hợp; một dạng saturation có thể đến từ CPU, DB connections, bad timeout hoặc memory mà không liên quan pinning.
+**Do not treat the absence of pinned events as proof that no problem exists**: events must be supported and enabled, thresholds must fit, and saturation can come from CPU, DB connections, bad timeouts, or memory unrelated to pinning.
 
-### 9.2. Virtual threads không loại bỏ mọi ràng buộc tài nguyên
+### 9.2. Virtual Threads Do Not Eliminate All Resource Constraints
 
-Dù virtual threads rẻ hơn OS threads:
-- Mỗi virtual thread vẫn dùng heap và có stack/context/ThreadLocal.
-- Nhiều requests có thể gây **hàng nghìn DB connections pending**, làm nghẽn downstream.
-- Các native calls, monitors tùy JDK, JDBC drivers hoặc frameworks có thể có bottleneck riêng.
-- CPU-bound code không tăng tốc chỉ nhờ dùng nhiều virtual threads.
-- Concurrency cần **backpressure/rate limit/bulkhead** tại resource thực tế.
+Even though virtual threads are cheaper than OS threads:
+- Each virtual thread still uses heap and holds a stack/context/`ThreadLocal`.
+- High concurrency can create **thousands of pending DB connections**, overwhelming downstream systems.
+- Native calls, version-dependent monitors, JDBC drivers, or frameworks may introduce their own bottlenecks.
+- CPU-bound code does not speed up merely by adding more virtual threads.
+- Concurrency still requires **backpressure/rate limits/bulkheads** at actual resources.
 
-**Đừng pool virtual threads để “kiềm chế số virtual”**: nếu mục tiêu là không có hơn 50 DB transactions đồng thời, giới hạn DB/transaction concurrency bằng semaphore/connection pool thay vì chỉ giữ 50 virtual workers. Virtual thread per task được thiết kế để tạo mới theo công việc.
+**Do not pool virtual threads to "curb virtual thread count"**: if the goal is capping concurrent DB transactions at 50, bound DB/transaction concurrency via a semaphore or connection pool instead of keeping only 50 virtual workers. Virtual-thread-per-task is designed to create a fresh thread per unit of work.
 
-## 10. JFR và dấu vết virtual-thread lifecycle
+## 10. JFR and Virtual-Thread Lifecycle Traces
 
-Java Flight Recorder (JFR) có các events liên quan virtual threads; trên JDK 21, tài liệu Oracle mô tả:
-- `jdk.VirtualThreadStart` và `jdk.VirtualThreadEnd`: lifecycle events, **mặc định không bật**.
-- `jdk.VirtualThreadPinned`: thông báo pinning vượt threshold cấu hình, JDK 21 mặc định có ngưỡng 20 ms trong tài liệu.
-- `jdk.VirtualThreadSubmitFailed`: JVM không thể schedule/start/unpark virtual thread đúng cách vì lý do tài nguyên.
+Java Flight Recorder (JFR) provides events for virtual threads; on JDK 21, Oracle documentation describes:
+- `jdk.VirtualThreadStart` and `jdk.VirtualThreadEnd`: lifecycle events, **disabled by default**.
+- `jdk.VirtualThreadPinned`: signals pinning exceeding the configured threshold, defaulting to 20 ms in JDK 21 docs.
+- `jdk.VirtualThreadSubmitFailed`: the JVM could not properly schedule/start/unpark a virtual thread due to resource constraints.
 
-Cấu hình và tính sẵn có thay đổi theo phiên bản. Khi events được thu:
+Configuration and availability vary by version. Once events are recorded:
 
 ~~~bash
 jfr print --events jdk.VirtualThreadStart,jdk.VirtualThreadEnd,jdk.VirtualThreadPinned,jdk.VirtualThreadSubmitFailed recording.jfr
 ~~~
 
-`recording.jfr` là tên file đã thu được, **không phải file được lệnh này tự tạo**. Không bật mọi start/end event trong production traffic cực lớn mà chưa tính event volume/overhead; ưu tiên mục đích chẩn đoán, sampling/retention phù hợp.
+`recording.jfr` is an already-captured file, **not created by this command itself**. Do not enable all start/end events under massive production traffic without accounting for event volume and overhead; prefer targeted diagnostics with appropriate sampling and retention.
 
-**Phạm vi dữ liệu:** JFR start/end cho thấy lifecycle, không đương nhiên tạo một “gauge live” chính xác nếu recording bắt đầu khi ứng dụng đã có virtual threads sống, hoặc bị mất/sampled events. Nếu cần live count chuẩn cho business scope, instrument từ trước tại các điểm tạo và kết thúc công việc.
+**Data scope:** JFR start/end events show lifecycle activity, not necessarily an exact "live gauge" if the recording started after virtual threads were already alive or if events were dropped/sampled. If you need an accurate live count for a business scope, instrument creation and completion boundaries ahead of time.
 
-## 11. Sai lầm phổ biến khi đếm platform và virtual threads
+## 11. Common Mistakes When Counting Platform vs. Virtual Threads
 
-1. **“`ThreadMXBean.getThreadCount()` đếm tất cả Java threads.”** Trên Java 21+, nó chỉ đếm platform threads.
-2. **“`getPeakThreadCount()` cho biết đỉnh số virtual threads.”** Đây vẫn là peak **platform** threads.
-3. **“`getTotalStartedThreadCount()` kể cả virtual đã tạo.”** Không; đó là cumulative **platform** started count.
-4. **“`getAllThreadIds()` liệt kê mọi `Thread` object.”** Virtual IDs bị loại khỏi MXBean result.
-5. **“`getThreadInfo(id)==null` chứng minh thread không tồn tại.”** Có thể là ID của virtual thread đang sống.
-6. **“`Thread.activeCount()`/`ThreadGroup.enumerate()` đầy đủ hơn MXBean.”** Chúng cũng không cung cấp tổng virtual threads.
-7. **“OS có 32 threads nên chỉ 32 requests đồng thời.”** Hàng nghìn virtual tasks có thể đang sống và chờ I/O.
-8. **“Có 10.000 virtual threads thì cần 10.000 CPU cores.”** Chờ I/O không dùng CPU liên tục, nhưng CPU work vẫn bị số core giới hạn.
-9. **“1 virtual thread luôn cố định trên 1 carrier.”** JVM có thể remount lên carrier khác, không duy trì affinity.
-10. **“Virtual thread chờ I/O luôn nhả carrier.”** Không tuyệt đối, cần xem pinning, native operations và JDK support.
-11. **“`Thread.print` nhìn ít virtual nghĩa ứng dụng không tạo.”** Dump truyền thống có phạm vi khác `Thread.dump_to_file`.
-12. **“Một snapshot virtual count là throughput.”** Live, started total, active tasks và completed requests là metrics khác.
-13. **“Platform count tăng là bằng chứng virtual thread leak.”** Platform tăng có thể do nguồn khác; cần đúng attribution.
-14. **“Platform count không đổi nghĩa không có leak.”** Virtual threads có thể chất đống ở waiting/latch/future.
-15. **“Virtual threads là threads miễn phí.”** Có heap/stack, allocation, context và tài nguyên downstream.
-16. **“Vì JDK 21 `synchronized` pin nên JDK 24+ cũng y như vậy.”** JEP 491 đã thay đổi cơ chế.
-17. **“Bật JFR VirtualThreadStart/End cho mọi request là không có chi phí.”** Events có volume lớn, cần chính sách.
-18. **“Thread ID có thể dùng làm metric label không giới hạn.”** Mỗi task có ID mới, cardinality sẽ bùng nổ.
-19. **“Thấy ít carrier nên scheduler tốt.”** Có thể vẫn có latency, CPU starvation, pinning hoặc dependency quá tải.
-20. **“Tăng virtual count là tăng thông lượng vô hạn.”** Cần giới hạn bởi CPU, network, DB, rate limits và backpressure.
+1. **"`ThreadMXBean.getThreadCount()` counts all Java threads."** On Java 21+, it counts only platform threads.
+2. **"`getPeakThreadCount()` gives the peak virtual thread count."** That is still peak **platform** threads.
+3. **"`getTotalStartedThreadCount()` includes created virtual threads."** No; it is cumulative **platform** threads started.
+4. **"`getAllThreadIds()` lists every `Thread` object."** Virtual IDs are excluded from the MXBean result.
+5. **"`getThreadInfo(id)==null` proves the thread does not exist."** It could be the ID of a living virtual thread.
+6. **"`Thread.activeCount()`/`ThreadGroup.enumerate()` are more complete than the MXBean."** Neither provides the total virtual thread count.
+7. **"The OS shows 32 threads, so there are only 32 concurrent requests."** Thousands of virtual tasks may be alive and waiting on I/O.
+8. **"10,000 virtual threads require 10,000 CPU cores."** Waiting on I/O does not consume CPU continuously, though CPU work remains bounded by core count.
+9. **"1 virtual thread stays pinned to 1 carrier."** The JVM can remount it onto a different carrier and maintains no affinity.
+10. **"A virtual thread waiting on I/O always releases its carrier."** Not unconditionally; check pinning, native operations, and JDK support.
+11. **"`Thread.print` shows few virtual threads, so the app isn't creating any."** Traditional dumps have a different scope from `Thread.dump_to_file`.
+12. **"A single virtual count snapshot equals throughput."** Live count, total started, active tasks, and completed requests are distinct metrics.
+13. **"Rising platform count proves a virtual thread leak."** Platform growth can come from other sources; attribute properly.
+14. **"Flat platform count means no leak."** Virtual threads can pile up on waits, latches, or futures.
+15. **"Virtual threads are free threads."** They consume heap/stack, allocations, context, and downstream resources.
+16. **"Because JDK 21 `synchronized` pins, JDK 24+ behaves identically."** JEP 491 changed that mechanism.
+17. **"Enabling JFR VirtualThreadStart/End for every request has zero cost."** Event volume is huge and needs a policy.
+18. **"Thread ID can be used as an unbounded metric label."** Every task gets a new ID, causing cardinality explosion.
+19. **"Few carriers means the scheduler is healthy."** Latency, CPU starvation, pinning, or downstream overload can still occur.
+20. **"Increasing virtual count scales throughput infinitely."** Throughput remains bounded by CPU, network, DB, rate limits, and backpressure.
 
-## 12. Cách điều tra đúng khi số thread từ hai công cụ không khớp
+## 12. Investigating Properly When Two Tools Disagree on Thread Counts
 
-Giả sử dashboard ghi `jvm_threads_live=38`, còn ứng dụng báo `virtual_tasks_inflight=4800`:
+Suppose a dashboard reports `jvm_threads_live=38`, while the application reports `virtual_tasks_inflight=4800`:
 
-**Bước 1 — Xác minh nguồn của hai metric.** Nếu `jvm_threads_live` dùng `ThreadMXBean.getThreadCount`, tên đúng phải diễn đạt phạm vi **platform**. `virtual_tasks_inflight` có thể đếm application tasks, không phải mọi virtual threads.
+**Step 1 — Verify the source of both metrics.** If `jvm_threads_live` uses `ThreadMXBean.getThreadCount`, its name should accurately reflect **platform** scope. `virtual_tasks_inflight` may count application tasks rather than every virtual thread.
 
-**Bước 2 — Xác minh JVM và phiên bản.** Java 17 không có virtual-thread APIs chính thức, Java 21 trở lên có; đọc JVM vendor/build. Các cách dump và pinning thay đổi theo JDK.
+**Step 2 — Verify the JVM and version.** Java 17 has no permanent virtual-thread APIs, whereas Java 21+ does; check the JVM vendor and build. Dump formats and pinning behavior differ across JDKs.
 
-**Bước 3 — Tìm workload.** 4.800 tasks đang chờ DB/HTTP, CPU work hay latch/future? Bao nhiêu request đã quá deadline? Nếu phần lớn chờ I/O và healthy, số virtual lớn có thể bình thường.
+**Step 3 — Identify the workload.** Are the 4,800 tasks waiting on DB/HTTP, doing CPU work, or stuck on a latch/future? How many requests have already missed deadlines? If most are legitimately waiting on I/O and healthy, a large virtual count can be normal.
 
-**Bước 4 — Lấy số liệu từ cùng khoảng thời gian.** Platform live (MXBean), app in-flight, DB connections pending, request p99, throughput, error rate, GC/heap, CPU. Đừng so một “peak” với một snapshot.
+**Step 4 — Gather metrics from the same time window.** Platform live (MXBean), app in-flight, pending DB connections, request p99, throughput, error rate, GC/heap, and CPU. Do not compare a "peak" against an instantaneous snapshot.
 
-**Bước 5 — Thu dump có virtual threads nếu cần.** Dùng `jcmd PID Thread.dump_to_file -format=json` đúng JDK, path an toàn, đủ disk. Nhóm theo stack/dependency, không đọc file lớn bằng mắt từng dòng.
+**Step 5 — Capture a virtual-thread-aware dump if needed.** Run `jcmd PID Thread.dump_to_file -format=json` with the right JDK, a safe path, and sufficient disk space. Group by stack/dependency rather than reading a huge file line-by-line by eye.
 
-**Bước 6 — Kiểm tra scheduler/pinning theo version.** JFR và các commands hỗ trợ thực tế, OS CPU theo thread, pool saturation, native blocking. Không quy mọi hiện tượng cho carrier count.
+**Step 6 — Check scheduler/pinning for your version.** Use JFR and commands supported by your runtime, per-thread OS CPU, pool saturation, and native blocking. Do not blame every symptom on carrier count.
 
-**Bước 7 — Tìm bottleneck nghiệp vụ.** Metrics/trace cho biết requests kết thúc hay đứng. Một virtual thread chờ 1 ms trong I/O là bình thường; 4.800 virtual threads chờ 60 giây trên future không bao giờ complete là sự cố.
+**Step 7 — Locate the business bottleneck.** Metrics and traces show whether requests are completing or stalled. A virtual thread waiting 1 ms in I/O is normal; 4,800 virtual threads waiting 60 seconds on a future that never completes is an incident.
 
-**Bước 8 — Khắc phục theo nguyên nhân.** Cải thiện deadline/cancellation, giới hạn resource concurrency, sửa blocking/native path, giảm ThreadLocal payload, giải quyết connection pool leak. Không cố “khớp” virtual count với platform count bằng cấu hình scheduler.
+**Step 8 — Fix the root cause.** Improve deadlines/cancellation, bound resource concurrency, fix blocking/native paths, shrink `ThreadLocal` payloads, and resolve connection pool leaks. Do not try to make virtual count "match" platform count via scheduler settings.
 
-**Bước 9 — Đo sau sửa.** Request throughput, p95/p99, in-flight, oldest wait, memory/CPU và error rate mới là mục tiêu chính; tổng virtual threads không cần bằng tổng platform threads.
+**Step 9 — Measure after the fix.** Request throughput, p95/p99, in-flight count, oldest wait age, memory/CPU, and error rate are the primary targets; total virtual threads do not need to equal total platform threads.
 
-### Bảng bằng chứng và mức kết luận
+### Evidence and Confidence Table
 
-| Quan sát | Có thể nói | Chưa thể nói |
+| Observation | What You Can Conclude | What You Cannot Yet Conclude |
 | --- | --- | --- |
-| MXBean báo 40 platform threads, app có 2.000 virtual tasks | Hai nguồn đo phạm vi khác nhau | 1.960 virtual threads bị “mất” |
-| OS có 30 native threads | Process có khoảng đó OS threads tại snapshot | Chỉ có 30 Java logical threads |
-| Virtual dump có 5.000 waiting | Nhiều logical threads còn sống và chờ | Chắc chắn deadlock hoặc chắc chắn khỏe |
-| Virtual in-flight tăng, completions đứng | Công việc có dấu hiệu không tiến triển | Root cause chỉ là carrier thiếu |
-| CPU 100%, nhiều virtual tasks ready | CPU có thể là bottleneck | Tăng số virtual threads sẽ tăng tốc |
-| JFR pinned event xuất hiện trên JDK 21 | Có pinning vượt ngưỡng ở cấu hình recording | Mọi chậm trễ đều do pinning |
-| JDK 24+ synchronized waits | Cơ chế JEP 491 khác JDK 21 | Mọi native blocking đều an toàn, không pin |
+| MXBean reports 40 platform threads; app has 2,000 virtual tasks | The two sources measure different scopes | That 1,960 virtual threads are "missing" |
+| OS shows 30 native threads | The process has roughly that many OS threads at the snapshot | That there are only 30 logical Java threads |
+| Virtual dump shows 5,000 waiting | Many logical threads are alive and waiting | Definitely deadlocked or definitely healthy |
+| Virtual in-flight rises, completions stall | Work shows signs of failing to make progress | That the root cause is solely carrier shortage |
+| CPU 100%, many virtual tasks ready | CPU may be the bottleneck | That raising virtual thread count will speed things up |
+| JFR pinned event appears on JDK 21 | Pinning exceeded the threshold under recording settings | That all slowness is caused by pinning |
+| JDK 24+ synchronized waits | JEP 491 mechanism differs from JDK 21 | That all native blocking is safe and never pins |
 
-## 13. Checklist triển khai và giám sát
+## 13. Implementation and Monitoring Checklist
 
-**Khi phát triển ứng dụng:**
-- [ ] Dùng JDK 21+ khi chạy API virtual threads ổn định; kiểm tra phiên bản library/framework.
-- [ ] Sử dụng virtual threads cho các tasks có nhiều waiting, đặc biệt synchronous I/O; không kỳ vọng chúng tăng tốc CPU-bound work.
-- [ ] Dùng `Thread.ofVirtual()` hoặc `Executors.newVirtualThreadPerTaskExecutor()` theo lifecycle hợp lý.
-- [ ] Không pool virtual threads như platform threads; giới hạn concurrency ở resource thật.
-- [ ] Đặt timeout, cancellation, backpressure và error handling cho các waits.
-- [ ] Không giữ ThreadLocal payload lớn trên hàng triệu virtual threads.
-- [ ] Đọc cảnh báo pinning đúng JDK 21/24+; không áp đặt lời khuyên cũ cho version mới.
+**When developing applications:**
+- [ ] Use JDK 21+ for stable virtual thread APIs; check library and framework compatibility.
+- [ ] Use virtual threads for wait-heavy tasks, especially synchronous I/O; do not expect them to accelerate CPU-bound work.
+- [ ] Use `Thread.ofVirtual()` or `Executors.newVirtualThreadPerTaskExecutor()` with a clean lifecycle.
+- [ ] Do not pool virtual threads like platform threads; bound concurrency at real resources.
+- [ ] Set timeouts, cancellation, backpressure, and error handling on waits.
+- [ ] Avoid storing large `ThreadLocal` payloads across millions of virtual threads.
+- [ ] Read pinning guidance matching JDK 21 vs. 24+; do not impose outdated advice on newer versions.
 
-**Khi thiết kế observability:**
-- [ ] Đặt tên metric `platform_thread_count` cho dữ liệu `ThreadMXBean`.
-- [ ] Instrument virtual tasks started/completed/inflight với vòng đời chính xác.
-- [ ] Phân biệt task started, submitted, currently alive và business requests in-flight.
-- [ ] Thu latency, timeout, backlog, downstream saturation, CPU/GC/memory bên cạnh thread metrics.
-- [ ] Dùng JFR events hoặc `Thread.dump_to_file` khi cần quan sát virtual threads.
-- [ ] Giới hạn metric label cardinality và dung lượng dump/JFR.
-- [ ] Không dùng OS thread list, `ThreadGroup.activeCount` hay `ThreadMXBean.dumpAllThreads` làm tổng virtual thread count.
-- [ ] Kiểm tra logging/traces có correlation ID để nối từng virtual task với nghiệp vụ.
-- [ ] Kiểm tra diagnostics JDK hỗ trợ thực sự trước khi đưa lệnh vào playbook.
+**When designing observability:**
+- [ ] Name `ThreadMXBean` metrics `platform_thread_count` (or similar platform-specific names).
+- [ ] Instrument virtual tasks started/completed/inflight with accurate lifecycle hooks.
+- [ ] Distinguish tasks started, submitted, currently alive, and business requests in-flight.
+- [ ] Collect latency, timeouts, backlog, downstream saturation, and CPU/GC/memory alongside thread metrics.
+- [ ] Use JFR events or `Thread.dump_to_file` when virtual-thread visibility is needed.
+- [ ] Bound metric label cardinality and dump/JFR file sizes.
+- [ ] Never use OS thread lists, `ThreadGroup.activeCount`, or `ThreadMXBean.dumpAllThreads` as total virtual thread counts.
+- [ ] Ensure logs/traces carry a correlation ID linking each virtual task to business context.
+- [ ] Verify which JDK diagnostics are actually supported before adding commands to playbooks.
 
-**Khi thấy một biểu đồ “JVM thread count” thấp:**
-- [ ] Nguồn là MXBean/platform-only hay app-specific virtual metrics?
-- [ ] Có bao nhiêu virtual tasks đang sống và bao nhiêu requests đang inflight?
-- [ ] Phần lớn virtual threads đang chờ I/O hợp lệ hay chờ dependency quá hạn?
-- [ ] Số lượng completed requests có tăng, p99 có trong SLO không?
-- [ ] Platform/cpu/GC/native resource có nghẽn không?
-- [ ] Có pinning/native blocking hay queue saturation ở version JDK đó không?
+**When a "JVM thread count" chart looks low:**
+- [ ] Is the source MXBean/platform-only or app-specific virtual metrics?
+- [ ] How many virtual tasks are alive and how many requests are in-flight?
+- [ ] Are most virtual threads waiting on healthy I/O or overdue dependencies?
+- [ ] Are completed requests rising and is p99 within SLO?
+- [ ] Are platform/CPU/GC/native resources saturated?
+- [ ] Is there pinning/native blocking or queue saturation on that JDK version?
 
-**Ghi nhớ cuối:** Một platform thread thường là đơn vị OS thực thi; một virtual thread là **đơn vị công việc đồng thời do JVM quản lý** có thể mount/unmount trên nhiều carriers. `ThreadMXBean` và OS tools **đếm platform/native**, không đếm mọi virtual logical threads. Vì vậy, **số platform threads không đại diện cho tổng virtual threads** — cần theo dõi riêng application virtual tasks, tiến độ nghiệp vụ, resource metrics và dùng virtual-aware dump/JFR khi điều tra.
+**Final takeaway:** A platform thread is typically an OS execution unit; a virtual thread is a **JVM-managed unit of concurrent work** that can mount and unmount across many carriers. `ThreadMXBean` and OS tools **count platform/native threads**, not all logical virtual threads. Therefore, **platform thread count does not represent total virtual threads**—you must track application virtual tasks, business progress, and resource metrics separately, and rely on virtual-aware dumps and JFR when investigating.
 
-### Tài liệu tham khảo chính thức
+### Official References
 
 1. Oracle Java SE 21, *Virtual Threads*: https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html
 2. Oracle Java SE 21, *ThreadMXBean*: https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html
@@ -609,4 +609,4 @@ Giả sử dashboard ghi `jvm_threads_live=38`, còn ứng dụng báo `virtual_
 6. OpenJDK, *JEP 444: Virtual Threads*: https://openjdk.org/jeps/444
 7. OpenJDK, *JEP 491: Synchronize Virtual Threads without Pinning*: https://openjdk.org/jeps/491
 
-Các con số trong ví dụ so sánh và stderr được đánh dấu **minh họa**, không phải cam kết về mọi OS/JVM. Luôn kiểm tra JDK version và phạm vi metric trước khi kết luận điều gì từ thread counts.
+Numbers in the comparison examples and stderr are marked **illustrative**, not guarantees across all OS/JVM combinations. Always check the JDK version and metric scope before drawing conclusions from thread counts.

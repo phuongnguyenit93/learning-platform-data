@@ -1,0 +1,2935 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Spring Security reactive là gì và giải quyết vấn đề nào trong ứng dụng WebFlux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt xác thực, phân quyền và bảo vệ trước các kiểu tấn công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mối quan hệ giữa Spring WebFlux, Reactor và Spring Security
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Nhận diện người dùng, thông tin xác thực, vai trò và quyền truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Ranh giới giữa bảo mật reactive và bảo mật Servlet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: 'Các mô hình ứng dụng: trình duyệt dùng phiên, REST API dùng token và dịch vụ gọi dịch vụ'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Các ranh giới tin cậy và bề mặt tấn công của một ứng dụng reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức đầu vào và trình tự học từ yêu cầu HTTP đến bảo mật nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactor-foundations
+  title: Nền tảng Reactor
+  childs:
+  - slug: reactor-foundations-001
+    title: Mono, Flux và Publisher trong luồng xử lý bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-foundations-002
+    title: Thời điểm tạo Publisher, đăng ký thực thi và đánh giá quyền truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-foundations-003
+    title: Chuỗi toán tử map, flatMap, filter và switchIfEmpty trong xử lý xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-foundations-004
+    title: Phân biệt Mono.empty(), giá trị false và tín hiệu lỗi trong quyết định bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-foundations-005
+    title: Reactor Context và sự khác biệt với ThreadLocal
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-foundations-006
+    title: Luồng sự kiện, Scheduler và giới hạn của mã chặn luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-foundations-007
+    title: Trì hoãn thực thi với defer và fromCallable khi tích hợp mã đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-foundations-008
+    title: Ảnh hưởng của lỗi, hủy đăng ký và backpressure đến tác vụ bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-foundations-009
+    title: Những sai lầm với block(), subscribe() thủ công và tác vụ ngoài chuỗi reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-bootstrap
+  title: Khởi tạo ứng dụng
+  childs:
+  - slug: application-bootstrap-001
+    title: Chọn phiên bản Spring Boot, Spring Security và bộ phụ thuộc tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-bootstrap-002
+    title: Thiết lập spring-boot-starter-webflux, spring-boot-starter-security và spring-security-test
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-bootstrap-003
+    title: Nhận diện ứng dụng reactive khi có đồng thời phụ thuộc Spring MVC và WebFlux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-bootstrap-004
+    title: Cấu hình bảo mật mặc định của Spring Boot và tài khoản phát triển được sinh tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-bootstrap-005
+    title: Tạo SecurityWebFilterChain đầu tiên với ServerHttpSecurity
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-bootstrap-006
+    title: Vai trò của @EnableWebFluxSecurity và cấu hình tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-bootstrap-007
+    title: Cấu hình người dùng mẫu bằng MapReactiveUserDetailsService
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-bootstrap-008
+    title: Tạo điểm truy cập công khai và điểm truy cập yêu cầu đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-bootstrap-009
+    title: Kiểm chứng ứng dụng bằng trình duyệt, curl và WebTestClient
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webfilter-architecture
+  title: Kiến trúc WebFilter
+  childs:
+  - slug: webfilter-architecture-001
+    title: Đường đi của yêu cầu qua WebFilter, WebFilterChainProxy và SecurityWebFilterChain
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webfilter-architecture-002
+    title: ServerWebExchange, ServerHttpRequest và ServerHttpResponse trong bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webfilter-architecture-003
+    title: Phân biệt WebFilter của ứng dụng và bộ lọc bên trong chuỗi bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webfilter-architecture-004
+    title: SecurityWebFiltersOrder và thứ tự các giai đoạn xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webfilter-architecture-005
+    title: Vai trò của ReactorContextWebFilter và SecurityContextServerWebExchangeWebFilter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webfilter-architecture-006
+    title: 'AuthenticationWebFilter: chuyển đổi thông tin đầu vào và gọi bộ xác thực'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webfilter-architecture-007
+    title: 'AuthorizationWebFilter: thực thi quyết định phân quyền'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webfilter-architecture-008
+    title: 'ExceptionTranslationWebFilter: chuyển lỗi bảo mật thành phản hồi HTTP'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webfilter-architecture-009
+    title: Cơ chế tiếp tục, kết thúc sớm và lan truyền lỗi trong chuỗi bộ lọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webfilter-architecture-010
+    title: Áp dụng cùng một chuỗi bảo mật cho Controller và RouterFunction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-configuration
+  title: Cấu hình bảo mật
+  childs:
+  - slug: security-configuration-001
+    title: Cấu hình bằng lambda DSL và Customizer trong ServerHttpSecurity
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-configuration-002
+    title: Phân biệt securityMatcher chọn chuỗi và authorizeExchange chọn quy tắc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-configuration-003
+    title: ServerWebExchangeMatcher, đường dẫn và phương thức HTTP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-configuration-004
+    title: Nhiều SecurityWebFilterChain với @Order và nguyên tắc chọn chuỗi phù hợp đầu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-configuration-005
+    title: Tạo chuỗi dự phòng để tránh bỏ sót đường dẫn chưa được bảo vệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-configuration-006
+    title: Tách chuỗi cho REST API, giao diện đăng nhập và điểm quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-configuration-007
+    title: Phân biệt permitAll với bỏ qua toàn bộ chuỗi bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-configuration-008
+    title: Bật hoặc tắt từng cơ chế theo mô hình phiên và token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-configuration-009
+    title: NoOpServerRequestCache và tránh lưu yêu cầu trong API không dùng phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-configuration-010
+    title: Đưa cấu hình theo môi trường ra properties và cấu hình kiểu an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-configuration-011
+    title: Kiểm soát xung đột bean và hiểu điều kiện cấu hình tự động ngừng áp dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-context
+  title: Ngữ cảnh bảo mật
+  childs:
+  - slug: security-context-001
+    title: Authentication, principal, credentials và GrantedAuthority trong SecurityContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-context-002
+    title: Đọc danh tính hiện tại bằng ReactiveSecurityContextHolder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-context-003
+    title: Phạm vi và chiều truyền của Reactor Context trong một chuỗi Publisher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-context-004
+    title: Thiết lập ngữ cảnh bằng contextWrite và withAuthentication
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-context-005
+    title: Truy cập người dùng bằng @AuthenticationPrincipal, Principal và ServerWebExchange
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-context-006
+    title: ServerSecurityContextRepository và vòng đời lưu, nạp ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-context-007
+    title: WebSessionServerSecurityContextRepository và NoOpServerSecurityContextRepository
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-context-008
+    title: Truyền ngữ cảnh qua publishOn, subscribeOn và lời gọi bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-context-009
+    title: Phân biệt ngữ cảnh bảo mật cục bộ với token truyền sang dịch vụ khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-context-010
+    title: Ngăn rò rỉ danh tính giữa các yêu cầu chạy đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-authentication
+  title: Xác thực reactive
+  childs:
+  - slug: reactive-authentication-001
+    title: Vòng đời Authentication trước và sau khi xác thực thành công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-authentication-002
+    title: ReactiveAuthenticationManager và hợp đồng Mono<Authentication>
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-authentication-003
+    title: ServerAuthenticationConverter và chuyển đổi thông tin xác thực từ yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-authentication-004
+    title: Phân biệt không có thông tin, thông tin không được hỗ trợ và thông tin không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-authentication-005
+    title: AuthenticationWebFilter và lựa chọn yêu cầu cần xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-authentication-006
+    title: DelegatingReactiveAuthenticationManager và phối hợp nhiều bộ xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-authentication-007
+    title: ServerAuthenticationSuccessHandler và ServerAuthenticationFailureHandler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-authentication-008
+    title: Xác thực ẩn danh bằng AnonymousAuthenticationWebFilter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-authentication-009
+    title: Xử lý tài khoản khóa, vô hiệu hóa, hết hạn và hết hạn mật khẩu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-authentication-010
+    title: Xóa thông tin bí mật và giới hạn dữ liệu được giữ trong Authentication
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: users-and-passwords
+  title: Người dùng và mật khẩu
+  childs:
+  - slug: users-and-passwords-001
+    title: ReactiveUserDetailsService, UserDetails và mô hình dữ liệu người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-and-passwords-002
+    title: Tạo người dùng trong bộ nhớ bằng MapReactiveUserDetailsService
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-and-passwords-003
+    title: Tải người dùng từ cơ sở dữ liệu reactive với R2DBC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-and-passwords-004
+    title: UserDetailsRepositoryReactiveAuthenticationManager và PasswordEncoder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-and-passwords-005
+    title: Băm mật khẩu với BCrypt, Argon2 và lựa chọn chi phí tính toán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-and-passwords-006
+    title: DelegatingPasswordEncoder, tiền tố thuật toán và nâng cấp hàm băm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-and-passwords-007
+    title: Lập lịch kiểm tra mật khẩu tốn CPU và đánh giá ảnh hưởng đến luồng sự kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-and-passwords-008
+    title: Tách vai trò, quyền và dữ liệu hồ sơ trong principal
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-and-passwords-009
+    title: Chuẩn hóa tên đăng nhập và tránh làm lộ sự tồn tại của tài khoản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-and-passwords-010
+    title: Giới hạn của JDBC, JPA, LDAP đồng bộ và phương án tích hợp tại ranh giới chặn luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-and-passwords-011
+    title: Thay đổi mật khẩu, thu hồi phiên và xử lý trạng thái tài khoản đã thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-basic
+  title: HTTP Basic
+  childs:
+  - slug: http-basic-001
+    title: Cơ chế HTTP Basic và cấu trúc tiêu đề Authorization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-basic-002
+    title: Bật HTTP Basic trong SecurityWebFilterChain
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-basic-003
+    title: Chuyển đổi tên đăng nhập và mật khẩu thành Authentication
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-basic-004
+    title: WWW-Authenticate, miền xác thực (realm) và phản hồi khi chưa xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-basic-005
+    title: Lựa chọn lưu hoặc không lưu ngữ cảnh khi dùng HTTP Basic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-basic-006
+    title: Yêu cầu HTTPS và nguy cơ lộ thông tin qua log, proxy hoặc lịch sử công cụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-basic-007
+    title: HTTP Basic trong trình duyệt và mối liên hệ với CSRF
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-basic-008
+    title: Tùy chỉnh phản hồi lỗi HTTP Basic cho REST API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: form-login
+  title: Đăng nhập biểu mẫu
+  childs:
+  - slug: form-login-001
+    title: Luồng truy cập tài nguyên được bảo vệ, chuyển hướng và đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: form-login-002
+    title: Cấu hình formLogin và trang đăng nhập mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: form-login-003
+    title: Tạo trang đăng nhập riêng và cấu hình địa chỉ xử lý đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: form-login-004
+    title: Đọc dữ liệu biểu mẫu và xác thực người dùng trong WebFlux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: form-login-005
+    title: Tùy chỉnh đích chuyển hướng sau đăng nhập thành công hoặc thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: form-login-006
+    title: ServerRequestCache và khôi phục yêu cầu ban đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: form-login-007
+    title: Tích hợp CSRF token vào biểu mẫu đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: form-login-008
+    title: Lưu ngữ cảnh sau đăng nhập và đổi mã phiên để hạn chế session fixation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: form-login-009
+    title: Tách hành vi đăng nhập của trình duyệt khỏi phản hồi JSON cho API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: form-login-010
+    title: Giới hạn thử đăng nhập và phòng chống dò mật khẩu ở tầng ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sessions-and-logout
+  title: Phiên và đăng xuất
+  childs:
+  - slug: sessions-and-logout-001
+    title: WebSession, cookie phiên và sự khác biệt với HttpSession
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-logout-002
+    title: Lưu ngữ cảnh bảo mật theo phiên và kiểm soát thời điểm tạo phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-logout-003
+    title: Phân biệt ứng dụng có trạng thái và ứng dụng không lưu trạng thái xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-logout-004
+    title: Cấu hình Secure, HttpOnly, SameSite và thời hạn cookie phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-logout-005
+    title: Thời hạn phiên, mất hiệu lực phiên và trải nghiệm khi phiên hết hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-logout-006
+    title: Chia sẻ phiên giữa các nút bằng Spring Session và Redis reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-logout-007
+    title: Cấu hình logout, địa chỉ đăng xuất và phương thức HTTP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-logout-008
+    title: ServerLogoutHandler, ServerLogoutSuccessHandler và xóa ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-logout-009
+    title: Phối hợp xóa cookie, hủy phiên và xử lý yêu cầu CSRF khi đăng xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-logout-010
+    title: Phân biệt đăng xuất cục bộ, hết hạn token và thu hồi token tại nhà cung cấp danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-logout-011
+    title: Giới hạn số phiên đồng thời bằng maximumSessions và ReactiveSessionRegistry
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-logout-012
+    title: Lựa chọn hủy phiên cũ hoặc từ chối đăng nhập khi vượt giới hạn phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-authorization
+  title: Phân quyền HTTP
+  childs:
+  - slug: http-authorization-001
+    title: authorizeExchange và nguyên tắc áp dụng quy tắc theo thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-002
+    title: permitAll, denyAll, authenticated và quyền của người dùng ẩn danh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-003
+    title: hasRole, hasAuthority và tiền tố ROLE_
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-004
+    title: Phân quyền theo đường dẫn, HTTP method và biến đường dẫn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-005
+    title: Kết hợp quyền với thông tin ServerWebExchange
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-006
+    title: ReactiveAuthorizationManager<AuthorizationContext> và AuthorizationDecision
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-007
+    title: Kết hợp nhiều điều kiện phân quyền theo chính sách nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-008
+    title: Tra cứu quyền bằng dữ liệu reactive mà không chặn luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-009
+    title: Phân quyền theo chủ sở hữu tài nguyên và phòng tránh IDOR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-010
+    title: Thiết kế quy tắc mặc định từ chối và xử lý đường dẫn không khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-011
+    title: Giữ đồng nhất quy tắc cho Controller và RouterFunction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: method-authorization
+  title: Phân quyền phương thức
+  childs:
+  - slug: method-authorization-001
+    title: Bật @EnableReactiveMethodSecurity và lựa chọn cơ chế AuthorizationManager theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-authorization-002
+    title: Điều kiện kiểu trả về Publisher khi áp dụng bảo mật phương thức reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-authorization-003
+    title: '@PreAuthorize và kiểm tra quyền trước khi thực thi nghiệp vụ'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-authorization-004
+    title: '@PostAuthorize và kiểm tra kết quả trước khi trả dữ liệu'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-authorization-005
+    title: '@PreFilter, @PostFilter và giới hạn lọc dữ liệu theo kiểu trả về, phiên bản'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-authorization-006
+    title: Biểu thức SpEL với authentication, principal và tham số phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-authorization-007
+    title: Sử dụng bean trả về Mono<Boolean> cho điều kiện phân quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-authorization-008
+    title: Kiểm tra chủ sở hữu bằng dữ liệu reactive ở tầng dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-authorization-009
+    title: Spring AOP, lời gọi nội bộ cùng đối tượng và nguyên nhân annotation không có hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-authorization-010
+    title: Phối hợp phân quyền HTTP với phân quyền phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-authorization-011
+    title: Tác dụng phụ đã xảy ra và giới hạn của kiểm tra sau thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-authorization-012
+    title: Kiểm soát thứ tự thực thi giữa bảo mật, giao dịch và chuỗi reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-responses
+  title: Phản hồi lỗi
+  childs:
+  - slug: error-responses-001
+    title: Phân biệt lỗi xác thực, lỗi phân quyền và lỗi nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-002
+    title: Phân biệt 401 Unauthorized với 403 Forbidden
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-003
+    title: ServerAuthenticationEntryPoint cho yêu cầu chưa được xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-004
+    title: ServerAccessDeniedHandler cho yêu cầu thiếu quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-005
+    title: AuthenticationFailureHandler và lỗi phát sinh trong quá trình đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-006
+    title: Chọn chuyển hướng hoặc JSON theo loại điểm truy cập và nội dung yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-007
+    title: Thiết kế phản hồi lỗi JSON nhất quán và mã tương quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-008
+    title: Ranh giới giữa lỗi WebFilter, @ControllerAdvice và WebExceptionHandler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-009
+    title: Không làm lộ mật khẩu, token, stack trace hoặc chi tiết tài khoản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-010
+    title: Xử lý lỗi khi phản hồi đã được gửi hoặc luồng dữ liệu đã bắt đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: csrf-protection
+  title: Bảo vệ CSRF
+  childs:
+  - slug: csrf-protection-001
+    title: Cơ chế tấn công CSRF và điều kiện trình duyệt tự gửi thông tin xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-protection-002
+    title: Phân biệt CSRF, XSS và CORS trong ứng dụng reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-protection-003
+    title: CsrfWebFilter, ServerCsrfTokenRepository và vòng đời CSRF token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-protection-004
+    title: WebSessionServerCsrfTokenRepository và lưu token trong phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-protection-005
+    title: CookieServerCsrfTokenRepository và gửi token từ ứng dụng JavaScript
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-protection-006
+    title: Đọc Mono<CsrfToken> và bảo đảm token được tạo khi cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-protection-007
+    title: ServerCsrfTokenRequestHandler và cơ chế che token chống BREACH
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-protection-008
+    title: Truyền token qua biểu mẫu, tiêu đề HTTP và yêu cầu bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-protection-009
+    title: CSRF cho đăng nhập, đăng xuất và tải tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-protection-010
+    title: Xử lý token thiếu, sai hoặc hết hạn và phản hồi lỗi phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-protection-011
+    title: Đánh giá việc miễn CSRF cho API dùng Bearer token theo cách trình duyệt gửi thông tin xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-protection-012
+    title: Giới hạn phạm vi bỏ qua CSRF bằng matcher và kiểm chứng bằng kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cors-configuration
+  title: Cấu hình CORS
+  childs:
+  - slug: cors-configuration-001
+    title: Same-Origin Policy, origin và mục đích của CORS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-configuration-002
+    title: Yêu cầu đơn giản, yêu cầu preflight và phương thức OPTIONS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-configuration-003
+    title: Thứ tự xử lý CORS trước các bước xác thực và phân quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-configuration-004
+    title: CorsConfiguration và UrlBasedCorsConfigurationSource cho WebFlux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-configuration-005
+    title: Khai báo origin, method, header và exposedHeaders cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-configuration-006
+    title: allowCredentials, origin cụ thể và giới hạn của ký tự đại diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-configuration-007
+    title: Giới hạn origin theo môi trường và tránh phản chiếu origin tùy ý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-configuration-008
+    title: Phân biệt lỗi CORS tại trình duyệt với lỗi 401 hoặc 403 của máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-configuration-009
+    title: Phối hợp CORS với cookie phiên, CSRF và Bearer token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-configuration-010
+    title: Tránh xung đột giữa CorsWebFilter, cấu hình WebFlux và Spring Security
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: headers-and-https
+  title: Header và HTTPS
+  childs:
+  - slug: headers-and-https-001
+    title: Các header bảo mật mặc định trong Spring Security reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-https-002
+    title: Cache-Control và hạn chế lưu đệm phản hồi chứa dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-https-003
+    title: X-Content-Type-Options và phòng tránh suy đoán sai kiểu nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-https-004
+    title: X-Frame-Options, CSP frame-ancestors và phòng chống clickjacking
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-https-005
+    title: Content-Security-Policy, nonce và giới hạn bảo vệ trước XSS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-https-006
+    title: Referrer-Policy, Permissions-Policy và giảm rò rỉ dữ liệu trình duyệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-https-007
+    title: Strict-Transport-Security và điều kiện triển khai HTTPS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-https-008
+    title: Chuyển hướng HTTP sang HTTPS và nhận diện giao thức sau reverse proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-https-009
+    title: Xử lý Forwarded, X-Forwarded-* và ranh giới tin cậy của proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-https-010
+    title: Tùy chỉnh header theo điểm truy cập và kiểm tra giá trị thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-https-011
+    title: Giới hạn kích thước header, nội dung yêu cầu và tải tệp ở tầng WebFlux, máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oauth2-and-oidc-login
+  title: Đăng nhập OAuth2/OIDC
+  childs:
+  - slug: oauth2-and-oidc-login-001
+    title: Vai trò ứng dụng WebFlux khi dùng OAuth2 Login và OpenID Connect
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-login-002
+    title: Phân biệt OAuth2 Client, Resource Server và Authorization Server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-login-003
+    title: ClientRegistration, provider và ReactiveClientRegistrationRepository
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-login-004
+    title: Cấu hình oauth2Login với nhà cung cấp danh tính bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-login-005
+    title: Luồng Authorization Code, địa chỉ chuyển hướng và callback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-login-006
+    title: state, nonce, PKCE và các ràng buộc bảo vệ luồng đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-login-007
+    title: Lưu và khôi phục yêu cầu cấp quyền bằng ServerAuthorizationRequestRepository
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-login-008
+    title: OAuth2User, OidcUser và phân biệt access token với ID token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-login-009
+    title: Tùy chỉnh ReactiveOAuth2UserService và ánh xạ claim thành quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-login-010
+    title: Tùy chỉnh kết quả đăng nhập, lỗi callback và trang chọn nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-login-011
+    title: Lưu người dùng nội bộ và liên kết tài khoản ngoài bằng định danh ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-login-012
+    title: Đăng xuất OIDC do ứng dụng khởi tạo và giới hạn đăng xuất liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oauth2-client
+  title: OAuth2 Client
+  childs:
+  - slug: oauth2-client-001
+    title: OAuth2AuthorizedClient và vòng đời access token, refresh token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-client-002
+    title: ReactiveOAuth2AuthorizedClientManager, ReactiveOAuth2AuthorizedClientService và ServerOAuth2AuthorizedClientRepository
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-client-003
+    title: Tiêm OAuth2AuthorizedClient bằng @RegisteredOAuth2AuthorizedClient
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-client-004
+    title: Lựa chọn manager trong yêu cầu web và trong tác vụ ngoài yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-client-005
+    title: Cấu hình Authorization Code và Client Credentials theo loại ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-client-006
+    title: Cấp mới access token và xử lý refresh token khi hết hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-client-007
+    title: Tích hợp ServerOAuth2AuthorizedClientExchangeFilterFunction với WebClient
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-client-008
+    title: Lựa chọn clientRegistrationId hoặc OAuth2AuthorizedClient cho từng lời gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-client-009
+    title: Phân biệt lấy token của ứng dụng với chuyển tiếp token người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-client-010
+    title: Giới hạn máy chủ đích để tránh gửi Bearer token nhầm dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-client-011
+    title: Xử lý token bị từ chối, xóa OAuth2AuthorizedClient và tránh vòng lặp thử lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-client-012
+    title: Tùy chỉnh kết nối HTTPS, timeout và lỗi khi gọi token endpoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-server-jwt
+  title: Resource Server JWT
+  childs:
+  - slug: resource-server-jwt-001
+    title: Cơ chế Bearer token và luồng xác thực JWT trong WebFlux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-jwt-002
+    title: Thiết lập phụ thuộc Resource Server và JOSE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-jwt-003
+    title: Cấu hình issuer-uri, jwk-set-uri và quan hệ với nhà cung cấp danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-jwt-004
+    title: ReactiveJwtDecoder và lựa chọn thuật toán chữ ký tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-jwt-005
+    title: Xác minh chữ ký và kiểm tra iss, exp, nbf, aud
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-jwt-006
+    title: JWK, kid, bộ nhớ đệm khóa và luân chuyển khóa ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-jwt-007
+    title: Ánh xạ scope thành quyền SCOPE_ và tùy chỉnh JwtGrantedAuthoritiesConverter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-jwt-008
+    title: Chuyển đổi JWT thành Authentication bằng bộ chuyển đổi reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-jwt-009
+    title: Đọc Jwt, claim và principal trong Controller hoặc dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-jwt-010
+    title: Phân quyền theo scope, claim nghiệp vụ và chủ sở hữu tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-jwt-011
+    title: Xử lý token thiếu, sai định dạng, hết hạn hoặc không đủ scope
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-jwt-012
+    title: Giới hạn của JWT tự chứa khi cần thu hồi quyền tức thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-jwt-013
+    title: Tránh tự viết bộ lọc giải mã JWT và tránh coi dữ liệu chưa xác minh là danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-server-opaque
+  title: Resource Server Opaque
+  childs:
+  - slug: resource-server-opaque-001
+    title: Opaque token và sự khác biệt với JWT tự xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-opaque-002
+    title: Token introspection và ranh giới tin cậy với Authorization Server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-opaque-003
+    title: Cấu hình introspection-uri, client-id và client-secret
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-opaque-004
+    title: ReactiveOpaqueTokenIntrospector và OAuth2AuthenticatedPrincipal
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-opaque-005
+    title: Ánh xạ thuộc tính introspection và scope thành GrantedAuthority
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-opaque-006
+    title: Tùy chỉnh introspector để bổ sung dữ liệu người dùng hoặc quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-opaque-007
+    title: Xử lý token không hoạt động, lỗi mạng và nhà cung cấp không sẵn sàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-opaque-008
+    title: Thiết kế timeout và bộ nhớ đệm theo yêu cầu thu hồi token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-opaque-009
+    title: So sánh JWT và opaque token theo độ trễ, phụ thuộc mạng và khả năng thu hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-server-opaque-010
+    title: Chuyển tiếp Bearer token bằng WebClient và kiểm soát ranh giới tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-authentication
+  title: Xác thực mở rộng
+  childs:
+  - slug: advanced-authentication-001
+    title: Thiết kế cơ chế xác thực riêng bằng AuthenticationWebFilter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-authentication-002
+    title: Tạo Authentication token chuyên biệt và ServerAuthenticationConverter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-authentication-003
+    title: Triển khai ReactiveAuthenticationManager cho API key
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-authentication-004
+    title: Lưu API key dưới dạng bảo vệ, giới hạn quyền và luân chuyển khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-authentication-005
+    title: Đặt bộ lọc tùy chỉnh bằng addFilterAt, addFilterBefore và addFilterAfter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-authentication-006
+    title: Phối hợp cơ chế tùy chỉnh với HTTP Basic hoặc Bearer token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-authentication-007
+    title: Chọn cơ chế xác thực bằng matcher và tránh xử lý trùng yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-authentication-008
+    title: Xác thực chứng thư X.509 và ánh xạ chứng thư thành người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-authentication-009
+    title: Phân biệt mTLS tại proxy với danh tính đã được ứng dụng xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-authentication-010
+    title: Tích hợp hệ thống xác thực đồng bộ qua ranh giới chặn luồng có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gateway-and-multitenancy
+  title: Gateway và nhiều tenant
+  childs:
+  - slug: gateway-and-multitenancy-001
+    title: Phân định bảo mật tại API Gateway và tại dịch vụ phía sau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-and-multitenancy-002
+    title: Chuyển tiếp danh tính, token relay và kiểm tra token ở từng ranh giới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-and-multitenancy-003
+    title: Không tin cậy header người dùng hoặc vai trò do máy khách tự gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-and-multitenancy-004
+    title: Nhận diện tenant từ nguồn tin cậy và tách tenant khỏi dữ liệu chưa xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-and-multitenancy-005
+    title: ReactiveAuthenticationManagerResolver<ServerWebExchange> và chọn bộ xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-and-multitenancy-006
+    title: Chọn nhà phát hành JWT theo danh sách tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-and-multitenancy-007
+    title: Ngăn truy cập chéo tenant khi truy vấn tài nguyên và kiểm tra quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-and-multitenancy-008
+    title: Cấu hình nhiều chuỗi cho miền API khác nhau và kiểm chứng vùng bao phủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-and-multitenancy-009
+    title: Phối hợp giới hạn lưu lượng, timeout và bảo vệ dịch vụ danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-and-multitenancy-010
+    title: Ranh giới giữa bảo mật HTTP, phân quyền nghiệp vụ và chính sách hạ tầng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: r-socket-and-long-streams
+  title: RSocket và luồng dài
+  childs:
+  - slug: r-socket-and-long-streams-001
+    title: Phạm vi hỗ trợ RSocket Security và sự khác biệt với bảo mật HTTP WebFlux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: r-socket-and-long-streams-002
+    title: Cấu hình @EnableRSocketSecurity, RSocketSecurity và SocketAcceptorInterceptor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: r-socket-and-long-streams-003
+    title: Xác thực RSocket bằng Simple Authentication hoặc Bearer token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: r-socket-and-long-streams-004
+    title: Phân biệt danh tính khi thiết lập kết nối và khi xử lý từng payload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: r-socket-and-long-streams-005
+    title: Phân quyền theo route và kiểm soát metadata của RSocket
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: r-socket-and-long-streams-006
+    title: Kiểm thử RSocket với thiếu thông tin xác thực và thiếu quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: r-socket-and-long-streams-007
+    title: Bảo vệ bước bắt tay WebSocket và kiểm tra Origin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: r-socket-and-long-streams-008
+    title: Ranh giới giữa danh tính kết nối WebSocket và phân quyền từng thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: r-socket-and-long-streams-009
+    title: Danh tính, hủy đăng ký và token hết hạn trong SSE hoặc Flux dài hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: r-socket-and-long-streams-010
+    title: Giới hạn kết nối, tài nguyên và hành vi khi phiên bị thu hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-testing
+  title: Kiểm thử HTTP
+  childs:
+  - slug: http-testing-001
+    title: Thiết lập WebTestClient với springSecurity()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-002
+    title: Phân biệt kiểm thử bằng ApplicationContext với kiểm thử qua máy chủ thật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-003
+    title: '@WebFluxTest, @SpringBootTest và nạp đúng cấu hình bảo mật'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-004
+    title: '@WithMockUser, mockUser() và người dùng ẩn danh'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-005
+    title: Ma trận kiểm thử điểm công khai, chưa xác thực, thiếu quyền và đủ quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-006
+    title: Kiểm thử HTTP Basic với thông tin hợp lệ và không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-007
+    title: Kiểm thử biểu mẫu đăng nhập, cookie phiên và đăng xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-008
+    title: csrf() và các trường hợp token thiếu, sai hoặc hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-009
+    title: Kiểm thử preflight CORS, origin không được phép và thông tin xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-010
+    title: Kiểm tra header bảo mật, chuyển hướng và cấu trúc lỗi JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-011
+    title: Kiểm chứng nhiều SecurityWebFilterChain và chuỗi dự phòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-testing
+  title: Kiểm thử chuyên sâu
+  childs:
+  - slug: advanced-testing-001
+    title: StepVerifier và kiểm thử Publisher chứa quyết định bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-testing-002
+    title: Thiết lập Reactor Context trong kiểm thử đơn vị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-testing-003
+    title: Kiểm thử ReactiveAuthenticationManager và ServerAuthenticationConverter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-testing-004
+    title: Kiểm thử @PreAuthorize, @PostAuthorize và lời gọi qua Spring proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-testing-005
+    title: Kiểm thử phân quyền chủ sở hữu và truy cập chéo tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-testing-006
+    title: mockJwt(), mockOpaqueToken() và ánh xạ quyền trong Resource Server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-testing-007
+    title: mockOAuth2Login(), mockOidcLogin() và principal sau đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-testing-008
+    title: mockOAuth2Client() và lời gọi WebClient có OAuth2AuthorizedClient
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-testing-009
+    title: Giới hạn của token giả lập và kiểm thử decoder, chữ ký, issuer, audience thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-testing-010
+    title: Giả lập JWK endpoint, introspection endpoint và lỗi nhà cung cấp danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-testing-011
+    title: Kiểm thử đồng thời để phát hiện mất ngữ cảnh hoặc rò rỉ danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-testing-012
+    title: Kiểm thử thời hạn token, timeout, hủy đăng ký và phản hồi đã bắt đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-and-performance
+  title: Quan sát và hiệu năng
+  childs:
+  - slug: observability-and-performance-001
+    title: Bật log chẩn đoán Spring Security theo môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-002
+    title: Theo dõi quyết định xác thực, phân quyền và mã tương quan của yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-003
+    title: Ghi nhận sự kiện bảo mật và thiết kế nhật ký kiểm toán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-004
+    title: Liên kết Reactor Context với quan sát, trace và MDC có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-005
+    title: Che mật khẩu, Authorization header, cookie và dữ liệu cá nhân trong log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-006
+    title: Đo độ trễ xác thực, phân quyền và lời gọi nhà cung cấp danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-007
+    title: Phát hiện chặn luồng bằng công cụ kiểm tra như BlockHound
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-008
+    title: Đánh giá chi phí băm mật khẩu, xác minh JWT và introspection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-009
+    title: Giới hạn timeout, kết nối và số tác vụ chờ ở các ranh giới bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-010
+    title: Tác động của thử lại, bộ nhớ đệm và hủy đăng ký đến an toàn bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secure-deployment
+  title: Triển khai an toàn
+  childs:
+  - slug: secure-deployment-001
+    title: Quản lý client secret, khóa và mật khẩu bằng cấu hình bảo mật bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-002
+    title: HTTPS giữa trình duyệt, proxy, ứng dụng và nhà cung cấp danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-003
+    title: Thiết kế cookie và địa chỉ callback khi triển khai sau reverse proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-004
+    title: Giới hạn quyền của tài khoản dịch vụ và access token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-005
+    title: Bảo vệ Actuator, health endpoint, tài liệu API và điểm chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-006
+    title: Luân chuyển khóa, secret và chứng thư mà không mở rộng quyền tạm thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-007
+    title: Cân bằng tải, kho phiên chia sẻ và xử lý sự cố Redis
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-008
+    title: Ứng xử an toàn khi JWK, introspection hoặc dịch vụ phân quyền không sẵn sàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-009
+    title: Gia cố phụ thuộc và kiểm tra thông báo lỗ hổng theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-010
+    title: Rà soát CSRF, CORS, header, matcher và dữ liệu nhạy cảm trước phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-and-debugging
+  title: Chuyển đổi và gỡ lỗi
+  childs:
+  - slug: migration-and-debugging-001
+    title: Chuyển từ HttpSecurity và SecurityFilterChain sang ServerHttpSecurity và SecurityWebFilterChain
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-debugging-002
+    title: Chuyển từ UserDetailsService và AuthenticationManager sang hợp đồng reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-debugging-003
+    title: Thay SecurityContextHolder và ThreadLocal bằng ReactiveSecurityContextHolder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-debugging-004
+    title: Chuyển từ MockMvc sang WebTestClient
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-debugging-005
+    title: Rà soát bộ lọc Servlet, HttpSession và thư viện chặn luồng khi chuyển sang WebFlux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-debugging-006
+    title: Chẩn đoán 401 dù đã gửi thông tin xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-debugging-007
+    title: Chẩn đoán 403 do thiếu quyền, tiền tố ROLE_ hoặc CSRF
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-debugging-008
+    title: Chẩn đoán chuyển hướng lặp, mất phiên và cookie không được gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-debugging-009
+    title: Chẩn đoán chuỗi bảo mật không khớp hoặc quy tắc bị che bởi thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-debugging-010
+    title: Chẩn đoán mất ngữ cảnh do subscribe() thủ công hoặc Publisher nằm ngoài chuỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-debugging-011
+    title: Chẩn đoán annotation bảo mật không chạy và lỗi tự gọi phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-debugging-012
+    title: Đọc tài liệu nâng cấp và kiểm tra thay đổi mặc định theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Xây dựng REST API WebFlux với HTTP Basic và quyền theo vai trò
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Xây dựng ứng dụng dùng biểu mẫu đăng nhập, phiên, CSRF và đăng xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Tích hợp OAuth2 Login và ánh xạ người dùng OIDC vào quyền nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Xây dựng Resource Server JWT với kiểm tra issuer, audience và scope
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Bảo vệ tài nguyên theo chủ sở hữu bằng phân quyền reactive ở tầng dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Gọi API bên ngoài bằng WebClient và OAuth2 Client Credentials
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Triển khai API key tùy chỉnh với luân chuyển khóa và giới hạn quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Tách chuỗi bảo mật cho giao diện web, API và điểm quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Xây dựng ma trận kiểm thử bảo mật, lỗi phụ thuộc và rò rỉ ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Đánh giá thiết kế từ mô hình đe dọa đến kiểm thử và triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

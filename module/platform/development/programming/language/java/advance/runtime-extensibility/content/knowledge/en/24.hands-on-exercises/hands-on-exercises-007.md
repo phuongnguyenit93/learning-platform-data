@@ -1,130 +1,130 @@
-# Bài thực hành: Thay phiên bản plugin khi đang có yêu cầu và kiểm tra dọn tài nguyên
+# Hands-On: Swapping Plugin Versions Under Active Requests and Verifying Resource Cleanup
 
-Một hệ thống Java hỗ trợ plugin có thể cập nhật implementation khi ứng dụng vẫn phục vụ request. Khó khăn không nằm ở việc gán biến currentPlugin = newPlugin, mà ở **những request đã bắt đầu dùng plugin cũ** và **các tài nguyên của phiên bản cũ**. Nếu đóng file/JAR, connection pool hoặc worker đang được request sử dụng, request có thể lỗi giữa chừng; nếu không đóng bao giờ, host sẽ rò rỉ bộ nhớ, threads, file handles và class loaders sau mỗi lần thay phiên bản.
+A Java system supporting plugins may update implementations while the application is still serving requests. The difficulty does not lie in assigning `currentPlugin = newPlugin`, but in **requests that have already started using the old plugin** and **the old version's resources**. If you close files/JARs, connection pools, or workers while requests are still using them, those requests may fail mid-flight; if you never close them, the host leaks memory, threads, file handles, and class loaders after every version swap.
 
-Bài thực hành này xây một **router có generation, lease và graceful drain**, cố tình cho một yêu cầu của v1 đứng chờ, chuyển router sang v2 khi yêu cầu ấy vẫn còn in-flight, xác nhận yêu cầu mới chạy v2, sau đó cho yêu cầu v1 kết thúc và kiểm tra việc dọn tài nguyên. Ví dụ dùng **Java 17+**, hai luồng có CountDownLatch để tạo trình tự kiểm thử lặp lại được, bộ đếm đóng tài nguyên để xác minh điều kiện **close đúng một lần**, không cần HTTP server, Maven, Gradle hoặc JAR bên ngoài.
+This exercise builds a **router with generations, leases, and graceful drain**, intentionally parks a v1 request mid-flight, switches the router to v2 while that request is still in-flight, confirms new requests run on v2, then lets the v1 request finish and verifies resource cleanup. The example uses **Java 17+**, two threads coordinated by CountDownLatch for a deterministic, repeatable test sequence, and a close-call counter to verify **exactly-once close**, requiring no HTTP server, Maven, Gradle, or external JARs.
 
-Mục tiêu hoàn thành:
+Completion goals:
 
-1. Một request nhận **lease của v1 trước thời điểm chuyển** luôn tiếp tục chạy trên v1, dù route đã chọn v2.
-2. Các request **được nhận sau khi chuyển** đi qua v2.
-3. v1 vào trạng thái **DRAINING**, không được đóng khi còn in-flight.
-4. Khi lease cuối cùng của v1 được trả và đã có yêu cầu retire, resource v1 được đóng **đúng một lần**.
-5. v2 vẫn mở khi đang ACTIVE, được đóng khi host shutdown và không còn request.
-6. Không có việc xử lý request hoặc dọn tài nguyên nặng bên trong khóa route.
-7. Phân biệt được bằng chứng **close được gọi**, **tài nguyên đã được hệ thống giải phóng**, và **class loader có thể được garbage collect**: đây là ba mức khẳng định khác nhau.
+1. A request holding a **v1 lease acquired before cutover** always finishes on v1, even after the router selects v2.
+2. Requests **admitted after cutover** route to v2.
+3. v1 enters the **DRAINING** state and must not be closed while still in-flight.
+4. Once v1's last lease is returned and retirement is requested, v1's resource is closed **exactly once**.
+5. v2 stays open while ACTIVE, and is closed when the host shuts down with no remaining requests.
+6. No request execution or heavy resource cleanup happens inside the routing lock.
+7. Distinguish evidence of **close being called**, **OS/system resources being released**, and **class loaders being eligible for garbage collection**: these are three distinct levels of proof.
 
-Đây là **bài thực hành mô hình một JVM**. Nó xác minh các bất biến nền tảng và kỹ thuật đồng bộ, nhưng không tự thay thế một plugin platform sản xuất có ModuleLayer, URLClassLoader, network streams, database, rollout nhiều node, các side effects và ranh giới bảo mật riêng.
+This is a **single-JVM model exercise**. It verifies fundamental invariants and synchronization techniques, though it does not replace a production plugin platform with ModuleLayer, URLClassLoader, network streams, databases, multi-node rollouts, side effects, and its own security boundaries.
 
-## 1. Bối cảnh và yêu cầu kiểm thử
+## 1. Scenario and Test Requirements
 
-Giả sử host có hai phiên bản handler:
+Suppose the host has two handler versions:
 
-- **v1** trả kết quả có tiền tố v1.
-- **v2** trả kết quả có tiền tố v2.
-- **Request A** lấy v1 trước khi switch, rồi tạm dừng nhờ một latch.
-- **Main thread** kích hoạt v2 và yêu cầu retire v1.
-- **Request B** xuất hiện sau switch, đi vào v2.
-- Main thread mới cho request A tiếp tục, sau đó đợi A hoàn thành.
-- Host xác minh resource v1 đóng đúng một lần, kể cả khi gọi retire thêm lần nữa.
-- Cuối cùng host shutdown v2 và xác minh resource v2 cũng đóng đúng một lần.
+- **v1** returns results prefixed with v1.
+- **v2** returns results prefixed with v2.
+- **Request A** acquires v1 before the switch, then pauses on a latch.
+- **Main thread** activates v2 and requests retirement of v1.
+- **Request B** arrives after the switch and routes to v2.
+- Main thread then releases request A to continue, and waits for A to finish.
+- Host verifies v1's resource was closed exactly once, even if retire is called again.
+- Finally, host shuts down v2 and verifies v2's resource is also closed exactly once.
 
-**Kịch bản cần quan sát:**
+**Observed timeline:**
 
 ~~~text
-Thời gian       Worker xử lý A                     Main / Router
+Time            Worker handling A                 Main / Router
 -----------     -------------------------------     ---------------------------
-t0                                                  v1 đang ACTIVE
+t0                                                  v1 is ACTIVE
 t1              acquire(v1); inFlight(v1)=1
-t2              chờ finishOld latch                 xác nhận đã acquire
+t2              wait on finishOld latch             confirm acquired
 t3                                                  activate(v2), v1 DRAINING
-t4                                                  retire(v1): CHƯA đóng
-t5                                                  acquire(v2), xử lý B
-t6                                                  release(v2); v2 vẫn ACTIVE
-t7                                                  mở finishOld latch
-t8              dùng v1 để xử lý A
+t4                                                  retire(v1): NOT closed yet
+t5                                                  acquire(v2), handle B
+t6                                                  release(v2); v2 still ACTIVE
+t7                                                  release finishOld latch
+t8              use v1 to handle A
 t9              release(v1); inFlight(v1)=0
-t10             worker hoàn thành                   v1 CLOSED, closeCalls(v1)=1
-t11                                                 retire(v1) lần 2: không đóng lặp
+t10             worker finishes                     v1 CLOSED, closeCalls(v1)=1
+t11                                                 retire(v1) 2nd time: no duplicate close
 t12                                                 shutdown: v2 CLOSED
 ~~~
 
-Các mốc trên mô tả **thứ tự logic được latch bảo đảm**, không giả định tốc độ của hệ điều hành hay dùng Thread.sleep để tạo race. Trong thực tế, request A có thể bắt đầu làm việc rồi đang chờ I/O, còn request B và các request mới đã dùng v2. Bài thực hành dùng latch để điều khiển đúng thời điểm mà không phải chờ một khoảng thời gian đoán mò.
+The timestamps above show the **logical ordering enforced by latches**, without assuming OS scheduling speed or using Thread.sleep to manufacture races. In reality, request A might start work and block on I/O while request B and subsequent requests already run on v2. The exercise uses latches to control timing deterministically rather than guessing wait durations.
 
-### Phân biệt các từ khóa
+### Key terminology
 
-| Thuật ngữ | Ý nghĩa trong bài | Không nên hiểu nhầm |
+| Term | Meaning in this exercise | Common misconception |
 | --- | --- | --- |
-| **Generation** | Một instance/version plugin cùng vòng đời, counter và trạng thái | Không đơn giản là chuỗi semantic version |
-| **ACTIVE** | Generation nhận các request mới | Không có nghĩa mọi request hiện tại đều dùng generation này |
-| **Lease** | Quyền sử dụng một generation gắn với một request | Không phải khóa giữ suốt thời gian chạy business logic |
-| **inFlight** | Số lease đã cấp nhưng chưa trả | Không tự tính các callback chạy ngầm ngoài hợp đồng |
-| **DRAINING** | Không nhận request mới, chờ lease cũ kết thúc | Không phải đóng tài nguyên ngay |
-| **CLOSING** | Đã giành quyền thực hiện cleanup một lần | Không phải bằng chứng cleanup đã xong |
-| **CLOSED** | Cleanup trả về thành công | Không khẳng định class đã unload ngay |
-| **CLEANUP_FAILED** | Cleanup phát sinh lỗi | Không nên báo CLOSED giả hoặc tự retry mù quáng |
+| **Generation** | A plugin instance/version with its own lifecycle, counter, and state | Not merely a semantic version string |
+| **ACTIVE** | Generation admitting new requests | Does not mean all current requests use this generation |
+| **Lease** | Permission to use a generation bound to one request | Not a lock held throughout business-logic execution |
+| **inFlight** | Number of leases issued and not yet returned | Does not automatically track out-of-contract background callbacks |
+| **DRAINING** | Admits no new requests, waiting for existing leases to finish | Does not mean immediate resource closure |
+| **CLOSING** | Won exclusive right to run one-time cleanup | Not proof that cleanup has finished |
+| **CLOSED** | Cleanup returned successfully | Does not prove classes were immediately unloaded |
+| **CLEANUP_FAILED** | Cleanup threw an error | Should not falsely report CLOSED or blindly retry |
 
-Điểm khó nhất là **atomicity của việc chọn version và tăng inFlight**. Nếu một thread đọc current=v1 rồi chưa kịp tăng inFlight, trong khi thread khác đổi sang v2, thấy inFlight(v1)=0 và đóng v1, request cũ có thể dùng một resource đã đóng. Vì thế trong ví dụ, cả **acquire** và **activate** đều làm việc trong cùng một monitor ngắn.
+The hardest part is **atomicity between selecting a version and incrementing inFlight**. If one thread reads `current=v1` without yet incrementing inFlight, while another thread swaps to v2, sees `inFlight(v1)=0`, and closes v1, the old request could use an already-closed resource. Therefore, in this example, both **acquire** and **activate** execute inside the same brief monitor.
 
-## 2. Kiến trúc nhỏ để thực hành
+## 2. Minimal Architecture for Practice
 
-Mỗi generation sở hữu một Plugin và tài nguyên được theo dõi:
+Each generation owns a Plugin and a tracked resource:
 
 ~~~text
 +------------------------------- Host --------------------------------+
 |                                                                     |
-| Router                                                               |
+| Router                                                              |
 |   gate: monitor                                                     |
 |   active ----------------------------+                              |
 |                                      |                              |
 |    +---------------+       +---------v----------+                   |
 |    | Generation v1 |       | Generation v2      |                   |
 |    | DRAINING      |       | ACTIVE             |                   |
-|    | inFlight = 1  |       | inFlight = 0        |                   |
-|    | retire = true |       | retire = false      |                   |
-|    | Plugin(v1)    |       | Plugin(v2)          |                   |
-|    | Resource(v1)  |       | Resource(v2)        |                   |
+|    | inFlight = 1  |       | inFlight = 0       |                   |
+|    | retire = true |       | retire = false     |                   |
+|    | Plugin(v1)    |       | Plugin(v2)         |                   |
+|    | Resource(v1)  |       | Resource(v2)       |                   |
 |    +-------^-------+       +--------------------+                   |
 |            |                                                        |
-|      Lease của A                                                   |
+|      Lease of A                                                     |
 |                                                                     |
 +---------------------------------------------------------------------+
 ~~~
 
-Ở đây, **TrackedResource** là tài nguyên giả lập có closeCalls. Nó thực sự được đóng bằng AutoCloseable.close, nhưng không mở file/JAR thật. Ưu điểm của tài nguyên giả là kết quả kiểm thử **chính xác, đo được, không phụ thuộc GC hoặc filesystem**. Bước mở rộng ở phần sau sẽ gắn vòng đời này với URLClassLoader và các tài nguyên thật.
+Here, **TrackedResource** is a simulated resource tracking `closeCalls`. It is actually closed via `AutoCloseable.close`, without opening real files or JARs. The advantage of a simulated resource is that test results are **exact, measurable, and independent of GC or the filesystem**. Later extension sections connect this lifecycle to URLClassLoader and real resources.
 
-### Các bất biến cần kiểm tra
+### Invariants to verify
 
-- **B1 — Admission:** Chỉ generation ACTIVE nhận lease mới.
-- **B2 — Pinning:** Lease giữ đúng generation ở thời điểm được cấp, không đọc lại active mỗi lần xử lý.
-- **B3 — Safe retirement:** Một generation đang DRAINING có inFlight lớn hơn 0 không được đóng.
-- **B4 — Exactly-once cleanup attempt:** Khi DRAINING, có retirementRequested và inFlight về 0, chỉ một thread được quyền chuyển sang CLOSING và gọi cleanup.
-- **B5 — No counter underflow:** Mỗi lease chỉ release một lần, kể cả khi close được gọi lặp.
-- **B6 — Short critical section:** Không chạy plugin.handle hoặc plugin.close bên trong monitor bảo vệ routing.
-- **B7 — Shutdown:** Khi host ngừng nhận request mới, generation đang ACTIVE chuyển sang DRAINING rồi được đóng khi hết lease.
-- **B8 — Failure visibility:** Nếu cleanup ném lỗi, chuyển sang CLEANUP_FAILED; không lẫn với CLOSED.
+- **B1 — Admission:** Only an ACTIVE generation issues new leases.
+- **B2 — Pinning:** A lease stays pinned to the generation active when issued; it never re-reads `active` on each operation.
+- **B3 — Safe retirement:** A DRAINING generation with `inFlight > 0` must never be closed.
+- **B4 — Exactly-once cleanup attempt:** When DRAINING, `retirementRequested` is true, and `inFlight` hits 0, only one thread wins the transition to CLOSING and invokes cleanup.
+- **B5 — No counter underflow:** Each lease releases only once, even if `close` is called repeatedly.
+- **B6 — Short critical section:** Neither `plugin.handle` nor `plugin.close` runs inside the routing monitor.
+- **B7 — Shutdown:** When the host stops accepting new requests, the ACTIVE generation transitions to DRAINING and closes once leases drain.
+- **B8 — Failure visibility:** If cleanup throws an error, transition to CLEANUP_FAILED; never conflate with CLOSED.
 
-B1 đến B7 đều được quan sát trong ví dụ; B8 được minh họa bằng đường xử lý exception và có bài tập tạo lỗi ở phần 8.
+B1 through B7 are directly observed in the example; B8 is illustrated by the exception-handling path and has a dedicated failure exercise in section 8.
 
-## 3. Chuẩn bị môi trường
+## 3. Preparing the Environment
 
-Yêu cầu:
+Requirements:
 
-- **JDK 17 trở lên**, có lệnh javac và java. Không yêu cầu thư viện bên thứ ba.
-- Một thư mục làm việc chứa duy nhất file **PluginSwapLab.java** của bài thực hành.
-- Terminal ở thư mục đó; có quyền tạo file .class khi biên dịch.
-- Đọc được stdout và các lỗi nếu test thất bại.
+- **JDK 17 or newer**, with `javac` and `java` commands. No third-party libraries required.
+- A working directory containing only the exercise's **PluginSwapLab.java** file.
+- A terminal in that directory with write permissions for `.class` files during compilation.
+- Ability to read stdout and any errors if tests fail.
 
-Kiểm tra:
+Verify:
 
 ~~~bash
 java -version
 javac -version
 ~~~
 
-Phiên bản thực tế phụ thuộc JDK được cài. Dùng **javac --release 17** để biên dịch hướng tới Java 17, miễn compiler hỗ trợ target đó.
+Exact output depends on the installed JDK. Use **javac --release 17** to target Java 17, provided the compiler supports that target.
 
-Cấu trúc sau biên dịch:
+Directory layout after compilation:
 
 ~~~text
 plugin-swap-lab/
@@ -135,14 +135,14 @@ plugin-swap-lab/
 ├── PluginSwapLab$Lease.class
 ├── PluginSwapLab$Plugin.class
 ├── PluginSwapLab$TrackedResource.class
-└── ... các class lồng nhau khác do javac sinh
+└── ... other nested classes generated by javac
 ~~~
 
-Danh sách .class chỉ mang tính minh họa cấu trúc; các class cụ thể như enum State có file .class tương ứng. Không cần gói các .class thành JAR để chạy bài này.
+The `.class` listing illustrates the structure; specific types such as enum State produce their own `.class` files. There is no need to package `.class` files into a JAR to run this exercise.
 
-## 4. Chương trình Java 17 đầy đủ
+## 4. Complete Java 17 Program
 
-Tạo file **PluginSwapLab.java** và chép nguyên nội dung dưới đây. Mã có một public class duy nhất, dùng package mặc định để chạy gọn bằng java PluginSwapLab.
+Create **PluginSwapLab.java** and copy the exact contents below. The file has a single public class in the default package so it runs cleanly with `java PluginSwapLab`.
 
 ~~~java
 import java.util.concurrent.*;
@@ -379,27 +379,27 @@ public final class PluginSwapLab {
 }
 ~~~
 
-### Vì sao chương trình không cần thư viện plugin thực?
+### Why doesn't the program need real plugin libraries?
 
-Mục tiêu của bài này là **xác minh bất biến thay phiên bản và dọn tài nguyên trước**, tránh nhiễu từ bộ phân giải classpath, ServiceLoader, ModuleLayer hoặc network. TrackedResource mô phỏng một tài nguyên phải close; vì vậy ta xác minh được chính xác khi nào tài nguyên bị dùng sau close hoặc bị close nhiều lần. Khi cơ chế generation/lease đúng, mới gắn loader, JAR và resource thật vào trong Plugin.
+The goal of this exercise is to **verify version-swap and resource-cleanup invariants first**, avoiding noise from classpath resolution, ServiceLoader, ModuleLayer, or networking. TrackedResource simulates a closeable resource; that lets us pinpoint exactly when a resource is used after close or closed multiple times. Once the generation/lease mechanism is sound, real loaders, JARs, and resources can be wired into Plugin.
 
-Một điểm đáng chú ý: TrackedResource cố ý **không tự bảo vệ để biến mọi lần close thành một**. Mỗi lần close đều làm AtomicInteger tăng. Nhờ đó, nếu router sai và đóng trùng, kiểm thử nhận thấy closeCalls=2 thay vì che lỗi bằng resource idempotent. Ở sản phẩm, từng loại resource có thể có hoặc không có hành vi idempotent; router vẫn phải bảo đảm không cố đóng lặp.
+One notable detail: TrackedResource intentionally **does not guard itself to turn multiple closes into one**. Every close call increments the AtomicInteger. That way, if the router has a bug and closes twice, tests catch `closeCalls=2` rather than masking the bug behind an idempotent resource. In production, specific resources may or may not be idempotent; the router must still guarantee it never attempts duplicate closes.
 
-## 5. Biên dịch, chạy và đối chiếu stdout
+## 5. Compiling, Running, and Comparing Stdout
 
-Biên dịch:
+Compile:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 PluginSwapLab.java
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 java PluginSwapLab
 ~~~
 
-**Stdout đã kiểm chứng từ chương trình nguyên bản trên môi trường JDK 17+:**
+**Verified stdout from the unmodified program on JDK 17+:**
 
 ~~~text
 old-inflight=1
@@ -414,30 +414,30 @@ new-after-shutdown=CLOSED
 new-close-count=1
 ~~~
 
-Chương trình có timeout 10 giây để **báo lỗi rõ** trong môi trường bị treo hoặc scheduler không phản hồi. Trên máy làm việc bình thường với cả hai luồng được scheduler cho chạy, thứ tự stdout phía trên là xác định vì được đồng bộ bởi hai CountDownLatch và Future.get. Nếu timeout hoặc compiler không đúng phiên bản, đó là điều kiện lỗi cần điều tra, không thay bằng kỳ vọng một output tùy ý.
+The program uses a 10-second timeout to **fail loudly** in hung environments or unresponsive schedulers. On a normal machine where both threads are scheduled, the stdout order above is deterministic because it is synchronized by two CountDownLatches and `Future.get`. A timeout or compiler version mismatch is an error condition to investigate, not a reason to expect arbitrary output.
 
-### Giải thích từng dòng
+### Line-by-line explanation
 
-| Dòng | Bằng chứng |
+| Line | Evidence |
 | --- | --- |
-| old-inflight=1 | Worker A đã cấp lease v1, router ghi nhận một request đang dùng v1 |
-| old-during-switch=DRAINING | Switch đã dừng cấp lease mới vào v1 nhưng chưa đóng resource |
-| old-close-before-finish=0 | v1 còn in-flight nên retire không được gọi close quá sớm |
-| new-request=v2:B | Một lease lấy sau cutover đi đúng generation v2 |
-| old-request=v1:A | Request A giữ đúng v1 dù v2 đã ACTIVE |
-| old-after-drain=CLOSED | Khi A trả lease, counter về 0 và cleanup v1 thành công |
-| old-close-count=1 | Cleanup resource v1 được thực hiện đúng một lần |
-| old-close-after-retry=1 | Lệnh retire lặp không tạo lần đóng thứ hai |
-| new-after-shutdown=CLOSED | Shutdown ngừng admission và dọn v2 sau khi hết lease |
-| new-close-count=1 | Resource của v2 cũng được đóng đúng một lần |
+| old-inflight=1 | Worker A acquired a v1 lease; router recorded one request using v1 |
+| old-during-switch=DRAINING | Switch stopped issuing new leases to v1 without closing its resource yet |
+| old-close-before-finish=0 | v1 still has an in-flight request, so retire must not close prematurely |
+| new-request=v2:B | A lease acquired after cutover routes cleanly to generation v2 |
+| old-request=v1:A | Request A stays on v1 even though v2 is already ACTIVE |
+| old-after-drain=CLOSED | Once A returns its lease, counter drops to 0 and v1 cleanup succeeds |
+| old-close-count=1 | v1 resource cleanup ran exactly once |
+| old-close-after-retry=1 | Repeated retire call did not trigger a second close |
+| new-after-shutdown=CLOSED | Shutdown stops admission and cleans up v2 once leases drain |
+| new-close-count=1 | v2's resource was also closed exactly once |
 
-**Tiêu chí pass**: tất cả các dòng theo thứ tự, các trạng thái phù hợp, không có exception, và worker kết thúc trong khoảng timeout của test. Chỉ quan sát "chương trình không crash" là chưa đủ, vì một thiết kế không đóng resource cũng có thể chạy hết business logic mà không thấy lỗi ngay.
+**Passing criteria**: all lines appear in order with the right states, no exceptions occur, and the worker finishes within the test timeout. Merely observing "the program didn't crash" is insufficient, since a design that leaks resources can still complete business logic without immediate errors.
 
-## 6. Giải phẫu các điểm đồng bộ hóa
+## 6. Anatomy of the Synchronization Points
 
-### 6.1. Acquire một cách nguyên tử với việc switch
+### 6.1. Acquiring atomically with switching
 
-Trong Router.acquire:
+In `Router.acquire`:
 
 ~~~java
 synchronized (gate) {
@@ -450,28 +450,28 @@ synchronized (gate) {
 }
 ~~~
 
-Đây là đoạn **trích từ class Router**, không phải chương trình độc lập. Nó buộc việc đọc pointer, kiểm tra ACTIVE và tăng inFlight xảy ra trong cùng một critical section. Switch cũng lấy gate trước khi thay pointer và trạng thái cũ. Do đó chỉ có hai thứ tự được phép:
+This is an **excerpt from the Router class**, not a standalone program. It forces reading the pointer, checking ACTIVE, and incrementing inFlight to occur in a single critical section. Switching also acquires `gate` before updating the pointer and old state. Thus only two orderings are legal:
 
-1. Acquire trước switch: request lấy v1 và inFlight(v1) đã tăng; switch không được dọn v1 sớm.
-2. Switch trước acquire: request đọc active=v2 và lấy lease v2.
+1. Acquire before switch: the request obtains v1 and `inFlight(v1)` is already incremented; switch cannot clean up v1 early.
+2. Switch before acquire: the request reads `active=v2` and obtains a v2 lease.
 
-Không có trạng thái "đã chọn v1 nhưng chưa được tính inFlight, trong khi v1 đã đóng" như cách đọc pointer và tăng refcount ở hai bước không đồng bộ.
+There is no window where "v1 was chosen, not yet counted in inFlight, and already closed", as happens when reading a pointer and incrementing a refcount in two unsynchronized steps.
 
-### 6.2. Lease pin generation, không gọi current lại
+### 6.2. Lease pins the generation instead of re-reading current
 
-Lease giữ:
+Lease holds:
 
 ~~~java
 private final Generation pinned;
 ~~~
 
-Lệnh xử lý gọi pinned.plugin.handle(input), **không** gọi router.active.plugin.handle(input) một lần nữa. Vì thế request A có thể qua thời điểm cutover mà vẫn dùng v1 trong toàn bộ logic đã được cấp quyền.
+Handling calls `pinned.plugin.handle(input)`, **not** `router.active.plugin.handle(input)` again. Thus request A can span the cutover timestamp while continuing to use v1 throughout its authorized logic.
 
-Trong ứng dụng thật, một request có thể gọi plugin nhiều lần, chuyển qua callback hoặc xử lý transaction. Nên truyền lease/context có generation ID xuống mọi bước cần plugin; đừng lén resolve lại current giữa quy trình, vì một request có thể sử dụng API/data schema của hai version không tương thích.
+In real applications, one request may invoke a plugin multiple times, pass through callbacks, or execute transactions. Pass the lease/context carrying the generation ID down to every step that needs the plugin; never quietly re-resolve `current` mid-workflow, because a single request could hit incompatible APIs or data schemas across versions.
 
-### 6.3. Close của lease là idempotent ở mức đếm
+### 6.3. Lease close is counting-idempotent
 
-Lease dùng AtomicBoolean:
+Lease uses an AtomicBoolean:
 
 ~~~java
 if (returned.compareAndSet(false, true)) {
@@ -479,11 +479,11 @@ if (returned.compareAndSet(false, true)) {
 }
 ~~~
 
-Đây cũng là đoạn trích. Nếu close được gọi hai lần, chỉ lần đầu giảm inFlight. Điều này tránh underflow và tránh kích hoạt cleanup lặp. AtomicBoolean **không có nghĩa cùng một Lease được phép handle và close đồng thời từ nhiều thread**; người dùng Lease phải quản lý ownership của request và không sử dụng sau khi đóng. Trong code sản xuất, bảo vệ cả cuộc gọi plugin và thời điểm hoàn thành thực tế.
+This is also an excerpt. If `close` is invoked twice, only the first call decrements inFlight. This prevents underflow and duplicate cleanup triggers. AtomicBoolean **does not mean the same Lease may be handled and closed concurrently from multiple threads**; the Lease owner must manage request ownership and never use it after closing. In production code, guard both plugin calls and actual completion timing.
 
-### 6.4. Chọn thread duy nhất có quyền dọn tài nguyên
+### 6.4. Electing the single thread authorized to clean up resources
 
-Router.beginCleanupIfReady chỉ trả Plugin để đóng khi ba điều kiện đúng:
+`Router.beginCleanupIfReady` returns a Plugin to close only when all three conditions hold:
 
 ~~~java
 g.state == State.DRAINING
@@ -491,58 +491,58 @@ g.state == State.DRAINING
     && g.inFlight == 0
 ~~~
 
-Trước khi rời critical section, phương thức đặt **g.state = CLOSING**. Một thread khác gọi retire hoặc release thấy state không còn DRAINING, nên không thể nhận lại cùng quyền cleanup. Cleanup thật (plugin.close) được gọi **bên ngoài gate**.
+Before leaving the critical section, the method sets **g.state = CLOSING**. Any other thread calling `retire` or `release` sees the state is no longer DRAINING and cannot win the same cleanup right. Actual cleanup (`plugin.close`) runs **outside the gate**.
 
-Điều này giải quyết hai lỗi trái ngược:
+This prevents two opposite bugs:
 
-- **Đóng quá sớm**: chưa hết lease mà đã close.
-- **Đóng trùng**: hai thread đồng thời thấy inFlight=0 và cùng close.
+- **Premature close**: closing before all leases have returned.
+- **Duplicate close**: two threads both observing `inFlight=0` and closing concurrently.
 
-Nếu close ném unchecked exception, finally sẽ đưa state về CLEANUP_FAILED; nó không nói dối rằng resource đã được giải phóng. Bản sản xuất nên ghi lại lỗi và hỗ trợ một quy trình retry/compensation có chủ đích, không mù quáng thử lại một close có side effects không idempotent.
+If `close` throws an unchecked exception, `finally` transitions state to CLEANUP_FAILED; it never lies that resources were released. Production implementations should log the failure and provide an intentional retry/compensation workflow rather than blindly retrying a close that may have non-idempotent side effects.
 
-### 6.5. Cleanup nằm ngoài gate
+### 6.5. Cleanup runs outside the gate
 
-Nếu plugin.close gọi tới thread pool, database hoặc callback về host, thao tác có thể chờ lâu hoặc reenter các component khác. Gọi close trong synchronized(gate) sẽ làm những request mới bị block và dễ tạo vòng chờ khóa.
+If `plugin.close` calls into a thread pool, database, or host callback, the operation may block for a long time or re-enter other components. Calling `close` inside `synchronized(gate)` would stall incoming requests and risk lock-order deadlocks.
 
-Trong ví dụ, Router chỉ dùng gate để:
+In this example, Router uses `gate` strictly to:
 
-- kiểm tra/đổi trạng thái generation;
-- tăng/giảm inFlight;
-- quyết định ai có quyền cleanup;
-- thay active pointer.
+- inspect/update generation state;
+- increment/decrement inFlight;
+- decide who owns cleanup;
+- swap the active pointer.
 
-Còn phần **Plugin.handle** và **Plugin.close** diễn ra ngoài gate. Bản production cần thêm cấu trúc quản lý cleanup completion để controller có thể biết quá trình đóng dài đã kết thúc hay thất bại.
+Both **Plugin.handle** and **Plugin.close** execute outside the gate. Production systems should add cleanup-completion tracking so controllers know whether a slow close finished or failed.
 
-## 7. Thực hành có hướng dẫn: làm theo từng mốc
+## 7. Guided Walkthrough: Milestone by Milestone
 
-### Mốc A — quan sát v1 trước cutover
+### Milestone A — observing v1 before cutover
 
-Chạy chương trình ban đầu. Giải thích vì sao main cần chờ:
+Run the initial program. Explain why main must wait on:
 
 ~~~java
 oldHasLease.await(10, TimeUnit.SECONDS)
 ~~~
 
-Nếu main không chờ, nó có thể kích hoạt v2 trước khi worker thực sự nhận lease, khiến request A tình cờ lấy v2. Khi đó test không chứng minh được tình huống "đang có request v1".
+If main did not wait, it might activate v2 before the worker actually acquired a lease, causing request A to acquire v2 by chance. Then the test would fail to prove the "in-flight v1 request" scenario.
 
-**Câu hỏi tự kiểm tra:** Nếu bỏ latch và thay bằng Thread.sleep(100), liệu bài test còn bảo đảm A đã lấy v1 không? **Không.** Scheduler có thể trì hoãn worker lâu hơn 100 ms hoặc main tiến nhanh hơn dự tính. Cần một điều kiện đồng bộ biểu diễn đúng sự kiện.
+**Self-check question:** If you replace the latch with `Thread.sleep(100)`, does the test still guarantee A acquired v1? **No.** The scheduler might delay the worker beyond 100 ms, or main might proceed sooner than expected. You need a synchronization primitive representing the actual event.
 
-### Mốc B — bật v2 trong lúc v1 vẫn in-flight
+### Milestone B — activating v2 while v1 is still in-flight
 
-Khi worker đã cấp lease v1, main chạy:
+Once the worker holds a v1 lease, main executes:
 
 ~~~java
 router.activate(v2);
 router.retire(v1);
 ~~~
 
-Tại thời điểm này inFlight(v1)=1. Vì thế state phải là DRAINING, closeCalls(v1)=0. Nếu bất kỳ dòng nào cho biết v1 đã CLOSED hoặc closeCalls lớn hơn 0, host đã vi phạm bất biến B3 hoặc bộ đếm không phản ánh đúng công việc thật.
+At this point `inFlight(v1)=1`. Hence the state must be DRAINING and `closeCalls(v1)=0`. If any line showed v1 already CLOSED or `closeCalls > 0`, the host violated invariant B3 or the counter failed to reflect real work.
 
-Một thay đổi nhỏ trong phần routing có thể làm hỏng test: đóng v1 trực tiếp trong activate. Bài test được thiết kế để phát hiện lỗi đó khi worker tiếp tục gọi Plugin.handle.
+A tiny bug in routing could break this test: closing v1 directly inside `activate`. The test is designed to catch that bug when the worker resumes calling `Plugin.handle`.
 
-### Mốc C — request mới thấy v2
+### Milestone C — new requests see v2
 
-Sau cutover, main lấy một lease khác:
+After cutover, main acquires another lease:
 
 ~~~java
 try (Lease lease = router.acquire()) {
@@ -550,108 +550,108 @@ try (Lease lease = router.acquire()) {
 }
 ~~~
 
-Kết quả bắt buộc là new-request=v2:B. Nếu ra v1:B, route pointer hoặc nguyên tắc admission chưa được chuyển đúng. Nếu bị block vô hạn, có thể đã giữ khóa trong khi chờ request cũ kết thúc.
+The required output is `new-request=v2:B`. If it prints `v1:B`, either the active pointer or the admission check failed to switch properly. If it blocks indefinitely, a lock may be held while waiting for the old request to finish.
 
-### Mốc D — xả tải v1 và kiểm tra đóng đúng một lần
+### Milestone D — draining v1 and verifying exactly-once close
 
-Sau khi request B hoàn thành, main mở latch cho A tiếp tục:
+After request B completes, main opens the latch so A can proceed:
 
 ~~~java
 finishOld.countDown();
 String result = oldRequest.get(10, TimeUnit.SECONDS);
 ~~~
 
-Future.get đợi worker hoàn tất callable, bao gồm cả khi try-with-resources đã gọi Lease.close. Do đó lúc main đọc state, nếu cleanup không lỗi, v1 phải CLOSED và closeCalls(v1)=1.
+`Future.get` waits for the worker callable to finish, including the `try-with-resources` call to `Lease.close`. Therefore, when main inspects the state afterward (assuming cleanup didn't fail), v1 must be CLOSED and `closeCalls(v1)=1`.
 
-Nhớ rằng Future.get chỉ xác nhận đúng phạm vi công việc mà callable đại diện. Nếu thực tế plugin tạo task fire-and-forget sau khi trả về, future kết thúc **không chứng minh** những task đó đã hết sử dụng version; phải đưa chúng vào lifecycle/lease của hệ thật.
+Remember that `Future.get` only confirms completion of the work inside the callable. If a real plugin spawns fire-and-forget tasks and returns early, future completion **does not prove** those tasks stopped using that version; those tasks must be tracked under the real system's lifecycle/leases.
 
-### Mốc E — retire lặp và shutdown
+### Milestone E — repeated retire and shutdown
 
-Main cố ý gọi retire(v1) lần hai. Đây là một **bài test về idempotency của lifecycle controller**, không phải một lý do để production tự retry vô hạn. State CLOSED được bỏ qua, closeCalls vẫn bằng 1.
+Main intentionally calls `retire(v1)` a second time. This is an **idempotency test for the lifecycle controller**, not an invitation for production code to retry infinitely. The CLOSED state is ignored and `closeCalls` stays at 1.
 
-Sau đó router.shutdown: active pointer trở thành null, generation v2 ngừng nhận mới, rồi được retire. Vì không còn lease v2, cleanup v2 có thể hoàn thành ngay. Dòng new-close-count=1 chứng minh demo không để rò rỉ tài nguyên của phiên bản đang ACTIVE khi host kết thúc.
+Next comes `router.shutdown`: the active pointer becomes null, generation v2 stops admitting new work, and then v2 is retired. Because no v2 leases remain, v2 cleanup finishes immediately. The line `new-close-count=1` proves the demo does not leak the ACTIVE generation's resources on host exit.
 
-**Một phép thử bổ sung:** Sau shutdown, gọi router.acquire trong đoạn try/catch; nó phải ném IllegalStateException("No active plugin"). Không cho phép một request mới nhận generation đã đóng.
+**An extra test:** After shutdown, call `router.acquire` inside a `try/catch`; it must throw `IllegalStateException("No active plugin")`. New requests must never receive an already-closed generation.
 
-## 8. Bài tập biến thể để kiểm tra lỗi thật
+## 8. Variant Exercises to Test Real Failure Modes
 
-Mỗi bài tập dưới đây nên chạy trên **bản sao tạm riêng của PluginSwapLab.java**, không sửa trực tiếp bài đã kiểm chứng nếu chưa lưu bản gốc. Các biến thể có chủ đích làm sai bất biến hoặc thay chính sách nên stdout/exception sẽ khác, vì vậy **không gán output chuẩn của phần 5** cho chúng.
+Run each exercise below on a **separate temporary copy of PluginSwapLab.java** without modifying the verified baseline unless you saved a backup. These variants intentionally violate invariants or change policies, so stdout/exceptions will differ; therefore **do not expect section 5's standard output** from them.
 
-### Bài tập 1 — cố ý đóng v1 quá sớm
+### Exercise 1 — intentionally closing v1 too early
 
-Thử gọi v1.plugin.close() ngay sau activate(v2), trước khi finishOld.countDown(). TrackedResource.closeCalls tăng lên 1 khi request A vẫn chưa xong. Khi A tiếp tục handle, checkOpen ném IllegalStateException("Resource was already closed").
+Try calling `v1.plugin.close()` right after `activate(v2)`, before `finishOld.countDown()`. `TrackedResource.closeCalls` increments to 1 while request A is still unfinished. When A resumes `handle`, `checkOpen` throws `IllegalStateException("Resource was already closed")`.
 
-**Bài học:** Một pointer atomic tự nó không bảo đảm an toàn của resource cũ. Không được sửa lỗi bằng cách bỏ checkOpen; phải hoãn cleanup cho tới khi inFlight thực sự bằng 0.
+**Lesson:** An atomic pointer alone does not protect the old resource. Never "fix" this by removing `checkOpen`; defer cleanup until `inFlight` truly reaches 0.
 
-### Bài tập 2 — không trả lease
+### Exercise 2 — leaking a lease
 
-Trong một bản thử nghiệm, bỏ try-with-resources ở worker và cố tình không gọi lease.close. Router đã cấp lease v1 nhưng counter không về 0; v1 ở DRAINING dù request business đã trả kết quả. Đây là một **lease leak**, có thể giữ JAR/thread pool lâu dài.
+In a test copy, remove `try-with-resources` in the worker and intentionally omit `lease.close`. The router issued a v1 lease, so the counter never returns to 0; v1 stays DRAINING even after business work returned. This is a **lease leak** that can pin JARs/thread pools indefinitely.
 
-**Bài học:** Mỗi request path cần finally/try-with-resources hoặc completion callback chắc chắn. Một request không được tự ý “quên” trả lease khi gặp exception.
+**Lesson:** Every request path needs a reliable `finally`/`try-with-resources` or completion callback. A request must never "forget" to return its lease when an exception occurs.
 
-### Bài tập 3 — close hai lần
+### Exercise 3 — closing twice
 
-Đặt một lời gọi lease.close() bổ sung trước khi khối try-with-resources kết thúc. AtomicBoolean.compareAndSet khiến release chỉ thực hiện một lần. Kiểm tra inFlight không âm và closeCalls vẫn bằng 1.
+Insert an extra `lease.close()` call before the `try-with-resources` block ends. `AtomicBoolean.compareAndSet` ensures release executes only once. Verify `inFlight` never goes negative and `closeCalls` stays 1.
 
-**Bài học:** Close idempotent là một biện pháp phòng thủ ở biên API, nhưng không thay thế việc sở hữu lease đúng trong luồng xử lý.
+**Lesson:** Idempotent `close` is a defensive boundary safeguard, not a substitute for clear lease ownership in the request flow.
 
-### Bài tập 4 — shutdown trong lúc v2 vẫn có yêu cầu
+### Exercise 4 — shutting down while v2 still has active requests
 
-Tạo một lease v2 sau cutover, giữ nó mở, gọi router.shutdown từ main. Vì v2 có inFlight lớn hơn 0, v2 phải chuyển DRAINING và **chưa** close. Sau khi đóng lease v2, v2 chuyển CLOSED và closeCalls=1.
+Acquire a v2 lease after cutover, keep it open, and call `router.shutdown` from main. Because v2 has `inFlight > 0`, v2 must move to DRAINING and **not** close yet. Once the v2 lease closes, v2 transitions to CLOSED and `closeCalls=1`.
 
-**Bài học:** Cùng giao thức drain áp dụng cho **thay phiên bản** và **tắt host**; không cho shutdown phá tài nguyên đang dùng.
+**Lesson:** The same drain protocol applies to both **version swaps** and **host shutdown**; never let shutdown tear down resources still in use.
 
-### Bài tập 5 — kiểm tra lỗi cleanup
+### Exercise 5 — testing cleanup failure
 
-Sửa TrackedResource.close để ném một RuntimeException có chủ đích, chạy trên bản sao dùng để thử lỗi. Router.performCleanup phải đưa state về CLEANUP_FAILED thông qua finally. Lúc này không thể tự tuyên bố resource đã được giải phóng; log lỗi và đưa vào chính sách operator review.
+Modify `TrackedResource.close` to throw an intentional RuntimeException on a failure-test copy. `Router.performCleanup` must move state to CLEANUP_FAILED via `finally`. At that point you cannot claim resources were freed; log the error and route to an operator review policy.
 
-**Bài học:** Exactly-once attempt không đồng nghĩa exactly-once effect. Một close có thể đã giải phóng một phần resource rồi ném exception; retry không kiểm soát có thể hại thêm.
+**Lesson:** Exactly-once attempt does not guarantee exactly-once effect. A close call may free half its resources before throwing; blind retries can cause further damage.
 
-### Bài tập 6 — stress concurrent admission
+### Exercise 6 — stress testing concurrent admission
 
-Tạo nhiều worker bằng Executors.newFixedThreadPool, đồng bộ điểm bắt đầu bằng CountDownLatch, đồng thời gọi acquire và activate. Kiểm tra mỗi Lease chỉ gắn với một generation, không bao giờ xử lý trên CLOSED, counter cuối bằng 0 và không có duplicate close.
+Spawn multiple workers with `Executors.newFixedThreadPool`, synchronize the starting line with a CountDownLatch, and call `acquire` and `activate` concurrently. Verify every Lease binds to a single generation, never executes on CLOSED, final counters equal 0, and no duplicate closes occur.
 
-Tránh dùng một assert kiểu “chính xác 50% request vào v1” cho race kiểm thử; tỉ lệ được xác định bởi scheduler. Bất biến cần đo là **mỗi request được nhận hợp lệ trước hoặc sau điểm cutover** theo giao thức monitor.
+Avoid asserting things like "exactly 50% of requests went to v1" in a concurrency race test; ratios are decided by the scheduler. The invariant to measure is that **every admitted request falls cleanly before or after the cutover** per the monitor protocol.
 
-### Bài tập 7 — tạo rollback window
+### Exercise 7 — adding a rollback window
 
-Ở phần thực hành cơ bản, main gọi retire(v1) ngay sau switch nên sau khi drain xong v1 sẽ CLOSED. Không thể rollback nhanh vào v1 đã đóng.
+In the basic exercise, main calls `retire(v1)` right after switching, so v1 becomes CLOSED as soon as it drains. You cannot quickly roll back to an already-closed v1.
 
-Để hỗ trợ rollback, sửa controller theo hướng giữ v1 ở **STANDBY** khi inFlight=0 nhưng chưa có retirementRequested, đồng thời cho phép reactivate từ STANDBY sau khi kiểm tra data compatibility. Chỉ retire/close khi qua thời hạn rollback. Đây là **bài mở rộng**, không phải điều mà chương trình hiện tại đã làm. Trước khi bật rollback trong hệ thật phải kiểm tra schema dữ liệu, side effects và phiên bản API; đổi route không hoàn tác giao dịch đã xảy ra.
+To support rollback, modify the controller to hold v1 in **STANDBY** when `inFlight=0` and `retirementRequested` is false, and allow reactivating from STANDBY after data-compatibility checks. Only retire/close once the rollback window expires. This is an **extension exercise**, not behavior already built into the current program. Before enabling rollback in production, check data schemas, side effects, and API versions; switching routes does not undo transactions that already committed.
 
-## 9. Từ tài nguyên giả sang tài nguyên thật của plugin
+## 9. From Simulated Resources to Real Plugin Resources
 
-TrackedResource chỉ quan sát lời gọi close. Trong host Java thực tế, một generation có thể sở hữu:
+TrackedResource only observes `close` calls. In a real Java host, a generation may own:
 
-- **URLClassLoader** mở các plugin JARs và resources.
-- **Plugin instance** có stop/close hook.
-- **ExecutorService** cho các tác vụ bất đồng bộ của plugin.
-- **ScheduledExecutorService** cho timer hoặc polling.
-- **Connection pool**, HTTP client, file handle, stream hoặc native resources.
-- **Event listeners**, callback registrations, MBeans và ThreadLocal.
-- **Cache** gắn với lớp/instance của plugin, các ServiceLoader hoặc ModuleLayer references.
-- **Các request/stream** đang giữ object do class loader của generation ấy định nghĩa.
+- **URLClassLoader** keeping plugin JARs and resources open.
+- **Plugin instance** with stop/close hooks.
+- **ExecutorService** for the plugin's asynchronous tasks.
+- **ScheduledExecutorService** for timers or polling.
+- **Connection pools**, HTTP clients, file handles, streams, or native resources.
+- **Event listeners**, callback registrations, MBeans, and ThreadLocals.
+- **Caches** tied to plugin classes/instances, ServiceLoader or ModuleLayer references.
+- **Active requests/streams** holding objects defined by that generation's class loader.
 
-Ngừng nhận request mới là điều kiện cần nhưng chưa đủ. Trước khi close loader, cần chắc chắn code của generation không còn cần nạp class/resource từ đó, các background tasks đã được dừng, listeners bị hủy và mọi lease đã release.
+Stopping new request admission is necessary but not sufficient. Before closing the loader, ensure the generation's code no longer needs to load classes or resources from it, background tasks are stopped, listeners are unregistered, and all leases are released.
 
-### 9.1. Đóng class loader không có nghĩa unload class tức thì
+### 9.1. Closing a class loader does not mean immediate class unloading
 
-URLClassLoader.close() đóng những tài nguyên như file/JAR do loader quản lý và hạn chế các lệnh tìm class/resource sau đó. Nó **không xóa Class object đã được định nghĩa**, không dừng thread đang chạy bytecode cũ và không ngay lập tức giải phóng metaspace nếu vẫn còn strong references.
+`URLClassLoader.close()` closes underlying resources such as files/JARs managed by the loader and restricts subsequent class/resource lookups. It **does not delete already-defined Class objects**, does not stop threads executing old bytecode, and does not immediately free metaspace while strong references remain.
 
-Do đó ba assertion phải được phân biệt:
+Therefore, distinguish three assertions:
 
-1. **Cleanup invoked:** host đã gọi close của đúng generation sau inFlight=0, đúng một lần.
-2. **Resources released:** những file handle, thread pool, socket hoặc pool mà plugin quản lý đã được đóng/terminated theo hợp đồng. Cần đo từng loại thực tế.
-3. **Class unloading eligible/observed:** những class/loader của generation không còn được tham chiếu; JVM **có thể** garbage collect và unload chúng. Thời điểm GC không xác định; không viết test cứng rằng WeakReference phải bị xóa trong một số mili-giây.
+1. **Cleanup invoked:** the host called close on the right generation once after `inFlight=0`.
+2. **Resources released:** file handles, thread pools, sockets, or pools managed by the plugin were closed/terminated per contract. Measure each real resource type.
+3. **Class unloading eligible/observed:** classes/loaders of the generation are no longer reachable; the JVM **may** garbage-collect and unload them. GC timing is non-deterministic; never write brittle tests asserting a WeakReference clears within a fixed number of milliseconds.
 
-Trong test thật, có thể dùng JFR/class unloading diagnostics, WeakReference đến loader cùng một khoảng quan sát đủ dài, và kiểm tra số file handle/thread/metaspace sau nhiều lần reload. WeakReference là tín hiệu hữu ích nhưng **không phải tiêu chí pass xác định** khi gọi System.gc một lần.
+In real tests, use JFR/class-unloading diagnostics, a WeakReference to the loader with a generous observation window, and inspect file-handle/thread/metaspace counts across multiple reload cycles. A WeakReference is a useful signal, **not a deterministic pass criterion** after a single `System.gc()` call.
 
-### 9.2. Khung kết hợp AutoCloseable
+### 9.2. Composing AutoCloseable resources
 
-Một plugin manager có thể gom nhiều tài nguyên vào một đối tượng sở hữu duy nhất. Ví dụ cấu trúc (không phải class độc lập vì phụ thuộc các thành phần host) :
+A plugin manager can group multiple resources under a single owner object. Example skeleton (not a standalone class because it depends on host-supplied types):
 
 ~~~java
-// MINH HỌA API CHO THỰC TẾ; cần các lớp/plugin cụ thể do host cung cấp.
+// REAL-WORLD ILLUSTRATION; requires concrete host-supplied classes/plugins.
 final class PluginResources implements AutoCloseable {
     private final AutoCloseable pluginInstance;
     private final java.net.URLClassLoader loader;
@@ -680,7 +680,7 @@ final class PluginResources implements AutoCloseable {
         }
 
         executor.shutdown();
-        // Production: awaitTermination theo deadline; có chính sách escalation.
+        // Production: awaitTermination with deadline; include an escalation policy.
         try {
             loader.close();
         } catch (Exception e) {
@@ -693,32 +693,32 @@ final class PluginResources implements AutoCloseable {
 }
 ~~~
 
-Đây là **khung có thể biên dịch khi đặt trong file riêng** và đã đủ import nhờ dùng các tên đầy đủ, nhưng nó **chưa đủ an toàn để triển khai trực tiếp**: cần chờ executor thực sự kết thúc, chống task còn tiếp tục dùng loader sau khi close, xử lý sự cố từng bước và quản lý cleanup status/attempts. Thứ tự dừng callback/timer/task/loader phải theo hợp đồng plugin cụ thể; không coi executor.shutdown là đảm bảo worker đã ngừng.
+This is a **skeleton that compiles in its own file** thanks to fully qualified names, but it **is not safe to deploy as-is**: you must wait for the executor to actually terminate, prevent tasks from continuing to use the loader after closing, handle step-by-step failures, and track cleanup status/attempts. The shutdown order across callbacks/timers/tasks/loaders must match the plugin's contract; never treat `executor.shutdown()` as proof workers have stopped.
 
-### 9.3. Trường hợp Java module layer
+### 9.3. The Java module layer case
 
-Một plugin có thể được triển khai qua ModuleLayer thay vì URLClassLoader. Khi đó khái niệm generation, lease, drain và rollback **vẫn cần**, nhưng cleanup tùy cách class loader/ModuleLayer/resource được tạo. Không có API chung kiểu ModuleLayer.close() giúp dừng mọi class và resource. Host cần đóng những đối tượng có hợp đồng cleanup, loại strong references đến layer/loader và theo dõi task/callback.
+A plugin may be deployed via ModuleLayer instead of URLClassLoader. Even then, generation, lease, drain, and rollback concepts **are still required**, while cleanup depends on how class loaders, ModuleLayers, and resources were created. There is no universal `ModuleLayer.close()` API to shut down all classes and resources. The host must close objects with cleanup contracts, drop strong references to the layer/loader, and track tasks/callbacks.
 
-Đừng tạo một ModuleLayer mới mỗi lần deploy rồi giữ tất cả layer trong static registry. Không còn request không đồng nghĩa layer tự biến mất nếu registry hoặc thread context class loader vẫn giữ tham chiếu.
+Never create a new ModuleLayer on every deploy while keeping every layer in a static registry. Having zero active requests does not make a layer disappear if a registry or thread context class loader still holds a reference.
 
-## 10. Yêu cầu bất đồng bộ: lease sống đến completion thật
+## 10. Asynchronous Requests: Leases Must Live Until Actual Completion
 
-Bài demo worker dùng Future và try-with-resources: Future.get chỉ trả sau khi callable kết thúc và lease đã được đóng. Khi plugin trả CompletableFuture hoặc CompletionStage, cần **chuyển lease tới callback kết thúc**.
+The demo worker used Future and try-with-resources: `Future.get` returns only after the callable finishes and the lease has closed. When a plugin returns a CompletableFuture or CompletionStage, **pass the lease to the completion callback**.
 
-Sai:
+Wrong:
 
 ~~~java
-// MINH HỌA RỦI RO; giả định plugin.handleAsync trả CompletionStage<Result>.
+// RISK ILLUSTRATION; assumes plugin.handleAsync returns CompletionStage<Result>.
 try (PluginLease lease = router.acquire()) {
     return lease.plugin().handleAsync(input);
 }
-// Lease.close chạy ngay sau khi return stage, khi tác vụ còn sử dụng plugin.
+// Lease.close runs immediately after returning the stage while the task still uses the plugin.
 ~~~
 
-Cách tổ chức đúng hơn:
+Better organization:
 
 ~~~java
-// MÃ MINH HỌA: PluginLease, router, input và Result do host định nghĩa.
+// ILLUSTRATIVE CODE: PluginLease, router, input, and Result are host-defined.
 PluginLease lease = router.acquire();
 try {
     return lease.plugin().handleAsync(input)
@@ -729,164 +729,164 @@ try {
 }
 ~~~
 
-Điều kiện là stage hoàn tất thực sự đại diện cho **mọi công việc** của plugin. Nếu method tạo thêm một thread fire-and-forget rồi trả stage đã completed, lease vẫn bị release quá sớm. Đối với worker không hợp tác/nguồn script chưa tin cậy, việc bắt buộc timeout ở cùng JVM thường không thể dừng execution an toàn; cần kiến trúc worker process.
+This assumes stage completion truly represents **all** plugin work. If the method spawns a fire-and-forget thread and returns an already-completed stage, the lease still releases too early. For uncooperative workers or untrusted scripts, enforcing timeouts inside the same JVM usually cannot safely stop execution; a worker-process architecture is needed.
 
-Cần thiết kế Lease.close là idempotent và thread-safe ở mức lifecycle khi callback đến từ thread khác, còn use-versus-close race phải được xử lý bằng ownership rõ ràng. Không ép đóng loader khi còn stage đang hoạt động chỉ vì API timeout phía caller đã hết.
+Design `Lease.close` to be idempotent and thread-safe at the lifecycle level when callbacks arrive on another thread, and resolve use-versus-close races through explicit ownership. Never force-close a loader while stages remain active simply because the caller's API timeout elapsed.
 
-### Những loại tác vụ nên tính vào in-flight
+### Workloads that should count toward in-flight
 
-| Loại | Ranh giới release thích hợp |
+| Workload type | Appropriate release boundary |
 | --- | --- |
-| HTTP request đồng bộ | Kết thúc toàn bộ xử lý và response/cleanup mà plugin cần |
-| CompletableFuture | Khi computation hoàn tất thực, including error/cancel |
-| Message listener | Sau xử lý cùng ack/nack/transaction, theo delivery semantics |
-| Stream lâu dài | Khi stream kết thúc hoặc đã handoff an toàn |
-| Scheduled task | Khi callback thực sự kết thúc và registration đã hủy |
-| Database transaction | Sau commit/rollback hoàn tất và không còn dùng resource |
-| External callback | Khi ngừng callback, đã deregister hoặc chuyển ownership an toàn |
+| Synchronous HTTP request | End of full processing and response/cleanup needed by the plugin |
+| CompletableFuture | When computation truly completes, including error/cancel |
+| Message listener | After processing plus ack/nack/transaction per delivery semantics |
+| Long-lived stream | When stream terminates or after safe handoff |
+| Scheduled task | When callback actually finishes and registration is cancelled |
+| Database transaction | After commit/rollback completes and resources are no longer used |
+| External callback | When callbacks stop, are deregistered, or ownership transfers safely |
 
-Thời điểm release được thiết kế theo hợp đồng workload chứ không phải một event ngẫu nhiên như "trả Java object Future".
+Release timing is dictated by the workload contract, not an arbitrary event such as "returning a Java Future object".
 
-## 11. Tài nguyên bị rò rỉ qua các tham chiếu vô hình
+## 11. Resources Leaked Through Invisible References
 
-Ngay cả sau khi close và inFlight=0, một loader cũ có thể vẫn chưa được thu gom vì:
+Even after `close` and `inFlight=0`, an old loader may still remain uncollectable because:
 
-- Thread không thuộc router còn chạy code plugin và giữ context class loader.
-- ThreadLocal của thread pool host giữ instance hoặc Class từ loader cũ.
-- Event bus/registry/scheduler chưa gỡ listener/callback của plugin.
-- Singleton static trong host giữ Class, Method, service provider hoặc object plugin.
-- ServiceLoader, logging/metrics, reflection caches hoặc proxy giữ tham chiếu liên quan.
-- Một Future, Throwable, completion callback hoặc request context giữ object của v1.
-- JMX/MBean hoặc framework integration chưa unregister.
+- A thread outside the router is still running plugin code and holding a context class loader.
+- A ThreadLocal in a host thread pool retains an instance or Class from the old loader.
+- An event bus, registry, or scheduler still holds a plugin listener/callback.
+- A static singleton in the host holds a Class, Method, service provider, or plugin object.
+- ServiceLoader, logging/metrics, reflection caches, or proxies retain related references.
+- A Future, Throwable, completion callback, or request context holds a v1 object.
+- JMX/MBeans or framework integrations were not unregistered.
 
-Checklist dọn v1 phải kiểm tra cả **resource cleanup** lẫn **reference cleanup**, chứ không chỉ gọi close. Khi hệ thống có nhiều lần reload, theo dõi xu hướng class loaders/metaspace/threads/handles sau khi các generation cũ hết lease và rollback window.
+A v1 cleanup checklist must verify both **resource cleanup** and **reference cleanup**, not just calling `close`. In systems with frequent reloads, monitor trends for live class loaders, metaspace, threads, and handles after old generations clear leases and rollback windows.
 
-**Lưu ý về memory test:** Sự kiện GC và class unloading do JVM quyết định. Một smoke test không chứng minh được "không rò rỉ" chỉ vì số liệu ổn sau một vòng reload; cần stress cycles, diagnostics và một khoảng quan sát hợp lý. Đừng đặt logic sản xuất dựa vào System.gc() như một cách thu hồi plugin.
+**Note on memory tests:** GC and class unloading timing are up to the JVM. A single smoke test does not prove "zero leaks" just because metrics look flat after one reload; run stress cycles, diagnostics, and a reasonable observation window. Never build production logic around `System.gc()` as a way to reclaim plugins.
 
-## 12. Khi nào không nên đóng tài nguyên ngay cả khi inFlight=0?
+## 12. When Should Resources Not Be Closed Even When inFlight=0?
 
-Một số hệ có thời gian **rollback** hoặc các handle lưu lâu dài mà counter request chưa bao phủ. Trong các trường hợp đó, một quyết định dọn phải thêm các điều kiện:
+Some systems maintain a **rollback** window or long-lived handles not covered by a request counter. In those cases, a cleanup decision requires additional checks:
 
-- Generation đã bị loại khỏi routing table và không thể cấp lease mới.
-- Không có request hoặc background job nào còn sử dụng generation.
-- Đã hết thời hạn giữ để rollback hoặc có quyết định retire chính thức.
-- Không còn session/callback/external consumer chưa được tính lease.
-- Dữ liệu và API đã xác nhận không cần generation cũ để tiếp tục.
-- Những resource thuộc shared scope không bị một generation đơn lẻ đóng nhầm.
+- The generation has been removed from the routing table and cannot issue new leases.
+- No requests or background jobs are still using the generation.
+- The rollback retention window has expired or an explicit retirement decision was made.
+- No untracked sessions, callbacks, or external consumers remain outside lease accounting.
+- Data and APIs are confirmed not to need the old generation to continue.
+- Shared-scope resources are not mistakenly closed by a single generation.
 
-Trong ví dụ này, main **chủ động gọi retire(v1)** ngay sau switch: nếu inFlight về 0 thì v1 được đóng, không có rollback window. Đó là lựa chọn của bài thực hành, **không phải quy tắc duy nhất cho mọi sản phẩm**.
+In this exercise, main **explicitly calls `retire(v1)`** immediately after switching: once `inFlight` hits 0, v1 closes with no rollback window. That is a choice for this lab, **not the only rule for every product**.
 
-Nếu muốn rollback nhanh về v1, nên giữ v1 ở trạng thái STANDBY (không nhận request mới nhưng còn resource hợp lệ) cho tới khi cần khôi phục hoặc hết thời hạn cho phép. Lúc đó controller phải có cơ chế rõ ràng để tái kích hoạt STANDBY sau readiness/data compatibility guard; không cố gọi activate trên một Generation đã CLOSED.
+If you want fast rollback to v1, keep v1 in a STANDBY state (admitting no new requests while keeping resources valid) until either recovery is needed or the retention window expires. The controller must then have an explicit mechanism to reactivate STANDBY after readiness/data-compatibility guards; never attempt to call `activate` on an already CLOSED Generation.
 
-## 13. Checklist kiểm tra dọn tài nguyên khi thay phiên bản thật
+## 13. Resource Cleanup Checklist During Real Version Swaps
 
-| Thời điểm | Kiểm tra bắt buộc | Dấu hiệu lỗi |
+| Moment | Mandatory check | Symptom of failure |
 | --- | --- | --- |
-| Trước switch | v2 đã chuẩn bị, startup/health của v2 ổn; v1 còn ACTIVE | Bật v2 trước khi dependency sẵn sàng |
-| Request v1 đã vào | Có lease v1, inFlight(v1) tăng | Request không được đếm nhưng vẫn dùng plugin |
-| Sau switch | New route vào v2; v1 DRAINING | Request mới vẫn vào v1 hoặc v1 đóng sớm |
-| Trong lúc A đang xử lý | closeCalls(v1)=0, resources v1 còn hợp lệ | File/loader/pool bị đóng khi vẫn còn in-flight |
-| Sau A completion | inFlight(v1)=0; cleanup đúng một lần | Counter âm, double close hoặc lease leak |
-| Sau cleanup | old resources thực sự close/terminate | Sockets/threads/JAR handles còn mở |
-| Sau retire lặp | Không xuất hiện cleanup thứ hai | Resource.close bị gọi lại ngoài ý muốn |
-| Sau host shutdown | v2 không nhận mới và được dọn sau drain | Thread pool còn sống hoặc v2 chưa close |
-| Sau nhiều lần reload | Không có retained listeners/ThreadLocal/loader vô hạn | Số loader, thread, metaspace tăng theo số lần deploy |
+| Before switch | v2 prepared, startup/health OK; v1 still ACTIVE | Activating v2 before dependencies are ready |
+| v1 request enters | Holds v1 lease, `inFlight(v1)` incremented | Request uncounted yet still using plugin |
+| After switch | New routes go to v2; v1 is DRAINING | New requests still enter v1 or v1 closes early |
+| While A is processing | `closeCalls(v1)=0`, v1 resources remain valid | File/loader/pool closed while in-flight remains |
+| After A completes | `inFlight(v1)=0`; cleanup runs exactly once | Negative counter, double close, or lease leak |
+| After cleanup | Old resources actually closed/terminated | Sockets/threads/JAR handles remain open |
+| After repeated retire | No second cleanup occurs | `Resource.close` called again unexpectedly |
+| After host shutdown | v2 stops admitting and drains before cleanup | Thread pool stays alive or v2 never closes |
+| After many reloads | No unbounded retained listeners/ThreadLocals/loaders | Loaders, threads, or metaspace grow per deploy |
 
-Với sản phẩm thực, mỗi lần kiểm tra cần **generation ID**, không chỉ version label. Cùng version v2 có thể được nạp nhiều lần với class loader, artifact/config và resource handle khác nhau. Dọn nhầm generation có thể phá hủy request của một phiên hợp lệ khác.
+In production, every check should use a **generation ID**, not just a version label. The same v2 version could be loaded multiple times with distinct class loaders, artifacts/configs, and resource handles. Cleaning up the wrong generation can break requests in another valid session.
 
-## 14. Kiểm thử lỗi và quan sát
+## 14. Failure Testing and Observability
 
-### 14.1. Những test nên viết trong CI
+### 14.1. Tests to put in CI
 
-1. **In-flight swap**: một worker đã giữ v1, main bật v2, v1 không close trước release.
-2. **Post-cutover admission**: request mới dùng v2; không tham chiếu v1 thông qua active pointer.
-3. **Concurrent acquire/cutover race**: hai trường hợp thứ tự đều hợp lệ, không dùng resource đã đóng.
-4. **Release exception path**: business handler ném exception, lease vẫn được release trong finally/try-with-resources.
-5. **Double close lease**: inFlight không âm, cleanup không lặp.
-6. **Retire while in-flight**: state vẫn DRAINING, closeCalls=0.
-7. **Retire after in-flight=0**: cleanup kích hoạt đúng một lần.
-8. **Cleanup failure**: state CLEANUP_FAILED, metric/error và quy trình thu hồi phù hợp.
-9. **Shutdown with in-flight**: không cấp lease mới; chờ các task cũ kết thúc theo deadline.
-10. **Async future**: lease không được release trước completion stage thực.
-11. **Actual URLClassLoader/resource cleanup**: JAR handles/threads/listeners được đóng theo lifecycle.
-12. **Repeated deployments**: nhiều chu kỳ v1→v2→v3 không làm tăng references vô thời hạn.
+1. **In-flight swap**: worker holds v1, main activates v2, v1 does not close before release.
+2. **Post-cutover admission**: new requests use v2; no references to v1 via active pointer.
+3. **Concurrent acquire/cutover race**: both orderings are valid and never touch closed resources.
+4. **Release exception path**: business handler throws; lease still releases in `finally`/`try-with-resources`.
+5. **Double close lease**: inFlight never goes negative; cleanup never repeats.
+6. **Retire while in-flight**: state stays DRAINING, `closeCalls=0`.
+7. **Retire after in-flight=0**: cleanup triggers exactly once.
+8. **Cleanup failure**: state becomes CLEANUP_FAILED, with appropriate metrics/errors and recovery workflow.
+9. **Shutdown with in-flight**: stops new leases; waits for active tasks up to a deadline.
+10. **Async future**: lease never releases before actual CompletionStage completion.
+11. **Actual URLClassLoader/resource cleanup**: JAR handles, threads, and listeners close per lifecycle.
+12. **Repeated deployments**: multiple v1→v2→v3 cycles do not grow retained references indefinitely.
 
-### 14.2. Chẩn đoán khi bài thực hành không đạt
+### 14.2. Diagnosing lab failures
 
-| Triệu chứng | Vùng nên kiểm tra |
+| Symptom | Where to check |
 | --- | --- |
-| old-request in ra v2:A | Lease không pin version hoặc worker chỉ acquire sau cutover |
-| old-close-before-finish lớn hơn 0 | Cleanup quá sớm, thiếu inFlight guard |
-| old-after-drain vẫn DRAINING | Lease chưa được release hoặc retirementRequested chưa set |
-| old-close-count bằng 2 | Không đánh dấu CLOSING trong khóa hoặc lifecycle retry sai |
-| new-request không phải v2:B | active pointer chưa chuyển/đọc ngoài gate |
-| Timeout tại Future.get | Worker chưa được mở latch, bị deadlock hoặc tác vụ treo |
-| new-close-count bằng 0 sau shutdown | Không retire active generation hoặc còn lease |
-| CLOSE gọi rồi nhưng tài nguyên thật vẫn bận | stop hook không đóng đủ; thread/callback giữ resource |
-| Class loader chưa bị GC sau close | Còn strong references hoặc GC chưa xảy ra |
-| Không thể rollback về v1 | v1 đã CLOSED/thiếu rollback window, hoặc schema không tương thích |
+| `old-request` prints `v2:A` | Lease did not pin version, or worker acquired after cutover |
+| `old-close-before-finish` > 0 | Premature cleanup; missing `inFlight` guard |
+| `old-after-drain` stays DRAINING | Lease never released or `retirementRequested` not set |
+| `old-close-count` equals 2 | Missing CLOSING transition under lock or bad retry lifecycle |
+| `new-request` is not `v2:B` | active pointer did not switch or was read outside gate |
+| Timeout at `Future.get` | Worker latch never released, deadlock, or hung task |
+| `new-close-count` is 0 after shutdown | Active generation never retired or lease leaked |
+| CLOSE called yet real resources stay busy | Stop hook incomplete; thread/callback holds resource |
+| Class loader not GC'd after close | Strong references remain or GC hasn't run |
+| Cannot roll back to v1 | v1 already CLOSED, no rollback window, or schema incompatible |
 
-Nếu timeout, thu **thread dump** khi tiến trình đang kẹt bằng jcmd/jstack theo môi trường và quyền cho phép. Tìm thread đang giữ gate, thread đang chờ latch, thread thực hiện close có I/O hay callback vào router, và những lock của plugin. Không giải quyết một deadlock bằng cách tăng sleep hoặc gọi Thread.stop.
+On timeouts, capture a **thread dump** while the process is stuck using `jcmd`/`jstack` as permitted by your environment. Look for threads holding `gate`, threads waiting on latches, threads running `close` with I/O or re-entering the router, and plugin locks. Never solve a deadlock by increasing sleep timers or calling `Thread.stop`.
 
-### 14.3. Metrics phù hợp trong production
+### 14.3. Production-grade metrics
 
-- active_generation{plugin,tenant,instance}, rollout epoch.
-- in_flight{plugin,generation}, oldest_in_flight_age và drain_duration.
-- requests_started/finished/failed{generation}.
-- cleanup_attempts, cleanup_success, cleanup_failures, cleanup_duration{generation}.
-- resources_open{type,generation}, plugin_threads_active, callback_registrations.
-- loader_retirement_pending, classloader_retained_after_window (quan sát theo chu kỳ).
-- version_switch_count, rollback_count và lý do.
+- `active_generation{plugin,tenant,instance}`, rollout epoch.
+- `in_flight{plugin,generation}`, `oldest_in_flight_age`, and `drain_duration`.
+- `requests_started/finished/failed{generation}`.
+- `cleanup_attempts`, `cleanup_success`, `cleanup_failures`, `cleanup_duration{generation}`.
+- `resources_open{type,generation}`, `plugin_threads_active`, `callback_registrations`.
+- `loader_retirement_pending`, `classloader_retained_after_window` (sampled periodically).
+- `version_switch_count`, `rollback_count`, and reasons.
 
-Không xuất raw request payload, secrets hay classpath nội bộ tùy tiện trong metrics/log. Đảm bảo metric cardinality có giới hạn nếu generation IDs rất nhiều, tránh hệ metrics trở thành nguồn DoS.
+Never emit raw request payloads, secrets, or arbitrary internal classpaths in metrics/logs. Bound metric cardinality if generation IDs are numerous so telemetry itself does not become a DoS vector.
 
-## 15. Bài tập nâng cao và tiêu chí hoàn thành
+## 15. Advanced Exercises and Completion Criteria
 
-Một bài thực hành hoàn chỉnh nên trải qua ba mức:
+A complete practice path progresses through three levels:
 
-### Mức 1 — chạy đúng kịch bản đã cho
+### Level 1 — run the given scenario cleanly
 
-**Bắt buộc:** Biên dịch và chạy PluginSwapLab.java; nhận stdout đã chỉ ra, xác nhận resource v1 không close trước khi request A hoàn thành, v1/v2 mỗi version close một lần. Giải thích bằng lời tại sao CountDownLatch làm kết quả đáng tin hơn Thread.sleep.
+**Mandatory:** Compile and run `PluginSwapLab.java`; obtain the exact stdout shown, confirming v1 resources never close before request A finishes and both v1 and v2 close once each. Explain verbally why CountDownLatch makes the result more reliable than `Thread.sleep`.
 
-### Mức 2 — có kiểm thử tình huống thất bại
+### Level 2 — test failure scenarios
 
-**Bắt buộc đối với người triển khai plugin thật:** Tạo biến thể close sớm, thiếu release, double-close, shutdown khi in-flight và cleanup exception. Test phải phát hiện sai đúng bằng trạng thái, counter hoặc exception; không chỉ quan sát chương trình có chạy xong hay không. Không tạo deadlock thật trên test runner dùng chung mà không có timeout/isolated process.
+**Mandatory for anyone deploying real plugins:** Build variants for premature close, missing release, double-close, shutdown while in-flight, and cleanup exceptions. Tests must detect each bug accurately via state, counters, or exceptions rather than merely checking whether the program exited. Never trigger real deadlocks on shared CI runners without timeouts or isolated processes.
 
-### Mức 3 — gắn tài nguyên thật và kiểm tra vòng đời
+### Level 3 — attach real resources and test lifecycles
 
-Mở rộng Generation để sở hữu URLClassLoader, một executor và một registration trên event bus giả lập. Kết quả được coi là đạt khi:
+Extend Generation to own a URLClassLoader, an executor, and a simulated event-bus registration. Passing requires:
 
-- v1 còn lease thì các resource v1 chưa bị đóng;
-- khi hết lease/rollback window, executor đã terminated, listener bị unregister và loader.close trả về thành công;
-- mỗi resource đóng một lần hoặc theo hợp đồng idempotent đã ghi rõ;
-- host không còn giữ tham chiếu không cần thiết đến v1 sau retire;
-- khi chạy nhiều chu kỳ switch, không còn các thread/callback rác, JAR handles được giải phóng và xu hướng memory không tăng mất kiểm soát.
+- while v1 holds leases, none of v1's resources are closed;
+- once leases/rollback windows drain, the executor is terminated, listeners are unregistered, and `loader.close()` succeeds;
+- every resource closes once or per its documented idempotent contract;
+- the host retains no unnecessary references to v1 after retirement;
+- across many switch cycles, no stray threads or callbacks remain, JAR handles are released, and memory trends stay bounded.
 
-**Định nghĩa pass/fail phải dựa trên từng resource thực**, không coi System.gc hoặc WeakReference cleared là chứng cứ bắt buộc trong một thời hạn tuyệt đối.
+**Pass/fail criteria must be grounded in each real resource**, never treating `System.gc()` or a cleared WeakReference within a fixed deadline as mandatory proof.
 
-## 16. Checklist tổng kết
+## 16. Summary Checklist
 
-- [ ] Có ít nhất hai generation riêng cho hai lần nạp/phiên bản plugin.
-- [ ] Request đang chạy giữ lease gắn với generation đã chọn.
-- [ ] Acquire và activate phối hợp nguyên tử khi đọc route/tăng inFlight.
-- [ ] Generation cũ ngừng nhận mới trước khi retire.
-- [ ] Trong khi inFlight > 0, tài nguyên cũ chưa bị đóng.
-- [ ] Sau inFlight về 0 và retire requested, close được gọi đúng một lần.
-- [ ] Cleanup chạy ngoài khóa routing và có trạng thái lỗi rõ ràng.
-- [ ] Async callbacks, timers, background tasks được tính vào lifecycle.
-- [ ] Shutdown ngừng admission, drain request và dọn active generation.
-- [ ] Với class loader thật, không nhầm close với unload/GC ngay lập tức.
-- [ ] Nếu hỗ trợ rollback, giữ generation cũ có chủ đích và kiểm tra tương thích dữ liệu.
-- [ ] Có CI tests cho race, exception, timeout, repeated replacement và resource leaks.
+- [ ] At least two separate generations exist for two plugin loads/versions.
+- [ ] In-flight requests hold a lease pinned to their selected generation.
+- [ ] Acquire and activate coordinate atomically when reading routes/incrementing inFlight.
+- [ ] Old generations stop admitting new requests before retirement.
+- [ ] While `inFlight > 0`, old resources are never closed.
+- [ ] Once `inFlight` hits 0 and retire is requested, close runs exactly once.
+- [ ] Cleanup runs outside the routing lock with explicit failure states.
+- [ ] Async callbacks, timers, and background tasks are accounted for in the lifecycle.
+- [ ] Shutdown stops admission, drains requests, and cleans up the active generation.
+- [ ] With real class loaders, close is not confused with immediate unloading/GC.
+- [ ] If rollback is supported, old generations are retained intentionally and checked for data compatibility.
+- [ ] CI tests cover races, exceptions, timeouts, repeated replacements, and resource leaks.
 
-**Kết luận:** Thay plugin an toàn cần **pin request bằng lease, chuyển routing atomically, chờ in-flight drain và chỉ dọn đúng generation ở đúng thời điểm**. Chương trình Java 17 đã kiểm chứng trong bài cho thấy hai việc tưởng xung đột có thể cùng đúng: request A tiếp tục dùng v1 sau switch, trong khi request B nhận v2; v1 chỉ được close sau khi A trả lease, còn v2 được dọn khi shutdown. Đây là nền tảng để nâng cấp sang URLClassLoader/ModuleLayer và hệ runtime extensibility có nhiều plugin, nhưng việc kiểm tra resource thật, state compatibility và rollback policy vẫn phải thiết kế riêng.
+**Conclusion:** Safe plugin replacement requires **pinning requests with leases, switching routes atomically, waiting for in-flight drain, and cleaning up only the right generation at the right time**. The verified Java 17 program proves two seemingly conflicting goals can both hold: request A keeps using v1 after cutover while request B gets v2; v1 closes only after A returns its lease, and v2 cleans up on shutdown. This lays the groundwork for scaling to URLClassLoader/ModuleLayer and multi-plugin runtime extensibility, while real-resource checks, state compatibility, and rollback policies must still be engineered explicitly.
 
-## Tham khảo chính thức
+## Official References
 
-- Java SE 17 — [CountDownLatch](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CountDownLatch.html): điều phối thứ tự giữa các thread mà không dựa vào sleep.
-- Java SE 17 — [ExecutorService](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html): quản lý worker và shutdown.
-- Java SE 17 — [Future](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html): đợi completion và xử lý timeout.
+- Java SE 17 — [CountDownLatch](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CountDownLatch.html): coordinating thread order without sleeping.
+- Java SE 17 — [ExecutorService](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html): managing workers and shutdown.
+- Java SE 17 — [Future](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html): awaiting completion and handling timeouts.
 - Java SE 17 — [AutoCloseable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/AutoCloseable.html): try-with-resources.
-- Java SE 17 — [URLClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html): close() và giới hạn của class loading/unloading.
-- Java SE 17 — [AtomicBoolean](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicBoolean.html): bảo vệ việc release lease một lần.
-- Java SE 17 — [CompletableFuture](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html): completion callbacks cho các tác vụ bất đồng bộ.
+- Java SE 17 — [URLClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html): `close()` and limits of class loading/unloading.
+- Java SE 17 — [AtomicBoolean](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicBoolean.html): guarding one-time lease release.
+- Java SE 17 — [CompletableFuture](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html): completion callbacks for asynchronous workloads.

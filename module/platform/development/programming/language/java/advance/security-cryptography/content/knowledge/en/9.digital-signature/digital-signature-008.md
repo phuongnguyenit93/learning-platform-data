@@ -1,71 +1,71 @@
-# 9.8 Phân biệt chữ ký sai, dữ liệu sai định dạng và ngoại lệ khi xác minh
+# 9.8 Distinguishing Invalid Signatures, Malformed Data, and Verification Exceptions
 
-Khi xác minh chữ ký số trong Java, **“chữ ký không hợp lệ”**, **“dữ liệu đầu vào sai định dạng”** và **“quá trình xác minh phát sinh ngoại lệ”** là những tình huống khác nhau. Chúng có thể dẫn đến cùng quyết định nghiệp vụ là **không chấp nhận yêu cầu**, nhưng khác nhau về nguyên nhân, vị trí lỗi, cách xử lý, khả năng khắc phục và thông tin cần ghi nhận để vận hành.
+When verifying digital signatures in Java, **“invalid signature,”** **“malformed input data,”** and **“an exception thrown during verification”** are distinct situations. They may lead to the same business decision—**rejecting the request**—but they differ in root cause, failure layer, handling, recoverability, and what needs to be logged for operations.
 
-Điểm cốt lõi: `java.security.Signature.verify(byte[])` có hai kết quả theo hợp đồng API: **`true`/`false`** khi thực hiện xong phép kiểm tra, hoặc **`SignatureException`** khi engine không thể xác minh như bình thường (ví dụ sai trạng thái, chữ ký sai encoding/loại hoặc provider không xử lý được). Trước khi tới `verify` còn có các lớp parse, giải mã Base64, nạp public key và chọn thuật toán, mỗi lớp có ngoại lệ riêng.
+The core point: `java.security.Signature.verify(byte[])` has two outcomes under the API contract: **`true`/`false`** when the verification check completes, or **`SignatureException`** when the engine cannot verify normally (e.g., invalid state, wrong signature encoding/type, or unprocessable input for the provider). Prior to `verify`, there are also parsing, Base64 decoding, public-key loading, and algorithm-selection layers, each with its own exceptions.
 
-Bài này giúp bạn phân loại lỗi đúng tầng, viết nhánh xử lý an toàn và kiểm chứng hành vi bằng Java 17+.
+This lesson helps you classify errors at the right layer, write safe handling branches, and verify the behavior with Java 17+.
 
-## 1. Đặt đúng câu hỏi: đã đi tới bước xác minh mật mã chưa?
+## 1. Ask the right question: did execution even reach cryptographic verification?
 
-Quy trình nhận một chữ ký từ bên ngoài thường có nhiều bước:
+Receiving and checking an external signature typically spans multiple steps:
 
 ~~~text
-Payload / request từ bên ngoài
+External payload / request
   |
   v
-[1] Validate request schema, giới hạn kích thước, trường bắt buộc
-  |  lỗi -> MALFORMED_INPUT (chưa tới Signature)
+[1] Validate request schema, size limits, required fields
+  |  error -> MALFORMED_INPUT (has not reached Signature)
   v
-[2] Decode Base64/Base64URL/hex/PEM theo contract
-  |  lỗi -> MALFORMED_ENCODING (chưa tới Signature)
+[2] Decode Base64/Base64URL/hex/PEM per contract
+  |  error -> MALFORMED_ENCODING (has not reached Signature)
   v
-[3] Nạp public key đúng định dạng, kiểm tra nguồn tin cậy
-  |  lỗi parse -> INVALID_KEY_FORMAT
-  |  lỗi trust/certificate -> TRUST_FAILURE
+[3] Load public key in expected format, check trusted source
+  |  parse error -> INVALID_KEY_FORMAT
+  |  trust/certificate error -> TRUST_FAILURE
   v
-[4] Chọn algorithm + parameters và gọi Signature.getInstance(...)
-  |  lỗi -> ALGORITHM_OR_CONFIGURATION_ERROR
+[4] Select algorithm + parameters and call Signature.getInstance(...)
+  |  error -> ALGORITHM_OR_CONFIGURATION_ERROR
   v
 [5] Signature.initVerify(trustedPublicKey)
-  |  lỗi -> INVALID_KEY_OR_PROVIDER_ERROR
+  |  error -> INVALID_KEY_OR_PROVIDER_ERROR
   v
 [6] Signature.update(EXACT_MESSAGE_BYTES)
-  |  lỗi state/processing -> SignatureException
+  |  state/processing error -> SignatureException
   v
 [7] Signature.verify(signatureBytes)
   |
   +-- true  -> VALID_CRYPTOGRAPHIC_SIGNATURE
   +-- false -> NOT_VERIFIED
   +-- SignatureException -> VERIFICATION_PROCESSING_ERROR
-                               (có thể liên quan format chữ ký)
+                               (may relate to signature format)
 ~~~
 
-**Không có bảo đảm rằng mọi chữ ký sai định dạng đều bị phát hiện trước `verify`.** Một số định dạng chỉ được provider giải mã trong `verify`. Tùy scheme/provider, đầu vào bất thường có thể cho `false` hoặc ném `SignatureException`. Muốn phân biệt format và sai phép toán mật mã với độ tin cậy cao, cần **contract encoding rõ ràng và kiểm tra những điều kiện cấu trúc có thể kiểm tra an toàn trước khi verify**.
+**There is no guarantee that every malformed signature is caught before `verify`.** Some formats are only decoded by the provider inside `verify`. Depending on the scheme/provider, abnormal inputs can return `false` or throw `SignatureException`. To reliably distinguish format errors from cryptographic mismatches, establish an **explicit encoding contract and perform safe structural checks before calling verify**.
 
-Ngược lại, `verify(...) == true` chỉ chứng minh **chữ ký toán học phù hợp với message bytes, public key và bộ tham số đã dùng**. Nó không tự chứng minh public key thực sự thuộc người dùng mong muốn, chứng chỉ còn hiệu lực hay yêu cầu chưa bị phát lại.
+Conversely, `verify(...) == true` only proves that the **mathematical signature matches the message bytes, public key, and parameters used**. It does not by itself prove the public key belongs to the expected user, the certificate is still valid, or the request has not been replayed.
 
-## 2. Phân loại ba nhóm kết quả chính
+## 2. Classifying the three main outcome categories
 
-| Nhóm | Ví dụ | Kết quả API điển hình | Ý nghĩa chính xác |
+| Category | Examples | Typical API outcome | Exact meaning |
 | --- | --- | --- | --- |
-| **Chữ ký không khớp** | Sửa nội dung, ký bằng private key của người khác, truyền sai chữ ký hợp lệ về cấu trúc | `Signature.verify(sig) == false` | Phép kiểm tra với **message/key/algorithm/parameters hiện tại** không thành công. |
-| **Đầu vào sai định dạng** | Base64 hỏng, JSON/PEM không hợp lệ, public key DER hỏng, chữ ký không đúng representation | `IllegalArgumentException` từ Base64, `InvalidKeySpecException` từ KeyFactory, hoặc `false`/**`SignatureException`** từ Signature | Cần chỉ ra **tầng parse/format** xảy ra lỗi; không gộp tất cả thành `verify == false`. |
-| **Ngoại lệ trong quá trình xác minh** | Key không tương thích, engine chưa `initVerify`, thuật toán/provider không có, parameters sai, provider không xử lý được | `InvalidKeyException`, `SignatureException`, `NoSuchAlgorithmException`, `InvalidAlgorithmParameterException`... | Có thể là lỗi cấu hình, input, trạng thái hoặc provider; phân loại theo **API và ngữ cảnh**, không chỉ tên exception. |
+| **Non-matching signature** | Tampered content, signed with someone else's private key, swapped structurally valid signature | `Signature.verify(sig) == false` | Verification under the **current message/key/algorithm/parameters** did not succeed. |
+| **Malformed input** | Corrupt Base64, invalid JSON/PEM, corrupt DER public key, wrong signature representation | `IllegalArgumentException` from Base64, `InvalidKeySpecException` from `KeyFactory`, or `false`/**`SignatureException`** from `Signature` | Pinpoint the **parse/format layer** where failure happened; never lump everything into `verify == false`. |
+| **Exception during verification** | Incompatible key, engine missing `initVerify`, missing algorithm/provider, bad parameters, provider failure | `InvalidKeyException`, `SignatureException`, `NoSuchAlgorithmException`, `InvalidAlgorithmParameterException`... | Could be a configuration, input, state, or provider error; classify by **API and context**, not exception class name alone. |
 
-**Điểm cần nhớ:** phân loại này mô tả **vị trí và ý nghĩa vận hành**. Không phải ba nhánh loại trừ hoàn toàn ở mức mã nguồn: một chữ ký sai định dạng có thể chính là nguyên nhân khiến `Signature.verify` ném `SignatureException`. Ngoại lệ **không mặc nhiên** chứng minh hệ thống bị lỗi nội bộ; đó cũng có thể là phản ứng hợp lệ trước đầu vào của kẻ tấn công.
+**Key point:** this classification describes **failure location and operational meaning**. These are not three mutually exclusive source-code branches: a malformed signature can be the exact reason `Signature.verify` throws `SignatureException`. An exception **does not automatically** mean an internal system bug; it can equally be a valid response to attacker-supplied input.
 
-### Các câu hỏi chẩn đoán
+### Diagnostic questions
 
-1. Request có parse được và vượt qua giới hạn kích thước chưa?
-2. Chuỗi chữ ký có đúng encoding mà giao thức đã thỏa thuận không?
-3. Public key có đúng định dạng, loại khóa và **nguồn tin cậy** không?
-4. Engine có được khởi tạo bằng `initVerify` và update đúng byte đã ký không?
-5. Với đầu vào đã qua các tầng trên, `verify` trả **`false`** hay phát sinh **exception** nào, tại dòng nào?
+1. Did the request parse cleanly and pass size limits?
+2. Is the signature string in the protocol's agreed encoding?
+3. Does the public key have the right format, key type, and **trusted source**?
+4. Was the engine initialized with `initVerify` and updated with the exact signed bytes?
+5. Given input passing the layers above, did `verify` return **`false`** or throw which **exception**, on which line?
 
-## 3. `Signature.verify`: `true`, `false` và `SignatureException`
+## 3. `Signature.verify`: `true`, `false`, and `SignatureException`
 
-Chu trình chuẩn khi xác minh:
+Standard verification lifecycle:
 
 ~~~java
 Signature verifier = Signature.getInstance("SHA256withRSA");
@@ -74,86 +74,86 @@ verifier.update(messageBytes);
 boolean accepted = verifier.verify(signatureBytes);
 ~~~
 
-Đây là **đoạn API minh họa**, không chạy độc lập; ví dụ đầy đủ ở mục 5.
+This is an **API illustration snippet**, not standalone; the full example is in section 5.
 
-- **`true`:** chữ ký phù hợp với **đúng các byte** đã truyền bằng `update`, theo thuật toán và public key đã chọn.
-- **`false`:** chữ ký không được xác minh. Đầu vào sai message, sai public key **cùng loại**, chữ ký bị thay đổi hoặc không khớp scheme/parameters có thể dẫn đến `false`.
-- **`SignatureException`:** engine gặp lỗi khi xử lý. API nêu các khả năng như engine chưa khởi tạo, signature encoding/loại không hợp lệ hoặc phép xác minh không thể xử lý input. Có thể phải từ chối yêu cầu đồng thời ghi lại lỗi đã được chuẩn hóa ở phía server.
+- **`true`:** the signature matches the **exact bytes** passed via `update`, under the selected algorithm and public key.
+- **`false`:** the signature did not verify. Wrong message, a different public key of the **same type**, an altered signature, or mismatched scheme/parameters can produce `false`.
+- **`SignatureException`:** the engine encountered an error while processing. The API notes possibilities such as an uninitialized engine, invalid signature encoding/type, or inability to process the input. You must reject the request while recording a normalized error server-side.
 
-Không xem mọi `SignatureException` là sự cố JVM; cũng **không khẳng định đầu vào có cấu trúc hợp lệ chỉ vì `verify` trả `false`**. Các provider có thể quyết định khác nhau ở biên dữ liệu hỏng.
+Do not treat every `SignatureException` as a JVM failure; equally, **do not claim an input is structurally valid just because `verify` returned `false`**. Providers may behave differently at malformed-data boundaries.
 
-Ví dụ, RSA 2048-bit có chữ ký dạng byte với độ dài **256 byte** đối với cơ chế chuẩn. Nếu nhận 255 byte, một provider có thể ném `SignatureException` vì sai chiều dài; không được dựa vào việc một provider đã trả exception để kết luận mọi provider sẽ làm như vậy. Một tầng validation có thể kiểm tra độ dài theo public key RSA, nhưng vẫn cần để `Signature` kiểm tra mật mã.
+For example, 2048-bit RSA produces a **256-byte** signature for standard schemes. If 255 bytes arrive, one provider might throw `SignatureException` for wrong length; do not extrapolate from one provider throwing an exception that all providers will do so. A validation layer can enforce length against the RSA public key, while still letting `Signature` perform cryptographic verification.
 
-### Phải xác minh trên byte-for-byte cùng thông điệp
+### Must verify byte-for-byte on the same message
 
 ~~~text
-Ký:       bytes("amount=100", UTF-8) -> signature
-Xác minh: bytes("amount=100", UTF-8) -> true (nếu key/scheme khớp)
-Xác minh: bytes("amount=900", UTF-8) -> false
-Xác minh: bytes("amount=100\n", UTF-8) -> false
+Sign:   bytes("amount=100", UTF-8) -> signature
+Verify: bytes("amount=100", UTF-8) -> true (if key/scheme match)
+Verify: bytes("amount=900", UTF-8) -> false
+Verify: bytes("amount=100\n", UTF-8) -> false
 ~~~
 
-Chữ ký số áp dụng lên **byte**, không áp dụng lên “ý nghĩa logic” của chuỗi. Những thay đổi sau có thể làm chữ ký không khớp dù màn hình hiển thị tương tự:
+Digital signatures operate on **bytes**, not on the “logical meaning” of a string. The following changes cause mismatches even when the screen rendering looks identical:
 
-- JSON đổi thứ tự field, khoảng trắng, cách biểu diễn số hoặc escaping.
-- LF và CRLF, UTF-8 và encoding khác.
-- Unicode có hai cách biểu diễn tương đương về hiển thị nhưng khác chuỗi byte.
-- Dữ liệu đã nén/giải nén, URL-encoding, thay đổi header trong phần thông điệp có ký.
-- Xác minh **raw payload** trong khi bên ký đã ký hash/canonical form khác, hoặc ngược lại.
+- JSON changes field ordering, whitespace, numeric formatting, or escaping.
+- LF vs. CRLF, UTF-8 vs. another encoding.
+- Visually identical Unicode sequences with different byte representations.
+- Compressed/decompressed data, URL-encoding, or altered headers within the signed payload.
+- Verifying the **raw payload** when the signer signed a hash/canonical form, or vice versa.
 
-Nếu giao thức yêu cầu canonicalization, hai phía phải dùng **cùng một quy tắc đã chuẩn hóa**. Không tự `trim()`, sắp xếp JSON hoặc chuẩn hóa Unicode khi verify nếu giao thức không quy định: hành động đó có thể làm thay đổi dữ liệu đã ký và gây false hoặc tạo khác biệt ngữ nghĩa khó kiểm soát.
+If the protocol requires canonicalization, both parties must run the **exact same canonicalization rule**. Never arbitrarily `trim()`, sort JSON, or normalize Unicode during verification unless specified by protocol: doing so alters the signed data and causes `false` or hard-to-control semantic discrepancies.
 
-## 4. Kiểm tra input format trước khi vào crypto
+## 4. Validating input formats before cryptography
 
-### 4.1. Lỗi Base64 và Base64URL
+### 4.1. Base64 and Base64URL errors
 
-Một giao thức thường gửi chữ ký qua JSON/HTTP dưới dạng văn bản. Phải chọn **một encoding đã thỏa thuận**:
+Protocols commonly send signatures over JSON/HTTP as text. You must pick **one agreed encoding**:
 
 ~~~java
-// Base64 chuẩn có '+' và '/':
+// Standard Base64 with '+' and '/':
 byte[] sigBytes = Base64.getDecoder().decode(signatureText);
 
-// Base64URL có '-' và '_':
+// Base64URL with '-' and '_':
 byte[] sigUrlBytes = Base64.getUrlDecoder().decode(signatureText);
 ~~~
 
-Hai dòng trên là hai **lựa chọn khác nhau**, không phải phải gọi cả hai. Nếu text chứa ký tự không hợp lệ, decoder có thể ném `IllegalArgumentException`. Đây là lỗi **input encoding trước xác minh**, không phải `SignatureException`.
+These two lines are **mutually exclusive choices**, not calls to invoke together. If the text contains invalid characters, the decoder may throw `IllegalArgumentException`. This is a **pre-verification input encoding error**, not `SignatureException`.
 
-Đừng mặc định `Base64.getMimeDecoder()` cho mọi API vì MIME decoder có chính sách bỏ qua một số ký tự ngoài alphabet; nếu giao thức cần encoding chặt chẽ, dùng decoder đúng loại, giới hạn kích thước và cấu trúc trước khi parse. Độ dài chuỗi Base64 không nói được chữ ký hợp lệ về mặt mật mã.
+Do not default to `Base64.getMimeDecoder()` for every API because the MIME decoder silently ignores certain out-of-alphabet characters; when a protocol mandates strict encoding, use the strict decoder and enforce size and structural bounds before parsing. Base64 string length alone never proves cryptographic validity.
 
-### 4.2. Public key format và certificate format
+### 4.2. Public key format vs. certificate format
 
-Một public key RSA được xuất thành DER **SubjectPublicKeyInfo** (SPKI) có thể đọc bằng:
+An RSA public key exported as DER **SubjectPublicKeyInfo** (SPKI) can be loaded with:
 
 ~~~java
-byte[] spkiBytes = ...; // Byte DER hợp lệ do nguồn tin cậy cung cấp.
+byte[] spkiBytes = ...; // Valid DER bytes supplied by a trusted source.
 PublicKey publicKey = KeyFactory.getInstance("RSA")
         .generatePublic(new X509EncodedKeySpec(spkiBytes));
 ~~~
 
-Đây chỉ là mảnh minh họa. Tên `X509EncodedKeySpec` khiến nhiều người nhầm: nó biểu diễn **SPKI public key**, **không phải toàn bộ certificate X.509**. Với certificate X.509 cần `CertificateFactory.getInstance("X.509")` đọc cấu trúc chứng chỉ, sau đó dùng `getPublicKey()` và **xác thực chuỗi tin cậy, hiệu lực, chính sách chứng chỉ, thu hồi** bằng cơ chế phù hợp.
+This is only an illustrative fragment. The name `X509EncodedKeySpec` often confuses people: it represents an **SPKI public key**, **not a complete X.509 certificate**. For an X.509 certificate, use `CertificateFactory.getInstance("X.509")` to parse the certificate structure, then call `getPublicKey()` and **validate the trust chain, validity, certificate policies, and revocation** via the appropriate mechanism.
 
-Nếu `spkiBytes` không đúng encoding/algorithm, `KeyFactory.generatePublic` có thể ném **`InvalidKeySpecException`**. Trong khi đó, certificate hỏng có thể ném **`CertificateException`** từ certificate parser. Không gọi những lỗi này là “chữ ký sai” khi chưa có phép `Signature.verify` nào chạy.
+If `spkiBytes` has an invalid encoding/algorithm, `KeyFactory.generatePublic` may throw **`InvalidKeySpecException`**. Meanwhile, a corrupt certificate can throw **`CertificateException`** from the certificate parser. Do not label these errors “invalid signature” when `Signature.verify` has not even run.
 
-### 4.3. Chữ ký nhị phân cũng có định dạng
+### 4.3. Binary signatures also have formats
 
-Không phải mọi chữ ký đều chỉ là mảng byte độ dài tùy ý:
+Not every signature is an arbitrary-length byte array:
 
-| Signature scheme | Biểu diễn thường gặp qua Java JCA | Hệ quả khi parse/verify |
+| Signature scheme | Common representation via Java JCA | Parsing/verification consequences |
 | --- | --- | --- |
-| `SHA256withRSA` (PKCS#1 v1.5) | Chữ ký RSA dạng khối có **độ dài bằng modulus** (ví dụ 256 byte cho RSA-2048) | Chữ ký ngắn/dài bất thường có thể bị từ chối bằng `SignatureException` hoặc kết quả không verify tùy triển khai. |
-| `RSASSA-PSS` | Chữ ký RSA cũng có độ dài theo modulus; cần đúng **hash, MGF, saltLength, trailerField** | Khác tham số với phía ký có thể gây fail hoặc lỗi cấu hình. |
-| `SHA256withECDSA` | Thường là cấu trúc ASN.1 **DER SEQUENCE của hai INTEGER `r` và `s`** | Chữ ký DER hỏng có thể làm provider báo `SignatureException`; chiều dài DER **không luôn cố định**. |
-| `SHA256withECDSAinP1363Format` | Biểu diễn IEEE P1363: byte dạng **`r \|\| s`**, mỗi số có độ rộng cố định | Với P-256, thường 64 byte; **không tương thích byte-for-byte** với DER mặc định. |
-| `Ed25519` | Chữ ký Ed25519 thông thường **64 byte** | Đúng chiều dài vẫn chưa chứng minh chữ ký đúng; chỉ verify mới chứng minh được. |
+| `SHA256withRSA` (PKCS#1 v1.5) | Block-sized RSA signature **equal in length to modulus** (e.g., 256 bytes for RSA-2048) | Unusually short/long signatures may be rejected with `SignatureException` or fail verification depending on implementation. |
+| `RSASSA-PSS` | RSA signature also sized by modulus; requires matching **hash, MGF, saltLength, trailerField** | Parameter mismatch with the signer causes verification failure or config errors. |
+| `SHA256withECDSA` | Usually ASN.1 **DER SEQUENCE of two INTEGERs `r` and `s`** | Corrupt DER signatures may trigger `SignatureException`; DER length is **not always fixed**. |
+| `SHA256withECDSAinP1363Format` | IEEE P1363 representation: fixed-width **`r \|\| s`** bytes | For P-256, typically 64 bytes; **not byte-for-byte compatible** with default DER. |
+| `Ed25519` | Standard Ed25519 signature of **64 bytes** | Matching length does not prove validity; only `verify` proves it. |
 
-Lưu ý tên thuật toán Java phải khớp với **signature representation**. Ví dụ gọi `SHA256withECDSA` trên một chữ ký `r||s` 64 byte từ thư viện khác thường không hoạt động nếu chưa chuyển định dạng đúng, hoặc dùng đúng thuật toán `...inP1363Format` được provider hỗ trợ. Đừng cắt hoặc thêm byte tùy tiện để “đủ độ dài”.
+Note that the Java algorithm name must match the **signature representation**. For instance, calling `SHA256withECDSA` on a 64-byte `r||s` signature from another library typically fails unless properly converted, or unless the provider-supported `...inP1363Format` algorithm is used. Never slice or pad bytes arbitrarily to “make the length fit.”
 
-Đối với RSA chữ ký phải giữ nguyên **byte đầu giá trị 0** nếu có: chuyển qua `BigInteger` rồi serialize tùy tiện có thể làm mất leading zero hoặc tạo byte dấu, khiến đầu vào sai chiều dài.
+For RSA signatures, **leading zero bytes** must be preserved if present: round-tripping through `BigInteger` and re-serializing carelessly can strip leading zeros or insert a sign byte, breaking the input length.
 
-## 5. Java 17+: phân biệt chữ ký đúng, sai message, sai key và chữ ký bị cắt
+## 5. Java 17+: distinguishing valid signature, tampered message, wrong key, and truncated signature
 
-Tệp **`SignatureOutcomesDemo.java`** tạo cặp khóa RSA 2048-bit để học, ký chuỗi `"amount=100"`, rồi xác minh các tình huống. Trong ví dụ, **`SHA256withRSA`** là scheme RSA PKCS#1 v1.5 cho mục tiêu quan sát API; với thiết kế chữ ký RSA mới, cân nhắc RSASSA-PSS nếu giao thức cho phép và quy định đầy đủ tham số.
+The file **`SignatureOutcomesDemo.java`** generates a 2048-bit RSA key pair for learning, signs `"amount=100"`, and verifies multiple cases. In the example, **`SHA256withRSA`** is the RSA PKCS#1 v1.5 scheme for observing the API; for new RSA signature designs, consider RSASSA-PSS if permitted by protocol and specify full parameters.
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -205,7 +205,7 @@ public class SignatureOutcomesDemo {
 }
 ~~~
 
-Chạy bằng Java 17+:
+Run with Java 17+:
 
 ~~~bash
 javac SignatureOutcomesDemo.java
@@ -221,17 +221,17 @@ Other RSA key: false
 Truncated signature rejected: true
 ~~~
 
-Phân tích:
-1. Đúng **message bytes + public key + scheme + signature** → `true`.
-2. Đổi nội dung thành `amount=900`, giữ chữ ký cũ → `false` (chữ ký không chứng minh message mới).
-3. Dùng public key RSA khác, vẫn đúng **loại** khóa → thường `false` vì không khớp private key đã ký.
-4. Cắt mất một byte signature RSA → **bị từ chối**. Ví dụ chấp nhận **hai cách provider có thể báo từ chối**: `verify` trả `false` hoặc ném `SignatureException`. Dòng stdout cuối kiểm tra **không chấp nhận**, thay vì gán cố định một loại exception cho mọi JVM.
+Analysis:
+1. Matching **message bytes + public key + scheme + signature** → `true`.
+2. Changing content to `amount=900` while keeping the old signature → `false` (signature does not attest to the new message).
+3. Using another RSA public key—still the right **key type** → normally `false` because it does not match the signing private key.
+4. Dropping one byte from the RSA signature → **rejected**. The example accepts **either way a provider may reject**: `verify` returning `false` or throwing `SignatureException`. The final stdout line asserts **rejection**, rather than locking to one exception behavior across all JVMs.
 
-Ở ví dụ trên, bắt `SignatureException` chỉ để minh họa đối với chữ ký **bị cắt trong thử nghiệm**; dịch vụ thật không nên nuốt mọi ngoại lệ bằng `return false` rồi mất khả năng phân biệt lỗi provider hay lập trình. Tầng service cần ghi nhận loại nguyên nhân nội bộ, còn bên ngoài chỉ thấy kết quả từ chối được chuẩn hóa.
+In the example above, catching `SignatureException` merely demonstrates the **intentionally truncated** test signature; a real service should not swallow all exceptions into `return false` and lose visibility into provider or programming bugs. The service layer should record the internal cause category while returning a normalized rejection externally.
 
-## 6. Java 17+: ngoại lệ trước và trong `verify`
+## 6. Java 17+: exceptions before and during `verify`
 
-Tệp **`VerificationErrorsDemo.java`** lần lượt tạo những lỗi cố ý tại các tầng khác nhau. Các byte hỏng trong ví dụ **chỉ dùng để kiểm thử parser**, không phải khóa/chữ ký hợp lệ.
+The file **`VerificationErrorsDemo.java`** deliberately triggers failures at successive layers. The malformed bytes in the demo are **purely for parser testing**, not valid keys or signatures.
 
 ~~~java
 import java.security.*;
@@ -289,7 +289,7 @@ javac VerificationErrorsDemo.java
 java VerificationErrorsDemo
 ~~~
 
-Stdout trên JDK có các thuật toán chuẩn RSA và EC P-256:
+Stdout on a JDK supporting standard RSA and EC P-256 algorithms:
 
 ~~~text
 Invalid Base64: IllegalArgumentException
@@ -299,52 +299,52 @@ Uninitialized verifier: SignatureException
 Unknown algorithm: NoSuchAlgorithmException
 ~~~
 
-**Điểm khác nhau theo từng dòng:**
+**Differences across lines:**
 
-- `IllegalArgumentException` ở `Base64.decode`: input vận chuyển sai cú pháp; **chưa hề khởi tạo engine `Signature`**.
-- `InvalidKeySpecException` ở `KeyFactory.generatePublic`: byte DER public key không chuyển được thành key hợp lệ; không phải `verify == false`.
-- `InvalidKeyException` ở `initVerify`: public key EC không tương thích với scheme `SHA256withRSA`. Nếu cung cấp một RSA public key khác nhưng hợp lệ, `initVerify` có thể thành công và `verify` mới trả `false`.
-- `SignatureException` ở `verify` khi chưa `initVerify`: **sai vòng đời API của ứng dụng**, khác với chữ ký mật mã sai thông thường.
-- `NoSuchAlgorithmException` tại `Signature.getInstance`: tên thuật toán giả không tồn tại; đây là lỗi chọn engine/configuration, không phải kết quả xác minh.
+- `IllegalArgumentException` in `Base64.decode`: transport input has invalid syntax; **no `Signature` engine was ever created**.
+- `InvalidKeySpecException` in `KeyFactory.generatePublic`: public key DER bytes could not be decoded into a valid key; not `verify == false`.
+- `InvalidKeyException` in `initVerify`: an EC public key is incompatible with `SHA256withRSA`. If a different but valid RSA public key were supplied, `initVerify` would succeed and `verify` would return `false`.
+- `SignatureException` in `verify` before `initVerify`: **application API lifecycle bug**, distinct from a normal cryptographic signature mismatch.
+- `NoSuchAlgorithmException` in `Signature.getInstance`: fake algorithm name does not exist; this is an engine/configuration selection error, not a verification outcome.
 
-Không mặc định chính xác *thông điệp* exception của provider; log có thể khác theo JDK. Ví dụ chỉ in **tên lớp lỗi** mà đã biết, tránh khóa vào text implementation-specific.
+Never depend on exact provider exception *message strings*; logs can vary across JDKs. The demo prints only **known exception class names**, avoiding coupling to implementation-specific text.
 
-## 7. Bảng ánh xạ lỗi theo API Java
+## 7. Error mapping table across Java APIs
 
-| Giai đoạn/API | Ngoại lệ/kết quả | Ý nghĩa | Hướng xử lý |
+| Stage/API | Exception/result | Meaning | Handling guidance |
 | --- | --- | --- | --- |
-| Parse JSON/HTTP/request schema | Exception của thư viện parser; lỗi validation | Dữ liệu request thiếu field, kiểu sai, encoding/size sai | Trả lỗi input; không đưa nội dung chưa hợp lệ xuống JCA. |
-| `Base64.Decoder.decode` | `IllegalArgumentException` | Chuỗi Base64 không phù hợp loại decoder đã chọn | Từ chối encoding; giới hạn kích thước để chống abuse. |
-| Đọc file/key/cert qua stream | `IOException` | Tệp/transport không đọc được | Phân biệt vấn đề I/O với chữ ký không khớp. |
-| `KeyFactory.generatePublic` | `InvalidKeySpecException` | Public key encoded format/algorithm không hợp lệ hoặc không được hỗ trợ | Kiểm tra SPKI/DER, thuật toán, nguồn cấp key. |
-| `CertificateFactory.generateCertificate` | `CertificateException` | Chứng chỉ parse không hợp lệ | Kiểm tra định dạng cert, sau đó xử lý trust chain riêng. |
-| `Signature.getInstance` | `NoSuchAlgorithmException` | Engine/algorithm không được cung cấp | Kiểm tra allowlist, provider và môi trường. |
-| `Signature.getInstance(algorithm, name)` | `NoSuchProviderException` | Tên provider yêu cầu chưa được đăng ký | Kiểm tra cấu hình, không tự fallback nếu policy bắt buộc provider. |
-| `Signature.initVerify(publicKey)` | `InvalidKeyException` | Key sai loại, format, tham số hoặc không phù hợp provider | Kiểm tra thuật toán/cặp khóa/trust, phân biệt key cùng loại nhưng sai chủ thể. |
-| `Signature.setParameter(spec)` | `InvalidAlgorithmParameterException` | Parameters không phù hợp scheme/provider | Kiểm tra PSS hash/MGF/saltLength và yêu cầu giao thức. |
-| `Signature.update(data)` | `SignatureException` | Engine sai trạng thái hoặc không thể xử lý input | Kiểm tra lifecycle, provider, input stream và trạng thái. |
-| `Signature.verify(signatureBytes)` | **`true`** | Kiểm tra mật mã thành công | Chỉ chấp nhận sau khi kiểm tra khóa tin cậy, policy, context. |
-| `Signature.verify(signatureBytes)` | **`false`** | Chữ ký không được xác minh với input hiện tại | Từ chối; không tự động tuyên bố “định dạng hợp lệ”. |
-| `Signature.verify(signatureBytes)` | `SignatureException` | Engine không thể xử lý/verify; có thể do state hoặc signature encoding/type | Từ chối; phân tích có kiểm soát vì nguyên nhân phụ thuộc provider. |
-| Các API runtime/provider khác | `ProviderException` hay lỗi không kiểm tra | Có thể biểu thị vấn đề provider/hạ tầng | Từ chối và ghi nhận cảnh báo vận hành; không chuyển sang thuật toán yếu. |
+| Parse JSON/HTTP/request schema | Parser library exception; validation error | Request missing fields, wrong types, bad encoding/size | Return input error; do not pass invalid content down to JCA. |
+| `Base64.Decoder.decode` | `IllegalArgumentException` | Base64 string invalid for chosen decoder | Reject encoding; enforce size bounds against abuse. |
+| Reading file/key/cert via stream | `IOException` | File/transport unreadable | Distinguish I/O failures from signature mismatches. |
+| `KeyFactory.generatePublic` | `InvalidKeySpecException` | Encoded public key format/algorithm invalid or unsupported | Inspect SPKI/DER, algorithm, and key source. |
+| `CertificateFactory.generateCertificate` | `CertificateException` | Certificate failed to parse cleanly | Check cert format, then handle trust chain separately. |
+| `Signature.getInstance` | `NoSuchAlgorithmException` | Engine/algorithm not provided | Check allowlist, provider, and environment. |
+| `Signature.getInstance(algorithm, name)` | `NoSuchProviderException` | Requested provider name not registered | Check configuration; never silently fall back if policy mandates a provider. |
+| `Signature.initVerify(publicKey)` | `InvalidKeyException` | Wrong key type, format, parameters, or incompatible with provider | Check algorithm/key pair/trust, distinguishing wrong-entity keys of the same type. |
+| `Signature.setParameter(spec)` | `InvalidAlgorithmParameterException` | Parameters incompatible with scheme/provider | Check PSS hash/MGF/saltLength and protocol requirements. |
+| `Signature.update(data)` | `SignatureException` | Wrong engine state or unprocessable input | Check lifecycle, provider, input stream, and state. |
+| `Signature.verify(signatureBytes)` | **`true`** | Cryptographic check passed | Accept only after verifying trusted key, policy, and context. |
+| `Signature.verify(signatureBytes)` | **`false`** | Signature failed verification for current input | Reject; never assume “format is valid.” |
+| `Signature.verify(signatureBytes)` | `SignatureException` | Engine could not process/verify; possibly state or signature encoding/type | Reject; diagnose carefully as cause is provider-dependent. |
+| Other runtime/provider APIs | `ProviderException` or unchecked errors | May indicate provider/infrastructure failure | Reject and trigger operational alerts; never downgrade to weak algorithms. |
 
-Các ngoại lệ được liệt kê là **điển hình**, không phải danh mục tuyệt đối cho mọi thư viện/protocol. Ví dụ certificate chain có thể parse thành công nhưng **không được tin cậy** vì hết hạn, không phù hợp KeyUsage, thiếu chain, bị thu hồi hoặc hostname không hợp lệ; đó là vấn đề **trust/policy**, không nhất thiết là `CertificateException` ở bước parse ban đầu.
+The listed exceptions are **typical**, not an exhaustive catalog for every library/protocol. For example, a certificate chain may parse cleanly yet be **untrusted** due to expiration, wrong `KeyUsage`, missing chain, revocation, or invalid hostname; those are **trust/policy** failures rather than initial `CertificateException` parse errors.
 
-### `initVerify` với certificate khác `CertificateFactory`
+### `initVerify` with a certificate vs. `CertificateFactory`
 
-`Signature.initVerify(Certificate)` là overload có thể lấy public key từ certificate; với chứng chỉ X.509, API có thể kiểm tra ràng buộc KeyUsage liên quan chữ ký số. Tuy nhiên **nó không tự thay thế** quy trình PKIX path validation, kiểm tra chứng chỉ tin cậy và các ràng buộc của giao thức. Phải kiểm chứng trust **trước khi** coi `verify == true` là bằng chứng danh tính.
+`Signature.initVerify(Certificate)` is an overload that extracts the public key from a certificate; for X.509 certificates, the API may check `KeyUsage` constraints related to digital signatures. However, **it does not replace** PKIX path validation, trusted-anchor checks, or protocol constraints. Always validate trust **before** treating `verify == true` as proof of identity.
 
-## 8. RSASSA-PSS: tham số sai có thể trông giống chữ ký sai
+## 8. RSASSA-PSS: mismatched parameters can look like a wrong signature
 
-Các scheme ký RSA không thể bị coi là tương đương chỉ vì đều dùng RSA public/private key:
+RSA signing schemes cannot be treated as equivalent merely because both use RSA public/private keys:
 
-- `SHA256withRSA` thường là RSASSA-PKCS1-v1_5 kết hợp SHA-256.
-- `RSASSA-PSS` là scheme RSA-PSS cần xác định **digest**, **MGF**, **salt length** và **trailer field**.
-- Hai bên phải thống nhất chính xác algorithm + parameters; nếu không sẽ dẫn đến `false` hoặc lỗi khởi tạo/xử lý tùy nguyên nhân và provider.
+- `SHA256withRSA` typically refers to RSASSA-PKCS1-v1_5 with SHA-256.
+- `RSASSA-PSS` is the RSA-PSS scheme requiring explicit **digest**, **MGF**, **salt length**, and **trailer field**.
+- Both sides must agree on the exact algorithm + parameters; otherwise `false` or an initialization/processing error occurs depending on the mismatch and provider.
 
-### Ví dụ Java 17+: ký/xác minh PSS với parameters thống nhất
+### Java 17+ example: PSS signing/verifying with matching parameters
 
-Tệp **`PssParameterDemo.java`**:
+File **`PssParameterDemo.java`**:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -388,202 +388,202 @@ Stdout:
 PSS with matching parameters: true
 ~~~
 
-Ví dụ chọn **SHA-256**, `MGF1(SHA-256)`, **salt length 32 byte** và **trailerField 1**. Đây là các tham số **của chữ ký PSS**, không phải salt mật khẩu. Cần chọn tham số theo giao thức, không chỉ vì demo chạy thành công.
+The example configures **SHA-256**, `MGF1(SHA-256)`, **32-byte salt length**, and **trailerField 1**. These are **PSS signature** parameters, not password salts. Choose parameters according to protocol requirements, not simply because a demo succeeds.
 
-Nếu verifier dùng `PSSParameterSpec` khác với signer, đừng tự suy ra chắc chắn `SignatureException` hay `false`: có thể bị từ chối khi `setParameter/initVerify` hoặc đến `verify` tùy loại khác biệt. **Quy tắc vận hành đúng** là xác minh chính xác danh tính scheme/parameters đã được phê duyệt, không fallback tùy tiện giữa RSA-PSS và PKCS#1 v1.5.
+If the verifier uses a different `PSSParameterSpec` than the signer, do not assume it will always throw `SignatureException` or always return `false`: it can fail at `setParameter/initVerify` or at `verify` depending on the discrepancy. **The proper operational rule** is enforcing the exact approved scheme/parameters, never arbitrarily falling back between RSA-PSS and PKCS#1 v1.5.
 
-Đầu vào `algorithm` hoặc `saltLength` từ request **không nên được tin cậy và áp dụng trực tiếp**: phải tra từ key policy, phiên bản giao thức hoặc allowlist cố định. Điều này ngăn algorithm-confusion/downgrade.
+Request inputs like `algorithm` or `saltLength` **must not be trusted and applied directly**: derive them from key policy, protocol version, or a fixed allowlist. This prevents algorithm-confusion/downgrade attacks.
 
-## 9. Có được dùng “chữ ký sai”, “dữ liệu sai định dạng”, “lỗi server” làm ba response HTTP riêng?
+## 9. Should “invalid signature,” “malformed data,” and “server error” be three distinct HTTP responses?
 
-**Quyết định bảo mật bên ngoài thường giống nhau:** không chấp nhận thao tác nhạy cảm nếu chưa xác minh thành công. Nhưng hệ thống cần **phân loại nội bộ rõ ràng** để vận hành, thay vì nuốt hết exception.
+**The external security decision is usually the same:** reject any sensitive operation unless verification succeeds. Internally, however, the system needs **clear classification** for operations rather than swallowing every exception.
 
-Một mô hình xử lý có thể là:
+A practical handling model:
 
-| Trạng thái nội bộ | Tầng phát hiện | Hành động |
+| Internal status | Detection layer | Action |
 | --- | --- | --- |
-| `VERIFIED` | `verify` trả `true` | Tiếp tục kiểm tra trust, context, expiry, replay và policy trước khi phê duyệt. |
-| `NOT_VERIFIED` | `verify` trả `false` | Từ chối; đếm số lần thất bại và giám sát hành vi bất thường. |
-| `MALFORMED_REQUEST` | Parser/schema/size | Từ chối dữ liệu; ghi nhận loại lỗi format, không log payload nhạy cảm. |
-| `MALFORMED_ENCODING` | Base64/PEM/DER/key parse | Từ chối; chỉ định nội bộ tầng parse đã lỗi. |
-| `VERIFICATION_EXCEPTION` | `Signature.update/verify` ném `SignatureException` | Từ chối; lưu thông tin đã chuẩn hóa (stage/algorithm/provider/loại exception) để chẩn đoán. |
-| `SECURITY_CONFIGURATION_ERROR` | Algorithm/provider/key/PSS parameters không hợp lệ | Từ chối; cảnh báo cấu hình, không tự downgrade hoặc bỏ kiểm tra chữ ký. |
-| `UNTRUSTED_KEY_OR_CONTEXT` | PKI/key registry/policy | Từ chối ngay cả khi phép toán chữ ký có thể trả `true`. |
+| `VERIFIED` | `verify` returns `true` | Proceed to check trust, context, expiry, replay, and policy before approval. |
+| `NOT_VERIFIED` | `verify` returns `false` | Reject; increment failure counters and monitor anomalous behavior. |
+| `MALFORMED_REQUEST` | Parser/schema/size | Reject payload; record format error category without logging sensitive payloads. |
+| `MALFORMED_ENCODING` | Base64/PEM/DER/key parse | Reject; internally identify the failing parse layer. |
+| `VERIFICATION_EXCEPTION` | `Signature.update/verify` throws `SignatureException` | Reject; persist normalized diagnostics (stage/algorithm/provider/exception class). |
+| `SECURITY_CONFIGURATION_ERROR` | Invalid algorithm/provider/key/PSS parameters | Reject; alert on misconfiguration, never auto-downgrade or bypass verification. |
+| `UNTRUSTED_KEY_OR_CONTEXT` | PKI/key registry/policy | Reject even when the signature operation itself might return `true`. |
 
-### Bảo vệ tính riêng tư và tránh lỗi oracle
+### Protecting privacy and avoiding oracle bugs
 
-Bên ngoài có thể trả lỗi chung kiểu **“Yêu cầu xác thực không hợp lệ”**, với status HTTP phù hợp quy ước API, vì không nên đưa thông điệp provider, chi tiết private key, internal key ID hoặc logic kiểm tra cho đối phương để dò cấu hình. Không phải mọi lỗi đều phải giả làm HTTP 401: request sai cú pháp có thể dùng 400; lỗi cấu hình/hạ tầng có thể dùng 5xx. Mấu chốt là **không chấp nhận yêu cầu** và hạn chế tiết lộ thông tin không cần thiết.
+Externally, return a generic error such as **“Invalid authentication request”** with an HTTP status fitting API conventions, because you should not expose provider messages, private-key details, internal key IDs, or validation internals for an adversary to probe configurations. Not every failure has to masquerade as HTTP 401: syntactically invalid requests can return 400; infrastructure/configuration errors can return 5xx. The core principle is **rejecting the request** while limiting unnecessary information disclosure.
 
-Ở log nội bộ, nên ghi có cấu trúc: `stage`, `outcome`, `algorithm` thuộc allowlist, provider, public-key identifier đã được rút gọn hoặc băm, correlation ID, kiểu ngoại lệ và số byte sau kiểm tra size. Không log private key, token, thông điệp chứa dữ liệu cá nhân hay raw chữ ký trong log phổ thông; tránh dùng exception string không được sanitize làm trường log công khai.
+In internal logs, emit structured fields: `stage`, `outcome`, allowlisted `algorithm`, provider, truncated or hashed public-key identifier, correlation ID, exception type, and byte count after size checks. Never log private keys, tokens, messages holding personal data, or raw signatures in routine logs; avoid exposing unsanitized exception strings in public fields.
 
-Đừng viết đoạn tương đương:
+Never write code equivalent to:
 
 ~~~java
 try {
     return verifier.verify(signatureBytes);
 } catch (Exception ignored) {
-    return true; // cực kỳ nguy hiểm: fail-open
+    return true; // extremely dangerous: fail-open
 }
 ~~~
 
-Và đừng **silently** chuyển tất cả exception thành `false` mà không còn log/correlation trong dịch vụ cần chẩn đoán. Nhánh sai định dạng, provider configuration và sai mật mã có nguyên nhân khác nhau; dù đều dẫn đến từ chối, chúng cần tín hiệu vận hành riêng.
+And never **silently** collapse all exceptions into `false` with zero logs/correlation in a service needing diagnostics. Malformed input, provider configuration, and cryptographic mismatches have different causes; even though all lead to rejection, they require distinct operational signals.
 
-## 10. Cách viết luồng verify có kiểm tra chính xác theo tầng
+## 10. Writing a cleanly layered verification flow
 
-Đây là **pseudocode định hướng**, không phải một tệp Java độc lập, vì parser, key registry, schema và trust-policy là thành phần phụ thuộc ứng dụng:
+This is **illustrative pseudocode**, not a standalone Java file, since parsers, key registries, schemas, and trust policies are application-specific:
 
 ~~~text
 1. validateRequestSizeAndSchema(request)
-   -> nếu không hợp lệ: MALFORMED_REQUEST
+   -> if invalid: MALFORMED_REQUEST
 
 2. algorithmPolicy = resolveApprovedSignatureSuite(request.context)
-   -> không lấy scheme nguy hiểm/trống tùy ý từ request
+   -> never accept arbitrary dangerous/blank schemes from request
 
 3. signatureBytes = strictDecode(request.signatureText, contract.encoding)
-   -> lỗi decode: MALFORMED_ENCODING
+   -> decode error: MALFORMED_ENCODING
 
 4. trustedPublicKey = trustedKeyRegistry.lookup(request.keyId, context)
-   -> không thấy/không tin cậy: UNTRUSTED_KEY_OR_CONTEXT
-   -> lỗi key format: MALFORMED_KEY_OR_CONFIG
+   -> missing/untrusted: UNTRUSTED_KEY_OR_CONTEXT
+   -> key format error: MALFORMED_KEY_OR_CONFIG
 
 5. validateKnownFormatConstraints(signatureBytes, trustedPublicKey, algorithmPolicy)
-   -> nếu có vi phạm rõ ràng: MALFORMED_SIGNATURE
+   -> if clear violation: MALFORMED_SIGNATURE
 
 6. messageBytes = exactSignedBytes(request, contract)
-   -> canonicalization/encoding theo giao thức, không làm khác bên ký
+   -> canonicalization/encoding per protocol, matching signer
 
 7. verifier = Signature.getInstance(algorithmPolicy.algorithm)
-   -> nếu cần: verifier.setParameter(algorithmPolicy.parameters)
+   -> if needed: verifier.setParameter(algorithmPolicy.parameters)
    verifier.initVerify(trustedPublicKey)
    verifier.update(messageBytes)
    result = verifier.verify(signatureBytes)
 
 8. result == true:
-     cần kiểm tra thêm trust, expiry, context, anti-replay... rồi mới ACCEPT
+     still check trust, expiry, context, anti-replay... before ACCEPT
    result == false:
      NOT_VERIFIED -> REJECT
    SignatureException:
-     VERIFICATION_EXCEPTION -> REJECT và chẩn đoán có kiểm soát
+     VERIFICATION_EXCEPTION -> REJECT and diagnose safely
    key/algorithm/provider/parameter exception:
      SECURITY_CONFIGURATION_ERROR -> REJECT + ALERT
 ~~~
 
-**Lưu ý khi thiết kế format validation:** chỉ kiểm tra các thuộc tính được đảm bảo bởi **format đã chọn**. RSA signature length bằng kích thước modulus theo byte là ví dụ hợp lý; ECDSA DER là cấu trúc có độ dài biến thiên, không được bắt buộc bằng 64 byte. Không viết một parser DER/PKCS#1/EdDSA tự chế để “phòng lỗi” nếu provider/thư viện đã có API kiểm tra được kiểm toán.
+**Note on format validation:** only assert properties guaranteed by the **selected format**. Checking RSA signature length equals modulus byte size is sound; ECDSA DER has variable length and must not be forced to 64 bytes. Never write a custom DER/PKCS#1/EdDSA parser “just to be safe” when audited provider/library validation APIs exist.
 
-**Lưu ý khi dùng `Signature`:** đây là đối tượng có **trạng thái**. Với mỗi phép xác minh, tạo mới hoặc quản lý riêng instance và lifecycle; không chia sẻ tùy tiện cùng đối tượng `Signature` cho nhiều thread hoặc gọi `update` sau khi đã verify mà giả định state luôn giống ban đầu.
+**Note on using `Signature`:** it is a **stateful** object. For each verification, create a fresh instance or isolate its lifecycle strictly; never share one `Signature` object across threads or invoke `update` after `verify` assuming initial state without understanding reset semantics.
 
-## 11. Case study: vì sao cùng “signature invalid” có nhiều nguyên nhân?
+## 11. Case studies: why does “signature invalid” happen for many reasons?
 
-### Case A — byte message thay đổi ở đường truyền
+### Case A — Message bytes changed in transit
 
-Client ký byte UTF-8 của `{"amount":100}`; server serialize lại JSON thành `{"amount":100.0}` rồi verify. Chuỗi byte khác nên `verify` thường trả `false`, dù ý nghĩa nghiệp vụ có thể tương tự. Cách sửa là định nghĩa dữ liệu cần ký (raw bytes, canonical JSON hoặc structured signing protocol) và kiểm thử nhất quán ở cả hai đầu.
+Client signs UTF-8 bytes of `{"amount":100}`; server re-serializes JSON as `{"amount":100.0}` and verifies. Because the byte sequences differ, `verify` normally returns `false` despite similar business meaning. Fix by defining exact signed bytes (raw bytes, canonical JSON, or structured signing protocol) and testing consistently on both ends.
 
-### Case B — Base64URL được decode bằng Base64 chuẩn
+### Case B — Base64URL decoded with standard Base64
 
-Chuỗi có dấu `-` hoặc `_` theo Base64URL nhưng server dùng `Base64.getDecoder()`. Decoder chuẩn có thể ném `IllegalArgumentException`; lỗi xảy ra **trước** `Signature`. Cách sửa là đưa encoding vào hợp đồng giao thức, dùng decoder đúng và validate đầu vào.
+The string contains `-` or `_` from Base64URL, yet the server calls `Base64.getDecoder()`. The standard decoder throws `IllegalArgumentException`; failure happens **before** `Signature`. Fix by locking the encoding in the protocol contract, using the matching decoder, and validating input.
 
-### Case C — ECDSA ký ở hệ thống khác bằng P1363, Java chờ DER
+### Case C — ECDSA signed by another system in P1363 while Java expects DER
 
-Bên ký gửi 64 byte `r||s` của P-256; phía Java dùng `Signature.getInstance("SHA256withECDSA")` mặc định mong representation DER. Dữ liệu bị diễn giải sai, dẫn tới `false` hoặc `SignatureException` tùy provider. Cách sửa là thống nhất algorithm-format, dùng `SHA256withECDSAinP1363Format` khi có hỗ trợ hoặc chuyển representation một cách chuẩn xác qua thư viện tin cậy.
+The signer sends 64 bytes of P-256 `r||s`; Java uses `Signature.getInstance("SHA256withECDSA")`, which expects DER by default. The data is misinterpreted, yielding `false` or `SignatureException` depending on provider. Fix by agreeing on algorithm-format, using `SHA256withECDSAinP1363Format` where supported, or converting representations accurately via a trusted library.
 
-### Case D — Public key RSA khác nhưng vẫn hợp lệ
+### Case D — Different RSA public key that is still structurally valid
 
-`initVerify(otherRsaPublicKey)` vẫn có thể thành công vì đúng **loại khóa RSA**. Tuy nhiên signature không tương ứng nên `verify` trả `false`. Điều này khác việc đưa **EC public key** vào RSA verifier, nơi `initVerify` thường ném `InvalidKeyException`.
+`initVerify(otherRsaPublicKey)` succeeds because it is the right **RSA key type**. Yet the signature does not correspond to it, so `verify` returns `false`. This differs from passing an **EC public key** to an RSA verifier, where `initVerify` normally throws `InvalidKeyException`.
 
-### Case E — Chứng chỉ hết hạn nhưng signature vẫn verify
+### Case E — Expired certificate whose signature still verifies
 
-Một public key lấy từ certificate đã hết hạn vẫn có thể thực hiện phép RSA/ECDSA verify thành công nếu private key tương ứng đã ký đúng. **Signature.verify không thay thế certificate path validation**. Cần tách “cryptographic signature valid” và “certificate trusted & valid for intended purpose”.
+A public key extracted from an expired certificate can still pass RSA/ECDSA verification if the matching private key created the signature. **`Signature.verify` does not replace certificate path validation**. Keep “cryptographic signature valid” distinct from “certificate trusted & valid for intended purpose.”
 
-### Case F — RSA-PSS sai saltLength/MGF
+### Case F — RSA-PSS mismatched `saltLength`/MGF
 
-Client dùng `RSASSA-PSS` với MGF1/SHA-256, salt 32 byte; server cấu hình khác. Tùy provider và điểm lỗi, phương thức có thể trả false hoặc ném exception. Cách sửa là đồng bộ bộ tham số theo giao thức (như mục 8), không tự thử nhiều cấu hình suy đoán nếu chính sách không cho phép.
+Client uses `RSASSA-PSS` with MGF1/SHA-256 and 32-byte salt; server configures something else. Depending on provider and failure point, the call may return false or throw an exception. Fix by synchronizing parameters per protocol (as in section 8), without guessing and retrying unapproved configurations.
 
-### Case G — Đổi khóa nhưng chưa cập nhật key ID
+### Case G — Key rotated without updating key ID
 
-Signature đúng với public key cũ; server dùng public key mới vì bỏ qua phiên bản `kid` được xác thực hoặc xử lý key rotation sai. Kết quả `false` không chứng minh client đã cố ý giả mạo. Cần quản lý key ID, trust binding, rotation và thời gian hiệu lực hợp lý.
+The signature matches the old public key; the server uses the new public key because it ignored an authenticated `kid` version or mishandled key rotation. A `false` result does not prove malicious forgery by the client. Manage key IDs, trust bindings, rotation, and overlap windows properly.
 
-## 12. Ma trận kiểm thử nên có
+## 12. Essential test matrix
 
-| Test | Input | Kết quả dự kiến theo tầng |
+| Test | Input | Expected layered outcome |
 | --- | --- | --- |
-| Happy path | Đúng signature, public key, message, scheme/params | `verify == true`; sau đó kiểm tra context/trust. |
-| Sửa một byte message | Giữ signature cũ, thay message | `verify == false`. |
-| Thay public key RSA cùng loại | Dùng key khác cặp | `verify == false`. |
-| Cắt một byte RSA signature | Truncated signature bytes | Bị từ chối; `verify == false` hoặc `SignatureException` tùy provider. |
-| Hỏng Base64 | Ký tự không thuộc alphabet cho phép | `IllegalArgumentException` ở decoder; chưa gọi verify. |
-| DER public key hỏng | Bytes không đúng SPKI | `InvalidKeySpecException` khi load key. |
-| EC key vào RSA verifier | `initVerify(ecPublicKey)` | `InvalidKeyException`. |
-| Chưa `initVerify` | Gọi `verify` ở trạng thái chưa chuẩn bị | `SignatureException`. |
-| Tên algorithm không tồn tại | `Signature.getInstance("NotARealSignatureAlgorithm")` | `NoSuchAlgorithmException`. |
-| Parameters PSS thống nhất | Hai bên cùng hash/MGF/salt/trailer | `verify == true`. |
-| ECDSA DER/P1363 mismatch | Bên ký và verify dùng representation khác | Từ chối; có thể `false` hoặc `SignatureException`. |
-| Certificate không tin cậy/hết hạn | Chữ ký toán học vẫn đúng | **Trust/policy từ chối** dù `verify` có thể `true`. |
-| Metadata ký bị thiếu | AAD/context/claims không hợp lệ theo giao thức | Từ chối ở tầng policy/context, không suy từ chữ ký. |
-| Input rất lớn | Request hoặc signature quá kích thước | Từ chối sớm, giới hạn bộ nhớ/CPU, không chạy crypto vô hạn. |
+| Happy path | Valid signature, public key, message, scheme/params | `verify == true`; then check context/trust. |
+| Flip one message byte | Keep old signature, alter message | `verify == false`. |
+| Swap RSA key of same type | Use key from another pair | `verify == false`. |
+| Truncate RSA signature by 1 byte | Truncated signature bytes | Rejected; `verify == false` or `SignatureException` depending on provider. |
+| Corrupt Base64 | Characters outside allowed alphabet | `IllegalArgumentException` in decoder; `verify` never called. |
+| Corrupt DER public key | Bytes not valid SPKI | `InvalidKeySpecException` when loading key. |
+| EC key in RSA verifier | `initVerify(ecPublicKey)` | `InvalidKeyException`. |
+| Missing `initVerify` | Call `verify` in uninitialized state | `SignatureException`. |
+| Non-existent algorithm name | `Signature.getInstance("NotARealSignatureAlgorithm")` | `NoSuchAlgorithmException`. |
+| Matching PSS parameters | Both sides share hash/MGF/salt/trailer | `verify == true`. |
+| ECDSA DER/P1363 mismatch | Signer and verifier use different representations | Rejected; may be `false` or `SignatureException`. |
+| Untrusted/expired certificate | Signature math still passes | **Rejected by trust/policy** even if `verify` can be `true`. |
+| Missing signed metadata | AAD/context/claims invalid per protocol | Rejected at policy/context layer, not inferred from signature. |
+| Oversized input | Oversized request or signature | Rejected early, bounded memory/CPU, no unbounded crypto execution. |
 
-Kiểm thử nên chạy trên **provider thực tế** được dùng ở production, vì cách báo lỗi sai encoding, hỗ trợ tham số và tên thông điệp có thể khác giữa các provider. Không viết test bám vào **chuỗi tiếng Anh** của exception, chỉ dựa trên loại lỗi, vị trí và kết quả được contract bảo đảm.
+Run tests against the **actual production provider**, because malformed-encoding reporting, parameter support, and message behaviors can differ across providers. Never write tests asserting on **English exception message strings**; assert only on exception types, stages, and contract-guaranteed outcomes.
 
-## 13. Những sai lầm thường gặp
+## 13. Common mistakes
 
-| Sai lầm | Vì sao sai | Cách đúng |
+| Mistake | Why it is wrong | Right approach |
 | --- | --- | --- |
-| “`verify == false` nghĩa là Base64/DER hợp lệ” | Một số provider có thể trả false ngay cả khi chữ ký có vấn đề format. | Validate format có thể kiểm tra trước; coi false là **not verified**. |
-| “Mọi signature hỏng luôn ném `SignatureException`” | Không có bảo đảm đồng nhất giữa scheme/provider. | Xử lý cả false và exception; không phụ thuộc một cách báo lỗi. |
-| “Mọi `SignatureException` là chữ ký của hacker” | Có thể sai state, provider không xử lý được, lỗi nội bộ. | Ghi stage và context; phân biệt input với hạ tầng. |
-| “Base64 error là `SignatureException`” | Decoder chạy **trước** Signature. | Catch `IllegalArgumentException` đúng tầng. |
-| “`X509EncodedKeySpec` chứa cả certificate” | Nó biểu diễn public key SPKI, không phải certificate hoàn chỉnh. | Dùng `CertificateFactory` cho chứng chỉ và PKIX validation cho trust. |
-| “`verify == true` là đủ xác nhận người gửi” | Chỉ xác nhận quan hệ toán học giữa message/key/signature. | Xác minh public key identity, policy, expiry, anti-replay. |
-| Tự thay đổi JSON trước verify | Byte không còn giống dữ liệu đã ký. | Dùng raw/canonical bytes đúng giao thức. |
-| RSA và ECDSA dùng cùng encoding chữ ký | Format khác nhau; ECDSA có DER/P1363. | Cố định algorithm + representation, chuyển đổi qua API tin cậy khi cần. |
-| Không cố định tham số RSA-PSS | MGF/hash/salt có thể khác nhau giữa hai phía. | Dùng `PSSParameterSpec` rõ ràng, giao thức thống nhất. |
-| Bắt `Exception` rồi trả `true` | **Fail-open**, có thể chấp nhận chữ ký chưa verify. | Mọi lỗi phải từ chối; chỉ chấp nhận khi kiểm tra/policy đều thành công. |
-| Bắt hết exception rồi không log | Mất bằng chứng để phân biệt payload hỏng với cấu hình server. | Phân loại stage/status và log có kiểm soát; response công khai phù hợp. |
-| Tự fallback từ thuật toán mạnh sang yếu | Gây downgrade/algorithm confusion. | Chọn scheme theo allowlist và key policy, xử lý lỗi rõ ràng. |
+| “`verify == false` means Base64/DER was valid” | Some providers return false even for malformed signatures. | Validate checkable formats beforehand; treat false as **not verified**. |
+| “Every bad signature always throws `SignatureException`” | There is no uniform guarantee across schemes/providers. | Handle both false and exceptions; do not rely on a single failure mode. |
+| “Every `SignatureException` is a hacker's signature” | Could be wrong engine state, provider inability, or internal bug. | Record stage and context; distinguish input issues from infrastructure. |
+| “Base64 errors are `SignatureException`” | The decoder runs **before** `Signature`. | Catch `IllegalArgumentException` at the decode layer. |
+| “`X509EncodedKeySpec` holds the whole certificate” | It represents an SPKI public key, not a complete certificate. | Use `CertificateFactory` for certificates and PKIX validation for trust. |
+| “`verify == true` suffices to authenticate the sender” | Only proves the mathematical relation among message/key/signature. | Verify public-key identity, policy, expiry, and anti-replay. |
+| Modifying JSON before verifying | Bytes no longer match what was signed. | Use raw/canonical bytes per protocol. |
+| RSA and ECDSA share the same signature encoding | Formats differ; ECDSA has DER and P1363. | Pin algorithm + representation; convert via trusted APIs when needed. |
+| Leaving RSA-PSS parameters unpinned | MGF/hash/salt can differ between sides. | Use explicit `PSSParameterSpec` aligned by protocol. |
+| Catching `Exception` and returning `true` | **Fail-open**, accepting unverified signatures. | Every error must reject; accept only when checks and policy all succeed. |
+| Catching all exceptions with zero logging | Loses evidence distinguishing corrupt payloads from server misconfig. | Classify stage/status and log safely; keep public responses generic. |
+| Auto-falling back from strong to weak algorithms | Introduces downgrade/algorithm confusion. | Pick schemes from an allowlist and key policy; fail explicitly on mismatch. |
 
-## 14. Câu hỏi tự kiểm tra
+## 14. Self-check questions
 
-**1.** `Signature.verify` trả `false`. Có thể kết luận chữ ký chắc chắn đúng định dạng DER không?
+**1.** `Signature.verify` returns `false`. Can you conclude the signature is definitely valid DER?
 
-**Đáp án:** Không. Tùy format/provider, một chữ ký sai định dạng cũng có thể cho false; chỉ kết luận là **không xác minh thành công**.
+**Answer:** No. Depending on format/provider, a malformed signature can also yield false; conclude only **not verified**.
 
-**2.** Decoder `Base64.getDecoder()` ném `IllegalArgumentException`. Có phải chữ ký RSA không khớp không?
+**2.** `Base64.getDecoder()` throws `IllegalArgumentException`. Is that an RSA signature mismatch?
 
-**Đáp án:** Chưa có phép RSA verify nào xảy ra. Đây là lỗi **transport encoding** và cần từ chối ở tầng decode.
+**Answer:** No RSA verification occurred yet. This is a **transport encoding** error and must be rejected at the decoding layer.
 
-**3.** Khi `KeyFactory.generatePublic(new X509EncodedKeySpec(bytes))` ném `InvalidKeySpecException`, có nên thử `Signature.verify` tiếp không?
+**3.** When `KeyFactory.generatePublic(new X509EncodedKeySpec(bytes))` throws `InvalidKeySpecException`, should you still attempt `Signature.verify`?
 
-**Đáp án:** Không, chưa có public key hợp lệ. Phải sửa nguồn/định dạng key và xác minh trust; không thể chạy phép verify với đối tượng khóa chưa tạo được.
+**Answer:** No, there is no valid public key. Fix the key source/format and verify trust; you cannot run verification without a constructed key object.
 
-**4.** Đưa một EC public key hợp lệ vào `SHA256withRSA.initVerify` sẽ trả false hay exception?
+**4.** Passing a valid EC public key to `SHA256withRSA.initVerify` returns false or throws an exception?
 
-**Đáp án:** Thường ném **`InvalidKeyException` tại `initVerify`** vì sai loại khóa; không phải `verify == false`. Nếu dùng RSA key khác cặp nhưng hợp lệ thì có thể init thành công rồi verify false.
+**Answer:** Normally throws **`InvalidKeyException` at `initVerify`** due to wrong key type, not `verify == false`. A valid RSA key from a different pair succeeds at `initVerify` and then yields `verify == false`.
 
-**5.** Chữ ký ECDSA 64 byte theo `r||s` được gửi sang Java `SHA256withECDSA` mặc định. Có đảm bảo verify được không?
+**5.** A 64-byte `r||s` ECDSA signature is sent to Java's default `SHA256withECDSA`. Is it guaranteed to verify?
 
-**Đáp án:** Không. JCA thông thường mong DER cho tên này; cần thống nhất dạng P1363 hay DER và scheme tương ứng.
+**Answer:** No. JCA normally expects DER for that name; both sides must align on P1363 vs. DER and the matching scheme name.
 
-**6.** Một signature verify thành công với public key từ certificate tự ký chưa được tin cậy. Có được cấp quyền luôn không?
+**6.** A signature verifies cleanly with a public key from an untrusted self-signed certificate. Should access be granted immediately?
 
-**Đáp án:** Không. Cần kiểm tra chain/trust/policy/identity và ngữ cảnh nghiệp vụ. `verify == true` chỉ là bằng chứng mật mã.
+**Answer:** No. You must check chain/trust/policy/identity and business context. `verify == true` is only cryptographic evidence.
 
-**7.** `SignatureException` ở `verify` khi chưa `initVerify` nói điều gì?
+**7.** What does `SignatureException` in `verify` when `initVerify` was not called indicate?
 
-**Đáp án:** Đối tượng engine được dùng sai lifecycle; cần sửa luồng lập trình, không quy kết lỗi payload.
+**Answer:** The engine object was used in the wrong lifecycle state; fix the program flow rather than blaming the payload.
 
-**8.** Vì sao service không nên trả toàn bộ exception message của JCA cho client?
+**8.** Why shouldn't a service return raw JCA exception messages to clients?
 
-**Đáp án:** Có thể tiết lộ tên provider, chi tiết scheme/key/validation và tạo các tín hiệu oracle không cần thiết. Client cần kết quả từ chối rõ, log nội bộ mới chứa stage và mã lỗi để chẩn đoán.
+**Answer:** They can leak provider names, scheme/key/validation details, and create oracle signals. Return a clean rejection to the client while keeping stage and error codes in internal diagnostic logs.
 
-**9.** RSA-PSS giữa signer và verifier khác `PSSParameterSpec` nhưng dùng cùng RSA public/private key. Có bảo đảm chữ ký đúng không?
+**9.** Signer and verifier use different `PSSParameterSpec` values with the same RSA public/private key. Is the signature guaranteed to pass?
 
-**Đáp án:** Không. Hash/MGF1/salt length/trailer field phải khớp giao thức; tùy lỗi mà provider có thể trả false hoặc ném exception.
+**Answer:** No. Hash/MGF1/salt length/trailer field must match the protocol; depending on the mismatch, the provider may return false or throw an exception.
 
-## 15. Tài liệu chính thức
+## 15. Official references
 
-- [Java SE 17 — `Signature` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Signature.html) — `initVerify`, `update`, `verify` và các ngoại lệ.
-- [Java SE 17 — `SignatureSpi` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SignatureSpi.html) — hợp đồng `engineVerify`, sai encoding/type và trạng thái engine.
-- [Java SE 17 — `KeyFactory` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyFactory.html) — chuyển đổi public key từ key specification.
-- [Java SE 17 — `X509EncodedKeySpec` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/X509EncodedKeySpec.html) — DER SubjectPublicKeyInfo, không phải certificate nguyên bản.
-- [Java SE 17 — `PSSParameterSpec` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/PSSParameterSpec.html) — bộ tham số RSA-PSS.
-- [Java 17 Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html) — thuật toán Signature, RSA, ECDSA DER và `inP1363Format`.
-- [Oracle Java Cryptography Architecture Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html) — engine, provider và chữ ký số.
+- [Java SE 17 — `Signature` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Signature.html) — `initVerify`, `update`, `verify`, and exceptions.
+- [Java SE 17 — `SignatureSpi` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SignatureSpi.html) — `engineVerify` contract, bad encoding/type, and engine state.
+- [Java SE 17 — `KeyFactory` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyFactory.html) — converting public keys from key specifications.
+- [Java SE 17 — `X509EncodedKeySpec` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/X509EncodedKeySpec.html) — DER SubjectPublicKeyInfo, not raw certificates.
+- [Java SE 17 — `PSSParameterSpec` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/PSSParameterSpec.html) — RSA-PSS parameter suite.
+- [Java 17 Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html) — `Signature`, RSA, ECDSA DER, and `inP1363Format` algorithms.
+- [Oracle Java Cryptography Architecture Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html) — engines, providers, and digital signatures.

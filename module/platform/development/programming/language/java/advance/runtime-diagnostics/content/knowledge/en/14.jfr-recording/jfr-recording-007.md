@@ -1,161 +1,161 @@
-# 14.7 Quản lý duration, maxage, maxsize, repository và dump khi tiến trình thoát
+# 14.7 Managing `duration`, `maxage`, `maxsize`, `repository`, and Dump on Exit
 
-## 1. Bức tranh tổng thể: vòng đời của một bản ghi JFR
+## 1. The Big Picture: Lifecycle of a JFR Recording
 
-**Java Flight Recorder (JFR)** thu thập các sự kiện về hoạt động JVM và ứng dụng với cấu hình được chọn. Trong HotSpot JDK 17+, có thể bắt đầu bản ghi ngay khi khởi động JVM hoặc điều khiển JVM đang chạy bằng `jcmd`. Muốn thu dữ liệu hữu ích mà không để đĩa tăng vô hạn, cần hiểu năm khái niệm khác nhau:
+**Java Flight Recorder (JFR)** collects events about JVM and application activity using the chosen configuration. In HotSpot JDK 17+, you can start a recording at JVM launch or control a running JVM with `jcmd`. To gather useful data without letting disk usage grow unbounded, you must understand five distinct concepts:
 
-1. **`duration`:** bản ghi chạy trong bao lâu trước khi tự dừng.
-2. **`maxage`:** giữ lại lịch sử trên đĩa tối đa bao xa về quá khứ.
-3. **`maxsize`:** giới hạn lượng dữ liệu của bản ghi được giữ lại trong repository trên đĩa.
-4. **`repository`:** thư mục tạm lưu các *chunk* trong quá trình thu thập; khác tệp `.jfr` xuất ra để phân tích.
-5. **`dumponexit`:** thử xuất dữ liệu của bản ghi **còn đang chạy** khi JVM tắt theo đường kết thúc bình thường.
+1. **`duration`:** how long a recording runs before stopping automatically.
+2. **`maxage`:** how far back in time on disk history is retained.
+3. **`maxsize`:** cap on the amount of a recording's data retained in the disk repository.
+4. **`repository`:** temporary directory storing *chunks* during collection; distinct from the exported `.jfr` file for analysis.
+5. **`dumponexit`:** attempts to export data from a **still-running** recording when the JVM shuts down cleanly.
 
-Đây là các cơ chế thuộc **những lớp quản lý khác nhau**, không phải năm tên khác nhau cho cùng một giới hạn. Một bản ghi dài hạn có thể chạy không xác định thời gian nhưng chỉ giữ lại 30 phút gần nhất; bản ghi điều tra 2 phút có thể tự dừng và xuất thành một tệp; bản ghi bật dump-on-exit có thể xuất khi ứng dụng kết thúc dù chưa tới lịch dừng.
+These mechanisms belong to **different management layers**, not five names for the same limit. A long-running recording can run indefinitely while retaining only the last 30 minutes; a 2-minute investigative recording can auto-stop and write a file; a recording with dump-on-exit enabled can export when the app exits even before its scheduled stop.
 
-### Hai tầng lưu trữ cần phân biệt
+### Two Storage Layers to Distinguish
 
 ```text
-Events sinh ra trong JVM
+Events emitted inside the JVM
          |
          v
-Bộ đệm JFR trong bộ nhớ
+In-memory JFR buffers
          |
-         | disk=true: ghi dần các chunk
+         | disk=true: incrementally writes chunks
          v
-Repository tạm của JVM  <--- maxage / maxsize giới hạn lịch sử lưu
+JVM temporary repository  <--- maxage / maxsize bound retained history
          |
          | JFR.dump / JFR.stop filename=...
-         | hoặc auto-stop / dumponexit + filename=...
+         | or auto-stop / dumponexit + filename=...
          v
-Tệp .jfr đã xuất      <--- cần kiểm tra, sao lưu và quản lý riêng
+Exported .jfr file        <--- must be verified, backed up, and managed separately
          |
          v
-jfr summary / JDK Mission Control / công cụ phân tích
+jfr summary / JDK Mission Control / analysis tools
 ```
 
-**Điểm quan trọng:** `maxage` và `maxsize` của bản ghi tác động vào **dữ liệu được giữ trong repository**, không tự đặt vòng đời hay dung lượng tối đa cho tất cả các tệp `.jfr` đã xuất trước đó. Nếu chunk cũ đã bị loại bỏ thì một lần `JFR.dump` về sau không thể khôi phục nó.
+**Crucial point:** a recording's `maxage` and `maxsize` act on **data retained in the repository**; they do not automatically set a lifetime or max size across all previously exported `.jfr` files. Once an old chunk has been evicted, a later `JFR.dump` cannot recover it.
 
-## 2. Bảng tra nhanh: tham số nào kiểm soát việc gì?
+## 2. Quick Reference: Which Parameter Controls What?
 
-| Tùy chọn | Phạm vi | Giá trị ví dụ | Ý nghĩa khi sử dụng |
+| Option | Scope | Example Value | Meaning When Used |
 | --- | --- | --- | --- |
-| `duration` | Một recording, lúc `JFR.start` hoặc `-XX:StartFlightRecording` | `2m` | Tự kết thúc sau hai phút thu thập. `0s`: chạy không giới hạn thời lượng. |
-| `maxage` | Lịch sử **trong repository** của một recording khi `disk=true` | `30m` | Giữ tối đa khoảng 30 phút dữ liệu gần nhất, xét theo chunk; `0s`: không giới hạn tuổi. |
-| `maxsize` | Lịch sử **trong repository** của một recording khi `disk=true` | `256m` | Giữ lượng dữ liệu khoảng giới hạn byte cấu hình; `0`: không giới hạn kích thước. |
-| `disk` | Một recording | `true` | Cho phép dữ liệu liên tục được lưu vào repository; mặc định của `JFR.start` là `true`. |
-| `repositorypath` | Cấu hình JFR của JVM qua `JFR.configure` | `/tmp/jfr-repo` | Thư mục tạm chứa chunk. |
-| `repository` | Cấu hình JVM lúc khởi động qua `-XX:FlightRecorderOptions` | `/tmp/jfr-repo` | Cùng vai trò thư mục tạm, nhưng cú pháp flag khác. |
-| `filename` | Đích xuất khi recording dừng / dump-on-exit hoặc khi gọi `JFR.dump` | `/tmp/jfr-out/incident.jfr` | Tệp kết quả, cần có quyền ghi; đường dẫn được hiểu từ **JVM mục tiêu**. |
-| `dumponexit` | Một recording | `true` | Xuất khi JVM tắt theo đường xử lý shutdown, **nếu recording vẫn chạy**; mặc định `false`. |
-| `JFR.dump maxage/maxsize` | Một lần **xuất** | `maxage=10m` | Chọn phần dữ liệu được đưa vào tệp xuất từ dữ liệu vẫn còn; **không thay đổi retention policy** của recording đang chạy. |
-| `preserve-repository` | Cấu hình JFR của JVM | `true`/`false` | Kiểm soát giữ các chunk tạm sau JVM exit; mặc định `false`. **Không thay thế một tệp export được xác minh.** |
+| `duration` | One recording, at `JFR.start` or `-XX:StartFlightRecording` | `2m` | Auto-stops after two minutes of collection. `0s`: runs with no time limit. |
+| `maxage` | History **in the repository** for one recording when `disk=true` | `30m` | Keeps roughly up to the last 30 minutes of data, managed by chunks; `0s`: no age limit. |
+| `maxsize` | History **in the repository** for one recording when `disk=true` | `256m` | Keeps roughly the configured byte limit of data; `0`: no size limit. |
+| `disk` | One recording | `true` | Allows continuous persistence to the repository; `JFR.start` defaults to `true`. |
+| `repositorypath` | JVM-wide JFR setting via `JFR.configure` | `/tmp/jfr-repo` | Temporary directory holding chunks. |
+| `repository` | JVM startup setting via `-XX:FlightRecorderOptions` | `/tmp/jfr-repo` | Same temporary directory role, different flag syntax. |
+| `filename` | Output target on recording stop / dump-on-exit or `JFR.dump` | `/tmp/jfr-out/incident.jfr` | Output file, requires write permission; path is resolved by the **target JVM**. |
+| `dumponexit` | One recording | `true` | Exports when the JVM shuts down cleanly, **if the recording is still running**; defaults to `false`. |
+| `JFR.dump maxage/maxsize` | Single **export** call | `maxage=10m` | Selects a subset of still-available data to export; **does not alter the retention policy** of the running recording. |
+| `preserve-repository` | JVM-wide JFR setting | `true`/`false` | Controls whether temporary chunks remain after JVM exit; defaults to `false`. **Does not replace a verified exported file.** |
 
-Theo tài liệu `jcmd` của JDK 21, `JFR.start` mặc định `duration=0s`, `maxage=0s` và `maxsize=0`, tức **không giới hạn ba đại lượng** nếu bạn không đặt rõ. Khi duy trì recording dài hạn, nên chủ động cấu hình giới hạn lưu trữ.
+Per JDK 21 `jcmd` documentation, `JFR.start` defaults to `duration=0s`, `maxage=0s`, and `maxsize=0`—meaning **all three are unbounded** unless you specify them explicitly. When keeping long-running recordings, proactively configure storage limits.
 
-**Đơn vị hợp lệ trong các ví dụ:**
+**Valid units in the examples:**
 
-- Khoảng thời gian thường có hậu tố `s` (giây), `m` (phút), `h` (giờ); chọn kiểu mà phiên bản lệnh thực tế hỗ trợ. Ví dụ `duration=90s`, `maxage=1h`.
-- `maxsize=256m` sử dụng hậu tố kích thước `m/M`; `g/G` cho dung lượng lớn hơn. Không dùng nhầm `256ms` (đơn vị thời gian mili giây) cho kích thước.
-- `maxsize` phải **không nhỏ hơn `maxchunksize`** mà JFR đã cấu hình; `maxchunksize` mặc định của JDK 21 là khoảng `12M` và có thể tùy chỉnh. Không đặt vòng lưu dữ liệu `maxsize=1m` và kỳ vọng hoạt động.
+- Durations typically use suffixes `s` (seconds), `m` (minutes), `h` (hours); choose formats supported by your exact command version. E.g., `duration=90s`, `maxage=1h`.
+- `maxsize=256m` uses size suffixes `m/M`; `g/G` for larger sizes. Do not mistakenly pass `256ms` (milliseconds) as a size.
+- `maxsize` must be **no smaller than `maxchunksize`** configured in JFR; JDK 21's default `maxchunksize` is around `12M` and can be customized. Do not configure a ring with `maxsize=1m` and expect it to work.
 
-## 3. Phân biệt ba kiểu recording theo yêu cầu thực tế
+## 3. Choosing Among Three Recording Patterns for Practical Needs
 
-### 3.1. Recording hữu hạn để điều tra một hiện tượng
+### 3.1. Bounded Recording to Investigate a Phenomenon
 
-Muốn đo trong hai phút, rồi tự xuất thành `.jfr`:
+To measure for two minutes and auto-export as `.jfr`:
 
 ```bash
 jcmd 12345 JFR.start name=incident settings=profile duration=2m disk=true filename=/tmp/jfr-out/incident-%p-%t.jfr
 ```
 
-- `duration=2m`: hai phút sau khi recording thực sự bắt đầu, nó tự dừng. Không cần đợi ứng dụng kết thúc.
-- `settings=profile`: thu nhiều sự kiện hơn `default`, phù hợp điều tra có chủ đích nhưng có thể gây overhead lớn hơn.
-- `filename`: nơi ghi tệp khi recording dừng. Mẫu `%p` và `%t` được HotSpot thay bằng PID và timestamp theo tài liệu; đặt tên riêng để tránh ghi đè.
-- `disk=true`: cho phép lưu chunk trên đĩa. **Khả năng ghi tệp vẫn phụ thuộc thư mục/quyền/dung lượng của JVM mục tiêu.**
+- `duration=2m`: two minutes after the recording actually starts, it stops automatically. No need to wait for the application to exit.
+- `settings=profile`: captures more events than `default`, suited for targeted investigation but may incur higher overhead.
+- `filename`: where to write the file when the recording stops. Tokens `%p` and `%t` are substituted by HotSpot with PID and timestamp per docs; use distinct names to avoid overwriting.
+- `disk=true`: allows storing chunks on disk. **Whether the file can be written still depends on the target JVM's directory, permissions, and free space.**
 
-Nếu tiến trình thoát **trước khi hết 2 phút**, câu lệnh phía trên chưa bật `dumponexit`. Muốn thu lại dữ liệu khi tiến trình kết thúc sớm theo đường shutdown, dùng thêm `dumponexit=true`:
+If the process exits **before the 2 minutes finish**, the command above has not enabled `dumponexit`. To capture data if the process shuts down cleanly early, add `dumponexit=true`:
 
 ```bash
 jcmd 12345 JFR.start name=incident_early_exit settings=profile duration=2m disk=true dumponexit=true filename=/tmp/jfr-out/incident-exit-%p-%t.jfr
 ```
 
-Không nên khởi chạy đồng thời cả hai ví dụ với cùng mục đích trong ứng dụng thật; đây là hai **cách cấu hình thay thế**. Khi bản ghi đã tự hết `duration`, nó **không còn chạy** để chờ dump-on-exit ở một thời điểm xa hơn.
+Do not launch both examples concurrently for the same purpose in a real application; these are two **alternative configurations**. Once a recording's `duration` has expired, it is **no longer running** to trigger dump-on-exit at a later time.
 
-### 3.2. Recording liên tục dạng lịch sử cuộn
+### 3.2. Continuous Rolling-History Recording
 
-Muốn tiến trình hoạt động nhiều giờ hoặc nhiều ngày, nhưng chỉ giữ một phần lịch sử gần nhất:
+To keep a process running for hours or days while retaining only the most recent window of history:
 
 ```bash
 jcmd 12345 JFR.start name=service_ring settings=default disk=true duration=0s maxage=30m maxsize=256m dumponexit=true filename=/tmp/jfr-out/service-exit-%p-%t.jfr
 ```
 
-Đây là lựa chọn phù hợp cho giám sát lâu dài:
+This fits long-term monitoring:
 
-- `duration=0s`: recording **tiếp tục chạy** cho tới khi được stop hoặc JVM kết thúc.
-- `maxage=30m`: ưu tiên giữ dữ liệu gần nhất trong khoảng 30 phút.
-- `maxsize=256m`: hạn chế lượng dữ liệu được giữ cho recording này; khi cần chỗ cho dữ liệu mới, các chunk cũ nhất bị loại bỏ.
-- `settings=default`: cấu hình ít overhead hơn `profile`, được khuyến nghị cho ghi liên tục.
-- `dumponexit=true`: nếu ứng dụng tắt có xử lý shutdown và bản ghi còn chạy, JFR có thể xuất dữ liệu còn giữ.
+- `duration=0s`: the recording **keeps running** until stopped or the JVM exits.
+- `maxage=30m`: aims to retain roughly the most recent 30 minutes of data.
+- `maxsize=256m`: caps retained data for this recording; when room is needed for new data, the oldest chunks are evicted.
+- `settings=default`: lower-overhead config than `profile`, recommended for continuous recording.
+- `dumponexit=true`: if the application shuts down cleanly while the recording is still running, JFR can export retained data.
 
-**Không suy luận:** “`maxage=30m` nghĩa recording chỉ chạy 30 phút”. Recording vẫn chạy cho tới khi dừng; dữ liệu quá cũ được loại theo chính sách retention. Cũng không suy luận “`maxsize=256m` nghĩa tổng đĩa JVM không thể vượt 256 MB”: nhiều recording, chunk đang được ghi, metadata và **tệp export** có thể làm mức sử dụng đĩa tổng thể lớn hơn.
+**Do not infer:** "`maxage=30m` means the recording only runs for 30 minutes." The recording continues running until stopped; overly old data is evicted by retention policy. Nor should you infer "`maxsize=256m` means total JVM disk usage cannot exceed 256 MB": multiple recordings, active chunks being written, metadata, and **exported files** can make overall disk consumption larger.
 
-### 3.3. Recording chỉ trong bộ nhớ
+### 3.3. In-Memory-Only Recording
 
 ```bash
 jcmd 12345 JFR.start name=brief_memory disk=false duration=30s settings=default filename=/tmp/jfr-out/brief-memory.jfr
 ```
 
-Với `disk=false`, dữ liệu không được liên tục đẩy xuống repository; nó bị giới hạn bởi **bộ đệm trong bộ nhớ**, nên có thể mất các sự kiện cũ. `maxage` và `maxsize` **không có ý nghĩa quản lý đĩa** trong trường hợp này và tài liệu `jcmd` yêu cầu dùng chúng với `disk=true`. Nếu mục tiêu là giữ một “cửa sổ lịch sử” dài để dump khi sự cố xảy ra, thường phải dùng `disk=true`.
+With `disk=false`, data is not continuously flushed to a disk repository; it is bounded by **in-memory buffers**, so older events may be lost. `maxage` and `maxsize` **have no disk-management effect** here, and `jcmd` docs require `disk=true` to use them. If the goal is a long "history window" to dump when an incident happens, you generally need `disk=true`.
 
-## 4. Repository là thư mục tạm, không phải file export
+## 4. The Repository Is a Temporary Directory, Not the Export File
 
-Khi `disk=true`, JVM ghi các chunk JFR vào một **repository tạm**. Mặc định repository thường nằm dưới thư mục temp của hệ điều hành. Trong môi trường container, temp directory có thể nằm trên storage ngắn hạn hoặc bị giới hạn dung lượng.
+When `disk=true`, the JVM writes JFR chunks into a **temporary repository**. By default, the repository typically lives under the OS temp directory. In container environments, the temp directory may sit on ephemeral storage or have tight size limits.
 
-Có hai cách **khác nhau về thời điểm/cú pháp** để chọn thư mục:
+There are two ways—**differing in timing and syntax**—to choose the directory:
 
-**Cấu hình JVM đang chạy** qua `jcmd`, lý tưởng thực hiện trước khi bắt đầu recording cần thu:
+**Configure a running JVM** via `jcmd`, ideally before starting the recording you want to capture:
 
 ```bash
 jcmd 12345 JFR.configure repositorypath=/tmp/jfr-repo
 jcmd 12345 JFR.configure
 ```
 
-Lệnh không có tham số hiển thị cấu hình JFR hiện tại. Nếu thay repositorypath khi JVM đã ghi chunk, không giả định các chunk cũ đã được tự động di chuyển. Kiểm tra lại trạng thái thực tế của JVM đang chạy.
+Running without arguments displays the current JFR configuration. If you change `repositorypath` after the JVM has already written chunks, do not assume old chunks are automatically moved. Re-check the actual state of the running JVM.
 
-**Cấu hình ngay khi JVM khởi động**:
+**Configure at JVM startup**:
 
 ```bash
 java -XX:FlightRecorderOptions=repository=/tmp/jfr-repo JfrLifecycleDemo
 ```
 
-Chú ý tên option **khác nhau**:
+Note the **different option names**:
 
 - `jcmd <PID> JFR.configure repositorypath=...`
 - `java -XX:FlightRecorderOptions=repository=...`
 
-Cả hai đều nhắm tới nơi JVM lưu **dữ liệu tạm**. Một `filename=/tmp/jfr-out/...jfr` trong `JFR.start` hoặc `JFR.dump` là **đích xuất bản ghi**, không phải tham số đổi repository.
+Both specify where the JVM stores **temporary data**. Passing `filename=/tmp/jfr-out/...jfr` in `JFR.start` or `JFR.dump` specifies the **recording export destination**, not a parameter to move the repository.
 
-### Vị trí thư mục và quyền truy cập
+### Directory Location and Access Permissions
 
-Trong môi trường Linux, chuẩn bị trước:
+In a Linux environment, prepare in advance:
 
 ```bash
 mkdir -p /tmp/jfr-repo /tmp/jfr-out
 ```
 
-Đây chỉ là thư mục ví dụ cho môi trường học tập. Với môi trường vận hành thật:
+These are only example directories for a learning environment. In real operations:
 
-1. Cả hai thư mục phải **tồn tại** và có quyền ghi với **user của tiến trình Java**, không chỉ user chạy terminal `jcmd`.
-2. Đường dẫn được giải quyết theo **filesystem của JVM mục tiêu**. Nếu JVM chạy trong container, `/tmp/jfr-out` bên trong container không tự động xuất hiện trên máy host; dùng volume phù hợp nếu cần giữ tệp sau khi container dừng.
-3. Repository và export có thể đặt ở vùng lưu trữ khác để tránh tranh chấp dung lượng. Một lần dump thường cần **dung lượng riêng cho tệp đích** trong lúc repository vẫn còn giữ chunk.
-4. Không dùng file repository tạm như nơi lưu trữ lâu dài của chứng cứ. Theo mặc định, JFR có thể **xóa các chunk repository khi JVM thoát** nếu `preserve-repository=false`. Các tệp `.jfr` đã export phải được quản lý, kiểm tra và chuyển tới nơi lưu giữ được phép.
-5. Giới hạn disk quota, inode, quyền truy cập, rotation và lịch xóa file export cần được giám sát ở cấp hệ thống. `maxsize` của một recording không thay thế các kiểm soát đó.
+1. Both directories must **exist** and be writable by the **Java process's user**, not just the user running the `jcmd` terminal.
+2. Paths are resolved in the **target JVM's filesystem**. If the JVM runs inside a container, `/tmp/jfr-out` inside the container does not automatically appear on the host; use an appropriate volume if files must survive container termination.
+3. The repository and export directory can sit on separate storage to avoid space contention. A dump typically needs **dedicated space for the target file** while the repository still holds chunks.
+4. Do not use temporary repository files as long-term evidence storage. By default, JFR may **delete repository chunks on JVM exit** when `preserve-repository=false`. Exported `.jfr` files must be managed, verified, and moved to approved storage.
+5. Disk quotas, inodes, permissions, rotation, and cleanup schedules for exported files must be monitored at the system level. A single recording's `maxsize` does not replace those controls.
 
-Có thể cấu hình `preserve-repository=true` qua JFR configuration/flight recorder options khi cần điều tra dữ liệu tạm. Đây là cờ **giữ lại chunk repository**, không bảo đảm tạo ra một `.jfr` hoàn chỉnh, hợp lệ trên mọi kiểu shutdown; cách quản lý chính vẫn là xuất bản ghi rõ ràng.
+You can set `preserve-repository=true` via JFR configuration/flight recorder options when investigating temporary data. This is a flag to **retain repository chunks**; it does not guarantee producing a complete, valid `.jfr` file across every kind of shutdown—explicit exports remain the primary management method.
 
-## 5. Thực hành đầy đủ trên JVM Java 17+
+## 5. End-to-End Practice on a Java 17+ JVM
 
-Dùng một chương trình đơn giản chạy đủ lâu để thao tác `jcmd`. Lưu file **`JfrLifecycleDemo.java`**:
+Use a simple program that runs long enough for `jcmd` operations. Save **`JfrLifecycleDemo.java`**:
 
 ```java
 public final class JfrLifecycleDemo {
@@ -182,18 +182,18 @@ public final class JfrLifecycleDemo {
 }
 ```
 
-Biên dịch và chạy trong **terminal A**:
+Compile and run in **terminal A**:
 
 ```bash
 javac JfrLifecycleDemo.java
 java JfrLifecycleDemo
 ```
 
-Dòng đầu có dạng `PID=12345`, trong đó PID là con số thực tế của JVM và **khác nhau giữa các lần chạy**. Sau 15 giây, chương trình in một dòng `t=15s checksum=...`; dấu ba chấm ở đây chỉ số checksum phụ thuộc vòng lặp, không phải output nguyên văn. Chương trình chạy khoảng 240 giây, lâu hơn nếu máy chịu tải hoặc JFR thao tác mất thời gian.
+The first line has the form `PID=12345`, where the PID is the JVM's actual OS PID and **varies across runs**. Every 15 seconds, the program prints a line `t=15s checksum=...`; the ellipsis here denotes the loop-dependent checksum value, not literal output. The program runs for about 240 seconds, or longer if the machine is busy or JFR operations take time.
 
-Trong **terminal B**, thay `12345` bằng PID thực tế và chuẩn bị thư mục theo mục 4.
+In **terminal B**, replace `12345` with the real PID and prepare the directories per section 4.
 
-### Bước 1 — xác định JVM và repository
+### Step 1 — Identify the JVM and repository
 
 ```bash
 jcmd -l
@@ -202,142 +202,142 @@ jcmd 12345 JFR.configure repositorypath=/tmp/jfr-repo
 jcmd 12345 JFR.configure
 ```
 
-Lệnh `jcmd -l` liệt kê các JVM thấy được trong cùng môi trường attach, nhưng không nhất thiết nhìn thấy JVM chạy trong container/namespace khác. Phải bảo đảm đúng PID, đúng Java process và quyền truy cập.
+`jcmd -l` lists JVMs visible in the same attach environment, though it may not see JVMs running in another container/namespace. Ensure you have the right PID, right Java process, and access permissions.
 
-### Bước 2 — khởi động recording dạng vòng
+### Step 2 — Start a rolling recording
 
 ```bash
 jcmd 12345 JFR.start name=demo_ring settings=default disk=true maxage=2m maxsize=128m dumponexit=true filename=/tmp/jfr-out/demo-exit-%p-%t.jfr
 jcmd 12345 JFR.check
 ```
 
-Recording này liên tục chạy theo mặc định vì không đặt `duration` (tương đương `0s`). Giới hạn `maxsize=128m` được chọn lớn hơn kích thước chunk mặc định khoảng `12M`. `JFR.check` cho phép kiểm tra recording đang chạy và xác nhận tên `demo_ring`.
+This recording runs continuously by default because `duration` is omitted (equivalent to `0s`). The `maxsize=128m` limit is chosen to exceed the default chunk size of roughly `12M`. `JFR.check` verifies the running recording and confirms the name `demo_ring`.
 
-### Bước 3 — xuất snapshot thủ công trong lúc recording vẫn chạy
+### Step 3 — Manually export a snapshot while the recording keeps running
 
 ```bash
 jcmd 12345 JFR.dump name=demo_ring filename=/tmp/jfr-out/snapshot-%p-%t.jfr
 jcmd 12345 JFR.check
 ```
 
-`JFR.dump` **ghi tệp nhưng không dừng recording**. Nó phù hợp khi có hiện tượng spike/latency bất thường và muốn “chốt” cửa sổ dữ liệu ở thời điểm đó trong khi hệ thống vẫn tiếp tục chạy.
+`JFR.dump` **writes a file without stopping the recording**. It fits cases where a spike or abnormal latency appears and you want to "lock in" the data window at that moment while the system keeps running.
 
-Muốn chỉ xuất phần gần nhất trong dữ liệu còn giữ:
+To export only the most recent portion of retained data:
 
 ```bash
 jcmd 12345 JFR.dump name=demo_ring filename=/tmp/jfr-out/last-30s-%p-%t.jfr maxage=30s
 ```
 
-`maxage=30s` trong lệnh **`JFR.dump`** giới hạn thời gian **của lần xuất đó**, không thay đổi `maxage=2m` của recording đã khởi động. Nếu không còn đủ 30 giây dữ liệu (mới chạy 10 giây, hoặc chunk cũ đã bị loại), tệp chỉ có dữ liệu thực sự còn khả dụng.
+`maxage=30s` on **`JFR.dump`** bounds the time span **of that export**, without changing `maxage=2m` on the running recording. If less than 30 seconds of data remain (e.g., it only ran 10 seconds, or old chunks were evicted), the file contains only what is actually available.
 
-### Bước 4 — kiểm tra tệp export
+### Step 4 — Inspect the exported file
 
-Khi đã có file thực tế tại đường dẫn mà `jcmd` báo, dùng công cụ `jfr` của JDK **trên máy/namespace có thể truy cập file**:
+Once the actual file exists at the path reported by `jcmd`, run the JDK's `jfr` tool **on a machine/namespace that can access the file**:
 
 ```bash
 jfr summary /tmp/jfr-out/snapshot-12345-2026_10_29_17_00_00.jfr
 ```
 
-Tên trên là **đường dẫn minh họa**, không phải tên tệp đảm bảo sinh ra; hãy thay bằng tên thật. Lệnh `jfr summary` cho biết thời gian ghi, số lượng/loại sự kiện và các thống kê khác. Có thể mở tệp trong **JDK Mission Control** để xem timeline, CPU, allocation, GC và thread events mà cấu hình `.jfc` đã bật.
+The name above is an **illustrative path**, not a guaranteed generated filename; substitute the real filename. `jfr summary` reports recording time span, event counts/types, and other statistics. You can open the file in **JDK Mission Control** to inspect timelines, CPU, allocations, GC, and thread events enabled by the `.jfc` config.
 
-Nếu `JFR.dump` báo thành công nhưng bên host không thấy file, kiểm tra **filesystem của JVM** và volume mount trước khi cho rằng JFR không ghi dữ liệu.
+If `JFR.dump` reports success but the file is missing on the host, check the **JVM's filesystem** and volume mounts before assuming JFR failed to write data.
 
-### Bước 5 — kiểm chứng dump-on-exit
+### Step 5 — Verify dump-on-exit
 
-Khi `demo_ring` vẫn chạy, cho JVM thoát **theo đường shutdown bình thường** (để chương trình chạy hết hoặc yêu cầu dừng mềm phù hợp hệ điều hành). Sau khi tiến trình kết thúc:
+While `demo_ring` is still running, let the JVM exit **via a normal shutdown path** (let the program finish or send an OS-appropriate graceful shutdown signal). After the process exits:
 
-- Xác nhận có file khớp mẫu `demo-exit-%p-%t.jfr` trong `/tmp/jfr-out` theo đường nhìn từ JVM.
-- Chạy `jfr summary` trên **file thật** rồi ghi thời điểm bắt đầu/kết thúc và số lượng event.
-- So sánh file xuất ở bước 3 với file khi thoát; file mới chỉ chứa dữ liệu còn giữ tính tới thời điểm shutdown, có thể đã loại phần đầu vì `maxage/maxsize`.
+- Confirm a file matching `demo-exit-%p-%t.jfr` exists in `/tmp/jfr-out` as seen by the JVM.
+- Run `jfr summary` on the **actual file** and note start/end timestamps and event counts.
+- Compare the step 3 snapshot with the exit file; the new file contains only data still retained up to shutdown, possibly missing the beginning due to `maxage`/`maxsize`.
 
-Nếu **chủ động chạy**:
+If instead you **explicitly run**:
 
 ```bash
 jcmd 12345 JFR.stop name=demo_ring filename=/tmp/jfr-out/stopped-%p-%t.jfr
 ```
 
-thì đây là **một nhánh thực hành khác**: lệnh stop kết thúc và xuất bản ghi ngay. Khi JVM thoát sau đó, `demo_ring` **không còn chạy** để xuất thêm lần nữa do `dumponexit`. Không vừa stop vừa chờ dump-on-exit cho cùng recording.
+that is **an alternative branch**: `stop` ends and exports the recording immediately. When the JVM exits later, `demo_ring` is **no longer running** to export again via `dumponexit`. Do not both stop the recording and expect dump-on-exit for the same recording.
 
-## 6. Khởi động JVM kèm cấu hình JFR từ đầu
+## 6. Launching the JVM with JFR Configured from the Start
 
-Khi ứng dụng chạy dưới service manager, container hoặc script deploy, có thể chuẩn bị repository, retention và dump-on-exit ngay khi JVM được tạo. Ví dụ một lệnh Linux cho chương trình thực hành:
+When an application runs under a service manager, container, or deploy script, you can configure repository, retention, and dump-on-exit right at JVM creation. Example Linux command for the practice program:
 
 ```bash
 java -XX:FlightRecorderOptions=repository=/tmp/jfr-repo -XX:StartFlightRecording=name=boot_ring,settings=default,disk=true,maxage=2m,maxsize=128m,dumponexit=true,filename=/tmp/jfr-out/boot-%p-%t.jfr JfrLifecycleDemo
 ```
 
-Chú ý cú pháp:
+Note the syntax:
 
-- Với `jcmd PID JFR.start`, các cặp `key=value` **cách nhau bằng khoảng trắng**.
-- Với `-XX:StartFlightRecording=...`, các cặp `key=value` được **phân cách bằng dấu phẩy** trong cùng JVM option.
-- Với `-XX:FlightRecorderOptions=repository=...`, `repository` là option JVM; không chuyển nguyên văn `repositorypath` từ `JFR.configure` sang đây.
-- `-XX:StartFlightRecording` mặc định không giới hạn `duration`. Có thể thêm `duration=2m` khi cần bản ghi hữu hạn.
-- Tên recording `boot_ring` chỉ là định danh để dùng với `jcmd PID JFR.check` / `JFR.dump name=boot_ring`.
+- For `jcmd PID JFR.start`, `key=value` pairs are **space-separated**.
+- For `-XX:StartFlightRecording=...`, `key=value` pairs are **comma-separated** within the same JVM option.
+- For `-XX:FlightRecorderOptions=repository=...`, `repository` is the JVM option; do not copy `repositorypath` verbatim from `JFR.configure`.
+- `-XX:StartFlightRecording` leaves `duration` unbounded by default. You can add `duration=2m` when a bounded recording is needed.
+- Recording name `boot_ring` is simply an identifier for `jcmd PID JFR.check` / `JFR.dump name=boot_ring`.
 
-Các đường dẫn trong ví dụ được dùng bên trong filesystem nơi tiến trình Java chạy; cần tạo và cấp quyền trước. Trong container orchestration, việc JVM bị buộc dừng sau thời gian grace quá ngắn có thể khiến dump-on-exit không hoàn tất.
+Paths in the example are resolved in the filesystem where the Java process runs; create directories and grant permissions beforehand. In container orchestration, forcefully killing the JVM after too short a grace period may prevent dump-on-exit from finishing.
 
-### Ví dụ khởi động hữu hạn sau giai đoạn warm-up
+### Bounded startup example after warm-up
 
 ```bash
 java -XX:StartFlightRecording=name=startup_triage,delay=20s,duration=60s,settings=profile,filename=/tmp/jfr-out/startup.jfr JfrLifecycleDemo
 ```
 
-Ở đây `delay=20s` đợi 20 giây sau khi chạy JVM mới bắt đầu recording; sau **60 giây thu thập**, JFR dừng và xuất tệp nếu quá trình hoàn tất. `delay` không được nhầm với `duration`: tổng thời gian kể từ lúc ứng dụng khởi động đến khi tự dừng khoảng 80 giây trong điều kiện bình thường.
+Here `delay=20s` waits 20 seconds after JVM launch before starting the recording; after **60 seconds of collection**, JFR stops and writes the file if it completes cleanly. Do not confuse `delay` with `duration`: total elapsed time from app launch until auto-stop is roughly 80 seconds under normal conditions.
 
-## 7. `duration` và retention: vì sao chúng không thay thế nhau?
+## 7. `duration` and Retention: Why They Do Not Replace Each Other
 
-Giả sử một service chạy **8 giờ**, dùng:
+Suppose a service runs for **8 hours** with:
 
 ```text
-duration = 0s      # chạy liên tục cho tới khi stop/exit
-maxage   = 30m     # chỉ giữ lịch sử gần nhất theo tuổi
-maxsize  = 256m    # hạn mức dung lượng retained trên đĩa
+duration = 0s      # runs continuously until stop/exit
+maxage   = 30m     # retains only recent history by age
+maxsize  = 256m    # size cap retained on disk
 disk     = true
 ```
 
-Ở phút 10, dữ liệu còn từ lúc bắt đầu nếu chưa vượt `maxsize`. Ở giờ 8, lịch sử giữ có thể chỉ phủ tối đa 30 phút gần nhất, **thậm chí ngắn hơn** nếu tốc độ sinh event làm chạm giới hạn 256m trước. Không có cam kết “luôn lấy được 30 phút” chỉ vì đã đặt `maxage=30m`.
+At minute 10, data from startup is still present if `maxsize` has not been hit. At hour 8, retained history covers at most roughly the last 30 minutes—**or even less** if the event rate hits the `256m` cap first. Setting `maxage=30m` is not a guarantee of "always getting 30 minutes."
 
-Ví dụ tính nhẩm đơn giản, **không phải số đo JFR thực tế**:
+Simple back-of-the-envelope illustration, **not real JFR measurements**:
 
-- Nếu dữ liệu ghi vào repository trung bình `2 MB/phút`, lịch sử 30 phút cần cỡ `60 MB`, nên `maxage` có thể là ràng buộc chặt hơn `maxsize=256m`.
-- Nếu trung bình `20 MB/phút`, 30 phút cần cỡ `600 MB`, vượt `256m`; khi đó cửa sổ giữ được theo dung lượng có thể chỉ vào khoảng **12–13 phút**, trước khi tính chunk overhead.
-- Nếu `duration=5m`, recording tự dừng sau 5 phút dù `maxage=1h` và `maxsize=1g`. Hai giới hạn sau không kéo dài tuổi thọ recording.
+- If repository writes average `2 MB/minute`, 30 minutes needs around `60 MB`, so `maxage` may be the tighter constraint than `maxsize=256m`.
+- If they average `20 MB/minute`, 30 minutes needs around `600 MB`, exceeding `256m`; the retained size-limited window could be only around **12–13 minutes** before accounting for chunk overhead.
+- If `duration=5m`, the recording stops after 5 minutes even with `maxage=1h` and `maxsize=1g`. Those latter two limits do not extend the recording's lifetime.
 
-JFR lưu và loại dữ liệu theo **chunk**; ranh giới chunk, tốc độ event và nhiều recording đồng thời làm dung lượng/thời gian thực tế khác công thức tuyến tính. `maxsize` nên được xem là **ngân sách retention cho một recording**, không phải cam kết byte-by-byte rằng cả filesystem không thể vượt giới hạn. Chọn dung lượng trống đủ cho repository, các chunk đang hoạt động, file export và overhead.
+JFR stores and evicts data in **chunks**; chunk boundaries, event rates, and multiple concurrent recordings make actual size/time diverge from linear math. Treat `maxsize` as a **retention budget for one recording**, not a byte-by-byte guarantee that the whole filesystem cannot exceed that limit. Provision enough free space for the repository, active chunks, exported files, and overhead.
 
-### Điều gì xảy ra khi đủ chỗ rồi vẫn có sự kiện mới?
+### What happens when space is full and new events arrive?
 
-Với `disk=true`, JFR có thể loại **chunk cũ** để giữ dữ liệu mới hơn khi vượt giới hạn. Nếu chưa kịp xuất một incident, sự kiện ở cửa sổ quá cũ có thể bị loại vĩnh viễn. Khi phát hiện sự cố, **dump ngay** để chốt bằng chứng thay vì chờ tới lúc vòng retention xoay qua; tệp dump đã xuất cần có chính sách lưu trữ riêng.
+With `disk=true`, JFR can evict **old chunks** to retain newer data when limits are exceeded. If an incident has not been exported yet, events in too-old windows can be permanently evicted. When an incident is detected, **dump immediately** to lock in evidence rather than waiting for retention to roll past; exported dump files need their own retention policy.
 
-## 8. Khi nào dump-on-exit hoạt động và khi nào không?
+## 8. When Does Dump-on-Exit Work and When Does It Not?
 
-`dumponexit=true` là cơ chế best-effort dựa trên **vòng đời JVM**. Nó hữu ích nhưng không phải “bảo hiểm” cho mọi sự cố.
+`dumponexit=true` is a best-effort mechanism tied to the **JVM lifecycle**. It is helpful, not "insurance" for every failure.
 
-| Tình huống | Có thể trông đợi gì? | Cách kiểm chứng |
+| Situation | What Can You Expect? | How to Verify |
 | --- | --- | --- |
-| `main()` kết thúc bình thường trong khi recording vẫn chạy | JVM thực hiện shutdown; JFR có cơ hội xuất file | Kiểm tra file `filename` và chạy `jfr summary` |
-| `System.exit(...)` trong điều kiện shutdown bình thường | Shutdown hooks có cơ hội chạy; JFR có cơ hội dump | Xác minh file hoàn chỉnh; không suy ra thành công chỉ từ log |
-| Yêu cầu dừng mềm từ service manager / `SIGTERM` trên HotSpot Unix | Thường JVM bắt đầu quy trình shutdown, **nếu** được cấp đủ thời gian | Đối chiếu grace period, quyền ghi, log và file |
-| `JFR.stop name=...` trước khi JVM tắt | Recording đã dừng, dump-on-exit của recording đó không còn tác dụng | Đọc file từ `JFR.stop filename`, không chờ file exit |
-| `duration` đã hết và recording đã tự dừng | Không còn recording chạy để dump-on-exit sau đó | Xác nhận file đã xuất lúc tự dừng |
-| `SIGKILL` / kill cưỡng bức / container bị cưỡng chế chấm dứt | Không có quy trình shutdown bảo đảm để dump | Chỉ tin file đã xuất trước đó; không trông chờ exit dump |
-| JVM crash / bị mất điện / ổ đĩa đầy / file path không ghi được | Dump-on-exit **không được bảo đảm** | Kiểm tra file, dung lượng, lỗi I/O; có thể thiếu hoặc không có dữ liệu |
+| `main()` finishes normally while the recording is running | JVM executes shutdown; JFR has a chance to export the file | Check the `filename` file and run `jfr summary` |
+| `System.exit(...)` under normal shutdown | Shutdown hooks get a chance to run; JFR has a chance to dump | Verify the file is complete; do not infer success from logs alone |
+| Graceful stop from a service manager / `SIGTERM` on HotSpot Unix | JVM usually begins shutdown, **if** granted enough grace time | Check grace period, write permissions, logs, and file |
+| `JFR.stop name=...` before JVM exit | Recording already stopped; dump-on-exit for that recording no longer applies | Read the file from `JFR.stop filename`; do not wait for an exit file |
+| `duration` expired and the recording already auto-stopped | No recording remains running to dump on exit later | Verify the file written at auto-stop |
+| `SIGKILL` / forced kill / forced container termination | No guaranteed shutdown path to run the dump | Trust only previously exported files; do not expect an exit dump |
+| JVM crash / power loss / disk full / unwritable path | Dump-on-exit is **not guaranteed** | Check file, disk space, and I/O errors; data may be partial or missing |
 
-**Không đồng nhất** “shutdown hook của demo đã in ra” với “tệp `.jfr` chắc chắn hoàn chỉnh”. File phải thực sự tồn tại, mở đọc được và có events ở cửa sổ quan tâm.
+**Do not equate** "the demo's shutdown hook printed" with "the `.jfr` file is definitely intact." The file must actually exist, open cleanly, and contain events for the target window.
 
-Đặc biệt, trên container/Kubernetes, thư mục temp có thể bị xóa sau khi container mất; cần volume đủ bền và graceful termination hợp lý để thu được file. `dumponexit` không biến repository tạm thành lưu trữ bền vững.
+In particular, in containers/Kubernetes, the temp directory may be wiped once the container disappears; you need durable volume storage and an adequate graceful termination period to retrieve the file. `dumponexit` does not turn a temporary repository into durable storage.
 
-### Chiến lược khi cần giảm nguy cơ mất dữ liệu
+### Strategy for reducing risk of data loss
 
-- Với hệ thống chạy lâu: `disk=true`, `maxage/maxsize` hữu hạn, `settings=default` và dung lượng đĩa đã tính toán.
-- Khi phát hiện incident: gọi `JFR.dump` để tạo **bản xuất ngay**, không làm dừng recording.
-- Khi cần kết thúc quản lý: `JFR.stop name=... filename=...` để xuất và dừng chủ động.
-- Khi muốn dữ liệu cuối đời JVM: bật `dumponexit=true` từ trước, đặt `filename` nằm trong filesystem bền và kiểm chứng bằng `jfr summary` sau shutdown.
-- Với crash/kill cưỡng bức: không bảo đảm thu được file mới; bản dump đã xác minh từ trước là chứng cứ đáng tin cậy hơn.
+- For long-running systems: `disk=true`, finite `maxage`/`maxsize`, `settings=default`, and budgeted disk capacity.
+- When an incident is spotted: call `JFR.dump` for an **immediate export** without stopping the recording.
+- When ending cleanly: `JFR.stop name=... filename=...` to export and stop deliberately.
+- When wanting end-of-life data: enable `dumponexit=true` upfront, point `filename` to a durable filesystem, and verify with `jfr summary` after shutdown.
+- For crashes/forced kills: new file creation is not guaranteed; previously verified dumps are far more reliable evidence.
 
-## 9. Quản lý nhiều recording và điều chỉnh cách xuất
+## 9. Managing Multiple Recordings and Scoping Exports
 
-Một JVM có thể có **nhiều recording**, ví dụ một bản ghi vòng liên tục `service_ring` và một bản ghi ngắn `incident`. Khi đó:
+One JVM can host **multiple recordings**, such as a continuous rolling `service_ring` and a short `incident`. In that setup:
 
 ```bash
 jcmd 12345 JFR.check
@@ -345,144 +345,144 @@ jcmd 12345 JFR.dump name=service_ring filename=/tmp/jfr-out/ring-snapshot.jfr
 jcmd 12345 JFR.dump name=incident filename=/tmp/jfr-out/incident-snapshot.jfr
 ```
 
-Tham số `name` xác định recording. Theo tài liệu `jcmd`, nếu `JFR.dump` **không** cung cấp `name` thì có thể xuất dữ liệu từ **tất cả** các recording, không phù hợp khi cần phân lập một nguồn. Mỗi recording có retention/đích xuất riêng; chi phí ghi và sức chứa tổng thể vẫn cộng dồn.
+The `name` parameter selects the recording. Per `jcmd` documentation, omitting `name` on `JFR.dump` can export data from **all** recordings, which is undesirable when isolating a single source. Each recording has its own retention and export target; recording overhead and total storage still accumulate.
 
-Các thao tác không tương đương:
+Operations are not interchangeable:
 
-| Thao tác | Recording còn chạy? | Dữ liệu xuất ra |
+| Operation | Is the Recording Still Running? | Exported Data |
 | --- | --- | --- |
-| `JFR.check` | Không thay đổi | Không tạo file; xem trạng thái |
-| `JFR.dump name=... filename=...` | **Có**, nếu đang chạy trước đó | Snapshot của dữ liệu còn giữ tại thời điểm dump |
-| `JFR.dump ... maxage=10m` | **Có** | Phần dữ liệu gần nhất trong giới hạn xuất |
-| `JFR.stop name=... filename=...` | **Không** | Ghi dữ liệu còn giữ rồi dừng recording |
-| Recording đạt `duration` và có `filename` | **Không** | Tự dừng và ghi file theo cấu hình |
-| JVM shutdown với `dumponexit=true`, recording còn chạy | JVM kết thúc | Cố gắng ghi file vào `filename` hoặc tên tự sinh |
+| `JFR.check` | Unchanged | Creates no file; inspects status |
+| `JFR.dump name=... filename=...` | **Yes**, if it was running | Snapshot of retained data at dump time |
+| `JFR.dump ... maxage=10m` | **Yes** | Most recent slice within export limit |
+| `JFR.stop name=... filename=...` | **No** | Writes retained data, then stops the recording |
+| Recording hits `duration` with `filename` | **No** | Auto-stops and writes file per configuration |
+| JVM shutdown with `dumponexit=true`, recording running | JVM exits | Attempts to write file to `filename` or generated name |
 
-Đừng nhầm `JFR.configure` (cấu hình chung JFR của JVM, như repository path) với `JFR.start` (các tùy chọn riêng recording) hoặc `JFR.dump` (tham số riêng của **một lần xuất**). Cũng không nhầm `JFR.dump` với `GC.heap_dump`: hai công cụ tạo định dạng/loại bằng chứng khác nhau.
+Do not confuse `JFR.configure` (JVM-wide JFR settings such as repository path) with `JFR.start` (per-recording options) or `JFR.dump` (options for **one export call**). Also do not confuse `JFR.dump` with `GC.heap_dump`: the two tools produce different formats and kinds of evidence.
 
-## 10. Kiểm tra nhanh từ ghi nhận đến kết luận
+## 10. Quick Checklist from Capture to Conclusion
 
-Trước khi thu:
+Before recording:
 
-1. **JDK/collector/PID:** `java -version`, `jcmd -l`, `jcmd PID VM.version`; dùng `jcmd` tương thích và quyền truy cập phù hợp.
-2. **Mục tiêu:** đo sự cố 1–5 phút hay giữ vòng 1–6 giờ? Chọn `duration` riêng với `maxage`.
-3. **Retention:** đặt cả `maxage` và `maxsize` nếu cần giới hạn cả **tuổi** và **dung lượng**. Bảo đảm `maxsize >= maxchunksize`.
-4. **Thư mục:** repository và output có cùng filesystem với JVM, có quyền ghi, có dung lượng và volume mount phù hợp.
-5. **Cấu hình sự kiện:** `default` cho continuous, `profile` cho khoảng điều tra ngắn nếu cần dữ liệu chuyên sâu hơn.
-6. **Khi thoát:** nếu bật `dumponexit`, xác định chính xác file đích và grace period của service manager.
+1. **JDK/collector/PID:** `java -version`, `jcmd -l`, `jcmd PID VM.version`; use compatible `jcmd` and proper permissions.
+2. **Goal:** capture a 1–5 minute incident or keep a 1–6 hour ring? Separate `duration` from `maxage`.
+3. **Retention:** set both `maxage` and `maxsize` if you need to bound both **age** and **size**. Ensure `maxsize >= maxchunksize`.
+4. **Directories:** repository and output sit on the JVM's filesystem, have write permissions, capacity, and appropriate volume mounts.
+5. **Event config:** `default` for continuous, `profile` for short investigative bursts when deeper data is needed.
+6. **On exit:** if `dumponexit` is enabled, verify exact destination file and service manager grace period.
 
-Trong lúc thu:
+During recording:
 
-1. `jcmd PID JFR.check` để thấy recording đang chạy; không chỉ dựa vào việc lệnh start đã được gửi.
-2. Nếu cần khóa dữ liệu gần thời điểm sự cố, `JFR.dump` và lưu lại **tên file mà JVM báo**.
-3. Quan sát dung lượng repository, số recording đang chạy, disk space, biến động event rate và chi phí CPU/latency.
-4. Khi cấu hình retention thay đổi giữa phiên, ghi lại thời điểm và giá trị để tránh so sánh sai.
+1. `jcmd PID JFR.check` to confirm the recording is running; do not rely solely on start having been issued.
+2. When you need to preserve data around an incident, `JFR.dump` and record the **actual filename reported by the JVM**.
+3. Watch repository usage, active recording count, free disk space, event rate spikes, and CPU/latency cost.
+4. When retention settings change between runs, record timestamps and values to avoid invalid comparisons.
 
-Sau khi thu:
+After recording:
 
-1. `jfr summary file.jfr`; xác minh file mở đọc được, có các loại event và khoảng thời gian đúng.
-2. Đối chiếu số phút thực sự có dữ liệu với `maxage`/`maxsize` đã chọn; nếu ngắn hơn dự tính, xem event rate và chunk retention.
-3. Mở bằng JDK Mission Control khi cần phân tích profile và timeline.
-4. Lưu file theo chính sách của hệ thống vì các event có thể chứa tên thread, method, path, tham số hoặc thông tin ứng dụng cần kiểm soát truy cập.
-5. Xóa/rotate **các tệp đã export** bằng cơ chế quản lý lưu trữ riêng; đừng kỳ vọng `maxsize` của repository tự dọn tất cả file đó.
+1. `jfr summary file.jfr`; verify the file opens cleanly and has the right event types and time range.
+2. Compare actual minutes of data present against `maxage`/`maxsize`; if shorter than expected, check event rate and chunk retention.
+3. Open in JDK Mission Control when profile and timeline analysis is needed.
+4. Store files per system policy since events can include thread names, methods, paths, arguments, or application info requiring access control.
+5. Rotate/delete **exported files** with a dedicated storage policy; do not expect the repository's `maxsize` to clean them up.
 
-## 11. Tình huống thực tế và cách lựa chọn
+## 11. Practical Scenarios and Choices
 
-### Tình huống A — service production chạy cả tuần
+### Scenario A — Production service running all week
 
-**Yêu cầu:** khi có sự cố, có thể lấy khoảng 30 phút gần nhất; không muốn repository giữ dữ liệu vô hạn.
+**Requirement:** when an incident occurs, retrieve roughly the last 30 minutes; do not let the repository grow unbounded.
 
-Cấu hình mẫu:
+Sample setup:
 
 ```bash
 jcmd 12345 JFR.start name=prod_ring settings=default disk=true duration=0s maxage=30m maxsize=256m dumponexit=true filename=/tmp/jfr-out/prod-exit-%p-%t.jfr
 ```
 
-Khi incident vừa xảy ra:
+Right when an incident occurs:
 
 ```bash
 jcmd 12345 JFR.dump name=prod_ring filename=/tmp/jfr-out/prod-incident-%p-%t.jfr
 ```
 
-**Điều phải kiểm chứng:** “khoảng 30 phút” là mục tiêu, không phải bảo đảm nếu `maxsize` bị chạm sớm. Dữ liệu xuất sẽ chỉ gồm những chunk còn lại.
+**What must be verified:** "roughly 30 minutes" is a target, not a guarantee if `maxsize` is reached sooner. The export contains only surviving chunks.
 
-### Tình huống B — CPU spike đúng lúc startup
+### Scenario B — CPU spike right at startup
 
-**Yêu cầu:** bỏ qua 20 giây warm-up, ghi chi tiết 1 phút rồi tự xuất.
+**Requirement:** skip 20 seconds of warm-up, record 1 minute in detail, then auto-export.
 
 ```bash
 java -XX:StartFlightRecording=name=startup_spike,delay=20s,duration=60s,settings=profile,filename=/tmp/jfr-out/startup-spike.jfr JfrLifecycleDemo
 ```
 
-Giải thích: recording bắt đầu sau `delay=20s` và **chạy 60 giây**. `maxage` và `maxsize` không phải cách đặt khoảng bắt đầu/kết thúc của recording.
+Explanation: the recording starts after `delay=20s` and **runs for 60 seconds**. `maxage` and `maxsize` are not how you schedule a recording's start/end interval.
 
-### Tình huống C — container thường bị kill do timeout
+### Scenario C — Container frequently killed by timeouts
 
-**Yêu cầu:** không mất bằng chứng khi quá trình shutdown có thể bị cưỡng bức.
+**Requirement:** avoid losing evidence when shutdown may be forced.
 
-Giải pháp vận hành: dùng repository trên volume phù hợp, đặt giới hạn retention, **dump chủ động** trước các lần thay đổi/thu hồi instance khi có thể, kiểm tra `jfr summary`, đồng thời vẫn bật `dumponexit=true` như một đường thu bổ sung. Không tuyên bố dump-on-exit chắc chắn chạy khi `SIGKILL` hoặc container bị xóa ngay.
+Operational solution: place the repository on a suitable volume, set retention limits, **dump proactively** before instance changes/reclaims whenever possible, check `jfr summary`, and still keep `dumponexit=true` as an extra fallback. Never claim dump-on-exit is guaranteed to run on `SIGKILL` or immediate container deletion.
 
-### Tình huống D — ổ đĩa đầy dù đã đặt `maxsize=256m`
+### Scenario D — Disk full despite setting `maxsize=256m`
 
-Các câu hỏi cần xác minh:
+Questions to check:
 
-- Có nhiều recording chạy đồng thời không?
-- Các tệp `.jfr` export cũ có bị để lại không?
-- Repository và export có nằm cùng partition/volume không?
-- Có chunk tạm, dữ liệu ứng dụng hoặc log khác sử dụng đĩa không?
-- Tốc độ event có tăng dẫn đến ghi/rotate chunk nhanh bất thường không?
+- Are multiple recordings running concurrently?
+- Were old exported `.jfr` files left behind?
+- Are the repository and export path on the same partition/volume?
+- Are temporary chunks, app data, or other logs consuming disk?
+- Did an event-rate surge cause unusually rapid chunk writes/rotations?
 
-**Kết luận đúng:** `maxsize` là giới hạn của dữ liệu retention cho một recording, **không phải quota toàn bộ JVM, filesystem hay thư mục xuất**.
+**Right conclusion:** `maxsize` caps retained data for a single recording—it is **not a quota for the entire JVM, filesystem, or export directory**.
 
-## 12. Sai lầm phổ biến
+## 12. Common Mistakes
 
-1. **Dùng `maxage=30m` như `duration=30m`:** dữ liệu cũ bị loại, còn recording vẫn chạy.
-2. **Dùng `duration=0s` nhưng không giới hạn disk retention:** service hoạt động lâu có thể tạo nhu cầu lưu trữ lớn.
-3. **Đặt `maxsize` nhỏ hơn `maxchunksize`:** cấu hình không hợp lệ.
-4. **Cho rằng `maxage/maxsize` giới hạn cả tệp `.jfr` đã export:** file kết quả cần quản lý riêng.
-5. **Đặt `maxage/maxsize` với `disk=false`:** không đáp ứng mục tiêu giữ lịch sử repository; kiểm tra tài liệu/đầu ra command.
-6. **Nhầm repository với filename:** chunk tạm khác file dùng để chuyển cho JMC.
-7. **Dùng tên tham số `repositorypath` trong `-XX:FlightRecorderOptions`:** tên option khi khởi động là `repository`.
-8. **Nhập dấu phẩy giữa tham số `jcmd JFR.start`:** dấu phẩy dành cho JVM flag `-XX:StartFlightRecording`, còn `jcmd` dùng khoảng trắng.
-9. **Chạy `JFR.dump` rồi tưởng recording đã ngừng:** nó vẫn tiếp tục, kiểm tra bằng `JFR.check`.
-10. **Gọi `JFR.stop` trước shutdown rồi chờ dump-on-exit:** không còn recording chạy để dump.
-11. **Tin chắc dump-on-exit khi crash/kill cưỡng bức:** không có bảo đảm thực thi shutdown.
-12. **Không kiểm tra tên file thực tế có `%p/%t`:** dễ nhìn nhầm vị trí hoặc phiên recording.
-13. **Không kiểm tra volume/container path:** file có thể nằm bên trong container thay vì filesystem của người chạy `jcmd`.
-14. **Không lưu timestamp/workload:** mất tương quan với thời điểm xuất hiện sự cố; có file JFR nhưng không biết cần tìm đâu.
-15. **Không kiểm tra file bằng `jfr summary`:** log “Started recording” chỉ chứng minh đã bắt đầu, không chứng minh đã xuất file.
-16. **Dùng `profile` liên tục mà không đo overhead:** profile chứa nhiều dữ liệu hơn default; cân nhắc tải và mục tiêu.
+1. **Treating `maxage=30m` like `duration=30m`:** old data is evicted while the recording keeps running.
+2. **Using `duration=0s` without disk retention limits:** long-running services can build substantial storage demand.
+3. **Setting `maxsize` smaller than `maxchunksize`:** invalid configuration.
+4. **Assuming `maxage`/`maxsize` caps exported `.jfr` files too:** output files must be managed separately.
+5. **Setting `maxage`/`maxsize` with `disk=false`:** does not achieve repository retention; check docs/command output.
+6. **Confusing `repository` with `filename`:** temporary chunks differ from the file handed to JMC.
+7. **Using parameter name `repositorypath` inside `-XX:FlightRecorderOptions`:** the startup option name is `repository`.
+8. **Putting commas between `jcmd JFR.start` parameters:** commas belong in the JVM flag `-XX:StartFlightRecording`; `jcmd` uses spaces.
+9. **Running `JFR.dump` and assuming the recording stopped:** it continues running; verify with `JFR.check`.
+10. **Calling `JFR.stop` before shutdown and expecting dump-on-exit:** no running recording remains to dump.
+11. **Relying unconditionally on dump-on-exit during crashes/forced kills:** shutdown execution is not guaranteed.
+12. **Not checking actual filenames with `%p`/`%t`:** easy to look at the wrong location or recording session.
+13. **Not checking container/volume paths:** the file may sit inside the container instead of the `jcmd` caller's filesystem.
+14. **Not saving timestamps/workload:** loses correlation with incident timing; you have a JFR file without knowing where to look.
+15. **Skipping `jfr summary` verification:** a "Started recording" log proves start only, not a valid exported file.
+16. **Running `profile` continuously without measuring overhead:** `profile` captures more data than `default`; weigh load and objectives.
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-Check Exercises
 
-**Câu 1.** Một recording chạy 12 giờ với `duration=0s, maxage=1h, maxsize=512m, disk=true`. Sau 12 giờ, có thể dump đủ 12 giờ dữ liệu không?
+**Question 1.** A recording runs for 12 hours with `duration=0s, maxage=1h, maxsize=512m, disk=true`. After 12 hours, can you dump all 12 hours of data?
 
-**Trả lời:** Không thể kỳ vọng. Chỉ có các chunk còn được giữ theo hai giới hạn; cửa sổ lịch sử tối đa khoảng một giờ và có thể ngắn hơn vì chạm `maxsize`.
+**Answer:** You cannot expect that. Only chunks still retained under both limits exist; the history window is at most about one hour and may be shorter if `maxsize` was reached.
 
-**Câu 2.** Recording có `duration=2m` và `dumponexit=true`. JVM còn sống 5 giờ. Khi JVM thoát sau 5 giờ, bản ghi sẽ ghi thêm 5 giờ dữ liệu không?
+**Question 2.** A recording has `duration=2m` and `dumponexit=true`. The JVM stays alive for 5 hours. When the JVM exits after 5 hours, will the recording capture 5 hours of data?
 
-**Trả lời:** Không. Recording tự dừng sau 2 phút; dump-on-exit không kéo dài hay tự khởi động lại bản ghi.
+**Answer:** No. The recording stops automatically after 2 minutes; dump-on-exit does not extend or restart the recording.
 
-**Câu 3.** Sau `JFR.dump name=prod_ring filename=...`, có cần dùng `JFR.start` để tiếp tục vòng lịch sử không?
+**Question 3.** After `JFR.dump name=prod_ring filename=...`, do you need to call `JFR.start` to keep the rolling history going?
 
-**Trả lời:** Không. `JFR.dump` không stop recording; xác minh bằng `JFR.check`.
+**Answer:** No. `JFR.dump` does not stop the recording; verify with `JFR.check`.
 
-**Câu 4.** `dumponexit=true` nhưng JVM bị `SIGKILL`. Có bảo đảm tạo tệp mới không?
+**Question 4.** `dumponexit=true` is set, yet the JVM receives `SIGKILL`. Is a new file guaranteed?
 
-**Trả lời:** Không. Cần xem những export đã tạo trước đó và kiểm tra khả năng đọc của chúng; không phụ thuộc vào shutdown hook.
+**Answer:** No. Rely on earlier exports and verify their readability; do not depend on shutdown hooks.
 
-**Câu 5.** JVM chạy trong container; `jcmd` báo export `/tmp/jfr-out/test.jfr` thành công nhưng host không thấy. Lỗi do JFR?
+**Question 5.** The JVM runs in a container; `jcmd` reports exporting `/tmp/jfr-out/test.jfr` succeeded, but the host cannot see it. Is JFR broken?
 
-**Trả lời:** Chưa đủ cơ sở. Đường dẫn do JVM/container giải quyết; kiểm tra namespace, volume mount và file thực tế bên trong container.
+**Answer:** Not enough basis for that claim. Paths are resolved by the JVM/container; check namespaces, volume mounts, and the actual file inside the container.
 
-**Thực hành cuối bài:** Dùng `JfrLifecycleDemo`, tạo một recording hữu hạn `duration=30s` và một recording liên tục `maxage=2m maxsize=128m` trong các lần chạy riêng. Với recording liên tục, chụp `JFR.dump` khi đang chạy rồi để JVM tự kết thúc. Ghi tên tệp, số liệu `jfr summary` và giải thích rõ **điểm dừng**, **cửa sổ retention**, **nơi chứa chunk tạm** và **đường xuất tệp cuối**. Hoàn thành khi có thể dự đoán và kiểm chứng cả năm khái niệm mà không nhầm lẫn.
+**End-of-lesson practice:** Using `JfrLifecycleDemo`, create one bounded recording (`duration=30s`) and one continuous recording (`maxage=2m maxsize=128m`) in separate runs. For the continuous recording, take a `JFR.dump` while running, then let the JVM finish normally. Record the filenames, `jfr summary` numbers, and clearly explain the **stop point**, **retention window**, **temporary chunk location**, and **final export path**. You are done when you can predict and verify all five concepts without confusion.
 
-## 14. Nguồn tài liệu chính thức
+## 14. Official Documentation
 
 - [Oracle JDK 21 — `jcmd`: JFR.configure / JFR.start / JFR.dump / JFR.stop / JFR.check](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html).
-- [Oracle JDK 21 — `java`: `-XX:StartFlightRecording` và `-XX:FlightRecorderOptions`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html).
-- [Oracle JDK 21 — `jfr`: `summary`, `print` và xử lý tệp](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html).
+- [Oracle JDK 21 — `java`: `-XX:StartFlightRecording` and `-XX:FlightRecorderOptions`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html).
+- [Oracle JDK 21 — `jfr`: `summary`, `print`, and file handling](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html).
 - [Oracle JDK 21 — `jdk.jfr.Recording`: duration, retention, dump-on-exit](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html).
-- [Oracle — Flight Recorder Configurations: default.jfc và profile.jfc](https://docs.oracle.com/en/java/javase/21/jfapi/flight-recorder-configurations.html).
+- [Oracle — Flight Recorder Configurations: `default.jfc` and `profile.jfc`](https://docs.oracle.com/en/java/javase/21/jfapi/flight-recorder-configurations.html).
 
-**Nguyên tắc ghi nhớ:** `duration` quyết định *khi nào recording dừng*; `maxage/maxsize` quyết định *lịch sử còn giữ*; `repository` quyết định *chunk tạm nằm ở đâu*; `JFR.dump` quyết định *lúc nào xuất một bản sao*; và `dumponexit` là *cơ hội xuất cuối khi JVM shutdown bình thường*, cần kiểm chứng bằng file thực tế.
+**Rule to remember:** `duration` decides *when a recording stops*; `maxage`/`maxsize` decide *how much history stays retained*; `repository` decides *where temporary chunks live*; `JFR.dump` decides *when to export a copy*; and `dumponexit` is *a final export opportunity on normal JVM shutdown*, which must be verified against the actual file.

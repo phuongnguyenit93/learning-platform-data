@@ -1,21 +1,21 @@
-# 3.5 Classpath, module path, thư viện native và cấu hình môi trường liên quan
+# 3.5 Classpath, Module Path, Native Libraries, and Related Environment Configuration
 
-Một ứng dụng Java có thể hoạt động ở máy phát triển nhưng thất bại khi khởi động hoặc chỉ hỏng một chức năng trên production dù cùng mã nguồn. Nguyên nhân có thể không nằm trong business logic: JVM được chạy bằng một JDK khác, class được lấy từ JAR khác, module không được resolve, class loader riêng nạp phiên bản thư viện khác, thư viện JNI thiếu dependency của hệ điều hành, hoặc cấu hình từ environment variable và working directory khác với điều người vận hành tưởng.
+A Java application may work on a developer machine yet fail at startup or break a single feature in production despite identical source code. The cause may lie outside business logic: the JVM was launched with a different JDK, a class was loaded from a different JAR, a module failed to resolve, a custom class loader loaded a different library version, a JNI library lacked an OS dependency, or configuration from environment variables and working directory differed from what operators expected.
 
-Bài này tập trung vào **chẩn đoán tiến trình JVM đang thực sự chạy**: dựng lại classpath và module graph có hiệu lực, xác định nguồn gốc một class/resource, kiểm tra native library và cấu hình môi trường, rồi liên hệ chúng với thông báo lỗi. Chỉ nhìn file cấu hình trong source repository hoặc chạy `java -version` ở terminal khác chưa đủ.
+This lesson focuses on **diagnosing a live running JVM process**: reconstructing the effective classpath and module graph, identifying the origin of a class/resource, inspecting native libraries and environment configuration, and tying them back to error messages. Looking solely at config files in the source repository or running `java -version` in another terminal is not enough.
 
-**Kết quả học tập:** phân biệt classpath, module path và native library path; biết đọc cấu hình launch và class loader; chọn bằng chứng theo triệu chứng; kiểm tra Java 17+ bằng công cụ chuẩn; nhận diện giới hạn của từng phép đo; và tái hiện chính xác sự khác nhau giữa hai môi trường.
+**Learning outcomes:** distinguish classpath, module path, and native library path; read launch and class loader configurations; choose evidence by symptom; inspect Java 17+ using standard tools; recognize each measurement's limits; and accurately reproduce differences between two environments.
 
-## 1. Mô hình bốn tầng để dựng lại môi trường chạy
+## 1. Four-Layer Model for Reconstructing the Runtime Environment
 
-Một JVM tiến trình có ít nhất bốn tầng ảnh hưởng tới khả năng tìm mã:
+A JVM process has at least four layers affecting how code is located:
 
-1. **Runtime và lệnh khởi động:** đường dẫn executable thật, phiên bản vendor/JDK, JVM flags, `-D` system properties, launcher mode (`-cp`, `-jar`, `-m`), agent và option files.
-2. **Class/module resolution:** classpath, module path, boot layer, module graph, các class loader (bootstrap, platform, application, custom), thứ tự và quy tắc delegate.
-3. **Thư viện native và OS loader:** `java.library.path`, `System.loadLibrary`/`System.load`, phụ thuộc `.so`/`.dylib`/`.dll`, kiến trúc, ABI, libc, OS search paths.
-4. **Môi trường triển khai:** process working directory, file mounts, environment variables, container image, Kubernetes Deployment/Pod, UID/quyền đọc/execute, shell script, cấu hình ứng dụng và secret injection.
+1. **Runtime and launch command:** actual executable path, vendor/JDK version, JVM flags, `-D` system properties, launcher mode (`-cp`, `-jar`, `-m`), agents, and option files.
+2. **Class/module resolution:** classpath, module path, boot layer, module graph, class loaders (bootstrap, platform, application, custom), search order, and delegation rules.
+3. **Native libraries and OS loader:** `java.library.path`, `System.loadLibrary`/`System.load`, `.so`/`.dylib`/`.dll` dependencies, architecture, ABI, libc, and OS search paths.
+4. **Deployment environment:** process working directory, file mounts, environment variables, container image, Kubernetes Deployment/Pod, UID/read/execute permissions, shell scripts, application config, and secret injection.
 
-Khi có sự cố, cần xác định **đường đi của class hoặc thư viện từ yêu cầu đến artifact thật**:
+When an incident occurs, trace **the path of a class or library from request to actual artifact**:
 
 ```text
 Launcher / entrypoint / environment
@@ -33,69 +33,69 @@ Launcher / entrypoint / environment
                     |
          Class / resource / ServiceLoader
                     |
-          JNI / native bridge (nếu có)
+          JNI / native bridge (if any)
                     |
       OS loader -> dependent native libraries
 ```
 
-Sơ đồ chỉ mô tả hướng điều tra. **Một class không nhất thiết được nạp bởi application class loader**: framework, application server, plugin system, custom layers, agent và test runner có thể có loader riêng. Với mỗi class đang lỗi, ba thông tin cần biết là **tên class + defining class loader + nguồn code/resource**.
+This diagram shows the investigation direction only. **A class is not necessarily loaded by the application class loader**: frameworks, application servers, plugin systems, custom layers, agents, and test runners can use their own loaders. For each failing class, the three essential facts are **class name + defining class loader + code/resource source**.
 
-## 2. Classpath thực sự hoạt động thế nào?
+## 2. How Does the Classpath Actually Work?
 
-### 2.1. Entry và thứ tự tìm kiếm
+### 2.1. Entries and Search Order
 
-Classpath được truyền bằng `--class-path`, `-classpath` hoặc `-cp`; nó có thể gồm thư mục chứa `.class`, JAR và ZIP. Dấu phân cách path phụ thuộc hệ điều hành: **dấu hai chấm trên Linux/macOS**, **dấu chấm phẩy trên Windows**. Các entry tương đối được hiểu trong ngữ cảnh working directory và launcher.
+Classpath is passed via `--class-path`, `-classpath`, or `-cp`; it can include directories containing `.class` files, JARs, and ZIPs. The path separator is OS-dependent: **colon on Linux/macOS**, **semicolon on Windows**. Relative entries are resolved relative to the working directory and launcher.
 
-Ví dụ trên Linux/macOS:
+Example on Linux/macOS:
 
 ```bash
 java -cp 'classes:lib/api.jar:lib/*' com.example.Main
 ```
 
-Ví dụ tương ứng trên Windows (PowerShell/cmd):
+Corresponding example on Windows (PowerShell/cmd):
 
 ```powershell
 java -cp "classes;lib/api.jar;lib/*" com.example.Main
 ```
 
-`lib/*` là wildcard đặc biệt của **Java launcher** để thêm JAR trong thư mục đó, không phải recursive search. Thứ tự các JAR được thêm bởi wildcard **không được bảo đảm**; không dùng nó như cơ chế chọn phiên bản ưu tiên. Trên shell Unix, đặt dấu nháy quanh classpath để shell không mở rộng `*` sai cách trước launcher.
+`lib/*` is a special **Java launcher** wildcard to add JARs in that directory, not a recursive search. The order of JARs added by a wildcard **is not guaranteed**; do not rely on it to pick a preferred version. On Unix shells, quote the classpath so the shell does not expand `*` prematurely before the launcher sees it.
 
-Một class `com.example.Service` được tìm theo đường dẫn `com/example/Service.class` trong entry thích hợp. Với class loader truyền thống, thứ tự entry có ý nghĩa khi có **class trùng tên**, nhưng delegation, module resolution, multi-release JAR và custom loader cũng quyết định kết quả. “JAR xuất hiện trước trong danh sách” chỉ là một giả thuyết, chưa phải bằng chứng về class thực sự được nạp.
+A class `com.example.Service` is searched at path `com/example/Service.class` within the appropriate entry. With traditional class loaders, entry order matters when **duplicate classes** exist, though delegation, module resolution, multi-release JARs, and custom loaders also determine the outcome. “This JAR appears earlier in the list” is only a hypothesis, not proof of which class was actually loaded.
 
-### 2.2. `CLASSPATH`, `-cp` và `java -jar` không tương đương
+### 2.2. `CLASSPATH`, `-cp`, and `java -jar` Are Not Equivalent
 
-| Cách chạy | Classpath được chọn | Sai lầm dễ gặp |
+| Launch style | Selected classpath | Common mistake |
 | --- | --- | --- |
-| `java com.example.Main` | Dùng `CLASSPATH` nếu launcher được cấu hình từ môi trường; nếu không, mặc định thường là `.` | Terminal hiện tại khác môi trường service |
-| `java -cp 'classes:lib/*' com.example.Main` | `-cp` chỉ định classpath và ghi đè `CLASSPATH` của launcher | Nghĩ `CLASSPATH` vẫn được cộng thêm tự động |
-| `java -jar app.jar` | `-jar` lấy main class từ manifest, không dùng user classpath từ `-cp` hoặc `CLASSPATH` theo cách chạy class trực tiếp | Cố thêm `-cp missing.jar` vào lệnh `-jar` rồi kỳ vọng library được nạp |
-| `java -p mods -m app.module/com.example.Main` | Bắt đầu từ **named module** trên module path, theo module resolution | Cho rằng tất cả JAR trên `-p` đều tự động được resolve |
-| Framework executable/fat JAR | Có thể dùng launcher và class loader riêng để nạp nested JAR | Chỉ nhìn `java.class.path` rồi kết luận toàn bộ dependency tree |
+| `java com.example.Main` | Uses `CLASSPATH` if configured in the environment; otherwise typically defaults to `.` | Current terminal differs from service environment |
+| `java -cp 'classes:lib/*' com.example.Main` | `-cp` specifies classpath and overrides the launcher's `CLASSPATH` | Assuming `CLASSPATH` is still appended automatically |
+| `java -jar app.jar` | `-jar` reads main class from manifest and ignores user classpath from `-cp` or `CLASSPATH` as used in direct class launch | Trying to add `-cp missing.jar` to `-jar` and expecting the library to load |
+| `java -p mods -m app.module/com.example.Main` | Starts from a **named module** on the module path, following module resolution | Assuming all JARs on `-p` are automatically resolved |
+| Framework executable/fat JAR | May use a custom launcher and class loader to load nested JARs | Looking only at `java.class.path` and thinking that is the full dependency tree |
 
-JAR manifest có thể chứa `Class-Path` để khai báo JAR phụ thuộc, theo quy tắc của Java JAR specification. Nhiều framework đóng gói thư viện trong cấu trúc đặc biệt (ví dụ nested JAR) và dùng loader riêng; cơ chế này **khác** classpath mặc định của Java launcher.
+A JAR manifest can declare `Class-Path` to specify dependent JARs, per the Java JAR specification. Many frameworks package libraries in special structures (such as nested JARs) and use custom loaders; this mechanism **differs** from the Java launcher's default classpath.
 
-**Điểm cần nhớ:** `System.getProperty("java.class.path")` cho một phần thông tin cấu hình classpath mà system loader sử dụng. Nó **không nhất thiết liệt kê** tất cả JAR mà custom class loader đã nạp, module path, JAR nested hoặc thư viện native.
+**Key point:** `System.getProperty("java.class.path")` reveals part of the classpath configuration used by the system loader. It **does not necessarily list** every JAR loaded by custom class loaders, the module path, nested JARs, or native libraries.
 
-### 2.3. Classpath conflict và binary incompatibility
+### 2.3. Classpath Conflicts and Binary Incompatibility
 
-Giả sử lúc biên dịch, `checkout` dùng `payments-api-2.jar` có method `charge(String, long)`; khi deploy, một loader lại nạp `payments-api-1.jar` thiếu method đó. Ứng dụng có thể khởi động nhưng ném `NoSuchMethodError` khi đường code gọi method được chạy. Đây là lỗi **linkage/binary compatibility**: thay đổi cấu hình runtime hoặc artifact thực, không chỉ nhìn call stack.
+Suppose at compile time `checkout` used `payments-api-2.jar` with method `charge(String, long)`; at deploy time a loader instead loads `payments-api-1.jar` lacking that method. The application may start up and then throw `NoSuchMethodError` when the code path calling that method runs. This is a **linkage/binary compatibility** issue: check runtime configuration or actual artifacts, not just the call stack.
 
-Với duplicate class, cần phân biệt:
+For duplicate classes, distinguish:
 
-- **Tên class cùng FQCN nhưng khác loader**: tại JVM, type identity gồm cả binary name **và defining class loader**. Có thể gặp `ClassCastException` dù message in ra hai tên class giống nhau.
-- **Một loader tìm thấy hai bản class**: cơ chế tìm kiếm, classpath order, JAR manifest và loader behavior quyết định bản nào được định nghĩa.
-- **Compile-time khác runtime**: `NoSuchMethodError`, `NoSuchFieldError` hoặc `AbstractMethodError` thường chỉ ra bytecode kỳ vọng API khác với code đã được nạp.
-- **Class tồn tại nhưng phụ thuộc của nó thiếu**: khi loader/linker cố resolve một loại khác có thể sinh `NoClassDefFoundError` hoặc lỗi liên quan. Một class cũng có thể ném `NoClassDefFoundError` sau lỗi khởi tạo trước đó, nên phải xem `Caused by` đầu tiên.
+- **Same FQCN across different loaders**: in the JVM, type identity includes both binary name **and defining class loader**. You can encounter `ClassCastException` even when the message prints two identical class names.
+- **One loader finds two versions of a class**: search mechanism, classpath order, JAR manifest, and loader behavior decide which version is defined.
+- **Compile-time differs from runtime**: `NoSuchMethodError`, `NoSuchFieldError`, or `AbstractMethodError` usually indicates bytecode expects a different API than the loaded code provides.
+- **Class exists but its dependency is missing**: when the loader/linker tries to resolve another type, `NoClassDefFoundError` or a related error can occur. A class can also throw `NoClassDefFoundError` after an earlier initialization failure, so check the first `Caused by`.
 
-Công cụ `jdeps` phân tích dependency ở **bytecode tĩnh**, giúp tìm dependency thiếu, nhưng **không** tìm đầy đủ dependency được load bằng reflection, `ServiceLoader`, JNI hoặc các chuỗi tên class ghép động. Không xem kết quả `jdeps` là bản sao runtime class graph.
+The `jdeps` tool analyzes **static bytecode** dependencies, helping spot missing dependencies, but it **cannot** reliably find dependencies loaded via reflection, `ServiceLoader`, JNI, or dynamically constructed class names. Do not treat `jdeps` output as a mirror of the runtime class graph.
 
-## 3. Module path và Java Platform Module System (JPMS)
+## 3. Module Path and the Java Platform Module System (JPMS)
 
-### 3.1. Named và unnamed module
+### 3.1. Named and Unnamed Modules
 
-Từ Java 9, hệ thống module phân chia các gói vào module và có quan hệ **readability** (`requires`), **exports** cho Java access bình thường, **opens** cho deep reflection khi thích hợp. Bytecode trên classpath thuộc **unnamed module** của loader tương ứng; một modular JAR hoặc exploded module trên module path có thể tạo **named module** khi được resolve.
+Since Java 9, the module system organizes packages into modules with **readability** (`requires`), **exports** for normal Java access, and **opens** for deep reflection where appropriate. Bytecode on the classpath belongs to the corresponding loader's **unnamed module**; a modular JAR or exploded module on the module path can form a **named module** when resolved.
 
-Ví dụ:
+Example:
 
 ```java
 module com.example.checkout {
@@ -106,59 +106,59 @@ module com.example.checkout {
 }
 ```
 
-Đây là **đoạn minh họa của `module-info.java`**, không thể biên dịch độc lập khi thiếu các module/gói được nêu. `requires` thể hiện dependency module; `exports` cho phép nơi khác truy cập các public type trong package; `opens` cho phép truy cập reflection sâu tới package theo phạm vi khai báo. `exports` và `opens` không cùng ngữ nghĩa.
+This is an **illustrative `module-info.java` snippet** and cannot compile standalone without the listed modules/packages. `requires` declares module dependencies; `exports` lets other modules access public types in the package; `opens` grants deep reflection access to the package within the declared scope. `exports` and `opens` do not share the same semantics.
 
-### 3.2. Module path là nơi có module, còn resolution chọn những module được sử dụng
+### 3.2. Module Path Holds Modules; Resolution Chooses Which Modules Are Used
 
-`--module-path` (`-p`) trỏ tới các module khả dụng. Resolution bắt đầu từ root modules, đọc `requires` và các lựa chọn launcher. **Một JAR xuất hiện trên module path chưa có nghĩa module đó được đưa vào boot layer**. Module path có thể gồm:
+`--module-path` (`-p`) points to available modules. Resolution begins from root modules, reading `requires` and launcher options. **A JAR appearing on the module path does not mean it enters the boot layer**. The module path can include:
 
-- **Explicit module:** có `module-info.class`.
-- **Automatic module:** JAR không có descriptor chính thức nhưng được đặt trên module path và được dùng như automatic module theo quy tắc đặt tên/metadata.
-- **Exploded module:** thư mục output chứa `module-info.class` và class files.
+- **Explicit module:** contains `module-info.class`.
+- **Automatic module:** a JAR without a formal descriptor placed on the module path and used as an automatic module per naming/metadata rules.
+- **Exploded module:** an output directory containing `module-info.class` and class files.
 
-Các lỗi điển hình:
+Typical errors:
 
-- `Module ... not found`: tên module cần thiết không quan sát được hoặc thiếu dependency trong module path/runtime image.
-- `FindException`/`ResolutionException`: các module không resolve được, có xung đột package, tên hay quan hệ.
-- `IllegalAccessError` và `InaccessibleObjectException`: API hoặc reflection truy cập package không có quyền tương ứng.
-- `ServiceConfigurationError`: module/provider khai báo hoặc được load không đúng, implementation không hợp lệ hay dependency hỏng.
+- `Module ... not found`: the required module name is not observable or lacks dependencies in the module path/runtime image.
+- `FindException`/`ResolutionException`: modules fail to resolve due to package, naming, or relationship conflicts.
+- `IllegalAccessError` and `InaccessibleObjectException`: API or reflection accesses a package without the corresponding permission.
+- `ServiceConfigurationError`: a declared or loaded module/provider is invalid, or an implementation/dependency is broken.
 
-**Đừng sửa bằng cách đẩy toàn bộ JAR lên classpath.** Làm thế có thể che lỗi module, phá service resolution hoặc dẫn tới cách nạp class khác.
+**Do not fix by dumping every JAR onto the classpath.** Doing so can mask module errors, break service resolution, or change class-loading behavior.
 
-### 3.3. `--add-exports`, `--add-opens` và `--add-reads`
+### 3.3. `--add-exports`, `--add-opens`, and `--add-reads`
 
-| Option | Điều chỉnh | Thường dùng để điều tra |
+| Option | Adjustment | Common diagnostic use |
 | --- | --- | --- |
-| `--add-exports source.module/pkg=target.module` | Xuất một package sang module đích để cho phép Java access thích hợp | Public/internal type không được export |
-| `--add-opens source.module/pkg=target.module` | Mở package cho deep reflection của module đích | Framework phản chiếu field/constructor bị chặn |
-| `--add-reads source.module=target.module` | Thêm readability edge giữa modules | Một named module không đọc được module khác |
+| `--add-exports source.module/pkg=target.module` | Exports a package to the target module to allow appropriate Java access | Unexported public/internal type |
+| `--add-opens source.module/pkg=target.module` | Opens a package for deep reflection by the target module | Framework blocked from reflecting fields/constructors |
+| `--add-reads source.module=target.module` | Adds a readability edge between modules | A named module cannot read another module |
 
-`ALL-UNNAMED` có thể làm đích cho các option phù hợp khi code đích ở classpath. Những flag này **thay đổi chính sách đóng gói của runtime**, không giải quyết nguyên nhân thiếu JAR hay phiên bản bytecode sai. Ưu tiên chỉnh dependency/module descriptor hoặc nâng cấp framework tương thích; dùng workaround theo module/package cụ thể, có ghi lý do và kế hoạch loại bỏ. Không thêm `ALL-UNNAMED` trên diện rộng chỉ để tắt lỗi mà chưa hiểu.
+`ALL-UNNAMED` can serve as the target for applicable options when target code sits on the classpath. These flags **alter runtime encapsulation policy**; they do not fix missing JARs or mismatched bytecode versions. Prefer fixing dependencies/module descriptors or upgrading to a compatible framework; use targeted per-module/package workarounds with documented rationale and a removal plan. Do not scatter `ALL-UNNAMED` broadly just to silence errors without understanding why.
 
-### 3.4. Lệnh kiểm tra module
+### 3.4. Module Inspection Commands
 
 ```bash
-# Xem module có thể quan sát trên runtime đang gọi lệnh.
+# View modules observable on the runtime invoking the command.
 java --list-modules
 
-# Xem descriptor module cụ thể (ví dụ module JDK).
+# Inspect a specific module descriptor (e.g., a JDK module).
 java --describe-module java.sql
 
-# Kiểm tra một JAR có explicit/automatic module metadata.
+# Check whether a JAR has explicit/automatic module metadata.
 jar --describe-module --file lib/example.jar
 
-# Đọc dependency tĩnh của artifact, nếu đã có JAR thật.
+# Read static dependencies of an artifact, given real JARs.
 jdeps --missing-deps --class-path 'lib/*' app.jar
 
-# Khi có ứng dụng module hóa và cấu hình đầy đủ:
+# Given a modularized application and complete configuration:
 java --module-path mods --validate-modules
 ```
 
-Các lệnh trên là **mẫu thao tác trong môi trường chuẩn bị để kiểm tra**, không mặc định phản ánh module graph của tiến trình production nếu lệnh dùng một JDK, file tree hoặc working directory khác. `java --list-modules` liệt kê module *observable* đối với cách gọi đó; đừng nhầm với danh sách module **đã resolve** trong JVM mục tiêu. `--show-module-resolution` có thể được thêm vào **lệnh khởi động tương ứng** để xem quá trình resolution, nhưng tạo một tiến trình thử riêng là thao tác mới, cần dùng đúng artifact/cấu hình.
+These commands are **inspection examples in a prepared environment**, and do not automatically reflect the production process's module graph if run with a different JDK, file tree, or working directory. `java --list-modules` lists *observable* modules for that invocation; do not confuse it with modules **resolved** in the target JVM. `--show-module-resolution` can be added to **the corresponding launch command** to observe resolution, though launching a separate test process is a new invocation requiring matching artifacts/configuration.
 
-### 3.5. Ví dụ module độc lập trên JDK 17+
+### 3.5. Standalone Module Example on JDK 17+
 
-Tạo ba thư mục/đường dẫn dưới đây trong một workspace học tập (lệnh shell minh họa Linux/macOS):
+Create the three directories/paths below in a learning workspace (Linux/macOS shell commands shown):
 
 ```text
 src/
@@ -168,14 +168,14 @@ src/
 mods/
 ```
 
-Nội dung `src/demo.paths/module-info.java`:
+Contents of `src/demo.paths/module-info.java`:
 
 ```java
 module demo.paths {
 }
 ```
 
-Nội dung `src/demo.paths/demo/paths/Main.java`:
+Contents of `src/demo.paths/demo/paths/Main.java`:
 
 ```java
 package demo.paths;
@@ -190,7 +190,7 @@ public class Main {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 mkdir -p mods/demo.paths
@@ -198,37 +198,37 @@ javac -d mods/demo.paths src/demo.paths/module-info.java src/demo.paths/demo/pat
 java --module-path mods -m demo.paths/demo.paths.Main
 ```
 
-Stdout trên JDK 17+:
+Stdout on JDK 17+:
 
 ```text
 module=demo.paths
 reads.java.base=true
 ```
 
-`java.base` được tất cả module đọc theo quy tắc module system, dù ví dụ không khai báo `requires java.base`. Trong ứng dụng thực, `module-info.java` phải khai báo các quan hệ phù hợp; ví dụ nhỏ trên chỉ chứng minh cơ chế tên module và readability mặc định.
+`java.base` is read by all modules under module system rules, even though the example does not declare `requires java.base`. In real applications, `module-info.java` must declare appropriate relationships; this small example merely demonstrates module naming and default readability.
 
-## 4. Class loader và nguồn gốc class/resource đang được nạp
+## 4. Class Loaders and Origins of Loaded Classes/Resources
 
-### 4.1. Tên class chưa đủ để xác định phiên bản
+### 4.1. Class Name Alone Is Not Enough to Identify Version
 
-Thứ tự quen thuộc của built-in loader là **bootstrap → platform → application**; loader tùy chỉnh có thể đi theo mô hình khác, như child-first trong một số plugin container. Khi một class được hỏi từ một loader, delegation thường ảnh hưởng class nào thực sự định nghĩa class đó. Vì vậy, log “có file `foo.jar`” chưa đủ để xác định `com.example.Foo` đang dùng từ đó.
+The familiar built-in loader hierarchy is **bootstrap → platform → application**; custom loaders can follow different models, such as child-first in some plugin containers. When a class is requested from a loader, delegation usually determines which loader actually defines it. Hence, a log saying “file `foo.jar` exists” is not enough to confirm `com.example.Foo` came from it.
 
-Chọn theo triệu chứng:
+Choose by symptom:
 
-| Cần biết | Cách lấy bằng chứng | Giới hạn |
+| What you need to know | How to get evidence | Limitations |
 | --- | --- | --- |
-| Class có thuộc named module? | `SomeClass.class.getModule()` | Class trong unnamed module vẫn có module object |
-| Class do loader nào định nghĩa? | `SomeClass.class.getClassLoader()` | `null` có thể biểu thị bootstrap, không phải thiếu loader |
-| Class được nạp từ artifact nào? | `getProtectionDomain().getCodeSource()`; resource URL; class load log | `CodeSource` có thể `null` hoặc không đủ với generated/nested classes |
-| Cùng resource có nhiều bản? | `ClassLoader.getResources("...")` | Tập và thứ tự kết quả phụ thuộc loader |
-| Còn những loader nào trong JVM? | `jcmd <pid> VM.classloaders` hoặc `VM.classloader_stats` nếu hỗ trợ | Không chỉ ra tất cả mối quan hệ package/version bằng một lệnh |
-| Class nào vừa load từ đâu theo thời gian? | `-Xlog:class+load=info` | Phải bật recording/log tương ứng; có overhead và lượng log |
+| Does the class belong to a named module? | `SomeClass.class.getModule()` | Classes in the unnamed module still have a `Module` object |
+| Which loader defined the class? | `SomeClass.class.getClassLoader()` | `null` can signify bootstrap, not a missing loader |
+| Which artifact was the class loaded from? | `getProtectionDomain().getCodeSource()`; resource URL; class load log | `CodeSource` can be `null` or insufficient for generated/nested classes |
+| Are there multiple copies of a resource? | `ClassLoader.getResources("...")` | Result set and order depend on the loader |
+| What other loaders exist in the JVM? | `jcmd <pid> VM.classloaders` or `VM.classloader_stats` if supported | Does not show all package/version relationships in one command |
+| Which classes loaded from where over time? | `-Xlog:class+load=info` | Must enable logging/recording; adds overhead and log volume |
 
-Khi thấy `ClassCastException: com.example.Plugin cannot be cast to com.example.Plugin`, cần xem **hai class loader khác nhau**, chứ không vội đổi kiểu ép cast. Với `ServiceLoader`, thread context class loader và module layer cũng có thể quyết định provider nào được tìm.
+When encountering `ClassCastException: com.example.Plugin cannot be cast to com.example.Plugin`, look for **two different class loaders** rather than rushing to change the cast. With `ServiceLoader`, the thread context class loader and module layer can also decide which provider is found.
 
-### 4.2. Chương trình quan sát an toàn, có output xác định
+### 4.2. Safe Observation Program with Deterministic Output
 
-Lưu file **`RuntimePathProbe.java`**:
+Save the file **`RuntimePathProbe.java`**:
 
 ```java
 public class RuntimePathProbe {
@@ -246,14 +246,14 @@ public class RuntimePathProbe {
 }
 ```
 
-Biên dịch và chạy **ở chế độ classpath** bằng JDK 17+:
+Compile and run **in classpath mode** with JDK 17+:
 
 ```bash
 javac RuntimePathProbe.java
 java -cp . RuntimePathProbe
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 app.named=false
@@ -262,11 +262,11 @@ core.bootstrap=true
 app.resource.found=true
 ```
 
-`RuntimePathProbe` chạy từ classpath nên thuộc unnamed module; `ArrayList` nằm trong `java.base` và do bootstrap loader định nghĩa. `getResource` trả về URL của file class trên classpath. Nếu thay đổi sang một deployment khác, những phép đo này phải chạy **trong cùng kiểu launcher/class loader của ứng dụng đó**; bản chạy thử đơn giản không chứng minh framework production nạp dependency theo cùng cách.
+`RuntimePathProbe` runs from the classpath so it belongs to the unnamed module; `ArrayList` resides in `java.base` and is defined by the bootstrap loader. `getResource` returns the URL of the class file on the classpath. When moving to a different deployment, these probes must run **under the same launcher/class loader style as that application**; a simple test run does not prove a production framework loads dependencies identically.
 
-### 4.3. Đoạn mã truy vết nguồn gốc lớp
+### 4.3. Snippet for Tracing Class Origin
 
-Trong code chẩn đoán có thể ghi một thông tin tối thiểu, đã lọc dữ liệu nhạy cảm:
+In diagnostic code, you can log minimal, sanitized details:
 
 ```java
 Class<?> type = com.example.api.Contract.class;
@@ -283,69 +283,69 @@ System.out.println("loader=" + loader);
 System.out.println("codeSource=" + sourceUrl);
 ```
 
-Đây là **snippet minh họa**, chưa thể compile độc lập vì `com.example.api.Contract` phải được thay bằng class thật trong dự án. `CodeSource` có thể thiếu; một URL trỏ vào nested JAR hoặc jar đã bị relocate/shade cần được giải thích theo launcher cụ thể. Không tự đăng đường dẫn chứa tên tài khoản hoặc dữ liệu nhạy cảm lên log công khai.
+This is an **illustrative snippet** and cannot compile standalone because `com.example.api.Contract` must be replaced with an actual project class. `CodeSource` may be missing; a URL pointing to a nested JAR or shaded/relocated JAR must be interpreted according to the specific launcher. Do not log paths containing account names or sensitive data to public logs.
 
-Khi nghi duplicate resource, cân nhắc liệt kê bằng `getResources(...)` trong **đúng class loader** (không chỉ system loader). Ghi số lượng, loader identity, URL đã làm sạch. Nếu dùng reflection `Class.forName(name)`, mặc định nó có thể kích hoạt class initialization; khi chỉ muốn kiểm tra khả năng tìm class, dùng overload `Class.forName(name, false, loader)` và vẫn lưu ý class linkage có thể phát sinh.
+When suspecting duplicate resources, consider enumerating with `getResources(...)` on **the right class loader** (not just the system loader). Record count, loader identity, and sanitized URLs. If using reflection `Class.forName(name)`, by default it can trigger class initialization; when you only want to check class lookup, use the `Class.forName(name, false, loader)` overload and still note that class linkage can occur.
 
-### 4.4. Class loading logging và class loader thống kê
+### 4.4. Class Loading Logging and Class Loader Statistics
 
-Một run thử trên Linux/macOS có thể bật:
+A test run on Linux/macOS can enable:
 
 ```bash
 java '-Xlog:class+load=info:file=classes.log:time,level,tags:filecount=3,filesize=20M' \
      -cp 'classes:lib/*' com.example.Main
 ```
 
-`classes.log` ghi thông tin class loading theo cấu hình HotSpot/JDK; dung lượng tăng theo tải và lượng class nạp. Đây là **lệnh minh họa** cần thay bằng main class/args thật, và dùng trong staging/canary hoặc cửa sổ được cho phép; đừng mặc định bật mức log này lâu dài trên mọi instance. Với JVM đã chạy, `jcmd <pid> VM.classloaders` và `VM.classloader_stats` cho ảnh chụp cấu trúc/thống kê nếu command hỗ trợ. Chúng không cho bản đồ dependency chính xác bằng việc điều tra class quan tâm.
+`classes.log` records class loading per HotSpot/JDK configuration; volume grows with load and number of loaded classes. This is an **illustrative command** requiring real main class/args, intended for staging/canary or approved windows; do not enable this log level permanently across all instances by default. On a running JVM, `jcmd <pid> VM.classloaders` and `VM.classloader_stats` give a snapshot of loader structure/stats if supported. They do not map dependencies as precisely as inspecting the target class directly.
 
-## 5. Native library: Java tìm tên, OS phải tải được file và dependency
+## 5. Native Libraries: Java Searches by Name, the OS Must Load the File and Dependencies
 
-### 5.1. Hai đường nạp khác nhau
+### 5.1. Two Different Loading Paths
 
-`System.loadLibrary("codec")` truyền **tên logic**, không kèm prefix, extension hoặc path; nền tảng có thể ánh xạ điển hình thành `libcodec.so` trên Linux, `libcodec.dylib` trên macOS hoặc `codec.dll` trên Windows. `System.mapLibraryName("codec")` giúp xem ánh xạ trên JVM thực. Quá trình tìm thư viện phụ thuộc implementation, cấu hình `java.library.path` và hệ điều hành.
+`System.loadLibrary("codec")` takes a **logical name** without prefix, extension, or path; platforms typically map it to `libcodec.so` on Linux, `libcodec.dylib` on macOS, or `codec.dll` on Windows. `System.mapLibraryName("codec")` shows the mapping on the live JVM. Library lookup depends on implementation, `java.library.path`, and the OS.
 
-`System.load("/opt/app/native/libcodec.so")` dùng **đường dẫn tuyệt đối** tới file (minh họa Linux), bỏ khâu tìm theo tên logic của `loadLibrary`. Cả hai cuối cùng vẫn phụ thuộc OS dynamic loader và các thư viện thứ cấp.
+`System.load("/opt/app/native/libcodec.so")` uses an **absolute file path** (Linux example), bypassing `loadLibrary`'s logical-name search. Both ultimately rely on the OS dynamic loader and secondary libraries.
 
-Ví dụ chỉ minh họa, **không chạy được nếu máy không có native artifact**:
+Illustrative example only—**will not run if the machine lacks the native artifact**:
 
 ```java
-// Chỉ chạy khi JNI library có thật và tương thích.
-System.loadLibrary("codec"); // Tìm bằng tên logic.
-System.load("/opt/app/native/libcodec.so"); // Đường dẫn tuyệt đối.
+// Run only when the real, compatible JNI library is present.
+System.loadLibrary("codec"); // Lookup by logical name.
+System.load("/opt/app/native/libcodec.so"); // Absolute path.
 ```
 
-Không dùng cả hai câu trong một luồng startup chỉ để “thử may”. Chọn một cách nạp đúng theo sản phẩm; log lỗi đầu tiên, xác định thư viện ứng dụng và dependent libraries, kiểm tra phiên bản và kiến trúc.
+Do not call both statements in one startup flow just to “try your luck”. Pick one loading approach matching your product; log the first error, identify the app library and its dependent libraries, and check version and architecture.
 
-### 5.2. `java.library.path` khác các biến đường dẫn của OS
+### 5.2. `java.library.path` Differs from OS Path Variables
 
-| Thuộc tính hoặc biến | Ảnh hưởng điển hình | Cần kiểm chứng |
+| Property or variable | Typical effect | What to verify |
 | --- | --- | --- |
-| `-Djava.library.path=...` | Các thư mục JVM dùng để tìm native library theo tên | Giá trị runtime, đường dẫn có tồn tại/truy cập được; thay đổi property sau startup không là cách cấu hình nạp library được bảo đảm |
-| `LD_LIBRARY_PATH` (Linux) | Đường tìm kiếm các shared objects của dynamic loader theo điều kiện hệ thống | Startup environment, `RPATH`/`RUNPATH`, quyền và cơ chế bảo mật |
-| `DYLD_LIBRARY_PATH` (macOS) | Một nguồn thông tin cho dynamic loader macOS | System Integrity Protection / ký mã / policy có thể hạn chế ảnh hưởng |
-| `PATH` (Windows) | Có thể góp phần vào Windows DLL search behavior | Search order thực còn phụ thuộc Windows loader flags, API và thư mục ứng dụng |
-| `-agentpath` / `-agentlib` | Nạp native agent theo JVM option | Agent version/ABI, option, quyền; agent thay đổi hành vi JVM |
-| `java.home` / `JAVA_HOME` | Runtime path thực trong JVM so với biến thường dùng bởi startup scripts | Hai giá trị không bắt buộc đồng nhất |
+| `-Djava.library.path=...` | Directories the JVM searches for native libraries by name | Runtime value, whether paths exist/are accessible; mutating the property after startup is not guaranteed to reconfigure library lookup |
+| `LD_LIBRARY_PATH` (Linux) | Dynamic loader search path for shared objects subject to system rules | Startup environment, `RPATH`/`RUNPATH`, permissions, and security mechanisms |
+| `DYLD_LIBRARY_PATH` (macOS) | One source of paths for the macOS dynamic loader | System Integrity Protection / code signing / policies may restrict its effect |
+| `PATH` (Windows) | Can contribute to Windows DLL search behavior | Actual search order also depends on Windows loader flags, APIs, and app directory |
+| `-agentpath` / `-agentlib` | Loads a native agent via JVM option | Agent version/ABI, options, permissions; agents alter JVM behavior |
+| `java.home` / `JAVA_HOME` | Actual runtime path inside the JVM vs. variable often used by startup scripts | The two values do not have to match |
 
-**Phân biệt hai câu hỏi:** “Java tìm thấy thư viện cấp một chưa?” và “OS loader có giải quyết được **mọi thư viện phụ thuộc** của nó không?”. Dù `/opt/app/native/libcodec.so` tồn tại, lời gọi nạp vẫn có thể thất bại vì nó cần `libssl.so`, `libstdc++.so` hoặc thư viện khác mà runtime image không có.
+**Separate two questions:** “Did Java find the first-level library?” and “Could the OS loader resolve **all of its dependent libraries**?” Even if `/opt/app/native/libcodec.so` exists, loading can still fail because it needs `libssl.so`, `libstdc++.so`, or another library absent from the runtime image.
 
-### 5.3. Các nhóm lỗi JNI/native thường gặp
+### 5.3. Common JNI/Native Error Categories
 
-| Biểu hiện | Nhánh kiểm tra | Bằng chứng cụ thể |
+| Symptom | Investigation branch | Concrete evidence |
 | --- | --- | --- |
-| `no codec in java.library.path` | Thư viện cấp một không được tìm theo tên logic | `System.mapLibraryName`, `java.library.path`, file path, quyền |
-| `cannot open shared object file` | File hoặc thư viện phụ thuộc thiếu / loader search path sai | Full error message, `readelf -d`, OS loader diagnostics |
-| `wrong ELF class`, `bad CPU type`, DLL architecture mismatch | 32/64-bit, CPU architecture, ABI sai | `file`, `readelf -h`, `os.arch`, container image architecture |
-| `undefined symbol` / incompatible version | Native ABI, symbol hoặc dependency version sai | Dynamic symbols, `SONAME`, `RPATH`/`RUNPATH`, exact artifact build |
-| `Native Library ... already loaded in another classloader` | Một native library nạp qua loader khác nhau | Class loader owning JNI wrapper, plugin reload, lifecycle |
-| `UnsatisfiedLinkError` khi gọi method native | Method JNI không có symbol/registration phù hợp | JNI method signature, package/class name, `RegisterNatives`, compiled library |
-| JVM crash với `SIGSEGV`/`EXCEPTION_ACCESS_VIOLATION` | JNI/FFI/agent hoặc native runtime có thể gây lỗi memory | `hs_err_pid*.log`, native frames, core dump, dependency/ABI |
+| `no codec in java.library.path` | First-level library not found by logical name | `System.mapLibraryName`, `java.library.path`, file path, permissions |
+| `cannot open shared object file` | Missing file or dependent library / wrong loader search path | Full error message, `readelf -d`, OS loader diagnostics |
+| `wrong ELF class`, `bad CPU type`, DLL architecture mismatch | Wrong 32/64-bitness, CPU architecture, or ABI | `file`, `readelf -h`, `os.arch`, container image architecture |
+| `undefined symbol` / incompatible version | Wrong native ABI, symbol, or dependency version | Dynamic symbols, `SONAME`, `RPATH`/`RUNPATH`, exact artifact build |
+| `Native Library ... already loaded in another classloader` | Same native library loaded across different loaders | Class loader owning the JNI wrapper, plugin reload, lifecycle |
+| `UnsatisfiedLinkError` when calling native method | JNI method lacks matching symbol/registration | JNI method signature, package/class name, `RegisterNatives`, compiled library |
+| JVM crash with `SIGSEGV`/`EXCEPTION_ACCESS_VIOLATION` | JNI/FFI/agent or native runtime may have caused a memory fault | `hs_err_pid*.log`, native frames, core dump, dependency/ABI |
 
-Một `UnsatisfiedLinkError` **không nhất thiết** là thiếu file `.so`: có thể do dependency của file thiếu, ABI không tương thích, method JNI chưa được liên kết, hoặc class loader ownership. Phải đọc **thông báo gốc cùng cause và native loader diagnostics**.
+An `UnsatisfiedLinkError` **does not necessarily** mean a missing `.so` file: it can stem from a missing dependency of that file, an incompatible ABI, an unbound JNI method, or class loader ownership. Read **the original message along with causes and native loader diagnostics**.
 
-### 5.4. Công cụ đọc-only để kiểm tra native artifacts
+### 5.4. Read-Only Tools for Inspecting Native Artifacts
 
-Trên Linux, với **đúng file đã được triển khai**:
+On Linux, against **the exact deployed file**:
 
 ```bash
 file /opt/app/native/libcodec.so
@@ -353,52 +353,52 @@ readelf -h /opt/app/native/libcodec.so
 readelf -d /opt/app/native/libcodec.so
 ```
 
-`readelf -h` cung cấp kiến trúc/định dạng ELF; `readelf -d` có thể cho `NEEDED`, `RPATH` và `RUNPATH`. `ldd` hữu ích với **binary đáng tin cậy**, nhưng đừng chạy nó trên thư viện không tin cậy vì trên một số hệ thống/cấu hình có rủi ro thực thi code. Trên macOS có `otool -L`; trên Windows có `dumpbin /DEPENDENTS` nếu công cụ phù hợp được cài. Những công cụ này không phải thành phần bắt buộc của JDK và có thể không hiện diện trong distroless container.
+`readelf -h` shows ELF architecture/format; `readelf -d` can reveal `NEEDED`, `RPATH`, and `RUNPATH`. `ldd` is useful on **trusted binaries**, but do not run it on untrusted libraries because on some systems/configs it carries code-execution risks. On macOS there is `otool -L`; on Windows `dumpbin /DEPENDENTS` if appropriate tools are installed. These tools are not mandatory parts of a JDK and may be absent in distroless containers.
 
-Với JVM đang chạy, `jcmd <pid> VM.dynlibs` (nếu HotSpot hỗ trợ) liệt kê các shared libraries **đã được nạp**. Thiếu tên thư viện trong danh sách có thể do library chưa được yêu cầu hoặc đã thất bại khi load; không đủ để kết luận đơn độc. Có thể đối chiếu với OS process mappings trong đúng PID namespace và quyền truy cập.
+For a running JVM, `jcmd <pid> VM.dynlibs` (if supported by HotSpot) lists **already loaded** shared libraries. A library's absence from the list may mean it has not been requested yet or failed to load; it is not enough on its own to conclude. Cross-check with OS process memory mappings in the proper PID namespace and access permissions.
 
-### 5.5. Container, libc và kiến trúc
+### 5.5. Containers, libc, and Architecture
 
-Thư viện được biên dịch cho Linux/glibc không đương nhiên chạy trên image Linux/musl; file ARM64 không dùng được trên x86_64; Linux `.so` không thể được dùng như Windows `.dll`. Build pipeline có thể xuất đúng Java JAR nhưng mang theo native artifacts theo kiến trúc khác. Cần ghi **platform/CPU architecture của cả JVM và thư viện**, libc/native dependency closure, đường dẫn được mount, UID/GID, permission và container image digest. Không suy ra khả năng nạp native chỉ từ tên file.
+A library compiled for Linux/glibc will not automatically run on a Linux/musl image; ARM64 binaries cannot run on x86_64; Linux `.so` files cannot be used as Windows `.dll` files. A build pipeline may ship the right Java JAR yet bundle native artifacts for a different architecture. Record **platform/CPU architecture of both JVM and library**, libc/native dependency closure, mounted paths, UID/GID, permissions, and container image digest. Never infer native loadability from filename alone.
 
-## 6. Cấu hình môi trường nào thật sự ảnh hưởng tới JVM?
+## 6. Which Environment Configurations Actually Affect the JVM?
 
-### 6.1. Lệnh launcher, option injection và system properties
+### 6.1. Launcher Commands, Option Injection, and System Properties
 
-Các yếu tố làm startup khác nhau có thể gồm:
+Factors causing startup differences include:
 
-- **Executable Java thực:** script gọi `$JAVA_HOME/bin/java` hoặc chọn qua `PATH`; trong container có thể là JRE custom image.
-- **Tham số launcher:** `-cp`, `-jar`, `--module-path`, `-m`, `--add-modules`, `--add-opens`, `-Dkey=value`, `-javaagent`, `-agentpath`; thứ tự và đối tượng áp dụng có ý nghĩa.
-- **`JDK_JAVA_OPTIONS`:** Java launcher có thể thêm option từ biến này vào trước option trên command line theo quy tắc JDK; phần khác vẫn phụ thuộc launcher/container script.
-- **`JAVA_TOOL_OPTIONS`:** có thể tác động đến JVM options ở những cách khởi chạy thích hợp.
-- **`_JAVA_OPTIONS`:** biến thường gặp ở một số HotSpot môi trường; không coi là API chuẩn có mặt trên mọi JVM.
-- **Application config:** environment variables của framework, file cấu hình, arguments sau main class/JAR, profiles, secret mounts; có thể bị framework quy định precedence khác nhau.
+- **Actual Java executable:** scripts may invoke `$JAVA_HOME/bin/java` or pick via `PATH`; in containers it may be a custom JRE image.
+- **Launcher parameters:** `-cp`, `-jar`, `--module-path`, `-m`, `--add-modules`, `--add-opens`, `-Dkey=value`, `-javaagent`, `-agentpath`; order and target matter.
+- **`JDK_JAVA_OPTIONS`:** the Java launcher can prepend options from this variable before command-line options per JDK rules; other aspects depend on launcher/container scripts.
+- **`JAVA_TOOL_OPTIONS`:** can inject JVM options under supported launch conditions.
+- **`_JAVA_OPTIONS`:** seen in some HotSpot environments; do not treat it as a standard API available across all JVMs.
+- **Application config:** framework environment variables, config files, arguments after main class/JAR, profiles, secret mounts; frameworks may enforce distinct precedence rules.
 
-Ví dụ cách gọi:
+Example invocation:
 
 ```bash
 java -Dapp.mode=prod -cp 'classes:lib/*' com.example.Main --port=8080
 ```
 
-Ở đây `-Dapp.mode=prod` là **JVM system property**; `--port=8080` xuất hiện **sau** tên main class nên là **application argument**, không phải Java launcher option. Nếu script tự xây dựng command line, đọc script *phiên bản triển khai* và kết quả launch thực; đừng mặc định thứ tự precedence của một framework mà chưa kiểm tra tài liệu của framework.
+Here `-Dapp.mode=prod` is a **JVM system property**; `--port=8080` appears **after** the main class name so it is an **application argument**, not a Java launcher option. If a script builds the command line dynamically, read the *deployed version* of the script and actual launch result; never assume a framework's precedence order without checking its documentation.
 
-**Lưu ý bảo mật:** `VM.command_line`, `VM.system_properties`, process arguments, environment variables và app configs có thể chứa token/password hoặc đường dẫn nhạy cảm. Chỉ thu thập bằng quyền được phép, giới hạn trường cần xem và lọc trước khi chia sẻ; không dump toàn bộ `/proc/<pid>/environ` hay `printenv` lên chat/issue/log công khai.
+**Security note:** `VM.command_line`, `VM.system_properties`, process arguments, environment variables, and app configs can contain tokens/passwords or sensitive paths. Collect only with authorized permissions, limit inspected fields, and redact before sharing; never dump raw `/proc/<pid>/environ` or `printenv` into public chats/issues/logs.
 
-### 6.2. Working directory và đường dẫn tương đối
+### 6.2. Working Directory and Relative Paths
 
-Cùng lệnh `java -cp 'lib/*' Main` có thể chạy khác khi `cwd=/opt/app` và khi `cwd=/` vì `lib/*` trỏ tới hai vị trí khác. Tương tự, đường dẫn như `config/app.yml`, `./native` hay một file keystore tương đối phụ thuộc working directory hoặc cơ chế resolve riêng của framework.
+The same command `java -cp 'lib/*' Main` can behave differently when `cwd=/opt/app` versus `cwd=/` because `lib/*` points to two different locations. Similarly, paths like `config/app.yml`, `./native`, or a relative keystore depend on the working directory or the framework's resolution mechanism.
 
-Trong Java:
+In Java:
 
-- `System.getProperty("user.dir")` phản ánh thuộc tính directory liên quan runtime; thường dùng để giải thích đường dẫn tương đối trong Java APIs.
-- OS process current working directory là một sự thật ở mức tiến trình; trên Linux có thể xem `/proc/<pid>/cwd` nếu được phép.
-- `System.getProperty("java.home")` mô tả Java runtime đang chạy; `JAVA_HOME` chỉ là biến môi trường có thể dùng để chọn executable trong startup script.
+- `System.getProperty("user.dir")` reflects the runtime directory property; commonly used to resolve relative paths in Java APIs.
+- The OS process current working directory is a process-level fact; on Linux you can inspect `/proc/<pid>/cwd` if permitted.
+- `System.getProperty("java.home")` describes the running Java runtime; `JAVA_HOME` is merely an environment variable that startup scripts may use to pick an executable.
 
-Không “chữa” bằng cách thêm một đường dẫn tuyệt đối hard-code cho mọi môi trường. Trước tiên xác định đường dẫn kỳ vọng, nơi file tồn tại thật, permission và cách ứng dụng xây đường dẫn; sau đó sửa packaging/deployment/config một cách có thể tái hiện.
+Do not “fix” issues by hardcoding an absolute path across all environments. First identify the expected path, where the file actually resides, permissions, and how the app constructs paths; then fix packaging/deployment/config reproducibly.
 
-### 6.3. Environment tại thời điểm process start khác shell của người điều tra
+### 6.3. Environment at Process Start Differs from the Investigator's Shell
 
-Một terminal mở sau sự cố có thể có `PATH`, `JAVA_HOME`, timezone hoặc proxy khác so với service systemd/Kubernetes. Các biến môi trường được **kế thừa khi process bắt đầu** (trừ cơ chế thay đổi đặc biệt trong tiến trình); sửa biến trong shell khác không cập nhật tự động JVM đang chạy. Có thể có các nguồn cấu hình chồng lên nhau:
+A terminal opened after an incident may have a different `PATH`, `JAVA_HOME`, timezone, or proxy than the systemd/Kubernetes service. Environment variables are **inherited when the process starts** (barring special in-process changes); editing variables in another shell does not automatically update a running JVM. Layered configuration sources may look like:
 
 ```text
 Image / OS defaults
@@ -408,23 +408,23 @@ Image / OS defaults
    -> effective behavior inside the running process
 ```
 
-Sơ đồ là luồng điều tra, **không phải một thứ tự override tổng quát** cho mọi framework. Trong Spring Boot hay ứng dụng có config framework khác, precedence từng property do hệ thống cấu hình đó quyết định, cần xác minh theo version.
+This diagram is an investigation flow, **not a universal override precedence** for every framework. In Spring Boot or apps with other config frameworks, per-property precedence is governed by that config system and must be verified per version.
 
-### 6.4. File mount, quyền, case sensitivity và đường dẫn có khoảng trắng
+### 6.4. File Mounts, Permissions, Case Sensitivity, and Paths with Spaces
 
-- Linux thường phân biệt chữ hoa/chữ thường cho filename; Windows có hành vi khác. Một JAR/resource path đúng trên máy này có thể sai trên máy kia.
-- `-cp 'my libs/*'` phải được quote đúng trên shell tương ứng; nếu path bị tách thành hai args, main class sẽ bị hiểu sai.
-- JAR có thể ở đúng path nhưng user chạy Java không có quyền đọc; native library có thể cần quyền/trust policy phù hợp.
-- Kubernetes ConfigMap/Secret mounts, symlink, init container và immutable image digest có thể khiến file thực không giống local build output.
-- Fat JAR có thể chứa thư viện ở entry nội bộ khác với path người vận hành mong đợi; cần hiểu launcher.
+- Linux typically uses case-sensitive filenames; Windows behaves differently. A JAR/resource path valid on one OS may fail on another.
+- `-cp 'my libs/*'` must be quoted properly in the corresponding shell; if split into two args, the main class will be misparsed.
+- A JAR may sit at the right path yet the Java user lacks read permission; a native library may require appropriate permissions/trust policy.
+- Kubernetes ConfigMap/Secret mounts, symlinks, init containers, and immutable image digests can make deployed files differ from local build output.
+- Fat JARs may store libraries at internal entries differing from the path operators expect; understand the launcher.
 
-Nếu config mất trên production, kiểm tra **path tuyệt đối sau resolve**, file existence, manifest/packaging và process identity. Đừng thử chmod 777 hoặc chỉnh file system rộng chỉ để xem lỗi có biến mất; điều này làm mất dấu nguyên nhân gốc và có rủi ro.
+If config goes missing in production, verify **the resolved absolute path**, file existence, manifest/packaging, and process identity. Do not test `chmod 777` or broad filesystem edits just to see if the error disappears; that obscures root cause and introduces risk.
 
-## 7. Chẩn đoán một JVM đang chạy bằng chứng cứ thu thập có kiểm soát
+## 7. Diagnosing a Running JVM with Controlled Evidence Collection
 
-### 7.1. Xác định đúng process trước khi xem cấu hình
+### 7.1. Confirming the Right Process Before Reading Configuration
 
-Một lộ trình read-only thường bắt đầu với thông tin workload/pod/service và PID, rồi dùng công cụ JDK tương ứng. Ví dụ trên hệ thống có JDK tools và quyền attach:
+A read-only workflow usually starts with workload/pod/service info and PID, then uses the corresponding JDK tools. For example, on a system with JDK tools and attach permissions:
 
 ```bash
 jcmd -l
@@ -435,188 +435,188 @@ jcmd 12345 help VM.classloaders
 jcmd 12345 help VM.dynlibs
 ```
 
-`12345` là PID ví dụ; trên container phải tính đúng PID namespace và user có quyền. `jcmd -l` có thể không liệt kê JVM trong container khác; lúc đó đối chiếu process/container runtime phù hợp. `VM.command_line` cho launch arguments của JVM đó; `VM.flags` cho các flag HotSpot được nêu; `VM.version` cho runtime thật. `jcmd <pid> help`/`help <command>` là nguồn chuẩn để xem command có tồn tại và tác động trên JVM cụ thể. Khi vấn đề là path, native lib hoặc class loader, chỉ gọi command cần thiết thay vì thu toàn bộ JVM data.
+`12345` is an example PID; in containers account for the right PID namespace and authorized user. `jcmd -l` may omit JVMs in another container; cross-check with the appropriate process/container runtime. `VM.command_line` shows that JVM's launch arguments; `VM.flags` shows listed HotSpot flags; `VM.version` shows the actual runtime. `jcmd <pid> help`/`help <command>` is the authoritative way to verify command availability and impact on a specific JVM. When the problem involves paths, native libs, or class loaders, invoke only the needed commands instead of dumping all JVM data.
 
-Có thể xem `VM.system_properties` nếu cần điều tra `java.class.path`, `java.library.path`, `java.home`, `user.dir`, nhưng kết quả có thể chứa secrets nên **đọc trong kênh được kiểm soát và chỉ xuất phần đã làm sạch**. Chỉ riêng `jcmd` command line cũng có thể chứa secret trong `-D...`. Với case nhạy cảm, ưu tiên phép đo nội bộ đã whitelist field.
+You can check `VM.system_properties` if you need to inspect `java.class.path`, `java.library.path`, `java.home`, or `user.dir`, but output can contain secrets, so **read in a controlled channel and export only sanitized excerpts**. Even `jcmd` command lines alone can carry secrets inside `-D...`. For sensitive cases, prefer an internal probe with allowlisted fields.
 
-### 7.2. Bộ bằng chứng tối thiểu theo câu hỏi
+### 7.2. Minimal Evidence Set by Question
 
-| Câu hỏi | Thu trước | Khi chưa đủ |
+| Question | Collect first | When insufficient |
 | --- | --- | --- |
-| “Prod dùng JDK nào?” | `VM.version`, process executable, image digest | Đối chiếu build metadata, libc/OS architecture |
-| “Vì sao thiếu class?” | exception chain, runtime launch mode, classpath/module path | Source của class qua loader/`CodeSource`, `jar tf`, `jdeps` |
-| “Vì sao class có method khác?” | `NoSuchMethodError` signature, JAR versions và hashes | Xác minh class origin theo loader, `javap` API thật |
-| “Vì sao module không resolve?” | Module name, `module-info`, `--module-path` và root set | `--show-module-resolution`, `--validate-modules` với launch cấu hình tương ứng |
-| “Vì sao reflection bị chặn?” | Exception package/module/target, module descriptor | Kiểm tra exports/opens, framework version; workaround hẹp nếu cần |
-| “Vì sao JNI không nạp được?” | Exact `UnsatisfiedLinkError` + system/native paths | OS dynamic dependencies, ABI/arch, `VM.dynlibs` |
-| “Vì sao chỉ fail trong container?” | Image digest, command/args, cwd, mounts, UID, arch, env keys | So diff với instance lành và reproduce trong image tương đương |
+| “Which JDK does prod use?” | `VM.version`, process executable, image digest | Cross-check build metadata, libc/OS architecture |
+| “Why is a class missing?” | Exception chain, runtime launch mode, classpath/module path | Class source via loader/`CodeSource`, `jar tf`, `jdeps` |
+| “Why does the class have a different method?” | `NoSuchMethodError` signature, JAR versions and hashes | Verify class origin by loader, `javap` actual API |
+| “Why won't the module resolve?” | Module name, `module-info`, `--module-path`, and root set | `--show-module-resolution`, `--validate-modules` with matching launch config |
+| “Why is reflection blocked?” | Exception package/module/target, module descriptor | Check exports/opens, framework version; narrow workaround if needed |
+| “Why won't JNI load?” | Exact `UnsatisfiedLinkError` + system/native paths | OS dynamic dependencies, ABI/arch, `VM.dynlibs` |
+| “Why does it fail only in a container?” | Image digest, command/args, cwd, mounts, UID, arch, env keys | Diff against a healthy instance and reproduce in an equivalent image |
 
-**Mục tiêu là tìm sự khác biệt có thể chứng minh**, không phải tạo log/dump lớn. `jcmd` đa số lệnh ở đây là truy vấn ngắn nhưng vẫn có chi phí và yêu cầu quyền, nhất là với class loader có số lượng lớn; mỗi lần cần hạn chế tần suất.
+**The goal is to find provable differences**, not generate massive logs/dumps. Most `jcmd` commands here are short queries, yet they still carry cost and permission requirements, especially with large numbers of class loaders; limit invocation frequency.
 
-### 7.3. Kiểm tra artifact offline mà không chạy application
+### 7.3. Inspecting Artifacts Offline Without Running the Application
 
-Trên máy phân tích có đúng JAR artifacts:
+On an analysis machine holding the exact JAR artifacts:
 
 ```bash
 jar tf app.jar
 jar --describe-module --file app.jar
 jdeps --missing-deps --class-path 'lib/*' app.jar
 
-# Ví dụ kiểm tra public methods đã biên dịch trong bản thư viện nhận diện được.
+# Example checking compiled public methods in an identified library build.
 javap -classpath lib/payments-api.jar -public com.example.payment.Api
 ```
 
-`jar tf` đọc mục trong archive, `jar --describe-module` phân tích module metadata, `jdeps` tìm dependency từ bytecode, `javap` xem chữ ký API. Những lệnh này **không tự chứng minh runtime đã nạp bản JAR đó**; cần đối chiếu hash/đường dẫn đúng instance. Một class được tạo bằng reflection hoặc sinh code tại runtime có thể không xuất hiện trong báo cáo tĩnh.
+`jar tf` lists archive entries, `jar --describe-module` parses module metadata, `jdeps` inspects bytecode dependencies, and `javap` inspects API signatures. These commands **do not by themselves prove the runtime loaded that JAR**; cross-check the hash/path on the exact instance. Classes generated via reflection or runtime codegen may not appear in static reports.
 
-Ghi version artifact từ manifest hoặc build metadata, path đã resolve, checksum/hash nếu quy trình hỗ trợ. Không chỉ dựa vào tên `payments-api.jar` vì cùng tên có thể chứa bytecode khác.
+Record artifact version from manifest or build metadata, resolved path, and checksum/hash if supported by workflow. Do not rely solely on filename `payments-api.jar`, as identically named files can hold different bytecode.
 
-### 7.4. Bật chẩn đoán class loading khi cần
+### 7.4. Enabling Class Loading Diagnostics When Needed
 
-Nếu bằng chứng hiện tại chưa xác định được class nạp từ đâu, một run được kiểm soát có thể dùng `-Xlog:class+load=info` như mục 4.4 để ghi thời điểm/source class loading. Chọn khoảng log ngắn, giới hạn rotation và dung lượng, tính overhead. Trên JVM đang chạy, HotSpot `VM.log` có thể cho phép điều chỉnh unified logging nếu có quyền/cú pháp phù hợp, nhưng đây là **thay đổi trạng thái runtime**; phải có phương án đảo lại và đo ảnh hưởng. Không kích hoạt log chi tiết trên toàn cluster một cách tùy tiện.
+If current evidence has not revealed where a class loaded from, a controlled run can use `-Xlog:class+load=info` as in Section 4.4 to log class-loading timestamps/sources. Choose a short window, configure rotation and size caps, and account for overhead. On a running JVM, HotSpot `VM.log` may allow adjusting unified logging if permissions/syntax match, though that is a **runtime state change**; prepare a rollback plan and measure impact. Never turn on verbose logging across an entire cluster indiscriminately.
 
-## 8. Phân biệt lỗi theo vị trí thất bại
+## 8. Classifying Errors by Failure Point
 
-| Triệu chứng/cụm lỗi | Vùng nghi ngờ đầu tiên | Việc chứng minh trước khi sửa |
+| Symptom / error pattern | First suspect area | What to prove before fixing |
 | --- | --- | --- |
-| `Could not find or load main class` | Main class, `-cp`, FQCN/package, cwd | Launcher mode, class file path trong JAR/dir |
-| `ClassNotFoundException` | Dynamic `loadClass`/reflection, loader và path | Loader đang dùng, class origin, dependency |
-| `NoClassDefFoundError` | Thiếu transitive class hoặc failed initialization | Root cause đầu tiên, static initializer, parent/linking |
-| `NoSuchMethodError` / `NoSuchFieldError` | Binary version mismatch | Signature bytecode, bản class thực tế nạp |
-| `ClassCastException` với hai tên giống nhau | Duplicate classes từ loader khác nhau | Identity của hai `ClassLoader` và artifact |
-| `Module ... not found` | Module path/root resolution | Module name thực, descriptor, module search roots |
-| `InaccessibleObjectException` | Reflection bị chặn bởi JPMS | Module/package nào cần `opens`, vì sao framework chạm vào |
-| `ServiceConfigurationError` | ServiceLoader provider module/JAR metadata | `uses`/`provides` hoặc `META-INF/services` và provider class |
+| `Could not find or load main class` | Main class, `-cp`, FQCN/package, cwd | Launcher mode, class file path inside JAR/dir |
+| `ClassNotFoundException` | Dynamic `loadClass`/reflection, loader and path | Active loader, class origin, dependency |
+| `NoClassDefFoundError` | Missing transitive class or failed initialization | First root cause, static initializer, parent/linking |
+| `NoSuchMethodError` / `NoSuchFieldError` | Binary version mismatch | Bytecode signature, actually loaded class version |
+| `ClassCastException` with two identical names | Duplicate classes from different loaders | Identities of both `ClassLoader`s and artifacts |
+| `Module ... not found` | Module path/root resolution | Actual module name, descriptor, module search roots |
+| `InaccessibleObjectException` | Reflection blocked by JPMS | Which module/package needs `opens`, why framework accesses it |
+| `ServiceConfigurationError` | ServiceLoader provider module/JAR metadata | `uses`/`provides` or `META-INF/services` and provider class |
 | `UnsatisfiedLinkError` | JNI load/search/dependent libs/ABI/method binding | Full native loader error, symbol, library path, architecture |
-| `UnsupportedClassVersionError` | Class được build cho JDK mới hơn runtime | Class file version và JDK của tiến trình |
-| Chỉ fail trên prod/container | Config precedence, cwd, mounts, JDK, CPU/libc | Diff có chứng cứ giữa môi trường lành và lỗi |
+| `UnsupportedClassVersionError` | Class compiled for newer JDK than runtime | Class file version and process JDK |
+| Fails only on prod/container | Config precedence, cwd, mounts, JDK, CPU/libc | Evidence-backed diff between healthy and failing environment |
 
-**Quan hệ cause không phải lúc nào một-một.** Ví dụ `NoClassDefFoundError` có thể là hậu quả của `ExceptionInInitializerError` xảy ra trước đó; `UnsatisfiedLinkError` có thể là không thấy native method symbol dù file đã được nạp. Luôn đi ngược error chain tới lỗi đầu tiên và ghi thời điểm tương ứng.
+**Causal relationships are not always one-to-one.** For example, `NoClassDefFoundError` can result from an earlier `ExceptionInInitializerError`; `UnsatisfiedLinkError` can stem from a missing native method symbol even though the file loaded. Always walk the error chain back to the first failure and note timestamps.
 
-## 9. Quy trình xử lý sự cố: từ triệu chứng đến fix tái hiện được
+## 9. Incident Troubleshooting Workflow: From Symptom to Reproducible Fix
 
-### Bước 1 — Đặt câu hỏi hẹp và chốt identity
+### Step 1 — Narrow the Question and Lock Down Identity
 
-Ghi service, pod/container ID, PID, JVM start/uptime nếu cần, image digest, JDK vendor/version, command line, cwd và thời điểm xảy ra lỗi. Ví dụ: “Trên pod B, vì sao `com.example.Parser` chạy bằng implementation từ JAR cũ dù pipeline vừa deploy bản mới?” tốt hơn “Sửa classpath”.
+Record service, pod/container ID, PID, JVM start/uptime if needed, image digest, JDK vendor/version, command line, cwd, and error timestamp. For example: “On pod B, why does `com.example.Parser` run an implementation from an old JAR even though the pipeline just deployed a new version?” is far better than “Fix classpath”.
 
-### Bước 2 — Xác minh runtime thật
+### Step 2 — Verify the Actual Runtime
 
-Đối chiếu `VM.version`, `VM.command_line`, JVM flags, runtime properties **đã lọc**, process executable, start script/image/manifest. Đảm bảo terminal debug không vô tình dùng JDK khác. Phân biệt JVM launch arguments, app args và framework settings.
+Cross-check `VM.version`, `VM.command_line`, JVM flags, **filtered** runtime properties, process executable, and start script/image/manifest. Ensure the debug terminal is not accidentally using a different JDK. Separate JVM launch arguments, app args, and framework settings.
 
-### Bước 3 — Phân loại đường nạp
+### Step 3 — Classify the Loading Path
 
-- Class bình thường trên classpath → kiểm tra entry, ordering/duplicate JAR, resource URLs, loader.
-- Named module → kiểm tra module descriptors, module path, resolution roots, exports/opens.
-- Custom loader/nested JAR/plugin → dùng API/diagnostics của chính loader, framework packaging, code source.
-- JNI/native → kiểm tra `java.library.path`, file chính, OS dependent libraries, kiến trúc/ABI.
+- Normal class on classpath → check entries, ordering/duplicate JARs, resource URLs, loader.
+- Named module → check module descriptors, module path, resolution roots, exports/opens.
+- Custom loader/nested JAR/plugin → use the loader's own diagnostics/API, framework packaging, code source.
+- JNI/native → check `java.library.path`, main file, OS dependent libraries, architecture/ABI.
 
-Không thay đổi nhiều biến cùng lúc: nếu vừa sửa classpath, đổi JDK và thêm `--add-opens` thì không thể biết nguyên nhân thật.
+Do not change multiple variables at once: if you alter classpath, swap JDKs, and add `--add-opens` together, you cannot know the true cause.
 
-### Bước 4 — Chứng minh file và loader đang được dùng
+### Step 4 — Prove Which File and Loader Are Used
 
-Tìm class origin bằng in-process probe hoặc class loading log, đối chiếu JAR hash và dependency graph. Với native, dùng OS loader diagnostics và `VM.dynlibs` nếu có. Với configuration, kiểm tra effective value trong process (đã redacted) cùng nơi nó được nạp.
+Locate class origin via in-process probe or class-loading logs, verifying JAR hashes and dependency graphs. For native code, use OS loader diagnostics and `VM.dynlibs` if available. For configuration, inspect effective values in-process (redacted) alongside where they were loaded.
 
-### Bước 5 — Dựng bản so sánh “lành vs lỗi”
+### Step 5 — Build a “Healthy vs. Failing” Comparison Table
 
-| Thuộc tính | Instance chạy được | Instance lỗi | Cần kết luận |
+| Attribute | Healthy instance | Failing instance | What to conclude |
 | --- | --- | --- | --- |
-| JDK/Java executable | JDK 17, image A | JDK 17, image B | Cùng major nhưng khác vendor/build hoặc image? |
-| Launcher mode/args | `-cp` và explicit JAR | `-jar` | Phụ thuộc có được nạp theo cùng cơ chế? |
-| Artifact hash | Hash X | Hash Y | Bản nào có method/resource mong muốn? |
-| Class loader/source | System loader/JAR A | Custom loader/JAR B | Runtime thực sự chọn bản nào? |
-| Module graph | Required module resolved | Missing module | Module path/root set/descriptor khác gì? |
-| Native dependencies | glibc build phù hợp | Image musl | ABI/libc mismatch có đúng là nguyên nhân? |
-| cwd/mount/env keys | Có `config/app.yml` | Mount vào chỗ khác | File có tồn tại và được đọc đúng path? |
+| JDK/Java executable | JDK 17, image A | JDK 17, image B | Same major yet different vendor/build or image? |
+| Launcher mode/args | `-cp` and explicit JAR | `-jar` | Are dependencies loaded via the same mechanism? |
+| Artifact hash | Hash X | Hash Y | Which build contains the expected method/resource? |
+| Class loader/source | System loader/JAR A | Custom loader/JAR B | Which version did the runtime actually pick? |
+| Module graph | Required module resolved | Missing module | How do module path/root set/descriptor differ? |
+| Native dependencies | Matching glibc build | musl image | Is ABI/libc mismatch the actual cause? |
+| cwd/mount/env keys | Has `config/app.yml` | Mounted elsewhere | Does the file exist and get read at the right path? |
 
-Giá trị trong bảng là **ví dụ giả định**, không phải ghi nhận từ môi trường cụ thể. So sánh càng chính xác về artifact digest, loader và cwd càng dễ phát hiện sai khác có thể sửa tại build/deploy.
+Values in the table are **hypothetical examples**, not records from a specific environment. The more precise the comparison of artifact digests, loaders, and cwd, the easier it is to pinpoint build/deploy discrepancies to fix.
 
-### Bước 6 — Sửa nhỏ nhất và xác minh
+### Step 6 — Make the Minimal Fix and Verify
 
-- Thiếu JAR → sửa dependency packaging hoặc launcher classpath đúng chỗ.
-- Duplicate/conflicting JAR → chuẩn hóa dependency graph, loại trùng bằng build tool và kiểm tra code origin.
-- JPMS access → điều chỉnh module descriptor hoặc nâng version framework; workaround mở package có phạm vi hẹp nếu cần.
-- Native dependency/ABI → build chọn artifact phù hợp OS/CPU/libc, đóng gói đủ thư viện và đặt đúng loader paths.
-- Config/cwd/secret mount → sửa deployment contract, launch script hoặc cấu hình nguồn phù hợp.
+- Missing JAR → fix dependency packaging or launcher classpath in the right place.
+- Duplicate/conflicting JAR → standardize the dependency graph, deduplicate via build tools, and verify code origin.
+- JPMS access → adjust module descriptor or upgrade framework version; use a narrowly scoped package-opening workaround if needed.
+- Native dependency/ABI → build/package the artifact matching OS/CPU/libc, bundle all required libraries, and set loader paths properly.
+- Config/cwd/secret mount → fix the deployment contract, launch script, or source config appropriately.
 
-Kiểm tra lại bằng **cùng startup mode và image** từng lỗi, rồi quan sát load source, logs và health endpoint. Với production, triển khai/canary theo quy trình và giữ khả năng rollback; không thay đổi runtime flag ngẫu nhiên trên tất cả instance.
+Re-test using **the same startup mode and image** that failed, then inspect load sources, logs, and health endpoints. For production, roll out/canary per procedure while preserving rollback capability; do not tweak runtime flags ad hoc across all instances.
 
-### Bước 7 — Lưu “runtime evidence record”
+### Step 7 — Save a “Runtime Evidence Record”
 
-Một bản ghi ngắn nên gồm: identity của tiến trình/container; cách chạy; JDK version; `java.class.path` hoặc module roots; classloader + code source cho class lỗi; native libs liên quan + ABI; cwd/config keys; artifact hashes; nguyên nhân có bằng chứng; fix và kết quả xác minh. Không lưu secret value, credential hoặc toàn bộ env dump trong tài liệu chia sẻ rộng.
+A brief record should include: process/container identity; launch mode; JDK version; `java.class.path` or module roots; classloader + code source for the failing class; relevant native libs + ABI; cwd/config keys; artifact hashes; evidence-backed root cause; fix and verification results. Never store secret values, credentials, or full env dumps in broadly shared documents.
 
-## 10. Ba ca phân tích minh họa
+## 10. Three Illustrative Case Studies
 
-### Ca A — `NoSuchMethodError` chỉ xuất hiện sau deploy
+### Case A — `NoSuchMethodError` Appears Only After Deployment
 
-**Triệu chứng:** service startup thành công, endpoint thanh toán fail khi gọi `Api.charge(String,long)`. Local test chạy tốt.
+**Symptom:** service starts up cleanly, then the payment endpoint fails calling `Api.charge(String,long)`. Local tests pass.
 
-**Giả thuyết:** bản `payments-api` trong runtime không giống bản compiler đã dùng.
+**Hypothesis:** the `payments-api` version at runtime differs from the version used by the compiler.
 
-**Điểm đo:** exact method descriptor trong stack/error; `javap -public` trên JAR của pod lỗi; class origin của `Api.class` từ đúng loader; kiểm tra hash/version tất cả JAR nghi vấn, classpath và custom loader.
+**Measurement points:** exact method descriptor in stack/error; `javap -public` on the JAR inside the failing pod; class origin of `Api.class` from the right loader; check hashes/versions of all suspect JARs, classpath, and custom loaders.
 
-**Diễn giải:** nếu `Api.class` được định nghĩa từ JAR thiếu method, lỗi nằm ở binary mismatch. Không sửa bằng cách cast, bắt `NoSuchMethodError` rồi retry; cần giải quyết dependency resolution/packaging. Nếu JAR có method đúng, kiểm tra class loader thứ hai, relocation và signature thực khác tên method giống nhau.
+**Interpretation:** if `Api.class` is defined from a JAR lacking the method, the bug is a binary mismatch. Do not work around it by casting, catching `NoSuchMethodError`, and retrying; resolve dependency resolution/packaging. If the JAR has the right method, check secondary class loaders, relocation/shading, and actual signature differences behind identical method names.
 
-### Ca B — `InaccessibleObjectException` sau khi chuyển sang JPMS
+### Case B — `InaccessibleObjectException` After Migrating to JPMS
 
-**Triệu chứng:** framework dùng reflection vào `com.example.model.internal` và bị chặn.
+**Symptom:** a framework uses reflection on `com.example.model.internal` and is blocked.
 
-**Giả thuyết:** named module không mở package cho module chứa framework.
+**Hypothesis:** the named module does not open the package to the module containing the framework.
 
-**Điểm đo:** tên source module, package, target module trong exception; `module-info.java` thực của artifact; module resolution và phiên bản framework. Kiểm tra liệu framework dùng `setAccessible(true)`/deep reflection hay chỉ Java access.
+**Measurement points:** source module name, package, and target module in the exception; actual `module-info.java` of the artifact; module resolution and framework version. Check whether the framework uses `setAccessible(true)`/deep reflection or plain Java access.
 
-**Diễn giải:** `exports` giải quyết public API access nhưng không mặc định cho deep reflection private members; `opens` thường phù hợp hơn cho reflection có kiểm soát. Dùng `--add-opens` theo package/target như biện pháp chẩn đoán tạm thời nếu được phép, rồi sửa descriptor/framework tương thích.
+**Interpretation:** `exports` grants public API access but does not grant deep reflection on private members; `opens` is usually more appropriate for controlled reflection. Use targeted `--add-opens` per package/target as a temporary diagnostic step if permitted, then fix the descriptor or upgrade to a compatible framework.
 
-### Ca C — `UnsatisfiedLinkError` chỉ trên Linux container
+### Case C — `UnsatisfiedLinkError` Only on Linux Containers
 
-**Triệu chứng:** `System.loadLibrary("codec")` hoạt động trên laptop nhưng thất bại trên pod Linux.
+**Symptom:** `System.loadLibrary("codec")` works on a laptop yet fails on a Linux pod.
 
-**Giả thuyết:** thiếu `libcodec.so`, thiếu dependent `.so`, ABI/musl-glibc mismatch hoặc container chạy khác CPU architecture.
+**Hypothesis:** missing `libcodec.so`, missing dependent `.so`, ABI/musl-glibc mismatch, or container running on a different CPU architecture.
 
-**Điểm đo:** full error; `java.library.path` đã lọc; path thực và permission; `file`/`readelf -h`; `readelf -d` để thấy NEEDED/RUNPATH; OS loader diagnostics; image architecture; `VM.dynlibs` nếu library đã tải được.
+**Measurement points:** full error; filtered `java.library.path`; actual paths and permissions; `file`/`readelf -h`; `readelf -d` for `NEEDED`/`RUNPATH`; OS loader diagnostics; image architecture; `VM.dynlibs` if any library loaded.
 
-**Diễn giải:** có file chính chưa đủ; dependent libs hoặc ABI có thể sai. Không thêm bừa `LD_LIBRARY_PATH` toàn cục vì có thể chọn bản native khác cho thư viện không liên quan. Sửa image/native package ở build và chạy lại trên môi trường tương đương.
+**Interpretation:** having the main file is not enough; dependent libs or ABI may be wrong. Do not blindly set a global `LD_LIBRARY_PATH` as it may pick incompatible native builds for unrelated libraries. Fix image/native packaging at build time and re-run in an equivalent environment.
 
-## 11. Những lỗi tư duy cần tránh
+## 11. Thinking Pitfalls to Avoid
 
-1. **Dùng `java -version` từ shell để kết luận JVM production chạy bản đó.** Hỏi đúng PID hoặc executable/image.
-2. **Nhìn `java.class.path` và coi đó là toàn bộ dependency runtime.** Custom loader, module path, nested JAR, dynamic loading nằm ngoài phạm vi một property.
-3. **Dựa vào tên JAR, không kiểm tra nội dung/hash.** Hai file cùng tên có thể khác bytecode.
-4. **Cho rằng mọi module trên `--module-path` đều đã resolved.** Phải xem roots và `requires`.
-5. **Giả định `--add-opens` đồng nghĩa sửa classpath hoặc binary version.** Chúng giải quyết vấn đề quyền reflection, không tạo missing class/method.
-6. **Lẫn `java.library.path` với `LD_LIBRARY_PATH`, hoặc nghĩ file JNI chính tồn tại là đủ.** OS loader còn phụ thuộc các thư viện khác.
-7. **Chỉ tìm type theo tên, bỏ qua classloader identity.** Hai class cùng tên khác loader là hai type khác nhau.
-8. **Bỏ qua cwd, permission và path quoting.** Relative path thay nghĩa giữa IDE, systemd và container.
-9. **Thay đổi system property tại runtime rồi kỳ vọng JVM/OS library search nạp lại tự động.** Những cơ chế đã khởi tạo/cached không được bảo đảm cập nhật.
-10. **Bỏ qua `Caused by` của lỗi đầu tiên.** Exception sau khi class initialization fail thường chỉ là hệ quả.
-11. **Dump toàn bộ args, environment và properties để gửi lên issue.** Rất dễ tiết lộ credentials.
-12. **Bật class loading debug dài hạn trên mọi instance.** Nó thêm overhead và dữ liệu lớn; cần kiểm soát thời gian/tần suất và dung lượng.
-13. **Khắc phục bằng copy JAR hoặc `chmod 777` thủ công trên pod.** Fix không tái lập trong build/deploy và có thể tạo rủi ro bảo mật.
-14. **Sửa đồng thời nhiều thành phần.** Không thể xác định gốc nếu vừa đổi JDK, module flags, dependency và native search path.
+1. **Using shell `java -version` to conclude what production JVM runs.** Query the exact PID or executable/image.
+2. **Reading `java.class.path` and treating it as the entire runtime dependency set.** Custom loaders, module paths, nested JARs, and dynamic loading lie outside one property.
+3. **Relying on JAR filename without checking contents/hash.** Two files with the same name can hold different bytecode.
+4. **Assuming every module on `--module-path` is resolved.** Check roots and `requires`.
+5. **Assuming `--add-opens` fixes classpath or binary version mismatches.** It addresses reflection permissions, not missing classes/methods.
+6. **Confusing `java.library.path` with `LD_LIBRARY_PATH`, or thinking the main JNI file existing is sufficient.** The OS loader depends on transitive libraries too.
+7. **Searching types by name alone while ignoring classloader identity.** Two classes with the same name in different loaders are distinct types.
+8. **Ignoring cwd, permissions, and path quoting.** Relative paths change meaning across IDE, systemd, and containers.
+9. **Changing a system property at runtime and expecting JVM/OS library search to reload automatically.** Already initialized/cached mechanisms are not guaranteed to refresh.
+10. **Ignoring the `Caused by` of the first failure.** Subsequent exceptions after class initialization failure are often mere consequences.
+11. **Dumping full args, environment, and properties into an issue.** This easily leaks credentials.
+12. **Leaving class-loading debug enabled long-term across all instances.** It adds overhead and large logs; control duration/frequency and volume.
+13. **Hotfixing by copying JARs or running `chmod 777` manually on a pod.** The fix is unreproducible in build/deploy and creates security risks.
+14. **Changing multiple components simultaneously.** You cannot isolate root cause if you alter JDK, module flags, dependencies, and native search paths at once.
 
-## 12. Checklist thu thập và xác nhận
+## 12. Collection and Verification Checklist
 
-- [ ] Đúng PID/container/JVM start, đúng thời điểm xảy ra lỗi?
-- [ ] Đã xác minh Java executable, vendor, JDK version và image/artifact digest thực tế?
-- [ ] Đã phân biệt cách chạy `-cp` / `-jar` / `-m` và application arguments?
-- [ ] Đã kiểm tra `JDK_JAVA_OPTIONS`, `JAVA_TOOL_OPTIONS`, `-D` và config precedence ở mức nguồn?
-- [ ] Class lỗi thuộc named hay unnamed module, defining loader nào, code source/resource URL nào?
-- [ ] Classpath entries và module path có đúng, có duplicate/conflicting JAR, module resolution lỗi hay không?
-- [ ] Có phân biệt `ClassNotFoundException`, `NoClassDefFoundError`, `NoSuchMethodError` và lỗi access module?
-- [ ] Với `ServiceLoader`/plugin, đã xem đúng context loader và provider metadata?
-- [ ] Với JNI, đã kiểm tra logical library name, `java.library.path`, OS dependencies, ABI/CPU/libc và quyền?
-- [ ] Đã kiểm tra cwd, đường dẫn tương đối, case sensitivity, mounts và user permissions của tiến trình?
-- [ ] Đã so sánh instance lỗi và instance lành bằng đúng artifact hashes/loader/env **sau khi lọc secrets**?
-- [ ] Fix đã được kiểm chứng trên cùng mode/image, có bằng chứng class/library được load đúng?
+- [ ] Right PID/container/JVM start, at the right time of the failure?
+- [ ] Verified actual Java executable, vendor, JDK version, and image/artifact digest?
+- [ ] Distinguished `-cp` / `-jar` / `-m` launch mode and application arguments?
+- [ ] Checked `JDK_JAVA_OPTIONS`, `JAVA_TOOL_OPTIONS`, `-D`, and config precedence at source level?
+- [ ] Failing class belongs to named or unnamed module, which defining loader, which code source/resource URL?
+- [ ] Are classpath entries and module path correct, with no duplicate/conflicting JARs or module resolution errors?
+- [ ] Distinguished `ClassNotFoundException`, `NoClassDefFoundError`, `NoSuchMethodError`, and module access errors?
+- [ ] For `ServiceLoader`/plugins, checked the right context loader and provider metadata?
+- [ ] For JNI, checked logical library name, `java.library.path`, OS dependencies, ABI/CPU/libc, and permissions?
+- [ ] Checked cwd, relative paths, case sensitivity, mounts, and process user permissions?
+- [ ] Compared failing and healthy instances using exact artifact hashes/loaders/env **after redacting secrets**?
+- [ ] Verified the fix on the same mode/image, with evidence the right class/library loaded?
 
-**Bài tập vận dụng:** một service đóng gói `app.jar` chạy bằng `java -jar app.jar`, người vận hành thêm `-cp lib/new-api.jar` nhưng endpoint vẫn ném `NoSuchMethodError`. Hãy trình bày thứ tự kiểm tra: vì sao `-cp` không hoạt động như dự đoán với `-jar`, dependency được đóng gói/manifest/custom loader thế nào, class `Api` thực sự được nạp bởi loader nào từ file nào, chữ ký method có trùng bytecode không, và cách sửa packaging để tất cả instance có cùng artifact. Đáp án tốt nêu **bằng chứng thu được trước khi thay đổi** cùng phép xác minh sau deploy.
+**Practice exercise:** a service packaged as `app.jar` runs via `java -jar app.jar`; an operator adds `-cp lib/new-api.jar`, yet the endpoint still throws `NoSuchMethodError`. Lay out the inspection sequence: why `-cp` does not work as expected with `-jar`, how dependencies are packaged/manifested/loaded by custom loaders, which loader actually loaded class `Api` from which file, whether the method signature matches bytecode, and how to fix packaging so all instances ship the same artifact. A strong answer states **evidence collected before making changes** along with post-deploy verification.
 
-## Tài liệu tham khảo
+## References
 
 - Oracle Java SE 17, [`java` launcher reference](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html): `-cp`, `-jar`, `-m`, `--module-path`, `JDK_JAVA_OPTIONS`, `-Xlog`.
 - Oracle Java SE 17, [`jcmd` reference](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): `VM.command_line`, `VM.flags`, `VM.system_properties`, `VM.classloaders`, `VM.dynlibs`.
-- Oracle Java SE 17, [`ClassLoader` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html): system loader, classpath, delegated loading và resources.
-- Oracle Java SE 17, [Module system resolution](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/package-summary.html): observable/root modules, readability và resolution.
-- Oracle Java SE 17, [`System` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html): `java.class.path`, `java.library.path`, `System.load` và `System.loadLibrary`.
-- Oracle Java SE 17, [`jdeps` reference](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jdeps.html), [`jar` reference](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jar.html), [`javap` reference](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javap.html): kiểm tra artifact, dependencies và bytecode.
-- Oracle, [Java Native Interface Specification](https://docs.oracle.com/en/java/javase/17/docs/specs/jni/index.html): native method binding, JNI library và interface với mã native.
+- Oracle Java SE 17, [`ClassLoader` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html): system loader, classpath, delegated loading, and resources.
+- Oracle Java SE 17, [Module system resolution](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/package-summary.html): observable/root modules, readability, and resolution.
+- Oracle Java SE 17, [`System` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html): `java.class.path`, `java.library.path`, `System.load`, and `System.loadLibrary`.
+- Oracle Java SE 17, [`jdeps` reference](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jdeps.html), [`jar` reference](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jar.html), [`javap` reference](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javap.html): inspecting artifacts, dependencies, and bytecode.
+- Oracle, [Java Native Interface Specification](https://docs.oracle.com/en/java/javase/17/docs/specs/jni/index.html): native method binding, JNI library, and interface with native code.
 
-Để chẩn đoán môi trường chạy Java một cách tin cậy, luôn ghép **cấu hình launcher thực + module/classloader thực + artifact thực + native dependency thực + OS/container context**. Chỉ khi các lớp này được kiểm chứng cùng một instance và thời điểm, ta mới có thể phân biệt lỗi code với lỗi đóng gói hoặc môi trường.
+To diagnose a Java runtime environment reliably, always pair **actual launcher configuration + actual module/classloader + actual artifact + actual native dependencies + OS/container context**. Only when these layers are verified on the same instance and timestamp can you separate code defects from packaging or environment issues.

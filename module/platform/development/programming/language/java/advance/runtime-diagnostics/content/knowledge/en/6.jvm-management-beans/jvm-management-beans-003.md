@@ -1,24 +1,24 @@
-# 6.3 MemoryMXBean, MemoryPoolMXBean và ý nghĩa used, committed, max, init
+# 6.3 MemoryMXBean, MemoryPoolMXBean, and the meaning of used, committed, max, init
 
-## Mục tiêu học tập
+## Learning objectives
 
-Khi chẩn đoán Java runtime, một dashboard có thể hiển thị **heap used = 600 MiB**, **heap committed = 768 MiB** và **heap max = 1 GiB**. Các giá trị tưởng đơn giản này thường bị đọc sai thành “Java đã chiếm 768 MiB RAM vật lý”, “còn chính xác 424 MiB là chắc chắn cấp phát được” hoặc “heap tăng nghĩa là memory leak”. Trong thực tế, Java Management API cung cấp **những ảnh chụp của các miền bộ nhớ mà JVM quản lý**, không phải toàn bộ bảng phân bổ bộ nhớ của hệ điều hành.
+When diagnosing a Java runtime, a dashboard may display **heap used = 600 MiB**, **heap committed = 768 MiB**, and **heap max = 1 GiB**. These seemingly simple numbers are often misread as "Java has occupied 768 MiB of physical RAM", "exactly 424 MiB is guaranteed to be allocatable", or "heap growth means a memory leak". In reality, the Java Management API provides **snapshots of memory domains managed by the JVM**, not the operating system's entire allocation table.
 
-Bài này tập trung vào hai MXBean chuẩn trong module `java.management`:
+This lesson focuses on two standard MXBeans in the `java.management` module:
 
-- **`MemoryMXBean`:** nhìn tổng thể **Java heap** và **non-heap** mà JVM báo cáo.
-- **`MemoryPoolMXBean`:** nhìn từng **memory pool** do JVM cung cấp (ví dụ các vùng heap của collector, Metaspace hoặc code cache ở một số HotSpot configuration).
-- **`MemoryUsage`:** đối tượng snapshot mang bốn số `init`, `used`, `committed`, `max` theo **byte**.
+- **`MemoryMXBean`:** an overall view of **Java heap** and **non-heap** memory reported by the JVM.
+- **`MemoryPoolMXBean`:** a per-**memory-pool** view provided by the JVM (e.g., collector heap regions, Metaspace, or code cache in some HotSpot configurations).
+- **`MemoryUsage`:** a snapshot object carrying the four numbers `init`, `used`, `committed`, and `max` in **bytes**.
 
-Sau bài học, bạn có thể phân biệt chính xác bốn trường, chọn mẫu đo và tỷ lệ giám sát phù hợp, đọc dữ liệu từng pool, hiểu peak/collection usage và threshold, viết chương trình Java 17+ dùng MXBeans, đồng thời **không nhầm Java heap với RSS/native memory hoặc kết luận leak chỉ từ một snapshot**.
+After this lesson, you will be able to accurately distinguish the four fields, select appropriate measurement patterns and monitoring ratios, read per-pool data, understand peak/collection usage and thresholds, write Java 17+ programs using MXBeans, and **avoid confusing Java heap with RSS/native memory or concluding a leak from a single snapshot**.
 
-> Phạm vi: API Java SE 17+ và hành vi minh họa trên HotSpot/JDK 21. Tên pool, số lượng pool, giới hạn và mức hỗ trợ chức năng có thể khác nhau theo JVM/GC/vendor. Giá trị đang đo phải đến từ **đúng JVM đang gặp sự cố**.
+> Scope: Java SE 17+ APIs and illustrative behavior on HotSpot/JDK 21. Pool names, pool counts, limits, and feature support levels may vary across JVMs/GCs/vendors. Measured values must come from **the exact JVM experiencing the incident**.
 
-## 1. Ba tầng quan sát: JVM, pool và snapshot
+## 1. Three observation layers: JVM, pool, and snapshot
 
-### 1.1 MemoryMXBean — bức tranh heap và non-heap
+### 1.1 MemoryMXBean — the heap and non-heap picture
 
-Lấy bean của **JVM hiện tại** bằng:
+Obtain the bean for the **current JVM** via:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -30,28 +30,28 @@ MemoryUsage heap = memory.getHeapMemoryUsage();
 MemoryUsage nonHeap = memory.getNonHeapMemoryUsage();
 ```
 
-Đây là **đoạn code minh họa đặt trong class/method**, chưa phải chương trình độc lập. `getHeapMemoryUsage()` trả snapshot heap, `getNonHeapMemoryUsage()` trả snapshot non-heap do JVM quản lý. Hai snapshot được lấy ở **hai thời điểm gọi riêng biệt**, nên không bảo đảm nguyên tử với nhau.
+This is an **illustrative code snippet placed inside a class/method**, not a standalone program. `getHeapMemoryUsage()` returns the heap snapshot, and `getNonHeapMemoryUsage()` returns the JVM-managed non-heap snapshot. The two snapshots are taken in **two separate calls**, so they are not guaranteed to be atomic with respect to each other.
 
-Java heap thường chứa object/array của ứng dụng và được quản lý bởi garbage collector. Non-heap chứa các vùng JVM quản lý ngoài heap, chẳng hạn metadata về class/method và vùng mã biên dịch JIT, tùy implementation. **Non-heap MXBean không có nghĩa toàn bộ native memory/RSS** của tiến trình, và không đại diện đầy đủ thread stacks, JNI allocations, native malloc, tất cả memory mappings hay mọi loại off-heap buffer.
+Java heap typically holds application objects/arrays and is managed by the garbage collector. Non-heap holds JVM-managed regions outside the heap, such as class/method metadata and JIT-compiled code regions, depending on the implementation. **Non-heap MXBean does not mean all native memory/RSS** of the process, and does not fully represent thread stacks, JNI allocations, native `malloc`, all memory mappings, or all off-heap buffers.
 
-### 1.2 MemoryPoolMXBean — nhìn vào thành phần
+### 1.2 MemoryPoolMXBean — looking at the parts
 
-`ManagementFactory.getMemoryPoolMXBeans()` trả danh sách các memory pool hiện được JVM quản lý. Một pool có:
+`ManagementFactory.getMemoryPoolMXBeans()` returns the list of memory pools currently managed by the JVM. A pool has:
 
-- `getName()`: tên pool do VM đặt.
-- `getType()`: `MemoryType.HEAP` hoặc `MemoryType.NON_HEAP`.
-- `getUsage()`: snapshot `MemoryUsage` hiện tại, **có thể null** nếu pool không còn hợp lệ hoặc VM không lấy được.
-- `getPeakUsage()`: snapshot mức sử dụng đỉnh theo thời gian mà VM theo dõi.
-- `getCollectionUsage()`: usage sau hoạt động thu hồi của GC gần nhất mà pool hỗ trợ theo dõi; **có thể null**.
-- `isValid()`: pool còn tồn tại trong hệ thống memory management của JVM hay không.
-- `getMemoryManagerNames()`: tên các memory manager liên quan, không phải danh sách thread.
-- Các khả năng threshold: `isUsageThresholdSupported()` và `isCollectionUsageThresholdSupported()`.
+- `getName()`: VM-assigned pool name.
+- `getType()`: `MemoryType.HEAP` or `MemoryType.NON_HEAP`.
+- `getUsage()`: current `MemoryUsage` snapshot; **may be null** if the pool is no longer valid or the VM cannot obtain it.
+- `getPeakUsage()`: snapshot of peak usage over time tracked by the VM.
+- `getCollectionUsage()`: usage after the most recent GC reclamation effort that the pool supports tracking; **may be null**.
+- `isValid()`: whether the pool still exists in the JVM's memory management system.
+- `getMemoryManagerNames()`: names of the associated memory managers, not a list of threads.
+- Threshold capabilities: `isUsageThresholdSupported()` and `isCollectionUsageThresholdSupported()`.
 
-**Đừng hard-code số pool hoặc tên pool** như một phần của Java API contract. Trên HotSpot với G1, bạn *có thể* gặp các tên `G1 Eden Space`, `G1 Survivor Space`, `G1 Old Gen`, `Metaspace`, `Compressed Class Space` hoặc những vùng `CodeHeap`. Với ZGC, Serial GC, một HotSpot release khác hay OpenJ9, phân vùng, tên, giá trị `max` và ngữ nghĩa chi tiết có thể khác.
+**Do not hard-code pool counts or pool names** as part of the Java API contract. On HotSpot with G1, you *might* see names like `G1 Eden Space`, `G1 Survivor Space`, `G1 Old Gen`, `Metaspace`, `Compressed Class Space`, or `CodeHeap` regions. With ZGC, Serial GC, another HotSpot release, or OpenJ9, partitioning, names, `max` values, and detailed semantics may differ.
 
-### 1.3 MemoryUsage — bốn con số của cùng một snapshot
+### 1.3 MemoryUsage — four numbers from one snapshot
 
-`MemoryUsage` là value object mô tả tình trạng bộ nhớ tại một thời điểm theo **byte**, không phải stream thời gian và không tự chứa nguyên nhân. Với mỗi `MemoryUsage u`:
+`MemoryUsage` is a value object describing memory state at a point in time in **bytes**, not a time series and not self-explanatory as to cause. For any `MemoryUsage u`:
 
 ```java
 long init = u.getInit();
@@ -60,221 +60,221 @@ long committed = u.getCommitted();
 long max = u.getMax();
 ```
 
-Các trường `init` và `max` được phép là `-1`, có nghĩa **“không xác định”**, không phải 0 hay “vô hạn”. `used` và `committed` luôn không âm theo contract của `MemoryUsage`. Khi `max` được xác định, các bất biến là:
+The `init` and `max` fields are allowed to be `-1`, meaning **"undefined"**, not 0 or "unlimited". `used` and `committed` are always non-negative per the `MemoryUsage` contract. When `max` is defined, the invariants are:
 
 ```text
 0 <= used <= committed
-nếu max != -1: committed <= max
-init >= 0 hoặc init == -1
-max >= 0 hoặc max == -1
+if max != -1: committed <= max
+init >= 0 or init == -1
+max >= 0 or max == -1
 ```
 
-**Không có bất biến `init <= committed`**: JVM có thể thu hẹp vùng committed dưới giá trị init theo thời gian. Cũng không có quy tắc `init <= used`; `used` có thể rất thấp ngay sau khởi động/GC. Đây là những khác biệt quan trọng khi thiết kế kiểm tra tự động hoặc đọc bảng số liệu.
+**There is no invariant `init <= committed`**: the JVM can shrink committed memory below `init` over time. Nor is there a rule `init <= used`; `used` can be very low right after startup or GC. These are crucial distinctions when designing automated checks or reading metric tables.
 
-## 2. Ý nghĩa chính xác của init, used, committed và max
+## 2. Exact meanings of init, used, committed, and max
 
-| Trường | Phương thức | Giải thích | Điều **không** được suy ra |
+| Field | Method | Explanation | What **must not** be inferred |
 | --- | --- | --- | --- |
-| **init** | `getInit()` | Lượng memory ban đầu JVM yêu cầu từ OS để quản lý vùng bộ nhớ này lúc startup; **có thể -1** | Không phải luôn là RAM được giữ vĩnh viễn, không buộc bằng current committed, không buộc bằng used |
-| **used** | `getUsed()` | Số byte bộ nhớ hiện đang được sử dụng trong vùng đo; với GC pool, có thể gồm object chưa reachable nhưng chưa được thu hồi | Không phải “live objects” tuyệt đối, không phải RSS và không chứng minh leak |
-| **committed** | `getCommitted()` | Số byte memory được **bảo đảm sẵn cho JVM sử dụng** trong phạm vi region/pool đo; có thể tăng/giảm | Không phải số byte resident trong RAM của OS; không phải always allocated objects |
-| **max** | `getMax()` | Giới hạn lớn nhất được báo cáo cho memory management của vùng đó, **nếu xác định** | Không phải RAM hiện có của máy, không phải memory đã commit; `-1` không có nghĩa “unlimited” |
+| **init** | `getInit()` | Initial memory the JVM requests from the OS to manage this memory region at startup; **may be -1** | Not necessarily permanently retained RAM, does not have to equal current committed, does not have to equal used |
+| **used** | `getUsed()` | Bytes of memory currently used in the measured region; for a GC pool, may include unreachable objects not yet reclaimed | Not strictly "live objects", not RSS, and does not prove a leak |
+| **committed** | `getCommitted()` | Bytes of memory **guaranteed available for the JVM to use** within the measured region/pool; can grow or shrink | Not resident bytes in OS RAM; not always allocated objects |
+| **max** | `getMax()` | Maximum limit reported for memory management of that region, **if defined** | Not the machine's available RAM, not committed memory; `-1` does not mean "unlimited" |
 
-Bốn trường thuộc về **cùng một scope**: heap tổng thể, non-heap tổng thể hoặc **một** pool cụ thể. Không thể đem `used` của Metaspace so trực tiếp với `max` của heap để tính phần trăm rồi kết luận Metaspace quá tải.
+All four fields share the **same scope**: overall heap, overall non-heap, or **one** specific pool. You cannot directly compare Metaspace `used` against heap `max` to compute a percentage and conclude Metaspace is overloaded.
 
-### 2.1 Used: hiện sử dụng, chưa chắc còn sống sau GC
+### 2.1 Used: currently in use, not necessarily alive after GC
 
-Với Java heap, `used` có thể tăng nhanh khi tạo object; sau một đợt GC nó có thể giảm. Trong một **garbage-collected memory pool**, tài liệu `MemoryPoolMXBean` nêu `getUsage()` có thể tính cả đối tượng **reachable và unreachable** còn chiếm memory trước khi được thu hồi. Vì vậy:
+For Java heap, `used` can rise rapidly as objects are created; after a GC cycle it can drop. In a **garbage-collected memory pool**, the `MemoryPoolMXBean` specification notes that `getUsage()` may count both **reachable and unreachable** objects still occupying memory before reclamation. Therefore:
 
-- Heap `used` tăng trong một phút **không đủ bằng chứng leak**.
-- `used` giảm sau GC **không chứng minh không có leak**; có thể vẫn còn tập đối tượng được giữ tăng chậm.
-- Heap `used` cao nhưng throughput/pause/latency vẫn bình thường có thể là lựa chọn hợp lý của GC.
-- Heap `used` thấp **không loại trừ** `OutOfMemoryError` liên quan metaspace, direct buffer, native memory, thread creation, container memory limit hoặc cấp phát một object quá lớn so với vùng liên tục hiện có.
+- Heap `used` rising for a minute is **insufficient evidence of a leak**.
+- `used` dropping after GC **does not prove there is no leak**; a slowly growing set of retained objects may still exist.
+- High heap `used` with normal throughput/pauses/latency may simply be a deliberate GC trade-off.
+- Low heap `used` **does not rule out** an `OutOfMemoryError` involving metaspace, direct buffers, native memory, thread creation, container memory limits, or allocating an object too large for available contiguous space.
 
-### 2.2 Committed: đã bảo đảm cho JVM, không phải RSS
+### 2.2 Committed: guaranteed to the JVM, not RSS
 
-`committed` là memory capacity JVM đã sẵn sàng sử dụng cho scope đó. Hình dung:
+`committed` is the memory capacity the JVM already has ready for use in that scope. Visualize:
 
 ```text
-+----------------------- max (nếu biết) ------------------------+
-|      used       | còn trống trong committed | chưa committed |
++----------------------- max (if known) ------------------------+
+|      used       | free within committed |    uncommitted     |
 +----------------- committed ------------------+---------------+
 ```
 
-Đây là mô hình khái niệm, không nhất thiết các vùng nằm liên tục trong địa chỉ ảo. Khi `used` tăng gần `committed`, JVM **có thể** mở rộng committed nếu còn headroom theo max và tài nguyên OS; cũng có thể khởi động GC hoặc thất bại cấp phát. Khi workload giảm, JVM/GC **có thể** trả bớt memory và `committed` giảm.
+This is a conceptual model; the regions are not necessarily contiguous in virtual address space. As `used` approaches `committed`, the JVM **may** expand `committed` if headroom remains below `max` and OS resources allow; it may also trigger GC or fail allocation. When workload decreases, the JVM/GC **may** release memory and `committed` decreases.
 
-Đừng xem `committed - used` là số byte application còn cấp phát “không thể thất bại”: Java object layout, GC reserves, fragmentation, thread scheduling, safepoint, vùng thế hệ, native overhead và tình trạng OS/container làm phép suy diễn đó không an toàn.
+Do not treat `committed - used` as the number of bytes the application can allocate "guaranteed not to fail": Java object layout, GC reserves, fragmentation, thread scheduling, safepoints, generational regions, native overhead, and OS/container state make that inference unsafe.
 
-`committed` cũng **không đồng nghĩa resident set size (RSS)**. OS RSS thường tính các trang memory đang cư trú, gồm Java heap, thread stacks, JIT code, native allocations, shared mappings... và có thể có khác biệt về loại trang; `MemoryMXBean` không bao phủ tất cả.
+Nor is `committed` **synonymous with resident set size (RSS)**. OS RSS typically counts resident memory pages, including Java heap, thread stacks, JIT code, native allocations, shared mappings, etc., and page accounting may differ; `MemoryMXBean` does not cover all of them.
 
-### 2.3 Max: trần có thể dùng, không phải khoản cấp phát bảo đảm
+### 2.3 Max: usable ceiling, not a guaranteed allocation
 
-Nếu `max = 1 GiB` và `committed = 512 MiB` thì 1 GiB không có nghĩa JVM đang chiếm 1 GiB RAM. Khoảng từ 512 MiB lên 1 GiB **chưa được JVM bảo đảm**; thiếu virtual memory, container limit hay native headroom vẫn có thể gây lỗi allocation trước khi `used` đạt `max`.
+If `max = 1 GiB` and `committed = 512 MiB`, then 1 GiB does not mean the JVM is occupying 1 GiB of RAM. The gap from 512 MiB to 1 GiB **has not been guaranteed by the JVM**; insufficient virtual memory, container limits, or native headroom can still cause allocation failure before `used` reaches `max`.
 
-Nếu `max == -1`:
+If `max == -1`:
 
-- Ghi `undefined` hoặc `unknown`, **không tính** `used / max`.
-- Không diễn giải thành `0`, `Long.MAX_VALUE` hay không giới hạn.
-- Một số pool, đặc biệt non-heap, không công bố giới hạn có ý nghĩa trong `MemoryUsage` mặc dù runtime/OS vẫn có các ràng buộc thực tế.
+- Record `undefined` or `unknown`; **do not compute** `used / max`.
+- Do not interpret it as `0`, `Long.MAX_VALUE`, or unlimited.
+- Some pools, especially non-heap pools, do not advertise a meaningful limit in `MemoryUsage` even though the runtime/OS still imposes practical constraints.
 
-`max` có thể thay đổi theo các cơ chế quản lý memory của VM nếu được định nghĩa. Vì vậy giá trị cần lưu kèm timestamp, JDK/GC và option, không mặc định bất biến trên mọi JVM.
+`max` may change under VM memory management mechanisms when defined. Hence values should be stored with timestamp, JDK/GC, and flags, rather than assumed constant across every JVM.
 
-### 2.4 Init: điểm bắt đầu, không phải ngưỡng hiện hành
+### 2.4 Init: starting point, not the current threshold
 
-`init` mô tả lượng memory ban đầu VM yêu cầu khi khởi tạo quản lý vùng đó. Trong heap, có thể liên quan `-Xms`, nhưng **không được suy ra mọi pool đều có init bằng một phần cố định của `-Xms`**. JVM có thể co/giãn committed, và `init` có thể không xác định với một pool.
+`init` describes the initial memory the VM requested when initializing management of that region. For heap, it may relate to `-Xms`, yet **you cannot infer every pool has `init` equal to a fixed fraction of `-Xms`**. The JVM can expand/shrink `committed`, and `init` may be undefined for a pool.
 
-Hình dung ba thời điểm:
+Consider three points in time:
 
-| Snapshot minh họa | init | used | committed | max |
+| Illustrative snapshot | init | used | committed | max |
 | --- | ---: | ---: | ---: | ---: |
-| Sau startup | 256 MiB | 100 MiB | 256 MiB | 1.024 MiB |
-| Trong đợt tải | 256 MiB | 650 MiB | 768 MiB | 1.024 MiB |
-| Sau thời gian nhàn rỗi | 256 MiB | 80 MiB | 192 MiB | 1.024 MiB |
+| After startup | 256 MiB | 100 MiB | 256 MiB | 1,024 MiB |
+| During load burst | 256 MiB | 650 MiB | 768 MiB | 1,024 MiB |
+| After idle period | 256 MiB | 80 MiB | 192 MiB | 1,024 MiB |
 
-Đây là **số giả định hợp lệ theo contract**, không phải dự đoán HotSpot sẽ luôn co xuống 192 MiB trong cấu hình bất kỳ. Bảng minh họa `init` không đổi nhưng `used` và `committed` thay đổi; committed **có thể nhỏ hơn init**.
+These are **hypothetical numbers valid under the contract**, not a prediction that HotSpot will always shrink down to 192 MiB in any configuration. The table illustrates that `init` stays constant while `used` and `committed` vary; `committed` **can be smaller than `init`**.
 
-## 3. Tính tỷ lệ đúng: từng mẫu số nói một câu chuyện khác
+## 3. Computing ratios correctly: each denominator tells a different story
 
-Giả sử heap snapshot có:
+Suppose a heap snapshot has:
 
 ```text
 init      = 256 MiB
 used      = 256 MiB
 committed = 512 MiB
-max       = 1.024 MiB
+max       = 1,024 MiB
 ```
 
-Ta có:
+We have:
 
-- **Used/committed** = `256 / 512 = 50%`: mức sử dụng so với memory đã được VM bảo đảm cho scope đó.
-- **Used/max** = `256 / 1.024 = 25%`: mức sử dụng so với giới hạn tối đa được công bố.
-- **Committed/max** = `512 / 1.024 = 50%`: mức capacity đã commit trong trần của cùng scope.
-- **Committed - used** = `256 MiB`: chênh lệch lý thuyết giữa capacity committed và used tại snapshot.
-- **Max - used** = `768 MiB`: headroom số học tới max; **không đảm bảo** mọi allocation tương ứng sẽ thành công.
+- **Used/committed** = `256 / 512 = 50%`: utilization relative to memory already guaranteed by the VM for that scope.
+- **Used/max** = `256 / 1,024 = 25%`: utilization relative to the advertised maximum limit.
+- **Committed/max** = `512 / 1,024 = 50%`: committed capacity relative to the ceiling of the same scope.
+- **Committed - used** = `256 MiB`: theoretical difference between committed capacity and `used` at the snapshot.
+- **Max - used** = `768 MiB`: arithmetic headroom up to `max`; **does not guarantee** all corresponding allocations will succeed.
 
-Điểm mấu chốt: cùng một JVM có thể **50% của committed nhưng mới 25% của max**. Một dashboard đặt nhãn chung “heap usage = 50%” mà không cho biết mẫu số là **committed hay max** sẽ gây hiểu nhầm trong capacity planning.
+The key point: the same JVM can be at **50% of committed yet only 25% of max**. A dashboard displaying a generic label "heap usage = 50%" without stating whether the denominator is **committed or max** will mislead capacity planning.
 
-### 3.1 Công thức và điều kiện
+### 3.1 Formulas and preconditions
 
 ```text
-utilization_committed = used / committed          (nếu committed > 0)
-utilization_max       = used / max                (nếu max > 0)
-commitment_ratio      = committed / max           (nếu max > 0)
+utilization_committed = used / committed          (if committed > 0)
+utilization_max       = used / max                (if max > 0)
+commitment_ratio      = committed / max           (if max > 0)
 committed_free_bytes  = committed - used
-uncommitted_headroom  = max - committed           (nếu max >= 0)
+uncommitted_headroom  = max - committed           (if max >= 0)
 ```
 
-Nếu `committed == 0`, không thực hiện phép chia. Nếu `max == -1`, **không có tỷ lệ used/max có ý nghĩa**. Các tỷ lệ phải gắn cùng `pool/type`, instance và timestamp; không so numerator của instance A với denominator của B.
+If `committed == 0`, do not divide. If `max == -1`, **there is no meaningful used/max ratio**. Ratios must carry matching `pool/type`, instance, and timestamp; never divide instance A's numerator by instance B's denominator.
 
-### 3.2 MiB, MB và byte
+### 3.2 MiB, MB, and bytes
 
-API trả `long` theo **byte**, không phải KB/MB. Với giám sát vận hành, nên thống nhất:
+The API returns `long` in **bytes**, not KB/MB. For operational monitoring, standardize consistently:
 
-- `1 MiB = 1.048.576 bytes` (hệ nhị phân).
-- `1 MB = 1.000.000 bytes` (hệ thập phân).
-- `-Xmx1g` và `-Xmx1024m` thường dùng đơn vị dạng power-of-two của launcher/JVM; phải xác nhận cú pháp của VM/version.
-- Dấu `-1` là sentinel của API, **không phải -1 byte memory thực**.
+- `1 MiB = 1,048,576 bytes` (binary).
+- `1 MB = 1,000,000 bytes` (decimal).
+- `-Xmx1g` and `-Xmx1024m` commonly use power-of-two units in the launcher/JVM; verify syntax for your VM/version.
+- `-1` is an API sentinel, **not -1 bytes of real memory**.
 
-Lỗi hiển thị thường gặp: lấy `used / 1024 / 1024` rồi gắn nhãn `MB`, trong khi giá trị đúng của phép đổi ấy là **MiB**. Khác biệt khoảng 4,86% giữa MB và MiB có thể khiến các cảnh báo sai ngưỡng ở vùng gần giới hạn.
+A common display bug: computing `used / 1024 / 1024` and labeling it `MB`, when the unit of that conversion is actually **MiB**. The ~4.86% difference between MB and MiB can cause alerts to misfire near thresholds.
 
-### 3.3 Khi max thuộc nhiều pool
+### 3.3 When max belongs to multiple pools
 
-Một JVM có thể báo `getMax()` của Eden/Survivor/Old khác nhau; chúng chịu cách phân chia của GC, và các giới hạn pool có thể phản ánh capacity tiềm năng thay vì vùng cố định độc lập. **Không cộng `max` của các pool thành heap max** như thể tất cả pool có thể cùng đạt max độc lập. Tương tự, tổng `used` của nhiều pool đọc tuần tự có thể lệch một chút so với `MemoryMXBean.getHeapMemoryUsage().getUsed()` vì GC/allocations diễn ra trong lúc đo.
+A JVM may report different `getMax()` values for Eden/Survivor/Old; they reflect GC partitioning, and pool limits may represent potential capacity rather than independent fixed regions. **Do not sum pool `max` values into heap `max`** as if every pool could reach its max independently. Likewise, summing `used` across pools read sequentially can differ slightly from `MemoryMXBean.getHeapMemoryUsage().getUsed()` because GC/allocations occur during reading.
 
-Chọn **heap tổng thể** khi cần capacity heap; chọn **pool** khi cần biết điều gì đang chiếm chỗ/áp lực trên một region, và ghi rõ điểm đo không nguyên tử.
+Choose **overall heap** when you need heap capacity; choose **pools** when you need to see what is occupying space or creating pressure in a region, and note that readings are non-atomic.
 
-## 4. Heap, non-heap, memory pool và native memory: đừng cộng sai
+## 4. Heap, non-heap, memory pools, and native memory: do not add them wrongly
 
 ### 4.1 Heap memory
 
-Heap là khu vực cho nhiều object/array Java, thường do GC quản lý. `MemoryMXBean.getHeapMemoryUsage()` cung cấp một cách theo dõi heap ở thời điểm hiện tại. Đây không phải “đếm retained objects” và cũng không phải hiện trạng toàn bộ memory process.
+Heap is the area for many Java objects/arrays, typically managed by GC. `MemoryMXBean.getHeapMemoryUsage()` provides a way to track current heap status. It is neither a "retained objects counter" nor the state of all process memory.
 
-Giải thích hiện tượng thường gặp:
+Interpreting common patterns:
 
-- **Used tăng trước GC, giảm sau GC:** nhiều khi là allocation churn bình thường.
-- **Committed tăng rồi duy trì:** JVM đã mở rộng heap capacity để đáp ứng tải, không có nghĩa object đang dùng hết.
-- **Used sau nhiều GC liên tiếp tăng ở workload tương đương:** đáng điều tra retention, cache, class loaders, lifecycle, nhưng **chưa tự chứng minh leak**.
-- **Heap max nhỏ hơn RAM node:** có thể do `-Xmx`, ergonomics, container limits hoặc JVM default khác; cần đọc startup VM flags và resource limits thay vì suy ra từ OS RAM.
+- **Used rises before GC, drops after GC:** often normal allocation churn.
+- **Committed rises and stays high:** the JVM expanded heap capacity for load, which does not mean objects are filling it all.
+- **Post-GC `used` rises across consecutive GCs under comparable workload:** worth investigating retention, caches, class loaders, and lifecycles, though **not by itself proof of a leak**.
+- **Heap max smaller than node RAM:** may be due to `-Xmx`, ergonomics, container limits, or other JVM defaults; read startup VM flags and resource limits rather than inferring from OS RAM.
 
 ### 4.2 Non-heap memory
 
-`getNonHeapMemoryUsage()` phản ánh những miền non-heap mà VM quản lý. Trên HotSpot, những pool như Metaspace và Code Cache có thể xuất hiện. Nhưng native process memory còn có nhiều nguồn ngoài phép đo này:
+`getNonHeapMemoryUsage()` reflects VM-managed non-heap areas. On HotSpot, pools like Metaspace and Code Cache may appear. However, native process memory has many sources outside this measurement:
 
-- Native libraries/JNI allocations.
-- Thread stacks và VM internal allocations.
-- Direct buffers/mapped buffers và memory-mapped files.
-- GC bookkeeping, JIT compiler native allocations.
-- Memory của runtime/allocator và các ánh xạ shared libraries.
+- Native libraries / JNI allocations.
+- Thread stacks and internal VM allocations.
+- Direct/mapped buffers and memory-mapped files.
+- GC bookkeeping and JIT compiler native allocations.
+- C runtime/allocator memory and shared library mappings.
 
-Không có quy tắc `heap.used + nonHeap.used == RSS`. Sự chênh lệch **không tự là memory leak**; có thể do phạm vi đo khác nhau, reserved/committed/RSS semantics và thời điểm lấy snapshot khác nhau.
+There is no rule `heap.used + nonHeap.used == RSS`. A gap **is not automatically a memory leak**; it can stem from different measurement scopes, reserved/committed/RSS semantics, and non-simultaneous snapshot timestamps.
 
-Nếu cần đo **direct/mapped buffer pools** trong Java Management API, có thể xem thêm `java.lang.management.BufferPoolMXBean` (ví dụ pool `direct`/`mapped` nếu VM cung cấp). Đó là **loại MXBean khác**, không phải `MemoryPoolMXBean` với `MemoryType.NON_HEAP`. Buffer pool metrics cũng không thay thế theo dõi mọi native allocation.
+To measure **direct/mapped buffer pools** in the Java Management API, also check `java.lang.management.BufferPoolMXBean` (e.g., `direct`/`mapped` pools if provided by the VM). That is a **different MXBean type**, not a `MemoryPoolMXBean` with `MemoryType.NON_HEAP`. Buffer pool metrics likewise do not replace tracking all native allocations.
 
-### 4.3 Metaspace, Code Cache và lỗi bộ nhớ không thuộc heap
+### 4.3 Metaspace, Code Cache, and non-heap memory errors
 
-Một `OutOfMemoryError: Metaspace` có thể xảy ra khi heap `used/max` vẫn thấp. Một lỗi tạo thread mới có thể do giới hạn process/OS/native stack hoặc container policy; tăng `-Xmx` có thể khiến tổng memory càng căng. Tương tự, lỗi ở direct buffer hay native allocations không nhất thiết được giải quyết bằng tăng heap.
+An `OutOfMemoryError: Metaspace` can occur while heap `used/max` is still low. A failure to create new threads may stem from process/OS/native stack limits or container policies; increasing `-Xmx` can make total memory pressure even tighter. Likewise, errors in direct buffers or native allocations are not necessarily solved by increasing heap.
 
-Khi chẩn đoán:
+When diagnosing:
 
-1. Đọc **exception message** và JVM/GC version.
-2. Đối chiếu `MemoryMXBean` heap/nonheap và từng `MemoryPoolMXBean` có liên quan.
-3. Đối chiếu **OS RSS/container memory**, process thread count, buffer pools, GC logs/JFR và (nếu bật từ startup) Native Memory Tracking.
-4. Kiểm tra **giới hạn thực tế** của heap/Metaspace/native, cả việc dùng virtual memory và container constraints.
-5. Không sửa cờ trong runtime chỉ vì một snapshot có vẻ cao; xác định nguyên nhân, trend và hệ quả trước.
+1. Read the **exception message** and JVM/GC version.
+2. Cross-check `MemoryMXBean` heap/non-heap and each relevant `MemoryPoolMXBean`.
+3. Cross-check **OS RSS/container memory**, process thread count, buffer pools, GC logs/JFR, and (if enabled at startup) Native Memory Tracking.
+4. Check the **actual limits** for heap/Metaspace/native, including virtual memory usage and container constraints.
+5. Do not tweak runtime flags merely because one snapshot looks high; identify cause, trend, and impact first.
 
-## 5. Đọc MemoryPoolMXBean đúng cách
+## 5. Reading MemoryPoolMXBean properly
 
-### 5.1 Mỗi pool có một loại và tên riêng
+### 5.1 Each pool has its own type and name
 
-`MemoryPoolMXBean.getType()` trả `MemoryType.HEAP` hoặc `MemoryType.NON_HEAP`. Tên pool dùng để gắn nhãn quan sát **cho JVM đó**, không phải một danh mục cố định của Java SE. Việc triển khai hoặc collector khác có thể tạo bớt/thay pool trong vòng đời process; `isValid()` giúp kiểm tra một pool còn tồn tại.
+`MemoryPoolMXBean.getType()` returns `MemoryType.HEAP` or `MemoryType.NON_HEAP`. Pool names label observations **for that JVM**, not a fixed Java SE catalog. Different implementations or collectors may add, omit, or change pools during the process lifecycle; `isValid()` checks whether a pool still exists.
 
-Ví dụ bảng **minh họa chứ không phải kết quả cố định**:
+Example table **illustrative, not fixed output**:
 
-| Pool giả định | Type | Diễn giải thực tế |
+| Hypothetical pool | Type | Practical interpretation |
 | --- | --- | --- |
-| G1 Eden Space | HEAP | Vùng chứa nhiều allocation mới; used thường dao động theo chu kỳ GC |
-| G1 Survivor Space | HEAP | Vùng chứa object sống qua một số vòng GC, tùy G1 |
-| G1 Old Gen | HEAP | Nhiều object dài hạn; theo dõi after-GC usage có ích khi xét retention |
-| Metaspace | NON_HEAP | Metadata class/method; chú ý class loader lifecycle |
-| CodeHeap 'non-profiled nmethods' | NON_HEAP | Một phần code cache chứa code đã biên dịch của HotSpot |
-| Compressed Class Space | NON_HEAP | Một vùng class metadata khi VM sử dụng compressed class pointers |
+| G1 Eden Space | HEAP | Region holding many new allocations; `used` typically fluctuates with GC cycles |
+| G1 Survivor Space | HEAP | Region holding objects surviving some GC cycles, depending on G1 |
+| G1 Old Gen | HEAP | Many long-lived objects; tracking after-GC usage helps evaluate retention |
+| Metaspace | NON_HEAP | Class/method metadata; watch class loader lifecycles |
+| CodeHeap 'non-profiled nmethods' | NON_HEAP | Part of HotSpot's code cache storing compiled code |
+| Compressed Class Space | NON_HEAP | Class metadata region when the VM uses compressed class pointers |
 
-Không buộc JVM nào cũng có tất cả các dòng, hay cùng tên. Các vùng `CodeHeap` có thể có tên khác theo segmented code cache. Tránh hard-code tên như điều kiện duy nhất cho tất cả dashboards. Khi cần query xuyên collector, nên chuẩn hóa bằng **type + tên pool + VM/version** và có chiến lược mapping rõ.
+Not every JVM is required to have all rows or the same names. `CodeHeap` regions may have different names with segmented code cache. Avoid hard-coding names as the sole filter across all dashboards. When querying across collectors, normalize by **type + pool name + VM/version** and maintain an explicit mapping strategy.
 
-### 5.2 Current usage, peak usage và collection usage khác nhau
+### 5.2 Current usage, peak usage, and collection usage differ
 
-| API của một pool | Câu hỏi trả lời | Lưu ý |
+| Pool API | Question answered | Notes |
 | --- | --- | --- |
-| `getUsage()` | Pool đang có usage ước lượng bao nhiêu? | Snapshot; có thể gồm unreachable objects chưa GC |
-| `getPeakUsage()` | Giá trị peak được VM ghi nhận kể từ startup/đợt reset là gì? | Không phải average và không phải peak chỉ trong 5 phút dashboard, trừ khi đã thiết kế lại mốc đo |
-| `getCollectionUsage()` | Sau lần GC gần nhất có dữ liệu cho pool, usage là gì? | Có thể `null`; có thể “cũ” nếu chưa có GC thích hợp |
-| `resetPeakUsage()` | Đặt lại peak statistic | **Thay đổi state** của bean, không làm trong lượt giám sát read-only |
-| `isValid()` | Pool còn valid không? | Cần xét khi JVM thay đổi các memory pools |
+| `getUsage()` | What is the pool's estimated current usage? | Snapshot; may include uncollected unreachable objects |
+| `getPeakUsage()` | What peak has the VM recorded since startup/reset? | Not an average and not a 5-minute dashboard window peak, unless reset points are designed |
+| `getCollectionUsage()` | After the most recent GC with data for this pool, what was usage? | May be `null`; may be "stale" if no suitable GC has run |
+| `resetPeakUsage()` | Resets peak statistics | **Mutates bean state**; do not call in read-only monitoring |
+| `isValid()` | Is the pool still valid? | Needed when the JVM changes memory pools |
 
-**Peak** có thể rất lớn do một spike đã kết thúc. Nếu UI cứ hiển thị peak cao, không có nghĩa current used đang cao. Một graph lấy `getPeakUsage().getUsed()` mỗi 10 giây thường **không giảm** cho tới khi reset/restart; dùng nó để cảnh báo “đang căng memory” có thể false positive. Nên hiển thị current và peak thành **hai series riêng**.
+**Peak** can remain very high from a spike that already ended. A UI showing a high peak does not mean current `used` is high. A graph polling `getPeakUsage().getUsed()` every 10 seconds normally **never decreases** until reset/restart; alerting on it for "current memory pressure" can produce false positives. Display current and peak as **two separate series**.
 
-**Collection usage** thường có giá trị phân tích khi muốn biết bao nhiêu object vẫn chiếm memory sau đợt thu hồi GC mà VM ghi nhận. Tuy nhiên:
+**Collection usage** is often analytically valuable when you want to see how many objects still occupy memory after a VM-recorded GC reclamation. However:
 
-- Có thể null nếu VM/pool không hỗ trợ.
-- Thời điểm của “most recent collection” không nhất thiết bằng timestamp bạn đang scrape.
-- Pool có thể được collector quản lý đồng thời, không có một điểm “sau GC” rõ ràng để đo.
-- `getCollectionUsage()` **không tự thực hiện GC**; không được dùng như một nút “ép JVM cleanup”.
+- It can be null if the VM/pool does not support it.
+- The timestamp of the "most recent collection" need not match your scrape timestamp.
+- A pool may be managed concurrently by the collector, with no crisp "after GC" point to measure.
+- `getCollectionUsage()` **does not trigger a GC**; do not treat it as a "force JVM cleanup" button.
 
-### 5.3 Mối quan hệ với MemoryMXBean
+### 5.3 Relationship with MemoryMXBean
 
-`MemoryMXBean` báo heap/non-heap tổng thể. Danh sách pools có thể bổ sung chi tiết, nhưng phép cộng giá trị pool **không là transaction nhất quán**. Snapshot của pool A và pool B được thu ở hai thời điểm trong JVM đang chạy, có thể vừa xảy ra allocation/GC giữa chừng.
+`MemoryMXBean` reports overall heap/non-heap. The pool list adds detail, yet summing pool values **is not a consistent transaction**. Pool A's and Pool B's snapshots are taken at two instants in a running JVM, and allocation/GC may occur in between.
 
-Đối với capacity toàn heap, lấy **`MemoryMXBean.getHeapMemoryUsage()`** làm tín hiệu chính. Nếu dùng tổng từ pools, phải nói rõ đó là ước lượng theo sampling riêng và có thể chênh; việc dashboard hiện lệch vài MiB không tự chỉ ra bug của MXBean.
+For overall heap capacity, take **`MemoryMXBean.getHeapMemoryUsage()`** as the primary signal. If summing pools, state clearly that it is an estimate from separate samples and can differ; a dashboard showing a few MiB discrepancy does not by itself indicate an MXBean bug.
 
-### 5.4 Một pool có max = -1 trong khi heap tổng thể có max
+### 5.4 A pool having max = -1 while overall heap has a max
 
-Có thể xảy ra. `max` của pool là **giới hạn do pool đó công bố**, không phải phép chia bắt buộc từ total heap max. Một pool có thể thay đổi dung lượng với GC, nên VM không thể hoặc không chọn công bố max cục bộ có ý nghĩa. Đừng đem `getMax() == -1` thay bằng `getHeapMemoryUsage().getMax()`, vì hai scope khác nhau.
+This can happen. A pool's `max` is **the limit advertised by that pool**, not a mandatory slice of total heap max. A pool may resize dynamically with GC, so the VM cannot or chooses not to publish a meaningful local max. Do not substitute `getHeapMemoryUsage().getMax()` when `getMax() == -1`, as the two scopes differ.
 
-Nếu muốn cảnh báo pool, chọn ngưỡng theo **usage, after-GC trend và đặc tính pool/collector**, thay vì ép công thức `used/max` cho mọi pool.
+If you want to alert on a pool, base thresholds on **usage, after-GC trend, and pool/collector characteristics**, rather than forcing `used/max` onto every pool.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: đọc tổng thể và từng pool
+## 6. Complete Java 17+ example: reading overall and per-pool usage
 
-Tạo tệp **`MemoryMxBeanLab.java`**. Chương trình thực hiện **chỉ đọc**, không gọi GC, không đặt threshold và không reset peak. Để không bịa số byte thực của một máy chưa đo, nó in bốn dòng đầu **xác định hoàn toàn** từ một `MemoryUsage` giả lập, sau đó in các giá trị thực của JVM đang chạy.
+Create the file **`MemoryMxBeanLab.java`**. The program is **read-only**: it does not trigger GC, set thresholds, or reset peaks. To avoid fabricating real byte counts from an unmeasured machine, it prints four lines **completely deterministically** from a simulated `MemoryUsage`, then prints the real values of the running JVM.
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -305,7 +305,7 @@ public final class MemoryMxBeanLab {
     }
 
     public static void main(String[] args) {
-        // Dữ liệu giả lập để kiểm tra contract, không lấy từ JVM.
+        // Simulated data to verify the contract, not obtained from the JVM.
         MemoryUsage sample = new MemoryUsage(-1L, 256L, 512L, -1L);
         System.out.println("sample.used=" + sample.getUsed());
         System.out.println("sample.committed=" + sample.getCommitted());
@@ -313,7 +313,7 @@ public final class MemoryMxBeanLab {
         System.out.println("sample.used<=committed=" +
                 (sample.getUsed() <= sample.getCommitted()));
 
-        // Từ đây trở đi là dữ liệu của chính JVM chạy chương trình.
+        // From here on is data from the actual JVM running the program.
         MemoryMXBean memory = ManagementFactory.getMemoryMXBean();
         printUsage("heap", memory.getHeapMemoryUsage());
         printUsage("nonheap", memory.getNonHeapMemoryUsage());
@@ -336,14 +336,14 @@ public final class MemoryMxBeanLab {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac MemoryMxBeanLab.java
 java -Xms64m -Xmx256m MemoryMxBeanLab
 ```
 
-**Bốn dòng stdout đầu tiên chính xác, không phụ thuộc máy:**
+**First four stdout lines are exact and machine-independent:**
 
 ```text
 sample.used=256
@@ -352,145 +352,145 @@ sample.max=undefined
 sample.used<=committed=true
 ```
 
-Những dòng còn lại **không có stdout cố định**: số byte, tên pools, peak, collection usage, threshold support và cả GC được dùng phụ thuộc JVM, vendor, version, workload và thời điểm chạy. Một dòng mô phỏng hình thức, **không phải expected output**:
+The remaining lines **have no fixed stdout**: byte counts, pool names, peak, collection usage, threshold support, and even the GC used depend on JVM, vendor, version, workload, and run time. A formatting illustration, **not expected output**:
 
 ```text
-heap used=<byte-thuc-te> committed=<byte-thuc-te> max=<byte-hoac-undefined> init=<byte-hoac-undefined>
+heap used=<actual-bytes> committed=<actual-bytes> max=<bytes-or-undefined> init=<bytes-or-undefined>
 ```
 
-Hãy thay các giá trị mô phỏng bằng output thu thật; không copy góc nhọn hoặc chữ giả định vào kết quả chạy.
+Replace the placeholder text with real captured output; do not copy angle brackets or placeholder words as run results.
 
-### 6.1 Vì sao mẫu giả lập có ích?
+### 6.1 Why is the simulated sample useful?
 
-Constructor `new MemoryUsage(-1L, 256L, 512L, -1L)` hợp lệ vì:
+The constructor `new MemoryUsage(-1L, 256L, 512L, -1L)` is valid because:
 
-- `init = -1`: VM không công bố giá trị khởi tạo.
-- `max = -1`: giới hạn không xác định.
-- `used = 256` và `committed = 512` đều không âm và `used <= committed`.
+- `init = -1`: the VM does not publish an initial value.
+- `max = -1`: limit is undefined.
+- `used = 256` and `committed = 512` are non-negative and `used <= committed`.
 
-Thử `new MemoryUsage(0, 513, 512, 1024)` sẽ ném `IllegalArgumentException` vì `used > committed`. Đây là tính chất của object `MemoryUsage` do API kiểm tra, **không phải cách để phát hiện memory leak**.
+Trying `new MemoryUsage(0, 513, 512, 1024)` throws `IllegalArgumentException` because `used > committed`. This is a property of the `MemoryUsage` object enforced by the API, **not a way to detect a memory leak**.
 
-### 6.2 Vì sao không in “tỷ lệ sử dụng” vô điều kiện?
+### 6.2 Why not print a "usage percentage" unconditionally?
 
-Bài thực hành cố ý in **giá trị raw**. Nếu tính tỷ lệ trong hệ thống monitoring, phải kiểm tra `max > 0` hoặc `committed > 0`. Trường hợp `max = -1` không phải 0 và không được chia; nếu có sự thay đổi của pool/GC hoặc tên pool trùng giữa instances, cần xử lý scope và identity trước.
+The lab intentionally prints **raw values**. When computing ratios in a monitoring system, you must check `max > 0` or `committed > 0`. The case `max = -1` is not 0 and must not be divided by; if pools/GC change or pool names collide across instances, handle scope and identity first.
 
-Có thể dùng helper tính phần trăm chỉ khi mẫu số hợp lệ:
+A percentage helper can be used only when the denominator is valid:
 
 ```java
-// Đoạn bổ sung nằm trong một class, không phải chương trình độc lập.
+// Additional snippet inside a class, not a standalone program.
 static double usagePercent(long used, long capacity) {
     return capacity > 0 ? (100.0 * used / capacity) : Double.NaN;
 }
 ```
 
-`Double.NaN` biểu thị tỷ lệ **không xác định** để tầng trình bày xử lý. Không nhất thiết xuất `NaN` thành một sample series trong mọi metrics backend; khi không có mẫu số, nhiều hệ thống tốt hơn là **không xuất tỷ lệ** hoặc gắn trạng thái unavailable.
+`Double.NaN` represents an **undefined** ratio for the presentation layer to handle. You do not necessarily want to emit `NaN` into every metrics backend time series; when no denominator exists, many systems are better off **not emitting the ratio** or marking it unavailable.
 
-### 6.3 Vì sao việc đọc này là “đọc JVM mẫu”, chưa phải production?
+### 6.3 Why is this reading a "sample JVM", not production yet?
 
-Chạy chương trình tạo **một JVM mới**. Nó không mô tả JVM service đang gặp sự cố. Để theo dõi production, cần:
+Running the program creates **a new JVM**. It does not describe the service JVM experiencing an incident. To monitor production, you must:
 
-- Instrument **đúng service process** để đọc MXBeans hoặc dùng JMX/management endpoint có quyền phù hợp.
-- Ghép dữ liệu với application/build, host/container, PID, JVM start time và timestamp UTC.
-- So các snapshot trong **cùng process** và workload tương ứng; đừng coi kết quả từ một JVM lab là output của production.
-- Tránh công khai bean dumps chứa path, system properties, JVM command line hoặc tên module nhạy cảm khi mở JMX remote.
+- Instrument **the actual service process** to read MXBeans or use a properly authorized JMX/management endpoint.
+- Tag data with application/build, host/container, PID, JVM start time, and UTC timestamp.
+- Compare snapshots within **the same process** and comparable workload; do not treat output from a lab JVM as production output.
+- Avoid exposing bean dumps containing sensitive paths, system properties, JVM command lines, or module names when enabling remote JMX.
 
-## 7. Theo dõi thay đổi theo thời gian: tránh kết luận từ một snapshot
+## 7. Tracking changes over time: avoid concluding from a single snapshot
 
-Một `MemoryUsage` không tự chứa timestamp hay lịch sử. Khi thu nhiều mẫu, hệ thống quan sát phải gắn:
+A single `MemoryUsage` carries neither a timestamp nor history. When collecting multiple samples, the observability system must attach:
 
-- `capturedAtUtc`: thời điểm JVM/collector ghi nhận dữ liệu.
-- `instance/processStart`: xác định đúng JVM, tránh nối nhầm qua restart.
-- `scope`: `heap`, `nonheap` hoặc tên/type pool.
-- `usedBytes, committedBytes, maxBytes, initBytes`: raw bytes; đánh dấu giá trị sentinel.
-- `gcName, javaVersion, relevantFlags` nếu cần so sánh giữa GC/JDK.
-- Độ dài polling interval, số mẫu mất, exporter lags và giới hạn retention.
+- `capturedAtUtc`: timestamp when the JVM/collector recorded the data.
+- `instance/processStart`: exact JVM identity to avoid stitching across restarts.
+- `scope`: `heap`, `nonheap`, or pool name/type.
+- `usedBytes, committedBytes, maxBytes, initBytes`: raw bytes; flag sentinel values.
+- `gcName, javaVersion, relevantFlags` if comparing across GCs/JDKs.
+- Polling interval length, missed samples, exporter lags, and retention limits.
 
-### 7.1 Ví dụ một chu kỳ cấp phát bình thường
+### 7.1 Example of a normal allocation cycle
 
-Giả sử một service có max 1 GiB và quan sát tại các thời điểm gần nhau:
+Suppose a service has max 1 GiB and is observed at closely spaced times:
 
-| Mốc | Heap used | Heap committed | Diễn giải hợp lý |
+| Time | Heap used | Heap committed | Reasonable interpretation |
 | --- | ---: | ---: | --- |
-| T0 | 250 MiB | 512 MiB | JVM có không gian trong committed |
-| T1 | 460 MiB | 512 MiB | Nhiều object được tạo; chưa đủ biết reachable hay không |
-| T2 | 610 MiB | 768 MiB | Heap có thể mở rộng committed và dùng thêm memory |
-| T3 sau GC | 290 MiB | 768 MiB | Nhiều object đã được thu hồi; committed không buộc giảm ngay |
-| T4 lâu sau | 280 MiB | 512 MiB | JVM có thể thu hẹp committed nếu GC/policy cho phép |
+| T0 | 250 MiB | 512 MiB | JVM has room within committed |
+| T1 | 460 MiB | 512 MiB | Many objects allocated; not yet known if reachable |
+| T2 | 610 MiB | 768 MiB | Heap can expand committed and use more memory |
+| T3 after GC | 290 MiB | 768 MiB | Many objects reclaimed; committed need not shrink immediately |
+| T4 much later | 280 MiB | 512 MiB | JVM may shrink committed if GC/policy permits |
 
-Số là **giả định**. Đây là một cơ chế có thể xảy ra, không phải biểu đồ bắt buộc cho mọi collector. Dữ liệu quan trọng là **tương quan với GC/events/workload**: nếu chỉ nhìn T2, bạn có thể báo leak sai.
+The numbers are **hypothetical**. This is one plausible behavior, not a mandatory curve for every collector. What matters is **correlating with GC/events/workload**: looking only at T2 could lead to a false leak report.
 
-### 7.2 Used tăng sau GC: khi nào đáng nghi?
+### 7.2 Post-GC `used` rising: when is it suspicious?
 
-Với heap, một chuỗi các điểm **sau những lần GC có tác dụng thu hồi phù hợp** dưới tải và trạng thái tương tự thường hữu ích hơn chỉ nhìn đường used thô. Nếu đáy `used` tăng qua nhiều chu kỳ, đó là tín hiệu cần kiểm tra retained objects, cache, references, classloader hoặc workload thay đổi.
+For heap, a series of points **after effective reclaiming GCs** under similar load and state is usually more informative than watching raw `used` alone. If the post-GC floor rises across multiple cycles, that is a signal to inspect retained objects, caches, references, classloaders, or workload shifts.
 
-Tuy nhiên, “sau GC” là khái niệm phụ thuộc collector: nhiều GC chạy concurrent/incremental, một số pool có `getCollectionUsage() == null`. Không được gán nhãn mỗi mẫu sau lúc thấy một log “GC” là live heap toàn phần. Hãy đối chiếu loại GC event, phạm vi collection và timestamps.
+However, "after GC" is collector-dependent: many GCs run concurrently/incrementally, and some pools have `getCollectionUsage() == null`. Do not label every sample after seeing a "GC" log line as full live heap. Cross-check GC event types, collection scopes, and timestamps.
 
-### 7.3 Sampling interval ảnh hưởng nhận định
+### 7.3 Sampling interval affects conclusions
 
-Nếu heap có spikes 2 giây nhưng dashboard scrape mỗi 30 giây, gauge `used` có thể bỏ lỡ đỉnh. `getPeakUsage()` của pool có thể lưu một đỉnh từ **cả đời JVM** (hoặc từ lần reset), không nhất thiết đỉnh trong cửa sổ 30 giây. Để nghiên cứu áp lực allocation ngắn hạn, dùng thêm JFR allocation/GC events, histograms/metrics phù hợp và sampling interval có khả năng thấy hiện tượng.
+If heap has 2-second spikes while a dashboard scrapes every 30 seconds, the `used` gauge may miss the peaks. A pool's `getPeakUsage()` may preserve a peak from **the entire JVM lifetime** (or since reset), not necessarily a peak inside the 30-second window. To study short-lived allocation pressure, add JFR allocation/GC events, appropriate histograms/metrics, and a sampling interval fine enough to capture the phenomenon.
 
-Không “sửa” chênh lệch bằng cách tự ép GC mỗi khi scrape: `System.gc()`/`MemoryMXBean.gc()` không phải công cụ đọc thụ động, có thể ảnh hưởng latency và làm biến dạng workload đang điều tra.
+Do not "fix" discrepancies by forcing GC on every scrape: `System.gc()`/`MemoryMXBean.gc()` is not a passive read tool, can hurt latency, and distorts the workload under investigation.
 
-## 8. Peak usage và collection usage: dùng khi nào?
+## 8. Peak usage and collection usage: when to use them?
 
-### 8.1 Peak là watermark theo thời gian kể từ mốc reset
+### 8.1 Peak is a watermark over time since reset
 
-`pool.getPeakUsage()` trả `MemoryUsage` của peak mà VM theo dõi. Theo API, giá trị peak được duy trì kể từ khi JVM bắt đầu hoặc khi gọi `resetPeakUsage()`. Dùng để phát hiện JVM đã từng chạm mức sử dụng cao, đặc biệt hữu ích với spikes mà polling thưa có thể bỏ qua.
+`pool.getPeakUsage()` returns the peak `MemoryUsage` tracked by the VM. Per the API, the peak value is maintained since JVM startup or since `resetPeakUsage()` was called. Use it to detect whether the JVM ever hit high usage, especially helpful for spikes that sparse polling might miss.
 
-Giới hạn:
+Limitations:
 
-- Peak có thể xảy ra trước đợt incident và vẫn còn ghi nhận.
-- Reset peak là **hành động thay đổi diagnostic state**, có thể ảnh hưởng dashboards của người khác.
-- Không mặc định peak của các pools được ghi tại cùng một thời điểm.
-- Peak usage khác p95/p99 hoặc high-water mark trong cửa sổ tùy chọn của time-series database.
+- The peak may have occurred before the incident and still remain recorded.
+- Resetting the peak is a **diagnostic-state-mutating action** that can affect other people's dashboards.
+- Peaks across different pools are not guaranteed to have occurred at the same instant.
+- Peak usage differs from p95/p99 or a high-water mark over an arbitrary time-series database window.
 
-Nếu cần “đỉnh 5 phút qua” cho dashboard, nên lưu raw used samples với lịch sử đủ dày rồi tính max over time tại backend, ghi rõ độ phân giải. Đừng lẫn với peak từ lúc JVM startup.
+If you need a "peak over the last 5 minutes" on a dashboard, store raw `used` samples at sufficient resolution and compute max-over-time in the backend, noting the resolution. Do not confuse it with the peak since JVM startup.
 
-### 8.2 Collection usage là “sau lần thu hồi gần nhất”
+### 8.2 Collection usage means "after the most recent reclamation"
 
-`pool.getCollectionUsage()` trả usage sau lần VM gần đây nhất đã cố gắng thu hồi object không còn dùng trong pool. Nếu không được hỗ trợ, trả **null**. Từ đó, một số pool (ví dụ pool chứa object dài hạn dưới GC có điểm collection rõ) có thể cho tín hiệu về **tập đối tượng còn chiếm không gian sau GC**.
+`pool.getCollectionUsage()` returns usage after the VM most recently tried to reclaim unused objects in the pool. If unsupported, it returns **null**. Thus some pools (e.g., pools holding long-lived objects under a GC with clear collection points) can signal **the objects still occupying space after GC**.
 
-Không hiểu nhầm:
+Do not misunderstand:
 
-- “Collection usage” không bằng “live object graph chính xác”.
-- Một số GC concurrent không cung cấp điểm collection rõ để threshold/collection usage hoạt động.
-- `getCollectionUsage()` có thể là snapshot cũ nếu chưa có GC phù hợp.
-- Dữ liệu của collection usage và current usage không được đọc nguyên tử cùng một thời điểm.
+- "Collection usage" does not equal "exact live object graph".
+- Some concurrent GCs do not provide clear collection points for threshold/collection usage to operate.
+- `getCollectionUsage()` can be a stale snapshot if no suitable GC has run yet.
+- Collection usage and current usage are not read atomically at the same instant.
 
-Khi nghi leak, kết hợp collection usage với class histogram/heap dump có kiểm soát hoặc JFR allocation, và không coi một ảnh chụp thay cho lịch sử tăng dần.
+When suspecting a leak, combine collection usage with a class histogram/controlled heap dump or JFR allocation, and do not substitute a single snapshot for a rising history.
 
-## 9. Usage threshold và collection usage threshold
+## 9. Usage threshold and collection usage threshold
 
-`MemoryPoolMXBean` hỗ trợ hai loại threshold **theo khả năng của pool**, không phải thuộc tính chắc chắn có trên mọi VM. `MemoryMXBean` có thể phát notification khi pool vượt threshold do JVM phát hiện.
+`MemoryPoolMXBean` supports two types of thresholds **depending on pool capability**, not guaranteed on every VM. `MemoryMXBean` can emit notifications when a pool exceeds a VM-detected threshold.
 
 ### 9.1 Usage threshold
 
-Một pool có thể hỗ trợ `isUsageThresholdSupported()`. Nếu có, `setUsageThreshold(long bytes)` đặt ngưỡng, nhưng đây là **hành động thay đổi cấu hình monitoring của JVM**, không phải thao tác read-only. Ngưỡng dương bật kiểm tra; 0 tắt. Việc kiểm tra diễn ra tại thời điểm JVM thấy phù hợp, **không cam kết phát notification ngay lập tức tại từng byte vượt ngưỡng**.
+A pool may support `isUsageThresholdSupported()`. If so, `setUsageThreshold(long bytes)` sets the threshold, but this is a **JVM monitoring-configuration-mutating action**, not a read-only operation. A positive threshold enables checking; 0 disables it. Checking happens when the VM sees fit, **with no guarantee of immediate notification at the exact byte the threshold is crossed**.
 
-`getUsageThresholdCount()` là số lần JVM **phát hiện ngưỡng bị vượt** theo semantics của threshold; không phải số allocation hay số GC. `isUsageThresholdExceeded()` phản ánh trạng thái vượt ngưỡng theo khả năng JVM hỗ trợ. Cần kiểm tra `isUsageThresholdSupported()` trước khi gọi API liên quan, vì một số API có thể ném `UnsupportedOperationException` nếu không được hỗ trợ.
+`getUsageThresholdCount()` is the number of times the JVM **detected the threshold was exceeded** under threshold semantics; not the number of allocations or GCs. `isUsageThresholdExceeded()` reflects whether usage is currently over the threshold as supported by the JVM. Check `isUsageThresholdSupported()` before calling related APIs, as some APIs can throw `UnsupportedOperationException` if unsupported.
 
 ### 9.2 Collection usage threshold
 
-`isCollectionUsageThresholdSupported()` cho biết pool hỗ trợ ngưỡng **sau hoạt động collection** không. Điều này đặc biệt phù hợp khi muốn cảnh báo memory vẫn cao sau GC, tránh chỉ báo động vì những spike ngắn trước GC.
+`isCollectionUsageThresholdSupported()` indicates whether a pool supports a threshold **after a collection operation**. This is particularly suitable when you want to alert only if memory remains high after GC, avoiding false alarms from brief pre-GC spikes.
 
-Nếu được hỗ trợ, `setCollectionUsageThreshold(long bytes)` thiết lập ngưỡng collection; cũng là thay đổi state. Khi VM phát hiện sau GC phù hợp mà usage đạt/vượt ngưỡng, nó có thể tăng counter và phát notification thông qua `MemoryMXBean`. Pool không có điểm collection rõ có thể **không hỗ trợ** ngưỡng này.
+If supported, `setCollectionUsageThreshold(long bytes)` configures the collection threshold; this also mutates state. When the VM detects after an appropriate GC that usage meets/exceeds the threshold, it can increment the counter and emit a notification via `MemoryMXBean`. Pools without clear collection points may **not support** this threshold.
 
-Không lấy notification count làm số lần “leak” hay số lần GC. Notification mang ý nghĩa **JVM phát hiện vượt một ngưỡng đã cấu hình**, phụ thuộc thời điểm kiểm tra và việc usage giảm rồi tăng lại. Những vượt ngưỡng liên tục không buộc tạo notification lặp vô hạn.
+Do not treat the notification count as the number of "leaks" or GCs. A notification means **the JVM detected a configured threshold crossing**, depending on check timing and usage dropping then rising again. Continuously staying above threshold does not require repeated infinite notifications.
 
-### 9.3 Notifications từ MemoryMXBean
+### 9.3 Notifications from MemoryMXBean
 
-`MemoryMXBean` có thể phát `MemoryNotificationInfo.MEMORY_THRESHOLD_EXCEEDED` hoặc `MEMORY_COLLECTION_THRESHOLD_EXCEEDED` khi pool tương ứng hỗ trợ và ngưỡng đã được thiết lập. Các notification thuộc cơ chế JMX và thường chứa pool name, usage snapshot và count, không phải sự kiện về object cụ thể nào gây áp lực.
+`MemoryMXBean` can emit `MemoryNotificationInfo.MEMORY_THRESHOLD_EXCEEDED` or `MEMORY_COLLECTION_THRESHOLD_EXCEEDED` when the corresponding pool supports it and a threshold is set. Notifications belong to the JMX mechanism and typically contain pool name, usage snapshot, and count, not events about which specific object caused pressure.
 
-Hãy phân biệt hai thao tác:
+Distinguish two kinds of operations:
 
-- **Đọc/monitor:** gọi `getUsage()`, `getPeakUsage()`, kiểm tra flags hỗ trợ; thường phù hợp trong diagnostic session.
-- **Điều khiển:** gọi `setUsageThreshold`, `setCollectionUsageThreshold`, `resetPeakUsage` hoặc `MemoryMXBean.gc()`; phải có mục tiêu/quyền/thỏa thuận và đánh giá tác động.
+- **Reading/monitoring:** calling `getUsage()`, `getPeakUsage()`, checking support flags; normally appropriate during a diagnostic session.
+- **Control:** calling `setUsageThreshold`, `setCollectionUsageThreshold`, `resetPeakUsage`, or `MemoryMXBean.gc()`; requires clear purpose, authorization, agreement, and impact assessment.
 
-Không tạo ví dụ tự đặt threshold tùy tiện trong production vì có thể phá chính sách cảnh báo đã được cấu hình. Trong bài tập read-only, in cờ `...Supported` là đủ để biết có thể xây dựng cơ chế đó sau này hay không.
+Do not create examples that arbitrarily set thresholds in production, as that can break pre-configured alerting policies. In read-only exercises, printing the `...Supported` flags is enough to know whether such a mechanism can be built later.
 
-## 10. Một số lệnh JVM bổ trợ khi MXBeans chưa đủ
+## 10. Complementary JVM commands when MXBeans are not enough
 
-MXBeans hữu ích cho tình trạng hiện tại của memory management; để giải thích **vì sao** used/committed thay đổi, cần các nguồn bổ sung. Ví dụ dưới đây dành cho HotSpot JDK 21, PID **12345 chỉ là giả định**:
+MXBeans are useful for the current state of memory management; to explain **why** `used`/`committed` changed, additional sources are needed. The examples below target HotSpot JDK 21, with PID **12345 purely hypothetical**:
 
 ```bash
 jcmd 12345 VM.version
@@ -499,25 +499,25 @@ jcmd 12345 GC.heap_info
 jcmd 12345 JFR.check
 ```
 
-- `VM.version`: xác định đúng JVM/version.
-- `VM.flags`: xem effective JVM flags liên quan heap/GC. Đừng suy ra chỉ từ `-Xmx` ghi trong manifest.
-- `GC.heap_info`: nhận thông tin heap tùy GC; cùng scope nhưng cấu trúc không nhất thiết giống hoàn toàn các MXBean metrics.
-- `JFR.check`: xem recording JFR đang chạy, không tự bắt đầu recording.
+- `VM.version`: identify the exact JVM/version.
+- `VM.flags`: inspect effective JVM flags related to heap/GC. Do not infer solely from `-Xmx` in manifests.
+- `GC.heap_info`: obtain GC-dependent heap information; same scope, though structure need not match MXBean metrics identically.
+- `JFR.check`: inspect running JFR recordings without starting one.
 
-Khi cần **chẩn đoán sâu**, GC logs/JFR events giúp xác định chu kỳ GC, pause, allocation; heap dump/class histogram có thể phân tích object types/references nhưng tạo chi phí/tác động cao và có thể chứa dữ liệu nhạy cảm. Không bật heap dump chỉ để xác minh một số `used`.
+When **deep diagnostics** are needed, GC logs/JFR events help identify GC cycles, pauses, and allocations; heap dumps/class histograms can analyze object types/references but carry high cost/impact and may contain sensitive data. Do not trigger a heap dump just to verify a `used` number.
 
-### 10.1 NMT khác MemoryMXBean
+### 10.1 NMT vs. MemoryMXBean
 
-Native Memory Tracking (NMT) trên HotSpot theo dõi nhiều vùng cấp phát nội bộ JVM. Muốn dùng `jcmd PID VM.native_memory summary`, thông thường phải bật NMT từ **startup** (chẳng hạn `-XX:NativeMemoryTracking=summary`) vì trạng thái off không thể chuyển thành summary/detail trên tiến trình đang chạy. NMT có các cột reserved/committed theo category khác với `MemoryUsage`.
+Native Memory Tracking (NMT) on HotSpot tracks many internal JVM allocations. To use `jcmd PID VM.native_memory summary`, NMT normally must be enabled at **startup** (e.g., `-XX:NativeMemoryTracking=summary`) because an off state cannot be switched to summary/detail on a running process. NMT reports reserved/committed columns by category, differing from `MemoryUsage`.
 
-NMT vẫn không bao phủ toàn bộ native memory từ các thư viện bên thứ ba; số của NMT cũng không buộc bằng RSS. Không dùng công thức `RSS = heap.used + nonheap.used + NMT.total`: các nguồn đo có phạm vi khác nhau, và nhiều vùng **chồng lấp**.
+NMT still does not cover all native memory from third-party libraries; NMT totals need not equal RSS either. Do not use the formula `RSS = heap.used + nonheap.used + NMT.total`: the measurement sources have different scopes and many areas **overlap**.
 
-### 10.2 BufferPoolMXBean khác MemoryPoolMXBean
+### 10.2 BufferPoolMXBean vs. MemoryPoolMXBean
 
-`BufferPoolMXBean` cung cấp những thông tin như `getName()`, `getCount()`, `getTotalCapacity()`, `getMemoryUsed()` cho buffer pools mà VM hỗ trợ. Ví dụ:
+`BufferPoolMXBean` provides info such as `getName()`, `getCount()`, `getTotalCapacity()`, and `getMemoryUsed()` for VM-supported buffer pools. Example:
 
 ```java
-// Đoạn minh họa bên trong method, không phải chương trình độc lập.
+// Illustrative snippet inside a method, not a standalone program.
 for (java.lang.management.BufferPoolMXBean p :
         java.lang.management.ManagementFactory.getPlatformMXBeans(
                 java.lang.management.BufferPoolMXBean.class)) {
@@ -527,47 +527,47 @@ for (java.lang.management.BufferPoolMXBean p :
 }
 ```
 
-Bộ dữ liệu này hữu ích khi direct/mapped buffers làm tăng memory ngoài Java heap. Nó **không phải cùng contract bốn trường `init/used/committed/max` của `MemoryUsage`**, và `getMemoryUsed()` cũng có thể trả -1 khi VM không có ước lượng phù hợp. Dùng để bổ sung, không thay các metrics heap/pool hay OS.
+This dataset is useful when direct/mapped buffers drive memory growth outside the Java heap. It **does not share the four-field `init/used/committed/max` contract of `MemoryUsage`**, and `getMemoryUsed()` can also return -1 when the VM lacks a suitable estimate. Use it to supplement, not replace, heap/pool or OS metrics.
 
-## 11. Tình huống chẩn đoán thường gặp
+## 11. Common diagnostic scenarios
 
-### Tình huống A — Heap used gần max, committed vẫn chưa chạm max
+### Scenario A — Heap used near max, committed still below max
 
-Ví dụ snapshot giả định:
+Hypothetical snapshot example:
 
 ```text
 heap.used      = 750 MiB
 heap.committed = 800 MiB
-heap.max       = 1.024 MiB
+heap.max       = 1,024 MiB
 ```
 
-`used/committed ≈ 93,75%`, `used/max ≈ 73,24%`. JVM **có thể** còn quyền mở rộng committed theo max, nhưng điều đó không đảm bảo cấp phát thành công. Cần xem GC frequency/pause, allocation rate, CPU, container memory limits và biến động committed. Nếu ngay sau một GC phù hợp used giảm về 320 MiB, đó có thể là spike do workload; nếu đáy sau GC ngày càng tăng trong tải so sánh được, cần điều tra giữ tham chiếu.
+`used/committed ≈ 93.75%`, `used/max ≈ 73.24%`. The JVM **may** still have room to expand `committed` toward `max`, though that does not guarantee allocation will succeed. Examine GC frequency/pauses, allocation rate, CPU, container memory limits, and `committed` fluctuations. If right after an appropriate GC `used` drops to 320 MiB, it may be a workload spike; if the post-GC floor climbs over comparable load, investigate retained references.
 
-Không đưa cảnh báo “heap gần OOM” chỉ từ `used/committed` cao khi `used/max` còn thấp mà không xét GC behavior; tuy nhiên cũng không xem `used/max` thấp là bảo đảm an toàn.
+Do not fire a "heap near OOM" alert solely from high `used/committed` while `used/max` is still low without checking GC behavior; conversely, do not treat low `used/max` as guaranteed safety.
 
-### Tình huống B — Committed tăng mà used gần như không đổi
+### Scenario B — Committed increases while used is nearly flat
 
-Có thể JVM đã mở rộng capacity theo dự đoán tải, giữ lại để tránh trả/nhận memory liên tục, hoặc thay đổi cấu trúc pool. Đây **không tự là leak** vì retained objects vẫn chưa tăng rõ. Kiểm tra committed/max, GC policy, heap flags, OS RSS và container memory behavior. Trong hệ thống memory-constrained, committed cao có thể làm tăng áp lực tổng thể dù used thấp; nhưng bản thân số committed không bằng số trang resident đã dùng.
+The JVM may have expanded capacity anticipating load, retained it to avoid frequent memory commit/uncommit churn, or adjusted pool structures. This **is not automatically a leak** since retained objects have not clearly grown. Check committed/max, GC policy, heap flags, OS RSS, and container memory behavior. In memory-constrained systems, high `committed` can raise overall pressure even when `used` is low; yet `committed` itself does not equal resident pages used.
 
-### Tình huống C — Heap bình thường nhưng RSS của container tăng
+### Scenario C — Heap looks normal, yet container RSS keeps rising
 
-Đầu tiên **không cộng** heap/nonheap used để khẳng định chênh lệch là “memory leak chưa được thống kê”. Kiểm tra:
+First, **do not subtract** heap/non-heap `used` to claim the gap is an "untracked memory leak". Check:
 
-- `getNonHeapMemoryUsage()` và pools như Metaspace/Code Cache.
-- `BufferPoolMXBean` cho direct/mapped buffers nếu có.
-- Số thread, stack sizes, native libraries, mapped files và các chỉ số OS.
-- NMT nếu đã bật từ startup; giới hạn coverage.
-- Container memory limit, memory pressure, page cache/accounting theo hệ đo.
+- `getNonHeapMemoryUsage()` and pools like Metaspace/Code Cache.
+- `BufferPoolMXBean` for direct/mapped buffers if present.
+- Thread count, stack sizes, native libraries, mapped files, and OS indicators.
+- NMT if enabled from startup, keeping its coverage limits in mind.
+- Container memory limit, memory pressure, and page cache/accounting per the host's measurement system.
 
-Kết luận phải nói rõ nguồn và phạm vi. Có thể có vấn đề native memory mà heap MXBean không nhìn thấy.
+Conclusions must state the source and scope clearly. There may be a native memory issue invisible to heap MXBeans.
 
-### Tình huống D — Sau deployment, Metaspace pool tăng
+### Scenario D — After deployment, the Metaspace pool grows
 
-Class loading/JIT trong warm-up có thể làm non-heap tăng hợp lý. Nếu Metaspace used tiếp tục tăng theo mỗi lần reload module hoặc tạo class loader mới mà không giảm qua nhiều chu kỳ, cần xem class loader retention, dynamic proxy, reflection/generated classes, deployment strategy và JFR/VM classloader diagnostics. Không dùng ngưỡng cố định “Metaspace > X MiB = leak” chung cho mọi ứng dụng.
+Class loading/JIT during warm-up can legitimately raise non-heap usage. If Metaspace `used` keeps climbing on every module reload or new class loader creation without dropping over multiple cycles, inspect class loader retention, dynamic proxies, reflection/generated classes, deployment strategy, and JFR/VM classloader diagnostics. Do not apply a fixed threshold like "Metaspace > X MiB = leak" across every application.
 
-### Tình huống E — Pool max = -1, cảnh báo biểu thị 100% hoặc số âm
+### Scenario E — Pool max = -1, alert shows 100% or negative numbers
 
-Đây là lỗi logic khi biến sentinel thành mẫu số. Ngay tại exporter:
+This is a logic bug caused by turning the sentinel into a denominator. Right inside the exporter:
 
 ```text
 if max <= 0:
@@ -577,188 +577,188 @@ else:
     calculate used / max
 ```
 
-Đây là **pseudocode**, không phải Java. Nếu backend không hỗ trợ missing value tốt, tách metric `hasDefinedMax` hoặc gắn metadata, đừng làm giả max = 1 hoặc 0. Điều chỉnh query/dashboard để không đưa pool có undefined max vào tỷ lệ.
+This is **pseudocode**, not Java. If the backend does not handle missing values well, split out a `hasDefinedMax` metric or attach metadata; do not fake `max = 1` or `0`. Fix queries/dashboards so pools with undefined max are excluded from ratios.
 
-### Tình huống F — Nhìn peak cao liên tục sau một spike ngắn
+### Scenario F — Seeing sustained high peak after a brief spike
 
-`getPeakUsage()` không phải “used hiện tại”. Nếu dashboard vẽ `peak.used` mà đặt nhãn “current memory used”, người đọc sẽ tưởng JVM vẫn ở mức cao. Tách hai đường và ghi chú peak kể từ startup/reset, còn current từ `getUsage()`. Muốn peak 5 phút, cần lưu raw time series đủ độ phân giải rồi tính max over window.
+`getPeakUsage()` is not "current used". If a dashboard plots `peak.used` labeled "current memory used", readers will think the JVM is still high. Separate the two series and note that peak is since startup/reset, while current comes from `getUsage()`. For a 5-minute peak, store raw time series at sufficient resolution and compute max over the window.
 
-### Tình huống G — Sau GC collection usage vẫn cao
+### Scenario G — After GC, collection usage remains high
 
-Nếu pool hỗ trợ `getCollectionUsage()` và có event GC thích hợp, đây có thể là tín hiệu nhiều đối tượng tiếp tục chiếm pool. Tuy nhiên cần so workloads, collector semantics, thời gian GC, rate của requests và công việc background. Đừng kết luận ngay “leak đã được chứng minh”; có thể là cache sống hợp lệ, retained session/batch state hoặc snapshot cũ.
+If the pool supports `getCollectionUsage()` and an appropriate GC event occurred, this can signal many objects continuing to occupy the pool. However, compare workloads, collector semantics, GC timing, request rates, and background jobs. Do not immediately conclude "leak proven"; it could be a legitimate live cache, retained session/batch state, or a stale snapshot.
 
-## 12. Thiết kế metrics và dashboard cho MXBeans
+## 12. Designing metrics and dashboards for MXBeans
 
-Một cách chuẩn hóa (tên chỉ là **đề xuất**, không phải metric name bắt buộc của Prometheus/OTel) là:
+One standardized convention (names are **suggestions**, not mandatory Prometheus/OTel metric names) is:
 
-| Series đề xuất | Scope/nhãn | Giá trị |
+| Suggested series | Scope/labels | Value |
 | --- | --- | --- |
 | `jvm_memory_used_bytes` | `area=heap/nonheap`, instance | `MemoryMXBean` `used` |
 | `jvm_memory_committed_bytes` | area, instance | `committed` |
-| `jvm_memory_max_bytes` | area, instance, chỉ khi xác định | `max` |
-| `jvm_memory_init_bytes` | area, instance, chỉ khi xác định | `init` |
-| `jvm_memory_pool_used_bytes` | pool, type, instance | `MemoryPoolMXBean.getUsage().getUsed()` nếu non-null |
+| `jvm_memory_max_bytes` | area, instance, only when defined | `max` |
+| `jvm_memory_init_bytes` | area, instance, only when defined | `init` |
+| `jvm_memory_pool_used_bytes` | pool, type, instance | `MemoryPoolMXBean.getUsage().getUsed()` if non-null |
 | `jvm_memory_pool_peak_used_bytes` | pool, type, instance | `getPeakUsage().getUsed()` |
-| `jvm_memory_pool_after_gc_used_bytes` | pool, type, instance | `getCollectionUsage().getUsed()` khi hỗ trợ và dữ liệu có sẵn |
+| `jvm_memory_pool_after_gc_used_bytes` | pool, type, instance | `getCollectionUsage().getUsed()` when supported and available |
 
-Trong hệ thống sử dụng Micrometer, OpenTelemetry hoặc JMX exporter, **tên thực và semantics của metric có thể khác**; luôn kiểm tra cấu hình exporter, đơn vị, labels và dấu hiệu thiếu dữ liệu thay vì giả định hoàn toàn từ tên.
+In systems using Micrometer, OpenTelemetry, or JMX exporter, **actual metric names and semantics may differ**; always check exporter configuration, units, labels, and missing-data conventions rather than assuming from names alone.
 
-### 12.1 Mỗi panel phải có scope và mẫu số
+### 12.1 Every panel must state scope and denominator
 
-- Heap tổng: used bytes, committed bytes và max bytes (nếu có) trên cùng chart hoặc các biểu đồ tương quan.
-- Heap pressure: `used/max` khi `max > 0`; vẽ rõ mẫu số và cảnh báo đặc thù workload.
-- Capacity commitment: `committed/max` khi được định nghĩa; hữu ích để thấy JVM đã mở rộng heap đến mức nào.
-- Memory pools: mỗi pool một line/legend, có type và GC/vendor context; không gộp những pool có semantics khác nhau thành một “heap ratio” không rõ nguồn.
-- Native process memory: RSS/container usage **từ OS/agent** ở panel riêng; không cộng với MXBean numbers.
+- Total heap: used bytes, committed bytes, and max bytes (if available) on the same chart or correlated charts.
+- Heap pressure: `used/max` when `max > 0`; state the denominator clearly and tune alerts to the workload.
+- Capacity commitment: `committed/max` when defined; helpful to see how far the JVM expanded the heap.
+- Memory pools: one line/legend per pool, with type and GC/vendor context; do not combine pools with different semantics into an unclear "heap ratio".
+- Native process memory: RSS/container usage **from OS/agent** in a separate panel; do not add to MXBean numbers.
 
-### 12.2 Dữ liệu mất, số âm sentinel và exporter bugs
+### 12.2 Missing data, negative sentinels, and exporter bugs
 
-Với `init/max` không xác định, ghi rõ **unavailable** chứ không chuyển sang 0 rồi đi tính percentage. Không nên đưa giá trị `-1` vào biểu đồ như memory âm. Nếu `getUsage() == null` hoặc pool không còn valid, exporter phải bỏ/đánh dấu series tương ứng, **không tự báo used=0** vì 0 là một quan sát khác về mặt ngữ nghĩa.
+For undefined `init/max`, mark **unavailable** instead of converting to 0 and computing percentages. Never plot `-1` on a chart as negative memory. If `getUsage() == null` or a pool is no longer valid, the exporter must omit/mark the corresponding series, **never report `used=0`** because 0 is a semantically different observation.
 
-Khi process restart, các giá trị peak/threshold counters khởi động lại theo VM; cần phân biệt series mới với dữ liệu lịch sử. Nhãn `instance`/`processStartTime` hoặc resource identity giúp tránh nối tiếp hai JVM như thể một.
+When a process restarts, peak/threshold counters reset with the VM; separate the new series from historical data. `instance`/`processStartTime` labels or resource identity prevent stitching two JVMs together as one.
 
-### 12.3 Tần suất thu và độ chính xác
+### 12.3 Collection frequency and precision
 
-MXBeans phản ánh snapshot. Nếu đo mỗi 30 giây, các spikes ngắn có thể nằm giữa hai lần poll; nếu poll mọi mili-giây, bạn có thể thêm overhead và vẫn bỏ qua peak theo ý nghĩa bộ nhớ khi GC chạy đồng thời. Chọn chu kỳ theo SLA, độ dài sự cố và tổng số series; dùng GC logs/JFR events khi cần timeline chi tiết.
+MXBeans reflect snapshots. Polling every 30 seconds can miss short spikes between polls; polling every millisecond adds overhead and can still miss memory peaks when GC runs concurrently. Pick the interval based on SLA, incident duration, and series cardinality; use GC logs/JFR events for detailed timelines.
 
-Đặc biệt với memory pool có nhiều object và cách tính usage đắt theo implementation, đọc liên tục có thể tăng overhead. Tài liệu `MemoryPoolMXBean` gọi `getUsage()` là phép đo nhẹ **trong đa số trường hợp**, nhưng có pool cần tính toán tốn kém; phải đo thực và không coi mỗi getter luôn O(1).
+Especially for memory pools with many objects and implementation-specific expensive usage calculations, continuous reading can raise overhead. The `MemoryPoolMXBean` documentation describes `getUsage()` as lightweight **in most cases**, yet some pools have costly calculations; measure in practice and do not assume every getter is always O(1).
 
-### 12.4 Không suy từ metrics correlation sang nguyên nhân
+### 12.4 Do not jump from metric correlation to causation
 
-Ví dụ heap used và latency tăng cùng lúc có thể do allocation pressure, GC, contention, batch job, downstream backlog hoặc đơn giản tăng tải. Để kết luận, đối chiếu GC pause, thread states, throughput, allocation samples, error traces và thời điểm rollout. MXBeans là một mảnh chứng cứ, không phải profiler hay object graph.
+For instance, heap `used` and latency rising together could come from allocation pressure, GC, contention, a batch job, downstream backlog, or simply higher traffic. To conclude, correlate GC pauses, thread states, throughput, allocation samples, error traces, and rollout times. MXBeans are one piece of evidence, not a profiler or object graph.
 
-## 13. Quy trình thu thập phục vụ incident
+## 13. Collection workflow for incidents
 
-### Bước 1: Gắn đúng JVM và thời điểm
+### Step 1: Anchor the exact JVM and timestamp
 
-Ghi service, environment, host/container, PID, process start time, JDK version/vendor, GC, heap options và timestamp UTC. Đừng đo bằng một Java process demo rồi suy ra JVM production.
+Record service, environment, host/container, PID, process start time, JDK version/vendor, GC, heap options, and UTC timestamp. Do not measure a demo Java process and extrapolate to a production JVM.
 
-### Bước 2: Thu tổng thể trước
+### Step 2: Capture totals first
 
-Lấy `heap` và `nonheap` từ `MemoryMXBean`, bao gồm **bốn trường raw bytes**. Kiểm tra `used <= committed` và `max == -1`. Nếu thấy tỷ lệ báo sai, xem đơn vị và mẫu số.
+Read `heap` and `nonheap` from `MemoryMXBean`, including **all four raw byte fields**. Check `used <= committed` and `max == -1`. If ratios look wrong, check units and denominators.
 
-### Bước 3: Xem pools để tìm vùng có áp lực
+### Step 3: Inspect pools to locate pressured areas
 
-Đọc `getMemoryPoolMXBeans()`, tên/type và current `getUsage()`. Dùng `getPeakUsage()` khi cần lịch sử watermark, `getCollectionUsage()` nếu VM hỗ trợ và có giá trị; phân biệt các loại. Không sửa threshold/peak trong một lượt read-only.
+Read `getMemoryPoolMXBeans()`, names/types, and current `getUsage()`. Use `getPeakUsage()` when watermark history is needed, and `getCollectionUsage()` if supported and available; distinguish types. Do not mutate thresholds/peaks during a read-only pass.
 
-### Bước 4: So qua các mốc và correlate
+### Step 4: Compare across checkpoints and correlate
 
-Giữ ít nhất một cửa sổ baseline, một đoạn xảy ra vấn đề và đoạn hồi phục; ghi GC events và application throughput/request mix. Tính `used/max` chỉ với same-scope max xác định; không cộng tất cả pool max.
+Keep at least a baseline window, an incident window, and a recovery window; record GC events and application throughput/request mix. Compute `used/max` only with a defined same-scope max; do not sum all pool maxes.
 
-### Bước 5: Mở rộng công cụ theo triệu chứng
+### Step 5: Escalate tools by symptom
 
-Nếu nghi heap retention, dùng allocation profiling/heap analysis có kiểm soát; nếu RSS vượt xa heap metrics, bổ sung buffer pools, OS/process/container và NMT nếu bật; nếu Metaspace tăng, xem class loading/classloader. Đánh giá ảnh hưởng trước khi dùng heap dump, forced GC hoặc công cụ nặng.
+If heap retention is suspected, use controlled allocation profiling/heap analysis; if RSS far exceeds heap metrics, add buffer pools, OS/process/container metrics, and NMT if enabled; if Metaspace grows, inspect class loading/classloaders. Assess impact before using heap dumps, forced GC, or heavy tools.
 
-### Bước 6: Báo cáo kết luận có giới hạn
+### Step 6: Report conclusions with explicit bounds
 
-Ví dụ cấu trúc báo cáo:
+Example report structure:
 
 ```text
-Tại 10:22:14 UTC, JVM service A (PID..., start time...)
+At 10:22:14 UTC, JVM service A (PID..., start time...)
   heap.used      = 256 MiB
   heap.committed = 512 MiB
   heap.max       = 1024 MiB
   used/max       = 25%
   used/committed = 50%
 
-Pool liên quan:
-  name = <ten-tu-JVM>, type = HEAP
-  current.used = <gia-tri>, afterCollection.used = <gia-tri-neu-co>
+Relevant pool:
+  name = <name-from-JVM>, type = HEAP
+  current.used = <value>, afterCollection.used = <value-if-available>
 
-Quan sát:
-  used tăng theo đợt tải, có/không có GC trong khoảng đo.
-Chưa đủ bằng chứng:
-  leak, nguyên nhân RSS, vị trí code giữ references.
-Bước tiếp:
-  xem JFR/GC logs, workload và heap analysis nếu cần.
+Observations:
+  used climbed during load bursts, with/without GC in the measured window.
+Insufficient evidence for:
+  leak, cause of RSS, code locations holding references.
+Next steps:
+  check JFR/GC logs, workload, and heap analysis if needed.
 ```
 
-Các số là **giả định minh họa tỷ lệ**, không phải dữ liệu từ production. Chỉ kết luận các điều đã đo được trong đúng môi trường/thời gian.
+The numbers are **hypothetical ratio illustrations**, not production data. Only conclude what was measured in the right environment and timeframe.
 
-## 14. Các nhầm lẫn phổ biến
+## 14. Common confusions
 
-| Nhầm lẫn | Điều chính xác hơn |
+| Misconception | More accurate statement |
 | --- | --- |
-| “`used` chính là dung lượng object còn sống sau GC.” | Có thể gồm unreachable objects trước khi chúng được thu hồi; xem GC/collection context. |
-| “`committed` là lượng RAM vật lý process đang sử dụng.” | Nó là capacity VM bảo đảm, không bằng RSS/working set. |
-| “`max` là số byte JVM đã được OS cấp sẵn.” | Giới hạn tối đa, không phải memory đã commit/physical RAM. |
-| “`max = -1` tức không giới hạn.” | Nó chỉ có nghĩa giới hạn **không xác định** theo API. |
-| “`init` luôn bằng `committed`.” | Committed có thể tăng/giảm; thậm chí nhỏ hơn init sau shrink. |
-| “`used/max` và `used/committed` là một.” | Hai mẫu số mô tả hai câu hỏi khác nhau. |
-| “Pool max có thể cộng thành tổng heap max.” | GC có thể phân phối linh hoạt; các max pool không buộc độc lập. |
-| “Tổng used tất cả pool luôn bằng used của MemoryMXBean.” | Các snapshot không nhất quán nguyên tử và phạm vi/timing có thể khác. |
-| “Mọi JVM đều có Eden/Survivor/Old/Metaspace với cùng tên.” | Phụ thuộc GC, implementation, vendor/version. |
-| “Non-heap used + heap used chính là RSS.” | Không phản ánh mọi native/offheap/mappings/OS accounting. |
-| “getCollectionUsage() luôn có và thể hiện sau GC mới nhất ngay lúc scrape.” | Có thể null hoặc phản ánh lần collection phù hợp gần nhất trước đó. |
-| “getPeakUsage() là peak trong 5 phút vừa qua.” | Là peak do VM theo dõi từ startup/reset, không phải cửa sổ dashboard. |
-| “resetPeakUsage() là chỉ đọc.” | Nó thay đổi state của statistic. |
-| “setUsageThreshold() có thể dùng để xem ngưỡng mặc định.” | Đây là setter thay đổi threshold; kiểm tra support và getter trước. |
-| “Threshold notification đến tức thời mỗi lần vượt ngưỡng.” | JVM kiểm tra theo cơ chế/thời điểm phù hợp; không phải sensor theo từng byte. |
-| “GC chậm tức chắc chắn memory leak.” | GC pressure có nhiều nguyên nhân; cần đối chiếu allocation, retained usage và workload. |
-| “Heap used dưới max chứng minh không thể OOM.” | Vẫn có thể OOM do native/metaspace/direct/container hoặc cấp phát không thành công. |
+| "`used` is the exact size of live objects after GC." | May include unreachable objects prior to reclamation; check GC/collection context. |
+| "`committed` is the physical RAM the process is using." | It is capacity guaranteed to the VM, not RSS/working set. |
+| "`max` is the bytes the OS has already allocated to the JVM." | Maximum limit, not committed memory or physical RAM. |
+| "`max = -1` means unlimited." | It only means the limit is **undefined** per the API. |
+| "`init` always equals `committed`." | `committed` can grow/shrink; even drop below `init` after shrinking. |
+| "`used/max` and `used/committed` are the same." | Two denominators answer two different questions. |
+| "Pool maxes can be summed into total heap max." | GC can allocate flexibly; pool maxes need not be independent. |
+| "Sum of `used` across all pools always equals MemoryMXBean's `used`." | Snapshots are not atomically consistent and scope/timing may differ. |
+| "Every JVM has Eden/Survivor/Old/Metaspace with the same names." | Depends on GC, implementation, vendor/version. |
+| "Non-heap `used` + heap `used` equals RSS." | Does not capture all native/off-heap/mappings/OS accounting. |
+| "`getCollectionUsage()` is always available and reflects the latest GC right at scrape time." | May be null or reflect the most recent applicable collection prior to that. |
+| "`getPeakUsage()` is the peak of the last 5 minutes." | It is the VM-tracked peak since startup/reset, not a dashboard window. |
+| "`resetPeakUsage()` is read-only." | It mutates statistic state. |
+| "`setUsageThreshold()` can be used to read the default threshold." | It is a setter mutating the threshold; check support and getter first. |
+| "Threshold notifications arrive instantaneously on every crossing." | The JVM checks at suitable mechanisms/times; not a per-byte sensor. |
+| "Slow GC certainly means a memory leak." | GC pressure has many causes; correlate allocation, retained usage, and workload. |
+| "Heap `used` below `max` proves OOM is impossible." | OOM can still happen from native/metaspace/direct/container limits or failed allocations. |
 
-## 15. Tự kiểm tra và đáp án
+## 15. Self-check questions and answers
 
-**Câu 1.** Một snapshot có `used=400 MiB`, `committed=800 MiB`, `max=1.600 MiB`. Tỷ lệ used/committed và used/max là bao nhiêu?
+**Q1.** A snapshot has `used=400 MiB`, `committed=800 MiB`, `max=1,600 MiB`. What are the used/committed and used/max ratios?
 
-**Đáp án:** used/committed = **50%**; used/max = **25%**. Cả hai hợp lệ nếu cùng scope, nhưng có ý nghĩa khác nhau.
+**Answer:** used/committed = **50%**; used/max = **25%**. Both are valid within the same scope, yet carry different meanings.
 
-**Câu 2.** Một pool báo `init=256 MiB`, `committed=192 MiB`. Có trái contract không?
+**Q2.** A pool reports `init=256 MiB`, `committed=192 MiB`. Does this violate the contract?
 
-**Đáp án:** không. `committed` được phép giảm dưới `init` khi JVM trả memory theo thời gian. Bất biến quan trọng là `used <= committed`, và `committed <= max` nếu max xác định.
+**Answer:** No. `committed` is allowed to shrink below `init` when the JVM returns memory over time. The key invariants are `used <= committed`, and `committed <= max` when `max` is defined.
 
-**Câu 3.** `getMax() == -1`, dashboard tính `used / -1` ra phần trăm âm. Xử lý?
+**Q3.** `getMax() == -1`, and a dashboard computes `used / -1` yielding a negative percentage. How should this be handled?
 
-**Đáp án:** đánh dấu **undefined** và bỏ phép tính tỷ lệ; `-1` là sentinel không xác định, không phải capacity âm hay vô hạn.
+**Answer:** Mark it **undefined** and skip the ratio calculation; `-1` is an undefined sentinel, not negative or infinite capacity.
 
-**Câu 4.** Heap used tăng từ 200 MiB lên 650 MiB rồi giảm về 220 MiB sau GC. Có thể kết luận leak không?
+**Q4.** Heap `used` rises from 200 MiB to 650 MiB and drops back to 220 MiB after GC. Can you conclude there is a leak?
 
-**Đáp án:** không. Mô hình này phù hợp allocation churn. Cần quan sát nhiều chu kỳ, collection usage (nếu có), workload và retained references để đánh giá leak.
+**Answer:** No. This pattern fits allocation churn. You must observe multiple cycles, collection usage (if available), workload, and retained references to evaluate a leak.
 
-**Câu 5.** `MemoryPoolMXBean.getCollectionUsage()` trả null. Có được xuất value 0 để tránh chart gap không?
+**Q5.** `MemoryPoolMXBean.getCollectionUsage()` returns null. May you emit value 0 to avoid chart gaps?
 
-**Đáp án:** không. Null là không có số liệu/không được hỗ trợ, khác với snapshot usage thực bằng 0. Ghi unavailable và dựa trên current usage cùng các nguồn khác.
+**Answer:** No. Null means no data/unsupported, distinct from an actual measured usage of 0. Record unavailable and rely on current usage and other sources.
 
-**Câu 6.** Heap max là 1 GiB, Metaspace pool max là -1. Có nên lấy 1 GiB làm max của Metaspace không?
+**Q6.** Heap max is 1 GiB, Metaspace pool max is -1. Should you use 1 GiB as Metaspace's max?
 
-**Đáp án:** không. Đó là hai scope khác nhau; undefined max của Metaspace không thể tự thay bằng heap max.
+**Answer:** No. Those are two different scopes; an undefined Metaspace max cannot be replaced with heap max.
 
-**Câu 7.** JVM có heap used 500 MiB nhưng container RSS 1.1 GiB. Có “600 MiB leak” không?
+**Q7.** A JVM has heap used 500 MiB while container RSS is 1.1 GiB. Is there a "600 MiB leak"?
 
-**Đáp án:** chưa chứng minh. RSS gồm nhiều vùng native/stack/mappings/heap resident và accounting khác nhau. Đo non-heap, buffer pools, NMT nếu bật và OS/container memory trước khi kết luận.
+**Answer:** Not proven. RSS includes various native/stack/mappings/resident heap regions and different accounting. Measure non-heap, buffer pools, NMT if enabled, and OS/container memory before concluding.
 
-**Câu 8.** Tại sao `getPeakUsage()` của pool vẫn cao sau khi current used giảm?
+**Q8.** Why does a pool's `getPeakUsage()` remain high after current `used` drops?
 
-**Đáp án:** peak là high-water mark của JVM từ startup/reset; nó không được xóa khi GC giảm current usage. Đó là hai metrics khác nhau.
+**Answer:** Peak is the JVM's high-water mark since startup/reset; it is not cleared when GC reduces current usage. They are two separate metrics.
 
-**Câu 9.** Có thể dùng `MemoryMXBean.gc()` mỗi 10 giây để có “after-GC usage chính xác” không?
+**Q9.** Can `MemoryMXBean.gc()` be called every 10 seconds to get "accurate after-GC usage"?
 
-**Đáp án:** không nên. Đây là thao tác yêu cầu GC, **không chỉ đọc**, có thể ảnh hưởng latency/throughput và làm méo hiện tượng. Dùng dữ liệu GC events/collection usage khi thích hợp.
+**Answer:** Not advisable. It is an operation requesting GC, **not read-only**, and can affect latency/throughput and distort the phenomenon. Use GC events/collection usage data when appropriate.
 
-**Câu 10.** Vì sao phải lưu tên GC/JDK khi so sánh memory pools giữa hai môi trường?
+**Q10.** Why record the GC/JDK name when comparing memory pools across two environments?
 
-**Đáp án:** cấu trúc, tên pool, cách chia vùng, `max` và mức hỗ trợ collection/threshold có thể khác nhau. Một chart mapping theo tên cố định có thể tạo so sánh sai.
+**Answer:** Structure, pool names, region division, `max`, and collection/threshold support levels can differ. A chart mapping by hard-coded names can produce misleading comparisons.
 
-## 16. Checklist cuối bài
+## 16. End-of-lesson checklist
 
-- Xác minh **đúng JVM, PID/start time, JDK/GC**.
-- Đọc **`MemoryMXBean` cho heap và non-heap**, **`MemoryPoolMXBean` cho các pools**, và nêu scope của từng số.
-- Giữ đơn vị **bytes** tại nguồn, đổi sang MiB/MB có nhãn rõ.
-- Luôn hiểu `used <= committed`, và `committed <= max` **chỉ khi max xác định**; `init` không là giới hạn hiện hành.
-- Xử lý `init/max == -1` và `getUsage()/getCollectionUsage() == null` theo đúng nghĩa **unknown/unavailable**.
-- Phân biệt **current, peak, after-GC**; không dùng lẫn trên cùng chart.
-- Không suy `heap + nonheap = RSS`, không cộng pool max và không kết luận leak từ một snapshot.
-- Tính tỷ lệ chỉ khi có mẫu số dương, cùng scope và cùng instance.
-- Khi nghi memory issue, đối chiếu **workload, GC, RSS, NMT, buffer pools** và các công cụ sâu hơn theo mục tiêu, có kiểm soát overhead.
-- Giữ quyền truy cập an toàn nếu dùng JMX remote, không bật setter/forced GC trong một lượt thu thập chỉ đọc.
+- Verify **exact JVM, PID/start time, JDK/GC**.
+- Read **`MemoryMXBean` for heap and non-heap**, **`MemoryPoolMXBean` for pools**, and state the scope of each number.
+- Keep **bytes** at the source; convert to MiB/MB with clear labels.
+- Always enforce `used <= committed`, and `committed <= max` **only when max is defined**; `init` is not a current limit.
+- Handle `init/max == -1` and `getUsage()/getCollectionUsage() == null` properly as **unknown/unavailable**.
+- Distinguish **current, peak, and after-GC**; never mix them on the same series.
+- Do not infer `heap + nonheap = RSS`, do not sum pool maxes, and do not conclude a leak from one snapshot.
+- Compute ratios only with a positive denominator, same scope, and same instance.
+- When suspecting a memory issue, correlate **workload, GC, RSS, NMT, buffer pools**, and deeper targeted tools while controlling overhead.
+- Maintain secure access if using remote JMX, and never invoke setters/forced GC in a read-only collection pass.
 
-**Kết luận:** `used` là mức hiện dùng, `committed` là capacity đã bảo đảm cho JVM, `max` là giới hạn được công bố nếu có và `init` là giá trị khởi tạo nếu có. Muốn đo đúng phải hiểu **đơn vị, scope, thời điểm, loại pool và GC semantics**. MXBeans giúp tìm tín hiệu và xu hướng; kết luận về memory leak/OOM cần thêm chứng cứ về allocation, retention và resource limits.
+**Conclusion:** `used` is current usage, `committed` is capacity guaranteed to the JVM, `max` is the advertised limit if present, and `init` is the initial value if present. To measure accurately you must understand **units, scope, timing, pool types, and GC semantics**. MXBeans surface signals and trends; conclusions about memory leaks/OOM require further evidence on allocation, retention, and resource limits.
 
-### Tài liệu tham khảo chính thức
+### Official references
 
-- [Java SE 21 — MemoryUsage](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/MemoryUsage.html): ý nghĩa bốn trường, sentinel -1, bất biến used/committed/max và constructor validation.
-- [Java SE 21 — MemoryMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/MemoryMXBean.html): heap/non-heap usage, notifications và phạm vi memory management.
-- [Java SE 21 — MemoryPoolMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/MemoryPoolMXBean.html): current/peak/collection usage, pool type/name, thresholds và support flags.
-- [Java SE 21 — ManagementFactory](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ManagementFactory.html): lấy các platform MXBeans từ JVM.
-- [Java SE 21 — BufferPoolMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/BufferPoolMXBean.html): direct/mapped buffer pool statistics và sự khác biệt với MemoryPoolMXBean.
-- [Oracle JDK 21 — jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): lệnh chẩn đoán VM/GC và điều kiện sử dụng trên JVM đích.
+- [Java SE 21 — MemoryUsage](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/MemoryUsage.html): meaning of the four fields, -1 sentinel, used/committed/max invariants, and constructor validation.
+- [Java SE 21 — MemoryMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/MemoryMXBean.html): heap/non-heap usage, notifications, and memory management scope.
+- [Java SE 21 — MemoryPoolMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/MemoryPoolMXBean.html): current/peak/collection usage, pool type/name, thresholds, and support flags.
+- [Java SE 21 — ManagementFactory](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ManagementFactory.html): obtaining platform MXBeans from the JVM.
+- [Java SE 21 — BufferPoolMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/BufferPoolMXBean.html): direct/mapped buffer pool statistics and how they differ from MemoryPoolMXBean.
+- [Oracle JDK 21 — jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): VM/GC diagnostic commands and preconditions on a target JVM.

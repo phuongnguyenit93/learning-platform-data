@@ -1,10 +1,10 @@
-# Chạy ứng dụng từ JAR và module path thật trong tiến trình kiểm thử riêng
+# Running an Application from Real JARs and Module Path in a Separate Test Process
 
-## 1. Mục tiêu của artifact integration test
+## 1. Goal of Artifact Integration Testing
 
-Trong hệ thống Java plugin, kiểm thử bằng `target/classes`, `build/classes` hoặc classpath của IDE không phản ánh hoàn toàn sản phẩm phát hành. Một JAR phân phối có thể thiếu `module-info.class`, `META-INF/services`, dependency hoặc chứa package xung đột. Module resolution và `ServiceLoader` cũng có thể hoạt động khác khi chuyển từ classpath sang module path. Vì vậy cần build các JAR thực tế, sau đó dùng Java launcher trong **tiến trình con mới** với đúng `--module-path` mà production sử dụng.
+In a Java plugin system, testing against `target/classes`, `build/classes`, or an IDE classpath does not fully reflect the shipped product. A distribution JAR may be missing `module-info.class`, `META-INF/services`, or dependencies, or it may contain conflicting packages. Module resolution and `ServiceLoader` can also behave differently when moving from the classpath to the module path. Therefore, you need to build the actual JARs, then invoke the Java launcher in a **new child process** with the exact `--module-path` used in production.
 
-Điều cần xác minh: artifact contents, module descriptors, root/provider resolution, startup, exit code, stdout/stderr, timeout, và các tình huống cố tình thiếu module/provider. Forked JVM giảm ảnh hưởng của static state và boot module layer của test runner; nó không mặc nhiên là security sandbox cho mã độc.
+What needs to be verified: artifact contents, module descriptors, root/provider resolution, startup, exit code, stdout/stderr, timeouts, and scenarios where a module or provider is intentionally missing. A forked JVM reduces the influence of static state and the test runner's boot module layer; it is not by default a security sandbox for malicious code.
 
 ```text
 Compile -> Package modular JARs -> dist/
@@ -16,9 +16,9 @@ Test runner -- ProcessBuilder ---> java --module-path dist --module host/main
                          Assertions / diagnostics
 ```
 
-## 2. Ví dụ Java 17+: API, provider và host modular
+## 2. Java 17+ Example: Modular API, Provider, and Host
 
-Cấu trúc thư mục:
+Directory structure:
 
 ```text
 demo/
@@ -104,11 +104,11 @@ public final class Main {
 }
 ```
 
-Host chỉ `requires demo.api` và `uses demo.api.Greeter`; provider khai báo `provides` và không cần export implementation package cho SPI. Đây là test nhỏ nhưng bao gồm các rủi ro module descriptor, service binding và phân phối.
+The host only `requires demo.api` and `uses demo.api.Greeter`; the provider declares `provides` and does not need to export its implementation package for SPI. This is a small test, yet it covers module descriptor, service binding, and distribution risks.
 
-## 3. Build đúng modular JAR cuối cùng
+## 3. Building the Exact Final Modular JARs
 
-Trong thư mục `demo`, chạy trên JDK 17+:
+Inside the `demo` directory, run on JDK 17+:
 
 ```bash
 mkdir -p mods dist
@@ -119,15 +119,15 @@ jar --create --file dist/demo.host.jar -C mods/demo.host .
 java --module-path dist --add-modules demo.provider --module demo.host/demo.host.Main
 ```
 
-Output của chương trình:
+Program output:
 
 ```text
 Hello, Java
 ```
 
-Chỉ ra thư mục `dist` trong module path: không sử dụng `mods` trong lệnh chạy cuối. `--add-modules demo.provider` buộc provider được resolve một cách tường minh; các cấu hình khác có thể sử dụng service binding, nhưng test này cố tình đảm bảo sự hiện diện của provider.
+Point the module path to the `dist` directory: do not use `mods` in the final run command. `--add-modules demo.provider` forces the provider to be resolved explicitly; other setups can rely on service binding, but this test intentionally guarantees the provider's presence.
 
-Kiểm tra descriptors sau đóng gói:
+Inspect descriptors after packaging:
 
 ```bash
 jar --describe-module --file dist/demo.api.jar
@@ -135,11 +135,11 @@ jar --describe-module --file dist/demo.provider.jar
 jar --describe-module --file dist/demo.host.jar
 ```
 
-Xác nhận `exports demo.api`, `provides demo.api.Greeter with demo.provider.EnglishGreeter`, `uses demo.api.Greeter` và `requires demo.api` xuất hiện ở đúng module. Việc biên dịch thành công từ source không đảm bảo tooling sau đó giữ nguyên `module-info.class`.
+Confirm that `exports demo.api`, `provides demo.api.Greeter with demo.provider.EnglishGreeter`, `uses demo.api.Greeter`, and `requires demo.api` appear in the right modules. Compiling successfully from source does not guarantee that downstream tooling preserves `module-info.class`.
 
-## 4. Fork JVM bằng ProcessBuilder
+## 4. Forking the JVM with ProcessBuilder
 
-Đặt `ForkedModuleTest.java` ở thư mục `demo`, ngoài cấu trúc source modules:
+Place `ForkedModuleTest.java` in the `demo` directory, outside the modular source structure:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -180,24 +180,24 @@ public final class ForkedModuleTest {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 ForkedModuleTest.java
 java ForkedModuleTest
 ```
 
-Output thành công:
+Passing output:
 
 ```text
 Forked module test PASS
 ```
 
-**Giới hạn của ví dụ:** phương pháp `waitFor()` trước khi drain stdout/stderr chỉ an toàn khi output nhỏ và được kiểm soát. Nếu child ghi nhiều hơn pipe buffer, nó có thể block khi ghi và `waitFor` timeout dù chương trình không lỗi. Trong test harness production hãy drain stdout và stderr **đồng thời trong lúc process chạy** bằng reader threads hoặc redirect ra file giới hạn kích thước. Nếu test cần phân biệt stderr, đừng đặt `redirectErrorStream(true)`: thu riêng hai streams. Mọi fork phải có timeout và cleanup child process.
+**Limitation of this example:** calling `waitFor()` before draining stdout/stderr is only safe when output is small and bounded. If the child writes more than the pipe buffer, it can block on write and cause `waitFor` to time out even when the program has no bug. In a production test harness, drain stdout and stderr **concurrently while the process is running** using reader threads or redirect to size-bounded files. If a test needs to distinguish stderr, do not set `redirectErrorStream(true)`: capture the two streams separately. Every fork must have a timeout and child-process cleanup.
 
-## 5. Kiểm thử âm tính: provider không tồn tại
+## 5. Negative Testing: Missing Provider
 
-Tạo folder chỉ có host và API JAR, không có provider:
+Create a folder containing only the host and API JARs, without the provider:
 
 ```bash
 mkdir -p dist-no-provider
@@ -206,59 +206,59 @@ cp dist/demo.host.jar dist-no-provider/
 java --module-path dist-no-provider --module demo.host/demo.host.Main
 ```
 
-Trên shell Unix/macOS, host in vào stderr:
+On a Unix/macOS shell, the host prints to stderr:
 
 ```text
 Expected one Greeter, got 0
 ```
 
-Exit code là `3` theo chương trình host. Trên Windows, dùng `Copy-Item` thay cho `cp`. Đây là **negative test chủ đích**: test phải assert đúng lỗi và không được xem nonzero exit là thành công thông thường.
+The exit code is `3` as defined by the host program. On Windows, use `Copy-Item` instead of `cp`. This is an **intentional negative test**: the test must assert the exact expected failure and must not treat a nonzero exit as normal success.
 
-Test thêm việc thiếu `demo.api.jar`: launcher sẽ báo lỗi module không tìm thấy, trước `main`. Vì exit code của launcher tùy môi trường/JDK, chỉ assert **nonzero** và message nhắc tới module thiếu, không hard-code một exit code tùy ý.
+Add another test with `demo.api.jar` missing: the launcher will report a missing-module error before `main`. Because the launcher's exit code depends on the environment/JDK, assert only **nonzero** and a message mentioning the missing module, rather than hard-coding an arbitrary exit code.
 
-## 6. Những trường hợp packaging dễ hỏng
+## 6. Common Packaging Failure Cases
 
-| Hiện tượng | Nguyên nhân khả dĩ | Kiểm tra |
+| Symptom | Likely Cause | Check |
 | --- | --- | --- |
-| IDE thấy provider nhưng JAR không thấy | Service registration file bị mất/ghi đè | JAR entries, `provides` và module resolution |
-| `FindException` lúc startup | Dependency không nằm trong module path | Descriptor, module path thực |
-| `ResolutionException` | Graph có split package/readability conflict | JAR packages, module graph |
-| `NoClassDefFoundError` ở runtime | Thiếu class phụ thuộc, dependency chỉ compile scope | Artifact dependencies và actual path |
-| `ClassCastException` giữa host/plugin | API bị nạp hai classloader | API identity, parent delegation |
-| Automatic module name bất ngờ | Non-modular JAR suy ra tên từ filename | `jar --describe-module` |
-| Test pass nhưng production fail | Khác JDK/flags/OS/working dir | Ghi command, env, JDK version |
+| IDE sees provider but JAR does not | Service registration file lost/overwritten | JAR entries, `provides`, and module resolution |
+| `FindException` at startup | Dependency not on module path | Descriptor, actual module path |
+| `ResolutionException` | Graph has split package/readability conflict | JAR packages, module graph |
+| `NoClassDefFoundError` at runtime | Missing dependent class, dependency only in compile scope | Artifact dependencies and actual path |
+| `ClassCastException` between host/plugin | API loaded by two classloaders | API identity, parent delegation |
+| Unexpected automatic module name | Non-modular JAR derives name from filename | `jar --describe-module` |
+| Test passes locally but production fails | Different JDK/flags/OS/working dir | Log command, env, JDK version |
 
-Test artifacts sau shading/relocation, không chỉ JAR trước transform. Nếu có `META-INF/services`, phải bảo toàn/merge đúng service descriptors; JPMS explicit module dựa trên `provides` trong `module-info.class`.
+Test artifacts after shading/relocation, not just pre-transform JARs. If `META-INF/services` is present, service descriptors must be preserved/merged properly; JPMS explicit modules rely on `provides` inside `module-info.class`.
 
-## 7. Kết nối với Maven/Gradle và CI
+## 7. Integrating with Maven/Gradle and CI
 
-Trong Maven có thể chạy integration test sau `package` ở pha `verify`; Gradle có thể cấu hình task phụ thuộc `jar`/distribution và chạy `Exec` với module path xây từ outputs. Nguyên tắc quyết định không phụ thuộc công cụ:
+In Maven, integration tests can run after `package` in the `verify` phase; Gradle can configure a task that depends on `jar`/distribution and runs `Exec` with a module path built from outputs. Tool-agnostic core principles:
 
-1. Clean build tạo JAR mới và test dùng đúng file đó, không dùng stale artifact.
-2. Chạy Java executable/version đúng target; nếu dùng toolchain, ghi rõ child JDK.
-3. Không tự thêm classpath IDE vào child nếu production không sử dụng.
-4. Ghi command, exit, stdout/stderr có redaction để debug.
-5. Áp timeout, giới hạn output và dọn child process tree.
-6. Có happy path và negative paths cho missing provider/module, split package, bad descriptor.
+1. A clean build creates fresh JARs and tests use those exact files, never stale artifacts.
+2. Run the Java executable/version matching the target; if using a toolchain, specify the child JDK explicitly.
+3. Do not inject IDE classpath entries into the child if production does not use them.
+4. Log the command, exit code, and redacted stdout/stderr for debugging.
+5. Enforce timeouts, output limits, and child process tree cleanup.
+6. Include both happy paths and negative paths for missing provider/module, split package, and bad descriptors.
 
-Đường dẫn module path trên Windows phân cách bởi `;`, Unix/macOS bởi `:`. Trường hợp chỉ trỏ đến một thư mục `dist`, không cần quan tâm separator. Trong `ProcessBuilder`, truyền từng argument thành phần tử riêng, tránh ghép thành một chuỗi shell gây lỗi quoting.
+Module path entries are separated by `;` on Windows and `:` on Unix/macOS. When pointing to a single `dist` directory, the separator does not matter. In `ProcessBuilder`, pass each argument as a separate element, avoiding concatenating into a single shell string that causes quoting bugs.
 
-## 8. Quản lý tính tái lập và cô lập
+## 8. Managing Reproducibility and Isolation
 
-Forked JVM cung cấp boot layer, static caches và system properties mới cho mỗi test. Nếu plugin sử dụng ports, file locks hoặc external services, test vẫn có thể ảnh hưởng nhau; cần fixture names riêng, tempfile directories và cleanup. Đừng giả định forked JVM là sandbox an toàn: chạy mã chưa tin cậy cần OS user/container với quyền hạn riêng.
+A forked JVM provides a fresh boot layer, static caches, and system properties for each test. If plugins use ports, file locks, or external services, tests can still interfere with one another; use distinct fixture names, temporary directories, and cleanup. Do not assume a forked JVM is a secure sandbox: running untrusted code requires an OS user/container with restricted privileges.
 
-Để giảm flakiness, điều khiển working directory, locale, timezone và encoding khi output có liên quan. Không assert message compiler/launcher nguyên văn trên nhiều JDK nếu mục tiêu là tương thích xuyên nền tảng; ưu tiên assert exception class, module name và exit status.
+To reduce flakiness, control the working directory, locale, timezone, and encoding when output depends on them. Do not assert compiler/launcher messages verbatim across multiple JDKs if cross-platform compatibility is the goal; prefer asserting exception class, module name, and exit status.
 
-## 9. Checklist triển khai
+## 9. Implementation Checklist
 
-- [ ] Test dùng chính JAR phát hành và `--module-path`, không dùng thư mục classes.
-- [ ] Module descriptor sau packaging đúng `requires`, `exports`, `uses`, `provides`.
-- [ ] Provider được resolve vào runtime graph một cách có chủ đích.
-- [ ] Fork JVM mới với Java executable đúng JDK target.
-- [ ] Assert exit code, stdout/stderr, timeout và dọn process.
-- [ ] Với output lớn, drain streams song song khi process chạy.
-- [ ] Có negative tests cho thiếu provider, dependency, split package.
-- [ ] Build sạch, ghi chính xác command line và environment.
-- [ ] Không nhầm process isolation với security sandbox.
+- [ ] Tests use the actual release JARs and `--module-path`, not classes directories.
+- [ ] Post-packaging module descriptors have correct `requires`, `exports`, `uses`, `provides`.
+- [ ] Providers are intentionally resolved into the runtime graph.
+- [ ] Fork a new JVM using the Java executable of the target JDK.
+- [ ] Assert exit code, stdout/stderr, timeout, and process cleanup.
+- [ ] For large output, drain streams concurrently while the process runs.
+- [ ] Include negative tests for missing provider, missing dependency, and split packages.
+- [ ] Clean build; record the exact command line and environment.
+- [ ] Do not confuse process isolation with a security sandbox.
 
-**Kết luận:** kiểm thử bằng modular JAR thật trong một tiến trình riêng phát hiện lỗi đóng gói, module resolution và SPI discovery mà test trong IDE có thể bỏ sót. Chỉ coi bản phân phối sẵn sàng khi forked tests dùng đúng artifact và launcher thực tế đều đạt.
+**Conclusion:** testing with real modular JARs in a separate process catches packaging, module resolution, and SPI discovery bugs that tests inside an IDE can miss. Only consider a distribution ready when forked tests using the exact shipped artifacts and actual launcher all pass.

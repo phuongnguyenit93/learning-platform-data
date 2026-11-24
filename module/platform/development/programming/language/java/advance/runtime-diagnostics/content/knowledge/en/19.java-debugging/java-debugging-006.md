@@ -1,170 +1,170 @@
-# 19.6 Điều tra exception tại nơi phát sinh và phân biệt exception đã được xử lý
+# 19.6 Investigating Exceptions at the Origin and Distinguishing Handled Exceptions
 
-## Mục tiêu và tình huống
+## Goal and Scenario
 
-Khi debug ứng dụng Java, một IDE có thể dừng ở dòng `throw` hoặc constructor của exception, dù request vẫn thành công, chương trình vẫn chạy tiếp và không có error log. Ngược lại, một exception thật sự làm thất bại công việc có thể bị framework, `Future` hoặc thread pool giữ lại và chỉ xuất hiện dưới dạng wrapper exception ở một vị trí khác.
+When debugging a Java application, an IDE may pause at a `throw` line or exception constructor even though the request succeeds, the program keeps running, and no error is logged. Conversely, an exception that genuinely fails a task can be captured by a framework, `Future`, or thread pool and surface only as a wrapper exception somewhere else.
 
-Vì vậy **“exception đã được tạo hoặc ném” không tương đương với “lỗi chưa được xử lý”**, và **“được catch” không luôn có nghĩa “đã khôi phục thành công”**.
+Therefore, **"an exception was created or thrown" does not equate to "an unhandled error"**, and **"caught" does not always mean "successfully recovered."**
 
-Bài học này hướng dẫn cách truy vết **nơi phát sinh**, **đường lan truyền**, **nơi xử lý cuối cùng** và **tác động thực tế** của exception bằng Java debugger, stack trace, cause chain, logging và JFR (Java Flight Recorder). Mục tiêu là chẩn đoán chính xác, giảm nhiễu bởi exception bình thường và không vô tình che lỗi nghiêm trọng.
+This lesson teaches how to trace **origin**, **propagation path**, **final handler**, and **actual impact** of exceptions using a Java debugger, stack traces, cause chains, logging, and JFR (Java Flight Recorder). The goal is accurate diagnosis, reducing noise from expected exceptions, and avoiding accidentally hiding serious failures.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt exception được **tạo**, **ném**, **bắt**, **xử lý bằng fallback**, **bọc lại**, **ném tiếp**, **được giữ trong future**, **thoát khỏi thread** và **được log**.
-- Đặt **exception breakpoint** đúng loại trên IDE hoặc dùng `jdb` để dừng gần nơi ném, kiểm tra local variables, thread và call stack.
-- Đọc `Throwable.getStackTrace()`, `getCause()` và `getSuppressed()` để tìm nguyên nhân gốc mà không nhầm stack của wrapper với nơi bắt đầu sự cố.
-- Kiểm tra JFR `jdk.JavaExceptionThrow` một cách thận trọng: một event không chứng minh exception chưa được xử lý, thậm chí trên HotSpot có thể được ghi khi tạo exception **mà không thực sự ném**.
-- Phân biệt lỗi đã khôi phục với lỗi bị “nuốt”, lỗi đã chuyển thành kết quả thất bại và lỗi uncaught có thể chỉ kết thúc một thread.
-- Thực hành trên Java 17+ bằng các chương trình biên dịch/chạy được và output đã được kiểm chứng.
+- Distinguish exceptions that are **constructed**, **thrown**, **caught**, **handled via fallback**, **wrapped**, **rethrown**, **held in a future**, **escaping a thread**, and **logged**.
+- Set the right **exception breakpoint** in an IDE or use `jdb` to pause near the throw site and inspect local variables, thread, and call stack.
+- Read `Throwable.getStackTrace()`, `getCause()`, and `getSuppressed()` to find the root cause without mistaking a wrapper's stack for where the failure began.
+- Inspect JFR `jdk.JavaExceptionThrow` cautiously: one event does not prove an exception went unhandled, and on HotSpot it can even be recorded when constructing an exception **without actually throwing it**.
+- Distinguish recovered errors from "swallowed" errors, errors translated into failure outcomes, and uncaught errors that may terminate only one thread.
+- Practice on Java 17+ with compilable/runnable programs and verified output.
 
-**Phạm vi:** Java SE 17+; các ví dụ JFR, `jdb` và JDWP dùng HotSpot/OpenJDK. Giao diện IntelliJ IDEA, Eclipse hay công cụ khác có thể gọi chức năng break-on-throw bằng những tên khác nhau. Các số sự kiện JFR, line number, stack frames và hành vi framework tùy JVM/phiên bản, không phải stdout cố định của bài.
+**Scope:** Java SE 17+; JFR, `jdb`, and JDWP examples use HotSpot/OpenJDK. IntelliJ IDEA, Eclipse, or other tools may name break-on-throw features differently. JFR event counts, line numbers, stack frames, and framework behavior vary by JVM/version and are not fixed stdout in this lesson.
 
-## 1. Vòng đời một exception: tạo, ném, bắt và kết quả
+## 1. Lifecycle of an Exception: Construct, Throw, Catch, and Outcome
 
-Xét chuỗi xử lý:
+Consider the processing chain:
 
 ~~~text
-Input không hợp lệ
+Invalid input
        |
        v
-new NumberFormatException(...)        [TẠO đối tượng]
+new NumberFormatException(...)        [CONSTRUCT object]
        |
        v
-throw exception                        [NÉM]
+throw exception                       [THROW]
        |
        v
-exception đi ngược call stack
+exception unwinds call stack
        |
-       +--> catch gần nguồn?
+       +--> caught near origin?
        |       |
-       |       +--> fallback hợp lệ   [ĐÃ XỬ LÝ VÀ KHÔI PHỤC]
-       |       +--> log rồi rethrow   [CHƯA XỬ LÝ XONG]
-       |       +--> bọc nguyên nhân   [ĐỔI KIỂU/NGỮ CẢNH]
-       |       +--> nuốt rồi trả sai  [CÓ THỂ LÀ BUG]
+       |       +--> valid fallback    [HANDLED AND RECOVERED]
+       |       +--> log then rethrow  [NOT YET RESOLVED]
+       |       +--> wrap cause        [TYPE/CONTEXT TRANSLATED]
+       |       +--> swallow & wrong   [LIKELY A BUG]
        |
-       +--> tầng boundary/framework?
+       +--> boundary/framework layer?
        |       |
        |       +--> HTTP 4xx/5xx, failed future,
-       |            retry hoặc message NACK  [ĐÃ BẮT, NHƯNG CÔNG VIỆC THẤT BẠI]
+       |            retry or message NACK  [CAUGHT, YET TASK FAILED]
        |
-       +--> thoát khỏi Thread.run()
+       +--> escapes Thread.run()
                |
                v
-          UncaughtExceptionHandler     [THREAD BỊ KẾT THÚC]
+          UncaughtExceptionHandler    [THREAD TERMINATED]
 ~~~
 
-Điểm quan trọng: Java `Throwable` là **đối tượng**. Có thể tạo một exception object mà không bao giờ `throw` nó:
+Key point: a Java `Throwable` is an **object**. You can construct an exception object without ever executing `throw` on it:
 
 ~~~java
 new IllegalArgumentException("created but not thrown");
 ~~~
 
-Dòng trên là một Java statement hợp lệ nhưng **không làm luồng điều khiển nhảy vào catch**. Một debugger đặt breakpoint theo sự kiện ném thường nhằm dừng tại thời điểm exception được ném; các công cụ ghi sự kiện khác có thể có nghĩa rộng hơn.
+The line above is a valid Java statement, yet **it does not jump control flow into a catch block**. A debugger setting a breakpoint on throw events typically aims to pause when the exception is thrown; other event-recording tools can have broader semantics.
 
-### 1.1 Định nghĩa từng trạng thái thực dụng
+### 1.1 Practical Definitions for Each State
 
-| Khái niệm | Dấu hiệu trong code | Tác động |
+| Concept | Code signal | Impact |
 | --- | --- | --- |
-| **Constructed** | `new IOException("...")` | Có object, chưa chắc đã throw |
-| **Thrown / raised** | `throw ex;` hoặc một API ném thay bạn | Luồng thực thi bình thường bị gián đoạn để tìm handler phù hợp |
-| **Caught** | `catch (X ex) { ... }` | Handler được chọn; chưa rõ đã giải quyết hay chỉ rethrow |
-| **Recovered / handled** | `catch` xác định fallback an toàn, trả kết quả hợp lệ | Công việc có thể tiếp tục bình thường theo chính sách |
-| **Translated / wrapped** | `throw new ServiceException("...", ex);` | Exception mới lan truyền; cause giữ nguyên nhân cũ |
-| **Rethrown** | `throw ex;` | Cùng object tiếp tục lan truyền |
-| **Swallowed** | `catch` rỗng hoặc trả giá trị “thành công” giả | Exception biến mất khỏi log nhưng bug có thể còn |
-| **Captured in async result** | `CompletableFuture`/`Future` kết thúc exceptionally | Chưa nhất thiết thoát khỏi worker thread; lỗi có thể chỉ lộ khi quan sát future |
-| **Uncaught at thread boundary** | Exception thoát khỏi `Thread.run()` | Thread đó kết thúc; JVM/process không nhất thiết kết thúc |
-| **Logged** | Logger ghi message/stack | Chỉ là quan sát; log không chứng minh đã xử lý hay chưa |
+| **Constructed** | `new IOException("...")` | Object exists; not necessarily thrown |
+| **Thrown / raised** | `throw ex;` or an API throws on your behalf | Normal execution is interrupted to search for a matching handler |
+| **Caught** | `catch (X ex) { ... }` | A handler matched; unclear yet whether resolved or merely rethrown |
+| **Recovered / handled** | `catch` chooses a safe fallback and returns a valid result | Work can proceed normally per policy |
+| **Translated / wrapped** | `throw new ServiceException("...", ex);` | New exception propagates; cause preserves the original reason |
+| **Rethrown** | `throw ex;` | Same object continues propagating |
+| **Swallowed** | Empty `catch` or returning a fake "success" value | Exception disappears from logs while the bug may persist |
+| **Captured in async result** | `CompletableFuture`/`Future` completes exceptionally | Does not necessarily escape the worker thread; error may surface only when observing the future |
+| **Uncaught at thread boundary** | Exception escapes `Thread.run()` | That thread terminates; JVM/process does not necessarily exit |
+| **Logged** | Logger writes message/stack | Observation only; logging proves neither handled nor unhandled |
 
-**Không đánh đồng** “caught” và “successful”. Ví dụ HTTP controller `catch` một exception rồi trả `500 Internal Server Error`: exception đã được *bắt*, nhưng request vẫn *thất bại*. Hoặc framework chuyển exception thành HTTP 404/400 có chủ đích: có thể là kết quả nghiệp vụ hợp lệ, tùy contract.
+**Never equate** "caught" with "successful." For example, an HTTP controller catches an exception and returns `500 Internal Server Error`: the exception was *caught*, yet the request still *failed*. Or a framework intentionally translates an exception into HTTP 404/400: that may be a valid business outcome, depending on the contract.
 
-## 2. Exception khác Error, checked khác unchecked, nhưng cả hai đều cần xác minh tác động
+## 2. Exception Differs from Error, Checked Differs from Unchecked, Yet Both Require Verifying Impact
 
-- **Checked exception**: các subtype của `Exception` trừ `RuntimeException` phải được khai báo/handled theo luật Java (ví dụ `IOException`). “Checked” không có nghĩa lỗi nghiêm trọng hơn.
-- **Unchecked exception**: `RuntimeException` và `Error` (ví dụ `IllegalArgumentException`, `NullPointerException`, `OutOfMemoryError`). Compiler không bắt buộc khai báo trong `throws`.
-- **`Error`** thường chỉ vấn đề runtime/VM nặng, không nên dùng `catch (Throwable)` như một cơ chế “khôi phục mọi lỗi” mặc định. Ví dụ `OutOfMemoryError` có thể khiến chính code logging hoặc fallback thất bại.
-- **Exception dự kiến** có thể dùng làm tín hiệu điều khiển của thư viện, nhưng tạo/thu stack trace lặp với tần suất cao vẫn có thể tốn chi phí CPU/memory. Thay đổi mã nên dựa trên profile và contract, không vì một debugger dừng nhiều lần.
+- **Checked exceptions**: subtypes of `Exception` excluding `RuntimeException` must be declared/handled per Java rules (e.g., `IOException`). "Checked" does not mean a more severe error.
+- **Unchecked exceptions**: `RuntimeException` and `Error` (e.g., `IllegalArgumentException`, `NullPointerException`, `OutOfMemoryError`). The compiler does not require declaring them in `throws`.
+- **`Error`** usually signals severe runtime/VM issues; never use `catch (Throwable)` as a default "recover from everything" mechanism. For instance, `OutOfMemoryError` can cause the logging or fallback code itself to fail.
+- **Expected exceptions** can be used as control signals by libraries, though repeatedly creating/capturing stack traces at high frequency can still cost CPU/memory. Code changes should be driven by profiles and contracts, not just because a debugger paused often.
 
-Tên class đơn lẻ như `IllegalStateException` không cho biết đây là bug hay response được dự kiến. Cần biết **input, code path, handler, outcome**.
+A class name alone such as `IllegalStateException` does not tell you whether it is a bug or an expected response. You need **input, code path, handler, and outcome**.
 
-## 3. Đặt exception breakpoint để dừng tại lúc ném
+## 3. Setting an Exception Breakpoint to Pause at Throw Time
 
-### 3.1 Khác line breakpoint thông thường như thế nào?
+### 3.1 How Does It Differ from a Regular Line Breakpoint?
 
-Line breakpoint chỉ dừng khi một vị trí source được chạy. Nếu bạn biết “request thất bại” nhưng không biết exception được tạo ở tầng JDBC, cache, validation hay application code, line breakpoint buộc phải đoán điểm dừng.
+A line breakpoint pauses only when a specific source line runs. If you know "the request failed" without knowing whether the exception arose in JDBC, cache, validation, or application code, line breakpoints force you to guess where to stop.
 
-**Exception breakpoint** dùng cơ chế debug của JVM để yêu cầu dừng khi exception thuộc một loại nhất định được ném, thường cho phép:
+An **exception breakpoint** uses the JVM's debug mechanism to pause when an exception of a given type is thrown, typically letting you:
 
-- Bật **caught exceptions** (exception có handler khả dĩ) và/hoặc **uncaught exceptions** (exception không có handler phù hợp theo cách debugger/JDWP xác định).
-- Chỉ dừng cho một loại như `java.lang.NumberFormatException` hoặc subtype, thay vì mọi `Throwable`.
-- Đặt filter theo package/class, condition, thread và suspend policy tùy IDE để giảm số lần dừng.
-- Xem thread hiện tại, nơi ném theo sự kiện debugger, stack frames và local variables ở thời điểm trước khi unwind.
+- Enable **caught exceptions** (exceptions with a potential handler) and/or **uncaught exceptions** (exceptions lacking a matching handler as classified by the debugger/JDWP).
+- Pause only for a specific class such as `java.lang.NumberFormatException` or its subtypes, rather than every `Throwable`.
+- Add package/class filters, conditions, thread filters, and suspend policies per IDE to reduce noise.
+- Inspect the current thread, throw location per debugger event, stack frames, and local variables before unwinding.
 
-**Tên tùy chọn và tiêu chí phân loại caught/uncaught khác nhau tùy IDE và debug engine.** Vì vậy sau khi debugger dừng, vẫn phải kiểm chứng handler và kết quả thực thi. Đặc biệt, một handler ở tầng framework có thể khiến IDE coi exception “caught” dù request trả lỗi.
+**Option names and caught/uncaught classification criteria vary by IDE and debug engine.** Therefore, after the debugger pauses, you must still verify the handler and execution outcome. In particular, a framework-level handler can make the IDE treat an exception as "caught" even when the request returns an error.
 
-### 3.2 Quy trình với IDE (IntelliJ IDEA/Eclipse hoặc IDE hỗ trợ JDWP)
+### 3.2 Workflow with an IDE (IntelliJ IDEA/Eclipse or JDWP-Capable IDE)
 
-1. Chạy chương trình bằng **Debug** với debug symbols và source khớp binary đang chạy. Nếu source không khớp JAR thực tế, line number có thể dẫn sai.
-2. Mở phần **Breakpoints → Java Exception Breakpoint** (tên tương đương trong IDE), chọn exception class cụ thể thay vì `java.lang.Throwable` nếu có thể.
-3. Khi chưa rõ đã có handler hay chưa, bật chế độ theo dõi **caught + uncaught** trong một cửa sổ ngắn. Nếu IDE liên tục dừng ở exception bình thường của thư viện, dùng class filters, condition và tắt caught tạm thời để tập trung vào lỗi nghiêm trọng; đừng nhầm “không còn dừng” với “không còn throw”.
-4. Gây lại vấn đề bằng **input và điều kiện tái hiện cố định**; ghi request ID, thread, timestamp và outcome.
-5. Khi dừng, quan sát exception type/message, **top application frame**, local variables/arguments, state không hợp lệ và thứ tự caller frames. Với stack nằm trong mã thư viện, di chuyển dọc stack đến ứng dụng để tìm tham số mà app truyền vào.
-6. Tiếp tục stepping hoặc đặt line breakpoint tại `catch`/handler tương ứng. Xem handler **return fallback, retry, wrap, rethrow hay trả failure response**.
-7. Xác minh kết quả cuối: HTTP status/body, future result, transaction rollback/commit, message ACK/NACK, metrics và log. Chỉ lúc đó mới phân loại đã xử lý thành công, xử lý thành lỗi có chủ đích, hay còn uncaught.
+1. Run the program in **Debug** mode with debug symbols and source matching the running binary. If source mismatches the actual JAR, line numbers can mislead.
+2. Open **Breakpoints → Java Exception Breakpoint** (or IDE equivalent), selecting a specific exception class instead of `java.lang.Throwable` whenever possible.
+3. When unsure whether a handler exists, enable **caught + uncaught** for a brief window. If the IDE repeatedly pauses on normal library exceptions, add class filters, conditions, or temporarily disable caught to focus on severe errors; do not confuse "stopped pausing" with "stopped throwing."
+4. Reproduce the issue with **fixed inputs and conditions**; record request ID, thread, timestamp, and outcome.
+5. When paused, examine exception type/message, **top application frame**, local variables/arguments, invalid state, and caller frame order. If the stack is inside library code, walk up the stack to application code to see what arguments the app passed.
+6. Continue stepping or place a line breakpoint at the matching `catch`/handler. Check whether the handler **returns a fallback, retries, wraps, rethrows, or returns a failure response**.
+7. Verify the final outcome: HTTP status/body, future result, transaction rollback/commit, message ACK/NACK, metrics, and logs. Only then classify it as successfully recovered, intentionally mapped error, or still uncaught.
 
-**Cẩn trọng:** “Resume” sau khi debugger tạm dừng không giống “ignore” exception ở chương trình. Nó chỉ tiếp tục luồng JVM như bình thường; exception vẫn có thể truyền đến handler hoặc thoát thread.
+**Caution:** "Resume" after the debugger pauses does not mean "ignore" the exception in the program. It simply resumes the JVM thread normally; the exception will still propagate to a handler or escape the thread.
 
-### 3.3 Bước nhanh bằng `jdb`
+### 3.3 Quick Steps with `jdb`
 
-Java có công cụ dòng lệnh `jdb` (JDK) dùng Java Platform Debugger Architecture. Ví dụ chạy ứng dụng `ExceptionPathsDemo` trong JDB:
+Java includes the CLI tool `jdb` (JDK) using the Java Platform Debugger Architecture. Example running `ExceptionPathsDemo` in JDB:
 
 ~~~sh
 jdb ExceptionPathsDemo
 ~~~
 
-Trong prompt `jdb`, có thể đặt exception breakpoint rồi chạy chương trình theo trợ giúp của phiên bản:
+At the `jdb` prompt, you can set an exception breakpoint and run the program per your version's help:
 
 ~~~text
 catch java.lang.NumberFormatException
 run
 ~~~
 
-`catch` là **lệnh của debugger**, không phải từ khóa `catch` trong source; nó làm debugger dừng tại lần exception đó được ném. Dùng `help`, `where`, `up`, `down`, `locals`, `cont` và `ignore` tương ứng để phân tích/tiếp tục. Một số phiên bản `jdb` cung cấp chế độ `catch caught|uncaught|all <exception-class>`; kiểm tra `help catch` trên bản đang dùng thay vì giả định cú pháp mọi bản đều giống nhau.
+`catch` is a **debugger command**, not the `catch` keyword in source; it tells the debugger to pause when that exception is thrown. Use `help`, `where`, `up`, `down`, `locals`, `cont`, and `ignore` accordingly to analyze/resume. Some `jdb` versions offer `catch caught|uncaught|all <exception-class>`; run `help catch` on your version rather than assuming identical syntax across all releases.
 
-Khi muốn attach debugger vào JVM đang chạy, JDWP có thể được bật lúc khởi động. Ví dụ chỉ **bind loopback cho môi trường lab**:
+When attaching a debugger to a running JVM, JDWP can be enabled at startup. Example **binding loopback only for a lab environment**:
 
 ~~~sh
 java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=127.0.0.1:5005 ExceptionPathsDemo
 jdb -attach 127.0.0.1:5005
 ~~~
 
-Lệnh thứ nhất chạy **ở terminal A và chờ debugger** vì `suspend=y`; lệnh thứ hai chạy **ở terminal B**. Trong IDE, có thể dùng tính năng Remote Debug cùng địa chỉ. **Không mở JDWP ra Internet, không bind `0.0.0.0` trên production mà thiếu kênh bảo mật và quyền truy cập nghiêm ngặt**: debugger có quyền can thiệp sâu vào tiến trình và dữ liệu của ứng dụng. Attach/stop-the-world còn gây ảnh hưởng latency; chỉ dùng khi được phép.
+The first command runs **in terminal A and waits for the debugger** because of `suspend=y`; the second runs **in terminal B**. In an IDE, use Remote Debug with the same address. **Never expose JDWP to the Internet or bind `0.0.0.0` in production without a secure channel and strict access control**: a debugger has deep privileges to interfere with the process and application data. Attaching/stop-the-world also impacts latency; use only when authorized.
 
-## 4. Bốn câu hỏi tại điểm exception phát sinh
+## 4. Four Questions at the Exception Origin
 
-Khi debugger dừng, trước khi thay đổi code, hãy trả lời lần lượt:
+When the debugger pauses, before editing code, answer in order:
 
-1. **Điều gì thật sự sai?** Ví dụ `Integer.parseInt("abc")` thất bại do input vi phạm contract, hay caller đáng ra phải validate? Ghi loại exception và chính xác input (loại bỏ bí mật).
-2. **Vị trí nào tạo/throw?** Lần theo stack đến ứng dụng; từ đó xem những caller nào truyền dữ liệu hoặc state.
-3. **Handler ở đâu?** Kiểm tra catch ngay tại tầng hiện tại, catch ở boundary, async wrapper hay default uncaught handler. Đừng dừng điều tra chỉ vì đã thấy một `catch`.
-4. **Outcome là gì?** Hệ thống dùng fallback hợp lệ, trả validation error, retry, rollback, đánh dấu job failed, hay thực sự làm rơi request/thread? So sánh với contract.
+1. **What actually went wrong?** For example, `Integer.parseInt("abc")` failed because input violated the contract, or should the caller have validated first? Record exception type and exact input (redacting secrets).
+2. **Where was it constructed/thrown?** Trace the stack to application code; from there inspect which callers passed the data or state.
+3. **Where is the handler?** Check local `catch`, boundary `catch`, async wrapper, or default uncaught handler. Do not stop investigating merely because you spotted a `catch`.
+4. **What is the outcome?** Does the system use a valid fallback, return a validation error, retry, roll back, mark a job failed, or actually drop the request/thread? Compare against the contract.
 
-Đây là điểm khác biệt giữa **exception event** và **incident**. Một hệ thống có thể ném nhiều `NumberFormatException` cho những input sai rồi xử lý thành 400, hoàn toàn phù hợp contract; ngược lại chỉ một `IOException` được “nuốt” có thể khiến dữ liệu ghi thiếu mà không có error log.
+This is the difference between an **exception event** and an **incident**. A system may throw many `NumberFormatException`s on bad inputs and map them to 400, fully honoring its contract; conversely, a single "swallowed" `IOException` can leave data partially written with zero error logs.
 
-## 5. Stack trace: nơi tạo Throwable không phải lúc nào cũng là lần throw hiện tại
+## 5. Stack Traces: Where a Throwable Was Constructed Is Not Always the Current Throw Site
 
-### 5.1 Xem stack và cause đúng cách
+### 5.1 Reading Stack and Cause Properly
 
-Trên các `Throwable` thông thường, stack trace được thu khi đối tượng được tạo hoặc lúc gọi `fillInStackTrace()`. Vì thế một stack từ `printStackTrace()` có thể chỉ đến **nơi exception được khởi tạo** chứ không phải mọi lệnh `throw`/`rethrow` mà nó đã đi qua. JVM/debugger có thể cung cấp vị trí ném thực qua breakpoint, khác với stack lưu trong object.
+On standard `Throwable`s, the stack trace is captured when the object is constructed or when `fillInStackTrace()` is called. Hence a trace from `printStackTrace()` can point to **where the exception was instantiated** rather than every `throw`/`rethrow` statement it passed through. The JVM/debugger can report the actual throw site via breakpoints, distinct from the stack stored in the object.
 
 ~~~java
 IllegalStateException ex = new IllegalStateException("reused");
-throw ex; // Object được tạo trước đó; trace lưu trong ex có thể bắt đầu ở dòng tạo.
+throw ex; // Object was created earlier; trace stored in ex may start at creation line.
 ~~~
 
-Đây là **snippet không độc lập**. Không nên tạo exception rồi tái sử dụng rộng rãi vì còn làm phức tạp chẩn đoán, đặc biệt khi chạy nhiều thread. Khi `throw ex` cùng object, đừng mong có stack mới tự động tại mỗi lần ném; khi `throw new ...`, wrapper mới có stack của nó và có thể giữ cause cũ.
+This is a **non-standalone snippet**. Avoid constructing and broadly reusing exception instances because it complicates diagnosis, especially across multiple threads. When executing `throw ex` on the same object, do not expect a fresh stack on each throw; when executing `throw new ...`, the new wrapper has its own stack and can retain the old cause.
 
-### 5.2 Wrapper và cause chain
+### 5.2 Wrappers and Cause Chains
 
 ~~~java
 try {
@@ -174,9 +174,9 @@ try {
 }
 ~~~
 
-Đây là snippet thuộc phương thức có `readConfig()` phù hợp, ví dụ hoàn chỉnh ở phần 8. Nó tạo exception mới với stack bắt đầu ở dòng wrap, còn `getCause()` vẫn là `IOException("config missing")` và giữ trace gốc.
+This snippet belongs to a method with an appropriate `readConfig()`, with a complete example in section 8. It creates a new exception whose stack starts at the wrapping line, while `getCause()` remains `IOException("config missing")` with its original trace preserved.
 
-Để đọc chain:
+To walk the chain:
 
 ~~~java
 Throwable cursor = error;
@@ -187,24 +187,24 @@ while (cursor != null) {
 }
 ~~~
 
-Đây là **snippet** với biến `error` có kiểu `Throwable`. Thực tế nên giới hạn độ dài chain, ngăn vòng lặp bất thường và dùng structured logging; không hiển thị message chứa token/PII. Không mặc định cause cuối cùng là nguyên nhân duy nhất: cùng một transaction có thể có nhiều lỗi, và root cause chỉ là một manh mối.
+This is a **snippet** assuming a `Throwable error` variable. In practice, bound the chain length, guard against abnormal cycles, and use structured logging; never print messages containing tokens/PII. Never assume the last cause is the sole root cause: a single transaction can suffer multiple failures, and the root cause is one clue.
 
-Các wrapper hay gặp:
+Common wrappers:
 
-| Lớp/nguồn | Nguyên tắc điều tra |
+| Class/source | Investigation principle |
 | --- | --- |
-| `CompletionException` khi `CompletableFuture.join()` | Xem `getCause()` để tìm lỗi trong stage; future có thể đã failed mà thread vẫn chạy bình thường |
-| `ExecutionException` khi `Future.get()` | Xem `getCause()`; executor có thể giữ exception để caller nhận sau |
-| `InvocationTargetException` khi reflective `Method.invoke(...)` | Xem `getCause()` hoặc `getTargetException()` để đến exception do method được gọi ném |
-| `ExceptionInInitializerError` | Xem nguyên nhân trong static initializer; không chỉ sửa nơi caller lần đầu truy cập lớp |
-| `UndeclaredThrowableException` trong dynamic proxy | Xem cause/undeclared throwable và contract của invoked method |
-| Framework-specific wrapper | Đọc cause chain cùng boundary mapping (ví dụ trả 4xx/5xx), không chỉ lấy wrapper top frame |
+| `CompletionException` from `CompletableFuture.join()` | Inspect `getCause()` for the stage failure; the future may have failed while the thread kept running normally |
+| `ExecutionException` from `Future.get()` | Inspect `getCause()`; the executor held the exception for the caller to observe later |
+| `InvocationTargetException` from reflective `Method.invoke(...)` | Inspect `getCause()` or `getTargetException()` to reach the exception thrown by the invoked method |
+| `ExceptionInInitializerError` | Inspect the cause inside the static initializer; do not fix only the caller that first touched the class |
+| `UndeclaredThrowableException` in dynamic proxies | Inspect cause/undeclared throwable and the invoked method's contract |
+| Framework-specific wrappers | Read the cause chain alongside boundary mapping (e.g., returning 4xx/5xx), not just the wrapper top frame |
 
-### 5.3 Suppressed exceptions: lỗi bị che bởi một lỗi khác
+### 5.3 Suppressed Exceptions: An Error Masked by Another Error
 
-Trong `try-with-resources`, nếu phần thân ném exception, sau đó `close()` cũng ném, exception ở `close()` thường được **thêm vào `getSuppressed()` của lỗi chính**, thay vì trở thành cause. Không chỉ kiểm `getCause()` khi nghi lỗi đóng tài nguyên.
+In `try-with-resources`, if the body throws an exception and then `close()` also throws, the exception from `close()` is typically **added to `getSuppressed()` on the primary error**, rather than becoming its cause. Do not inspect only `getCause()` when suspecting resource-closing failures.
 
-Lưu **SuppressedDemo.java**:
+Save **`SuppressedDemo.java`**:
 
 ~~~java
 import java.io.IOException;
@@ -229,59 +229,59 @@ public final class SuppressedDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~sh
 javac --release 17 SuppressedDemo.java
 java SuppressedDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 PRIMARY: read failed
 SUPPRESSED: close failed
 ~~~
 
-Chương trình đã được biên dịch với `--release 17` và chạy kiểm tra. Kết luận: `getSuppressed()` chứa “close failed” nhưng lỗi “read failed” vẫn là exception chính. Nếu chỉ đọc root cause hoặc message top-level, bạn có thể bỏ qua lỗi cleanup quan trọng.
+The program was compiled with `--release 17` and verified. Conclusion: `getSuppressed()` contains "close failed" while "read failed" remains the primary exception. Reading only the root cause or top-level message can miss critical cleanup failures.
 
-## 6. “Đã catch” có ba kết cục rất khác
+## 6. "Caught" Has Three Very Different Outcomes
 
-### 6.1 Phục hồi hợp lệ
+### 6.1 Valid Recovery
 
 ~~~java
 try {
     return Integer.parseInt(value);
 } catch (NumberFormatException ex) {
-    return 8080; // Chỉ hợp lệ nếu 8080 là fallback đã được thiết kế.
+    return 8080; // Valid only if 8080 is an intentionally designed fallback.
 }
 ~~~
 
-Snippet trên thuộc một phương thức trả `int` có biến `value`. Việc fallback có đúng hay không phụ thuộc yêu cầu nghiệp vụ. Với tham số cấu hình tùy chọn, dùng giá trị default có thể hợp lý. Với số tiền thanh toán hoặc ID bảo mật, việc tự động thay giá trị như vậy có thể tạo lỗi nghiêm trọng; nên báo invalid input.
+The snippet above belongs to a method returning `int` with variable `value`. Whether a fallback is right depends on business requirements. For an optional config parameter, defaulting may be reasonable. For payment amounts or security IDs, silently substituting a value can create severe bugs; report invalid input instead.
 
-### 6.2 Bắt rồi chuyển thành kết quả thất bại
+### 6.2 Caught and Translated into a Failure Outcome
 
 ~~~java
 try {
     service.execute();
 } catch (IllegalStateException ex) {
-    // Trả response lỗi hoặc đánh dấu job FAILED (tùy framework).
+    // Return error response or mark job FAILED (framework-dependent).
 }
 ~~~
 
-Đây là **pseudo-snippet** với API `service.execute()` không được định nghĩa độc lập; nó minh họa một exception được **catch** nhưng **operation thất bại**. Một exception-handling middleware có thể chủ động chuyển thành HTTP 500, một message consumer có thể NACK để retry, một transaction boundary có thể rollback. Đừng ghi “handled = success” trên dashboard nếu chỉ phát hiện rằng có catch.
+This is a **pseudo-snippet** with an undefined `service.execute()` API; it illustrates an exception that was **caught** yet **the operation failed**. Exception-handling middleware may translate it to HTTP 500, a message consumer may NACK to retry, or a transaction boundary may roll back. Do not mark "handled = success" on dashboards simply because a `catch` block exists.
 
-### 6.3 Nuốt lỗi hoặc log rồi ném tiếp
+### 6.3 Swallowed or Logged and Rethrown
 
 ~~~java
 try {
     updateLedger();
 } catch (Exception ignored) {
-    // Không làm gì cả; đây có thể là bug nghiêm trọng.
+    // Do nothing; this can be a serious bug.
 }
 ~~~
 
-Đoạn trên là pseudo-snippet. Việc trả thành công sau khi bỏ qua exception có thể gây **silent data corruption**, dù người dùng không thấy stack trace. Ngược lại:
+The snippet above is a pseudo-snippet. Returning success after ignoring an exception can cause **silent data corruption**, even though users see no stack trace. Conversely:
 
 ~~~java
 try {
@@ -292,13 +292,13 @@ try {
 }
 ~~~
 
-Đây cũng là pseudo-snippet (cần `logger` và `updateLedger()` thực tế). Nó **đã bắt** nhưng **chưa giải quyết**, exception vẫn truyền lên caller. Nếu mọi tầng đều `log + throw`, một lỗi có thể xuất hiện ba, bốn bản stack trace và làm tăng false alert. Thực tế nên log đầy đủ ở **boundary chịu trách nhiệm ra quyết định**, kết hợp correlation ID, error type/cause và outcome; tầng dưới có thể thêm context bằng exception wrapping nhưng giữ nguyên cause.
+This is also a pseudo-snippet (requiring real `logger` and `updateLedger()`). It **caught** the exception without **resolving** it, so the exception keeps propagating to the caller. If every layer does `log + throw`, one failure appears as three or four stack traces and inflates false alerts. In practice, log thoroughly at the **decision-making boundary**, including correlation ID, error type/cause, and outcome; lower layers can add context via exception wrapping while preserving the cause.
 
-**Đừng catch rộng `Throwable` hoặc `Exception` một cách máy móc.** Catch đủ cụ thể theo tình huống, không che `InterruptedException`: nếu không tiếp tục throw, thường cần khôi phục cờ ngắt với `Thread.currentThread().interrupt()` và dừng công việc theo contract.
+**Do not mechanically catch broad `Throwable` or `Exception`.** Catch specifically as suited to the situation, and never swallow `InterruptedException`: if you do not rethrow it, restore the interrupt flag with `Thread.currentThread().interrupt()` and stop work per contract.
 
-## 7. Asynchronous exception: worker không chết nhưng tác vụ vẫn thất bại
+## 7. Asynchronous Exceptions: Worker Does Not Die, Yet the Task Still Fails
 
-Một lỗi phát sinh trong stage của `CompletableFuture` thường được **lưu trong kết quả future** thay vì thoát thẳng khỏi worker dưới dạng exception uncaught. Khi gọi:
+An error raised inside a `CompletableFuture` stage is usually **stored in the future result** instead of escaping the worker as an uncaught exception. When calling:
 
 ~~~java
 CompletableFuture<Void> job =
@@ -313,15 +313,15 @@ try {
 }
 ~~~
 
-Đây là snippet trong phương thức Java có import `CompletableFuture` và `CompletionException`. `join()` thường ném `CompletionException` (unchecked) bao lấy nguyên nhân trong stage; `get()` dùng `ExecutionException` (checked) khi completion thất bại. Nếu caller **không bao giờ quan sát future**, ứng dụng có thể thiếu log và metric cho tác vụ lỗi, dù worker thread của pool vẫn tiếp tục xử lý công việc khác.
+This is a snippet inside a Java method importing `CompletableFuture` and `CompletionException`. `join()` typically throws `CompletionException` (unchecked) wrapping the stage failure; `get()` uses `ExecutionException` (checked) when completion fails. If the caller **never observes the future**, the app may lack logs and metrics for the failed task even while the pool's worker thread keeps processing other jobs.
 
-Tương tự, `ExecutorService.submit(...)` lưu lỗi trong `Future` để `get()` báo; điều này khác với một `Thread.run()` tự tạo ném exception uncaught. Hãy debug tại **lambda/task throw site**, xem stage/future nào giữ lỗi và có callback `handle`/`exceptionally`/`whenComplete`/`get`/`join` để xử lý đúng chính sách hay không.
+Similarly, `ExecutorService.submit(...)` stores errors in `Future` for `get()` to report; this differs from a manually created `Thread.run()` throwing an uncaught exception. Debug at **the lambda/task throw site**, inspect which stage/future holds the error, and check whether `handle`/`exceptionally`/`whenComplete`/`get`/`join` handles it per policy.
 
-Một callback `exceptionally(ex -> fallback)` có thể chuyển future sang kết quả bình thường **nếu thực sự khôi phục được**. Một callback `whenComplete` chỉ để log không tự bảo đảm future chuyển từ exceptional sang success: kết quả phụ thuộc logic và semantics của stage.
+An `exceptionally(ex -> fallback)` callback can turn a future into a normal result **if it genuinely recovers**. A `whenComplete` callback that only logs does not automatically turn an exceptional future into a success: the outcome depends on stage logic and semantics.
 
-### 7.1 Uncaught ở thread không đồng nghĩa toàn bộ JVM chết
+### 7.1 Uncaught in a Thread Does Not Mean the Whole JVM Dies
 
-Lưu file **UncaughtThreadDemo.java**:
+Save file **`UncaughtThreadDemo.java`**:
 
 ~~~java
 public final class UncaughtThreadDemo {
@@ -339,32 +339,32 @@ public final class UncaughtThreadDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~sh
 javac --release 17 UncaughtThreadDemo.java
 java UncaughtThreadDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 UNCAUGHT: worker-1 -> job failed
 MAIN_STILL_RUNNING
 ~~~
 
-Trong lần chạy đã kiểm thử, mã thoát là **0**, vì main hoàn tất bình thường mặc dù worker ném exception uncaught. `UncaughtExceptionHandler` nhận thông báo **sau khi exception thoát khỏi run**, không “tua lại” tác vụ đã thất bại. Chương trình thực tế có thể cần đánh dấu job failed, restart worker hoặc chuyển sự cố vào hệ thống giám sát. Không suy từ process còn sống rằng không có uncaught exception trong các thread khác.
+In the tested run, the exit code was **0**, because `main` completed normally even though the worker threw an uncaught exception. `UncaughtExceptionHandler` is notified **after the exception escapes `run`**, without "rewinding" the failed task. Real programs may need to mark the job failed, restart the worker, or alert monitoring. Never infer from a live process that no uncaught exceptions occurred on other threads.
 
-## 8. Thực hành tổng hợp Java 17+: exception được ném, bắt và bọc lại
+## 8. Comprehensive Java 17+ Practice: Exceptions Thrown, Caught, and Wrapped
 
-Chương trình sau cố ý mô phỏng bốn đường đi khác nhau:
+The following program intentionally simulates four distinct paths:
 
-1. Input không hợp lệ, ứng dụng có **fallback được định nghĩa**.
-2. Service phát sinh lỗi và **boundary catch** để thông báo thất bại cục bộ.
-3. `IOException` được **wrap** thành `IllegalArgumentException`, giữ `cause`.
-4. Stage bất đồng bộ thất bại, `CompletableFuture` chứa lỗi; `join()` phát `CompletionException` và caller quan sát nguyên nhân.
+1. Invalid input where the app has a **defined fallback**.
+2. Service raises an error and a **boundary catch** reports local failure.
+3. `IOException` is **wrapped** into `IllegalArgumentException`, preserving `cause`.
+4. An async stage fails, `CompletableFuture` stores the error; `join()` throws `CompletionException` and the caller inspects the cause.
 
-Lưu file **ExceptionPathsDemo.java**:
+Save file **`ExceptionPathsDemo.java`**:
 
 ~~~java
 import java.io.IOException;
@@ -432,14 +432,14 @@ public final class ExceptionPathsDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~sh
 javac --release 17 ExceptionPathsDemo.java
 java ExceptionPathsDemo
 ~~~
 
-Stdout chính xác của chương trình:
+Exact stdout of the program:
 
 ~~~text
 START
@@ -452,23 +452,23 @@ FUTURE_HANDLED: async failure
 END
 ~~~
 
-Đã kiểm thử với `javac --release 17` và HotSpot JDK 24. Dù có nhiều exceptions phát sinh, chương trình **không in stack trace ra stderr**, vì những đường đi trên đều có handler phù hợp. Tuy nhiên, điều đó **không chứng minh mọi thao tác nghiệp vụ thành công**: case `repository()` báo unavailable, và `asyncTask()` đã thất bại nhưng lỗi được quan sát.
+Verified with `javac --release 17` and HotSpot JDK 24. Even though multiple exceptions occurred, the program **prints no stack traces to stderr**, because all four paths have matching handlers. Nevertheless, that **does not prove every business operation succeeded**: `repository()` reported unavailable, and `asyncTask()` failed with its error observed.
 
-### 8.1 Dùng exception breakpoints để theo dõi chương trình này
+### 8.1 Using Exception Breakpoints to Trace This Program
 
-Bật caught + uncaught cho các loại:
+Enable caught + uncaught for these types:
 
-- `NumberFormatException` → dừng ở tình huống parsePort; sau resume, `catch` trả 8080. Có thể coi là khôi phục theo contract của lab.
-- `IllegalStateException` → dừng ở `repository()`; sau resume, `requestBoundary()` catch và in dòng báo lỗi. Đây là **xử lý tại boundary**, không phải kết quả service thành công.
-- `IOException` → dừng ở `readConfig()`; `loadConfig()` wrap sang `IllegalArgumentException`, sau đó main catch. Kiểm tra `getCause()` của wrapper.
-- `UnsupportedOperationException` → dừng trong lambda chạy ở worker; tương lai `job.join()` có thể ném `CompletionException` ở thread main. Xem cả worker thread và main.
-- `CompletionException` → lưu ý đây là lỗi wrapper do cơ chế `CompletableFuture`, không phải nguyên nhân đầu tiên “async failure”.
+- `NumberFormatException` → pauses in `parsePort`; after resuming, `catch` returns 8080. This counts as recovery per the lab's contract.
+- `IllegalStateException` → pauses in `repository()`; after resuming, `requestBoundary()` catches and prints the error line. This is **boundary handling**, not a successful service result.
+- `IOException` → pauses in `readConfig()`; `loadConfig()` wraps into `IllegalArgumentException`, which `main` later catches. Inspect the wrapper's `getCause()`.
+- `UnsupportedOperationException` → pauses inside the lambda running on a worker; afterward `job.join()` throws `CompletionException` on the main thread. Inspect both the worker thread and `main`.
+- `CompletionException` → note this is a wrapper from `CompletableFuture` mechanics, not the initial "async failure" root cause.
 
-Đặt line breakpoint ở **`catch`** của từng case rồi so sánh với exception breakpoints ở thời điểm ném. Hai điểm dừng trả lời hai câu hỏi khác nhau: **“ở đâu phát sinh?”** và **“ai quyết định cách xử lý?”**.
+Set line breakpoints on each **`catch`** block and compare them against exception breakpoints at throw time. The two pause points answer different questions: **"where did it originate?"** and **"who decided how to handle it?"**.
 
-### 8.2 Checklist thông tin khi debugger dừng
+### 8.2 Checklist of Details When the Debugger Pauses
 
-Ghi một phiếu điều tra nhỏ, không log dữ liệu bí mật:
+Record a short investigation note without logging secrets:
 
 ~~~text
 Timestamp / request ID / thread:
@@ -482,29 +482,29 @@ Evidence: test output / response code / metrics / logs:
 Proposed fix and retest criteria:
 ~~~
 
-Đây là mẫu text có thể điền trong công cụ theo dõi sự cố, không phải Java code. Các mốc thời gian từ debugger/JFR/log phải được đối chiếu timezone và clock giữa process/host/container.
+This is a text template to fill out in an issue tracker, not Java code. Timestamps from debugger/JFR/logs must be aligned for timezone and clock skew across processes/hosts/containers.
 
-## 9. JFR: có event `jdk.JavaExceptionThrow` chưa chắc exception được throw hoặc uncaught
+## 9. JFR: Having `jdk.JavaExceptionThrow` Does Not Mean Thrown or Uncaught
 
-Đây là **bẫy quan trọng**, đặc biệt khi bài toán yêu cầu “phân biệt exception đã được xử lý”.
+This is a **critical trap**, especially when asked to "distinguish handled exceptions."
 
-JFR có những event tùy JDK như:
+Depending on the JDK, JFR provides events such as:
 
-- `jdk.JavaExceptionThrow`: thông tin liên quan quá trình JVM tạo/phát sinh exception, gồm kiểu, message, thread, stack khi event được ghi.
-- `jdk.JavaErrorThrow`: tương tự cho `Error` tùy template.
-- `jdk.ExceptionStatistics`: số liệu thống kê tổng hợp/định kỳ tùy JDK và cấu hình; không dùng nó để xác định một request cụ thể đã thất bại.
+- `jdk.JavaExceptionThrow`: details related to JVM exception creation/raising, including class, message, thread, and stack when recorded.
+- `jdk.JavaErrorThrow`: similar for `Error` depending on template.
+- `jdk.ExceptionStatistics`: aggregate/periodic counts depending on JDK and config; never use it to prove a specific request failed.
 
-**Cẩn trọng về semantics thực tế trên HotSpot:** trong kiểm thử JDK 24, `jdk.JavaExceptionThrow` đã được ghi **ngay cả khi code chỉ tạo `new IllegalArgumentException(...)` mà không thực hiện `throw`**. Event stack bắt đầu trong constructor `Throwable`; vì vậy tên event chứa chữ “Throw” **không bảo đảm đã thực thi biểu thức `throw`, càng không chứng minh exception không được catch**. Hãy dùng debugger/JDWP hoặc code/control-flow để xác minh việc ném và đường đi đến handler.
+**Caution on actual HotSpot semantics:** in JDK 24 testing, `jdk.JavaExceptionThrow` was recorded **even when code only constructed `new IllegalArgumentException(...)` without executing `throw`**. The event stack begins inside `Throwable`'s constructor; therefore, an event name containing "Throw" **does not guarantee a `throw` expression executed, much less prove the exception went uncaught**. Use a debugger/JDWP or code/control-flow analysis to verify throwing and handler paths.
 
-### 9.1 Bật event có chủ đích, không giả định default ghi hết
+### 9.1 Enable Events Deliberately; Do Not Assume Default Records Everything
 
-Với JDK hỗ trợ `jfr configure`, tạo một template riêng từ `default.jfc`:
+On a JDK supporting `jfr configure`, create a custom template from `default.jfc`:
 
 ~~~sh
 jfr configure --input default.jfc --output throws.jfc 'jdk.JavaExceptionThrow#enabled=true' 'jdk.JavaExceptionThrow#stackTrace=true'
 ~~~
 
-Chạy demo và ghi ngắn vào file:
+Run the demo and capture a short recording to a file:
 
 ~~~sh
 java '-XX:StartFlightRecording=settings=throws.jfc,filename=throws.jfr,dumponexit=true' ExceptionPathsDemo
@@ -512,15 +512,15 @@ jfr summary throws.jfr
 jfr print --events jdk.JavaExceptionThrow --stack-depth 12 throws.jfr
 ~~~
 
-`jfr summary` cho biết số event đã thực sự được ghi trong file; `jfr print` có thể hiện `thrownClass`, `message`, `eventThread` và `stackTrace`. Một lần chạy thử HotSpot JDK 24 với custom template này có **6 event `jdk.JavaExceptionThrow`**, bao gồm `NumberFormatException`, `IllegalStateException`, `IOException`, `IllegalArgumentException`, `UnsupportedOperationException` và `CompletionException`. Đây là **số liệu thí nghiệm**, không phải số phải thấy ở mọi JDK, vì nội bộ JVM và template có thể sinh khác số event.
+`jfr summary` shows how many events were actually recorded in the file; `jfr print` can display `thrownClass`, `message`, `eventThread`, and `stackTrace`. One test run on HotSpot JDK 24 with this custom template recorded **6 `jdk.JavaExceptionThrow` events**, covering `NumberFormatException`, `IllegalStateException`, `IOException`, `IllegalArgumentException`, `UnsupportedOperationException`, and `CompletionException`. These are **experimental numbers**, not numbers guaranteed on every JDK, because JVM internals and templates can emit different event counts.
 
-Trong cùng môi trường, nếu chạy `settings=default` mà không tùy chỉnh, file thử nghiệm **không có event `jdk.JavaExceptionThrow`**. Suy ra: **file không có event không chứng minh không có exception**; phải xác minh setting `enabled`, khoảng thời gian ghi và output.
+In the same environment, running with `settings=default` without customization produced a test recording with **zero `jdk.JavaExceptionThrow` events**. Thus: **a file with zero events does not prove no exceptions occurred**; verify `enabled` settings, recording duration, and output.
 
-Đừng tùy tiện bật event exception với stack cho toàn bộ traffic production: nếu ứng dụng sử dụng exception như control flow ở tần suất cao, lượng dữ liệu và overhead có thể tăng mạnh. Một số JDK hỗ trợ các cơ chế giảm tần suất/giới hạn ghi, nhưng **không giả định setting `throttle` tồn tại cho mọi event/JDK**. Trong môi trường kiểm thử JDK 24, yêu cầu `jdk.JavaExceptionThrow#throttle=10000/s` cho `jfr configure` bị từ chối. Chỉ dùng những event settings được JVM thực tế hỗ trợ; ưu tiên **cửa sổ thu ngắn, workload đại diện, kiểm tra file size và chi phí**, hoặc bộ đếm ứng dụng đã tổng hợp khi chỉ cần rate.
+Do not casually enable stack-captured exception events across all production traffic: if the application uses exceptions as high-frequency control flow, data volume and overhead can surge. Some JDKs support rate-limiting/throttling mechanisms, yet **do not assume a `throttle` setting exists for every event/JDK**. In the JDK 24 test environment, passing `jdk.JavaExceptionThrow#throttle=10000/s` to `jfr configure` was rejected. Use only event settings supported by the actual JVM; prefer **short recording windows, representative workloads, file size and cost checks**, or aggregated application counters when only rates are needed.
 
-### 9.2 Thí nghiệm phân biệt tạo exception và throw
+### 9.2 Experiment Distinguishing Exception Construction from Throwing
 
-Lưu **ExceptionConstructedDemo.java**:
+Save **`ExceptionConstructedDemo.java`**:
 
 ~~~java
 public final class ExceptionConstructedDemo {
@@ -531,7 +531,7 @@ public final class ExceptionConstructedDemo {
 }
 ~~~
 
-Chạy trong thư mục có `throws.jfc` ở trên:
+Run in the directory containing `throws.jfc` from above:
 
 ~~~sh
 javac --release 17 ExceptionConstructedDemo.java
@@ -539,13 +539,13 @@ java '-XX:StartFlightRecording=settings=throws.jfc,filename=constructed.jfr,dump
 jfr print --events jdk.JavaExceptionThrow --stack-depth 8 constructed.jfr
 ~~~
 
-Stdout **do chính Java demo in** là:
+Stdout **printed by the Java demo itself** is:
 
 ~~~text
 NO_THROW_REACHED
 ~~~
 
-Nhưng trong một lần chạy HotSpot JDK 24, file `constructed.jfr` **vẫn có một event `jdk.JavaExceptionThrow`** với:
+Yet in a HotSpot JDK 24 run, `constructed.jfr` **still contained one `jdk.JavaExceptionThrow` event** with:
 
 ~~~text
 message = "constructed but not thrown"
@@ -553,61 +553,61 @@ thrownClass = java.lang.IllegalArgumentException
 stackTrace includes ExceptionConstructedDemo.main(...)
 ~~~
 
-Đây là **trích đoạn minh họa đã lược bớt** các trường như timestamp, thread và frame constructor; nội dung đầy đủ tùy JVM. Chương trình thực tế không ném exception này và vẫn thoát mã 0. Đó là lý do **JFR exception event không thay thế được exception breakpoint hoặc phân tích handler**.
+This is an **abridged illustrative excerpt** omitting fields such as timestamp, thread, and constructor frames; full contents depend on the JVM. The actual program never threw this exception and exited with code 0. That is why **JFR exception events cannot replace exception breakpoints or handler analysis**.
 
-### 9.3 JFR kết hợp với debugger và log
+### 9.3 Combining JFR with Debugger and Logs
 
-JFR thích hợp để nhìn **xu hướng, loại exception, thread và call sites** trong khoảng thu không thể ngồi debug từng request. Khi thấy event tăng:
+JFR excels at revealing **trends, exception types, threads, and call sites** over capture windows where stepping through individual requests is impossible. When seeing an event spike:
 
-1. Đọc cấu hình JFR thực tế, loại event, thời gian, stack, thread và context hệ thống.
-2. Lọc các lớp exception liên quan application code; phân biệt thông điệp wrapper và nguyên nhân sâu nhất.
-3. Tái hiện một trường hợp nhỏ với exception breakpoint để xem **nơi ném thật** và **handler**.
-4. Đối chiếu các metrics kết quả thật: request failure ratio, retry rate, DLQ, timeout, job failure, fallback rate.
-5. Chỉ gọi là incident/bug khi có bằng chứng hành vi không đạt contract, không chỉ vì event count tăng.
+1. Check the actual JFR configuration, event types, timestamps, stacks, threads, and system context.
+2. Filter exception classes relevant to application code; separate wrapper messages from deepest causes.
+3. Reproduce a small case with an exception breakpoint to observe **the real throw site** and **handler**.
+4. Cross-check real outcome metrics: request failure ratio, retry rate, DLQ, timeouts, job failures, and fallback rate.
+5. Call it an incident/bug only when evidence shows behavior violates the contract, not merely because an event count rose.
 
-## 10. Log thông minh: nơi nào nên ghi và ghi gì?
+## 10. Smart Logging: Where to Log and What to Log?
 
-Lỗi phổ biến là log toàn bộ stack ở mọi tầng, rồi lại ném lên, khiến cùng một exception xuất hiện như nhiều lỗi. Thay vào đó:
+A common mistake is logging the full stack at every layer and rethrowing, making a single exception look like multiple failures. Instead:
 
-| Tầng | Nên làm gì | Vì sao |
+| Layer | What to do | Why |
 | --- | --- | --- |
-| Thư viện/parser nhỏ | Ném kiểu có ý nghĩa; có thể thêm context mà **giữ cause** | Để caller quyết định có fallback hay báo lỗi |
-| Service | Handle khi biết cách khôi phục an toàn; nếu không thì rethrow/wrap với context | Không tạo false success hoặc che nguyên nhân |
-| HTTP boundary/job scheduler/message consumer | Ghi error outcome đúng một lần kèm correlation ID, trạng thái, operation, root cause | Có thông tin nghiệp vụ và quyết định cuối |
-| Metrics | Đếm recovered failures, validation errors, retry, hard failures theo loại | Không nhầm thrown count với failed request |
-| APM/JFR | Thu data hỗ trợ chẩn đoán ở cửa sổ phù hợp | Có stack/timeline bổ sung mà không cần log tất cả |
+| Small library/parser | Throw a meaningful type; optionally add context while **preserving cause** | Lets the caller decide whether to fall back or fail |
+| Service | Handle when safe recovery is known; otherwise rethrow/wrap with context | Avoids fake success or hiding the cause |
+| HTTP boundary/job scheduler/message consumer | Log the error outcome once with correlation ID, status, operation, root cause | Provides business context and final decision |
+| Metrics | Count recovered failures, validation errors, retries, hard failures by type | Avoids confusing thrown count with failed requests |
+| APM/JFR | Capture diagnostic data over appropriate windows | Supplies stack/timeline context without logging everything |
 
-Không nên ghi password, token, raw payload nhạy cảm hoặc toàn bộ HTTP headers trong exception log. `ex.getMessage()` cũng có thể chứa dữ liệu đầu vào, nên cần sanitization. Với log aggregation, lưu correlation ID và consistent error code để nối các tầng; giữ stack đầy đủ ở điểm đáng tin, tránh log duplicate.
+Never log passwords, tokens, sensitive raw payloads, or full HTTP headers in exception logs. `ex.getMessage()` can also contain input data, so sanitize it. For log aggregation, include correlation IDs and consistent error codes across layers; keep full stacks at a trusted boundary and avoid duplicate logs.
 
-**Quan trọng:** một exception được catch để trả response lỗi vẫn nên có metric thất bại tương ứng; “caught” chỉ là chi tiết triển khai, không phải chuẩn đo chất lượng service.
+**Important:** an exception caught to return an error response should still emit a corresponding failure metric; "caught" is only an implementation detail, not a measure of service quality.
 
-## 11. Debug những ngoại lệ khó thấy trong ứng dụng đa tầng
+## 11. Debugging Hard-to-See Exceptions in Multi-Layer Applications
 
-### 11.1 Framework tự bắt exception
+### 11.1 Frameworks Catching Exceptions Automatically
 
-Trong Spring MVC/Jakarta Servlet hoặc HTTP middleware, exception từ controller có thể được bắt ở tầng handler/resolver/filter và chuyển thành response. Từ góc nhìn IDE, exception có thể là **caught**, nhưng request vẫn 500. Cần xem đường mapping type → status, body, transaction và whether log once. Không đánh đồng “uncaught in user code” với “uncaught at thread boundary”.
+In Spring MVC/Jakarta Servlet or HTTP middleware, exceptions from controllers can be caught by handler/resolver/filter layers and converted into responses. From the IDE's viewpoint, the exception may be **caught**, yet the request still returns 500. Inspect type → status mapping, body, transaction state, and single-log behavior. Do not equate "uncaught in user code" with "uncaught at thread boundary."
 
-### 11.2 Retry che đi nỗ lực thất bại
+### 11.2 Retries Masking Failed Attempts
 
-Một client có thể throw timeout lần thứ nhất, framework catch và retry thành công lần thứ hai. JFR/exception breakpoint thấy timeout nhưng request cuối thành công. Vẫn cần xem retry rate, backoff, idempotency và SLO: nhiều lỗi được retry có thể gây latency và tăng tải. Ngược lại, lỗi đã retry hết và ném ra caller mới là thất bại cuối cùng.
+A client may throw a timeout on the first attempt, and the framework catches and succeeds on a retry. JFR/exception breakpoints see the timeout even though the final request succeeds. Still check retry rate, backoff, idempotency, and SLOs: heavy retries can raise latency and load. Conversely, an error that exhausts retries and surfaces to the caller is the final failure.
 
-### 11.3 Transaction rollback dù exception được catch
+### 11.3 Transaction Marked Rollback Even Though Exception Was Caught
 
-Một transaction có thể đã bị đánh dấu rollback-only ở tầng dưới, trong khi outer code catch exception và nghĩ mọi việc ổn. Tùy framework, commit có thể thất bại sau đó. Xem transaction state/rollback marker, không dựa vào việc không có exception ra ngoài `catch` hiện tại.
+A transaction may be marked rollback-only in a lower layer while outer code catches the exception and thinks everything is fine. Depending on the framework, commit may fail later. Inspect transaction state/rollback markers rather than relying on no exception escaping the current `catch`.
 
-### 11.4 Logging sai luồng hoặc sai thời điểm
+### 11.4 Logging on the Wrong Thread or at the Wrong Time
 
-Trong async code, nơi exception phát sinh có thể ở worker, nơi `get()`/`join()` báo lại ở request thread. Hai stack khác nhau là bình thường. Đặt debugger ở cả source task và boundary future; ghi request context được truyền qua async boundaries, không trông chờ thread-local tự xuyên qua mọi executor.
+In async code, where the exception originates can be on a worker thread, while `get()`/`join()` reports it on the request thread. Two different stacks are normal. Place debuggers on both the source task and the future boundary; propagate request context across async boundaries rather than expecting thread-locals to cross executors automatically.
 
-### 11.5 Exception bị thay thế hoặc mất cause
+### 11.5 Exceptions Replaced or Losing Their Cause
 
 ~~~java
 catch (IOException ex) {
-    throw new RuntimeException("Operation failed"); // Đã đánh mất cause.
+    throw new RuntimeException("Operation failed"); // Lost the cause.
 }
 ~~~
 
-Pseudo-snippet này cần đặt trong ngữ cảnh phương thức có IOException. Dạng nên ưu tiên khi chuyển mức abstraction:
+This pseudo-snippet belongs in a method handling `IOException`. Preferred form when crossing abstraction levels:
 
 ~~~java
 catch (IOException ex) {
@@ -615,96 +615,96 @@ catch (IOException ex) {
 }
 ~~~
 
-Giữ nguyên nhân ban đầu cho debugger/log/APM. Tránh `throw new RuntimeException(ex.getMessage())` vì thường mất trace nguyên thủy và không thêm context.
+Preserve the original cause for debuggers/logs/APM. Avoid `throw new RuntimeException(ex.getMessage())` because it usually loses the original trace and adds no context.
 
-## 12. Quy trình điều tra một sự cố thật từ đầu đến cuối
+## 12. End-to-End Investigation Workflow for a Real Incident
 
-**Ví dụ:** user báo “thỉnh thoảng thao tác tạo hóa đơn trả 500”, trong log có vài `IllegalArgumentException` và JFR phát sinh rất nhiều `NumberFormatException`.
+**Example:** users report "creating an invoice occasionally returns 500"; logs contain a few `IllegalArgumentException`s, and JFR shows many `NumberFormatException`s.
 
-1. **Khóa phạm vi:** lấy 1–3 request IDs có lỗi, endpoint, payload đã ẩn dữ liệu, response status, thời gian và bản build. Xác định có thực sự 500 hay chỉ validation 400.
-2. **Lập timeline:** nối access logs, error logs, tracing, thread/request context và JFR cùng khoảng thời gian; kiểm clock/timezone.
-3. **Phân loại ban đầu:** `NumberFormatException` có thể phát sinh khi parser thử format rồi fallback, trong khi `IllegalArgumentException` ở service có thể là wrapper của `IOException`. Không chọn nguyên nhân từ tên nổi bật nhất.
-4. **Reproduce:** tạo test input đã biết, dùng debugger với exception breakpoint loại liên quan. Ghi input/state tại điểm throw và caller path.
-5. **Theo dấu handler:** kiểm tra catch parser có hợp lệ theo contract không; xem wrapper giữ cause không; xem controller/error handler map status thế nào; kiểm retry/transaction/future.
-6. **Chỉ ra lỗi gốc cụ thể:** ví dụ “invoiceId không hợp lệ nhưng validator bỏ qua và repository nhận giá trị null; service wrap lỗi rồi handler trả 500” — có stack, line, input và đường lan truyền hỗ trợ.
-7. **Sửa ở đúng tầng:** validation ở boundary để trả 400; không dùng catch-all trả 200; giữ cause/metric/log ở boundary. Tách các exception dự kiến khỏi hard failures nếu có thể.
-8. **Kiểm thử hồi quy:** cùng input trước/sau, unit/integration test, response status đúng, không có silent success, retry/rollback đúng; kiểm log/metrics và overhead chẩn đoán.
+1. **Lock down scope:** grab 1–3 failing request IDs, endpoint, redacted payload, response status, timestamp, and build version. Confirm whether it is truly 500 or 400 validation.
+2. **Build a timeline:** align access logs, error logs, traces, thread/request context, and JFR over the same window; verify clocks/timezones.
+3. **Initial triage:** `NumberFormatException` may come from a parser trying formats with fallback, while `IllegalArgumentException` in the service may wrap an `IOException`. Do not pick the culprit solely by the loudest name.
+4. **Reproduce:** construct a known test input and run a debugger with exception breakpoints for the relevant classes. Record input/state at throw time and the caller path.
+5. **Follow the handler:** check whether the parser `catch` honors the contract; check whether wrappers preserve cause; verify how the controller/error handler maps status; check retries/transactions/futures.
+6. **Pinpoint the concrete root bug:** e.g., "invalid `invoiceId` slipped past validator so repository received null; service wrapped the error and handler returned 500"—backed by stack, line, input, and propagation path.
+7. **Fix at the right layer:** validate at the boundary to return 400; never use a catch-all returning 200; keep causes/metrics/logs at the boundary. Separate expected exceptions from hard failures where possible.
+8. **Regression test:** same input before/after, unit/integration tests, right response status, no silent success, proper retry/rollback; check logs/metrics and diagnostic overhead.
 
-### Bảng bằng chứng trước khi kết luận
+### Evidence Table Before Concluding
 
-| Quan sát | Có thể nói | Chưa thể nói |
+| Observation | What you can claim | What you cannot claim yet |
 | --- | --- | --- |
-| Debugger dừng tại `throw` | Exception đã được ném ở code path đó | Request chắc chắn thất bại |
-| Có `catch` cho exception | Exception có handler nào đó | Handler đã khôi phục thành công |
-| Java stdout không có stack trace | Không có stack trace được in ở stdout/stderr quan sát | Không hề có exception |
-| JFR có `jdk.JavaExceptionThrow` | Có event do cơ chế này ghi trên JVM đó | Throwable chắc chắn đã được ném thật hoặc chưa được catch |
-| `CompletableFuture` hoàn thành exceptionally | Async operation thất bại theo contract future | Worker thread bị uncaught/tiến trình chết |
-| Thread uncaught handler được gọi | Exception thoát khỏi `run` của thread | Toàn bộ JVM chắc chắn dừng |
-| HTTP trả 200 sau một exception | API cuối cùng trả 200 | Internal work đã đúng và dữ liệu không hỏng |
-| HTTP trả 500 nhưng exception được framework catch | Boundary đã tạo response lỗi | Không còn lỗi vì IDE đánh dấu caught |
+| Debugger pauses at `throw` | Exception was thrown on that code path | Request definitely failed |
+| A `catch` exists for the exception | Exception has some handler | Handler successfully recovered |
+| Java stdout has no stack trace | No stack trace printed to observed stdout/stderr | Zero exceptions occurred |
+| JFR has `jdk.JavaExceptionThrow` | An event was recorded by that mechanism on that JVM | `Throwable` was definitely thrown or went uncaught |
+| `CompletableFuture` completed exceptionally | Async operation failed per future contract | Worker thread died uncaught / process died |
+| Thread uncaught handler invoked | Exception escaped the thread's `run` | Entire JVM definitely stopped |
+| HTTP returns 200 after an exception | API ultimately returned 200 | Internal work succeeded and data is uncorrupted |
+| HTTP returns 500, yet framework caught exception | Boundary built an error response | No bug exists just because IDE labeled it caught |
 
-## 13. Những sai lầm cần tránh
+## 13. Mistakes to Avoid
 
-1. **Dừng ở mọi thrown exception rồi coi tất cả là bug.** Hãy xem handler và outcome; parser, framework, retry có thể dùng exceptions dự kiến.
-2. **Cho rằng caught nghĩa là xử lý thành công.** Handler có thể rethrow, wrap, trả 500 hoặc rollback.
-3. **Cho rằng uncaught luôn làm toàn bộ JVM exit.** Uncaught có thể chỉ kết thúc một thread; main và các thread khác vẫn chạy.
-4. **Chỉ nhìn stack của wrapper.** Dò `getCause()` và `getSuppressed()`; root cause có thể nằm ở async/reflective tầng dưới.
-5. **Nhầm creation stack với throw site.** `Throwable` thường giữ trace lúc tạo; JFR trên HotSpot có thể ghi event ngay lúc tạo mà chưa throw.
-6. **Lấy số event JFR làm số request lỗi.** Một request có thể phát sinh nhiều exception; cả exception dự kiến và wrapper cũng có thể được ghi.
-7. **Tin rằng `default.jfc` luôn bật JavaExceptionThrow.** Kiểm tra settings thực tế; nhiều preset mặc định không thu event tần suất cao.
-8. **Bật exception tracing chi tiết toàn production vô thời hạn.** Nó có thể gây overhead CPU/file và lộ dữ liệu.
-9. **Log rồi rethrow ở mọi tầng.** Tạo nhiều bản log cùng lỗi; chọn boundary phù hợp, giữ cause và correlation ID.
-10. **Swallow exception và trả success để “giảm lỗi”.** Che mất bug, có thể gây dữ liệu sai hoặc mất transaction.
-11. **Catch `Throwable` rồi bỏ qua `Error`.** Có thể giấu tình trạng runtime nặng và khiến hệ thống không còn an toàn.
-12. **Bỏ `InterruptedException` mà không xử lý contract.** Có thể phá cơ chế hủy tác vụ/đóng ứng dụng.
-13. **Mở remote debugger không kiểm soát.** JDWP có quyền truy cập cao; không expose cổng ra Internet.
-14. **Đặt breakpoint trên mã không khớp build/source.** Stepping có thể dẫn đến sai line và kết luận sai.
-15. **Không tái hiện với cùng request/build.** Exception type có thể giống nhưng nguyên nhân hoặc đường xử lý khác.
-16. **Quên future.** Không gọi `get/join` hoặc không có callback quan sát có thể khiến job failed mà không có log rõ ràng.
+1. **Pausing on every thrown exception and treating all as bugs.** Inspect handlers and outcomes; parsers, frameworks, and retries may use expected exceptions.
+2. **Assuming caught means handled successfully.** A handler may rethrow, wrap, return 500, or roll back.
+3. **Assuming uncaught always terminates the entire JVM.** Uncaught may kill only one thread; `main` and other threads continue running.
+4. **Looking only at a wrapper's stack.** Check `getCause()` and `getSuppressed()`; the root cause may sit in an async/reflective layer below.
+5. **Confusing creation stack with throw site.** `Throwable` normally captures trace at construction; JFR on HotSpot can emit events at construction before throwing.
+6. **Treating JFR event count as failed request count.** One request can raise multiple exceptions; expected exceptions and wrappers can also be counted.
+7. **Believing `default.jfc` always enables JavaExceptionThrow.** Verify actual settings; many default presets omit high-frequency events.
+8. **Enabling detailed exception tracing across all production indefinitely.** It can incur CPU/file overhead and expose data.
+9. **Logging and rethrowing at every layer.** Produces duplicate log entries for one error; pick a proper boundary, preserve cause and correlation ID.
+10. **Swallowing exceptions and returning success to "reduce errors."** Hides bugs and risks corrupting data or losing transactions.
+11. **Catching `Throwable` and ignoring `Error`.** Can mask severe runtime conditions and leave the system unsafe.
+12. **Dropping `InterruptedException` without honoring its contract.** Can break task cancellation/application shutdown.
+13. **Opening remote debuggers without strict controls.** JDWP carries high privileges; never expose the port to the Internet.
+14. **Setting breakpoints on code mismatching the build/source.** Stepping leads to wrong lines and wrong conclusions.
+15. **Failing to reproduce with the same request/build.** Exception types can match while causes or code paths differ.
+16. **Forgetting the future.** Skipping `get/join` or observation callbacks can let jobs fail without clear logs.
 
-## 14. Bài tập có đáp án
+## 14. Practice Exercises with Answers
 
-**Bài A.** `Integer.parseInt("x")` ném `NumberFormatException`; một `catch` trả fallback 8080, request vẫn thành công theo yêu cầu cấu hình tùy chọn. Bạn thấy breakpoint ở `parseInt`. Có phải incident không?
+**Exercise A.** `Integer.parseInt("x")` throws `NumberFormatException`; a `catch` returns fallback 8080, and the request succeeds per an optional-config requirement. You see the breakpoint in `parseInt`. Is this an incident?
 
-**Đáp án:** Chưa có bằng chứng incident. Đây có thể là một exception được xử lý bằng fallback hợp lệ. Cần kiểm contract (port tùy chọn thật hay không), kiểm rate nếu ảnh hưởng hiệu năng; không xóa handler chỉ vì debugger dừng.
+**Answer:** No incident proven yet. This may be a validly handled fallback exception. Verify the contract (whether the port is truly optional), check rate if impacting performance; do not delete the handler merely because the debugger paused.
 
-**Bài B.** Controller throw `IllegalStateException`, middleware catch và trả HTTP 500. IDE ghi “caught”. Request đã thành công?
+**Exercise B.** A controller throws `IllegalStateException`, middleware catches it and returns HTTP 500. The IDE labels it "caught." Did the request succeed?
 
-**Đáp án:** Không. Exception được bắt ở boundary để tạo response lỗi, nhưng request thất bại theo HTTP contract. Cần sửa nguyên nhân gốc hoặc map lỗi đúng, đồng thời metric 5xx phải phản ánh.
+**Answer:** No. The exception was caught at the boundary to build an error response, yet the request failed per HTTP contract. Fix the root cause or error mapping, and 5xx metrics must reflect it.
 
-**Bài C.** JFR có event `jdk.JavaExceptionThrow` với message “constructed but not thrown”; code chỉ gọi `new IllegalArgumentException(...)`. Có chứng minh code đã ném exception?
+**Exercise C.** JFR has a `jdk.JavaExceptionThrow` event with message "constructed but not thrown"; code only ran `new IllegalArgumentException(...)`. Does this prove the code threw the exception?
 
-**Đáp án:** Không. Trên HotSpot kiểm thử, event có thể phát sinh lúc tạo `Throwable`; cần debugger hoặc kiểm code path để xác minh `throw` thực tế.
+**Answer:** No. On tested HotSpot, the event can fire upon constructing `Throwable`; use a debugger or inspect the code path to verify an actual `throw`.
 
-**Bài D.** `CompletableFuture.runAsync` ném `UnsupportedOperationException`, main không gọi `get`/`join`. Không có stderr. Công việc thành công?
+**Exercise D.** `CompletableFuture.runAsync` throws `UnsupportedOperationException`, and `main` never calls `get`/`join`. Nothing appears on stderr. Did the task succeed?
 
-**Đáp án:** Không thể kết luận thành công; future có thể completed exceptionally. Quan sát future result và bảo đảm lỗi được ghi nhận/handle theo contract.
+**Answer:** You cannot conclude success; the future may have completed exceptionally. Observe the future result and ensure errors are recorded/handled per contract.
 
-**Bài E.** `new RuntimeException("failed", cause)` xuất hiện trong stack, nhưng cause là `IOException("config missing")`. Nên debug vị trí nào?
+**Exercise E.** `new RuntimeException("failed", cause)` appears in the stack, while `cause` is `IOException("config missing")`. Where should you debug?
 
-**Đáp án:** Kiểm cả chỗ wrap và nguyên nhân sâu hơn tại `readConfig`, xem input/cấu hình/quyền filesystem; không chỉ sửa nơi tạo wrapper.
+**Answer:** Inspect both the wrap site and the deeper cause at `readConfig`, checking inputs/configs/filesystem permissions; do not fix only where the wrapper was created.
 
-**Bài F.** Một thread tự tạo ném `IllegalStateException` ra khỏi `run()`. Uncaught handler đã ghi nhận, main vẫn chạy. Có mâu thuẫn?
+**Exercise F.** A custom thread throws `IllegalStateException` out of `run()`. The uncaught handler logged it, and `main` keeps running. Is that a contradiction?
 
-**Đáp án:** Không. Uncaught là tương đối theo thread; nó không đảm bảo JVM phải dừng. Phải đánh dấu tác vụ thất bại và quyết định recovery/restart theo nghiệp vụ.
+**Answer:** No. Uncaught is per thread; it does not force the JVM to exit. Mark the task failed and decide recovery/restart per business rules.
 
-**Bài G.** Trong try-with-resources, `read` ném `IOException("read failed")` và `close` ném `IOException("close failed")`. Tìm lỗi thứ hai ở đâu?
+**Exercise G.** In `try-with-resources`, `read` throws `IOException("read failed")` and `close` throws `IOException("close failed")`. Where do you find the second error?
 
-**Đáp án:** Trong `getSuppressed()` của lỗi chính, không mặc định ở `getCause()`. `printStackTrace()` thường hiển thị suppressed; không quên kiểm nguồn lỗi cleanup.
+**Answer:** In `getSuppressed()` of the primary error, not in `getCause()` by default. `printStackTrace()` normally displays suppressed exceptions; do not forget to check cleanup errors.
 
-**Bài H.** Bạn tắt caught exceptions trong IDE và debugger không dừng nữa, trong khi logs cho thấy retry rate tăng. Có thể khẳng định không có throw?
+**Exercise H.** You disabled caught exceptions in the IDE and the debugger stops pausing, while logs show rising retry rates. Can you conclude nothing is being thrown?
 
-**Đáp án:** Không. Bạn chỉ đổi **bộ lọc debugger**. Các exceptions được bắt để retry có thể vẫn liên tục xảy ra; cần xem runtime metrics, logs hoặc cấu hình breakpoint phù hợp.
+**Answer:** No. You only changed **the debugger filter**. Exceptions caught for retries may still occur continuously; check runtime metrics, logs, or appropriate breakpoint settings.
 
-## Ghi nhớ
+## Key Takeaways
 
-- **Exception xuất hiện ở đâu?** Dùng exception breakpoint, local variables, stack và code path để tìm nơi ném; trace lưu trong `Throwable` đôi khi phản ánh nơi tạo.
-- **Đi đâu sau khi ném?** Theo dõi handler, rethrow, wrapper/cause, asynchronous future và thread boundary.
-- **Kết cục nào là đúng?** Xác minh fallback hợp lệ, HTTP/job result, retry/rollback, logging và test. **Caught không bằng success; thrown không bằng incident**.
-- **JFR có bằng chứng gì?** Nó ghi sự kiện theo template và semantics của HotSpot/JDK, nhưng không tự cung cấp trạng thái “handled/unhandled”. Event `jdk.JavaExceptionThrow` thậm chí có thể xuất hiện khi chỉ khởi tạo exception.
-- **Điều tra có giới hạn và có thể tái hiện**: lọc loại exception, thu dữ liệu ngắn/đúng thời điểm, giữ cause, không tạo duplicate logs, bảo vệ quyền debugger và dữ liệu nhạy cảm.
+- **Where did the exception originate?** Use exception breakpoints, local variables, stacks, and code paths to find the throw site; traces stored in `Throwable` sometimes reflect construction time.
+- **Where does it go after being thrown?** Follow handlers, rethrows, wrappers/causes, async futures, and thread boundaries.
+- **Which outcome is right?** Verify valid fallbacks, HTTP/job results, retries/rollbacks, logging, and tests. **Caught does not equal success; thrown does not equal incident.**
+- **What evidence does JFR provide?** It records events per HotSpot/JDK template and semantics, without natively providing "handled/unhandled" status. `jdk.JavaExceptionThrow` can even appear when only constructing an exception.
+- **Keep investigations bounded and reproducible**: filter exception types, capture short/timely data, preserve causes, avoid duplicate logs, and protect debugger access and sensitive data.
 
-### Tài liệu tham khảo
+### References
 
 - Oracle Java 21, `jdb` / Exceptions: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jdb.html
 - Oracle Java 21, `Throwable` API: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Throwable.html

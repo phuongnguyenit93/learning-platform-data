@@ -1,12 +1,12 @@
-# Khai báo lớp provider bằng UTF-8, dòng chú thích và quy tắc trùng lặp
+# Declaring Provider Classes with UTF-8, Comment Lines, and Duplication Rules
 
-Khi triển khai cơ chế plugin trên **Java classpath**, một class triển khai đúng interface chưa đủ để ứng dụng chủ (host) tìm được nó. **java.util.ServiceLoader** dựa vào tài nguyên khai báo dịch vụ tại đường dẫn **META-INF/services/**. Tệp này có các quy tắc riêng về tên, mã hóa UTF-8, dòng trống, chú thích và khai báo trùng; sai một chi tiết có thể khiến provider không được tìm thấy hoặc gây ServiceConfigurationError khi sử dụng.
+When implementing a plugin mechanism on the **Java classpath**, a class implementing the right interface is not enough for the host application to find it. **java.util.ServiceLoader** relies on a service declaration resource at the path **META-INF/services/**. This file has specific rules regarding naming, UTF-8 encoding, blank lines, comments, and duplicate declarations; getting one detail wrong can prevent providers from being found or cause a ServiceConfigurationError when used.
 
-Bài này tập trung vào **provider-configuration file trên classpath**, áp dụng cho JAR và thư mục classpath thông thường trong Java 17+. Với *named modules* thuộc JPMS, việc công bố provider chủ yếu dùng chỉ thị provides trong module-info.java và việc tiêu thụ service có chỉ thị uses; đó là một hình thức đăng ký khác.
+This lesson focuses on the **provider-configuration file on the classpath**, applicable to ordinary JARs and classpath directories in Java 17+. For *named modules* in JPMS, publishing providers primarily uses the `provides` directive in `module-info.java` and consuming services uses the `uses` directive; that is a different form of registration.
 
-## 1. Phân biệt service, provider và tệp đăng ký
+## 1. Distinguishing Service, Provider, and Registration File
 
-Giả sử host cần những bộ chuyển đổi văn bản khác nhau. Hợp đồng được định nghĩa trong API chung:
+Suppose the host needs different text transformers. The contract is defined in a shared API:
 
 **src/api/demo/spi/Formatter.java**
 
@@ -19,55 +19,55 @@ public interface Formatter {
 }
 ~~~
 
-Một lớp demo.plugins.Upper thực thi Formatter là **provider**. Để ServiceLoader tìm nó, trong JAR plugin cần tài nguyên có **đường dẫn đúng như sau**:
+A class `demo.plugins.Upper` implementing `Formatter` is a **provider**. For `ServiceLoader` to find it, the plugin JAR needs a resource at the **exact path**:
 
 ~~~text
 META-INF/services/demo.spi.Formatter
 ~~~
 
-Nội dung ban đầu đơn giản là:
+The initial content is simply:
 
 ~~~text
 demo.plugins.Upper
 ~~~
 
-| Thành phần | Cụ thể | Vai trò |
+| Component | Specific Example | Role |
 | --- | --- | --- |
-| Service type | demo.spi.Formatter | Interface mà host biết và muốn tìm implementation |
-| Tên tệp cấu hình | META-INF/services/demo.spi.Formatter | Xác định service được đăng ký |
-| Một dòng cấu hình | demo.plugins.Upper | Tên nhị phân đầy đủ của class provider |
-| Lệnh sử dụng | ServiceLoader.load(Formatter.class) | Tạo service loader để khám phá các provider |
+| Service type | demo.spi.Formatter | Interface that the host knows and wants to find implementations for |
+| Configuration file name | META-INF/services/demo.spi.Formatter | Identifies the registered service |
+| One configuration line | demo.plugins.Upper | Fully qualified binary name of the provider class |
+| Usage call | ServiceLoader.load(Formatter.class) | Creates a service loader to discover providers |
 
-Tên file dùng **tên nhị phân đầy đủ của service** với dấu chấm trong package; không phải đường dẫn demo/spi/Formatter, không có đuôi .class, .java, .txt hoặc .properties. Bên trong file, mỗi provider cũng được viết bằng tên nhị phân đầy đủ, thường là package.ClassName.
+The file name uses the **fully qualified binary name of the service** with dots in the package; not the path `demo/spi/Formatter`, and with no `.class`, `.java`, `.txt`, or `.properties` extension. Inside the file, each provider is also written using its fully qualified binary name, typically `package.ClassName`.
 
-Tài nguyên này **không phải source Java**. Không thêm từ khóa import, class, new hay ký tự kết thúc câu lệnh Java. ServiceLoader không quét ngẫu nhiên tất cả class có implements Formatter; nó đọc metadata đã công bố.
+This resource is **not Java source code**. Do not add `import`, `class`, `new` keywords, or Java statement terminators. `ServiceLoader` does not randomly scan all classes that implement `Formatter`; it reads published metadata.
 
-Một file có thể liệt kê nhiều provider. Nhiều JAR có thể có tài nguyên **cùng tên** cho một service, vì ClassLoader.getResources có thể tìm được nhiều tài nguyên khớp. Class được nhắc đến không nhất thiết nằm trong chính JAR chứa metadata, nhưng class đó phải có thể được class loader thích hợp nạp và phải tương thích với service type.
+One file can list multiple providers. Multiple JARs can have a resource with the **same name** for one service, because `ClassLoader.getResources` can find multiple matching resources. The mentioned class does not necessarily have to reside in the same JAR as the metadata, but that class must be loadable by the appropriate class loader and must be compatible with the service type.
 
-## 2. Quy tắc UTF-8, comment, khoảng trắng và dòng trống
+## 2. UTF-8, Comment, Whitespace, and Blank Line Rules
 
-Xét một provider-configuration file hợp lệ:
+Consider a valid provider-configuration file:
 
 ~~~text
-# Các provider chuyển đổi văn bản
+# Text transformation providers
 
-demo.plugins.Upper             # chuyển thành chữ hoa
-demo.plugins.Lower             # chuyển thành chữ thường
+demo.plugins.Upper             # convert to uppercase
+demo.plugins.Lower             # convert to lowercase
 
-    demo.plugins.Upper         # xuất hiện lần thứ hai
+    demo.plugins.Upper         # second occurrence
 ~~~
 
-ServiceLoader áp dụng các quy tắc cú pháp được quy định cho classpath:
+`ServiceLoader` applies the syntax rules specified for the classpath:
 
-1. **Tệp phải được mã hóa bằng UTF-8.** Văn bản tiếng Việt trong chú thích hợp lệ nếu lưu đúng UTF-8. Việc truyền cờ javac -encoding UTF-8 cho source .java không tự chuyển đổi encoding của resource.
-2. **Mỗi dòng dữ liệu chứa một tên class provider.** Tên phải là tên nhị phân Java hợp lệ và được viết đầy đủ, ví dụ demo.plugins.Upper. Không được viết biểu thức new demo.plugins.Upper(), đường dẫn demo/plugins/Upper.class hoặc đặt dấu chấm phẩy ở cuối.
-3. **Khoảng trắng và tab ở trước/sau tên được bỏ qua.** Dòng có khoảng trắng thụt vào vẫn chỉ đến cùng provider. Khoảng trắng ở bên trong tên class có thể làm dòng không hợp lệ.
-4. **Dòng trắng được bỏ qua.** Dòng trống hoặc chỉ có dấu cách/tab không làm tăng số provider.
-5. **Dấu # bắt đầu chú thích.** Tất cả ký tự tính từ dấu # đầu tiên trên dòng đến cuối dòng sẽ bị bỏ qua. Bởi vậy cả dòng chỉ có chú thích và phần chú thích sau tên class đều hợp lệ.
-6. **Tên class lặp lại được bỏ qua.** Nếu một provider class được khai báo hai lần trong cùng tệp, hoặc xuất hiện trong nhiều tệp cấu hình của cùng service, ServiceLoader bỏ qua khai báo trùng khi khám phá provider.
-7. **Dòng không hợp lệ không được coi như chú thích.** Một dòng sai tên class, sai cú pháp hoặc dẫn tới class không nạp được có thể gây ServiceConfigurationError khi iterator thực sự khám phá provider.
+1. **The file must be encoded in UTF-8.** Vietnamese text in comments is valid if saved properly as UTF-8. Passing the `-encoding UTF-8` flag to `javac` for `.java` sources does not automatically convert resource encoding.
+2. **Each data line contains one provider class name.** The name must be a valid fully qualified Java binary name, such as `demo.plugins.Upper`. Do not write an expression like `new demo.plugins.Upper()`, a path like `demo/plugins/Upper.class`, or put a semicolon at the end.
+3. **Spaces and tabs before/after the name are ignored.** An indented line still refers to the same provider. Whitespace inside the class name can make the line invalid.
+4. **Blank lines are ignored.** Empty lines or lines containing only spaces/tabs do not increase the provider count.
+5. **The `#` character starts a comment.** All characters from the first `#` on a line to the end of the line are ignored. Therefore both comment-only lines and comments after a class name are valid.
+6. **Repeated class names are ignored.** If a provider class is declared twice in the same file, or appears in multiple configuration files for the same service, `ServiceLoader` ignores duplicate declarations during provider discovery.
+7. **Invalid lines are not treated as comments.** A line with a wrong class name, invalid syntax, or leading to an unloadable class can cause `ServiceConfigurationError` when the iterator actually discovers providers.
 
-Các dòng sau chỉ minh họa **cú pháp không hợp lệ**; không đặt chúng vào descriptor thật:
+The following lines only illustrate **invalid syntax**; do not put them into a real descriptor:
 
 ~~~text
 demo/plugins/Upper.class
@@ -76,25 +76,25 @@ demo.plugins.Upper;
 demo.plugins. Upper
 ~~~
 
-Không nên nghĩ rằng mọi ký tự sau tên provider đều được bỏ qua; chỉ có **khoảng trắng/tab xung quanh tên** và **phần sau dấu #** được phép bỏ qua như đã nêu.
+Do not assume that any characters after the provider name are ignored; only **spaces/tabs around the name** and **the part after `#`** are allowed to be ignored as stated.
 
-## 3. Lưu tệp UTF-8 đúng cách
+## 3. Saving UTF-8 Files Properly
 
-Với Gradle hoặc Maven theo cấu trúc Java tiêu chuẩn, đặt tài nguyên tại:
+With Gradle or Maven following the standard Java layout, place the resource at:
 
 ~~~text
 src/main/resources/META-INF/services/demo.spi.Formatter
 ~~~
 
-Sau khi build, hãy kiểm tra trong JAR có mục **META-INF/services/demo.spi.Formatter**. Nếu JAR lại chứa **src/main/resources/META-INF/services/...** hoặc **resources/META-INF/services/...**, tệp đang ở sai vị trí tương đối với classpath root.
+After building, verify that the JAR contains the entry **META-INF/services/demo.spi.Formatter**. If the JAR instead contains **src/main/resources/META-INF/services/...** or **resources/META-INF/services/...**, the file is at the wrong location relative to the classpath root.
 
-**Nên lưu UTF-8 không BOM.** Một dấu byte-order mark UTF-8 ở đầu tệp có thể bị coi là ký tự nằm trong tên provider đầu tiên, gây lỗi định dạng dù tên class trông có vẻ đúng trong editor. Không cần BOM để nhận biết UTF-8.
+**Save as UTF-8 without BOM.** A UTF-8 byte-order mark at the beginning of the file can be treated as a character inside the first provider name, causing a format error even though the class name looks right in an editor. No BOM is needed to identify UTF-8.
 
-Trên **Windows PowerShell 5.1**, Set-Content -Encoding UTF8 thường tạo BOM. Khi cần ghi file bằng PowerShell, có thể dùng .NET và chỉ rõ UTF-8 không BOM (thư mục cha phải tồn tại trước):
+On **Windows PowerShell 5.1**, `Set-Content -Encoding UTF8` usually writes a BOM. When needing to write the file via PowerShell, you can use .NET and explicitly specify UTF-8 without BOM (the parent directory must already exist):
 
 ~~~powershell
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-$descriptorText = "# Provider UTF-8" + [Environment]::NewLine +
+$descriptorText = "# UTF-8 Provider" + [Environment]::NewLine +
                   "demo.plugins.Upper" + [Environment]::NewLine
 
 [System.IO.File]::WriteAllText(
@@ -104,13 +104,13 @@ $descriptorText = "# Provider UTF-8" + [Environment]::NewLine +
 )
 ~~~
 
-Đoạn này là một **minh họa thao tác ghi resource**; không phải phần bắt buộc để chạy ví dụ ở mục sau nếu bạn đã tạo và lưu các tệp resource bằng editor. Với hệ thống CI, cần bảo đảm bước đóng gói không tự chuyển encoding hay ghép một tệp văn bản theo cách làm hỏng resource.
+This snippet is an **illustration of writing a resource**; it is not mandatory to run the example in the next section if you have already created and saved the resource files using an editor. In CI systems, ensure the packaging step does not alter encoding or concatenate text files in a way that corrupts the resource.
 
-## 4. Ví dụ Java 17: hai JAR provider, cùng file cấu hình được phát hiện nhiều lần
+## 4. Java 17 Example: Two Provider JARs, Same Configuration File Discovered Multiple Times
 
-Ta tạo hai provider khác nhau (Upper và Lower), cố tình khai báo **Upper lặp trong file thứ nhất và lặp lại trong file thứ hai**. Host sẽ duyệt ServiceLoader, sắp xếp kết quả để stdout có thứ tự ổn định, rồi in số provider phát hiện được.
+We create two different providers (`Upper` and `Lower`), intentionally declaring **`Upper` twice in the first file and once more in the second file**. The host will iterate over `ServiceLoader`, sort the results so stdout has a deterministic order, and print the number of discovered providers.
 
-### 4.1. Cấu trúc tệp
+### 4.1. File Structure
 
 ~~~text
 src/
@@ -123,9 +123,9 @@ resources/
   lower/META-INF/services/demo.spi.Formatter
 ~~~
 
-Ta đã có source Formatter.java ở mục 1; tạo chính xác ba tệp Java còn lại dưới đây.
+We already have the `Formatter.java` source in Section 1; create the exact three remaining Java files below.
 
-### 4.2. Lớp provider chữ hoa
+### 4.2. Uppercase Provider Class
 
 **src/upper/demo/plugins/Upper.java**
 
@@ -143,18 +143,18 @@ public final class Upper implements Formatter {
 }
 ~~~
 
-**resources/upper/META-INF/services/demo.spi.Formatter** (UTF-8 không BOM):
+**resources/upper/META-INF/services/demo.spi.Formatter** (UTF-8 without BOM):
 
 ~~~text
-# Chú thích UTF-8: bộ xử lý chữ hoa
+# UTF-8 comment: uppercase processor
 
-demo.plugins.Upper      # tên provider hợp lệ
-demo.plugins.Upper      # trùng cùng tệp, bỏ qua
+demo.plugins.Upper      # valid provider name
+demo.plugins.Upper      # duplicate in same file, ignored
 ~~~
 
-Hai dòng dữ liệu đều chỉ cùng demo.plugins.Upper. Java sẽ không trả lại hai provider Upper chỉ vì hai dòng đó. Từ sau dấu # là chú thích, không thuộc tên class.
+Both data lines refer to the same `demo.plugins.Upper`. Java will not return two `Upper` providers just because of those two lines. Everything after `#` is a comment, not part of the class name.
 
-### 4.3. Lớp provider chữ thường
+### 4.3. Lowercase Provider Class
 
 **src/lower/demo/plugins/Lower.java**
 
@@ -172,17 +172,17 @@ public final class Lower implements Formatter {
 }
 ~~~
 
-**resources/lower/META-INF/services/demo.spi.Formatter** (UTF-8 không BOM):
+**resources/lower/META-INF/services/demo.spi.Formatter** (UTF-8 without BOM):
 
 ~~~text
-# Cấu hình từ JAR thứ hai
+# Configuration from the second JAR
 demo.plugins.Lower
-demo.plugins.Upper # trùng khác tệp, bỏ qua
+demo.plugins.Upper # duplicate across files, ignored
 ~~~
 
-File thứ hai nhắc đến class Upper dù class đó nằm trong upper.jar. Điều này hợp lệ khi upper.jar có trên runtime classpath và class loader có thể nạp class ấy. Nếu bỏ upper.jar nhưng giữ dòng demo.plugins.Upper trong cấu hình của lower.jar, một provider đang được tham chiếu không còn tải được, gây lỗi khi khám phá chứ không đơn giản bị bỏ qua vì là dòng trùng.
+The second file mentions the `Upper` class even though that class resides in `upper.jar`. This is valid when `upper.jar` is on the runtime classpath and the class loader can load that class. If `upper.jar` is removed while keeping the `demo.plugins.Upper` line in `lower.jar`'s configuration, a referenced provider can no longer be loaded, causing an error during discovery rather than simply being ignored as a duplicate line.
 
-### 4.4. Host duyệt provider
+### 4.4. Host Iterating Over Providers
 
 **src/host/demo/app/Main.java**
 
@@ -208,11 +208,11 @@ public final class Main {
 }
 ~~~
 
-Host chỉ import Formatter; không import Upper hoặc Lower. Collections.sort làm cho kết quả hiển thị không phụ thuộc thứ tự ServiceLoader tìm ra các JAR/tài nguyên. Locale.ROOT ở hai plugin giữ thao tác chữ hoa/chữ thường độc lập locale mặc định của máy.
+The host imports only `Formatter`; it does not import `Upper` or `Lower`. `Collections.sort` keeps the displayed output independent of the order in which `ServiceLoader` finds the JARs/resources. `Locale.ROOT` in both plugins keeps case conversion independent of the machine's default locale.
 
-### 4.5. Lệnh biên dịch, đóng gói và chạy
+### 4.5. Compile, Package, and Run Commands
 
-Chạy từ thư mục chứa src và resources, bằng **PowerShell trên Windows**, với JDK 17 hoặc mới hơn. Các tệp descriptor phải được tạo đúng đường dẫn và lưu UTF-8 không BOM từ trước.
+Run from the directory containing `src` and `resources`, using **PowerShell on Windows**, with JDK 17 or newer. The descriptor files must already be created at the proper paths and saved as UTF-8 without BOM.
 
 ~~~powershell
 New-Item -ItemType Directory -Force -Path out/api,out/upper,out/lower,out/host,dist | Out-Null
@@ -232,9 +232,9 @@ jar --create --file dist/host.jar -C out/host .
 java -cp "dist/spi.jar;dist/host.jar;dist/upper.jar;dist/lower.jar" demo.app.Main
 ~~~
 
-Đối với Linux/macOS, tạo thư mục bằng mkdir -p out/api out/upper out/lower out/host dist và thay dấu phân cách classpath trong lệnh java từ dấu chấm phẩy thành dấu hai chấm. Các lệnh javac và jar với đường dẫn tương đối như trên vẫn dùng được.
+For Linux/macOS, create directories with `mkdir -p out/api out/upper out/lower out/host dist` and change the classpath separator in the `java` command from a semicolon to a colon. The `javac` and `jar` commands with relative paths above still work.
 
-**Stdout của chương trình:**
+**Program stdout:**
 
 ~~~text
 lower=hello
@@ -242,38 +242,38 @@ upper=HELLO
 provider count=2
 ~~~
 
-Mặc dù có tổng cộng ba dòng tham chiếu Upper qua hai tài nguyên, ServiceLoader chỉ khám phá hai **tên lớp provider phân biệt**: demo.plugins.Upper và demo.plugins.Lower. Do vậy số provider bằng 2. Ví dụ này đã được biên dịch bằng javac --release 17, đóng gói bốn JAR và chạy thực tế với kết quả trên.
+Although there are three total lines referencing `Upper` across the two resources, `ServiceLoader` discovers only two **distinct provider class names**: `demo.plugins.Upper` and `demo.plugins.Lower`. Therefore the provider count equals 2. This example was compiled with `javac --release 17`, packaged into four JARs, and actually run with the result above.
 
-Kiểm tra nội dung upper.jar bằng:
+Inspect the contents of `upper.jar` with:
 
 ~~~powershell
 jar tf dist/upper.jar
 ~~~
 
-Bạn phải thấy ít nhất hai mục sau trong danh sách kết quả:
+You must see at least the following two entries in the output list:
 
 ~~~text
 demo/plugins/Upper.class
 META-INF/services/demo.spi.Formatter
 ~~~
 
-Đây là **hai mục cần tìm**, không phải toàn bộ output của jar tf; lệnh thực còn liệt kê các thư mục và META-INF/MANIFEST.MF. Nếu tệp dịch vụ không xuất hiện trong JAR, hãy sửa bước đóng gói resource trước khi kiểm tra code Java.
+These are the **two entries to look for**, not the entire output of `jar tf`; the actual command also lists directories and `META-INF/MANIFEST.MF`. If the service file does not appear in the JAR, fix the resource packaging step before inspecting Java code.
 
-## 5. Hiểu chính xác quy tắc trùng lặp
+## 5. Understanding the Duplication Rules Accurately
 
-ServiceLoader chỉ tự loại **trùng tên nhị phân của class provider trong cùng quá trình khám phá service**, không giải quyết mọi dạng trùng lặp trong hệ plugin.
+`ServiceLoader` only deduplicates **identical binary names of provider classes within the same service discovery pass**; it does not resolve every kind of duplication in a plugin system.
 
-| Tình huống | Kết quả | Giải thích |
+| Scenario | Result | Explanation |
 | --- | --- | --- |
-| Upper được ghi hai lần trong cùng resource | Không có hai provider Upper | Trùng class name được bỏ qua |
-| Upper được ghi trong resource của hai JAR | Không có hai provider Upper trong cùng lượt khám phá | Trùng tên giữa các resource cũng được bỏ qua |
-| Upper và Lower là hai class khác nhau | Cả hai có thể được nạp | Khác tên class dù cùng interface |
-| Hai class khác nhau cùng trả id() là "upper" | Cả hai vẫn được nạp | id() là quy ước nghiệp vụ, không phải khóa loại trùng của ServiceLoader |
-| Duyệt lại cùng một ServiceLoader | Trả lại các provider đã được cache | Không nhân đôi do duyệt iterator lần nữa |
-| Tạo một ServiceLoader mới hoặc gọi reload() | Có thể khám phá và khởi tạo lại provider | Không có bảo đảm một instance duy nhất toàn JVM |
-| Dùng các class loader khác nhau | Mỗi loader có phạm vi tài nguyên/kiểu nhìn thấy riêng | Không được suy luận trùng toàn hệ thống |
+| `Upper` listed twice in the same resource | No two `Upper` providers | Duplicate class names are ignored |
+| `Upper` listed in resources of two JARs | No two `Upper` providers in the same discovery pass | Duplicate names across resources are also ignored |
+| `Upper` and `Lower` are two different classes | Both can be loaded | Different class names even with the same interface |
+| Two different classes both return `id()` as `"upper"` | Both are still loaded | `id()` is a business convention, not `ServiceLoader`'s deduplication key |
+| Iterating over the same `ServiceLoader` again | Returns cached providers | Does not duplicate by re-iterating the iterator |
+| Creating a new `ServiceLoader` or calling `reload()` | Can re-discover and re-instantiate providers | No guarantee of a JVM-wide singleton instance |
+| Using different class loaders | Each loader has its own visible resource/type scope | Cannot infer system-wide deduplication |
 
-Nếu host muốn id() duy nhất, nó phải có **chính sách phát hiện xung đột**. Ví dụ đoạn code sau dùng **bên trong một method Java**, sau khi import java.util.Map và java.util.HashMap:
+If the host wants `id()` to be unique, it must implement a **conflict-detection policy**. For example, the following code snippet is used **inside a Java method**, after importing `java.util.Map` and `java.util.HashMap`:
 
 ~~~java
 Map<String, Formatter> byId = new HashMap<>();
@@ -285,17 +285,17 @@ for (Formatter provider : ServiceLoader.load(Formatter.class)) {
 }
 ~~~
 
-Đoạn này là **minh họa logic thay thế**, không phải chương trình Java độc lập. Nó phát hiện hai lớp provider khác nhau chọn cùng id nghiệp vụ, điều mà ServiceLoader không thể tự đoán. Trong một framework plugin lớn hơn, nên quyết định rõ hành vi khi có id trùng: từ chối, chọn theo priority đã công bố hoặc dùng cấu hình được kiểm soát.
+This snippet **illustrates alternative logic**, not a standalone Java program. It detects two different provider classes choosing the same business id, something `ServiceLoader` cannot guess on its own. In a larger plugin framework, you should explicitly decide the behavior on duplicate ids: reject, select by declared priority, or use controlled configuration.
 
-Không hiểu nhầm quy tắc duplicate như cơ chế tự kiểm tra chất lượng. ServiceLoader chỉ bỏ qua các **khai báo cùng tên**; một class provider không hợp lệ vẫn có thể khiến quá trình khám phá thất bại. Cũng không suy ra rằng constructor sẽ chạy ba lần rồi xóa hai instance: provider được nạp và tạo instance **lazily**, còn khai báo trùng bị bỏ qua trong quá trình tìm provider.
+Do not misunderstand the duplicate rule as an automatic quality-check mechanism. `ServiceLoader` only skips **declarations with the same name**; an invalid provider class can still cause discovery to fail. Nor should you deduce that the constructor runs three times and discards two instances: providers are loaded and instantiated **lazily**, and duplicate declarations are skipped during provider lookup.
 
-## 6. Khi hai JAR cùng đóng góp một resource
+## 6. When Two JARs Contribute the Same Resource
 
-Với hai JAR riêng, việc cả hai chứa META-INF/services/demo.spi.Formatter là bình thường. Khi host sử dụng classpath, nhiều resource đó có thể cùng được nhìn thấy.
+With two separate JARs, having both contain `META-INF/services/demo.spi.Formatter` is normal. When the host uses the classpath, those multiple resources can be seen together.
 
-Nhưng khi build **fat JAR/uber JAR** bằng cách gộp dependency, hai entry cùng tên có thể bị ghi đè hoặc chỉ giữ một entry nếu công cụ đóng gói không gộp service descriptors đúng cách.
+However, when building a **fat JAR/uber JAR** by merging dependencies, two entries with the same name can be overwritten or only one kept if the packaging tool does not merge service descriptors properly.
 
-Ví dụ ban đầu:
+Initial example:
 
 ~~~text
 upper.jar / META-INF/services/demo.spi.Formatter
@@ -305,60 +305,60 @@ lower.jar / META-INF/services/demo.spi.Formatter
   demo.plugins.Lower
 ~~~
 
-Nếu một công cụ gộp JAR chỉ giữ file của upper.jar thì Lower có thể bị mất đăng ký, dù Lower.class vẫn tồn tại. Khi tạo fat JAR, resource cuối cùng phải chứa đủ các **tên provider khác nhau**:
+If a JAR-merging tool only keeps `upper.jar`'s file, `Lower` can lose its registration even though `Lower.class` still exists. When creating a fat JAR, the final resource must contain all **distinct provider names**:
 
 ~~~text
 demo.plugins.Upper
 demo.plugins.Lower
 ~~~
 
-Sử dụng chức năng **merge META-INF/services** của công cụ đóng gói tương ứng; đừng chỉ kiểm tra rằng có class bytecode trong JAR. Loại bỏ bản ghi duplicate trong file sau merge là tùy chọn, nhưng mất bản ghi của một lớp khác là lỗi. Kiểm tra bản JAR cuối cùng bằng jar tf và đọc nội dung tài nguyên thực tế nếu cần.
+Use the **merge META-INF/services** feature of the corresponding packaging tool; do not merely verify that `.class` bytecode exists in the JAR. Removing duplicate entries in the post-merge file is optional, but losing another class's entry is a bug. Inspect the final JAR using `jar tf` and read the actual resource contents if needed.
 
-Với dự án dùng Gradle Java plugin thông thường, đặt resource dưới src/main/resources để nó được đưa vào JAR. Khi dùng Shadow hoặc Maven Shade, cần kiểm tra transformer/merger dành cho service resources theo đúng phiên bản công cụ đang dùng.
+For projects using the standard Gradle Java plugin, place the resource under `src/main/resources` so it is included in the JAR. When using Shadow or Maven Shade, check the transformer/merger for service resources matching the exact version of the tool in use.
 
-## 7. Vì sao ServiceLoader có thể không thấy provider?
+## 7. Why Might ServiceLoader Fail to See a Provider?
 
-Câu lệnh ServiceLoader.load(Formatter.class) **chỉ tạo loader**; nó chưa bảo đảm mọi provider được nạp thành công. Cơ chế khám phá/khởi tạo lười có thể phát sinh ServiceConfigurationError khi code duyệt iterator, hasNext/next hoặc stream có thao tác buộc nạp provider.
+The call `ServiceLoader.load(Formatter.class)` **only creates a loader**; it does not guarantee every provider is loaded successfully. Lazy discovery/instantiation can throw `ServiceConfigurationError` when code iterates the iterator, `hasNext`/`next`, or a stream with an operation that forces provider loading.
 
-Những nhóm lỗi đáng kiểm tra theo thứ tự:
+Error categories worth checking in order:
 
-- **Sai đường dẫn tài nguyên:** file có tên Formatter.txt, sai chữ hoa hoặc nằm dưới resources/META-INF/services bên trong JAR. Khi đó host có thể thấy 0 provider thay vì báo lỗi cụ thể.
-- **Sai nội dung file:** dòng chứa import, new, dấu chấm phẩy, slash, tên class không hợp lệ, ký tự BOM đầu tệp, hoặc ký tự không phải encoding UTF-8 đúng.
-- **Thiếu class khi runtime:** resource hợp lệ nhưng một provider được liệt kê không nằm trong classpath hoặc không thể được class loader truy cập.
-- **Provider không phù hợp SPI:** class không assignable về Formatter thực sự mà host đang sử dụng, không phải class cụ thể, hoặc không có constructor public không tham số phù hợp với provider class trên classpath.
-- **Lỗi trong constructor provider:** class được tìm thấy nhưng khởi tạo thất bại; kiểm tra nguyên nhân gốc trong lỗi.
-- **Nhầm class loader:** cùng một tên interface được các class loader khác nhau định nghĩa thành hai kiểu khác nhau; tên chữ giống nhau chưa bảo đảm khả năng ép kiểu.
-- **Mất file đăng ký khi đóng gói:** các class .class có trong fat JAR, nhưng service resource của một plugin đã bị ghi đè.
+- **Wrong resource path:** the file is named `Formatter.txt`, has wrong letter case, or lies under `resources/META-INF/services` inside the JAR. In that case the host may see 0 providers instead of raising a specific error.
+- **Invalid file contents:** lines containing `import`, `new`, semicolons, slashes, invalid class names, a leading BOM character, or characters not properly encoded in UTF-8.
+- **Missing class at runtime:** the resource is valid, but a listed provider is not on the classpath or is inaccessible to the class loader.
+- **Provider does not conform to the SPI:** the class is not assignable to the actual `Formatter` the host is using, is not a concrete class, or lacks a public no-argument constructor required for classpath provider classes.
+- **Error inside the provider constructor:** the class is found but instantiation fails; inspect the root cause in the error.
+- **Class loader mismatch:** the same interface name is defined by different class loaders as two distinct types; identical spelling does not guarantee cast compatibility.
+- **Lost registration file during packaging:** `.class` files are in the fat JAR, but one plugin's service resource was overwritten.
 
-Thứ tự provider trả về trong trường hợp classpath gắn với thứ tự ClassLoader.getResources tìm các file cấu hình và thứ tự tên provider trong từng file. Không nên dùng thứ tự đó như quy tắc ưu tiên nghiệp vụ. Nếu cần chọn plugin ưu tiên, hãy xác định rõ id, priority, phiên bản hợp đồng và chính sách khi xung đột.
+The order of returned providers on the classpath is tied to the order in which `ClassLoader.getResources` locates configuration files and the order of provider names within each file. You should not rely on that order as a business priority rule. If you need to select a preferred plugin, explicitly define id, priority, contract version, and conflict-resolution policy.
 
-ServiceConfigurationError là một loại **Error**, vì vậy không nên bắt mọi lỗi rồi bỏ qua và tiếp tục với danh sách plugin thiếu mà không có chính sách. Trong hệ thống thực, host cần chọn giữa fail-fast, đưa plugin vào trạng thái lỗi hoặc cơ chế phục hồi có kiểm soát, kèm ghi log tên service, class, JAR và nguyên nhân.
+`ServiceConfigurationError` is a type of **Error**, so you should not catch all errors, ignore them, and continue with an incomplete plugin list without a policy. In a real system, the host must choose between fail-fast, placing the plugin in an error state, or a controlled recovery mechanism, accompanied by logging the service name, class, JAR, and cause.
 
-## 8. Bài kiểm tra nhỏ để tự xác minh định dạng
+## 8. Small Verification Tests for the Format
 
-Sau khi chạy ví dụ hoàn chỉnh ở mục 4, thử lần lượt:
+After running the complete example in Section 4, try each of the following in turn:
 
-1. Giữ nguyên hai lần khai báo Upper trong file thứ nhất và một lần ở file thứ hai. Kết quả vẫn có provider count=2.
-2. Xóa **chỉ dòng trùng Upper** trong cả hai descriptor, giữ mỗi provider một dòng. Kết quả không đổi: lower=hello, upper=HELLO và provider count=2.
-3. Thêm dòng # một đoạn chú thích UTF-8 vào một trong hai resource, đóng gói lại JAR. Kết quả không đổi.
-4. Đổi tên META-INF/services/demo.spi.Formatter trong một JAR thành tên sai rồi đóng gói lại. Provider chỉ được đăng ký qua tài nguyên sai tên có thể biến mất; kiểm tra lại số provider và giải thích từ đường dẫn, không từ code implements.
-5. Thay một tên provider bằng tên class không tồn tại. Khi thực sự duyệt ServiceLoader, xác minh lỗi cấu hình xuất hiện thay vì coi đó là dòng chú thích hay tự bỏ qua.
-6. Đóng gói hai plugin thành một fat JAR, kiểm tra rằng **cả hai tên provider phân biệt** vẫn hiện diện trong một resource hợp nhất.
+1. Keep `Upper` declared twice in the first file and once in the second file. The result still has `provider count=2`.
+2. Remove **only the duplicate `Upper` lines** in both descriptors, keeping one line per provider. The result does not change: `lower=hello`, `upper=HELLO`, and `provider count=2`.
+3. Add a line `# a UTF-8 comment` to one of the two resources and repackage the JAR. The result does not change.
+4. Rename `META-INF/services/demo.spi.Formatter` in one JAR to a wrong name and repackage. The provider registered only via the misnamed resource may disappear; re-check the provider count and explain from the path rather than the implementation code.
+5. Replace one provider name with a non-existent class name. When actually iterating over `ServiceLoader`, verify that a configuration error appears rather than being treated as a comment line or silently skipped.
+6. Package both plugins into one fat JAR and verify that **both distinct provider names** remain present in a single merged resource.
 
-Các bài thử nên được chạy với classpath có kiểm soát và giữ bản gốc của tệp cấu hình để khôi phục sau mỗi lần thử. Khi thay đổi resource hoặc JAR, chạy lại ứng dụng/process mới để tránh đánh giá nhầm do class loader và cache vẫn đang hoạt động.
+These tests should be run with a controlled classpath, keeping originals of the configuration files to restore after each test. When changing resources or JARs, re-run the application/new process to avoid misjudging due to still-active class loaders and caches.
 
-## 9. Ghi nhớ và tài liệu chuẩn
+## 9. Takeaways and Standard Documentation
 
-**Mỗi file có tên gì?** Tên nhị phân đầy đủ của *service* tại META-INF/services. **Mỗi dòng dữ liệu là gì?** Tên nhị phân đầy đủ của *provider class*.
+**What is each file named?** The fully qualified binary name of the *service* under `META-INF/services`. **What is each data line?** The fully qualified binary name of the *provider class*.
 
-**UTF-8 có bắt buộc không?** Có. Nên dùng UTF-8 không BOM, đặc biệt khi file được tạo từ Windows PowerShell 5.1 hoặc công cụ chuyển đổi encoding.
+**Is UTF-8 required?** Yes. Use UTF-8 without BOM, especially when files are created via Windows PowerShell 5.1 or encoding conversion tools.
 
-**Dấu # làm gì?** Nó biến phần còn lại của dòng thành chú thích. Dòng trắng, dấu cách/tab quanh tên và comment không tạo thêm provider.
+**What does `#` do?** It turns the rest of the line into a comment. Blank lines, spaces/tabs around names, and comments do not add providers.
 
-**Trùng lặp được bỏ qua theo cái gì?** Theo **tên class provider**, kể cả khi lặp trong cùng file hoặc khác file. Điều đó không đảm bảo id nghiệp vụ duy nhất, không phải singleton trên JVM và không thay thế kiểm tra class hợp lệ.
+**What are duplicates ignored by?** By **provider class name**, whether repeated in the same file or across files. That does not guarantee unique business ids, is not a JVM-wide singleton, and does not replace valid-class checks.
 
-**Muốn kiểm tra thực tế thì làm gì trước?** Xem nội dung JAR bằng jar tf, xác nhận tài nguyên nằm đúng classpath root, kiểm tra encoding và dòng khai báo, sau đó bắt buộc duyệt ServiceLoader để kích hoạt việc tìm và khởi tạo provider.
+**What to check first in practice?** Inspect JAR contents with `jar tf`, confirm the resource sits at the right classpath root, verify encoding and declaration lines, and then ensure you iterate over `ServiceLoader` to trigger provider lookup and instantiation.
 
-Tài liệu nền tảng: Java SE 17 API Specification, **java.util.ServiceLoader**, mục *Deploying service providers on the class path*: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
+Foundational reference: Java SE 17 API Specification, **java.util.ServiceLoader**, section *Deploying service providers on the class path*: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
 
-Một tệp đăng ký provider hợp lệ là một **hợp đồng về tài nguyên runtime**: đúng tên, đúng vị trí, đúng UTF-8, đúng cú pháp theo dòng. Hiểu rõ dấu # và phạm vi bỏ qua tên class trùng giúp tránh nhầm một dòng metadata với một provider instance hoặc với một plugin nghiệp vụ độc lập.
+A valid provider registration file is a **runtime resource contract**: right name, right location, right UTF-8, right line-by-line syntax. Understanding `#` and the scope of duplicate class-name skipping helps avoid confusing a metadata line with a provider instance or an independent business plugin.

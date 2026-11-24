@@ -1,0 +1,3 @@
+menuLevel1: HttpFirewall
+menuLevel2: StrictHttpFirewall so với DefaultHttpFirewall
+status: WRITTEN

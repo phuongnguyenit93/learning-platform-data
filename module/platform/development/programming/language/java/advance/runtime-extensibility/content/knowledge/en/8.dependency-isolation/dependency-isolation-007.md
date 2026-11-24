@@ -1,49 +1,49 @@
-# Giới hạn của cô lập class loader đối với trạng thái và quyền của tiến trình
+# Limits of Class Loader Isolation on Process State and Permissions
 
-## 1. Class loader cô lập được điều gì?
+## 1. What Can a Class Loader Isolate?
 
-Trong hệ thống Java hỗ trợ plugin hoặc nạp thư viện động, ứng dụng có thể sử dụng nhiều \`ClassLoader\` để nạp các thư viện khác phiên bản. Mỗi class trong JVM được nhận diện bởi **tên nhị phân và defining class loader**. Vì vậy, hai loader khác nhau có thể định nghĩa hai class cùng tên, chẳng hạn \`com.vendor.JsonCodec\`, mà hai class đó không có cùng identity.
+In a Java system that supports plugins or dynamic library loading, an application can use multiple `ClassLoader` instances to load different versions of libraries. Each class in the JVM is identified by its **binary name and defining class loader**. Thus, two different loaders can define two classes with the same name, such as `com.vendor.JsonCodec`, without those two classes sharing the same identity.
 
-Cơ chế này giải quyết một nhóm vấn đề thực tế:
+This mechanism solves a practical set of problems:
 
-- Plugin A có thể dùng phiên bản thư viện \`codec\` khác plugin B.
-- Các class nội bộ của plugin không cần nằm chung namespace với class nội bộ của host.
-- Khi thiết kế đúng, host có thể chỉ chia sẻ một API SPI ổn định còn các implementation sử dụng dependency riêng.
-- Có thể nạp một phiên bản plugin mới bằng loader khác và bỏ tham chiếu loader cũ khi vòng đời của plugin kết thúc.
+- Plugin A can use a different version of the `codec` library than plugin B.
+- A plugin's internal classes do not need to share a namespace with the host's internal classes.
+- When designed properly, the host can share only a stable SPI API while implementations use private dependencies.
+- A new version of a plugin can be loaded with another loader and references to the old loader dropped when the plugin's lifecycle ends.
 
-Nhưng **classloader không tạo tiến trình mới, vùng nhớ hệ điều hành mới hay sandbox quyền**. Mọi code Java chạy trong cùng một JVM vẫn dùng chung nhiều tài nguyên quan trọng. Classloader chỉ là ranh giới về cách định danh và tìm class; nó không tự kiểm soát quyền đọc file, tạo thread, gọi mạng, lấy environment variables hoặc dừng JVM.
+However, **a classloader does not create a new process, a new OS memory space, or a permission sandbox**. All Java code running inside the same JVM still shares many critical resources. A classloader is strictly a boundary for identifying and locating classes; it does not by itself control permissions to read files, create threads, make network calls, read environment variables, or halt the JVM.
 
-## 2. Mô hình ranh giới: namespace khác, tiến trình vẫn chung
+## 2. Boundary Model: Different Namespaces, Still One Process
 
-\`\`\`text
-                       Một tiến trình JVM
+```text
+                       One JVM Process
 +------------------------------------------------------------+
 | Heap, GC, system properties, System.out, process resources |
-| Native libraries, threads, sockets, files, environment    |
+| Native libraries, threads, sockets, files, environment     |
 |                                                            |
 |  Host / parent classloader                                 |
-|    com.example.api.Plugin       <-- API dùng chung         |
+|    com.example.api.Plugin       <-- shared API             |
 |                                                            |
 |  Plugin A loader              Plugin B loader              |
-|    com.vendor.Codec v1          com.vendor.Codec v2         |
-|    com.example.a.PluginA        com.example.b.PluginB       |
+|    com.vendor.Codec v1          com.vendor.Codec v2        |
+|    com.example.a.PluginA        com.example.b.PluginB      |
 |                                                            |
-|  Namespace class riêng != memory/process/security riêng   |
+|  Separate class namespace != separate memory/process/sec   |
 +------------------------------------------------------------+
-\`\`\`
+```
 
-Trong sơ đồ, hai bản \`Codec\` có thể cùng tên nhưng khác class identity. Dù vậy, cả A và B vẫn là code chạy trong một tiến trình JVM. Nếu một plugin gọi \`System.setProperty(...)\` hoặc sửa một object do host chia sẻ, plugin khác có thể thấy thay đổi đó.
+In the diagram, the two `Codec` copies can have the same name yet different class identities. Even so, both A and B are still code running inside one JVM process. If one plugin calls `System.setProperty(...)` or mutates an object shared by the host, the other plugin can observe that change.
 
-Một hiểu lầm phổ biến là “hai classloader khác nhau thì static state hoàn toàn độc lập”. Phát biểu chính xác hơn: **trường static thuộc về class runtime được xác định bởi cả tên class và defining loader**. Nếu hai loader thực sự định nghĩa hai bản class khác nhau, mỗi bản có static fields riêng. Nhưng static state của các class được nạp bởi parent/shared loader vẫn là chung. Ngoài ra, các biến static chỉ là một phần trạng thái của tiến trình.
+A common misconception is "two different classloaders mean completely independent static state." A more accurate statement is: **static fields belong to a runtime class identified by both class name and defining loader**. If two loaders genuinely define two separate copies of a class, each copy has its own static fields. However, the static state of classes loaded by the parent/shared loader remains shared. Moreover, static variables are only one part of process state.
 
-## 3. Static state: tách được ở class riêng nhưng không tách ở class chung
+## 3. Static State: Separable in Private Classes, Not in Shared Classes
 
-Giả sử cả plugin A và plugin B có một class cùng tên \`plugin.Counter\`, và mỗi class được định nghĩa bởi loader riêng. Khi hai loader thực sự tạo hai runtime class khác nhau, hai trường \`Counter.value\` cũng riêng biệt.
+Suppose both plugin A and plugin B have a class named `plugin.Counter`, and each class is defined by its own loader. When two loaders genuinely create two distinct runtime classes, the two `Counter.value` fields are also separate.
 
-Ngược lại:
+Conversely:
 
-\`\`\`java
-// Class này do host/parent loader định nghĩa:
+```java
+// This class is defined by the host/parent loader:
 package com.example.host;
 
 public final class SharedRegistry {
@@ -52,40 +52,40 @@ public final class SharedRegistry {
 
     private SharedRegistry() {}
 }
-\`\`\`
+```
 
-Nếu plugin A và B cùng nhìn thấy \`SharedRegistry\` của parent loader, cả hai thao tác trên **cùng một map**. \`ConcurrentHashMap\` giúp an toàn hơn trước truy cập đồng thời ở mức collection; nó không cung cấp quyền hạn hay ngăn plugin xóa/thay đổi giá trị của plugin khác.
+If plugins A and B both see `SharedRegistry` from the parent loader, both operate on **the same map**. `ConcurrentHashMap` provides thread safety for concurrent access at the collection level; it does not enforce authorization or prevent one plugin from deleting/modifying another plugin's entries.
 
-Các dạng trạng thái dùng chung thường gặp:
+Common forms of shared state:
 
-| Nguồn trạng thái | Có được cô lập tự động theo classloader? | Vì sao |
+| State source | Automatically isolated per classloader? | Why |
 | --- | --- | --- |
-| Static field trên class do từng child loader định nghĩa | Có, giữa hai runtime class thực sự khác nhau | Runtime class identity gồm class name và defining loader |
-| Static field trên class của parent loader | Không | Các plugin dùng cùng class được định nghĩa bởi parent |
-| \`System.getProperties()\` | Không | Đây là properties toàn JVM |
-| \`System.out\` / \`System.err\` | Không | Stream chuẩn của tiến trình |
-| Heap object được host truyền cho plugin | Không | Cùng object reference |
-| File, socket, database, cache ngoài tiến trình | Không | Quyền và kết nối phụ thuộc OS và cấu hình |
-| Threads do plugin tạo | Không | Thread thuộc tiến trình; có thể sống lâu hơn vòng đời plugin |
-| Thread context classloader | Không tự cô lập | Thread có context loader có thể tham chiếu plugin loader |
+| Static fields on classes defined by each child loader | Yes, between two genuinely distinct runtime classes | Runtime class identity comprises class name and defining loader |
+| Static fields on classes in the parent loader | No | Plugins use the same class defined by the parent |
+| `System.getProperties()` | No | These are JVM-wide properties |
+| `System.out` / `System.err` | No | Standard streams of the process |
+| Heap objects passed by the host to a plugin | No | Same object reference |
+| Files, sockets, databases, out-of-process caches | No | Permissions and connections depend on OS and configuration |
+| Threads created by a plugin | No | Threads belong to the process; they can outlive the plugin lifecycle |
+| Thread context classloader | Not automatically isolated | A thread's context loader can retain references to a plugin loader |
 
-Ngay cả khi dependency được isolate hoàn toàn, plugin vẫn có thể phá vỡ dữ liệu được host chia sẻ qua API, hoặc làm cạn memory/CPU của JVM.
+Even when dependencies are completely isolated, a plugin can still corrupt data shared by the host via APIs, or exhaust the JVM's memory/CPU.
 
-## 4. Ví dụ Java 17+: hai classloader, hai static counter, một System property
+## 4. Java 17+ Example: Two Classloaders, Two Static Counters, One System Property
 
-Ví dụ sau tạo một JAR plugin chứa class \`demo.plugin.Counter\`. Host nạp **cùng một JAR qua hai URLClassLoader riêng**, có parent là platform classloader để bản plugin không được parent/application loader nạp sẵn. Nó minh họa hai điều: static fields của class được định nghĩa ở mỗi loader là riêng, nhưng \`System\` properties là chung.
+The following example creates one plugin JAR containing `demo.plugin.Counter`. The host loads **the same JAR through two separate URLClassLoader instances**, using the platform classloader as their parent so the plugin class is not preloaded by the parent/application loader. It demonstrates two things: static fields of classes defined in each loader are separate, whereas `System` properties are shared.
 
-Cấu trúc thư mục:
+Directory structure:
 
-\`\`\`text
+```text
 demo/
   plugin/demo/plugin/Counter.java
   host/Host.java
-\`\`\`
+```
 
-\`plugin/demo/plugin/Counter.java\`:
+`plugin/demo/plugin/Counter.java`:
 
-\`\`\`java
+```java
 package demo.plugin;
 
 public final class Counter {
@@ -99,11 +99,11 @@ public final class Counter {
         return String.valueOf(Counter.class.getClassLoader());
     }
 }
-\`\`\`
+```
 
-\`host/Host.java\`:
+`host/Host.java`:
 
-\`\`\`java
+```java
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
@@ -139,68 +139,68 @@ public final class Host {
         }
     }
 }
-\`\`\`
+```
 
-Từ thư mục \`demo\`, chạy trên shell bash (có \`javac\`, \`jar\`, \`java\`):
+From the `demo` directory, run in a bash shell (with `javac`, `jar`, `java`):
 
-\`\`\`bash
+```bash
 mkdir -p out/plugin out/host
 javac -d out/plugin plugin/demo/plugin/Counter.java
 javac -d out/host host/Host.java
 jar --create --file plugin.jar -C out/plugin .
 java -cp out/host Host
-\`\`\`
+```
 
 Output:
 
-\`\`\`text
+```text
 Same runtime class: false
 A counter: 1
 A counter: 2
 B counter: 1
 Shared property: written-by-A
-\`\`\`
+```
 
-**Vì sao?** \`loaderA\` và \`loaderB\` cùng nhìn thấy bytecode nhưng mỗi loader tự định nghĩa \`demo.plugin.Counter\`, nên \`classA != classB\` và static counter riêng. Tuy nhiên \`System.setProperty\` ghi vào một bảng properties toàn JVM nên giá trị vẫn được đọc trong cùng tiến trình, bất kể loader nào thực hiện thao tác.
+**Why?** `loaderA` and `loaderB` see the same bytecode, yet each loader defines `demo.plugin.Counter` itself, so `classA != classB` and the static counters are separate. However, `System.setProperty` writes to a JVM-wide properties table, so the value is readable within the same process regardless of which loader performed the operation.
 
-Trong ví dụ, host tự gọi \`System.setProperty\` để thể hiện tài nguyên chung. Nếu plugin gọi API này thì ảnh hưởng cũng là toàn JVM; classloader không chặn được. \`URLClassLoader.close()\` đóng khả năng truy cập tài nguyên JAR mở bởi loader, nhưng **không xóa các class đã nạp hoặc bảo đảm GC ngay lập tức**.
+In the example, the host itself calls `System.setProperty` to illustrate a shared resource. If a plugin invokes this API, the effect is also JVM-wide; classloaders cannot block it. `URLClassLoader.close()` closes access to JAR resources opened by the loader, yet **does not delete loaded classes or guarantee immediate GC**.
 
-### Một lưu ý về parent delegation
+### A Note on Parent Delegation
 
-Theo mô hình parent-first thông thường, nếu parent loader đã định nghĩa \`demo.plugin.Counter\`, yêu cầu load qua child có thể trả chính class của parent. Khi đó \`classA == classB\` có thể là \`true\`, và static field không được tách. Muốn cô lập dependency, cần thiết kế ranh giới package, classpath và parent delegation nhất quán. Không nên tự viết child-first loader toàn diện nếu chưa giải quyết package sealing, resource loading, protected packages, class identity và SPI API sharing.
+Under the standard parent-first model, if the parent loader has already defined `demo.plugin.Counter`, a load request through a child can return the parent's class itself. In that case `classA == classB` may be `true`, and static fields are not separated. To isolate dependencies, design package boundaries, classpaths, and parent delegation consistently. Do not write a sweeping child-first loader without addressing package sealing, resource loading, protected packages, class identity, and SPI API sharing.
 
-## 5. Quyền tiến trình: cùng OS identity, không có sandbox mặc định
+## 5. Process Permissions: Same OS Identity, No Default Sandbox
 
-Mọi plugin chạy trong cùng JVM thông thường hoạt động với quyền mà tiến trình JVM đã có. Classloader không cấp một UID, user account, network namespace hay ACL riêng cho mỗi plugin.
+Every plugin running in the same standard JVM operates with whatever permissions the JVM process already holds. Classloaders do not assign a separate UID, user account, network namespace, or ACL per plugin.
 
-Các khả năng ảnh hưởng toàn tiến trình có thể gồm:
+Capabilities that can affect the entire process include:
 
-- **Hệ thống file:** đọc/ghi dữ liệu mà tài khoản chạy JVM được phép truy cập.
-- **Mạng:** mở kết nối hoặc socket nếu OS/container/network policy cho phép.
-- **Environment/config:** đọc environment variables và system properties mà tiến trình thấy; sửa các system properties có thể ảnh hưởng code khác.
-- **Tiến trình:** gọi các API để tạo process con, và trong một số ngữ cảnh có thể làm dừng JVM.
-- **CPU, bộ nhớ và thread:** gây sử dụng tài nguyên lớn, treo hoặc ảnh hưởng GC của các plugin khác.
-- **Native code:** gọi JNI/FFM/native library theo khả năng và cấu hình runtime; code native có thể làm hỏng bộ nhớ của toàn tiến trình.
+- **File system:** reading/writing data that the account running the JVM is permitted to access.
+- **Networking:** opening connections or sockets if OS/container/network policy permits.
+- **Environment/config:** reading environment variables and system properties visible to the process; modifying system properties can affect other code.
+- **Processes:** calling APIs to spawn child processes, and in some contexts halting the JVM.
+- **CPU, memory, and threads:** causing heavy resource consumption, hanging, or impacting GC for other plugins.
+- **Native code:** calling JNI/FFM/native libraries depending on runtime capabilities and configuration; native code can corrupt memory for the entire process.
 
-Java Security Manager từng được dùng làm một phần kiểm soát quyền trong vài hệ thống cũ, nhưng không phải một giải pháp sandbox có thể dựa vào cho Java hiện đại. Security Manager đã bị vô hiệu hóa vĩnh viễn trong JDK 24; với Java 17 nó bị đánh dấu deprecated for removal. Không thiết kế bảo mật plugin mới dựa vào việc gắn Security Manager cho từng classloader.
+The Java Security Manager was once used as part of permission control in some legacy systems, yet it is not a sandbox solution you can rely on for modern Java. The Security Manager was permanently disabled in JDK 24; in Java 17 it was marked deprecated for removal. Do not design new plugin security around attaching a Security Manager per classloader.
 
-**Hệ quả:** đối với plugin chưa tin cậy, cần cách ly ở mức tiến trình/OS/container/VM với quyền và giới hạn tài nguyên phù hợp. Một \`URLClassLoader\` riêng không thay thế các cơ chế đó.
+**Consequence:** for untrusted plugins, isolate at the process/OS/container/VM level with appropriate privileges and resource limits. A dedicated `URLClassLoader` does not replace those mechanisms.
 
-## 6. Những đường chia sẻ trạng thái cần chú ý
+## 6. State-Sharing Channels to Watch Out For
 
-### A. API hoặc singleton của host
+### A. Host APIs or Singletons
 
-Plugin thường cần tham chiếu API do host cung cấp, ví dụ interface \`PluginContext\` và \`Logger\`. Nếu host đưa cho plugin một object mutable chứa quyền truy cập database hoặc registry, plugin có thể thao tác qua object đó dù class của plugin được load riêng.
+Plugins often need references to host-provided APIs, such as `PluginContext` and `Logger` interfaces. If the host hands a plugin a mutable object containing database or registry access, the plugin can manipulate it even though the plugin's classes were loaded separately.
 
-Để hạn chế rủi ro với **plugin tin cậy**, có thể thiết kế API hẹp, immutable snapshots, capability-style interfaces và validation ở boundary. Tuy nhiên điều này là **giới hạn theo kiến trúc ứng dụng**, không phải cơ chế ngăn code Java độc hại trong cùng tiến trình truy cập API khác.
+To limit risk with **trusted plugins**, you can design narrow APIs, immutable snapshots, capability-style interfaces, and boundary validation. However, these are **application-architecture constraints**, not a mechanism preventing malicious Java code in the same process from accessing other APIs.
 
-### B. ThreadLocal và thread pools
+### B. ThreadLocal and Thread Pools
 
-\`ThreadLocal\` lưu giá trị theo **thread**, không theo classloader. Nếu host tái sử dụng một thread pool cho các plugin, dữ liệu ThreadLocal không được dọn có thể tồn tại qua nhiều tác vụ. Class được nạp bởi plugin và các object được tham chiếu bởi thread có thể làm loader không được GC.
+`ThreadLocal` stores values per **thread**, not per classloader. If the host reuses a thread pool across plugins, uncleaned ThreadLocal data can persist across multiple tasks. Classes loaded by a plugin and objects referenced by threads can prevent the loader from being garbage collected.
 
-Mẫu sử dụng ThreadLocal đúng thường cần \`try/finally\`:
+Proper ThreadLocal usage typically requires `try/finally`:
 
-\`\`\`java
+```java
 private static final ThreadLocal<String> REQUEST_ID = new ThreadLocal<>();
 
 static void process(String id) {
@@ -211,17 +211,17 @@ static void process(String id) {
         REQUEST_ID.remove();
     }
 }
-\`\`\`
+```
 
-Đây là đoạn minh họa đặt trong một class có method \`doWork()\`; nó không phải chương trình độc lập. Trường static \`REQUEST_ID\` thuộc runtime class định nghĩa nó, nhưng dữ liệu ThreadLocal của thread và lifetime của thread có quan hệ rộng hơn việc đóng URLClassLoader.
+This is an illustrative snippet placed inside a class that has a `doWork()` method; it is not a standalone program. The static field `REQUEST_ID` belongs to the runtime class that defines it, yet a thread's ThreadLocal data and thread lifetime have a broader reach than closing a URLClassLoader.
 
-### C. Thread context classloader (TCCL)
+### C. Thread Context Classloader (TCCL)
 
-Nhiều framework và \`ServiceLoader.load(S.class)\` dùng thread context classloader để tìm providers. Plugin có thể thay \`Thread.currentThread().setContextClassLoader(...)\`; nếu không phục hồi, task sau trên cùng thread có thể vô tình dùng loader khác.
+Many frameworks and `ServiceLoader.load(S.class)` use the thread context classloader to locate providers. A plugin can alter `Thread.currentThread().setContextClassLoader(...)`; if not restored, subsequent tasks on the same thread may accidentally use another loader.
 
-Mẫu phục hồi:
+Restoration pattern:
 
-\`\`\`java
+```java
 Thread thread = Thread.currentThread();
 ClassLoader old = thread.getContextClassLoader();
 try {
@@ -230,63 +230,63 @@ try {
 } finally {
     thread.setContextClassLoader(old);
 }
-\`\`\`
+```
 
-Đây là đoạn đặt trong method đã có \`pluginLoader\` và \`invokePlugin()\`. Nó giúp giữ tính đúng đắn của runtime host, không biến classloader thành sandbox.
+This snippet is placed inside a method where `pluginLoader` and `invokePlugin()` already exist. It helps preserve correctness of the host runtime; it does not turn a classloader into a sandbox.
 
-### D. Shutdown hooks, listeners, caches và native libraries
+### D. Shutdown Hooks, Listeners, Caches, and Native Libraries
 
-Plugin có thể đăng ký shutdown hook, listeners, JMX MBean, scheduler, executor, driver hoặc cache ở các singleton do parent loader giữ. Nếu không unregister/close, các reference đó giữ plugin class/loader còn sống, gây memory leak và ảnh hưởng thao tác reload. Các thư viện JNI/native còn có rủi ro crash hoặc xung đột ở cấp JVM.
+A plugin can register shutdown hooks, listeners, JMX MBeans, schedulers, executors, drivers, or caches in singletons held by the parent loader. If not unregistered/closed, those references keep plugin classes/loaders alive, causing memory leaks and interfering with reload operations. JNI/native libraries also carry JVM-wide crash or conflict risks.
 
-## 7. Đóng classloader không có nghĩa dừng plugin
+## 7. Closing a Classloader Does Not Mean Stopping a Plugin
 
-\`URLClassLoader.close()\` chủ yếu giải phóng tài nguyên mà loader đã mở để nạp class/resources; nó không phải lệnh unload class hay dừng mọi thread của plugin.
+`URLClassLoader.close()` primarily releases resources the loader opened to load classes/resources; it is not a command to unload classes or stop all plugin threads.
 
-Muốn gỡ plugin có kiểm soát, host cần contract vòng đời:
+To remove a plugin cleanly, the host needs a lifecycle contract:
 
-1. Ngừng nhận request mới vào plugin.
-2. Đợi công việc đang thực thi kết thúc hoặc hủy theo timeout/policy.
-3. Gọi \`close()\`/\`stop()\` của provider; đóng executor, file handles, sockets.
-4. Unregister listeners, shutdown hooks, timers, drivers và các registry entries của host.
-5. Khôi phục TCCL, dọn ThreadLocal và các reference mạnh ở host.
-6. Đóng classloader, bỏ references và quan sát JVM có thể giải phóng loader hay không.
+1. Stop accepting new requests for the plugin.
+2. Wait for in-flight work to finish or cancel per timeout/policy.
+3. Call the provider's `close()`/`stop()`; shut down executors, file handles, and sockets.
+4. Unregister listeners, shutdown hooks, timers, drivers, and host registry entries.
+5. Restore TCCL, clear ThreadLocals, and drop strong references in the host.
+6. Close the classloader, drop references, and observe whether the JVM can reclaim the loader.
 
-Việc bỏ reference tạo **điều kiện** để garbage collector thu hồi classloader và class metadata; không bảo đảm thời điểm GC hoặc unload ngay lập tức. Nếu có static reference từ shared parent class giữ object của plugin, loader vẫn có thể bị giữ lại.
+Dropping references creates the **conditions** for the garbage collector to reclaim the classloader and class metadata; it does not guarantee GC timing or immediate unloading. If a static reference from a shared parent class holds onto a plugin object, the loader can still be kept alive.
 
-## 8. Khi nào classloader đủ và khi nào cần tiến trình riêng?
+## 8. When Is a Classloader Enough, and When Is a Separate Process Needed?
 
-| Mục tiêu | Classloader riêng | Process/container riêng |
+| Goal | Dedicated classloader | Separate process/container |
 | --- | --- | --- |
-| Dùng hai phiên bản cùng thư viện | Thường phù hợp khi dependency tree được kiểm soát | Có thể, nhưng tốn chi phí hơn |
-| Tránh xung đột tên class | Phù hợp với loader graph được thiết kế đúng | Có |
-| Tách static field thuộc class plugin riêng | Có, nếu thực sự định nghĩa class riêng | Có vì heap khác nhau |
-| Ngăn plugin thay \`System\` properties chung | Không | Có vì mỗi JVM có properties riêng |
-| Ngăn plugin sử dụng CPU/memory quá mức | Không cung cấp quota | Có thể cấu hình quota ở OS/container |
-| Giới hạn file/network theo plugin không tin cậy | Không | Có thể áp quyền OS/container/network |
-| Tránh plugin crash native làm hỏng host | Không | Cô lập lỗi ở mức process, tùy môi trường |
-| Unload plugin deterministically | Không | Dừng process là ranh giới rõ hơn |
-| Plugin tin cậy có dependency khác phiên bản | Thường là lựa chọn hợp lý | Có thể không cần |
+| Using two versions of the same library | Usually suitable when the dependency tree is controlled | Possible, though higher overhead |
+| Avoiding class name conflicts | Suitable with a properly designed loader graph | Yes |
+| Separating static fields belonging to plugin-private classes | Yes, if truly defining separate classes | Yes, due to separate heaps |
+| Preventing plugins from modifying shared `System` properties | No | Yes, since each JVM has its own properties |
+| Preventing plugins from overusing CPU/memory | Provides no quotas | Quotas can be configured at OS/container level |
+| Restricting files/network for untrusted plugins | No | OS/container/network permissions can be enforced |
+| Preventing a plugin's native crash from taking down the host | No | Fault isolation at process level, depending on environment |
+| Deterministically unloading a plugin | No | Stopping a process is a clearer boundary |
+| Trusted plugins with differing dependency versions | Usually a sensible choice | May be unnecessary |
 
-Lưu ý: process riêng cũng **không tự động bảo đảm an toàn**. Nếu chạy cùng user với cùng quyền đọc file, cùng mount và mạng mở, process vẫn có thể truy cập nhiều tài nguyên của host. Cần kết hợp user identity, filesystem permissions, resource limits, seccomp/AppArmor/SELinux hoặc network policy theo môi trường triển khai.
+Note: a separate process also **does not automatically guarantee safety**. If run as the same user with the same file read permissions, same mounts, and open network, the process can still access many of the host's resources. Combine user identity, filesystem permissions, resource limits, seccomp/AppArmor/SELinux, or network policies according to the deployment environment.
 
-## 9. Kiến trúc plugin hai mức
+## 9. Two-Tier Plugin Architecture
 
-Một thiết kế thực tế có thể dùng hai chế độ:
+A practical design can support two modes:
 
-**Plugin tin cậy, cần hiệu năng gọi trực tiếp:**
+**Trusted plugins requiring direct invocation performance:**
 
-\`\`\`text
+```text
 Host JVM
   ├── Shared SPI API (parent loader)
   ├── Plugin A loader + private dependencies
   └── Plugin B loader + private dependencies
-\`\`\`
+```
 
-Ở đây mục tiêu là dependency isolation, reload có kiểm soát và quản trị vòng đời. Chỉ chấp nhận JAR được tin cậy và kiểm soát nguồn phát hành.
+Here the goal is dependency isolation, controlled reload, and lifecycle governance. Accept only trusted JARs with controlled release provenance.
 
-**Plugin chưa tin cậy hoặc cần giới hạn lỗi/quyền:**
+**Untrusted plugins or plugins requiring fault/permission limits:**
 
-\`\`\`text
+```text
 Host JVM
     |
     +---- IPC (HTTP/gRPC/stdin-stdout/message queue)
@@ -295,32 +295,32 @@ Plugin process/container
     +---- restricted OS user
     +---- filesystem/network permissions
     +---- CPU/memory limits
-\`\`\`
+```
 
-Ứng dụng phải xác thực/kiểm tra thông điệp IPC, giới hạn thời gian, dữ liệu đầu vào, kích thước payload và trạng thái khi plugin chết. Một process boundary tạo điều kiện cho ranh giới quyền và lỗi rõ ràng hơn, đồng thời thêm chi phí vận hành và giao tiếp.
+The application must validate/inspect IPC messages, enforce timeouts, bound inputs and payload sizes, and handle state when a plugin crashes. A process boundary enables clearer permission and fault boundaries while adding operational and communication overhead.
 
-## 10. Các lỗi thiết kế thường gặp
+## 10. Common Design Mistakes
 
-| Nhận định sai | Vấn đề thực tế | Sửa thế nào |
+| Misconception | Real issue | How to fix |
 | --- | --- | --- |
-| “Mỗi plugin loader là một sandbox” | Code vẫn chạy với quyền JVM | Dùng OS/process isolation cho plugin chưa tin cậy |
-| “Static luôn riêng cho mọi plugin” | Class của parent/shared loader có static chung | Kiểm tra defining classloader của từng class |
-| “Đóng loader tức là unload” | Thread, cache, registry giữ reference | Thiết kế stop/close và dọn reference |
-| “Plugin không thể ảnh hưởng plugin khác” | Chia sẻ heap, process properties, tài nguyên và services | Giới hạn shared API; dùng process riêng nếu cần |
-| “TCCL thuộc riêng plugin” | TCCL là trạng thái của thread | Khôi phục TCCL bằng finally |
-| “Child-first chắc chắn cô lập mọi thứ” | API duplicate/class identity, package sealing, framework conflicts | Thiết kế parent delegation và API boundary |
-| “Process riêng là an toàn tuyệt đối” | Process có thể vẫn có cùng OS permissions | Cấu hình quyền và resource quotas |
+| "Each plugin loader is a sandbox" | Code still runs with JVM permissions | Use OS/process isolation for untrusted plugins |
+| "Statics are always separate per plugin" | Classes in parent/shared loaders share statics | Check the defining classloader of each class |
+| "Closing a loader means unloading" | Threads, caches, and registries hold references | Design stop/close and clean up references |
+| "One plugin cannot affect another plugin" | Heap, process properties, resources, and services are shared | Restrict shared APIs; use separate processes if needed |
+| "TCCL belongs privately to a plugin" | TCCL is per-thread state | Restore TCCL using finally |
+| "Child-first definitely isolates everything" | Duplicate APIs/class identity, package sealing, framework conflicts | Design parent delegation and API boundaries |
+| "A separate process is completely safe" | The process may still have the same OS permissions | Configure permissions and resource quotas |
 
-## 11. Checklist triển khai cô lập phụ thuộc an toàn
+## 11. Checklist for Deploying Safe Dependency Isolation
 
-- [ ] Ghi rõ mục tiêu là **isolate dependency namespace** hay **isolate untrusted execution**.
-- [ ] Giữ SPI API chung ở parent loader và kiểm tra \`Class<?> \` identity giữa host/provider.
-- [ ] Kiểm soát version/dependency được load qua từng child loader.
-- [ ] Xác định shared mutable objects, singletons, properties, thread pools và registry mà plugin nhìn thấy.
-- [ ] Có lifecycle \`start/stop/close\`; dọn ThreadLocal, TCCL, listeners và executors.
-- [ ] Không dựa vào classloader để kiểm soát quyền file/network/process.
-- [ ] Khi plugin không tin cậy, chạy process/container với OS privileges tối thiểu và quotas phù hợp.
-- [ ] Test hai phiên bản dependency cùng tên, test unload/reload và quan sát leak.
-- [ ] Kiểm tra artifact đóng gói thực tế, đặc biệt khi shade/relocate hoặc có native libraries.
+- [ ] Clearly state whether the goal is **isolating dependency namespaces** or **isolating untrusted execution**.
+- [ ] Keep shared SPI APIs in the parent loader and verify `Class<?> ` identity between host and providers.
+- [ ] Control versions/dependencies loaded through each child loader.
+- [ ] Identify shared mutable objects, singletons, properties, thread pools, and registries visible to plugins.
+- [ ] Implement a `start/stop/close` lifecycle; clean up ThreadLocal, TCCL, listeners, and executors.
+- [ ] Do not rely on classloaders to enforce file/network/process permissions.
+- [ ] When plugins are untrusted, run them in processes/containers with least-privilege OS permissions and appropriate quotas.
+- [ ] Test two dependency versions with identical names, test unload/reload, and monitor for leaks.
+- [ ] Inspect the actual packaged artifacts, especially when shading/relocating or including native libraries.
 
-**Kết luận:** classloader là công cụ quan trọng để quản lý **danh tính class và cô lập phụ thuộc**. Nó không tách heap, thread, system properties, quyền OS hay lỗi native của plugin khỏi JVM host. Mỗi khi yêu cầu là bảo mật, giới hạn tài nguyên hoặc chịu lỗi mạnh, cần đưa ranh giới cô lập xuống cấp process/OS/container và vận hành nó như một thành phần riêng.
+**Conclusion:** a classloader is an essential tool for managing **class identity and dependency isolation**. It does not separate heap, threads, system properties, OS permissions, or native faults of a plugin from the host JVM. Whenever the requirement involves security, resource limits, or strong fault tolerance, push the isolation boundary down to the process/OS/container level and operate it as a separate component.

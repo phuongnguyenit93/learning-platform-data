@@ -1,0 +1,359 @@
+menu:
+- level1: Nền tảng Application Events
+  level2:
+  - Application Events là gì và giải quyết vấn đề nào
+  - Giao tiếp giữa các bean trong cùng ApplicationContext
+  - Event-driven trong phạm vi một ứng dụng Spring
+  - Publisher, event và listener trong một luồng xử lý
+  - Khi nào nên dùng event thay cho gọi phương thức trực tiếp
+  - Giới hạn của event nội bộ so với message broker
+- level1: Mô hình sự kiện
+  level2:
+  - Luồng phát và phân phối một event
+  - Một publisher với nhiều listener
+  - Một listener nhận nhiều loại event
+  - Quan hệ giữa ApplicationContext và event bus
+  - ApplicationEventMulticaster trong mô hình tổng thể
+  - Event đồng bộ mặc định trong Spring
+  - Ranh giới giữa event nội bộ và tích hợp bên ngoài
+- level1: Kiểu và payload
+  level2:
+  - ApplicationEvent và lớp con tùy biến
+  - Phát một đối tượng bất kỳ làm event
+  - PayloadApplicationEvent và payload thực tế
+  - Kiểu event và cơ chế chọn listener
+  - Event có generic type
+  - Event lồng nhau và dữ liệu dẫn xuất
+  - Payload bất biến và an toàn khi chia sẻ
+  - Event chứa ID hay chứa toàn bộ trạng thái
+- level1: Phát sự kiện
+  level2:
+  - ApplicationEventPublisher và publishEvent
+  - Tiêm ApplicationEventPublisher vào bean
+  - ApplicationEventPublisherAware
+  - Phát event từ service và component
+  - Phát event trong cùng một use case
+  - Phát nhiều event theo thứ tự nghiệp vụ
+  - Phát event sau khi hoàn tất thay đổi trạng thái
+  - Phát event từ ApplicationContext
+  - Xử lý event được phát sớm trong quá trình khởi động
+- level1: Lắng nghe sự kiện
+  level2:
+  - ApplicationListener<E>
+  - Chú thích @EventListener
+  - Chọn listener theo kiểu event
+  - Listener nhận ApplicationEvent
+  - Listener nhận payload trực tiếp
+  - Một phương thức nhận nhiều kiểu event
+  - Nhiều phương thức listener trong một bean
+  - Listener không trả về và chỉ tạo side effect
+  - Điều kiện để listener được gọi
+- level1: Đăng ký listener
+  level2:
+  - Component scan và listener tự động
+  - Đăng ký listener bằng @Bean
+  - Đăng ký listener trực tiếp với ApplicationContext
+  - Đăng ký qua ConfigurableApplicationContext
+  - Listener của parent và child context
+  - ApplicationListenerDetector
+  - Listener được phát hiện ở thời điểm nào
+  - Listener trong cấu hình Java
+  - Listener trong cấu hình XML hoặc legacy
+- level1: Lọc và điều kiện
+  level2:
+  - Điều kiện condition trong @EventListener
+  - SpEL truy cập event và payload
+  - Lọc theo thuộc tính của event
+  - Lọc theo trạng thái nghiệp vụ
+  - Lọc event null và dữ liệu không hợp lệ
+  - Điều kiện động theo environment
+  - Khi nào tách event thành kiểu riêng
+  - Tránh điều kiện phức tạp trong listener
+- level1: Thứ tự xử lý
+  level2:
+  - '@Order trên event listener'
+  - Ordered và mức ưu tiên listener
+  - Thứ tự giữa nhiều listener cùng event
+  - Thứ tự trong xử lý đồng bộ
+  - Thứ tự không đảm bảo khi chạy bất đồng bộ
+  - Thiết kế listener độc lập với thứ tự
+  - Phân tách listener bắt buộc và listener phụ
+  - Kiểm thử thứ tự khi nghiệp vụ thật sự yêu cầu
+- level1: Event multicaster
+  level2:
+  - Vai trò của ApplicationEventMulticaster
+  - ApplicationEventMulticaster trong ApplicationContext
+  - SimpleApplicationEventMulticaster
+  - Cache danh sách listener
+  - Phát hiện listener phù hợp
+  - ErrorHandler của multicaster
+  - Thay thế multicaster mặc định
+  - Cấu hình multicaster bằng bean
+  - Ảnh hưởng của multicaster đến transaction
+  - Ảnh hưởng của multicaster đến thread
+- level1: Xử lý đồng bộ
+  level2:
+  - Listener chạy trên thread của publisher
+  - Publisher chờ listener hoàn tất
+  - Exception từ listener đồng bộ
+  - Listener đồng bộ trong transaction
+  - Tác động của listener chậm lên request
+  - Khi đồng bộ là lựa chọn đúng
+  - Đảm bảo tính nhất quán trong cùng use case
+  - Đo thời gian xử lý event đồng bộ
+- level1: Xử lý bất đồng bộ
+  level2:
+  - '@Async trên event listener'
+  - '@EnableAsync và proxy method'
+  - Executor mặc định và executor tùy biến
+  - Chỉ định executor bằng qualifier
+  - Async listener trả về Future
+  - Exception trong async listener
+  - AsyncUncaughtExceptionHandler
+  - Không dùng giá trị trả về để phát event tiếp theo
+  - Giới hạn của async listener với transaction
+  - Tự gọi method và bẫy self-invocation
+  - Chọn bounded executor cho event
+  - Theo dõi queue và từ chối tác vụ
+- level1: Event theo transaction
+  level2:
+  - '@TransactionalEventListener'
+  - Khác biệt giữa @EventListener và @TransactionalEventListener
+  - Transaction phase AFTER_COMMIT
+  - Transaction phase BEFORE_COMMIT
+  - Transaction phase AFTER_ROLLBACK
+  - Transaction phase AFTER_COMPLETION
+  - Event không có transaction
+  - fallbackExecution và hành vi dự phòng
+  - Listener sau commit không rollback được transaction đã xong
+  - Tài nguyên transaction ở thời điểm listener chạy
+  - Một event với nhiều phase listener
+- level1: Transaction synchronization
+  level2:
+  - Cơ chế gắn listener với transaction
+  - TransactionSynchronization và callback
+  - Thời điểm đăng ký synchronization
+  - Event được phát trước hay sau thay đổi dữ liệu
+  - Persistence context sau commit
+  - Đọc lại dữ liệu trong AFTER_COMMIT
+  - Mở transaction mới cho tác vụ hậu commit
+  - REQUIRES_NEW khi listener cần ghi dữ liệu
+  - Rollback và event phụ thuộc transaction
+  - Tính idempotent của listener hậu commit
+- level1: Reactive transaction events
+  level2:
+  - Transaction reactive trong Spring 6.1
+  - Reactor Context và transaction context
+  - TransactionalEventPublisher
+  - Đưa transaction context vào event source
+  - Khác biệt giữa thread-local và Reactor Context
+  - Phát event trong reactive pipeline
+  - Listener transaction-bound trong reactive flow
+  - Kiểm thử reactive transaction event
+  - Giới hạn khi trộn imperative và reactive
+- level1: Vòng đời ApplicationContext
+  level2:
+  - ContextRefreshedEvent
+  - ContextStartedEvent
+  - ContextStoppedEvent
+  - ContextClosedEvent
+  - ContextFailedEvent
+  - ApplicationContextEvent
+  - Sự kiện trong refresh context
+  - Sự kiện khi start và stop context
+  - Sự kiện khi đóng ứng dụng
+  - Parent context và lifecycle event
+  - Listener phục vụ khởi tạo dữ liệu
+- level1: Spring Boot application events
+  level2:
+  - SpringApplication và event lifecycle
+  - ApplicationStartingEvent
+  - ApplicationEnvironmentPreparedEvent
+  - ApplicationContextInitializedEvent
+  - ApplicationPreparedEvent
+  - ApplicationStartedEvent
+  - ApplicationReadyEvent
+  - ApplicationFailedEvent
+  - Event trước khi ApplicationContext tồn tại
+  - SpringApplication.addListeners
+  - SpringApplicationBuilder.listeners
+  - Khai báo listener qua spring.factories
+  - Phân biệt event của Boot và event của context
+- level1: Thiết kế domain event
+  level2:
+  - Domain event trong mô hình domain
+  - Event biểu diễn điều gì đã xảy ra
+  - Tên event theo quá khứ
+  - Một event một ý nghĩa nghiệp vụ
+  - Aggregate và domain event
+  - Phát domain event từ aggregate
+  - Thu thập event trước khi publish
+  - Publish event tại application service
+  - Domain event và transaction boundary
+  - Không để domain phụ thuộc trực tiếp vào Spring
+- level1: Thiết kế payload
+  level2:
+  - Event contract và khả năng tiến hóa
+  - ID định danh đối tượng nghiệp vụ
+  - Snapshot dữ liệu tại thời điểm phát
+  - Tránh truyền entity đang được quản lý
+  - Tránh payload quá lớn
+  - Payload bất biến bằng record
+  - Thời điểm tạo và correlation ID
+  - Actor, tenant và thông tin ngữ cảnh
+  - Version của event
+  - Tương thích ngược của payload
+  - Dữ liệu nhạy cảm trong event
+- level1: Phát lại và chuỗi event
+  level2:
+  - Giá trị trả về của @EventListener
+  - Phát event tiếp theo từ kết quả listener
+  - Một listener trả về nhiều event
+  - Chuyển tiếp event bằng collection
+  - Không dựa vào return value trong @Async
+  - Chuỗi event dài và độ khó theo dõi
+  - Ngăn vòng lặp phát event
+  - Phân biệt event gốc và event dẫn xuất
+  - Khi nên dùng orchestration thay vì event chain
+- level1: Lỗi và rollback
+  level2:
+  - Exception trong listener đồng bộ
+  - ErrorHandler của ApplicationEventMulticaster
+  - Exception listener và rollback transaction
+  - Exception trong listener sau commit
+  - Lỗi trong @TransactionalEventListener
+  - Lỗi trong async listener
+  - Fallback và xử lý lỗi có chủ đích
+  - Retry listener và điều kiện retry
+  - Dead-letter cho event nội bộ
+  - Ghi nhận lỗi mà không che giấu nguyên nhân
+  - Phân biệt lỗi nghiệp vụ và lỗi hạ tầng
+- level1: Thread và context
+  level2:
+  - ThreadLocal trong listener
+  - MDC và correlation ID
+  - SecurityContext trong async listener
+  - Request context không tự truyền sang thread mới
+  - ContextPropagatingTaskDecorator
+  - TaskDecorator cho logging context
+  - Context propagation trong executor
+  - Bẫy khi giữ request object trong event
+  - Đóng executor đúng lifecycle
+  - Kiểm tra thread name khi chẩn đoán
+- level1: Observability
+  level2:
+  - Event listener và Observability
+  - Vì sao @EventListener không tự tạo Observation
+  - Đo thời gian publish và process event
+  - Tạo Observation cho listener quan trọng
+  - Trace context khi event đồng bộ
+  - Trace context khi event bất đồng bộ
+  - Metric số lần phát event
+  - Metric lỗi và thời gian xử lý
+  - Log event có cấu trúc
+  - Liên kết event với trace và correlation ID
+- level1: Kiểm thử event
+  level2:
+  - Kiểm thử publisher phát đúng event
+  - Mock ApplicationEventPublisher
+  - Kiểm thử trực tiếp ApplicationListener
+  - '@RecordApplicationEvents'
+  - ApplicationEventsTestExecutionListener
+  - Tiêm ApplicationEvents vào test
+  - Assert event bằng stream
+  - Kiểm thử số lần phát event
+  - Kiểm thử payload và thuộc tính
+  - Kiểm thử thứ tự listener
+  - Kiểm thử @TransactionalEventListener
+  - Kiểm thử AFTER_COMMIT và rollback
+  - Kiểm thử async listener không flaky
+  - Chờ event bất đồng bộ đúng cách
+- level1: Chẩn đoán sự cố
+  level2:
+  - Listener không được gọi
+  - Sai kiểu event hoặc sai generic
+  - Bean listener không được scan
+  - Method listener không hợp lệ
+  - Điều kiện SpEL luôn false
+  - Event được phát trước khi listener đăng ký
+  - Không có transaction cho transactional listener
+  - Async listener chạy trên thread khác
+  - Exception bị xử lý bởi executor
+  - Listener bị gọi nhiều lần
+  - Parent-child context nhận event ngoài dự kiến
+  - Bật log để theo dõi multicaster
+- level1: Hiệu năng
+  level2:
+  - Chi phí phát event trong request
+  - Listener chậm làm nghẽn publisher
+  - Số lượng listener và chi phí chọn listener
+  - Payload lớn và áp lực bộ nhớ
+  - Cache listener trong multicaster
+  - Executor capacity cho async event
+  - Độ trễ do nhiều listener nối tiếp
+  - Đo throughput và latency
+  - Batch hóa tác vụ hậu kỳ
+  - Khi event không phù hợp với tải cao
+- level1: Độ tin cậy
+  level2:
+  - Idempotency của event listener
+  - Duplicate event trong xử lý thực tế
+  - At-least-once và event nội bộ
+  - Đảm bảo không mất event quan trọng
+  - Event và outbox pattern
+  - Chuyển event nội bộ sang message broker
+  - Retry có giới hạn
+  - Backoff và chống bão retry
+  - Dead-letter và thao tác bù
+  - Theo dõi trạng thái xử lý event
+  - Đảm bảo thứ tự khi event có phụ thuộc
+- level1: Bảo mật và dữ liệu
+  level2:
+  - Không đưa bí mật vào event payload
+  - Quyền truy cập khi listener xử lý
+  - Tenant isolation trong event
+  - Xử lý dữ liệu cá nhân trong log
+  - Ẩn hoặc băm định danh nhạy cảm
+  - Event nội bộ không phải ranh giới bảo mật
+  - Kiểm soát listener của thư viện bên thứ ba
+  - Audit event và retention
+  - Xóa dữ liệu theo chính sách lưu trữ
+- level1: Tích hợp ngoài ứng dụng
+  level2:
+  - Khác biệt giữa Spring event và broker message
+  - Khi dùng Kafka, RabbitMQ hoặc JMS
+  - Đảm bảo publish ra ngoài sau commit
+  - Outbox và relay process
+  - Event contract cho hệ thống khác
+  - Schema registry và versioning
+  - Correlation giữa event nội bộ và message
+  - Retry ở tầng broker
+  - Phân tách domain event và integration event
+  - Không dùng ApplicationEvent làm hàng đợi bền vững
+- level1: Mẫu triển khai
+  level2:
+  - Thông báo email sau khi tạo đơn
+  - Cập nhật read model sau thay đổi domain
+  - Ghi audit sau thao tác nghiệp vụ
+  - Xóa cache sau khi cập nhật dữ liệu
+  - Phát sự kiện sau commit
+  - Chạy tác vụ hậu kỳ bất đồng bộ
+  - Nhiều listener độc lập cho một event
+  - Chọn event đồng bộ hay bất đồng bộ
+  - Thiết kế listener có thể chạy lại
+  - So sánh gọi trực tiếp và publish event
+- level1: Thực hành và tổng kết
+  level2:
+  - Xây dựng publisher và listener tối thiểu
+  - Tạo event bằng record bất biến
+  - Lọc listener bằng điều kiện
+  - Sắp xếp nhiều listener
+  - Cấu hình async executor
+  - Tạo transactional event listener
+  - Kiểm thử commit và rollback
+  - Ghi nhận metric cho listener
+  - Mô phỏng lỗi và retry
+  - Thiết kế outbox cho integration event
+  - Checklist review Application Events
+  - Câu hỏi phỏng vấn thường gặp
+  - Bài tập tổng hợp theo use case

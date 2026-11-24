@@ -1,56 +1,56 @@
-# 3.5. Tạo byte ngẫu nhiên, seed, reseed và tác động của seed có thể dự đoán
+# 3.5. Generating Random Bytes, Seeding, Reseeding, and the Impact of Predictable Seeds
 
-Trong module **Java Advance – Security & Cryptography**, “ngẫu nhiên” thường là thành phần an ninh: token phiên đăng nhập, mã khôi phục, khóa, salt, nonce/IV hoặc challenge. Một chương trình có thể tạo đủ 32 byte và trông rất ngẫu nhiên, nhưng nếu trạng thái ban đầu đến từ **seed có thể đoán**, đối thủ có thể thu hẹp số khả năng đến mức dò được. Bài học dùng **Java 21** để phân biệt nguồn entropy, trạng thái PRNG, seed ban đầu và reseed, sau đó thực hành `SecureRandom` đúng cách.
+In the **Java Advance – Security & Cryptography** module, "randomness" is often a security primitive: session login tokens, recovery codes, keys, salts, nonces/IVs, or challenges. A program can generate 32 bytes that look completely random, yet if the initial state comes from a **predictable seed**, an adversary can narrow down the possibilities to a searchable space. This lesson uses **Java 21** to distinguish entropy sources, PRNG state, initial seeding, and reseeding, then demonstrates proper `SecureRandom` usage.
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Tạo các mảng byte khó dự đoán bằng `java.security.SecureRandom` và mã hóa chúng thành chuỗi khi cần.
-2. Giải thích **entropy → seed/state → quá trình sinh byte → reseed** mà không nhầm “độ dài output” với “độ bí mật thực”.
-3. Hiểu khi nào `SecureRandom` tự seed, tác động của `SecureRandom(byte[])`, `setSeed(...)`, `generateSeed(...)` và `reseed()`.
-4. Chỉ ra vì sao timestamp, số tuần tự, PID, username, seed hard-code hay seed quá nhỏ đều nguy hiểm nếu được dùng làm nguồn duy nhất cho bí mật.
-5. Nhận diện giới hạn provider, dùng DRBG trong Java 21 khi cần chính sách reseed rõ ràng, và phân biệt random **token**, **salt**, **nonce** với sinh **khóa**.
-6. Kiểm thử đúng: xác minh độ dài, định dạng, khả năng vận hành và nguồn entropy; không đánh đồng vài mẫu “khác nhau” với bằng chứng an toàn mật mã.
+1. Generate unpredictable byte arrays using `java.security.SecureRandom` and encode them into strings when needed.
+2. Explain **entropy → seed/state → byte generation → reseed** without confusing "output length" with "actual secrecy."
+3. Understand when `SecureRandom` self-seeds and the effects of `SecureRandom(byte[])`, `setSeed(...)`, `generateSeed(...)`, and `reseed()`.
+4. Explain why timestamps, sequence numbers, PIDs, usernames, hardcoded seeds, or overly small seeds are dangerous if used as the sole source for secrets.
+5. Recognize provider limits, use DRBG in Java 21 when explicit reseed policies are needed, and distinguish random **tokens**, **salts**, and **nonces** from **key** generation.
+6. Test properly: verify lengths, formats, operational readiness, and entropy sources; never equate a few "distinct" samples with proof of cryptographic security.
 
-## 1. Bản chất của random trong ứng dụng bảo mật
+## 1. The Nature of Randomness in Security Applications
 
-Một máy tính thực hiện nhiều phép tính hoàn toàn xác định. Vì vậy, nhiều bộ sinh số ngẫu nhiên được xây dựng dưới dạng **pseudorandom generator**: thuật toán mở rộng một trạng thái ban đầu thành chuỗi byte trông ngẫu nhiên. Nếu biết đủ trạng thái và thuật toán, có thể tái tạo chuỗi đó; mức an toàn phụ thuộc trước hết vào **độ khó đoán trạng thái ban đầu** và chất lượng bộ sinh.
+A computer executes largely deterministic operations. Therefore, many random number generators are built as **pseudorandom generators**: algorithms that expand an initial state into a random-looking byte sequence. Given enough of the state and the algorithm, that sequence can be reproduced; security depends first on the **unpredictability of the initial state** and the quality of the generator.
 
-Sơ đồ khái niệm:
+Conceptual diagram:
 
 ```text
-Nguồn entropy của hệ điều hành / thiết bị
+OS / device entropy source
                     |
-             Seed ban đầu đủ mạnh
+         Sufficiently strong initial seed
                     |
-        PRNG/DRBG có thiết kế mật mã
+     Cryptographically designed PRNG/DRBG
                     |
          nextBytes(...) -> byte[]
                     |
-       Reseed định kỳ/khi chính sách yêu cầu
-       bằng entropy mới (nếu được hỗ trợ)
+     Periodic / policy-driven reseed
+     with fresh entropy (if supported)
 ```
 
-**Khái niệm cần phân biệt:**
+**Concepts to distinguish:**
 
-| Khái niệm | Ý nghĩa | Điều cần nhớ |
+| Concept | Meaning | Key takeaway |
 | --- | --- | --- |
-| Random bytes | Mảng byte đầu ra từ bộ sinh | Byte ngẫu nhiên có thể chứa `0x00`, byte âm khi đọc kiểu `byte` có dấu; không phải chuỗi UTF-8. |
-| Seed | Dữ liệu khởi tạo hoặc bổ sung trạng thái của PRNG | Độ dài seed không tự nói lên entropy của nó. |
-| Entropy | Mức bất định của thông tin đối với đối thủ | Một giá trị có 256 bit biểu diễn vẫn có thể chỉ có vài bit khó đoán. |
-| CSPRNG | Bộ sinh giả ngẫu nhiên phù hợp mật mã | Kết quả phải khó dự đoán dù đối thủ biết thuật toán. |
-| DRBG | Một lớp CSPRNG dựa trên thuật toán xác định và entropy ban đầu | Có thể hỗ trợ giới hạn số lần sinh, reseed, prediction resistance. |
-| Reseed | Làm mới/bổ sung trạng thái từ nguồn entropy mới theo cơ chế provider | Không phải cùng thao tác với việc cố định seed để tái lập output. |
-| Token/salt/nonce | Các giá trị có yêu cầu khác nhau | Token cần khó đoán; salt thường cần độc nhất và đủ ngẫu nhiên; nonce của AEAD yêu cầu **không tái sử dụng cùng khóa**. |
+| Random bytes | Output byte array from a generator | Random bytes can contain `0x00` or negative values when read as signed `byte`; they are not UTF-8 strings. |
+| Seed | Data initializing or augmenting PRNG state | Seed length alone does not indicate its entropy. |
+| Entropy | Uncertainty of information to an adversary | A 256-bit representation can still carry only a few unpredictable bits. |
+| CSPRNG | Cryptographically suitable pseudorandom generator | Outputs must be unpredictable even if the adversary knows the algorithm. |
+| DRBG | A class of CSPRNG based on a deterministic algorithm and initial entropy | May support output limits, reseeding, and prediction resistance. |
+| Reseed | Refreshing/supplementing state from fresh entropy via the provider | Not the same operation as fixing a seed to reproduce output. |
+| Token/salt/nonce | Values with distinct requirements | Tokens need unpredictability; salts usually need uniqueness and randomness; AEAD nonces require **no reuse with the same key**. |
 
-Ví dụ giới hạn entropy: nếu seed chỉ là một trong **1.000 giá trị timestamp** mà đối thủ có thể khoanh vùng, không thể xem nó là “256 bit bí mật” chỉ vì chương trình băm timestamp bằng SHA-256 rồi lấy 32 byte. Một giá trị được tính xác định từ 1.000 khả năng vẫn chỉ có tối đa 1.000 trạng thái, tương ứng dưới 10 bit bất định. **Hash hay PRNG không tạo thêm entropy bí mật từ đầu vào có thể đoán.**
+Entropy limit example: if a seed is merely one of **1,000 timestamp values** that an adversary can bracket, it cannot be treated as "256-bit secrecy" simply because the program hashes the timestamp with SHA-256 to get 32 bytes. A value computed deterministically from 1,000 possibilities still has at most 1,000 states—less than 10 bits of uncertainty. **Hashes and PRNGs do not create new secret entropy from predictable inputs.**
 
-## 2. Chọn API đúng trước khi bàn tới seed
+## 2. Pick the Right API Before Talking About Seeds
 
-Nếu dữ liệu không có yêu cầu bảo mật, `Random(seed)` hữu ích để tái lập phép thử, `ThreadLocalRandom.current()` giảm tranh chấp giữa các thread và `SplittableRandom` phục vụ tính toán/mô phỏng. Các API đó **không bảo đảm chống dự đoán**; `Math.random()` cũng không thích hợp cho token hay khóa.
+When data has no security requirement, `Random(seed)` is useful for reproducible experiments, `ThreadLocalRandom.current()` reduces contention across threads, and `SplittableRandom` serves parallel computation/simulation. Those APIs **do not guarantee unpredictability**; `Math.random()` is also unsuitable for tokens or keys.
 
-Khi cần token, salt, nonce hoặc vật liệu bí mật, dùng `java.security.SecureRandom` đã được cấu hình phù hợp; với **khóa** nên ưu tiên `KeyGenerator`/`KeyPairGenerator` theo thuật toán. Mẫu sử dụng thông thường là:
+When you need tokens, salts, nonces, or secret material, use a properly configured `java.security.SecureRandom`; for **keys**, prefer algorithm-specific `KeyGenerator`/`KeyPairGenerator`. The standard usage pattern is:
 
 ```java
 SecureRandom random = new SecureRandom();
@@ -58,11 +58,11 @@ byte[] bytes = new byte[32];
 random.nextBytes(bytes);
 ```
 
-Đoạn minh họa cần `import java.security.SecureRandom;`. Trọng tâm còn lại của bài này không phải so sánh lại cả họ bộ sinh, mà là giải thích **self-seeding, tác động của seed do caller cung cấp, và reseed đúng khi provider hỗ trợ**.
+This snippet requires `import java.security.SecureRandom;`. The remainder of this lesson focuses not on re-comparing the whole generator family, but on explaining **self-seeding, the impact of caller-supplied seeds, and proper reseeding when supported by the provider**.
 
-## 3. Thực hành đầy đủ: tạo 32 byte cho token
+## 3. Full Practice: Generating 32 Bytes for a Token
 
-Tạo file **`SecureBytesDemo.java`**:
+Create **`SecureBytesDemo.java`**:
 
 ```java
 import java.security.SecureRandom;
@@ -75,12 +75,12 @@ public class SecureBytesDemo {
         byte[] token = new byte[32];
         random.nextBytes(token);
 
-        // Chuyển byte nhị phân sang chuỗi phù hợp URL/cookie.
+        // Convert binary bytes to a string suitable for URLs/cookies.
         String encoded = Base64.getUrlEncoder()
                 .withoutPadding()
                 .encodeToString(token);
 
-        // Chỉ in kích thước: không ghi token bí mật vào log.
+        // Print sizes only: do not log the secret token.
         System.out.println("Byte count: " + token.length);
         System.out.println("Bit count: " + token.length * 8);
         System.out.println("Base64url chars: " + encoded.length());
@@ -88,7 +88,7 @@ public class SecureBytesDemo {
 }
 ```
 
-Kiểm tra JDK 21 bằng `java -version` và `javac -version`; trong thư mục chứa file, chạy:
+Verify JDK 21 with `java -version` and `javac -version`; in the file's directory, run:
 
 ```text
 mkdir out
@@ -96,7 +96,7 @@ javac --release 21 -encoding UTF-8 -d out SecureBytesDemo.java
 java -cp out SecureBytesDemo
 ```
 
-Kết quả với ứng dụng trên:
+Output for the program above:
 
 ```text
 Byte count: 32
@@ -104,56 +104,56 @@ Bit count: 256
 Base64url chars: 43
 ```
 
-**Vì sao?** `nextBytes(byte[])` điền 32 byte nhị phân. 32 × 8 = 256 **bit dữ liệu đầu ra**; mức an toàn thực còn phụ thuộc seed và provider. Base64url bỏ padding mã hóa đúng 32 byte thành 43 ký tự; bản thân Base64 **không mã hóa bí mật**, chỉ chuyển biểu diễn. Giá trị token khác nhau giữa các lần chạy và không có một stdout token cố định.
+**Why?** `nextBytes(byte[])` fills 32 binary bytes. 32 × 8 = 256 **bits of output data**; actual security still depends on seed and provider. Unpadded Base64url encodes exactly 32 bytes into 43 characters; Base64 itself **does not encrypt secrets**, it only converts representation. The token value differs across runs, so there is no fixed token stdout.
 
-**Không làm các việc sau:**
+**Do not do the following:**
 
-- Không tạo `new String(token, UTF_8)` để “chuyển byte ngẫu nhiên thành text”: nhiều chuỗi byte không phải UTF-8 hợp lệ và có thể bị thay thế byte khi giải mã.
-- Không công khai token thực trong log, exception, metric label, URL không bảo vệ hoặc ảnh chụp debug.
-- Không dùng `Random.nextBytes` hay `UUID.randomUUID()` để thay mọi loại secret theo cảm tính. UUID phiên bản 4 có định dạng và lượng bit ngẫu nhiên khác token 32 byte; chọn token theo mô hình đe dọa, độ dài, cách lưu và giao thức.
-- Không dùng việc in ra “hai token khác nhau” làm bài kiểm định mật mã. Một nguồn yếu cũng có thể tạo các chuỗi nhìn rất khác nhau.
+- Do not call `new String(token, UTF_8)` to "turn random bytes into text": many byte sequences are invalid UTF-8 and may undergo byte substitution on decoding.
+- Do not expose real tokens in logs, exceptions, metric labels, unprotected URLs, or debug screenshots.
+- Do not use `Random.nextBytes` or `UUID.randomUUID()` interchangeably for every type of secret by intuition. Version 4 UUIDs have a different format and random bit count than 32-byte tokens; choose tokens based on threat model, length, storage, and protocol.
+- Do not treat printing "two different tokens" as a cryptographic verification test. A weak source can also produce very different-looking strings.
 
-Một đối tượng `SecureRandom` có thể được **tái sử dụng**; Java 21 tài liệu hóa rằng API này an toàn khi gọi từ nhiều thread (provider được dùng trực tiếp nếu khai báo thread-safe, hoặc lớp bao đồng bộ truy cập engine). Tuy vậy, hiệu năng và khả năng chặn khi chờ entropy vẫn phụ thuộc implementation; cần đo trong môi trường triển khai nếu tải lớn.
+A `SecureRandom` instance can be **reused**; Java 21 documents that this API is safe for concurrent calls from multiple threads (providers declared thread-safe are used directly, or a wrapper synchronizes engine access). Still, throughput and potential blocking while waiting for entropy depend on the implementation; benchmark in the deployment environment under high load.
 
-## 4. Seed ban đầu được tạo như thế nào?
+## 4. How Is the Initial Seed Created?
 
-Đối với một `SecureRandom` sử dụng PRNG, Javadoc Java 21 mô tả:
+For a PRNG-based `SecureRandom`, the Java 21 Javadoc explains:
 
-- Tạo bằng `new SecureRandom()` hoặc `SecureRandom.getInstance(...)` thường **chưa lập tức lấy đủ seed**. Lần gọi `nextBytes(...)` đầu tiên sẽ khiến PRNG tự seed từ nguồn entropy do implementation xác định, **trừ khi trước đó đã gọi `setSeed(...)`**.
-- `new SecureRandom(byte[] seed)` tạo đối tượng với seed do người gọi cung cấp. Nếu seed đó là nguồn duy nhất và có thể đoán, tính khó dự đoán của output có thể bị phá vỡ. Hành vi chi tiết phụ thuộc provider.
-- `random.setSeed(byte[])` hoặc `random.setSeed(long)` cung cấp seed đầu vào từ caller. Theo tài liệu Java, với trạng thái đã tồn tại, seed mới **bổ sung** chứ không thay thế seed trước đó. Tuy nhiên, nếu gọi trước lần tự seed đầu tiên, không thể dựa vào cơ chế tự lấy entropy mặc định.
-- `setSeed(long)` chỉ nhận một số `long` 64 bit; việc truyền số thời gian, bộ đếm, PID hoặc hằng số càng làm số trạng thái tiềm năng bị giới hạn.
+- Instantiating via `new SecureRandom()` or `SecureRandom.getInstance(...)` typically **does not immediately gather a full seed**. The first `nextBytes(...)` call triggers the PRNG to self-seed from an implementation-defined entropy source, **unless `setSeed(...)` was called beforehand**.
+- `new SecureRandom(byte[] seed)` constructs an instance with a caller-supplied seed. If that seed is the sole source and is guessable, output unpredictability can be broken. Exact behavior depends on the provider.
+- `random.setSeed(byte[])` or `random.setSeed(long)` supplies caller seed input. Per Java documentation, on an already-seeded state, the new seed **supplements** rather than replaces the prior seed. However, if called before the first self-seeding, you cannot rely on the default automatic entropy gathering.
+- `setSeed(long)` accepts only a 64-bit `long`; passing timestamps, counters, PIDs, or constants further restricts the potential state space.
 
-### So sánh bốn kiểu khởi tạo
+### Comparing Four Initialization Patterns
 
-| Mẫu | Đánh giá | Vì sao |
+| Pattern | Assessment | Why |
 | --- | --- | --- |
-| `new SecureRandom(); random.nextBytes(out);` | **Khuyến nghị mặc định** | Provider tự dùng nguồn entropy phù hợp. |
-| `SecureRandom.getInstance("DRBG"); ...` | Hợp lý nếu runtime có DRBG và bạn cần cấu hình/kiểm tra DRBG | Cần xác minh service/provider. |
-| `new SecureRandom("known".getBytes(UTF_8));` | **Nguy hiểm** nếu seed đoán được là nguồn entropy duy nhất | Seed đã biết hoặc có không gian tìm kiếm nhỏ. |
-| `SecureRandom r = new SecureRandom(); r.setSeed(System.currentTimeMillis()); r.nextBytes(out);` | **Tránh sử dụng** | Timestamp dự đoán được; gọi `setSeed` trước khi tự seed có thể bỏ qua bước lấy entropy mặc định. |
+| `new SecureRandom(); random.nextBytes(out);` | **Recommended default** | Provider automatically uses an appropriate entropy source. |
+| `SecureRandom.getInstance("DRBG"); ...` | Reasonable when runtime has DRBG and you need DRBG config/inspection | Must verify service/provider availability. |
+| `new SecureRandom("known".getBytes(UTF_8));` | **Dangerous** if the guessable seed is the sole entropy source | Known seed or tiny search space. |
+| `SecureRandom r = new SecureRandom(); r.setSeed(System.currentTimeMillis()); r.nextBytes(out);` | **Avoid** | Predictable timestamp; calling `setSeed` before self-seeding can skip default entropy gathering. |
 
-Một seed dài 32 byte lấy từ chuỗi lặp/zero vẫn yếu. Ngược lại, sau khi provider **đã tự seed an toàn**, `setSeed(123)` không có nghĩa toàn bộ trạng thái chắc chắn trở nên đoán được: phương thức bổ sung vào trạng thái hiện hữu. Nhưng việc này **không đem lại lợi ích bảo mật có thể tin cậy** và gây nhầm lẫn trong audit; nên tránh seed thủ công nếu không có lý do đã được thiết kế và đánh giá.
+A 32-byte seed made from repeated characters or zeros is still weak. Conversely, after a provider **has already safely self-seeded**, calling `setSeed(123)` does not mean the entire state inevitably becomes predictable: the method mixes into existing state. Even so, doing this **adds no reliable security benefit** and causes confusion in audits; avoid manual seeding without a reviewed, intentional design reason.
 
-**Điểm nhạy cảm về thứ tự:** `new SecureRandom(); setSeed(weak); nextBytes(out)` khác với `new SecureRandom(); nextBytes(out); setSeed(weak)` về thời điểm self-seeding. Không suy diễn rằng mọi provider đều có cùng thuật toán hoặc cùng kết quả byte cho một seed, nhưng **không giao an ninh của secret cho nguồn seed có thể dự đoán**.
+**Order sensitivity:** `new SecureRandom(); setSeed(weak); nextBytes(out)` differs from `new SecureRandom(); nextBytes(out); setSeed(weak)` regarding when self-seeding occurs. Do not assume every provider shares the same algorithm or identical byte output for a seed, yet **never entrust secret security to a predictable seed source**.
 
-### Phân biệt `nextBytes`, `generateSeed` và `getSeed`
+### Distinguishing `nextBytes`, `generateSeed`, and `getSeed`
 
-| Phương thức | Nguồn và mục đích |
+| Method | Source and purpose |
 | --- | --- |
-| `nextBytes(byte[])` | Lấy byte random từ bộ sinh hiện tại để dùng trong ứng dụng. Đây là lựa chọn thường dùng. |
-| `generateSeed(int)` | Lấy byte seed theo seed-generation algorithm của implementation; hữu ích để seed một bộ sinh **khác** khi có yêu cầu rõ ràng. Có thể tốn tài nguyên hoặc chặn. |
-| `SecureRandom.getSeed(int)` | Phương thức static nhận byte seed theo cơ chế seed generation; hiếm khi cần cho ứng dụng thông thường. |
-| `setSeed(byte[])` / `setSeed(long)` | Caller đưa entropy đầu vào; **không bắt buộc** khi dùng `new SecureRandom()`. |
-| `reseed()` / `reseed(params)` | Yêu cầu provider lấy entropy mới để reseed; **có thể không được hỗ trợ**. |
+| `nextBytes(byte[])` | Obtains random bytes from the current generator for application use. This is the normal choice. |
+| `generateSeed(int)` | Obtains seed bytes using the implementation's seed-generation algorithm; useful for seeding **another** generator when explicitly required. Can be expensive or block. |
+| `SecureRandom.getSeed(int)` | Static method fetching seed bytes via the seed-generation mechanism; rarely needed in normal applications. |
+| `setSeed(byte[])` / `setSeed(long)` | Caller supplies seed input; **not required** when using `new SecureRandom()`. |
+| `reseed()` / `reseed(params)` | Requests the provider to gather fresh entropy to reseed; **may be unsupported**. |
 
-Không cần và không nên theo một “nghi thức” kiểu `generateSeed(32)` → `setSeed(...)` → `nextBytes(...)` mỗi khi lấy token. Với cấu hình thông thường, `nextBytes` đã đáp ứng nhu cầu và provider có chính sách lấy seed thích hợp.
+You should not follow a ritual like `generateSeed(32)` → `setSeed(...)` → `nextBytes(...)` every time you issue a token. Under normal configurations, `nextBytes` satisfies the need and the provider manages seeding appropriately.
 
-## 5. Minh họa seed đoán được bằng bộ sinh xác định
+## 5. Demonstrating Predictable Seeds with a Deterministic Generator
 
-Ví dụ dưới đây **cố ý sử dụng `java.util.Random` không an toàn cho mật mã** để có output được Java bảo đảm tái lập. Mục đích là nhìn thấy tác động của **cùng seed**; nó **không phải mã tạo token sản xuất**.
+The example below **deliberately uses cryptographically unsafe `java.util.Random`** so Java guarantees reproducible output. Its goal is to show the effect of **the same seed**; it is **not production token-generation code**.
 
-Tạo file **`RepeatableSeedDemo.java`**:
+Create **`RepeatableSeedDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -173,78 +173,78 @@ public class RepeatableSeedDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```text
 javac --release 21 -encoding UTF-8 -d out RepeatableSeedDemo.java
 java -cp out RepeatableSeedDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 Same bytes: true
 Bytes generated: 16
 ```
 
-Hai bộ sinh `Random` độc lập nhưng có **seed 123** giống nhau sẽ phát sinh **cùng chuỗi byte**. Nếu ứng dụng dùng chuỗi đó làm token, người biết seed có thể đoán được token. Ngay cả khi seed “thay đổi mỗi lần” nhưng chỉ chọn trong một khoảng nhỏ, đối thủ có thể thử tất cả seed khả dĩ.
+Two independent `Random` generators given the same **seed 123** generate **the exact same byte sequence**. If an application uses such a sequence as a token, anyone knowing the seed can predict the token. Even if the seed "changes every time" within a narrow range, an adversary can try all possible seeds.
 
-Đối với `SecureRandom`, **không dựa vào giả định “cùng seed luôn cho cùng output” hoặc “cùng seed chắc chắn cho output khác nhau”**: thuật toán, việc bổ sung entropy, thời điểm self-seeding và provider có thể khác. Bài học về bảo mật ở đây là: nếu thiết kế dựa **duy nhất** trên seed có thể đoán và không có entropy thật bổ sung thì đầu ra không có bí mật đủ mạnh, bất kể nhìn như ngẫu nhiên.
+For `SecureRandom`, **never assume "the same seed always gives the same output" or "the same seed is guaranteed to give different output"**: algorithms, entropy mixing, self-seeding timing, and providers vary. The security lesson here is: if a design relies **solely** on a guessable seed with no additional real entropy, the output lacks strong secrecy regardless of how random it looks.
 
-### Kịch bản rủi ro thực tế
+### Realistic Risk Scenario
 
-Giả sử backend làm việc sau để tạo token:
+Suppose a backend creates tokens like this:
 
 ```java
-// Ví dụ phản diện: KHÔNG dùng để tạo token bảo mật.
+// Anti-pattern example: DO NOT use to generate security tokens.
 SecureRandom random = new SecureRandom();
 random.setSeed(System.currentTimeMillis());
 byte[] token = new byte[32];
 random.nextBytes(token);
 ```
 
-- Đối thủ thấy thời điểm tài khoản được tạo/xác thực và có thể ước lượng clock máy chủ trong một khoảng ngắn.
-- Nếu seed do timestamp cung cấp là entropy duy nhất, số giá trị có thể thử rất nhỏ so với 2^256; kích thước token 32 byte **không cứu được thiết kế**.
-- Việc tái tạo byte cụ thể phụ thuộc provider, trạng thái và thứ tự gọi API; đây là phân tích **nguy cơ**, không phải cam kết mọi provider tự động tạo đúng cùng token từ cùng timestamp.
-- Nếu hệ thống chạy nhiều container/VM được clone từ snapshot có cùng trạng thái PRNG và thiếu reseed đúng cách, khả năng tái lập/đụng độ output là một rủi ro vận hành khác. Cần cấu hình entropy tốt, khởi tạo đúng và kiểm thử mô hình clone/restore của nền tảng.
+- An adversary observes when an account was created/authenticated and can estimate the server clock within a narrow window.
+- If the timestamp-derived seed is the only entropy, the searchable space is tiny compared to 2^256; a 32-byte token size **cannot rescue the design**.
+- Reproducing exact bytes depends on provider, state, and API call ordering; this is a **risk analysis**, not a claim that every provider automatically produces identical tokens from the same timestamp.
+- If a system runs multiple containers/VMs cloned from a snapshot sharing the same PRNG state without proper reseeding, state reuse/output collision is another operational risk. Configure strong entropy, proper initialization, and test platform clone/restore behavior.
 
-Các seed sai thường gặp: `System.currentTimeMillis()`, `System.nanoTime()`, `Thread.currentThread().getId()`, process ID, username, email, số thứ tự tăng, một chuỗi cố định trong config, hash của các giá trị này. **Băm seed yếu hoặc nối thêm dữ liệu công khai không tự tạo entropy mới**.
+Common bad seeds: `System.currentTimeMillis()`, `System.nanoTime()`, `Thread.currentThread().getId()`, process ID, username, email, incrementing counters, a fixed config string, or hashes of these values. **Hashing a weak seed or concatenating public data does not create new entropy.**
 
-## 6. Reseed là gì và khi nào cần?
+## 6. What Is Reseeding and When Is It Needed?
 
-**Seed lần đầu** giúp PRNG xây dựng trạng thái bí mật. **Reseed** là cập nhật trạng thái sau đó, thường với entropy mới, nhằm tuân thủ vòng đời của DRBG, giảm thời gian phụ thuộc vào một trạng thái và hỗ trợ các yêu cầu về prediction resistance trong những thiết kế có bảo đảm tương ứng.
+**Initial seeding** lets a PRNG establish a secret state. **Reseeding** updates that state later, typically with fresh entropy, to adhere to a DRBG lifecycle, limit exposure from a single state over time, and support prediction-resistance requirements in designs offering those guarantees.
 
-Trong Java 21:
+In Java 21:
 
-- `SecureRandom.reseed()` yêu cầu engine lấy entropy từ nguồn của nó. Không phải mọi provider/algorithm đều hỗ trợ; API có thể ném `UnsupportedOperationException`.
-- `SecureRandom.reseed(SecureRandomParameters)` cho phép truyền cấu hình cụ thể nếu implementation chấp nhận.
-- `SecureRandom.setSeed(...)` nhận input do **caller** cung cấp; không tương đương việc provider tự lấy entropy mới. Một lần `setSeed(0L)` không được coi là reseed an toàn.
-- Một số DRBG tự reseed khi vượt ngưỡng tuổi seed/số lần sinh theo cơ chế riêng; không nên giả định tự động hay thủ công trên **mọi** implementation.
-- `nextBytes`, `generateSeed` và `reseed` đều **có thể chặn** khi chờ entropy, tùy provider và hệ điều hành.
+- `SecureRandom.reseed()` asks the engine to pull entropy from its source. Not all providers/algorithms support it; the API may throw `UnsupportedOperationException`.
+- `SecureRandom.reseed(SecureRandomParameters)` passes specific parameters if accepted by the implementation.
+- `SecureRandom.setSeed(...)` takes **caller-supplied** input; it is not equivalent to the provider gathering fresh entropy itself. Calling `setSeed(0L)` does not count as a secure reseed.
+- Some DRBGs automatically reseed when seed age or invocation thresholds are exceeded via internal mechanisms; never assume automatic or manual behavior across **all** implementations.
+- `nextBytes`, `generateSeed`, and `reseed` can **all block** waiting for entropy, depending on provider and OS.
 
-Đối với ứng dụng Java bình thường, **không cần tự gọi `reseed()` trước mỗi lần tạo token**. Nếu tổ chức có chính sách cụ thể về vòng đời DRBG, thời điểm khôi phục snapshot, thiết bị HSM/FIPS hoặc prediction resistance, hãy chọn provider hỗ trợ, đọc tài liệu cấu hình rồi kiểm thử. Gọi thủ công liên tục có thể làm tăng độ trễ mà không giúp ích theo cách tưởng tượng.
+For ordinary Java applications, **you do not need to call `reseed()` manually before every token generation**. If an organization has explicit policies for DRBG lifecycles, snapshot-restore points, HSM/FIPS devices, or prediction resistance, select a supporting provider, read its configuration docs, and test. Calling reseed continuously by hand can add latency without delivering imagined security gains.
 
-### Trường hợp cần phân biệt
+### Cases to Distinguish
 
-| Tình huống | Cách tiếp cận |
+| Scenario | Approach |
 | --- | --- |
-| Tạo token đăng nhập trong một dịch vụ Java 21 thông thường | Một `SecureRandom` được khởi tạo mặc định và `nextBytes` thường phù hợp. |
-| Dịch vụ chạy nhiều tháng | Xác minh chính sách reseed/entropy của provider nếu yêu cầu an ninh đặc thù; không tự tạo seed bằng timestamp. |
-| VM/container phục hồi snapshot | Đánh giá nguy cơ trùng trạng thái, bảo đảm entropy và cơ chế khởi tạo/reseed đúng sau restore. |
-| Phải chứng minh reseed/prediction resistance theo chính sách | Sử dụng DRBG/provider có capability tương ứng và kiểm tra `getParameters()`. |
-| Unit test cần kết quả lặp lại | Dùng test double hoặc `Random` cố định **chỉ trong kiểm thử phi bảo mật**; production vẫn dùng CSPRNG. |
+| Issuing login tokens in a typical Java 21 service | A default-initialized `SecureRandom` and `nextBytes` are usually appropriate. |
+| Service running for many months | Verify provider reseed/entropy policy if special security rules apply; never manually seed with timestamps. |
+| VM/container restored from snapshot | Assess state-duplication risk, ensure proper entropy and initialization/reseeding after restore. |
+| Must prove reseed/prediction resistance per policy | Use a DRBG/provider with matching capability and inspect `getParameters()`. |
+| Unit tests needing deterministic results | Use a test double or fixed `Random` **only in non-security tests**; production must keep using a CSPRNG. |
 
-## 7. Java 21 DRBG và ví dụ kiểm tra khả năng reseed
+## 7. Java 21 DRBG and Reseed Capability Check Example
 
-Java có API `java.security.DrbgParameters` từ Java 9. Java 21 cung cấp cơ chế để yêu cầu thuộc tính DRBG và truy vấn **effective parameters**; thuật toán `"DRBG"` tùy provider. Ba khả năng chính:
+Java has included `java.security.DrbgParameters` since Java 9. Java 21 provides mechanisms to request DRBG properties and query **effective parameters**; the `"DRBG"` algorithm depends on the provider. Three main capabilities exist:
 
-- `DrbgParameters.Capability.NONE`: không bảo đảm hỗ trợ reseed/prediction resistance.
-- `DrbgParameters.Capability.RESEED_ONLY`: có reseed, không yêu cầu prediction resistance trong mỗi lần sinh.
-- `DrbgParameters.Capability.PR_AND_RESEED`: có cả reseed và khả năng prediction resistance.
+- `DrbgParameters.Capability.NONE`: no guarantee of reseed or prediction-resistance support.
+- `DrbgParameters.Capability.RESEED_ONLY`: supports reseeding, does not require prediction resistance per generation.
+- `DrbgParameters.Capability.PR_AND_RESEED`: supports both reseeding and prediction resistance.
 
-**Prediction resistance** trong ngữ cảnh DRBG không có nghĩa “gọi `new SecureRandom()` một lần là bất khả xâm phạm”. Đó là thuộc tính/đòi hỏi cụ thể của cơ chế DRBG và nguồn entropy, cần được provider hỗ trợ.
+**Prediction resistance** in the DRBG context does not mean "calling `new SecureRandom()` once makes everything unbreakable." It is a specific property/requirement of the DRBG mechanism and entropy source that the provider must support.
 
-Tạo file **`DrbgReseedDemo.java`**:
+Create **`DrbgReseedDemo.java`**:
 
 ```java
 import java.security.DrbgParameters;
@@ -264,7 +264,7 @@ public class DrbgReseedDemo {
         System.out.println("Reseed supported: " + canReseed);
 
         if (canReseed) {
-            drbg.reseed(); // Provider tự lấy entropy mới.
+            drbg.reseed(); // Provider fetches fresh entropy.
         }
 
         byte[] randomBytes = new byte[16];
@@ -274,14 +274,14 @@ public class DrbgReseedDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```text
 javac --release 21 -encoding UTF-8 -d out DrbgReseedDemo.java
 java -cp out DrbgReseedDemo
 ```
 
-Trên một JDK 21 có provider `DRBG`, output có dạng:
+On a JDK 21 runtime with a `DRBG` provider, the output looks like:
 
 ```text
 Algorithm: DRBG
@@ -289,11 +289,11 @@ Reseed supported: true
 Generated: 16 bytes
 ```
 
-Dòng `Reseed supported` **phụ thuộc provider và cấu hình** (cũng có thể là `false`); ví dụ tránh gọi `reseed()` nếu provider không công bố hỗ trợ. Nếu không cài provider cho `DRBG`, `getInstance("DRBG")` có thể ném `NoSuchAlgorithmException`; khi đó hãy kiểm tra danh sách provider hoặc dùng `new SecureRandom()` cho mục tiêu tạo byte ngẫu nhiên thông thường.
+The `Reseed supported` line **depends on provider and configuration** (it can also be `false`); the example avoids calling `reseed()` if the provider does not advertise support. If no provider supplies `DRBG`, `getInstance("DRBG")` can throw `NoSuchAlgorithmException`; inspect the provider list or use `new SecureRandom()` for general random byte generation.
 
-### Khi cần yêu cầu capability ngay từ khởi tạo
+### When Capability Must Be Requested at Instantiation
 
-Đoạn sau là **snippet** để nhúng vào chương trình Java, không phải một file chạy độc lập:
+The following is a **snippet** to embed in a Java program, not a standalone runnable file:
 
 ```java
 import java.security.DrbgParameters;
@@ -307,26 +307,26 @@ SecureRandom drbg = SecureRandom.getInstance(
                 null));
 ```
 
-Đối số `128` là **security strength yêu cầu tính bằng bit** của DRBG, không phải số byte sẽ lấy. `RESEED_ONLY` đặt yêu cầu tối thiểu về capability; lời gọi có thể thất bại nếu không có implementation đáp ứng. Thực tế phải đọc `drbg.getParameters()` để biết tham số hiệu lực, vì chúng có thể mạnh hơn yêu cầu.
+The argument `128` is the **requested DRBG security strength in bits**, not the number of bytes to generate. `RESEED_ONLY` sets a minimum capability requirement; the call can fail if no implementation satisfies it. In practice, read `drbg.getParameters()` to inspect effective parameters, since they may be stronger than requested.
 
-`DrbgParameters.nextBytes(strength, predictionResistance, additionalInput)` và `DrbgParameters.reseed(predictionResistance, additionalInput)` dành cho use case có cấu hình DRBG cụ thể. **Additional input** hoặc **personalization string** không thay thế nguồn entropy bí mật; đừng dùng tên người dùng/public data như “seed bổ sung” rồi cho rằng mức an ninh tăng lên.
+`DrbgParameters.nextBytes(strength, predictionResistance, additionalInput)` and `DrbgParameters.reseed(predictionResistance, additionalInput)` target use cases with explicit DRBG configurations. **Additional input** or **personalization strings** do not replace a secret entropy source; never treat a username or public data as "extra seed" thinking it increases security.
 
-## 8. Đặt random bytes vào đúng ngữ cảnh: token, salt, nonce, khóa
+## 8. Putting Random Bytes in Context: Tokens, Salts, Nonces, Keys
 
-Cùng gọi `nextBytes` nhưng từng trường hợp có điều kiện bảo mật riêng.
+Even though all call `nextBytes`, each use case has distinct security requirements.
 
-| Dùng vào việc gì | Yêu cầu chính | Ví dụ điển hình |
+| Purpose | Primary requirement | Typical example |
 | --- | --- | --- |
-| Token phiên / reset token | Khó đoán, đủ dài, truyền/lưu an toàn, hạn sử dụng/thu hồi | 32 byte từ CSPRNG → Base64url (43 ký tự). |
-| Salt cho password KDF | Độc nhất trên mỗi mật khẩu và đủ ngẫu nhiên; **không cần giữ bí mật** | 16 byte từ CSPRNG; lưu cạnh thông số KDF và password hash. |
-| Nonce/IV cho AES-GCM | **Tuyệt đối không lặp với cùng một khóa**; phải theo giới hạn và quy ước của GCM | Thường dùng 12 byte cho GCM; nguồn random tốt giảm xác suất đụng, nhưng không bảo đảm toán học không lặp. |
-| Secret key | Đúng thuật toán, kích thước và vòng đời khóa | Ưu tiên `KeyGenerator` hoặc API key management/HSM phù hợp, thường dựa CSPRNG. |
-| Mã OTP ngắn | Random đúng phân bố nhưng **không gian rất nhỏ** | Mã 6 chữ số chỉ 1.000.000 khả năng; bắt buộc có TTL, rate limit, chống replay. |
-| Mã định danh công khai | Có thể cần tính duy nhất hơn là bí mật | Chọn thiết kế ID theo yêu cầu; không tự suy ID = secret. |
+| Session token / reset token | Unpredictable, sufficiently long, securely transmitted/stored, expiration/revocation | 32 bytes from CSPRNG → Base64url (43 characters). |
+| Salt for password KDF | Unique per password and sufficiently random; **does not need to be secret** | 16 bytes from CSPRNG; stored alongside KDF parameters and password hash. |
+| Nonce/IV for AES-GCM | **Strictly never repeat under the same key**; must obey GCM limits and conventions | Typically 12 bytes for GCM; a good random source lowers collision chance, yet does not mathematically prove zero repeats. |
+| Secret key | Right algorithm, size, and key lifecycle | Prefer `KeyGenerator` or proper key management/HSM APIs, typically backed by CSPRNG. |
+| Short OTP code | Unbiased randomness, yet **very small space** | 6-digit code has only 1,000,000 possibilities; requires TTL, rate limits, anti-replay. |
+| Public identifier | May need uniqueness rather than secrecy | Choose ID design per requirements; never assume ID = secret. |
 
-**Nonce ≠ seed ≠ secret key.** Một nonce có thể công khai nhưng lặp nonce trong GCM với cùng khóa có thể phá an toàn. Seed là dữ liệu dùng để lập/trộn trạng thái bộ sinh; token/key là đầu ra phải bảo vệ. Không được tái sử dụng chính seed của một instance như thể nó là nonce duy nhất cho mọi bản mã.
+**Nonce ≠ seed ≠ secret key.** A nonce can be public, yet repeating a nonce in GCM with the same key can break security. A seed initializes/mixes generator state; tokens and keys are outputs that must be protected. Never reuse an instance's seed as if it were a unique nonce across ciphertexts.
 
-Ví dụ chọn số từ `0` đến `999_999` có giới hạn:
+Example drawing a bounded integer from `0` to `999_999`:
 
 ```java
 SecureRandom random = new SecureRandom();
@@ -334,21 +334,21 @@ int code = random.nextInt(1_000_000);
 String sixDigits = String.format(java.util.Locale.ROOT, "%06d", code);
 ```
 
-`nextInt(bound)` tránh thao tác chia dư thô như `(randomByte & 0xff) % 10`, vốn cho phân bố lệch nếu 256 không chia hết cho 10. Đoạn này chỉ minh họa tạo mã 6 chữ số; không phải một hệ thống OTP an toàn nếu thiếu thời hạn, xác minh server-side, giới hạn số lần thử và chống sử dụng lại.
+`nextInt(bound)` avoids naive modulo such as `(randomByte & 0xff) % 10`, which introduces distribution bias because 256 is not divisible by 10. This snippet only illustrates generating a 6-digit code; it is not a secure OTP system without expiration, server-side verification, attempt limits, and replay prevention.
 
-### Gợi ý sử dụng byte dữ liệu có trách nhiệm
+### Guidelines for Handling Byte Data Responsibly
 
-- `byte[]` có thể chứa số âm nếu log dưới dạng giá trị `byte` Java (`-128..127`); đó chỉ là biểu diễn signed byte, không phải “random lỗi”.
-- Nếu phải lưu/truyền byte, dùng Base64url/hex đúng định dạng và lưu ý encoding không tăng entropy.
-- Giữ secret trong memory tối thiểu, đừng đưa seed/raw key vào log; xóa mảng byte nhạy cảm khi thích hợp và khả thi (`Arrays.fill`), dù việc xóa không được bảo đảm toàn bộ bản sao hoặc bộ nhớ do runtime/GC quản lý.
-- Không suy ra rằng `getInstanceStrong()` luôn tốt hơn `new SecureRandom()` trong mọi ứng dụng. Nó chọn thuật toán theo `securerandom.strongAlgorithms` và có thể chặn/tốn tài nguyên, cần benchmark và đánh giá môi trường cụ thể.
-- Không cố định tên provider/thuật toán theo máy lập trình khi chưa có yêu cầu tương thích rõ ràng.
+- `byte[]` can contain negative numbers if logged as Java `byte` values (`-128..127`); that is merely signed-byte representation, not "broken randomness."
+- When storing/transmitting bytes, use properly formatted Base64url/hex and remember encoding does not increase entropy.
+- Keep secrets in memory minimally, never log seeds/raw keys; clear sensitive byte arrays when appropriate and feasible (`Arrays.fill`), though zeroing is not guaranteed to scrub all copies or memory managed by the runtime/GC.
+- Do not assume `getInstanceStrong()` is always better than `new SecureRandom()` for every application. It selects algorithms via `securerandom.strongAlgorithms` and may block or be expensive; benchmark and evaluate your specific environment.
+- Do not pin provider/algorithm names from a developer machine without an explicit compatibility requirement.
 
-## 9. Kiểm tra môi trường và provider trên Java 21
+## 9. Checking Environment and Providers on Java 21
 
-Nên báo cáo **runtime thật**, provider và thuật toán khi xem xét lỗi sản xuất.
+Always report the **actual runtime**, provider, and algorithm when investigating production issues.
 
-Có thể chạy đoạn snippet trong `jshell`:
+You can run this snippet in `jshell`:
 
 ```java
 import java.security.SecureRandom;
@@ -359,57 +359,57 @@ System.out.println(random.getProvider().getName());
 System.out.println(random.getParameters());
 ```
 
-Output ở đây **không cố định**: bản JDK, nhà phân phối, security properties, provider cấu hình và hệ điều hành đều có thể ảnh hưởng. `getParameters()` có thể trả về `null` cho provider không công bố effective DRBG parameters. Các phương thức hữu ích khác: `SecureRandom.getInstance("DRBG")` (nếu provider hỗ trợ), `SecureRandom.getInstanceStrong()` (nếu chính sách yêu cầu), `Security.getProviders()` để liệt kê provider.
+Output here is **not fixed**: JDK build, vendor, security properties, configured providers, and OS all affect it. `getParameters()` can return `null` for providers that do not expose effective DRBG parameters. Other useful methods: `SecureRandom.getInstance("DRBG")` (if supported by a provider), `SecureRandom.getInstanceStrong()` (if required by policy), and `Security.getProviders()` to list providers.
 
-Khi tự kiểm tra:
+Self-check checklist:
 
-1. `java -version`, `javac -version` và `Runtime.version()` phải phù hợp runtime mục tiêu.
-2. Nhận diện provider và thuật toán thực tế bằng `getProvider()`/`getAlgorithm()`.
-3. Kiểm tra startup/entropy source, policy reseed, giới hạn provider trong container/VM/HSM.
-4. Ghi nhận lỗi và metadata không nhạy cảm; **không log seed, random token, private key**.
-5. Dùng test tích hợp và security review đúng threat model, đừng coi vài sample output là chứng minh CSPRNG.
+1. `java -version`, `javac -version`, and `Runtime.version()` must match the target runtime.
+2. Identify the actual provider and algorithm with `getProvider()`/`getAlgorithm()`.
+3. Inspect startup/entropy sources, reseed policy, and provider limits in containers/VMs/HSMs.
+4. Record errors and non-sensitive metadata; **never log seeds, random tokens, or private keys**.
+5. Use integration tests and threat-model security reviews; never treat a few sample outputs as proof of a CSPRNG.
 
-## 10. Các lỗi nhận thức và vận hành hay gặp
+## 10. Common Conceptual and Operational Mistakes
 
-| Triệu chứng/khẳng định | Sai ở đâu | Cách xử lý |
+| Symptom / claim | What is wrong | How to handle |
 | --- | --- | --- |
-| “Tạo 32 byte nghĩa là có 256 bit entropy” | Output có thể được mở rộng từ seed rất yếu | Kiểm tra nguồn seed/entropy và provider. |
-| “Thêm timestamp giúp SecureRandom mạnh hơn” | Timestamp thường dự đoán được; gọi `setSeed` trước `nextBytes` có thể ngăn self-seeding | Bỏ seed tự chế; dùng entropy từ provider. |
-| “Cùng seed trên SecureRandom luôn ra cùng byte” | Provider và việc lấy/thêm entropy khác nhau | Không dùng `SecureRandom` làm cách tái lập dữ liệu kiểm thử. |
-| “Gọi reseed mỗi request mới bảo mật” | Có thể không hỗ trợ, có thể block, tốn tài nguyên; provider có policy riêng | Chỉ dùng theo yêu cầu thiết kế và tài liệu provider. |
-| `UnsupportedOperationException` từ `reseed()` | Provider/engine không hỗ trợ reseed | Dùng capability check khi là DRBG hoặc chọn provider đáp ứng yêu cầu. |
-| `NoSuchAlgorithmException: DRBG` | Không có service DRBG trong provider hiện hành | Xem JDK, cấu hình provider, hoặc dùng `new SecureRandom()` cho nhu cầu chung. |
-| Nhiều token trùng trong thử nghiệm | Có thể có seed cố định, clone state, lỗi tái sử dụng dữ liệu/caching hoặc bug hệ thống | Kiểm tra quy trình khởi tạo, triển khai, tính duy nhất và dữ liệu lưu; điều tra toàn đường đi. |
-| Token dài nhưng vẫn bị brute-force online | Secret bị lộ hoặc logic cho phép thử tùy ý; token ngắn có entropy thấp | Kiểm tra TTL, giới hạn thử, phân quyền, lưu token và mã hóa đường truyền. |
-| Token byte bị mất ký tự khi chuyển `new String(bytes)` | Byte tùy ý không phải văn bản UTF-8 hợp lệ | Dùng Base64url/hex để biểu diễn binary. |
-| Dùng random IV cho GCM rồi mặc nhiên bảo đảm không trùng | Random chỉ làm xác suất đụng thấp, không biến uniqueness thành tuyệt đối | Thiết kế quản lý nonce, giới hạn số lần mã hóa mỗi khóa và giám sát nguy cơ lặp. |
+| "Generating 32 bytes means 256 bits of entropy" | Output could be expanded from a very weak seed | Verify seed/entropy source and provider. |
+| "Adding a timestamp makes SecureRandom stronger" | Timestamps are often predictable; calling `setSeed` before `nextBytes` can prevent self-seeding | Remove homemade seeds; rely on provider entropy. |
+| "Same seed on SecureRandom always yields the same bytes" | Providers and entropy gathering/mixing differ | Never use `SecureRandom` to generate deterministic test fixtures. |
+| "Calling reseed on every request is more secure" | May be unsupported, may block, adds overhead; providers have their own policies | Only call when required by design and provider docs. |
+| `UnsupportedOperationException` from `reseed()` | Provider/engine does not support reseeding | Check capability for DRBGs or choose a provider meeting requirements. |
+| `NoSuchAlgorithmException: DRBG` | No DRBG service in active providers | Check JDK, provider config, or use `new SecureRandom()` for general needs. |
+| Duplicate tokens observed in testing | Could be fixed seed, cloned state, data reuse/caching bug, or system defect | Audit initialization, deployment, uniqueness invariants, and persistence end to end. |
+| Long token still brute-forced online | Secret leaked or unlimited guessing allowed; short token with low entropy | Check TTL, rate limiting, authorization, token storage, and transport encryption. |
+| Token bytes corrupted after `new String(bytes)` | Arbitrary bytes are not valid UTF-8 text | Use Base64url/hex for binary representation. |
+| Using random GCM IVs and assuming collisions are impossible | Randomness makes collisions rare, not mathematically impossible | Design nonce management, bound encryptions per key, and monitor collision risk. |
 
-**Không suy diễn tính bảo mật từ thống kê nhỏ.** Ví dụ hai lần tạo token khác nhau chỉ cho biết hai lần output khác nhau; bộ sinh không an toàn vẫn đạt điều đó. Ngược lại, xác suất trùng hợp tự nhiên của một CSPRNG không bằng 0; một phép thử tính uniqueness riêng lẻ cũng không chứng minh RNG hỏng.
+**Do not infer security from small statistics.** Seeing two distinct tokens only shows two outputs differed; an insecure generator achieves that too. Conversely, a CSPRNG's natural collision probability is non-zero; a single uniqueness check does not prove an RNG is broken either.
 
-**Không ép đầu ra random thành mật khẩu hoặc key bằng thao tác tùy tiện.** Nếu cần khóa AES, chọn `KeyGenerator.getInstance("AES")` cùng độ dài chính sách cho phép và hệ quản trị khóa phù hợp. Nếu cần hash mật khẩu, dùng password KDF được thiết kế riêng với salt, cost và quản lý tham số, thay vì “sha256(password + random)” tự chế.
+**Do not force random output into passwords or keys via ad-hoc tricks.** If you need an AES key, use `KeyGenerator.getInstance("AES")` with a policy-approved length and proper key management. If you need password hashing, use a dedicated password KDF with salt, cost, and parameter management rather than homemade "sha256(password + random)".
 
-## 11. Bài tập thực hành và tiêu chí đánh giá
+## 11. Hands-On Exercises and Evaluation Criteria
 
-**Bài 1 – Tạo token:** Chạy `SecureBytesDemo` trên Java 21 nhiều lần. Giải thích vì sao output chỉ in **32/256/43** thay vì in token thật. Nếu thay 32 byte bằng 16 byte, hãy tự tính chiều dài Base64url không padding và kiểm tra lại.
+**Exercise 1 – Generating tokens:** Run `SecureBytesDemo` on Java 21 multiple times. Explain why the output prints only **32/256/43** instead of printing the real token. If you change 32 bytes to 16 bytes, calculate the unpadded Base64url length yourself and verify.
 
-**Bài 2 – Phân tích entropy:** Một hệ thống lấy seed từ giờ phút gần đúng có thể nằm trong 2.000 mili giây khả dĩ. Nếu đó là entropy duy nhất, có tối đa bao nhiêu seed mà đối thủ cần kiểm tra? Vì sao băm seed bằng SHA-256 không làm tăng số trường hợp? *Gợi ý: 2.000 khả năng nhỏ hơn 2^11.*
+**Exercise 2 – Entropy analysis:** A system seeds from an approximate minute/second window spanning 2,000 possible milliseconds. If that is the sole entropy, at most how many seeds must an adversary test? Why does hashing the seed with SHA-256 not increase the number of cases? *Hint: 2,000 possibilities is less than 2^11.*
 
-**Bài 3 – Seed và tái lập:** Chạy `RepeatableSeedDemo`. Thử đổi một trong hai seed từ `123L` sang `124L`, giải thích vì sao output có thể khác. Sau đó nêu lý do không dùng mẫu `Random(seed)` để tạo reset token.
+**Exercise 3 – Seed and reproducibility:** Run `RepeatableSeedDemo`. Change one of the two seeds from `123L` to `124L` and explain why the output can differ. Then explain why the `Random(seed)` pattern must never be used to create reset tokens.
 
-**Bài 4 – Reseed:** Chạy `DrbgReseedDemo`. Ghi lại algorithm, provider, `getParameters()` và kết quả capability; nêu lý do không được gọi `reseed()` bừa bãi nếu không kiểm tra hỗ trợ.
+**Exercise 4 – Reseeding:** Run `DrbgReseedDemo`. Record algorithm, provider, `getParameters()`, and capability result; explain why `reseed()` must not be called blindly without checking support.
 
-**Bài 5 – Review một thiết kế:** Cho ba dòng `SecureRandom r = new SecureRandom(); r.setSeed(System.currentTimeMillis()); r.nextBytes(token);`, hãy mô tả khi nào initial self-seeding bị thay thế, rủi ro timestamp và phiên bản sửa đúng bằng `new SecureRandom()` + `nextBytes(token)`. Đừng khẳng định mọi provider sinh cùng byte với cùng timestamp.
+**Exercise 5 – Design review:** Given the three lines `SecureRandom r = new SecureRandom(); r.setSeed(System.currentTimeMillis()); r.nextBytes(token);`, describe when initial self-seeding is bypassed, the timestamp risk, and the corrected version using `new SecureRandom()` + `nextBytes(token)`. Do not claim every provider emits identical bytes for the same timestamp.
 
-**Bài 6 – Chọn random cho mục đích:** Phân biệt một token bí mật 32 byte, salt 16 byte, nonce AES-GCM 12 byte và OTP 6 chữ số. Với mỗi loại, cho biết điều kiện về bí mật, tính duy nhất, chống replay/rate-limit và lưu trữ.
+**Exercise 6 – Choosing randomness for purpose:** Distinguish a 32-byte secret token, 16-byte salt, 12-byte AES-GCM nonce, and 6-digit OTP. For each, state requirements on secrecy, uniqueness, anti-replay/rate-limiting, and storage.
 
-Hoàn thành bài khi có thể trả lời chính xác: **“Byte được tạo từ đâu? Seed ban đầu có khó đoán không? Khi nào provider tự seed hoặc reseed? Tôi đang dùng provider/DRBG nào và loại dữ liệu này đòi hỏi tính bí mật hay tính duy nhất?”**
+You have mastered the lesson when you can answer accurately: **"Where do the bytes come from? Is the initial seed unpredictable? When does the provider self-seed or reseed? Which provider/DRBG am I using, and does this data require secrecy or uniqueness?"**
 
-## Tài liệu tham khảo chính thức
+## Official References
 
-- [Java SE 21: `SecureRandom` Javadoc](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/SecureRandom.html) — constructor, `nextBytes`, `setSeed`, `generateSeed`, `reseed` và provider.
-- [Java SE 21: `DrbgParameters` Javadoc](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/DrbgParameters.html) — reseed/prediction-resistance capability và ví dụ sử dụng.
+- [Java SE 21: `SecureRandom` Javadoc](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/SecureRandom.html) — constructors, `nextBytes`, `setSeed`, `generateSeed`, `reseed`, and providers.
+- [Java SE 21: `DrbgParameters` Javadoc](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/DrbgParameters.html) — reseed/prediction-resistance capabilities and usage examples.
 - [Java SE 21: `SecureRandomParameters`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/SecureRandomParameters.html).
-- [JDK 21: Java Cryptography Architecture (JCA) Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-cryptography-architecture-jca-reference-guide.html) — RNG/provider và entropy.
-- [JDK 21: JDK Providers Documentation](https://docs.oracle.com/en/java/javase/21/security/oracle-providers.html) — các thuật toán/provider đi kèm Oracle JDK.
-- [JDK 21: Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html) — tên thuật toán và service bảo mật.
-- [NIST SP 800-90A Revision 1](https://csrc.nist.gov/pubs/sp/800/90/a/r1/final) — các mô hình DRBG và reseed.
+- [JDK 21: Java Cryptography Architecture (JCA) Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-cryptography-architecture-jca-reference-guide.html) — RNG/provider architecture and entropy.
+- [JDK 21: JDK Providers Documentation](https://docs.oracle.com/en/java/javase/21/security/oracle-providers.html) — algorithms/providers shipped with Oracle JDK.
+- [JDK 21: Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html) — standard security algorithm and service names.
+- [NIST SP 800-90A Revision 1](https://csrc.nist.gov/pubs/sp/800/90/a/r1/final) — DRBG models and reseeding.

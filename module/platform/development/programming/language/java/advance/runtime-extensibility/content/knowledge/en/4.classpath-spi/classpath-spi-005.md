@@ -1,113 +1,113 @@
-# Quan hệ giữa vị trí tệp đăng ký và khả năng nhìn thấy lớp provider
+# Relationship Between Registration File Location and Provider Class Visibility
 
-Trong Java SPI (Service Provider Interface) triển khai trên **classpath**, ứng dụng có thể gọi ServiceLoader để tìm các lớp hiện thực một interface mà không cần viết trực tiếp tên lớp vào mã ứng dụng. Tuy nhiên, việc một JAR có chứa lớp provider **không bảo đảm** ServiceLoader tìm được provider đó; ngược lại, tìm được tệp đăng ký cũng **không bảo đảm** nạp được lớp provider.
+In a Java SPI (Service Provider Interface) deployed on the **classpath**, an application can call `ServiceLoader` to locate classes implementing an interface without writing concrete class names directly into application code. However, having a JAR contain the provider class **does not guarantee** `ServiceLoader` will find that provider; conversely, finding the registration file **does not guarantee** the provider class can be loaded.
 
-Bài học này giải thích đúng hai điều kiện liên quan với nhau:
+This lesson explains those two interrelated conditions precisely:
 
-1. **Tệp đăng ký được nhìn thấy dưới dạng resource**: class loader mà ServiceLoader sử dụng phải tìm được resource có đường dẫn chính xác META-INF/services/<tên đầy đủ của service>.
-2. **Lớp provider được nhìn thấy dưới dạng class và tương thích với service**: tên lớp ghi trong resource phải nạp được thông qua class loader đang dùng; lớp phải đúng loại, đáp ứng hợp đồng khởi tạo và dùng cùng danh tính kiểu service với ứng dụng.
+1. **The registration file is visible as a resource**: the class loader used by `ServiceLoader` must find a resource with the exact path `META-INF/services/<fully-qualified-service-name>`.
+2. **The provider class is visible as a class and compatible with the service**: the class name written in the resource must be loadable through the active class loader; the class must be the right kind, satisfy the instantiation contract, and share the same service type identity with the application.
 
-Đây là hai bước riêng biệt. Một ứng dụng có thể nhìn thấy lớp provider nhưng không thấy tệp đăng ký; cũng có thể nhìn thấy tệp đăng ký nhưng không thể nạp lớp được nêu trong đó.
+These are two separate steps. An application can see the provider class without seeing the registration file; it can also see the registration file without being able to load the class named inside it.
 
-## 1. Chuỗi khám phá của ServiceLoader trên classpath
+## 1. The ServiceLoader Discovery Chain on the Classpath
 
-Giả sử ứng dụng có service interface **demo.spi.Formatter** và lớp triển khai **demo.impl.UpperFormatter**. Một provider thông thường được tìm qua quá trình sau:
+Suppose the application has a service interface **demo.spi.Formatter** and an implementation class **demo.impl.UpperFormatter**. A typical provider is located through the following process:
 
 ~~~text
-Ứng dụng: ServiceLoader.load(Formatter.class)
+Application: ServiceLoader.load(Formatter.class)
                        |
                        v
-Chọn ClassLoader L
-  - Mặc định: context class loader của thread hiện tại (TCCL)
-  - Hoặc: ClassLoader truyền tường minh vào load(service, L)
+Choose ClassLoader L
+  - Default: current thread's context class loader (TCCL)
+  - Or: ClassLoader explicitly passed to load(service, L)
                        |
                        v
-Tìm resource: L.getResources("META-INF/services/demo.spi.Formatter")
+Find resource: L.getResources("META-INF/services/demo.spi.Formatter")
                        |
            +-----------+-----------+
            |                       |
-     Không có resource        Có resource
+      No resource             Resource found
            |                       |
            v                       v
-    Không phát hiện       Đọc UTF-8, lấy tên provider
-    provider từ file                |
+  No providers discovered    Read UTF-8, extract provider name
+  from file                        |
                                    v
-                       Thử nạp demo.impl.UpperFormatter
-                       bằng cơ chế class loading tương ứng
+                       Attempt to load demo.impl.UpperFormatter
+                       via the corresponding class-loading mechanism
                                    |
                       +------------+------------+
                       |                         |
-                  Không nạp được             Nạp được
+                 Cannot load                 Loaded
                       |                         |
                       v                         v
-             ServiceConfigurationError    Kiểm tra kiểu và
-             khi duyệt provider           cách tạo instance
+             ServiceConfigurationError    Check type and
+             during provider iteration    instantiation rules
                                                 |
                                   +-------------+-------------+
                                   |                           |
-                               Hợp lệ                     Không hợp lệ
+                                Valid                      Invalid
                                   |                           |
                                   v                           v
-                          Tạo provider theo nhu cầu     ServiceConfigurationError
-                          và đưa tới ứng dụng          khi duyệt provider
+                          Instantiate provider         ServiceConfigurationError
+                          on demand and return to app  during provider iteration
 ~~~
 
-Sơ đồ tập trung vào **provider trên classpath (unnamed module)**. Trong JVM có named modules, ServiceLoader còn thực hiện khám phá provider theo module descriptor, được phân biệt ở phần sau.
+The diagram focuses on **providers on the classpath (unnamed modules)**. In a JVM with named modules, `ServiceLoader` also performs provider discovery via module descriptors, which is distinguished later.
 
-Có hai mốc thời gian cần nhớ:
+There are two timing milestones to remember:
 
-- Lời gọi ServiceLoader.load(...) chủ yếu tạo đối tượng phục vụ khám phá; việc phân tích tệp, nạp và tạo provider có tính **lazy**, thường xảy ra khi gọi iterator/next, findFirst hoặc xử lý stream.
-- Khi không có tệp đăng ký nào phù hợp, thao tác duyệt có thể trả về danh sách rỗng. Khi tệp có khai báo sai, thao tác duyệt thường ném **ServiceConfigurationError**, thay vì im lặng bỏ qua cấu hình lỗi.
+- Calling `ServiceLoader.load(...)` primarily creates the discovery object; file parsing, loading, and provider creation are **lazy**, typically occurring when calling `iterator`/`next`, `findFirst`, or processing a stream.
+- When no matching registration file exists, iteration can return an empty sequence. When a file has an invalid declaration, iteration typically throws **`ServiceConfigurationError`**, rather than silently ignoring the broken configuration.
 
-**Điều kiện cần** để một provider được phát hiện qua cơ chế tệp đăng ký classpath là đường dẫn resource đúng và nhìn thấy được, tên provider được khai báo đúng, lớp provider có thể được loader cần thiết nạp và đáp ứng hợp đồng service. Việc lớp và tệp nằm cạnh nhau chỉ là một cách đóng gói thuận tiện; **không phải** điều kiện bắt buộc.
+**Necessary conditions** for a provider to be discovered through the classpath registration file mechanism are that the resource path is correct and visible, the provider name is declared properly, the provider class can be loaded by the required loader, and it fulfills the service contract. Placing the class and the file next to each other is merely a convenient packaging choice; it is **not** a mandatory requirement.
 
-## 2. Tệp đăng ký phải nằm ở đâu?
+## 2. Where Must the Registration File Reside?
 
-Với SPI trên classpath, tên resource luôn theo mẫu:
+For a classpath SPI, the resource name always follows the pattern:
 
 ~~~text
 META-INF/services/<fully.qualified.ServiceType>
 ~~~
 
-Ví dụ:
+For example:
 
 ~~~text
 META-INF/services/demo.spi.Formatter
 ~~~
 
-Nội dung UTF-8 của tệp này:
+UTF-8 content of this file:
 
 ~~~text
 demo.impl.UpperFormatter
 ~~~
 
-Phải phân biệt **tên tệp** và **nội dung tệp**:
+You must distinguish **the file name** from **the file contents**:
 
-| Thành phần | Dùng tên của ai? | Ví dụ |
+| Component | Whose Name Is Used? | Example |
 | --- | --- | --- |
-| Tệp trong META-INF/services | **Service interface hoặc service class** | META-INF/services/demo.spi.Formatter |
-| Một dòng trong tệp | **Lớp provider triển khai service** | demo.impl.UpperFormatter |
-| Class file thực tế | Đường dẫn package của provider | demo/impl/UpperFormatter.class |
+| File inside `META-INF/services` | **Service interface or service class** | `META-INF/services/demo.spi.Formatter` |
+| One line inside the file | **Provider class implementing the service** | `demo.impl.UpperFormatter` |
+| Actual class file | Package directory path of the provider | `demo/impl/UpperFormatter.class` |
 
-Tên phải là **tên nhị phân đầy đủ** (fully qualified binary name), khớp chữ hoa/chữ thường. Không thêm phần mở rộng .class, không ghi đường dẫn filesystem thay tên lớp và không dùng tên đơn giản UpperFormatter khi provider nằm trong package. Tệp đăng ký không phải file Java, không phải annotation và không được đặt cùng thư mục package với Formatter.class.
+Names must be **fully qualified binary names**, matching letter case. Do not append a `.class` extension, do not write filesystem paths instead of class names, and do not use the simple name `UpperFormatter` when the provider resides in a package. The registration file is not a Java source file, not an annotation, and must not be placed in the same package directory as `Formatter.class`.
 
-Một tệp có thể chứa nhiều provider, mỗi tên trên một dòng, có dòng trống và chú thích bắt đầu bằng #. Tên bị lặp lại trong cùng tệp hoặc xuất hiện ở nhiều tệp cấu hình cùng service sẽ được ServiceLoader bỏ qua bản trùng khi khám phá. Thứ tự provider trên classpath phụ thuộc thứ tự các resource mà loader tìm được, rồi đến thứ tự tên trong mỗi tệp; ứng dụng không nên coi thứ tự classpath toàn hệ thống là chính sách ưu tiên bền vững.
+A file can contain multiple providers, one name per line, with blank lines and comments starting with `#`. Names repeated within the same file or appearing across multiple configuration files for the same service are deduplicated by `ServiceLoader` during discovery. Provider ordering on the classpath depends on the order in which resources are found by the loader, and then the order of names in each file; applications should not treat system-wide classpath order as a durable priority policy.
 
-### Đường dẫn nguồn và đường dẫn runtime là hai chuyện khác nhau
+### Source Paths and Runtime Paths Are Two Different Things
 
-Trong dự án Maven/Gradle thông dụng, tệp được **viết** ở:
+In a typical Maven/Gradle project, the file is **authored** at:
 
 ~~~text
 provider-project/src/main/resources/META-INF/services/demo.spi.Formatter
 ~~~
 
-Nhưng khi chạy, nó phải nằm tại **gốc classpath root hoặc gốc JAR** ở vị trí:
+Yet at runtime, it must sit at the **classpath root or JAR root** at the location:
 
 ~~~text
 META-INF/services/demo.spi.Formatter
 ~~~
 
-Khi đóng gói một provider JAR đúng, cấu trúc cuối cùng có thể như sau:
+When a provider JAR is packaged properly, the final structure looks like:
 
 ~~~text
 provider.jar
@@ -120,43 +120,43 @@ provider.jar
         └── UpperFormatter.class
 ~~~
 
-Nếu tệp còn bị đóng gói thành **src/main/resources/META-INF/services/demo.spi.Formatter** bên trong JAR, ServiceLoader tìm đường dẫn bắt đầu từ META-INF/services sẽ không thấy nó. Tương tự, một file ở **META-INF/service/** (thiếu chữ s), tên interface sai package hay khác chữ hoa/chữ thường cũng không khớp.
+If the file ends up packaged as **src/main/resources/META-INF/services/demo.spi.Formatter** inside the JAR, `ServiceLoader` searching from `META-INF/services` will not see it. Similarly, a file under **META-INF/service/** (missing the `s`), with the wrong package for the interface name, or with mismatched letter case will not match.
 
-Resource phải thực sự được đưa vào bản build. Chỉ tạo tệp trong source tree chưa đủ; hãy kiểm tra sản phẩm cuối cùng bằng lệnh jar --list hoặc jar --describe-module tùy mục đích. Đừng suy luận từ IDE rằng tệp chắc chắn có trong JAR.
+The resource must actually be included in the build artifact. Creating the file in the source tree is not enough; verify the final artifact with `jar --list` or `jar --describe-module` as appropriate. Do not infer from your IDE that the file is definitely in the JAR.
 
-## 3. Vì sao tìm được tệp đăng ký vẫn có thể không nạp được provider?
+## 3. Why Can Finding the Registration File Still Fail to Load the Provider?
 
-Sau khi thấy dòng demo.impl.UpperFormatter, ServiceLoader còn phải làm việc với **class**, không chỉ với resource.
+After seeing the line `demo.impl.UpperFormatter`, `ServiceLoader` still has to work with the **class**, not just the resource.
 
-Một provider trên classpath thông thường phải:
+A typical classpath provider must:
 
-1. Là **lớp public, concrete** triển khai hoặc kế thừa đúng kiểu service; tránh abstract class hoặc interface dùng làm provider classpath.
-2. Có **public constructor không tham số** để ServiceLoader khởi tạo; các constructor còn lại có thể tồn tại nhưng không thay thế điều kiện này.
-3. Có bytecode của chính nó và các lớp phụ thuộc cần thiết được class loader nạp được.
-4. Khi kiểm tra kiểu, thực sự **assignable** tới đối tượng Class của service mà ứng dụng đã truyền vào ServiceLoader.
+1. Be a **`public`, concrete class** implementing or extending the exact service type; avoid abstract classes or interfaces as classpath providers.
+2. Have a **public no-argument constructor** for `ServiceLoader` to instantiate it; other constructors may exist but do not replace this requirement.
+3. Have its own bytecode and required dependency classes loadable by the class loader.
+4. When type-checked, actually be **assignable** to the service `Class` object passed by the application to `ServiceLoader`.
 
-Yếu tố cuối rất quan trọng: trong JVM, danh tính lớp gắn với **tên nhị phân và class loader định nghĩa lớp**. Hai kiểu cùng tên demo.spi.Formatter nhưng được định nghĩa bởi hai class loader khác nhau là hai Class khác nhau. Vì vậy, một provider biên dịch với một bản Formatter riêng trong child-first loader có thể bị đánh giá là không triển khai Formatter của host.
+That last factor is critical: in the JVM, class identity is tied to **binary name and the class loader that defined the class**. Two types both named `demo.spi.Formatter` defined by two different class loaders are two distinct `Class` objects. Therefore, a provider compiled against its own copy of `Formatter` inside a child-first loader can be judged as not implementing the host's `Formatter`.
 
-Cách thiết kế thường dùng cho plugin là đặt **service API chung ở loader cha**, để provider loader ủy quyền nạp Formatter cho cha. Plugin giữ riêng lớp triển khai và phụ thuộc đặc thù, còn host cùng plugin dùng chung một đối tượng Class cho interface.
+A common plugin design puts the **shared service API in the parent loader**, so the provider loader delegates loading `Formatter` to the parent. The plugin keeps its implementation classes and specific dependencies isolated, while host and plugin share a single `Class` object for the interface.
 
-### Các kiểu “nhìn thấy” khác nhau
+### Different Kinds of "Visibility"
 
-- **Resource visibility**: loader tìm được tệp đăng ký qua getResources(path).
-- **Class visibility**: loader nạp được tên provider và những phụ thuộc của provider.
-- **Type compatibility**: provider thật sự là subtype/implementation của cùng Class service mà caller dùng.
-- **Instantiation**: provider có constructor hợp lệ và khởi tạo thành công.
+- **Resource visibility**: the loader finds the registration file via `getResources(path)`.
+- **Class visibility**: the loader can load the provider name and the provider's dependencies.
+- **Type compatibility**: the provider is genuinely a subtype/implementation of the same service `Class` used by the caller.
+- **Instantiation**: the provider has a valid constructor and initializes successfully.
 
-Chỉ thỏa một hoặc hai bước đầu vẫn chưa đủ. Không nên dùng Class.forName(providerName) với loader mặc định làm chứng cứ duy nhất, bởi caller của phương thức đó và ServiceLoader có thể dùng hai loader khác nhau.
+Satisfying only the first one or two steps is not enough. You should not use `Class.forName(providerName)` with the default loader as sole proof, because the caller of that method and `ServiceLoader` may be using two different loaders.
 
-## 4. Ví dụ Java 17: ba JAR và hai cách chọn class loader
+## 4. Java 17 Example: Three JARs and Two Ways of Choosing a Class Loader
 
-Ví dụ tự chạy này cố ý tách ba thành phần:
+This self-contained example intentionally separates three components:
 
-- **api.jar**: hợp đồng demo.spi.Formatter dùng chung.
-- **provider.jar**: lớp demo.impl.UpperFormatter cùng tệp META-INF/services/demo.spi.Formatter.
-- **app.jar**: ứng dụng dùng ServiceLoader.
+- **api.jar**: shared contract `demo.spi.Formatter`.
+- **provider.jar**: class `demo.impl.UpperFormatter` along with `META-INF/services/demo.spi.Formatter`.
+- **app.jar**: application using `ServiceLoader`.
 
-Cấu trúc file nguồn:
+Source file structure:
 
 ~~~text
 spi-demo/
@@ -230,7 +230,7 @@ public final class Main {
         }
 
         if (args.length == 1 && args[0].equals("child")) {
-            // Classpath hệ thống của lần chạy này không chứa provider.jar.
+            // The system classpath for this run does not contain provider.jar.
             show("context", ServiceLoader.load(Formatter.class));
 
             URL providerUrl = Path.of("build/provider.jar").toUri().toURL();
@@ -238,13 +238,13 @@ public final class Main {
                     new URL[] { providerUrl },
                     Formatter.class.getClassLoader())) {
 
-                // Loader này thấy provider.jar và dùng chung Formatter từ cha.
+                // This loader sees provider.jar and shares Formatter from the parent.
                 show("child", ServiceLoader.load(Formatter.class, pluginLoader));
             }
             return;
         }
 
-        throw new IllegalArgumentException("Dùng không đối số hoặc child");
+        throw new IllegalArgumentException("Use no arguments or child");
     }
 
     private static void show(String label, ServiceLoader<Formatter> loader) {
@@ -260,11 +260,11 @@ public final class Main {
 }
 ~~~
 
-Code không phụ thuộc framework hay thư viện bên ngoài. Chương trình chạy trên **JDK 17+**; đầu ra cố định vì chỉ có một provider và định dạng chuỗi dùng Locale.ROOT.
+The code depends on no external frameworks or libraries. The program runs on **JDK 17+**; output is deterministic because there is only one provider and string formatting uses `Locale.ROOT`.
 
-### Biên dịch và đóng gói
+### Compiling and Packaging
 
-Từ thư mục **spi-demo**, chạy trong Bash (Linux/macOS/Git Bash):
+From the **spi-demo** directory, run in Bash (Linux/macOS/Git Bash):
 
 ~~~bash
 mkdir -p build/api build/provider build/app build/provider/META-INF/services
@@ -279,61 +279,61 @@ jar --create --file build/provider.jar -C build/provider .
 jar --create --file build/app.jar -C build/app .
 ~~~
 
-Trên Windows PowerShell, có thể thay lệnh mkdir -p bằng New-Item -ItemType Directory -Force cho từng thư mục và thay cp bằng Copy-Item. Các lệnh javac và jar còn lại giữ nguyên.
+On Windows PowerShell, you can replace `mkdir -p` with `New-Item -ItemType Directory -Force` for each directory and replace `cp` with `Copy-Item`. The remaining `javac` and `jar` commands stay the same.
 
-Kiểm tra nội dung JAR sau build:
+Inspect the JAR contents after building:
 
 ~~~bash
 jar --list --file build/provider.jar
 ~~~
 
-Trong danh sách phải có cả hai entry:
+Both entries must appear in the list:
 
 ~~~text
 META-INF/services/demo.spi.Formatter
 demo/impl/UpperFormatter.class
 ~~~
 
-Lưu ý: lệnh jar --list còn có thể hiển thị thư mục và manifest; hai dòng trên là **các entry cần kiểm tra**, không phải toàn bộ stdout.
+Note: `jar --list` may also display directories and the manifest; the two lines above are **the entries to verify**, not the entire stdout.
 
-### Thí nghiệm A: classpath không chứa provider.jar
+### Experiment A: Classpath Without provider.jar
 
 ~~~bash
 java -cp "build/api.jar:build/app.jar" demo.app.Main
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 context count=0
 ~~~
 
-Ứng dụng có interface Formatter và mã gọi ServiceLoader, nhưng loader mặc định không nhìn thấy tệp đăng ký trong provider.jar vì JAR đó chưa được đưa vào classpath. Không tìm được provider không đồng nghĩa code UpperFormatter sai.
+The application has the `Formatter` interface and the `ServiceLoader` call, yet the default loader does not see the registration file inside `provider.jar` because that JAR was not put on the classpath. Failing to find a provider does not mean `UpperFormatter`'s code is wrong.
 
-### Thí nghiệm B: đưa provider.jar vào classpath
+### Experiment B: Putting provider.jar on the Classpath
 
 ~~~bash
 java -cp "build/api.jar:build/provider.jar:build/app.jar" demo.app.Main
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 context -> demo.impl.UpperFormatter: XIN CHÀO
 context count=1
 ~~~
 
-Bây giờ context class loader của thread chính (ở ứng dụng chạy tiêu chuẩn này là application class loader) nhìn thấy tệp META-INF/services/demo.spi.Formatter và lớp demo.impl.UpperFormatter, đồng thời provider triển khai Formatter lấy từ api.jar.
+Now the main thread's context class loader (in this standard launch, the application class loader) sees `META-INF/services/demo.spi.Formatter` and `demo.impl.UpperFormatter`, and the provider implements `Formatter` taken from `api.jar`.
 
-### Thí nghiệm C: provider.jar chỉ có trong child URLClassLoader
+### Experiment C: provider.jar Present Only in a Child URLClassLoader
 
-Giữ provider.jar ngoài classpath hệ thống và truyền tham số child:
+Keep `provider.jar` off the system classpath and pass the `child` argument:
 
 ~~~bash
 java -cp "build/api.jar:build/app.jar" demo.app.Main child
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 context count=0
@@ -341,102 +341,102 @@ child -> demo.impl.UpperFormatter: XIN CHÀO
 child count=1
 ~~~
 
-Đây là bằng chứng quan trọng về quan hệ **vị trí resource – loader được chọn – khả năng nạp class**:
+This is crucial evidence of the relationship between **resource location – chosen loader – class loading capability**:
 
-- Lần gọi ServiceLoader.load(Formatter.class) dùng context class loader của thread hiện tại. Loader này không có provider.jar nên không thấy đăng ký.
-- Lần gọi ServiceLoader.load(Formatter.class, pluginLoader) dùng URLClassLoader mới có URL trỏ đến provider.jar. Nó thấy tệp đăng ký và nạp provider.
-- Parent của pluginLoader là Formatter.class.getClassLoader(); nhờ ủy quyền từ loader con sang loader cha cho service API, provider và host cùng dùng một kiểu Formatter.
+- The `ServiceLoader.load(Formatter.class)` call uses the current thread's context class loader. This loader lacks `provider.jar`, so it sees no registration.
+- The `ServiceLoader.load(Formatter.class, pluginLoader)` call uses the new `URLClassLoader` whose URL points to `provider.jar`. It sees the registration file and loads the provider.
+- The parent of `pluginLoader` is `Formatter.class.getClassLoader()`; thanks to delegating from child loader to parent loader for the service API, provider and host use the exact same `Formatter` type.
 
-Nếu sau đó gọi ServiceLoader.load(Formatter.class) từ thread đã tạm **đặt context class loader thành pluginLoader**, lần khám phá cũng có thể thấy provider; phải khôi phục loader cũ trong finally và tránh giữ lại class loader/plugin đã được đóng. Sử dụng tham số loader tường minh thường dễ kiểm soát hơn khi host chủ động quản lý từng plugin.
+If you subsequently call `ServiceLoader.load(Formatter.class)` from a thread whose **context class loader was temporarily set to `pluginLoader`**, discovery can also see the provider; you must restore the old loader in a `finally` block and avoid retaining references to a closed class loader/plugin. Using an explicit loader parameter is usually easier to control when the host actively manages individual plugins.
 
-**Trên Windows**, classpath separator là dấu chấm phẩy (**;**), còn trên Linux/macOS là dấu hai chấm (**:**). Vì vậy phần -cp của ví dụ A có thể viết -cp "build/api.jar;build/app.jar" trong PowerShell. Đây là dấu phân cách phần tử classpath, không thuộc đường dẫn META-INF/services trong JAR.
+**On Windows**, the classpath separator is a semicolon (**;**), whereas on Linux/macOS it is a colon (**:**). Therefore the `-cp` part of Experiment A can be written `-cp "build/api.jar;build/app.jar"` in PowerShell. This is the classpath element separator, not part of the `META-INF/services` path inside a JAR.
 
-## 5. Thí nghiệm phân biệt “có class” với “có đăng ký”
+## 5. Experiment Distinguishing "Having the Class" from "Having the Registration"
 
-Từ build/provider đã tạo ở trên, có thể đóng thêm hai JAR cố tình tách phần lớp và phần resource:
+From `build/provider` created above, you can package two additional JARs that intentionally separate the class part and the resource part:
 
 ~~~bash
-# Chỉ chứa package demo/impl/..., không chứa META-INF/services
+# Contains only package demo/impl/..., without META-INF/services
 jar --create --file build/class-only.jar -C build/provider demo
 
-# Chỉ chứa META-INF/services/..., không chứa demo/impl/...
+# Contains only META-INF/services/..., without demo/impl/...
 jar --create --file build/registry-only.jar -C build/provider META-INF
 ~~~
 
-**Trường hợp 1 — chỉ có class, thiếu tệp đăng ký:**
+**Case 1 — class only, missing registration file:**
 
 ~~~bash
 java -cp "build/api.jar:build/class-only.jar:build/app.jar" demo.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 context count=0
 ~~~
 
-JVM có thể nạp lớp provider nếu được yêu cầu bằng tên, nhưng ServiceLoader không có resource khai báo provider để khám phá.
+The JVM could load the provider class if requested by name, yet `ServiceLoader` has no resource declaring the provider to discover.
 
-**Trường hợp 2 — chỉ có đăng ký, không có class:**
+**Case 2 — registration only, missing class:**
 
 ~~~bash
 java -cp "build/api.jar:build/registry-only.jar:build/app.jar" demo.app.Main
 ~~~
 
-Khi duyệt provider, chương trình sẽ thất bại với **ServiceConfigurationError**, do tên demo.impl.UpperFormatter được khai báo nhưng không thể nạp. Stack trace và cách diễn đạt chính xác có thể thay đổi theo phiên bản JDK; điểm cần kiểm tra là **lỗi lúc khám phá/nạp provider**, chứ không phải một danh sách rỗng hợp lệ.
+When iterating over providers, the program will fail with **`ServiceConfigurationError`**, because `demo.impl.UpperFormatter` is declared yet cannot be loaded. The exact stack trace and wording can vary by JDK version; what matters is **failure during provider discovery/loading**, rather than a valid empty list.
 
-**Trường hợp 3 — class và đăng ký ở hai JAR khác nhau nhưng cùng nhìn thấy được:**
+**Case 3 — class and registration in two separate JARs yet both visible:**
 
 ~~~bash
 java -cp "build/api.jar:build/registry-only.jar:build/class-only.jar:build/app.jar" demo.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 context -> demo.impl.UpperFormatter: XIN CHÀO
 context count=1
 ~~~
 
-Điều này chứng minh **resource và provider class không bắt buộc nằm chung một JAR**. Điều quyết định là loader khởi đầu được ServiceLoader sử dụng nhìn thấy resource và nạp được provider trong mô hình class loading hiệu lực. Tuy vậy, khi phân phối plugin độc lập, đóng chung khai báo và implementation vào một provider JAR thường giúp tránh thiếu một trong hai phần.
+This proves that **the resource and the provider class do not have to be in the same JAR**. What decides the outcome is whether the initiating loader used by `ServiceLoader` sees the resource and can load the provider under the effective class-loading model. Still, when distributing an independent plugin, packaging declaration and implementation together in one provider JAR helps avoid missing one of the two parts.
 
-## 6. Quan hệ giữa class loader cha, con và thread context class loader
+## 6. Relationship Between Parent, Child, and Thread Context Class Loaders
 
-Một class loader có thể tìm resource hoặc class từ những vị trí khác nhau. Với URLClassLoader thông dụng, yêu cầu thường được ủy quyền lên parent trước; một số container/plugin framework dùng quy tắc khác. Bởi vậy, **không suy luận quyền nhìn thấy chỉ từ việc class hoặc JAR tồn tại trên ổ đĩa**. Phải xét loader cụ thể mà ServiceLoader đang dùng, parent chain, URL/classpath được gán và các chính sách của framework.
+A class loader can look up resources or classes from different places. With the common `URLClassLoader`, requests normally delegate to the parent first; some containers/plugin frameworks use different rules. Therefore, **do not infer visibility solely from a class or JAR existing on disk**. You must examine the specific loader `ServiceLoader` is using, its parent chain, assigned URLs/classpath, and framework policies.
 
-| Phân bố thực tế | Loader truyền cho ServiceLoader | Hệ quả thường gặp |
+| Actual Distribution | Loader Passed to ServiceLoader | Common Consequence |
 | --- | --- | --- |
-| Provider JAR không có trong bất kỳ URL/classpath nào của loader được dùng | Application loader | Không thấy tệp đăng ký, 0 provider từ JAR đó |
-| Đăng ký và class cùng trong provider JAR mà loader thấy | Application loader | Tìm resource và nạp provider thành công nếu hợp đồng hợp lệ |
-| Lớp provider thấy được nhưng resource không nằm đúng đường dẫn | Loader có class | Không tự nhận biết provider; 0 provider từ tệp thiếu |
-| Resource nhìn thấy, lớp provider không nạp được | Loader có resource | ServiceConfigurationError khi duyệt |
-| Loader con thấy provider JAR, loader cha chỉ thấy service API | Loader con | Thành công khi chia sẻ cùng service Class qua parent |
-| Loader cha chỉ thấy API, ứng dụng gọi ServiceLoader.load(service) trong thread có TCCL là cha | Loader cha | Không tìm được provider chỉ nằm ở loader con |
-| Plugin có bản sao riêng của API được định nghĩa thành Class khác | Có thể thấy resource và lớp | Có thể gặp lỗi provider không là subtype của service bên host |
+| Provider JAR is absent from all URLs/classpath of the loader used | Application loader | Does not see registration file, 0 providers from that JAR |
+| Registration and class both in a provider JAR visible to the loader | Application loader | Finds resource and loads provider if contract is valid |
+| Provider class visible but resource is not at the exact path | Loader with the class | Does not auto-detect provider; 0 providers for the missing file |
+| Resource visible, provider class cannot be loaded | Loader with the resource | `ServiceConfigurationError` during iteration |
+| Child loader sees provider JAR, parent loader sees only service API | Child loader | Succeeds when sharing the same service `Class` via parent |
+| Parent loader sees only API, app calls `ServiceLoader.load(service)` on a thread whose TCCL is parent | Parent loader | Cannot find providers residing only in child loader |
+| Plugin has its own copy of API defined as a different `Class` | May see resource and class | May fail with provider not being a subtype of host's service |
 
-Trường hợp tài nguyên được tìm từ loader cha nhưng lớp nằm ở loader con cần phân tích theo **loader khởi đầu trong ServiceLoader.load(service, loader)**. Theo hợp đồng Java SE 17, provider được đăng ký bằng tệp resource có thể nằm JAR khác với tệp; lớp provider phải nhìn thấy được từ loader **ban đầu được truy vấn** để tìm resource, không nhất thiết trùng loader cuối cùng tìm ra resource đó.
+The case where a resource is found from a parent loader while the class resides in a child loader must be analyzed via the **initiating loader in `ServiceLoader.load(service, loader)`**. Under the Java SE 17 contract, a provider registered via a resource file can reside in a different JAR from the file; the provider class must be visible from the loader **initially queried** to find resources, not necessarily identical to the loader that ultimately found that resource.
 
-**TCCL (thread context class loader)** cho phép hạ tầng chung, dù được định nghĩa trong loader cha, tìm extension của ứng dụng chạy dưới loader con. Mặc định, ServiceLoader.load(Formatter.class) tương đương lời gọi với Thread.currentThread().getContextClassLoader(). TCCL là trạng thái của từng thread, nên môi trường server, thread pool, worker hoặc executor có thể chọn loader khác thread gọi ban đầu.
+**TCCL (thread context class loader)** allows shared infrastructure, even when defined in a parent loader, to locate extensions of an application running under a child loader. By default, `ServiceLoader.load(Formatter.class)` is equivalent to calling with `Thread.currentThread().getContextClassLoader()`. TCCL is per-thread state, so server environments, thread pools, workers, or executors may carry a different loader than the originating caller thread.
 
-Trong host plugin, nên quy định một quy tắc nhất quán: sử dụng **ServiceLoader.load(Service.class, pluginLoader)** mỗi lần khám phá, hoặc quản lý TCCL có chủ đích và luôn khôi phục sau khi thao tác. Tránh cache một ServiceLoader dùng TCCL cho tất cả ứng dụng/tenant: loader được dùng khi tạo nó có thể không phù hợp cho yêu cầu sau và việc giữ cache có thể ngăn thu gom class loader cũ.
+In a plugin host, establish a consistent rule: use **`ServiceLoader.load(Service.class, pluginLoader)`** for every discovery, or manage TCCL deliberately and always restore it afterward. Avoid caching a single `ServiceLoader` using TCCL across all applications/tenants: the loader active when it was created may be wrong for subsequent requests, and holding the cache can prevent garbage collection of old class loaders.
 
-## 7. Chẩn đoán lỗi theo đúng thứ tự
+## 7. Diagnosing Errors in the Proper Order
 
-Khi ServiceLoader không trả provider mong muốn, kiểm tra từ **artifact -> resource -> class -> type -> khởi tạo**, thay vì đoán lỗi constructor ngay.
+When `ServiceLoader` does not return the expected provider, inspect in order from **artifact -> resource -> class -> type -> instantiation**, rather than guessing constructor bugs right away.
 
-### Bước 1 — kiểm tra sản phẩm đóng gói
+### Step 1 — Inspect the Packaged Artifact
 
-Kiểm tra provider JAR đã thật sự có class và resource:
+Verify the provider JAR actually contains the class and resource:
 
 ~~~bash
 jar --list --file build/provider.jar
 ~~~
 
-Tìm chính xác META-INF/services/demo.spi.Formatter và demo/impl/UpperFormatter.class. Với ứng dụng dùng Maven/Gradle, xem JAR **sau khi build/shade/fat-jar**, không chỉ cây thư mục nguồn. Nếu resource đã bị bỏ khỏi JAR, chuyển vào đúng src/main/resources và cấu hình copy resources.
+Look for the exact entries `META-INF/services/demo.spi.Formatter` and `demo/impl/UpperFormatter.class`. For applications using Maven/Gradle, inspect the JAR **after build/shade/fat-jar**, not just the source tree. If the resource was omitted from the JAR, move it into `src/main/resources` and configure resource copying.
 
-### Bước 2 — xác định loader và dò resource thật
+### Step 2 — Identify the Loader and Probe the Actual Resource
 
-Đây là đoạn chẩn đoán để đưa **bên trong chương trình có sẵn Formatter trên classpath** (không phải một tệp Java chạy độc lập):
+This is a diagnostic snippet to place **inside a program that already has `Formatter` on the classpath** (not a standalone runnable Java file):
 
 ~~~java
 ClassLoader loader = Thread.currentThread().getContextClassLoader();
@@ -447,11 +447,11 @@ while (found.hasMoreElements()) {
 }
 ~~~
 
-Không in ra URL nào nghĩa là loader đó không nhìn thấy resource qua getResources(path). Nếu có URL, mở đúng tệp để xác nhận tên provider và encoding. Kết quả có thể gồm nhiều resource từ các JAR khác nhau; ServiceLoader có thể ghép các khai báo hợp lệ. Trong container hoặc môi trường dùng class loader đặc biệt, xem lớp thực tế của loader và thứ tự parent.
+Printing no URLs means that loader does not see the resource via `getResources(path)`. If a URL appears, open that exact file to confirm the provider name and encoding. Results may include multiple resources from different JARs; `ServiceLoader` can combine valid declarations. In containers or environments using custom class loaders, inspect the actual class of the loader and its parent order.
 
-### Bước 3 — dùng chính loader đó kiểm tra lớp provider
+### Step 3 — Use That Same Loader to Check the Provider Class
 
-Đoạn chẩn đoán sau cũng chạy trong một chương trình đã import hoặc có API demo.spi.Formatter, sử dụng chính biến loader từ bước trên:
+The following diagnostic snippet also runs in a program that already imports or has the `demo.spi.Formatter` API, using the exact `loader` variable from the step above:
 
 ~~~java
 Class<?> candidate = Class.forName(
@@ -461,49 +461,49 @@ System.out.println(candidate.getClassLoader());
 System.out.println(demo.spi.Formatter.class.getClassLoader());
 ~~~
 
-- **ClassNotFoundException**: loader không nạp được tên provider; kiểm tra JAR, classpath, parent/child, tên package.
-- **NoClassDefFoundError hoặc lỗi liên kết tương tự**: có thể thiếu phụ thuộc hoặc phiên bản class không phù hợp; kiểm tra dependency tree và bytecode/JDK.
-- **isAssignableFrom trả false**: provider không thực thi đúng service API, hoặc có bản sao API riêng khiến danh tính Class khác nhau.
-- **Các bước trên qua nhưng ServiceLoader vẫn lỗi**: kiểm tra tính public, constructor public không tham số, exception lúc khởi tạo và nội dung tệp cấu hình.
+- **`ClassNotFoundException`**: the loader cannot load the provider name; check JAR, classpath, parent/child, and package name.
+- **`NoClassDefFoundError` or similar linkage error**: a dependency may be missing or a class version incompatible; check the dependency tree and bytecode/JDK version.
+- **`isAssignableFrom` returns `false`**: the provider does not actually implement the right service API, or there is a separate API copy giving a different `Class` identity.
+- **All steps above pass yet `ServiceLoader` still fails**: check `public` visibility, public no-arg constructor, exceptions during initialization, and configuration file contents.
 
-Class.forName(..., false, loader) **chỉ dùng để chẩn đoán khả năng nạp kiểu, chưa khởi tạo provider**. Kết quả của nó không thay cho việc kiểm tra toàn bộ quá trình ServiceLoader. Nếu hệ thống chỉ dùng plugin loader tường minh, thay biến loader bằng **đúng plugin loader** thay vì TCCL.
+`Class.forName(..., false, loader)` **is only for diagnosing type loadability and does not instantiate the provider**. Its result does not replace testing the full `ServiceLoader` process. If the system uses an explicit plugin loader exclusively, replace the `loader` variable with **that exact plugin loader** instead of TCCL.
 
-### Bước 4 — so khớp triệu chứng với nguyên nhân
+### Step 4 — Match Symptoms to Causes
 
-| Triệu chứng | Nguyên nhân cần thử trước | Cách xác nhận |
+| Symptom | Cause to Check First | How to Confirm |
 | --- | --- | --- |
-| Duyệt xong 0 provider | Không thấy resource hoặc tên resource sai | getResources(path) rỗng; jar --list không có entry |
-| Có resource nhưng lỗi Provider ... not found | Provider class không nhìn thấy | Class.forName với đúng loader thất bại |
-| Lỗi provider not a subtype | API bị nạp thành hai kiểu khác nhau hoặc class triển khai sai | isAssignableFrom, so sánh class loader của service API |
-| Lỗi no public no-args constructor | Provider classpath không có constructor public không tham số | Kiểm tra mã class và constructor |
-| Chạy bằng IDE được, đóng JAR mất provider | Resource không được copy, plugin JAR không nằm trong runtime classpath | So sánh build output và lệnh khởi chạy |
-| Tìm được bằng loader con nhưng không tìm được qua load(service) | TCCL đang là loader khác | In TCCL, gọi load(service, pluginLoader) |
-| Một số provider xuất hiện, số khác không | Resource nằm ở classpath khác, thiếu class/dependency hoặc configuration lỗi | Liệt kê tất cả URL resource, duyệt từng provider có xử lý lỗi rõ ràng |
-| Sau thêm plugin không xuất hiện | Class loader hoặc ServiceLoader cache vẫn dùng cấu hình cũ | Kiểm tra loader/URL đang hiệu lực và cơ chế reload/discovery |
+| Iteration completes with 0 providers | Resource not visible or wrong resource name | `getResources(path)` empty; `jar --list` lacks entry |
+| Resource exists but error `Provider ... not found` | Provider class not visible | `Class.forName` with the exact loader fails |
+| Error `provider not a subtype` | API loaded as two distinct types or class implements wrong type | `isAssignableFrom`, compare class loaders of service API |
+| Error `no public no-args constructor` | Classpath provider lacks a public no-arg constructor | Inspect class code and constructors |
+| Works in IDE, loses provider when packaged as JAR | Resource not copied, plugin JAR absent from runtime classpath | Compare build output and launch command |
+| Found via child loader but not via `load(service)` | TCCL is a different loader | Print TCCL, call `load(service, pluginLoader)` |
+| Some providers appear, others do not | Resource on different classpath, missing class/dependency, or invalid config | List all resource URLs, iterate each provider with clear error handling |
+| Not visible after adding plugin | Class loader or `ServiceLoader` cache still uses old config | Check effective loader/URLs and reload/discovery mechanism |
 
-Trong môi trường thực, bắt ServiceConfigurationError ở ranh giới nạp plugin để ghi log đủ ngữ cảnh (service, provider, loader, artifact) và có chính sách cô lập lỗi. Không nên che lỗi bằng cách trả danh sách rỗng vì sẽ làm người vận hành tưởng là chưa cài plugin.
+In production, catch `ServiceConfigurationError` at the plugin-loading boundary to log full context (service, provider, loader, artifact) and apply an error-isolation policy. Do not mask errors by returning an empty list, as operators will think no plugin is installed.
 
-## 8. Những giới hạn và sai lầm đóng gói hay gặp
+## 8. Common Packaging Pitfalls and Limitations
 
-### Đổi tên package, shading và fat JAR
+### Package Renaming, Shading, and Fat JARs
 
-Khi build tool ghép nhiều thư viện vào một fat/uber JAR, các JAR có thể cùng chứa META-INF/services/demo.spi.Formatter. Nếu chỉ chép đè một tệp, một số provider sẽ mất đăng ký. Cần **merge service descriptor** bằng chức năng build tương ứng, đồng thời cập nhật tên service/provider trong descriptor khi relocate package.
+When a build tool merges multiple libraries into a fat/uber JAR, those JARs may both contain `META-INF/services/demo.spi.Formatter`. Simply overwriting one file causes some providers to lose registration. You must **merge service descriptors** using the appropriate build feature, and update service/provider names inside descriptors when relocating packages.
 
-Ví dụ: class được relocate từ demo.impl.UpperFormatter thành shaded.demo.impl.UpperFormatter nhưng tệp vẫn ghi tên cũ; ServiceLoader thấy registration nhưng không nạp được tên provider cũ. Ngược lại, class đúng mà descriptor bị lọc khỏi JAR thì phát hiện 0 provider.
+For example, if a class is relocated from `demo.impl.UpperFormatter` to `shaded.demo.impl.UpperFormatter` yet the file still records the old name, `ServiceLoader` sees the registration yet fails to load the old provider name. Conversely, if the class is right yet the descriptor is filtered out of the JAR, 0 providers are discovered.
 
-### Thư mục chứa JAR chưa chắc nằm trong classpath
+### A Directory Containing JARs Is Not Automatically on the Classpath
 
-Đặt provider.jar trong thư mục plugins/ không có nghĩa application class loader tự quét nó. Lệnh -cp chỉ đọc các phần tử được khai báo; cú pháp wildcard dạng lib/* thường mở rộng các JAR **trực tiếp trong lib**, không đệ quy mọi thư mục con. Nếu host nạp plugin động, phải chủ động cấp URL cho plugin loader và dùng loader đó khi gọi ServiceLoader.
+Putting `provider.jar` in a `plugins/` directory does not mean the application class loader automatically scans it. The `-cp` option reads only explicitly declared elements; wildcard syntax like `lib/*` expands JARs **directly inside `lib`**, not recursively across subdirectories. If the host loads plugins dynamically, it must explicitly supply URLs to a plugin loader and pass that loader to `ServiceLoader`.
 
-Không coi đường dẫn tương đối trong workspace là bằng chứng ở production; trong Java, -cp và working directory thực tế tại lúc chạy mới quyết định những phần tử được tra cứu. Với một JAR thực thi bằng java -jar, tùy chọn -cp người dùng cấp sẽ bị bỏ qua cho đường tìm kiếm class của launcher; cần dùng manifest Class-Path hoặc cơ chế launcher/loader phù hợp, nên kiểm tra mode khởi chạy cụ thể.
+Do not treat relative paths in a workspace as proof for production; in Java, the actual `-cp` and working directory at launch time determine what entries are searched. For an executable JAR launched with `java -jar`, a user-supplied `-cp` option is ignored for the launcher's class search path; you must use manifest `Class-Path` or an appropriate launcher/loader mechanism, and verify the specific launch mode.
 
-### reload không sửa được classpath sai
+### `reload` Cannot Fix a Broken Classpath
 
-ServiceLoader.reload() xóa cache provider đã được khám phá của **chính đối tượng ServiceLoader** và cho phép lần duyệt tiếp theo khám phá lại. Nó không tự thêm JAR vào URLClassLoader, không sửa tên entry META-INF/services, không giúp class đã ở loader khác trở thành nhìn thấy được và không bảo đảm unload class. Hệ thống plugin động thường cần một class loader/phiên plugin được quản lý riêng, cùng quy trình đóng tài nguyên và giải phóng tham chiếu.
+`ServiceLoader.reload()` clears the discovered-provider cache of **that specific `ServiceLoader` instance** and lets the next iteration re-discover. It does not add JARs to a `URLClassLoader`, does not fix `META-INF/services` entry names, does not make classes in another loader visible, and does not guarantee class unloading. Dynamic plugin systems usually require a separately managed class loader/plugin session, along with resource closing and reference cleanup procedures.
 
-### Phạm vi service trên classpath và module path
+### Service Scope on Classpath vs. Module Path
 
-Bài này tập trung classpath. Với **explicit named Java module**, provider thường được công bố qua module-info.java:
+This lesson focuses on the classpath. With an **explicit named Java module**, providers are typically published via `module-info.java`:
 
 ~~~java
 module demo.provider {
@@ -512,20 +512,20 @@ module demo.provider {
 }
 ~~~
 
-Module tiêu thụ service tương ứng khai báo uses demo.spi.Formatter; host cần cấu hình module path, khả năng đọc module và module layer phù hợp. Không thể kết luận tệp META-INF/services của mô hình classpath là phương tiện duy nhất cho tất cả Java SPI. Automatic module có quy tắc tương thích riêng; không đem kết quả lớp/descriptor của classpath áp dụng máy móc cho một ứng dụng đang chạy module path.
+The corresponding service-consuming module declares `uses demo.spi.Formatter`; the host must configure the module path, module readability, and an appropriate module layer. You cannot conclude that classpath `META-INF/services` files are the sole mechanism for all Java SPIs. Automatic modules have their own compatibility rules; do not mechanically apply classpath class/descriptor results to an application running on the module path.
 
-## 9. Checklist kiểm tra trước khi phát hành provider
+## 9. Pre-Release Verification Checklist for Providers
 
-1. **Service name**: tên tệp chính xác META-INF/services/<binary name của service>, đúng chữ hoa/chữ thường, encoding UTF-8.
-2. **Registration content**: mỗi dòng là provider binary name, tên đã cập nhật theo shading/relocation.
-3. **Artifact**: JAR thành phẩm chứa đường dẫn resource đúng và class bytecode cần thiết, không chỉ hiện diện trong source tree.
-4. **Runtime visibility**: loader được ServiceLoader thực sự sử dụng nhìn thấy resource qua getResources và nạp được class/provider dependencies.
-5. **Shared API identity**: host và provider dùng cùng Class cho service, không có bản sao không tương thích giữa các loader.
-6. **Construction**: provider classpath là lớp concrete public, có public constructor không tham số và khởi tạo không gây lỗi.
-7. **Discovery code**: gọi đúng phiên bản load(service, loader) hoặc quản lý TCCL; nhớ rằng provider được khám phá lazy, lỗi có thể xuất hiện khi duyệt.
-8. **Packaging tests**: kiểm tra lần chạy chỉ có API, có provider, chỉ có class, chỉ có registration và hai JAR tách riêng; chạy từ lệnh phát hành thực tế.
-9. **Lifecycle**: khi hot reload, tái tạo loader/dịch vụ đúng phạm vi và giải phóng các tham chiếu giữ loader cũ; không xem reload() là giải pháp cho tất cả thay đổi classpath.
+1. **Service name**: exact file name `META-INF/services/<binary name of service>`, exact case, UTF-8 encoding.
+2. **Registration content**: each line is a provider binary name, updated for any shading/relocation.
+3. **Artifact**: the finished JAR contains the right resource path and required class bytecode, not merely present in the source tree.
+4. **Runtime visibility**: the loader actually used by `ServiceLoader` sees the resource via `getResources` and can load the class and provider dependencies.
+5. **Shared API identity**: host and provider use the same `Class` for the service, with no incompatible duplicate copies across loaders.
+6. **Construction**: the classpath provider is a public concrete class with a public no-arg constructor that initializes without errors.
+7. **Discovery code**: call the right `load(service, loader)` overload or manage TCCL; remember providers are discovered lazily, so errors may appear during iteration.
+8. **Packaging tests**: test runs with API-only, with provider, class-only, registration-only, and two split JARs; run from the actual release command.
+9. **Lifecycle**: for hot reload, recreate loaders/services within the right scope and release references holding old loaders; do not treat `reload()` as a cure-all for classpath changes.
 
-Một quy trình kiểm tra tốt luôn trả lời đủ **“loader có thấy resource không?”**, **“loader có nạp được provider không?”**, **“provider có đúng service Class và được tạo hợp lệ không?”**. Vị trí tệp đăng ký quyết định bước **khám phá**, còn khả năng nhìn thấy và tương thích của lớp provider quyết định bước **nạp/khởi tạo**; cả hai phải đúng để SPI trên classpath vận hành.
+A sound verification process always answers **"does the loader see the resource?"**, **"can the loader load the provider?"**, and **"is the provider the right service `Class` and validly instantiated?"**. The registration file location governs the **discovery** step, while provider class visibility and compatibility govern the **loading/instantiation** step; both must succeed for a classpath SPI to work.
 
-**Tài liệu tham khảo chính thức:** [Java SE 17 ServiceLoader API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html).
+**Official reference:** [Java SE 17 ServiceLoader API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html).

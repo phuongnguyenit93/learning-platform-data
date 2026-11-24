@@ -1,34 +1,34 @@
-# Nashorn rời JDK từ Java 15: nhúng JavaScript phải cung cấp engine riêng
+# Nashorn Left the JDK in Java 15: Embedding JavaScript Requires Supplying Your Own Engine
 
-Từ **JDK 15**, ứng dụng Java không còn được bảo đảm có JavaScript engine Nashorn đi kèm bộ JDK. Những dòng mã đã quen thuộc trên Java 8–14, ví dụ `new ScriptEngineManager().getEngineByName("nashorn")`, có thể nhận **`null`** khi chuyển sang Java 15/17/21 trở lên mà ứng dụng chưa mang theo một scripting engine riêng.
+Starting with **JDK 15**, Java applications are no longer guaranteed to have the Nashorn JavaScript engine bundled with the JDK. Lines that were familiar on Java 8–14, such as `new ScriptEngineManager().getEngineByName("nashorn")`, may receive **`null`** when moving to Java 15/17/21 or later if the application does not bring its own scripting engine.
 
-Điều này **không có nghĩa Java đã xóa khả năng nhúng scripting**. API chuẩn **JSR-223 / `javax.script`** nằm trong module `java.scripting` vẫn có mặt. Thứ bị loại khỏi JDK là **triển khai Nashorn tích hợp sẵn, những API đặc thù của Nashorn và công cụ `jjs`**, không phải hợp đồng `ScriptEngine` dùng chung. Muốn đánh giá mã JavaScript trong tiến trình Java, ứng dụng phải **chọn, khai báo, đóng gói và cấu hình một engine độc lập**, sau đó kiểm tra khả năng khám phá engine khi khởi động.
+This **does not mean Java removed embedded scripting support**. The standard **JSR-223 / `javax.script`** API in the `java.scripting` module is still present. What was removed from the JDK is **the bundled Nashorn implementation, Nashorn-specific APIs, and the `jjs` tool**, not the shared `ScriptEngine` contract. To evaluate JavaScript code inside a Java process, the application must **choose, declare, package, and configure a standalone engine**, and then verify engine discovery at startup.
 
-Bài này giải thích chính xác thay đổi tại JDK 15 (JEP 372), cách phát hiện thiếu engine, cách thêm **Nashorn standalone** bằng Maven, các lựa chọn thay thế, tình huống JPMS/module path, rủi ro khi migration và các kiểm thử bắt buộc cho ứng dụng nhúng JavaScript.
+This article explains the exact change in JDK 15 (JEP 372), how to detect a missing engine, how to add **standalone Nashorn** with Maven, alternative choices, JPMS/module path scenarios, migration risks, and required tests for applications embedding JavaScript.
 
-## 1. Mốc phiên bản và phạm vi JEP 372
+## 1. Version Milestones and Scope of JEP 372
 
-| Phiên bản Java | Trạng thái Nashorn trong JDK | Tác động đến ứng dụng |
+| Java Version | Nashorn Status in the JDK | Impact on Applications |
 | --- | --- | --- |
-| **Java 8** | Nashorn được tích hợp vào JDK (JEP 174) | Thường có thể tìm JavaScript engine của JDK bằng `ScriptEngineManager` |
-| **Java 9–10** | Nashorn vẫn có trong JDK | Engine còn tồn tại nhưng ứng dụng JPMS cần hiểu module/service discovery |
-| **Java 11** | Nashorn và `jjs` được **đánh dấu deprecated for removal** theo JEP 335 | Có cảnh báo và phải lập kế hoạch thay thế; engine chưa bị xóa ở phiên bản này |
-| **Java 12–14** | Nashorn tích hợp vẫn tồn tại, đang trên lộ trình bị xóa | Không nên xây kiến trúc dài hạn dựa vào engine bundled |
-| **Java 15 trở lên** | JEP 372 **loại Nashorn tích hợp ra khỏi JDK** | Cần cung cấp implementation engine riêng nếu ứng dụng cần chạy JavaScript |
+| **Java 8** | Nashorn integrated into the JDK (JEP 174) | Can usually find the JDK JavaScript engine via `ScriptEngineManager` |
+| **Java 9–10** | Nashorn still in the JDK | Engine still exists, but JPMS applications must understand module/service discovery |
+| **Java 11** | Nashorn and `jjs` **marked deprecated for removal** under JEP 335 | Warnings appear and replacement must be planned; engine not yet removed in this version |
+| **Java 12–14** | Bundled Nashorn still exists, on the removal roadmap | Should not build long-term architecture around the bundled engine |
+| **Java 15 and later** | JEP 372 **removes bundled Nashorn from the JDK** | Must supply a separate engine implementation if the application needs to run JavaScript |
 
-**JEP 372 – Remove the Nashorn JavaScript Engine** đưa ra các thay đổi cụ thể:
+**JEP 372 – Remove the Nashorn JavaScript Engine** introduces specific changes:
 
-- Loại module JDK `jdk.scripting.nashorn`, gồm các gói API Nashorn trước đây như `jdk.nashorn.api.scripting` và `jdk.nashorn.api.tree`.
-- Loại module shell `jdk.scripting.nashorn.shell` và công cụ dòng lệnh **`jjs`**.
-- Không xóa `javax.script`, `ScriptEngineManager`, `ScriptEngine`, `ScriptEngineFactory` hay module **`java.scripting`**.
+- Removes the JDK module `jdk.scripting.nashorn`, including legacy Nashorn API packages such as `jdk.nashorn.api.scripting` and `jdk.nashorn.api.tree`.
+- Removes the shell module `jdk.scripting.nashorn.shell` and the **`jjs`** command-line tool.
+- Does not remove `javax.script`, `ScriptEngineManager`, `ScriptEngine`, `ScriptEngineFactory`, or the **`java.scripting`** module.
 
-**Phân biệt quan trọng:** `jjs` là shell đi kèm Nashorn đã bị loại; không nên suy diễn mọi CLI của JDK hay toàn bộ công cụ Java scripting đã bị xóa. Nếu một công cụ Java còn cung cấp cách chạy script thông qua JSR-223, nó vẫn cần engine có thể khám phá được tại runtime.
+**Important distinction:** `jjs` was the shell bundled with Nashorn and was removed; do not infer that every JDK CLI or all Java scripting tools were removed. If a Java tool still provides a way to run scripts via JSR-223, it still needs an engine discoverable at runtime.
 
-Kết luận lịch sử: **“Nashorn rời JDK” khác với “dự án Nashorn ngừng tồn tại”**. Nhóm OpenJDK duy trì một bản **Nashorn standalone** độc lập để ứng dụng có thể tự thêm dependency, nhưng bản đó không tự xuất hiện chỉ vì bạn cài một JDK hiện đại.
+Historical takeaway: **“Nashorn left the JDK” is different from “the Nashorn project ceased to exist”**. The OpenJDK team maintains an independent **standalone Nashorn** build that applications can add as a dependency themselves, though it does not appear automatically just because you install a modern JDK.
 
-## 2. Hai tầng cần hiểu: API chuẩn và engine implementation
+## 2. Two Layers to Understand: Standard API vs. Engine Implementation
 
-Hình dung kiến trúc nhúng script:
+Visualizing the embedded scripting architecture:
 
 ~~~text
 Java application / host
@@ -49,42 +49,42 @@ ScriptEngineManager
 ScriptEngine.eval(...) -> JavaScript result
 ~~~
 
-Phân vai:
+Division of roles:
 
-- **`javax.script.ScriptEngine`:** hợp đồng đánh giá script, quản lý `Bindings`/`ScriptContext` và trả kết quả Java tương ứng. Không có JavaScript parser/compiler mặc định trong interface này.
-- **`javax.script.ScriptEngineFactory`:** cung cấp tên, bí danh, ngôn ngữ, phiên bản, đặc tính và tạo `ScriptEngine`.
-- **`ScriptEngineManager`:** tìm các `ScriptEngineFactory` mà môi trường runtime nhìn thấy bằng cơ chế service provider, rồi tạo engine theo tên/ngôn ngữ/file extension/MIME type. Manager **không tải dependency từ Maven hay Internet**.
-- **Engine implementation:** thư viện độc lập thật sự phân tích và chạy JavaScript, phải nằm ở nơi JVM/class loader/module graph có thể phát hiện.
-- **`java.scripting`:** module tiêu chuẩn của JDK chứa JSR-223, tiếp tục có trên Java 17. Khi viết explicit named Java module dùng `javax.script`, consumer cần `requires java.scripting;`.
+- **`javax.script.ScriptEngine`:** contract for evaluating scripts, managing `Bindings`/`ScriptContext`, and returning corresponding Java results. There is no built-in JavaScript parser/compiler inside this interface.
+- **`javax.script.ScriptEngineFactory`:** provides name, aliases, language, version, characteristics, and creates a `ScriptEngine`.
+- **`ScriptEngineManager`:** discovers `ScriptEngineFactory` instances visible in the runtime environment via the service provider mechanism, then creates an engine by name/language/file extension/MIME type. The manager **does not download dependencies from Maven or the Internet**.
+- **Engine implementation:** the independent library that actually parses and runs JavaScript, which must sit where the JVM/class loader/module graph can discover it.
+- **`java.scripting`:** standard JDK module containing JSR-223, continuing to exist on Java 17. When writing an explicit named Java module using `javax.script`, the consumer needs `requires java.scripting;`.
 
-Vì thế mã sau **vẫn biên dịch** trên Java 17:
+Therefore the following code **still compiles** on Java 17:
 
 ~~~java
 import javax.script.ScriptEngineManager;
 ScriptEngineManager manager = new ScriptEngineManager();
 ~~~
 
-Đây là *đoạn minh họa phải đặt bên trong class/method*, không phải file Java độc lập. Nhưng việc biên dịch thành công **không chứng minh** đã có `JavaScript` engine.
+This is an *illustrative snippet that must be placed inside a class/method*, not a standalone Java file. However, compiling cleanly **does not prove** a `JavaScript` engine is present.
 
-### 2.1. Trường hợp `getEngineByName` trả null
+### 2.1. When `getEngineByName` Returns null
 
 ~~~java
 ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 ~~~
 
-Theo Javadoc, `getEngineByName` trả **`null` nếu không tìm thấy factory đăng ký tên được yêu cầu**. Các nguyên nhân thường gặp:
+Per the Javadoc, `getEngineByName` returns **`null` if no factory registered under the requested name is found**. Common causes:
 
-1. Không có JavaScript engine trong runtime.
-2. Có thư viện trên disk nhưng **chưa nằm trên runtime classpath/module path**, hoặc module chưa được resolve.
-3. Class loader được dùng để tìm provider không nhìn thấy `ScriptEngineFactory` của thư viện.
-4. Engine có mặt nhưng **không đăng ký bí danh** `"nashorn"` mà ứng dụng dùng.
-5. Lỗi trong việc nạp provider/dependencies dẫn tới khám phá không hoàn chỉnh; cần đọc log/exception liên quan.
+1. No JavaScript engine exists in the runtime.
+2. The library exists on disk but **is not on the runtime classpath/module path**, or the module has not been resolved.
+3. The class loader used to discover providers cannot see the library's `ScriptEngineFactory`.
+4. An engine is present, but **did not register the `"nashorn"` alias** the application uses.
+5. An error loading the provider/dependencies caused incomplete discovery; inspect related logs/exceptions.
 
-Do đó, không nên bắt một `NullPointerException` xuất hiện ở `engine.eval(...)` rồi kết luận “Java 17 không hỗ trợ JavaScript”. Vấn đề ban đầu thường là **engine lookup không tìm thấy implementation**.
+Therefore, do not catch a `NullPointerException` thrown at `engine.eval(...)` and conclude “Java 17 does not support JavaScript”. The initial issue is usually that **engine lookup found no implementation**.
 
-### 2.2. Tên `"JavaScript"` không phải engine bắt buộc
+### 2.2. The Name `"JavaScript"` Is Not a Mandatory Engine
 
-Ứng dụng đời cũ có thể viết:
+Legacy applications may write:
 
 ~~~java
 manager.getEngineByName("js");
@@ -92,13 +92,13 @@ manager.getEngineByName("JavaScript");
 manager.getEngineByName("nashorn");
 ~~~
 
-Các alias này phụ thuộc vào `ScriptEngineFactory.getNames()` của engine thực tế được cài. Không phải mọi implementation đều cung cấp cả ba tên. Nếu một engine có nhiều alias, mỗi alias có thể tìm được cùng loại engine; tuy nhiên không có quy tắc “JDK sẽ tự chọn JavaScript engine tốt nhất” khi không có provider phù hợp.
+These aliases depend on `ScriptEngineFactory.getNames()` of the engine actually installed. Not every implementation provides all three names. If one engine has multiple aliases, each alias may locate the same kind of engine; however, there is no rule that “the JDK will automatically pick the best JavaScript engine” when no matching provider exists.
 
-Hãy liệt kê `manager.getEngineFactories()`, đọc `factory.getNames()` và chọn tên đã được engine hỗ trợ. Trong production, nên **cố định provider/phiên bản mong muốn** và fail-fast khi không đáp ứng, thay vì âm thầm chạy script trên một engine khác có ngữ nghĩa không tương đương.
+Enumerate `manager.getEngineFactories()`, read `factory.getNames()`, and pick a name supported by the engine. In production, **pin the desired provider/version** and fail-fast when unmet, rather than silently running scripts on another engine with non-equivalent semantics.
 
-## 3. Ví dụ 1 — chẩn đoán trên JDK 17 không có JS engine
+## 3. Example 1 — Diagnosing on JDK 17 Without a JS Engine
 
-Tệp `EngineProbe.java` độc lập, chỉ cần JDK 17; **không thêm dependency JavaScript**:
+Standalone `EngineProbe.java` file requiring only JDK 17; **no JavaScript dependency added**:
 
 ~~~java
 import javax.script.ScriptEngineManager;
@@ -113,14 +113,14 @@ public final class EngineProbe {
 }
 ~~~
 
-Biên dịch và chạy (JDK 17+):
+Compile and run (JDK 17+):
 
 ~~~bash
 javac --release 17 EngineProbe.java
 java -cp . EngineProbe
 ~~~
 
-Trên một bản **Corretto JDK 17.0.15 sạch, không bổ sung script engine**, kết quả đã kiểm chứng là:
+On a clean **Corretto JDK 17.0.15 with no script engine added**, the verified output is:
 
 ~~~text
 factoryCount=0
@@ -128,35 +128,35 @@ nashornFound=false
 javascriptFound=false
 ~~~
 
-**Đây là kết quả của môi trường kiểm chứng, không phải stdout bất biến của mọi JDK 17.** Nếu ứng dụng có GraalJS, Nashorn standalone hoặc provider khác trên classpath/module path, `factoryCount` có thể lớn hơn 0, một hoặc cả hai alias có thể tìm thấy engine. Chính sự khác nhau đó cho thấy `javax.script` là cơ chế **khám phá plug-in runtime**, không phải cam kết JDK luôn cung cấp implementation JavaScript.
+**This is the output of the verified environment, not an immutable stdout for every JDK 17.** If an application has GraalJS, standalone Nashorn, or another provider on the classpath/module path, `factoryCount` can be greater than 0, and one or both aliases may locate an engine. That very difference demonstrates that `javax.script` is a **runtime plugin discovery** mechanism, not a promise that the JDK always ships a JavaScript implementation.
 
-Lệnh kiểm tra module Java Scripting có thể dùng:
+Command to inspect the Java Scripting module:
 
 ~~~bash
 java --list-modules
 ~~~
 
-Tìm module `java.scripting` trong danh sách. Việc module này có mặt chỉ chứng minh **API JSR-223** còn tồn tại, không chứng minh một JavaScript engine đã được lắp.
+Look for the `java.scripting` module in the list. The presence of this module proves only that the **JSR-223 API** exists, not that a JavaScript engine has been installed.
 
-## 4. Cung cấp engine riêng: các hướng lựa chọn
+## 4. Supplying Your Own Engine: Available Options
 
-Tùy mục tiêu, có ba hướng phổ biến:
+Depending on your goals, there are three common directions:
 
-| Hướng | Phù hợp nhất khi | Điểm cần kiểm tra |
+| Option | Best Suited When | Points to Verify |
 | --- | --- | --- |
-| **OpenJDK Nashorn standalone** | Ứng dụng đang chạy script có cú pháp/hành vi Nashorn cũ, cần đường migration ít thay đổi | Tương thích runtime, `nashorn-core` và ASM dependencies, cú pháp JS đời cũ, các API Nashorn-specific đã đổi package |
-| **GraalJS / GraalVM JavaScript** | Ứng dụng cần JavaScript hiện đại hoặc hệ sinh thái polyglot và host access được cấu hình rõ | Phải chọn đúng thư viện, phiên bản và JSR-223 adapter nếu còn dùng `ScriptEngine`; API/polyglot security khác Nashorn |
-| **Rhino hoặc engine JSR-223 khác** | Hệ thống có ràng buộc compatibility/footprint riêng | Có thật sự cung cấp `ScriptEngineFactory` trong phiên bản đang dùng không; mức hỗ trợ ECMAScript và Java interop |
+| **OpenJDK Nashorn standalone** | Application runs scripts with legacy Nashorn syntax/behavior and needs a low-change migration path | Runtime compatibility, `nashorn-core` and ASM dependencies, legacy JS syntax, Nashorn-specific APIs whose packages changed |
+| **GraalJS / GraalVM JavaScript** | Application needs modern JavaScript or a polyglot ecosystem with explicitly configured host access | Must pick the right libraries, versions, and JSR-223 adapter if still using `ScriptEngine`; API/polyglot security differs from Nashorn |
+| **Rhino or another JSR-223 engine** | System has specific compatibility/footprint constraints | Whether it actually supplies `ScriptEngineFactory` in the version used; level of ECMAScript and Java interop support |
 
-**Không có một “engine JavaScript chính thức mới” tự động thay Nashorn trong mọi bộ JDK**. Lựa chọn là quyết định của ứng dụng: kiểm tra license, lộ trình cập nhật bảo mật, tính tương thích script, độ tin cậy, khả năng chạy theo JDK hiện có và cách đóng gói khi deploy.
+**There is no “new official JavaScript engine” that automatically replaces Nashorn across all JDKs**. The choice is an application decision: check licenses, security patch cadence, script compatibility, trustworthiness, ability to run on the current JDK, and deployment packaging.
 
-Với dự án có nhiều script Nashorn cũ, dùng Nashorn standalone có thể là một bước chuyển tiếp. Với dự án mới, nên đánh giá một engine được duy trì và mức ECMAScript cần hỗ trợ, kể cả khả năng dùng API polyglot chuyên dụng thay vì buộc mọi use case vào JSR-223.
+For projects with many legacy Nashorn scripts, standalone Nashorn can serve as a transitional step. For new projects, evaluate an actively maintained engine and the required ECMAScript level, including potentially using a dedicated polyglot API rather than forcing every use case through JSR-223.
 
-## 5. Ví dụ 2 — thêm Nashorn standalone thật sự bằng Maven
+## 5. Example 2 — Adding Real Standalone Nashorn with Maven
 
-Dự án OpenJDK cung cấp artifact Maven **`org.openjdk.nashorn:nashorn-core`**, không phải module Nashorn từng được ship trong JDK. Tại thời điểm bài này dùng phiên bản đã đối chiếu từ dự án OpenJDK và Maven Central là **`15.7`**. Version trong ví dụ được **pin rõ ràng** để có thể build lại; khi dùng production cần theo dõi release và kiểm thử nâng cấp theo quy trình dependency của dự án.
+The OpenJDK project publishes the Maven artifact **`org.openjdk.nashorn:nashorn-core`**, which is separate from the Nashorn module formerly shipped inside the JDK. At the time of writing, the version cross-referenced from the OpenJDK project and Maven Central is **`15.7`**. The version in this example is **explicitly pinned** for reproducible builds; in production, monitor releases and test upgrades according to your project's dependency process.
 
-### 5.1. Cấu trúc dự án
+### 5.1. Project Structure
 
 ~~~text
 embedded-js/
@@ -168,7 +168,7 @@ embedded-js/
                 └── EmbeddedJs.java
 ~~~
 
-### 5.2. Tệp pom.xml đầy đủ
+### 5.2. Complete pom.xml
 
 ~~~xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -206,9 +206,9 @@ embedded-js/
 </project>
 ~~~
 
-Tại sao không chỉ tải `nashorn-core.jar` rồi thêm một file vào classpath? Artifact Nashorn phụ thuộc **các thư viện ASM** dùng cho xử lý/generating bytecode; Maven giải quyết các dependencies transitively. Chỉ mang một JAR khi chạy thủ công dễ phát sinh `NoClassDefFoundError` hoặc lỗi khởi tạo. Maven/Gradle giúp đóng gói toàn bộ dependency graph có thể kiểm tra.
+Why not just download `nashorn-core.jar` and drop a single file onto the classpath? The Nashorn artifact depends on **ASM libraries** for bytecode processing/generation; Maven resolves those transitive dependencies automatically. Bringing only one JAR manually easily leads to `NoClassDefFoundError` or initialization failures. Maven/Gradle packages the entire inspectable dependency graph.
 
-### 5.3. Tệp Java đầy đủ
+### 5.3. Complete Java File
 
 `src/main/java/demo/EmbeddedJs.java`:
 
@@ -233,60 +233,60 @@ public final class EmbeddedJs {
 }
 ~~~
 
-**Giải thích thiết kế:**
+**Design explanation:**
 
-- Code Java chỉ import **API `javax.script` tiêu chuẩn**. Không hardcode class nội bộ của Nashorn, nên adapter Java này dễ thay đổi engine hơn.
-- Dependency Maven đưa một implementation của `ScriptEngineFactory` vào runtime. `ScriptEngineManager` tra tên `nashorn` và lấy một `ScriptEngine`.
-- Nếu không tìm được provider, `IllegalStateException` báo thiếu engine ngay tại điểm cấu hình, thay vì gây lỗi null về sau.
-- Script JavaScript đơn giản được chọn để chạy trên Nashorn (nó không cần cú pháp ECMAScript hiện đại).
-- `eval` trả `Object`. Ví dụ lấy `Number.intValue()` thay vì ép thẳng sang `Integer` để tránh giả định kiểu wrapper cụ thể.
-- Đây là **ví dụ nhúng script đã được kiểm chứng**, không phải cách chạy mã JavaScript từ người dùng chưa tin cậy trong production.
+- The Java code imports only the **standard `javax.script` API**. By not hard-coding Nashorn internal classes, this Java adapter is easier to swap engines later.
+- The Maven dependency brings a `ScriptEngineFactory` implementation into the runtime. `ScriptEngineManager` looks up the name `nashorn` and obtains a `ScriptEngine`.
+- If the provider is missing, `IllegalStateException` reports the missing engine immediately at the configuration point instead of causing a null failure later.
+- A simple JavaScript script was chosen to run on Nashorn (it does not require modern ECMAScript syntax).
+- `eval` returns `Object`. The example uses `Number.intValue()` rather than casting directly to `Integer` to avoid assuming a specific wrapper type.
+- This is a **verified script-embedding example**, not a recipe for running JavaScript from untrusted users in production.
 
-### 5.4. Chạy Maven với Java 17
+### 5.4. Running Maven with Java 17
 
-Từ thư mục `embedded-js`:
+From the `embedded-js` directory:
 
 ~~~bash
 mvn -q -DskipTests compile
 mvn -q exec:java '-Dexec.mainClass=demo.EmbeddedJs'
 ~~~
 
-Lệnh thứ hai cho phép Maven dựng runtime classpath bao gồm các dependency. Trong PowerShell, việc đặt toàn bộ tham số `-Dexec.mainClass=...` trong dấu nháy đơn cũng giúp tránh sai cách tách tham số qua shell.
+The second command lets Maven construct the runtime classpath including dependencies. In PowerShell, wrapping the entire `-Dexec.mainClass=...` argument in single quotes also prevents shell argument-splitting issues.
 
-Stdout của chương trình sau khi Maven khởi động ứng dụng:
+Program stdout after Maven launches the application:
 
 ~~~text
 nashornAvailable=true
 result=42
 ~~~
 
-Ví dụ đã được **biên dịch và chạy trên Amazon Corretto JDK 17.0.15** với dependency `nashorn-core:15.7`; kết quả ở trên khớp chính xác. Build cần Maven và quyền truy cập artifact (hoặc dependency đã có trong cache nội bộ).
+This example was **compiled and run on Amazon Corretto JDK 17.0.15** with the `nashorn-core:15.7` dependency; the output above matches verbatim. Building requires Maven and artifact access (or dependencies already present in a local cache).
 
-**Nếu viết file bằng Windows PowerShell 5.1:** `Set-Content -Encoding UTF8` có thể ghi UTF-8 BOM vào đầu tệp `.java`, làm `javac` báo ký tự BOM không hợp lệ. Nên dùng IDE/editor ghi UTF-8 không BOM hoặc cách ghi file phù hợp; lỗi encoding này **không liên quan đến việc thiếu JavaScript engine**.
+**If writing files with Windows PowerShell 5.1:** `Set-Content -Encoding UTF8` can prepend a UTF-8 BOM to `.java` files, causing `javac` to report an illegal BOM character. Use an IDE/editor that writes UTF-8 without BOM or an appropriate file-writing method; this encoding error **is unrelated to a missing JavaScript engine**.
 
-### 5.5. Tại sao bản standalone cần quản lý riêng?
+### 5.5. Why Does the Standalone Build Need Separate Management?
 
-Từ Java 15, bản JDK không còn là nơi bảo đảm phiên bản Nashorn, ASM dependencies hoặc cập nhật của nó. Vì vậy đội ngũ vận hành phải:
+Since Java 15, the JDK is no longer responsible for guaranteeing Nashorn versions, ASM dependencies, or updates. Therefore, operations teams must:
 
-1. Khai báo dependency ở build và runtime, không chỉ lúc compile.
-2. Pin version, ghi nhận SBOM, license và quy trình theo dõi bản vá.
-3. Test trên đúng JDK/JRE thực tế dùng deploy; không suy từ `java -version` rằng engine sẽ có.
-4. Đóng gói tất cả transitive dependencies trong container, fat JAR hoặc distribution tương ứng.
-5. Nếu dùng JPMS/module path, xử lý module resolution và phụ thuộc ASM cùng module của Nashorn đúng cách.
+1. Declare the dependency at both build time and runtime, not compile time only.
+2. Pin versions, track SBOMs, licenses, and patch-monitoring workflows.
+3. Test on the exact JDK/JRE deployed in production; do not infer from `java -version` that an engine will exist.
+4. Package all transitive dependencies in the container, fat JAR, or respective distribution.
+5. If using JPMS/module path, handle module resolution and ASM dependencies alongside Nashorn's module properly.
 
-## 6. Đặt engine trên classpath hay module path trong JPMS?
+## 6. Putting the Engine on the Classpath or Module Path in JPMS?
 
-### 6.1. Ứng dụng trên classpath
+### 6.1. Applications on the Classpath
 
-Ví dụ Maven phía trên là ứng dụng chạy trên classpath. `ScriptEngineManager` sử dụng cơ chế service provider để tìm các `ScriptEngineFactory` mà class loader liên quan có thể nhìn thấy. Runtime classpath do Maven plugin tạo chứa `nashorn-core` và transitive dependencies, nên việc tìm provider thành công.
+The Maven example above is an application running on the classpath. `ScriptEngineManager` uses the service provider mechanism to find `ScriptEngineFactory` implementations visible to the relevant class loader. The runtime classpath built by the Maven plugin includes `nashorn-core` and its transitive dependencies, so provider discovery succeeds.
 
-Không nên chỉ kiểm tra xem JAR tồn tại trên ổ đĩa. Sự tồn tại của file JAR **khác** với việc class loader dùng cho script engine lookup thực sự nhìn thấy JAR và service metadata.
+Do not merely check whether a JAR exists on disk. The existence of a JAR file on disk **is different** from the class loader used for script engine lookup actually seeing the JAR and its service metadata.
 
-Nếu hệ thống container có nhiều class loader, `new ScriptEngineManager()` mặc định dựa vào **thread context class loader** để khám phá factories. Khi gặp hiện tượng test đơn lẻ chạy nhưng app server/plugin host báo thiếu engine, cần kiểm tra context loader, loader của provider và module graph. API `new ScriptEngineManager(ClassLoader)` giúp đưa loader cụ thể vào discovery khi phù hợp.
+If a container system has multiple class loaders, `new ScriptEngineManager()` defaults to the **thread context class loader** to discover factories. When a unit test passes yet an app server/plugin host reports a missing engine, check the context loader, the provider's loader, and the module graph. The `new ScriptEngineManager(ClassLoader)` API lets you supply a specific loader for discovery when appropriate.
 
-### 6.2. Ứng dụng explicit named module
+### 6.2. Explicit Named Module Applications
 
-Module consumer dùng `javax.script` khai báo:
+A consumer module using `javax.script` declares:
 
 ~~~java
 module embedded.host {
@@ -294,83 +294,83 @@ module embedded.host {
 }
 ~~~
 
-Đây là **module-info.java minh họa**. Nếu engine module và các module ASM được đặt trên module path, chúng phải **được resolve** và service provider phải được nhìn thấy trong graph. Nashorn standalone có tên JPMS là **`org.openjdk.nashorn`** (khác module cũ `jdk.scripting.nashorn`).
+This is an **illustrative `module-info.java`**. If the engine module and ASM modules are placed on the module path, they must **be resolved** and the service provider must be visible in the graph. Standalone Nashorn's JPMS module name is **`org.openjdk.nashorn`** (different from the legacy module `jdk.scripting.nashorn`).
 
-Theo hướng dẫn của dự án OpenJDK, cần đưa Nashorn standalone và **các phụ thuộc bắc cầu** của nó vào module path hoặc một `ModuleLayer` phù hợp. Với từng cấu hình launcher, có thể cần đưa engine module vào danh sách root modules hoặc dùng cơ chế service binding thích hợp. Ví dụ tùy chọn khi phân phối theo module path:
+According to OpenJDK project guidance, place standalone Nashorn and **its transitive dependencies** on the module path or an appropriate `ModuleLayer`. Depending on launcher configuration, you may need to include the engine module in the root modules list or use appropriate service binding. Illustrative command pattern when distributing on the module path:
 
 ~~~bash
 java --module-path libs --add-modules org.openjdk.nashorn -m embedded.host/demo.EmbeddedJs
 ~~~
 
-**Đây là sơ đồ lệnh phụ thuộc vào cách đóng gói, không phải lệnh đã chạy cho dự án Maven classpath ở mục 5**: `libs` phải chứa module/JAR của Nashorn và dependencies, `embedded.host` phải được biên dịch thực sự thành named module và có mặt trên module path. Không chép lệnh đó vào dự án classpath ở trên rồi kỳ vọng chạy ngay. Phương thức phổ quát là kiểm tra resolved modules, provider factories và chạy integration test trong đúng môi trường đóng gói.
+**This is a command pattern dependent on packaging, not a command run for the Maven classpath project in section 5**: `libs` must contain Nashorn's module/JAR and its dependencies, and `embedded.host` must actually be compiled as a named module on the module path. Do not copy that command onto the classpath project above expecting it to run immediately. The universal method is checking resolved modules, provider factories, and running integration tests in the exact packaged environment.
 
-Trong custom runtime image tạo bằng `jlink`, API `java.scripting` phải được giữ nếu host dùng nó, và engine cùng modules phụ thuộc phải có trong image hoặc được phân phối phù hợp. Không suy rằng `jlink` tự đưa một scripting engine vào image chỉ vì `java.scripting` được đưa vào.
+In a custom runtime image built with `jlink`, the `java.scripting` API must be retained if the host uses it, and the engine plus its dependent modules must be in the image or distributed appropriately. Do not assume `jlink` automatically pulls a scripting engine into the image just because `java.scripting` is included.
 
-### 6.3. Trường hợp dùng ScriptEngineFactory trong hệ plugin
+### 6.3. Using ScriptEngineFactory in a Plugin System
 
-Một engine provider có thể nằm trong plugin loader thay vì class loader của host. Nếu host gọi:
+An engine provider may live in a plugin loader rather than the host's class loader. If the host calls:
 
 ~~~java
 new ScriptEngineManager().getEngineByName("nashorn");
 ~~~
 
-nhưng context loader không thấy provider, kết quả vẫn có thể là `null`. Thay đổi alias nhiều lần không sửa được vấn đề visibility. Cách chẩn đoán:
+yet the context loader cannot see the provider, the result may still be `null`. Changing aliases repeatedly will not fix a visibility issue. How to diagnose:
 
-- Quan sát `Thread.currentThread().getContextClassLoader()`.
-- Liệt kê `getEngineFactories()` của manager dùng loader mong muốn.
-- Kiểm tra module providers đã được resolve và dependency không bị thiếu.
-- Nếu host/engine giao tiếp qua interface, xác nhận cả hai dùng **cùng identity** của `javax.script.ScriptEngineFactory` và các SPI types.
-- Không trao cho plugin tự tiện chọn class loader hoặc cung cấp script với host privileges nếu không có chính sách trust.
+- Inspect `Thread.currentThread().getContextClassLoader()`.
+- List `getEngineFactories()` on a manager using the intended loader.
+- Verify provider modules are resolved and no dependencies are missing.
+- If the host and engine communicate via interfaces, confirm both share the **same type identity** for `javax.script.ScriptEngineFactory` and SPI types.
+- Do not let plugins arbitrarily pick class loaders or execute scripts with host privileges without a trust policy.
 
-## 7. Migration các ứng dụng dùng API Nashorn đặc thù
+## 7. Migrating Applications Using Nashorn-Specific APIs
 
-Dùng lại `javax.script` càng nhiều càng tốt, nhưng việc chuyển engine không chỉ là thay một tên dependency.
+Reuse `javax.script` as much as possible, but switching engines is more than changing one dependency name.
 
-| Loại code cũ | Vấn đề sau JDK 15 | Hướng xử lý |
+| Legacy Code Pattern | Issue After JDK 15 | Resolution |
 | --- | --- | --- |
-| `getEngineByName("nashorn")` và giả định chắc có engine | Trả null nếu không có provider | Add dependency runtime; verify factory name và fail-fast |
-| Import `jdk.nashorn.api.scripting.*` | Nashorn-specific API trong JDK đã bị xóa | Nếu chọn Nashorn standalone, kiểm tra API đổi sang `org.openjdk.nashorn.api.scripting`; nếu đổi engine, thiết kế adapter mới |
-| Dùng công cụ `jjs` để chạy script/build | `jjs` đã bị gỡ | Viết launcher riêng dùng engine đã chọn hoặc dùng công cụ của vendor mới |
-| Dùng `Java.type`, `Java.extend`, `Packages`, Java bridge đặc thù | Khả năng tương thích và kiểm soát host interop khác nhau theo engine | Kiểm tra script thực tế, refactor bridge, cấu hình host access rõ ràng |
-| Dùng cú pháp JavaScript quá mới | Nashorn standalone không nhất thiết tương thích toàn bộ ECMAScript hiện đại | Xác định dialect/feature matrix, test từng script hoặc chọn runtime JS phù hợp |
-| Phụ thuộc vào kiểu trả về `ScriptEngine.eval` cụ thể | Number/object/mapping có thể khác giữa engines | Dùng hợp đồng data conversion rõ ràng, không cast tùy tiện |
-| Dùng Nashorn-specific sandbox/filter tùy biến | Thay engine có mô hình quyền truy cập khác | Review chính sách bảo mật từ đầu, không coi thiết lập cũ tự tương đương |
-| Chạy script trong nhiều thread trên cùng engine | `ScriptEngine` không mặc định thread-safe | Kiểm tra `ScriptEngineFactory.getParameter("THREADING")` và quản lý instance/state |
+| `getEngineByName("nashorn")` assuming an engine always exists | Returns null if no provider is present | Add runtime dependency; verify factory name and fail-fast |
+| Importing `jdk.nashorn.api.scripting.*` | JDK's Nashorn-specific API was removed | If using standalone Nashorn, check API migration to `org.openjdk.nashorn.api.scripting`; if changing engines, design a new adapter |
+| Using the `jjs` tool to run scripts/builds | `jjs` was removed | Write a custom launcher using the chosen engine or use the new vendor's CLI tool |
+| Using `Java.type`, `Java.extend`, `Packages`, or custom Java bridges | Compatibility and host interop controls differ by engine | Audit actual scripts, refactor bridges, configure host access explicitly |
+| Using overly modern JavaScript syntax | Standalone Nashorn does not necessarily support all modern ECMAScript | Define a dialect/feature matrix, test every script, or pick a suitable JS runtime |
+| Relying on specific `ScriptEngine.eval` return types | Number/object/mapping types may differ across engines | Use an explicit data-conversion contract; avoid blind casting |
+| Using custom Nashorn-specific sandbox/filters | Replacement engines have different access-control models | Review security policy from scratch; never assume old settings are equivalent |
+| Running scripts across threads on one engine | `ScriptEngine` is not thread-safe by default | Check `ScriptEngineFactory.getParameter("THREADING")` and manage instances/state |
 
-API tương thích `javax.script` chỉ giúp host có **hợp đồng Java chung**. Nó **không cam kết** hai engine giống nhau về cú pháp JS, kiểu biến, Java interoperability, object lifecycle, security policy, encoding, locale/timezone, Promise/async hay kết quả serialization.
+A `javax.script`-compatible API only gives the host a **shared Java contract**. It **does not guarantee** two engines behave identically on JS syntax, value types, Java interoperability, object lifecycle, security policy, encoding, locale/timezone, Promises/async, or serialization results.
 
-### 7.1. Đừng xóa lỗi bằng fallback ngầm
+### 7.1. Do Not Mask Errors with a Silent Fallback
 
-Một pattern không nên dùng:
+An anti-pattern to avoid:
 
 ~~~java
 ScriptEngine engine = manager.getEngineByName("nashorn");
 if (engine == null) {
     engine = manager.getEngineByName("JavaScript");
 }
-// Không xác nhận đã chọn engine gì và nó tương thích hay không.
+// Does not verify which engine was chosen or whether it is compatible.
 ~~~
 
-Đây là **đoạn minh họa cách làm rủi ro**, không phải chương trình chạy độc lập. Nếu alias thứ hai trỏ một engine có khác biệt ngữ nghĩa, kết quả business có thể sai mà không báo lỗi.
+This is an **illustrative snippet of a risky practice**, not a standalone runnable program. If the second alias resolves to an engine with semantic differences, business results can silently go wrong without raising an error.
 
-Tốt hơn là xác định rõ policy: “chỉ hỗ trợ Nashorn standalone 15.7” hoặc “hỗ trợ GraalJS bản đã xác minh” rồi kiểm tra `getEngineFactories()`, engine name/version và chạy smoke test trước khi nhận request.
+It is better to define an explicit policy: “only support standalone Nashorn 15.7” or “support verified GraalJS version X”, then inspect `getEngineFactories()`, engine name/version, and run a smoke test before accepting requests.
 
-### 7.2. Khi dùng GraalJS
+### 7.2. When Using GraalJS
 
-GraalJS có adapter **JSR-223** được phân phối riêng. Không phải cứ cài một JDK mang thương hiệu GraalVM là chắc chắn `ScriptEngineManager.getEngineByName("JavaScript")` luôn hoạt động trong mọi thế hệ sản phẩm: các bản GraalVM mới yêu cầu thêm **`js-scriptengine`** riêng khi dùng adapter. Nếu xây ứng dụng mới, tài liệu GraalJS khuyến nghị cân nhắc API **`org.graalvm.polyglot.Context`** để điều khiển quyền truy cập và lifecycle tốt hơn. Đừng sao chép cấu hình interop/sandbox của Nashorn sang GraalJS mà không kiểm chứng các đặc tính mới.
+GraalJS has a **JSR-223** adapter distributed separately. Simply installing a GraalVM-branded JDK does not guarantee `ScriptEngineManager.getEngineByName("JavaScript")` works out of the box across every product generation: newer GraalVM releases require adding **`js-scriptengine`** separately when using the adapter. For new applications, GraalJS documentation recommends considering the **`org.graalvm.polyglot.Context`** API for finer control over access permissions and lifecycle. Do not copy Nashorn interop/sandbox configurations onto GraalJS without verifying the new semantics.
 
-## 8. Quản lý Bindings, state và vòng đời khi nhúng script
+## 8. Managing Bindings, State, and Lifecycle When Embedding Scripts
 
-Không nên dừng kiểm thử ở “engine tìm thấy và tính được `21 * 2`”. Khi script được nhúng vào host thật, cần xem xét:
+Testing should not stop at “the engine was found and computed `21 * 2`”. When scripts are embedded in a real host, consider:
 
-- **Bindings:** `ScriptEngine` có `ENGINE_SCOPE`/`GLOBAL_SCOPE`; dữ liệu đưa vào có thể được script nhìn thấy. `manager.put(...)` thiết lập global scope trên manager cho những engine nó tạo ra. Không đặt secrets/objects quyền cao vào global bindings một cách tùy tiện.
-- **Cách ly phiên:** mỗi request/tenant nên có context/bindings riêng nếu script được phép sửa biến. Reuse engine chỉ khi hiểu hợp đồng thread safety và state isolation của implementation.
-- **Ownership:** nếu engine/factory tạo thread, context, cache hoặc tài nguyên native, host phải thiết kế cleanup theo API thực tế của vendor. `javax.script.ScriptEngine` không có phương thức `close()` chuẩn.
-- **Timeout/cancellation:** `ScriptEngine.eval` không bảo đảm cơ chế timeout hoặc dừng an toàn trên mọi engine. Không coi `Future.cancel(true)` là cách chắc chắn ngắt một script vô hạn. Chọn runtime/kiến trúc có giới hạn tài nguyên phù hợp, hoặc cô lập trong process nếu chạy code không tin cậy.
-- **Exception:** `eval` có thể ném `ScriptException` do syntax/runtime evaluation; lỗi cấu hình provider thường xảy ra sớm hơn khi discovery/khởi tạo. Ghi log riêng **engine missing**, **script failure** và **resource exhaustion**.
-- **Kết quả:** interface trả `Object`; dùng chuyển đổi giá trị tường minh, kiểm tra `null`, dải số, encoding và JSON nếu dữ liệu đi qua biên giới hệ thống.
+- **Bindings:** `ScriptEngine` has `ENGINE_SCOPE`/`GLOBAL_SCOPE`; values inserted become visible to the script. `manager.put(...)` sets global scope on the manager for engines it creates. Do not put secrets or high-privilege objects into global bindings casually.
+- **Session isolation:** each request/tenant should have separate context/bindings if scripts are permitted to mutate variables. Reuse engines only after understanding the implementation's thread-safety and state-isolation contract.
+- **Ownership:** if an engine/factory creates threads, contexts, caches, or native resources, the host must design cleanup per the vendor's actual API. `javax.script.ScriptEngine` has no standard `close()` method.
+- **Timeout/cancellation:** `ScriptEngine.eval` does not guarantee a timeout or safe stop mechanism across all engines. Do not rely on `Future.cancel(true)` to reliably abort an infinite-loop script. Choose a runtime/architecture with proper resource limits, or isolate in a separate process if running untrusted code.
+- **Exceptions:** `eval` can throw `ScriptException` for syntax/runtime evaluation errors; provider configuration errors usually surface earlier during discovery/initialization. Log **engine missing**, **script failure**, and **resource exhaustion** separately.
+- **Results:** the interface returns `Object`; apply explicit value conversion, checking `null`, numeric ranges, encoding, and JSON when data crosses system boundaries.
 
-Ví dụ dùng bindings theo một lần đánh giá (đoạn minh họa đặt trong code đã có `engine`):
+Example of single-evaluation bindings (illustrative snippet for code that already has `engine`):
 
 ~~~java
 javax.script.Bindings vars = engine.createBindings();
@@ -378,115 +378,115 @@ vars.put("base", 10);
 Object result = engine.eval("base + 5", vars);
 ~~~
 
-Không nên chia sẻ cùng `Bindings` có thể chỉnh sửa cho nhiều user/tenant. Với dữ liệu và object host đưa vào script, bảo đảm chỉ cấp đúng tính năng cần thiết. Cơ chế injection kiểu script variable **không giống** hệ dependency injection và không tự cô lập object Java nguy hiểm.
+Do not share the same mutable `Bindings` across multiple users/tenants. For data and host objects exposed to scripts, ensure only the exact needed capabilities are provided. Script-variable injection **is not** a dependency-injection container and does not automatically isolate dangerous Java objects.
 
-## 9. Bảo mật: đừng coi Nashorn hay JSR-223 là sandbox
+## 9. Security: Do Not Treat Nashorn or JSR-223 as a Sandbox
 
-Chạy JavaScript nhúng **trong cùng JVM** có thể dẫn đến quyền truy cập vào object và capability mà host cung cấp. Những tính năng Java interop của engine cũ có thể cho phép script gọi API Java mà ứng dụng không lường trước nếu không cấu hình chặn. Việc một engine bị gỡ khỏi JDK là vấn đề dependency/migration, **không phải** lý do bỏ qua kiểm tra bảo mật.
+Running embedded JavaScript **inside the same JVM** can lead to access to objects and capabilities provided by the host. Java interop features of legacy engines can let scripts call Java APIs the application did not anticipate unless blocked by configuration. An engine being removed from the JDK is a dependency/migration issue, **not** a reason to skip security reviews.
 
-Đối với script không tin cậy:
+For untrusted scripts:
 
-1. **Không chạy trực tiếp mã script tùy ý của người dùng** trong JVM phục vụ các quyền nghiệp vụ quan trọng nếu chưa có threat model, chính sách host access và giới hạn runtime được chứng minh.
-2. Giới hạn hoặc vô hiệu Java host interop theo khả năng của engine được chọn; không coi một cấu hình generic `javax.script` là đủ để khóa engine.
-3. Giới hạn CPU, memory, thời gian, I/O, network và số job; những giới hạn này thường cần cơ chế ngoài `ScriptEngine`.
-4. Nếu dùng chung process, giảm quyền hệ điều hành của process và tránh đưa credentials/secret/handle vào bindings.
-5. Với mức tin cậy thấp, cân nhắc chạy script trong **process/container độc lập** có quota, giao tiếp qua IPC/API và chấp nhận chi phí cô lập.
-6. Cập nhật engine và thư viện ASM/transitive theo quy trình dependency security; Java runtime được vá không tự bảo đảm Nashorn standalone đang ở bản an toàn.
+1. **Do not directly execute arbitrary user-supplied script code** inside a JVM handling sensitive business privileges without a threat model, host access policy, and proven runtime limits.
+2. Restrict or disable Java host interop according to the chosen engine's capabilities; do not assume a generic `javax.script` setup suffices to lock down an engine.
+3. Limit CPU, memory, time, I/O, network, and job count; these limits usually require mechanisms outside `ScriptEngine`.
+4. If sharing a process, drop OS privileges of the process and avoid putting credentials/secrets/handles into bindings.
+5. For low trust, consider running scripts in an **isolated process/container** with quotas, communicating over IPC/API and accepting the isolation overhead.
+6. Keep the engine and ASM/transitive libraries updated via dependency security processes; patching the Java runtime does not guarantee standalone Nashorn is on a secure version.
 
-Đối với automation nội bộ có script tin cậy, vẫn nên áp dụng code review, danh sách script được phép chạy, logging, versioning và resource limits. Chạy bằng JSR-223 không tạo ra “vùng an toàn” chỉ bằng việc chuyển đổi ngôn ngữ.
+Even for internal automation with trusted scripts, apply code review, script allowlists, logging, versioning, and resource limits. Running via JSR-223 does not create a “safe zone” merely by switching languages.
 
-## 10. Checklist chẩn đoán khi nâng Java 8/11 lên 17+
+## 10. Diagnostic Checklist When Upgrading Java 8/11 to 17+
 
-Nếu một hệ thống gặp `NullPointerException` tại `engine.eval(...)` hoặc log “Nashorn not found”, kiểm tra có thứ tự:
+If a system hits `NullPointerException` at `engine.eval(...)` or logs “Nashorn not found”, check in order:
 
-| Bước | Cần quan sát | Cách sửa đúng |
+| Step | What to Observe | Correct Fix |
 | --- | --- | --- |
-| 1. Java version | `java -version` thực tế của process | Xác định có thuộc Java 15+ và image bị tối giản không |
-| 2. API presence | Module `java.scripting`; code `javax.script` compile không | Nếu dùng custom jlink image, đưa API cần thiết vào runtime |
-| 3. Factory discovery | `new ScriptEngineManager().getEngineFactories()` | Không có factory thì kiểm tra dependency/class loader/module graph |
-| 4. Engine names | `factory.getNames()`, `getEngineName()`, `getEngineVersion()` | Dùng tên nhà cung cấp thực sự quảng bá; tránh alias đoán mò |
-| 5. Runtime dependency | Maven dependency tree, packaged JAR, ASM transitive | Đảm bảo engine **tồn tại lúc chạy**, không chỉ lúc compile/test |
-| 6. Class loader | TCCL, web container/plugin loader, `ScriptEngineManager(loader)` | Đảm bảo provider metadata nhìn thấy từ loader khám phá |
-| 7. JPMS resolution | module path, service provider module, parent/child layer | Resolve module engine đúng cách, không chỉ copy JAR vào directory |
-| 8. Script compatibility | syntax, native object, API JS–Java, return values | Chạy regression suite bằng đúng engine phiên bản pin |
-| 9. Trust and limits | Host access, bindings, concurrency, timeout, data isolation | Thiết kế sandbox/process isolation và lifecycle đúng mức |
-| 10. Deployment parity | CI, container, IDE, staging, production | Chạy smoke test engine discovery/eval ở môi trường cuối cùng |
+| 1. Java version | Actual process `java -version` | Determine if running Java 15+ and whether it is a minimized image |
+| 2. API presence | `java.scripting` module; does `javax.script` code compile | If using a custom `jlink` image, include the required API in the runtime |
+| 3. Factory discovery | `new ScriptEngineManager().getEngineFactories()` | If no factory exists, inspect dependencies/class loader/module graph |
+| 4. Engine names | `factory.getNames()`, `getEngineName()`, `getEngineVersion()` | Use names the vendor actually advertises; avoid guessing aliases |
+| 5. Runtime dependency | Maven dependency tree, packaged JAR, ASM transitives | Ensure the engine **exists at runtime**, not just compile/test time |
+| 6. Class loader | TCCL, web container/plugin loader, `ScriptEngineManager(loader)` | Ensure provider metadata is visible from the discovery loader |
+| 7. JPMS resolution | module path, service provider module, parent/child layer | Resolve the engine module properly, rather than merely copying the JAR into a directory |
+| 8. Script compatibility | syntax, native objects, JS–Java APIs, return values | Run regression suite against the exact pinned engine version |
+| 9. Trust and limits | Host access, bindings, concurrency, timeout, data isolation | Design sandboxing/process isolation and lifecycle at the proper level |
+| 10. Deployment parity | CI, container, IDE, staging, production | Run engine discovery/eval smoke tests in the final target environment |
 
-Đặc biệt, một IDE có thể đưa thư viện engine lên classpath lúc chạy test nhưng fat JAR/container production lại bỏ sót vì cấu hình packaging. Mọi đường deploy phải chạy cùng một integration test.
+In particular, an IDE may put the engine library on the classpath during tests while the production fat JAR/container omits it due to packaging configuration. Every deployment path must run the same integration tests.
 
-### 10.1. Smoke test nên làm gì?
+### 10.1. What Should a Smoke Test Do?
 
-Một smoke test có giá trị phải xác nhận:
+A meaningful smoke test must verify:
 
-- Factory mong muốn **được khám phá**, có name/version nằm trong danh sách được chấp thuận.
-- `getEngineByName(...)` trả non-null.
-- Một script nhỏ dùng đúng cú pháp và API interop của hệ thống thực tế **chạy được**.
-- Kết quả data conversion đúng (number/string/list/JSON), không chỉ không ném exception.
-- Trường hợp **engine absent** phải fail-fast với thông báo rõ ràng.
-- Các script chính có regression tests khi nâng version JVM/engine.
-- Các trường hợp script lỗi và script chạy lâu được xử lý theo chính sách resource/lifecycle.
+- The desired factory **is discovered**, with name/version inside the approved list.
+- `getEngineByName(...)` returns non-null.
+- A small script using the actual system's syntax and interop API **executes successfully**.
+- Data conversion results (number/string/list/JSON) are correct, not merely exception-free.
+- The **engine absent** case fails fast with a clear message.
+- Core scripts have regression tests when upgrading JVM/engine versions.
+- Failing scripts and long-running scripts are handled according to resource/lifecycle policies.
 
-Ví dụ smoke test ở mục 5 in `nashornAvailable=true` và `result=42`; bài kiểm tra đó chứng minh cách đóng gói Maven đã đem engine tới runtime, **không** tự chứng minh toàn bộ business scripts hay cấu hình bảo mật đều tương thích.
+The smoke test in section 5 prints `nashornAvailable=true` and `result=42`; that test proves Maven packaging delivered the engine to runtime, **not** that all business scripts or security settings are automatically compatible.
 
-### 10.2. Những lỗi phổ biến và cách phân biệt
+### 10.2. Common Errors and How to Distinguish Them
 
-**`getEngineByName(...) == null`:** chưa tìm thấy factory cho alias. Kiểm tra dependency runtime, class loader, module resolution và `factory.getNames()`. Không gọi `eval` trên null.
+**`getEngineByName(...) == null`:** no factory found for the alias. Check runtime dependencies, class loader, module resolution, and `factory.getNames()`. Do not call `eval` on null.
 
-**`ClassNotFoundException` hoặc `NoClassDefFoundError`:** thư viện engine/transitive dependency không nằm trên runtime path hoặc có xung đột loading. Kiểm tra Maven dependency tree và cách đóng gói, không chỉ thêm `requires java.scripting`.
+**`ClassNotFoundException` or `NoClassDefFoundError`:** engine library/transitive dependency is missing from the runtime path or hit a loading conflict. Inspect the Maven dependency tree and packaging, not just `requires java.scripting`.
 
-**`ScriptException`:** engine đã được tạo nhưng script có lỗi cú pháp/đánh giá. Kiểm tra engine dialect, script, bindings và nội dung exception; không gán nhầm cho JEP 372.
+**`ScriptException`:** the engine was created, but the script has a syntax/evaluation error. Inspect engine dialect, script, bindings, and exception details; do not misattribute it to JEP 372.
 
-**`IllegalAccessException` / `InaccessibleObjectException`:** script hoặc engine cố reflective access vào API Java bị JPMS encapsulation. Không dùng `--add-opens=ALL-UNNAMED` tràn lan; chỉ mở đúng package/target khi đã kiểm tra rủi ro và lựa chọn engine phù hợp.
+**`IllegalAccessException` / `InaccessibleObjectException`:** script or engine attempted reflective access to Java APIs blocked by JPMS encapsulation. Do not blindly apply `--add-opens=ALL-UNNAMED`; open only the exact package/target after evaluating risks and choosing an appropriate engine.
 
-**`ClassCastException` sau `eval`:** kết quả Java wrapper/vendor object không có kiểu như code mong đợi. Kiểm tra `result.getClass()` và chuyển đổi theo hợp đồng tường minh.
+**`ClassCastException` after `eval`:** the returned Java wrapper/vendor object does not have the type the code expected. Check `result.getClass()` and convert per an explicit contract.
 
-**Không thể gọi `jjs`:** công cụ đã rời JDK. Đây là lỗi khác với việc `ScriptEngineManager` không tìm thấy engine; phải thay workflow CLI/build nếu vẫn dùng `jjs`.
+**Unable to invoke `jjs`:** the tool left the JDK. This is a different failure from `ScriptEngineManager` not finding an engine; replace CLI/build workflows that still invoke `jjs`.
 
-## 11. Hướng migration đề xuất cho ứng dụng nhúng hiện hữu
+## 11. Recommended Migration Path for Existing Embedded Applications
 
-Lộ trình ít rủi ro:
+Low-risk roadmap:
 
-1. **Inventory** mọi nơi sử dụng `ScriptEngineManager`, `ScriptEngine`, `Invocable`, `Compilable`, `jjs` và API `jdk.nashorn.*`; liệt kê script được chạy và loại dữ liệu trao đổi.
-2. **Chọn engine** theo yêu cầu tương thích và trust. Nếu dùng Nashorn standalone, khai báo dependency như mục 5; nếu chuyển GraalJS/Rhino, lập feature matrix và thay host-interop adapters.
-3. **Cô lập tại một lớp adapter** chịu trách nhiệm tạo engine, đọc factory metadata, fail-fast, chuyển đổi giá trị, quản lý context/bindings, lifecycle và error reporting. Không để business code khắp nơi tự `new ScriptEngineManager()` rồi đoán tên provider.
-4. **Pin và test version** engine/dependencies song song với JDK target (ví dụ Java 17); dùng compiler release target tương ứng.
-5. **Kiểm thử script thực tế**: syntax, Unicode, number handling, exceptions, async/timer, Java bridge, reflection, host objects và serialization.
-6. **Cấu hình deployment**: Maven dependency graph, fat JAR/container image, class loader visibility, module path/layer và jlink runtime nếu có.
-7. **Thử nhánh thất bại** engine bị thiếu hoặc không được resolve; kết quả phải là lỗi cấu hình dễ hiểu, không phải NPE tại điểm xử lý nghiệp vụ.
-8. **Đánh giá bảo mật** trước khi mở script cho user/tenant hoặc cho phép bridge tới Java. Đặt giới hạn tài nguyên và chính sách input/output.
-9. **Phát hành có quan sát**: log engine name/version, tỷ lệ `ScriptException`, thời gian/chỉ số tài nguyên chạy script và khả năng rollback khi engine version mới khác hành vi.
+1. **Inventory** all uses of `ScriptEngineManager`, `ScriptEngine`, `Invocable`, `Compilable`, `jjs`, and `jdk.nashorn.*` APIs; list executed scripts and exchanged data types.
+2. **Select an engine** based on compatibility and trust requirements. If using standalone Nashorn, declare the dependency as in section 5; if migrating to GraalJS/Rhino, build a feature matrix and replace host-interop adapters.
+3. **Isolate behind an adapter layer** responsible for engine creation, reading factory metadata, fail-fast checks, value conversion, context/bindings management, lifecycle, and error reporting. Do not scatter `new ScriptEngineManager()` and guessed provider names throughout business code.
+4. **Pin and test versions** of the engine/dependencies alongside the target JDK (e.g., Java 17); use the corresponding compiler release target.
+5. **Test real scripts**: syntax, Unicode, number handling, exceptions, async/timers, Java bridges, reflection, host objects, and serialization.
+6. **Configure deployment**: Maven dependency graph, fat JAR/container image, class loader visibility, module path/layers, and `jlink` runtime if applicable.
+7. **Test failure paths** when the engine is missing or unresolved; the outcome must be an intelligible configuration error, not an NPE inside business logic.
+8. **Review security** before opening scripts to users/tenants or allowing Java bridges. Set resource limits and input/output policies.
+9. **Release with observability**: log engine name/version, `ScriptException` rates, script execution times/resource metrics, and keep a rollback plan if a new engine version changes behavior.
 
-Việc JDK 15 loại Nashorn là một thay đổi **đóng gói trách nhiệm của platform**: ứng dụng nhúng script phải sở hữu rõ dependency và policy thay vì dựa vào một implementation ngầm định bên trong JDK.
+Removing Nashorn in JDK 15 is a **platform-responsibility packaging** change: script-embedding applications must explicitly own their dependencies and policies rather than relying on an implicit implementation inside the JDK.
 
-## 12. Ghi nhớ nhanh
+## 12. Quick Summary
 
 ~~~text
 JDK 8–14:
     java.scripting / javax.script API  +  Nashorn bundled (JDK)
                                             |
-                                            +-- getEngineByName("nashorn") thường có engine
+                                            +-- getEngineByName("nashorn") usually returns an engine
 
 JDK 15+:
-    java.scripting / javax.script API  +  KHÔNG có Nashorn bundled
+    java.scripting / javax.script API  +  NO bundled Nashorn
                                             |
-                                            +-- getEngineByName("nashorn") có thể null
+                                            +-- getEngineByName("nashorn") may be null
                                             |
-                                            +-- cung cấp engine độc lập tại runtime
+                                            +-- supply an independent engine at runtime
                                                     |
                                                     +-- Nashorn standalone
                                                     +-- GraalJS adapter
-                                                    +-- Rhino / provider khác
+                                                    +-- Rhino / another provider
                                                     |
                                                     +-- test discovery, eval, packaging
 ~~~
 
-**Nguyên tắc kết luận:** từ Java 15, **muốn nhúng JavaScript thì ứng dụng phải tự bảo đảm có một engine implementation phù hợp ở runtime**. `javax.script` vẫn tồn tại như một SPI; `ScriptEngineManager` có thể **tìm** engine đã được đăng ký, nhưng **không phải bản thân engine**. Hãy khai báo dependency, xác minh visibility và phiên bản, fail-fast nếu thiếu, kiểm thử script thực tế và quản lý an toàn dữ liệu/host access.
+**Closing rule:** from Java 15 onward, **to embed JavaScript an application must ensure a suitable engine implementation is present at runtime**. `javax.script` still exists as an SPI; `ScriptEngineManager` can **locate** a registered engine, but **is not the engine itself**. Declare the dependency, verify visibility and version, fail-fast if missing, test real scripts, and safely manage data/host access.
 
-### Nguồn tài liệu đối chiếu
+### Reference Documentation
 
-- [JEP 372 – Remove the Nashorn JavaScript Engine](https://openjdk.org/jeps/372): phạm vi loại bỏ và xác nhận API `javax.script` không bị ảnh hưởng.
-- [JEP 335 – Deprecate the Nashorn JavaScript Engine](https://openjdk.org/jeps/335): giai đoạn deprecated for removal từ Java 11.
-- [Java SE 17 – ScriptEngineManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptEngineManager.html): service-provider discovery, factory names, `getEngineByName` và trường hợp không có engine.
-- [OpenJDK Nashorn standalone](https://github.com/openjdk/nashorn): module độc lập, dependency graph, Java 11+, hướng dẫn chạy trên JPMS.
-- [Maven Central – nashorn-core](https://central.sonatype.com/artifact/org.openjdk.nashorn/nashorn-core): tọa độ dependency và phiên bản 15.7 đã dùng trong ví dụ.
-- [GraalVM JavaScript embedding / ScriptEngine](https://www.graalvm.org/jdk17/reference-manual/js/RhinoMigrationGuide/): hướng migration và adapter JSR-223.
+- [JEP 372 – Remove the Nashorn JavaScript Engine](https://openjdk.org/jeps/372): removal scope and confirmation that the `javax.script` API is unaffected.
+- [JEP 335 – Deprecate the Nashorn JavaScript Engine](https://openjdk.org/jeps/335): deprecation-for-removal phase starting in Java 11.
+- [Java SE 17 – ScriptEngineManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptEngineManager.html): service-provider discovery, factory names, `getEngineByName`, and missing-engine behavior.
+- [OpenJDK Nashorn standalone](https://github.com/openjdk/nashorn): standalone module, dependency graph, Java 11+, and JPMS running instructions.
+- [Maven Central – nashorn-core](https://central.sonatype.com/artifact/org.openjdk.nashorn/nashorn-core): dependency coordinates and version 15.7 used in the example.
+- [GraalVM JavaScript embedding / ScriptEngine](https://www.graalvm.org/jdk17/reference-manual/js/RhinoMigrationGuide/): migration guide and JSR-223 adapter.

@@ -1,104 +1,104 @@
-# 11.7. Giới hạn cột số liệu và định dạng experimental của jstat khi tự động hóa
+# 11.7. Column limits and experimental format of jstat when automating
 
-## 1. Bài toán và kết quả cần đạt
+## 1. Problem and target outcomes
 
-`jstat` là công cụ đi kèm JDK để quan sát các thống kê của JVM HotSpot đang chạy, đặc biệt là mức sử dụng các vùng bộ nhớ và bộ đếm garbage collection (GC). Khi kiểm tra một tiến trình bị chậm hoặc có dấu hiệu áp lực heap, một vài lệnh `jstat` thường cho cái nhìn ban đầu rất nhanh. Tuy nhiên, **đầu ra của `jstat` không phải hợp đồng dữ liệu ổn định cho phần mềm giám sát tự động**.
+`jstat` is a JDK-bundled tool for observing statistics of a running HotSpot JVM, especially memory region utilization and garbage collection (GC) counters. When inspecting a slow process or signs of heap pressure, a few `jstat` commands often provide a very quick initial view. However, **`jstat` output is not a stable data contract for automated monitoring software**.
 
-Sau bài này, người học có thể:
+After this lesson, the learner can:
 
-- Chọn đúng nhóm cột của `-gc`, `-gcutil` và hiểu đơn vị phần trăm, KB, số lần, giây.
-- Giải thích vì sao vị trí, số lượng, cách trình bày và ý nghĩa cột không được giả định cố định giữa các môi trường.
-- Nhận diện ảnh hưởng của `-t`, `-h`, collector, phiên bản JDK, thời gian lấy mẫu và vòng đời PID.
-- Thiết kế biện pháp kiểm tra schema và xử lý lỗi cho một công cụ phân tích tạm thời, đồng thời chọn JMX/JFR/GC log cho giám sát lâu dài.
+- Choose the right column groups of `-gc` and `-gcutil`, and understand percentages, KB, counts, and seconds.
+- Explain why column positions, counts, formatting, and meanings must not be assumed fixed across environments.
+- Identify the effects of `-t`, `-h`, collector, JDK version, sampling timing, and PID lifecycle.
+- Design schema checks and error handling for an ad-hoc analysis tool, while choosing JMX/JFR/GC logs for long-term monitoring.
 
-**Ranh giới:** bài tập trung vào độ tin cậy của các cột số liệu và việc tiêu thụ đầu ra `jstat`. Phần chọn GC, tuning heap và phân tích pause chuyên sâu cần thêm dữ liệu khác.
+**Scope:** this lesson focuses on the reliability of metric columns and consuming `jstat` output. Selecting a GC, tuning the heap, and deep pause analysis require additional data.
 
-## 2. Hiểu chính xác trạng thái “experimental”
+## 2. Understanding the "experimental" status accurately
 
-Tài liệu lệnh `jstat` của Oracle JDK ghi rõ công cụ thuộc diện **experimental and unsupported** và cảnh báo không nên viết script dựa vào định dạng xuất ra vì có thể thay đổi ở các bản phát hành tiếp theo. Từ đó suy ra:
+Oracle JDK documentation for the `jstat` command explicitly marks the tool as **experimental and unsupported** and warns against writing scripts that parse its output format because it may change in future releases. From this it follows that:
 
-1. Một lệnh chạy thành công hôm nay **không chứng minh** header, số cột, số chữ số thập phân hay thứ tự cột là API bất biến của mọi bản JDK.
-2. Các tùy chọn và chức năng thống kê cũng có thể thay đổi, bị bỏ hoặc không tương ứng giống nhau khi đổi VM/collector.
-3. Việc xuất ra bảng có vẻ “dễ parse” chỉ phục vụ quan sát; Google Sheets, shell, Java hay Python đọc được bảng không biến nó thành giao thức chính thức.
-4. `experimental` **không có nghĩa** mọi con số đều sai. Nó nói về mức bảo đảm tương thích và hỗ trợ. Có thể dùng để chẩn đoán thủ công, nhưng không thể hứa một exporter thu thập metrics sản xuất sẽ không hỏng sau nâng cấp.
+1. A command succeeding today **does not prove** that headers, column counts, decimal digits, or column order are an immutable API across all JDK releases.
+2. Options and statistical capabilities may also change, be removed, or correspond differently when switching VMs/collectors.
+3. Table output that looks "easy to parse" is meant for human observation; the fact that Google Sheets, shell, Java, or Python can read the table does not turn it into an official protocol.
+4. `experimental` **does not mean** every number is wrong. It describes the level of compatibility and support guarantees. It can be used for manual diagnostics, but you cannot promise that a production metrics exporter will not break after an upgrade.
 
-`jstat` đọc các thống kê mà JVM HotSpot instrumented công bố. Nó không thay thế trace sự kiện GC chi tiết, heap dump hay thước đo độ trễ ứng dụng. Một lần chụp số liệu có thể thiếu thời điểm pause vừa diễn ra giữa hai mẫu.
+`jstat` reads statistics published by an instrumented HotSpot JVM. It does not replace detailed GC event traces, heap dumps, or application latency measurements. A single sampled snapshot can miss a pause that occurred between two samples.
 
-## 3. Những lệnh quan sát cơ bản
+## 3. Basic observation commands
 
 ~~~bash
-# Xem các chế độ mà bản jstat được cài đặt thực sự hỗ trợ
+# See which modes the installed jstat binary actually supports
 jstat -options
 
-# Ví dụ PID 21891: 5 mẫu, cách nhau khoảng 1 giây, có uptime và lặp header
+# Example PID 21891: 5 samples, roughly 1 second apart, with uptime and repeated header
 jstat -gcutil -t -h3 21891 1000 5
 
-# Dung lượng/sử dụng vùng heap; đối chiếu với chỉ số phần trăm
+# Heap region capacities/usage; compare with percentage metrics
 jstat -gc 21891 1000 5
 
-# Thông tin nguyên nhân GC nếu VM hỗ trợ tùy chọn này
+# GC cause information if the VM supports this option
 jstat -gccause 21891 1000 5
 ~~~
 
-Cú pháp thông thường là `jstat <statOption> [-t] [-hN] <vmid> [interval [count]]`. `interval` mặc định tính theo mili giây; có thể ghi rõ `1s` hoặc `1000ms`. Khi đã chỉ định `interval` mà không có `count`, lệnh tiếp tục lấy mẫu cho tới khi dừng hoặc tiến trình đích kết thúc; công việc tự động nên đặt số mẫu/timeout hữu hạn.
+The typical syntax is `jstat <statOption> [-t] [-hN] <vmid> [interval [count]]`. `interval` defaults to milliseconds; you can write `1s` or `1000ms` explicitly. When `interval` is specified without `count`, the command keeps sampling until stopped or the target process exits; automated jobs should set a finite sample count/timeout.
 
-- `vmid` thường là PID JVM cục bộ, nhưng không phải mọi môi trường đều bảo đảm vmid trùng OS PID; tiến trình trong container/namespace có thể gây nhầm lẫn. Hãy xác nhận đúng JVM.
-- `-t` thêm cột đầu `Timestamp`: số giây kể từ lúc JVM đích khởi động, **không phải** Unix epoch hoặc giờ đồng hồ.
-- `-h3` lặp lại hàng tiêu đề sau mỗi ba mẫu; đừng coi hàng tiêu đề thứ hai là dữ liệu số.
-- Thời gian lấy mẫu thực tế có jitter khi JVM hoặc hệ điều hành bận, không nhất thiết cách đều chính xác 1.000 giây.
-- `-gcutil` thường tiện xem nhanh tỷ lệ; `-gc` cho thấy dung lượng được báo cáo bằng KB. Đừng suy một đại lượng tuyệt đối từ tỷ lệ mà không biết mẫu số và thời điểm đo.
+- `vmid` is usually the local JVM PID, though not every environment guarantees `vmid` matches the OS PID; processes in containers/namespaces can cause confusion. Confirm the exact JVM.
+- `-t` prepends a `Timestamp` column: seconds since the target JVM started, **not** Unix epoch or wall-clock time.
+- `-h3` repeats the header row every three samples; do not treat the second header row as numeric data.
+- Actual sampling times experience jitter when the JVM or OS is busy, and are not guaranteed to be spaced at exactly 1.000 second.
+- `-gcutil` is often handy for quick ratios; `-gc` shows capacities reported in KB. Do not infer an absolute quantity from a percentage without knowing the denominator and measurement time.
 
-Đầu ra chỉ là văn bản có các trường ngăn bằng khoảng trắng và được căn cột để người đọc nhìn. “Cột thứ 8” không tự mang ý nghĩa lâu dài.
+The output is plain text with whitespace-separated fields padded into columns for human readability. "Column 8" carries no durable meaning on its own.
 
-## 4. Ý nghĩa các cột: tên quan trọng hơn vị trí
+## 4. Column meanings: names matter more than positions
 
-Các nhóm dưới đây mô tả cách đặt tên trong tài liệu Oracle JDK 25; **hệ thống chạy thực tế phải kiểm tra header và tài liệu của đúng JDK/VM**. Bảng là từ điển đọc số liệu, không phải danh sách cột bắt buộc có mặt trên mọi môi trường.
+The groups below describe naming in the Oracle JDK 25 documentation; **any real running system must verify headers and documentation for its exact JDK/VM**. The table is a reading glossary, not a list of columns guaranteed to exist in every environment.
 
-| Cột thường gặp | Chế độ | Nội dung và đơn vị | Giới hạn khi sử dụng |
+| Common columns | Mode | Content and unit | Usage limitations |
 | --- | --- | --- | --- |
-| `S0`, `S1` | `-gcutil` | Mức sử dụng hai Survivor space, % dung lượng hiện tại | Không cho biết số byte tuyệt đối; cách biểu diễn vùng nhớ phụ thuộc collector |
-| `E` | `-gcutil` | Mức sử dụng Eden, % dung lượng hiện tại | Tăng/giảm nhanh theo cấp phát và GC; một mẫu cao chưa chứng minh rò rỉ |
-| `O` | `-gcutil` | Mức sử dụng Old space, % dung lượng hiện tại | Không đồng nghĩa % của toàn heap; dung lượng có thể đổi |
-| `M` | `-gcutil` | Mức sử dụng Metaspace, % dung lượng hiện tại | Metaspace thuộc native memory; không coi như vùng Eden/Old |
-| `CCS` | `-gcutil` | Tỷ lệ sử dụng Compressed Class Space, % | Không nên ép mọi collector/JVM phải xuất cùng trường |
-| `S0C/S1C`, `S0U/S1U` | `-gc` | Dung lượng/đã dùng của Survivor space, KB | `C` và `U` là hai đại lượng khác nhau |
-| `EC/EU`, `OC/OU` | `-gc` | Dung lượng/đã dùng của Eden và Old, KB | Giá trị công bố theo mô hình vùng nhớ của JVM |
-| `MC/MU`, `CCSC/CCSU` | `-gc` | Committed/used Metaspace và Compressed Class Space, KB | “Committed” không đồng nghĩa “maximum” |
-| `YGC`, `FGC` | `-gc`, `-gcutil` | Bộ đếm sự kiện young GC và full GC | Số đếm tích lũy; không suy toàn bộ sự kiện hay pause chỉ từ hai cột |
-| `YGCT`, `FGCT`, `GCT` | `-gc`, `-gcutil` | Thời gian GC tích lũy được báo cáo, **giây** | Không phải trực tiếp độ trễ p95/p99, cũng không phải số lần GC |
-| `LGCC`, `GCC` | `-gccause` | Nguyên nhân GC gần nhất/đang thực hiện (khi có) | Là trường văn bản; giá trị có thể có khoảng trắng, không parse như số |
+| `S0`, `S1` | `-gcutil` | Utilization of the two Survivor spaces, % of current capacity | Does not give absolute bytes; memory region representation depends on collector |
+| `E` | `-gcutil` | Eden utilization, % of current capacity | Climbs/drops rapidly with allocation and GC; one high sample does not prove a leak |
+| `O` | `-gcutil` | Old space utilization, % of current capacity | Not synonymous with % of total heap; capacity can change |
+| `M` | `-gcutil` | Metaspace utilization, % of current capacity | Metaspace belongs to native memory; do not treat it like Eden/Old |
+| `CCS` | `-gcutil` | Compressed Class Space utilization, % | Do not expect every collector/JVM to emit the same field |
+| `S0C/S1C`, `S0U/S1U` | `-gc` | Capacity/used of Survivor spaces, KB | `C` and `U` are two distinct quantities |
+| `EC/EU`, `OC/OU` | `-gc` | Capacity/used of Eden and Old, KB | Values reported per the JVM's memory-region model |
+| `MC/MU`, `CCSC/CCSU` | `-gc` | Committed/used Metaspace and Compressed Class Space, KB | "Committed" is not synonymous with "maximum" |
+| `YGC`, `FGC` | `-gc`, `-gcutil` | Young GC and Full GC event counters | Cumulative counts; do not infer all events or pauses from these two columns alone |
+| `YGCT`, `FGCT`, `GCT` | `-gc`, `-gcutil` | Reported cumulative GC time, **seconds** | Not directly p95/p99 latency, and not GC event count |
+| `LGCC`, `GCC` | `-gccause` | Cause of last/current GC (when available) | Text fields; values can contain spaces, so do not parse as numbers |
 
-Ví dụ, `OU = 300000` trong `-gc` được diễn giải là giá trị theo **KB**, còn `O = 75.00` trong `-gcutil` là **75% dung lượng Old hiện tại**. Không thể coi 75.00 là 75 MB. Khi cùng quan sát một thời điểm và cùng vùng được báo cáo, có thể kiểm tra tương đối `OU / OC × 100`; không coi phép tính này là đúng trong mọi trường hợp capacity bằng 0, số liệu không tương thích hoặc mẫu được lấy khác thời điểm.
+For example, `OU = 300000` in `-gc` is interpreted in **KB**, whereas `O = 75.00` in `-gcutil` means **75% of current Old capacity**. You cannot treat `75.00` as 75 MB. When observing the same instant and the same reported region, you can roughly cross-check `OU / OC × 100`; do not treat this formula as valid when capacity is 0, metrics are incompatible, or samples were taken at different times.
 
-Lưu ý tên cột không tự nói lên semantics của mọi collector. Các collector có concurrent phase hoặc mô hình heap khác nhau có thể khiến cách phân loại young/full/old không trùng cách bạn hình dung từ một collector thế hệ truyền thống. Các trường `YGC/FGC/GCT` là góc nhìn của instrumented counters, không phải một bản ghi sự kiện chuẩn hoá của tất cả collector. Khi thay collector, phải đối chiếu GC log/JFR và kiểm tra lại cách diễn giải.
+Note that column names do not automatically express the semantics of every collector. Collectors with concurrent phases or different heap models may cause young/full/old classifications to diverge from what you expect from a traditional generational collector. `YGC/FGC/GCT` reflect instrumented counters, not a standardized event record across all collectors. When changing collectors, cross-check GC logs/JFR and re-verify your interpretation.
 
-### Ba kiểu số không được trộn
+### Three number types that must not be mixed
 
-- **Gauge tại thời điểm đo:** `E`, `O`, `EU`, `OU`, `EC`, `OC`. Có thể tăng, giảm hoặc đổi mẫu số sau GC/resize.
-- **Counter tích lũy:** `YGC`, `FGC`. Lấy hiệu giữa hai thời điểm trong **cùng một đời JVM**, không cộng trực tiếp các giá trị snapshot thành “số GC trong phút”.
-- **Thời gian tích lũy:** `YGCT`, `FGCT`, `GCT`. Đơn vị giây; hiệu hai mẫu phản ánh mức tăng counter thời gian được công bố, không cho biết phân vị pause và không khẳng định tương đương tổng thời gian stop-the-world.
+- **Point-in-time gauges:** `E`, `O`, `EU`, `OU`, `EC`, `OC`. Can rise, fall, or change denominator after GC/resizing.
+- **Cumulative counters:** `YGC`, `FGC`. Take the difference between two timestamps within **the same JVM lifetime**; never sum snapshot values directly into "GCs per minute".
+- **Cumulative time:** `YGCT`, `FGCT`, `GCT`. Unit is seconds; the difference between two samples reflects the increase in the published time counter, does not show pause percentiles, and does not claim equality with total stop-the-world time.
 
-## 5. Các giả định dễ làm hỏng automation
+## 5. Assumptions that easily break automation
 
-| Giả định sai | Ví dụ hậu quả | Cách kiểm soát |
+| Wrong assumption | Example consequence | Control measure |
 | --- | --- | --- |
-| Cột thứ N luôn là `YGC` | Bật `-t` khiến mọi index dịch một vị trí | Dựa vào tên header ở mỗi phiên lấy mẫu |
-| Header chỉ xuất hiện một lần | `-h3` đưa chữ `YGC` vào phép tính numeric | Nhận diện và bỏ/kiểm tra header lặp |
-| Mọi bản JDK có cùng cột | Thêm/bớt hoặc đổi tên trường khiến gán nhầm metric | Ghi lại phiên bản, fingerprint header; fail closed khi không tương thích |
-| Mọi ô đều là số hữu hạn | Giá trị trống/không áp dụng/`NaN` bị xuất nhầm thành 0 | Kiểm tra kiểu và khoảng hợp lệ; đánh dấu không có số liệu |
-| Nhiều khoảng trắng có nghĩa nhiều cột rỗng | Parser tách theo một dấu cách sẽ lệch token | Tách các cột số bằng whitespace liên tiếp, kiểm tra đúng số trường |
-| Mọi tùy chọn đều xuất dữ liệu thuần số | `-gccause` có nguyên nhân dạng chữ và khoảng trắng | Parser theo schema riêng; không parse `-gccause` như `-gcutil` |
-| Timestamp là thời gian hệ thống | Dashboard vẽ uptime thành epoch sai năm | Dùng wall-clock riêng do collector ghi; Timestamp phục vụ đối chiếu uptime |
-| Counter luôn tăng giữa hai lần chạy script | PID đã được tái sử dụng hoặc JVM khởi động lại | Gắn nhận diện tiến trình + start time; loại hiệu âm/reset |
-| Chu kỳ 1000 ms luôn chính xác | Tính rate từ khoảng lấy mẫu danh nghĩa sai | Dùng thời gian thực hoặc hiệu uptime khi thích hợp |
-| `GCT` là total STW pause latency | Alert độ trễ bị diễn giải quá mức | Dùng GC log/JFR và ứng dụng đo latency để xác minh |
-| Mất mẫu hay thoát lỗi bằng 0 là “GC bình thường” | Dashboard che khuất sự cố attach, timeout, thiếu quyền | Phân biệt trạng thái thiếu dữ liệu với giá trị 0 |
+| Column N is always `YGC` | Enabling `-t` shifts every index by one position | Look up by header name in every sampling session |
+| Header appears only once | `-h3` feeds the literal string `YGC` into numeric parsing | Detect and skip/verify repeated headers |
+| Every JDK has identical columns | Added/removed or renamed fields cause metric mislabeling | Record version, fingerprint header; fail closed on mismatch |
+| Every cell is a finite number | Blank/N/A/`NaN` gets coerced to 0 by mistake | Check type and valid range; mark missing data explicitly |
+| Multiple spaces mean multiple empty columns | A parser splitting on a single space shifts tokens | Split numeric columns on consecutive whitespace, verify exact field count |
+| Every option outputs pure numbers | `-gccause` has text causes containing spaces | Parse per option schema; never parse `-gccause` like `-gcutil` |
+| Timestamp is system wall-clock time | Dashboard plots uptime as an epoch in the wrong year | Use a separate wall-clock from the collector; Timestamp is for uptime correlation |
+| Counters always increase between script runs | PID was reused or JVM restarted | Attach process identity + start time; reject negative deltas/resets |
+| A 1000 ms interval is always exact | Computing rate from nominal interval is inaccurate | Use actual elapsed time or uptime delta when appropriate |
+| `GCT` is total STW pause latency | Latency alerts are over-interpreted | Verify with GC logs/JFR and application latency measurements |
+| Missing samples or exit code 0 means "normal GC" | Dashboards hide attach failures, timeouts, or permission errors | Distinguish missing-data state from numeric 0 |
 
-Đặc biệt, không được viết parser dạng `awk '{print $8}'` hay `split(" ")[7]` rồi gắn nhãn `jvm_gc_events_total`. Nó chỉ tình cờ đúng với **một** cấu hình header cụ thể. Khi xuất metric dài hạn, lỗi gán nhãn âm thầm còn nguy hiểm hơn một lần chạy thất bại rõ ràng.
+In particular, never write parsers like `awk '{print $8}'` or `split(" ")[7]` and label the result `jvm_gc_events_total`. That only happens to work for **one** specific header layout. For long-lived metric emission, silent mislabeling is more dangerous than an explicit run failure.
 
-## 6. Phân tích hai mẫu mà không suy diễn quá mức
+## 6. Analyzing two samples without over-inferring
 
-Đoạn dưới **là dữ liệu minh họa**, không phải output bắt buộc của mọi JDK:
+The snippet below **is illustrative data**, not mandatory output across all JDKs:
 
 ~~~text
 Timestamp S0    S1    E     O     M     CCS   YGC YGCT  FGC FGCT  GCT
@@ -106,20 +106,20 @@ Timestamp S0    S1    E     O     M     CCS   YGC YGCT  FGC FGCT  GCT
 20.0      0.00  30.00 10.00 56.00 90.00 70.00 12  0.520 0   0.000 0.520
 ~~~
 
-Giữa hai mốc uptime 10 giây và 20 giây:
+Between uptime 10 s and 20 s:
 
-1. `ΔYGC = 12 - 10 = 2`: counter young GC tăng hai sự kiện.
-2. `ΔYGCT = 0.520 - 0.400 = 0.120 s`: counter thời gian young GC tăng 120 ms.
-3. `ΔGCT = 0.120 s` và `Δuptime = 10 s`: tỷ số mô tả theo counter là `0.120/10 × 100 = 1.2%` cho **cửa sổ minh họa này**.
-4. `E` giảm 80% xuống 10% và `O` tăng 55% lên 56%; những thay đổi này phù hợp với hoạt động cấp phát/thu gom, nhưng **không đủ** để chứng minh các đối tượng cụ thể đã được promote, một leak, hay thời lượng pause lớn nhất.
+1. `ΔYGC = 12 - 10 = 2`: the young GC counter increased by two events.
+2. `ΔYGCT = 0.520 - 0.400 = 0.120 s`: the young GC time counter increased by 120 ms.
+3. `ΔGCT = 0.120 s` and `Δuptime = 10 s`: the counter-based descriptive ratio is `0.120/10 × 100 = 1.2%` for **this illustrative window**.
+4. `E` dropped from 80% to 10% and `O` rose from 55% to 56%; these changes are consistent with allocation/collection activity, yet **insufficient** to prove which specific objects were promoted, a leak, or the maximum pause duration.
 
-Để đánh giá sức khỏe dịch vụ, đối chiếu tần suất GC, phân bố pause trong GC log/JFR, throughput và latency thực tế. Tỷ lệ counter thời gian GC trên uptime chỉ là tín hiệu sơ bộ; không tự quy đổi thành phần trăm CPU, tổng thời gian ngừng thế giới hay SLA latency.
+To evaluate service health, compare GC frequency, pause distributions in GC logs/JFR, throughput, and actual latency. The ratio of the GC time counter to uptime is only a preliminary signal; do not convert it directly into CPU percentage, total stop-the-world time, or latency SLAs.
 
-## 7. Ví dụ Java 17+: parser dựa vào header cho dữ liệu thử nghiệm
+## 7. Java 17+ example: a header-driven parser for test fixtures
 
-Đây là **bài tập xử lý snapshot đã lưu**, nhằm cho thấy kiểm tra schema và từ chối dữ liệu sai; **không phải đề xuất viết exporter production bằng cách scrape `jstat`**. Chương trình không attach JVM, nên chạy được ở bất kỳ máy có JDK 17+. Nó kiểm tra header lặp, số trường, cột bắt buộc, số hữu hạn và reset counter. Các con số mô phỏng được cố ý cố định để có stdout kiểm chứng.
+This is **an exercise in processing saved snapshots** to demonstrate schema validation and rejecting malformed data; **it is not a recommendation to build a production exporter by scraping `jstat`**. The program does not attach to a JVM, so it runs on any machine with JDK 17+. It checks repeated headers, field counts, required columns, finite numbers, and counter resets. The simulated numbers are intentionally fixed so stdout is deterministic.
 
-Lưu vào tệp `JstatHeaderDemo.java`:
+Save to `JstatHeaderDemo.java`:
 
 ~~~java
 import java.util.ArrayList;
@@ -176,7 +176,7 @@ public class JstatHeaderDemo {
                         throw new IllegalArgumentException("Missing " + required);
                     }
                 }
-                continue; // Header lap lai khong phai snapshot.
+                continue; // Repeated header is not a snapshot.
             }
 
             if (columns == null || fields.length != signature.length) {
@@ -227,41 +227,41 @@ javac JstatHeaderDemo.java
 java JstatHeaderDemo
 ~~~
 
-Stdout của fixture trên:
+Stdout of the fixture above:
 
 ~~~text
 dYGC=2, dYGCT=0.120 s, dGCT=0.120 s, dt=10.0 s
 ~~~
 
-**Điểm cần hiểu trong mã:** `columns.get(name)` tìm vị trí theo header; code không sử dụng index cố định. Header lặp phải giống header ban đầu. Dữ liệu không khớp hợp đồng phiên chạy sẽ ném exception thay vì âm thầm đổi nghĩa metric. Chương trình chỉ biết các trường numeric của `-gcutil -t`, không xử lý văn bản `-gccause`. Nếu đầu ra từ bản JDK thực tế có header khác, phải xem đó là thay đổi schema và thẩm định lại trước khi dùng.
+**Key points in the code:** `columns.get(name)` looks up positions by header; the code uses no fixed indices. Repeated headers must match the initial header. Data that violates the session contract throws an exception instead of silently changing metric semantics. The program only understands the numeric fields of `-gcutil -t`, not `-gccause` text. If output from an actual JDK version has a different header, treat it as a schema change and re-validate before use.
 
-Chương trình demo cũng **không xác minh danh tính tiến trình, cùng một đời JVM, thời gian wall-clock hay kết nối tới target**: những điều này phải được quản lý ở tầng thu thập. Header trùng nhau hoàn toàn vẫn không bảo đảm tương thích ngữ nghĩa qua phiên bản HotSpot.
+The demo program also **does not verify process identity, same JVM lifetime, wall-clock time, or connectivity to the target**: those must be handled at the collection layer. Identical headers still do not guarantee semantic compatibility across HotSpot versions.
 
-## 8. Nếu bắt buộc thu thập tạm từ jstat
+## 8. If temporary collection from jstat is unavoidable
 
-Chỉ nên làm ở môi trường đã khóa phiên bản JDK/VM/collector và chấp nhận bảo trì khi nâng cấp, ví dụ một script chẩn đoán chạy trong ca xử lý sự cố. Hợp đồng tối thiểu:
+Only do this in an environment with pinned JDK/VM/collector versions and accepted maintenance upon upgrades, such as a diagnostic script run during incident response. Minimum contract:
 
-1. **Nhận diện nguồn:** lưu `vmid/PID`, start time JVM, vendor/version của JVM đích, collector/flags khi có, phiên bản binary `jstat`, câu lệnh và thời điểm hệ thống ghi nhận mẫu. Không gộp các PID tái sử dụng.
-2. **Chặn phiên chạy vô hạn:** dùng `count`, timeout cho tiến trình con, giới hạn số byte stdout/stderr, thu exit code. Nếu không attach được vì quyền người dùng, container, VM đã dừng hoặc perf counters không truy cập được, trả trạng thái “unavailable”.
-3. **Đối chiếu cấu trúc:** giữ raw header, lập map tên cột, xác minh các trường bắt buộc chỉ xuất hiện một lần, số token phải khớp. Nếu schema thay đổi, báo lỗi có ngữ cảnh và lưu dữ liệu thô để phân tích.
-4. **Kiểm tra giá trị:** chỉ chấp nhận số hữu hạn trong phạm vi hợp lý; không ép ô rỗng, lỗi parse, thiếu trường hay `NaN` thành 0. Các giá trị phần trăm cần được xem xét theo mô hình vùng nhớ của collector trước khi áp đặt ngưỡng.
-5. **Tính delta đúng vòng đời:** xác minh JVM chưa restart, uptime tăng, counter không giảm; tách gauge và counter; gắn nhãn đơn vị, cửa sổ thời gian và số mẫu; không lấy chênh lệch từ hai JVM khác nhau.
-6. **Kiểm soát nâng cấp:** thử lại với các JDK/collector thật sự vận hành và bộ fixture gồm header lặp, thêm/bớt cột, giá trị thiếu, timeout, restart; không tự động “sửa” bằng cách dịch chỉ số.
-7. **Giám sát chất lượng thu thập:** theo dõi số lần fail/timeout/schema mismatch; dữ liệu vắng mặt phải hiển thị rõ, không được lấp bằng 0 hoặc giữ vô hạn giá trị cũ.
+1. **Identify the source:** record `vmid/PID`, JVM start time, target JVM vendor/version, collector/flags when available, `jstat` binary version, exact command, and system timestamp when captured. Never merge reused PIDs.
+2. **Prevent unbounded runs:** use `count`, subprocess timeouts, stdout/stderr byte caps, and exit code checks. If attaching fails due to user permissions, containers, an exited VM, or inaccessible perf counters, return an "unavailable" state.
+3. **Validate structure:** retain raw headers, build a column-name map, verify required fields appear exactly once, and match token counts. If the schema changes, raise a contextual error and store raw data for inspection.
+4. **Validate values:** accept only finite numbers within reasonable bounds; never coerce empty cells, parse errors, missing fields, or `NaN` to 0. Interpret percentages according to the collector's memory-region model before setting thresholds.
+5. **Compute lifecycle-safe deltas:** confirm the JVM has not restarted, uptime increased, and counters did not decrease; separate gauges and counters; label units, time window, and sample count; never take differences across two distinct JVMs.
+6. **Guard upgrades:** re-test against every actual JDK/collector in production and a fixture suite covering repeated headers, added/removed columns, missing values, timeouts, and restarts; never auto-"fix" by shifting indices.
+7. **Monitor collection quality:** track failures/timeouts/schema mismatches; absent data must be surfaced explicitly, never filled with 0 or held stale indefinitely.
 
-Có thể dùng `jstat -options` để khám phá tùy chọn có ở bản công cụ đang chạy; đó **không** phải sơ đồ cột máy đọc được. Thử lệnh trên đúng JVM trong staging trước khi dùng trong quy trình ứng cứu. Khi thay đổi cấu hình collector, hãy đánh giá lại cả ngữ nghĩa metric chứ không chỉ syntax của parser.
+You can run `jstat -options` to discover options available in the active binary; that is **not** a machine-readable column schema. Test the command against the exact JVM in staging before using it in response runbooks. When collector configuration changes, re-evaluate metric semantics as well as parser syntax.
 
-## 9. Công cụ thay thế theo nhu cầu
+## 9. Alternative tools by need
 
-| Nhu cầu | Ưu tiên xem xét | Vì sao phù hợp hơn việc parse jstat |
+| Need | Preferred alternative | Why it fits better than parsing jstat |
 | --- | --- | --- |
-| Chẩn đoán nhanh trong phiên terminal | `jstat`, kết hợp `jcmd <pid> GC.heap_info` | Nhanh, thủ công, có thể đối chiếu nhiều góc nhìn; tránh cam kết schema dài hạn |
-| Metrics định kỳ, dashboard và alert | JMX `MemoryMXBean`, `MemoryPoolMXBean`, `GarbageCollectorMXBean` qua exporter phù hợp | Giao diện quản lý kiểu dữ liệu rõ hơn; vẫn cần hiểu collector và quyền truy cập |
-| Cần diễn biến và thời lượng từng GC/pause | Unified GC logging `-Xlog:gc*` hoặc Java Flight Recorder (JFR) | Mang theo ngữ cảnh sự kiện và thời gian; phân tích bằng công cụ tương ứng với JDK |
-| Điều tra heap bất thường, nghi rò rỉ | `jcmd` để lấy thông tin heap/histogram; heap dump khi đã đánh giá tác động | Cung cấp cấu trúc đối tượng/heap sâu hơn; một số lệnh có thể tiêu tốn tài nguyên đáng kể |
-| Đánh giá trải nghiệm dịch vụ | Latency p95/p99, error rate, throughput, CPU, memory + GC | Hiểu triệu chứng người dùng thực sự; GC chỉ là một nguồn bằng chứng |
+| Quick diagnosis in a terminal session | `jstat`, paired with `jcmd <pid> GC.heap_info` | Fast, manual, allows cross-checking multiple views; avoids long-term schema commitments |
+| Periodic metrics, dashboards, and alerts | JMX `MemoryMXBean`, `MemoryPoolMXBean`, `GarbageCollectorMXBean` via a suitable exporter | Typed management interface; still requires understanding the collector and access permissions |
+| Exact timeline and duration of each GC/pause | Unified GC logging `-Xlog:gc*` or Java Flight Recorder (JFR) | Carries event context and timing; analyze with tools matching the JDK |
+| Investigating abnormal heap or suspected leak | `jcmd` for heap info/histograms; heap dump after assessing impact | Reveals deeper object/heap structure; some commands can consume substantial resources |
+| Evaluating service experience | p95/p99 latency, error rate, throughput, CPU, memory + GC | Captures real user symptoms; GC is only one source of evidence |
 
-Ví dụ lấy thông tin kiểm tra qua `jcmd` (chỉ khi được phép truy cập tiến trình):
+Example of gathering inspection details via `jcmd` (only when permitted to access the process):
 
 ~~~bash
 jcmd 21891 VM.version
@@ -269,30 +269,30 @@ jcmd 21891 VM.flags
 jcmd 21891 GC.heap_info
 ~~~
 
-Khi dùng GC log, một cấu hình ví dụ với HotSpot hiện đại là:
+When using GC logs, an example configuration for modern HotSpot is:
 
 ~~~bash
 java -Xlog:gc*:file=gc.log:time,uptime,level,tags -jar app.jar
 ~~~
 
-Cú pháp logging và tập tag cũng cần đối chiếu với bản JDK triển khai. Không kích hoạt thao tác đắt như heap dump hoặc class histogram ở production chỉ để bù cho thiếu cột trong `jstat`.
+Logging syntax and tag sets should also be checked against the deployed JDK release. Do not trigger expensive operations like heap dumps or class histograms in production merely to compensate for missing columns in `jstat`.
 
-## 10. Checklist tự kiểm tra và bài tập
+## 10. Self-check checklist and exercises
 
-Trước khi tin bất kỳ biểu đồ sinh từ `jstat`, hãy trả lời được: đang nhìn đúng JVM nào; JDK và GC nào; cột có trên output thật không; đơn vị là gì; mẫu nào bị thiếu; có restart không; thời gian lấy mẫu thực tế ra sao; thay đổi phiên bản được phát hiện bằng cách nào; chỉ số cần bổ trợ bằng GC log/JFR hoặc latency nào.
+Before trusting any chart built from `jstat`, be able to answer: which JVM is being observed; which JDK and GC; whether the columns exist in actual output; what the units are; which samples are missing; whether a restart occurred; what actual sampling intervals were; how version changes are detected; and which GC logs/JFR or latency metrics corroborate it.
 
-**Bài tập 1.** Giả sử một parser hard-code index 7 để lấy `YGC`. Sau khi thêm `-t`, hãy chỉ ra vì sao số đó có thể chuyển sang cột khác; sửa parser để tra cứu `YGC` bằng header.
+**Exercise 1.** Suppose a parser hard-codes index 7 to read `YGC`. After adding `-t`, explain why that number can shift to another column; modify the parser to look up `YGC` by header name.
 
-**Bài tập 2.** Trong fixture Java, thay một lần lặp header bằng header thiếu `GCT` và chạy lại. Kết quả mong đợi: chương trình từ chối dữ liệu với `Header changed`, không phát số đo. Tiếp theo đổi một dòng số sang `NaN` ở trường `YGCT`: kết quả mong đợi là `Invalid YGCT`.
+**Exercise 2.** In the Java fixture, replace one repeated header with a header missing `GCT` and rerun. Expected result: the program rejects the input with `Header changed` instead of emitting metrics. Next, change a numeric row's `YGCT` field to `NaN`: expected result is `Invalid YGCT`.
 
-**Bài tập 3.** Sau một đợt triển khai, `YGC` giảm từ 150 xuống 3. Vì sao không được tính `ΔYGC = -147` rồi đưa vào biểu đồ? Hãy kiểm tra process start time/uptime và loại cửa sổ so sánh có restart.
+**Exercise 3.** After a deployment, `YGC` drops from 150 to 3. Why must you not compute `ΔYGC = -147` and plot it? Check process start time/uptime and exclude comparison windows spanning a restart.
 
-**Bài tập 4.** `O` tăng đều còn độ trễ dịch vụ bình thường. Có đủ kết luận memory leak không? Không: cần lịch sử heap/GC sau thu gom, retention, GC log/JFR và bằng chứng từ ứng dụng.
+**Exercise 4.** `O` climbs steadily while service latency is normal. Is that enough to conclude a memory leak? No: you need post-collection heap/GC history, retention evidence, GC logs/JFR, and application-level evidence.
 
-**Thông điệp chính:** `jstat` là công cụ chẩn đoán hữu ích cho người đọc, nhưng định dạng experimental của nó không phải schema ổn định cho automation. Tôn trọng tên cột, đơn vị, vòng đời JVM, collector và trạng thái thiếu dữ liệu; dùng nguồn telemetry chuyên dụng khi cần số liệu bền vững.
+**Key message:** `jstat` is a useful diagnostic tool for human readers, but its experimental format is not a stable schema for automation. Respect column names, units, JVM lifecycle, collector behavior, and missing-data states; use dedicated telemetry sources when durable metrics are needed.
 
-## Tài liệu đối chiếu
+## Reference documentation
 
-- Oracle Java SE 25, [The jstat Command](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jstat.html) — cú pháp, cột dữ liệu, ví dụ `-t`/`-h` và cảnh báo experimental.
-- Oracle Java SE 25, [Diagnostic Tools](https://docs.oracle.com/en/java/javase/25/troubleshoot/diagnostic-tools.html) — hướng sử dụng `jcmd` và JFR cho điều tra JVM.
-- Oracle Java SE 25, [The java Command](https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html) — cấu hình Unified Logging qua `-Xlog`.
+- Oracle Java SE 25, [The jstat Command](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jstat.html) — syntax, data columns, `-t`/`-h` examples, and experimental warning.
+- Oracle Java SE 25, [Diagnostic Tools](https://docs.oracle.com/en/java/javase/25/troubleshoot/diagnostic-tools.html) — guidance on using `jcmd` and JFR for JVM investigation.
+- Oracle Java SE 25, [The java Command](https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html) — configuring Unified Logging via `-Xlog`.

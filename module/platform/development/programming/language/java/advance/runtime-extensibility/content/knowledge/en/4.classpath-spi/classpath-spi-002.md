@@ -1,45 +1,45 @@
-# Đặt tên tệp META-INF/services theo tên nhị phân của kiểu dịch vụ
+# Naming the META-INF/services File Using the Binary Name of the Service Type
 
-## 1. Vì sao tên tệp quyết định ServiceLoader có tìm được plugin?
+## 1. Why Does the File Name Determine Whether ServiceLoader Finds a Plugin?
 
-Khi triển khai **Java SPI trên classpath**, lớp cung cấp dịch vụ (provider) không tự được đăng ký chỉ vì nó đã viết `implements` một giao diện. Với cơ chế đăng ký bằng tệp của `java.util.ServiceLoader`, provider phải được khai báo trong một **tệp tài nguyên (provider-configuration file)** tại đúng đường dẫn:
+When implementing a **Java SPI on the classpath**, a service provider class is not automatically registered just because it writes `implements` for an interface. With the file-based registration mechanism of `java.util.ServiceLoader`, the provider must be declared in a **resource file (provider-configuration file)** at the exact path:
 
 ```text
-META-INF/services/<tên-nhị-phân-đầy-đủ-của-kiểu-dịch-vụ>
+META-INF/services/<fully-qualified-binary-name-of-service-type>
 ```
 
-Phần sau `META-INF/services/` là **tên nhị phân đầy đủ (fully qualified binary name)** của **kiểu dịch vụ** mà host yêu cầu, thường là một `interface` hoặc lớp trừu tượng. Nó không phải tên lớp provider, không phải tên module, không phải tên JAR và không có hậu tố `.java`, `.class` hoặc `.txt`.
+The part after `META-INF/services/` is the **fully qualified binary name** of the **service type** requested by the host, typically an `interface` or abstract class. It is not the provider class name, not the module name, not the JAR name, and has no `.java`, `.class`, or `.txt` suffix.
 
-Ví dụ, nếu host gọi:
+For example, if the host calls:
 
 ```java
 ServiceLoader.load(com.example.spi.TextFormatter.class);
 ```
 
-thì một provider được đăng ký trên classpath có thể được tìm qua tài nguyên mang tên chính xác:
+then a provider registered on the classpath can be found through a resource with the exact name:
 
 ```text
 META-INF/services/com.example.spi.TextFormatter
 ```
 
-Vì sao? `ServiceLoader` phải biết **đang tìm provider cho dịch vụ nào** trước khi biết các lớp triển khai. Tên tệp là khóa tìm kiếm; **các dòng bên trong tệp** mới liệt kê tên các lớp provider cần tải. Đặt tên sai có thể khiến hệ thống tìm thấy **0 provider** dù JAR và lớp triển khai có mặt.
+Why? `ServiceLoader` must know **which service it is looking up providers for** before knowing the implementation classes. The file name is the lookup key; **the lines inside the file** list the names of the provider classes to load. Using the wrong name can cause the system to find **0 providers** even though the JAR and implementation class are present.
 
-## 2. Tên nhị phân khác tên dùng trong mã Java như thế nào?
+## 2. How Does a Binary Name Differ from the Name Used in Java Source Code?
 
-Với kiểu top-level, tên nhị phân thường trùng với tên đầy đủ quen thuộc `package.TypeName`. Nhưng với **kiểu thành viên lồng nhau (nested member type)**, tên nhị phân dùng dấu `$` để nối lớp bao ngoài và kiểu bên trong; cách viết trong mã nguồn Java dùng dấu `.`.
+For a top-level type, the binary name usually matches the familiar fully qualified name `package.TypeName`. However, for a **nested member type**, the binary name uses `$` to join the enclosing class and the inner type; Java source code uses `.`.
 
-| Khai báo/kiểu nhìn thấy trong mã Java | Tên nhị phân mà JVM nhận diện | Tên tệp cần đặt dưới `META-INF/services/` |
+| Declaration/type seen in Java code | Binary name recognized by the JVM | File name to place under `META-INF/services/` |
 |---|---|---|
 | `com.example.spi.TextFormatter` (top-level) | `com.example.spi.TextFormatter` | `com.example.spi.TextFormatter` |
-| `com.example.spi.Contracts.Formatter` (kiểu lồng trong `Contracts`) | `com.example.spi.Contracts$Formatter` | `com.example.spi.Contracts$Formatter` |
-| `com.example.spi.Outer.Middle.Processor` (lồng nhiều cấp) | `com.example.spi.Outer$Middle$Processor` | `com.example.spi.Outer$Middle$Processor` |
+| `com.example.spi.Contracts.Formatter` (nested type inside `Contracts`) | `com.example.spi.Contracts$Formatter` | `com.example.spi.Contracts$Formatter` |
+| `com.example.spi.Outer.Middle.Processor` (multi-level nesting) | `com.example.spi.Outer$Middle$Processor` | `com.example.spi.Outer$Middle$Processor` |
 
-**Quy tắc chính xác:** lấy `serviceType.getName()` hoặc `YourService.class.getName()` để có tên dùng cho tệp đăng ký. Trong trường hợp service type là kiểu tham chiếu thông thường, `Class.getName()` trả về tên nhị phân; không tự thay tất cả dấu chấm thành dấu `$`. **Dấu chấm giữa các thành phần package vẫn giữ nguyên**; chỉ dấu phân cách giữa các cấp kiểu lồng nhau trở thành `$`.
+**Exact rule:** obtain `serviceType.getName()` or `YourService.class.getName()` to get the name for the registration file. When the service type is an ordinary reference type, `Class.getName()` returns the binary name; do not manually replace all dots with `$`. **Dots between package components remain intact**; only the separator between nested type levels becomes `$`.
 
-Ví dụ:
+For example:
 
 ```java
-// Kiểu lồng: trong mã nguồn viết Contracts.Formatter
+// Nested type: written as Contracts.Formatter in source code
 System.out.println(Contracts.Formatter.class.getName());
 // com.example.spi.Contracts$Formatter
 
@@ -47,56 +47,56 @@ System.out.println(Contracts.Formatter.class.getCanonicalName());
 // com.example.spi.Contracts.Formatter
 ```
 
-Đoạn trên chỉ minh họa hai phương thức và giả sử `Contracts` là lớp trong package `com.example.spi` đã được khai báo. Đây **không phải chương trình độc lập**; phần tiếp theo có ví dụ chạy đầy đủ.
+The snippet above only illustrates the two methods and assumes `Contracts` is an already-declared class in package `com.example.spi`. This is **not a standalone program**; the next section has a full runnable example.
 
-**Không dùng `getCanonicalName()` làm tên tệp** khi hợp đồng là kiểu lồng nhau. Tên canonical thuận tiện cho cách viết Java, nhưng không khớp tên tài nguyên mà SPI trên classpath tra cứu. Với local/anonymous class, tên JVM còn có thành phần sinh tự động; chúng không phù hợp làm service contract công khai, ổn định.
+**Do not use `getCanonicalName()` as the file name** when the contract is a nested type. The canonical name is convenient for Java syntax, but does not match the resource name looked up by the classpath SPI. For local or anonymous classes, the JVM name also has auto-generated parts; they are not suitable as public, stable service contracts.
 
-## 3. Tên tệp và nội dung tệp đảm nhận hai vai trò khác nhau
+## 3. File Name and File Contents Serve Two Different Roles
 
-Giả sử:
+Suppose:
 
-- Kiểu dịch vụ: `com.example.spi.Contracts.Transformer`.
-- Tên nhị phân dịch vụ: `com.example.spi.Contracts$Transformer`.
-- Lớp triển khai: `com.example.plugin.UpperTransformer`.
+- Service type: `com.example.spi.Contracts.Transformer`.
+- Service binary name: `com.example.spi.Contracts$Transformer`.
+- Implementation class: `com.example.plugin.UpperTransformer`.
 
-Vị trí và nội dung tệp đăng ký:
+Location and contents of the registration file:
 
 ```text
-ĐƯỜNG DẪN TÀI NGUYÊN TRONG JAR:
+RESOURCE PATH IN JAR:
 META-INF/services/com.example.spi.Contracts$Transformer
 
-NỘI DUNG TỆP (một dòng):
+FILE CONTENTS (one line):
 com.example.plugin.UpperTransformer
 ```
 
-Dòng đầu mô tả **tên/path của tệp**, dòng thứ hai mô tả **nội dung thật**. Không chép cả khối minh họa này vào tệp. Tệp chỉ cần chứa tên lớp provider.
+The first part describes the **file name/path**, and the second part describes the **actual contents**. Do not copy this entire illustration block into the file. The file should only contain provider class names.
 
-Một tệp dịch vụ có thể đăng ký **nhiều provider** bằng cách ghi mỗi tên nhị phân đầy đủ trên một dòng:
+A single service file can register **multiple providers** by writing each fully qualified binary name on its own line:
 
 ```text
-# Các provider của cùng một kiểu dịch vụ
+# Providers of the same service type
 com.example.plugin.UpperTransformer
 com.example.plugin.LowerTransformer
 ```
 
-Tên `LowerTransformer` ở đây chỉ minh họa provider thứ hai và cần lớp triển khai thật khi sử dụng. Nếu ứng dụng có **hai service type khác nhau**, mỗi service type cần tệp đăng ký riêng mang tên nhị phân tương ứng.
+The name `LowerTransformer` here only illustrates a second provider and requires a real implementation class when used. If the application has **two different service types**, each service type needs its own registration file carrying its corresponding binary name.
 
-Theo đặc tả của `ServiceLoader` trên classpath:
+According to the `ServiceLoader` specification on the classpath:
 
-- Tệp phải là văn bản **UTF-8**; để tránh vấn đề ký tự đầu tệp, nên lưu **UTF-8 không BOM**.
-- Dòng trống và khoảng trắng/tab ở đầu, cuối tên provider được bỏ qua.
-- Từ dấu `#` đầu tiên tới hết dòng được xem là chú thích.
-- Các tên provider trùng lặp bị bỏ qua.
-- Tên provider cũng phải là **tên nhị phân đầy đủ** của lớp cung cấp dịch vụ. Với ví dụ này, provider là lớp top-level nên tên có dấu chấm thông thường.
-- Tệp đăng ký và lớp provider **không bắt buộc cùng một JAR**, nhưng cả hai phải được classloader tương ứng nhìn thấy; không nên giả định một tệp ở chỗ bất kỳ trên ổ đĩa đều được quét.
+- The file must be **UTF-8** text; to avoid issues with leading characters, save as **UTF-8 without BOM**.
+- Blank lines and leading/trailing spaces or tabs around provider names are ignored.
+- Everything from the first `#` to the end of the line is treated as a comment.
+- Duplicate provider names are ignored.
+- Provider names must also be the **fully qualified binary name** of the service provider class. In this example, the provider is a top-level class so its name uses normal dots.
+- The registration file and provider class **do not have to be in the same JAR**, though both must be visible to the appropriate class loader; you should not assume a file anywhere on disk will be scanned.
 
-Lưu ý rằng tên tệp sử dụng các **dấu chấm trong package**, ví dụ `com.example.spi.Contracts$Transformer`. Đừng đổi thành cấu trúc thư mục `com/example/spi/Contracts$Transformer` dưới `META-INF/services`: đó sẽ là một **đường dẫn tài nguyên khác**.
+Note that the file name uses **dots in the package**, for example `com.example.spi.Contracts$Transformer`. Do not turn it into a directory structure `com/example/spi/Contracts$Transformer` under `META-INF/services`: that would be a **different resource path**.
 
-## 4. Ví dụ Java 17+ đầy đủ: kiểu dịch vụ lồng nhau
+## 4. Complete Java 17+ Example: Nested Service Type
 
-Ví dụ cố tình dùng service là kiểu lồng nhau để chứng minh tại sao tên tệp phải có `$`. Host và plugin dùng cùng thư viện hợp đồng, biên dịch riêng, rồi được kết nối bằng `ServiceLoader` khi chạy.
+This example intentionally uses a nested type as the service to prove why the file name must contain `$`. The host and plugin use the same contract library, are compiled separately, and are wired by `ServiceLoader` at runtime.
 
-### 4.1. Cấu trúc dự án
+### 4.1. Project Structure
 
 ```text
 spi-demo/
@@ -112,9 +112,9 @@ spi-demo/
                 └── com.example.spi.Contracts$Transformer
 ```
 
-Tệp dưới `services/` **không có đuôi mở rộng**. Ký tự `$` là một phần tên tệp thật, không phải dấu hiệu thay thế.
+The file under `services/` **has no file extension**. The `$` character is part of the real file name, not a placeholder symbol.
 
-### 4.2. Hợp đồng — `api/src/com/example/spi/Contracts.java`
+### 4.2. Contract — `api/src/com/example/spi/Contracts.java`
 
 ```java
 package com.example.spi;
@@ -129,7 +129,7 @@ public final class Contracts {
 }
 ```
 
-`Transformer` là giao diện thành viên `public`; giao diện thành viên trong Java mặc nhiên là `static`. Vì vậy lớp host có thể dùng `Contracts.Transformer.class`, còn tên nhị phân là `com.example.spi.Contracts$Transformer`.
+`Transformer` is a `public` member interface; member interfaces in Java are implicitly `static`. Therefore the host class can use `Contracts.Transformer.class`, while the binary name is `com.example.spi.Contracts$Transformer`.
 
 ### 4.3. Provider — `plugin/src/com/example/plugin/UpperTransformer.java`
 
@@ -150,17 +150,17 @@ public final class UpperTransformer implements Transformer {
 }
 ```
 
-Provider là lớp `public`, triển khai đúng kiểu dịch vụ và có constructor `public` không tham số. Đó là các điều kiện phù hợp với cách `ServiceLoader` khởi tạo provider nằm trên classpath. Ví dụ giả định `input` không phải `null`; hợp đồng thực tế cần quy định rõ trường hợp này.
+The provider is a `public` class, implements the right service type, and has a `public` no-argument constructor. Those conditions match how `ServiceLoader` instantiates providers on the classpath. The example assumes `input` is not `null`; a real-world contract should specify this case explicitly.
 
-### 4.4. Tệp đăng ký — `plugin/resources/META-INF/services/com.example.spi.Contracts$Transformer`
+### 4.4. Registration File — `plugin/resources/META-INF/services/com.example.spi.Contracts$Transformer`
 
-Nội dung **toàn bộ tệp**:
+**Entire file contents**:
 
 ```text
 com.example.plugin.UpperTransformer
 ```
 
-Tên tệp phải lấy từ `Contracts.Transformer.class.getName()`, không lấy từ tên provider. Đặc biệt, **không** lưu thành `com.example.spi.Contracts.Transformer`, vì tên đó là tên canonical, sai quy tắc cho service lồng nhau.
+The file name must come from `Contracts.Transformer.class.getName()`, not from the provider name. In particular, **do not** save it as `com.example.spi.Contracts.Transformer`, because that is the canonical name, which violates the rule for nested services.
 
 ### 4.5. Host — `host/src/com/example/host/Main.java`
 
@@ -189,11 +189,11 @@ public final class Main {
 }
 ```
 
-Host chỉ biết kiểu dịch vụ `Transformer`, không phải lớp `UpperTransformer`. In cả tên binary và canonical là cách kiểm tra trực tiếp tên tệp cần đặt.
+The host knows only the `Transformer` service type, not the `UpperTransformer` class. Printing both the binary and canonical names is a direct way to verify the file name to create.
 
-### 4.6. Biên dịch, đóng gói, chạy
+### 4.6. Compiling, Packaging, Running
 
-Từ thư mục `spi-demo`, với **PowerShell trên Windows** và **JDK 17+**:
+From the `spi-demo` directory, with **Windows PowerShell** and **JDK 17+**:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path out\api,out\host,out\plugin | Out-Null
@@ -211,13 +211,13 @@ jar --list --file out\plugin.jar |
 java -cp "out\api;out\host;out\plugin.jar" com.example.host.Main
 ```
 
-Lệnh `jar --list` lọc ra đúng dòng:
+The `jar --list` command filters out the exact line:
 
 ```text
 META-INF/services/com.example.spi.Contracts$Transformer
 ```
 
-Chương trình in:
+The program prints:
 
 ```text
 binary=com.example.spi.Contracts$Transformer
@@ -227,25 +227,25 @@ result=JAVA SPI
 providers=1
 ```
 
-Trên macOS/Linux, thay `;` trong classpath bằng `:` và dùng lệnh tạo thư mục/sao chép tương đương. **Trong PowerShell, khi gõ hoặc kiểm tra đường dẫn có `$Transformer`, hãy đặt đường dẫn trong dấu nháy đơn**, như tham số của `Select-String` ở trên; nháy kép có thể khiến PowerShell diễn giải `$Transformer` như biến và làm sai tên.
+On macOS/Linux, replace `;` in the classpath with `:` and use equivalent directory-creation/copy commands. **In PowerShell, when typing or checking a path containing `$Transformer`, put the path in single quotes**, like the argument to `Select-String` above; double quotes can cause PowerShell to interpret `$Transformer` as a variable and corrupt the name.
 
-**Điểm cần hiểu:** `ServiceLoader.load(type)` lấy tên nhị phân của service để định vị tệp cấu hình trên classpath, đọc tên provider từ tệp, rồi tìm và khởi tạo lớp cung cấp dịch vụ. Mã host không cần gọi `new UpperTransformer()`.
+**Key takeaway:** `ServiceLoader.load(type)` takes the binary name of the service to locate the configuration file on the classpath, reads the provider name from the file, and then finds and instantiates the service provider class. The host code never needs to call `new UpperTransformer()`.
 
-### 4.7. Thử đặt sai tên tệp
+### 4.7. Trying an Incorrect File Name
 
-Trong bản sao dự án dùng để thực hành, đổi tên tệp thành:
+In a practice copy of the project, rename the file to:
 
 ```text
 META-INF/services/com.example.spi.Contracts.Transformer
 ```
 
-nhưng giữ nguyên nội dung provider. Sau khi đóng gói lại plugin JAR từ thư mục sạch, nếu không có cấu hình hợp lệ nào khác cho service này, chương trình vẫn chạy nhưng in `providers=0` và không có dòng `result=JAVA SPI`. `ServiceLoader` không tự đoán rằng dấu chấm cuối đáng ra phải là `$`.
+while keeping the provider contents unchanged. After repackaging the plugin JAR from a clean directory, if no other valid configuration exists for this service, the program still runs but prints `providers=0` and has no `result=JAVA SPI` line. `ServiceLoader` does not guess that the last dot should have been `$`.
 
-Ngược lại, giữ **tên tệp đúng** nhưng ghi sai tên lớp provider, ví dụ `com.example.plugin.DoesNotExist`, thì khi duyệt provider có thể phát sinh `ServiceConfigurationError`. Hai tình huống khác nhau: **không tìm thấy tệp hợp lệ** so với **tìm thấy tệp nhưng khai báo provider không thể nạp**.
+Conversely, keeping the **file name right** while writing a wrong provider class name, such as `com.example.plugin.DoesNotExist`, can trigger `ServiceConfigurationError` during provider iteration. The two scenarios differ: **no valid file found** versus **file found but declared provider cannot be loaded**.
 
-## 5. Đưa tệp vào JAR đúng vị trí
+## 5. Placing the File into the JAR at the Right Location
 
-Tên đầy đủ của tài nguyên được tính **từ gốc classpath/JAR**, không tính từ thư mục mã nguồn. Cấu trúc JAR đúng có dạng:
+The full resource name is resolved **from the classpath/JAR root**, not from the source code directory. A valid JAR layout looks like:
 
 ```text
 plugin.jar
@@ -259,27 +259,27 @@ plugin.jar
             └── UpperTransformer.class
 ```
 
-Nếu dùng bố cục chuẩn của Maven hoặc Gradle, hãy đặt tệp nguồn tại:
+If using the standard Maven or Gradle layout, place the source file at:
 
 ```text
 src/main/resources/META-INF/services/com.example.spi.Contracts$Transformer
 ```
 
-Hệ thống build bình thường sẽ đóng gói **nội dung** của `src/main/resources` vào gốc JAR. Nếu JAR vô tình chứa `resources/META-INF/services/...` hoặc `src/main/resources/META-INF/services/...` thì đường dẫn cuối cùng **không khớp** tên tài nguyên mà `ServiceLoader` tìm.
+The build system will normally package the **contents** of `src/main/resources` into the root of the JAR. If the JAR accidentally contains `resources/META-INF/services/...` or `src/main/resources/META-INF/services/...`, the final path **does not match** the resource name `ServiceLoader` looks for.
 
-Chú ý trường hợp plugin có provider class nhưng thiếu thư viện chứa **hợp đồng dùng chung** trong classpath: việc tìm resource chưa đủ. Khi nạp, JVM cần nhìn thấy service type và provider tương thích, thường thông qua cùng một bản hợp đồng mà host sử dụng.
+Watch out for the case where a plugin has the provider class but lacks the library containing the **shared contract** on the classpath: finding the resource is not enough. When loading, the JVM needs to see the service type and a compatible provider, usually via the same contract copy that the host uses.
 
-## 6. Kiểm tra tên bằng API thay vì nhớ thủ công
+## 6. Checking the Name via API Instead of Memorizing Manually
 
-Đối với một service type cụ thể đã biên dịch, công thức:
+For a specific compiled service type, the formula:
 
 ```java
 String expectedPath = "META-INF/services/" + Transformer.class.getName();
 ```
 
-là cách đơn giản nhất để xây dựng đường dẫn kỳ vọng. Đoạn này cần `Transformer` được import hoặc khai báo trong phạm vi sử dụng.
+is the simplest way to construct the expected path. This snippet requires `Transformer` to be imported or declared in scope.
 
-Để xác định có nhìn thấy tệp qua classloader hay không, có thể thêm mã chẩn đoán vào host trong ví dụ:
+To verify whether the file is visible through the class loader, you can add diagnostic code to the host in the example:
 
 ```java
 String path = "META-INF/services/" + Transformer.class.getName();
@@ -287,57 +287,57 @@ ClassLoader loader = Thread.currentThread().getContextClassLoader();
 System.out.println(loader.getResource(path));
 ```
 
-Đây là **đoạn bổ sung** dùng trong `Main`, không phải chương trình Java độc lập. Nếu trả về `null` thì classloader đang kiểm tra không thấy tài nguyên mang tên đó. Khi chạy với JAR như ví dụ, kết quả thường là một URL `jar:file:...!/META-INF/services/com.example.spi.Contracts$Transformer`; đường dẫn URL cụ thể tùy máy. Khi kiểm tra hệ plugin nhiều classloader, phải dùng classloader tương ứng với lời gọi `ServiceLoader.load(...)`; kiểm tra sai loader có thể đưa tới kết luận sai.
+This is an **additional snippet** for use in `Main`, not a standalone Java program. If it returns `null`, the inspected class loader does not see a resource with that name. When run with a JAR like the example, the output is usually a URL `jar:file:...!/META-INF/services/com.example.spi.Contracts$Transformer`; the specific URL path varies by machine. When inspecting a multi-classloader plugin system, you must use the class loader corresponding to the `ServiceLoader.load(...)` call; checking the wrong loader can lead to false conclusions.
 
-Kiểm tra theo thứ tự:
+Check in this order:
 
-1. Dùng `Transformer.class.getName()` để lấy tên binary thật.
-2. Đối chiếu **chính xác từng ký tự** với tên tệp trong `META-INF/services`, kể cả chữ hoa/chữ thường và ký tự `$`.
-3. Dùng `jar --list --file <tên-jar>` để xác nhận đường dẫn nằm trong artifact đã đóng gói.
-4. Xác nhận JAR có trên classpath được truyền cho `java` và classloader có thể thấy resource.
-5. Nếu tài nguyên được tìm thấy nhưng provider không tải được, kiểm tra từng tên lớp trong nội dung và điều kiện khởi tạo/provider có tương thích service type.
+1. Use `Transformer.class.getName()` to obtain the true binary name.
+2. Compare **character by character** against the file name in `META-INF/services`, including letter case and the `$` character.
+3. Use `jar --list --file <jar-name>` to confirm the path exists in the packaged artifact.
+4. Confirm the JAR is on the classpath passed to `java` and the class loader can see the resource.
+5. If the resource is found but the provider fails to load, check each class name in the contents and verify instantiation requirements and compatibility with the service type.
 
-## 7. Những lỗi thường gặp
+## 7. Common Mistakes
 
-| Hiện tượng | Sai ở đâu? | Cách giải quyết |
+| Symptom | What Is Wrong? | How to Resolve |
 |---|---|---|
-| `providers=0` dù đã có class provider | Đặt tên tệp theo provider thay vì service | Tên tệp phải là `serviceType.getName()` |
-| `providers=0` với service lồng nhau | Đặt `Contracts.Transformer` thay vì `Contracts$Transformer` | Dùng tên binary có `$` |
-| Không thấy provider từ JAR | Tệp nằm sai gốc, thiếu `META-INF/services/` hoặc không được copy vào JAR | Xem cấu trúc JAR và đường dẫn tài nguyên |
-| Không thấy provider dù tệp đúng | Plugin JAR không nằm trên classpath/classloader đang dùng | Kiểm tra lệnh chạy và khả năng nhìn thấy tài nguyên |
-| `ServiceConfigurationError` | Tệp có nội dung sai định dạng, tên lớp không tồn tại hoặc provider không hợp lệ | Kiểm tra UTF-8 không BOM, tên provider, constructor, `implements` |
-| Sai tên trên Windows/PowerShell | Dấu `$` bị diễn giải như biến khi đặt trong chuỗi nháy kép | Dùng đường dẫn nháy đơn khi thao tác tệp |
-| Không khớp sau đổi package/rename | Tệp đăng ký giữ tên binary cũ | Cập nhật tên tệp khi đổi kiểu dịch vụ, cập nhật nội dung khi đổi provider |
-| Tệp đuôi `.txt` do trình soạn thảo | Tên trên JAR khác tên ServiceLoader tìm | Lưu đúng tên, không phần mở rộng |
+| `providers=0` despite provider class existing | File named after the provider instead of the service | File name must be `serviceType.getName()` |
+| `providers=0` for a nested service | Used `Contracts.Transformer` instead of `Contracts$Transformer` | Use the binary name with `$` |
+| Provider not seen from JAR | File at wrong root, missing `META-INF/services/`, or not copied into JAR | Inspect JAR structure and resource path |
+| Provider not seen despite valid file | Plugin JAR is not on the classpath/class loader in use | Check run command and resource visibility |
+| `ServiceConfigurationError` | Malformed file contents, non-existent class name, or invalid provider | Check UTF-8 without BOM, provider name, constructor, `implements` |
+| Wrong name on Windows/PowerShell | `$` interpreted as a variable inside a double-quoted string | Use single-quoted paths when manipulating files |
+| Mismatch after package/rename change | Registration file kept the old binary name | Update file name when changing service type; update contents when changing provider |
+| File has `.txt` suffix from text editor | Name in JAR differs from what `ServiceLoader` looks for | Save with exact name, no extension |
 
-Đừng sửa lỗi `providers=0` bằng cách thêm `new Provider()` vào host nếu mục tiêu là học cơ chế đăng ký SPI: thao tác đó bỏ qua bước khám phá và che giấu lỗi cấu hình.
+Do not fix a `providers=0` error by adding `new Provider()` into the host if the goal is to learn SPI registration: doing so bypasses discovery and hides configuration bugs.
 
-## 8. Phân biệt cách đăng ký trên classpath và named module
+## 8. Distinguishing Registration on Classpath vs. Named Modules
 
-Bài học này tập trung vào **provider JAR trên classpath** (unnamed module), nơi tệp `META-INF/services/<binary-name>` là cơ chế đăng ký.
+This lesson focuses on **provider JARs on the classpath** (unnamed module), where the `META-INF/services/<binary-name>` file is the registration mechanism.
 
-Với provider được phát triển thành **named module** trong JPMS, cách đăng ký chính là khai báo `provides ... with ...` trong `module-info.java`, ví dụ:
+For a provider developed as a **named module** in JPMS, the primary registration method is declaring `provides ... with ...` in `module-info.java`, for example:
 
 ```java
 provides com.example.spi.Contracts.Transformer
     with com.example.plugin.UpperTransformer;
 ```
 
-Đây là **đoạn khai báo bên trong `module-info.java`**, không phải một tệp Java độc lập để chạy theo lệnh ở mục 4. Đừng lấy việc có hay không có `META-INF/services` làm kết luận duy nhất cho một plugin hoạt động theo named module. Với cấu hình JPMS thực tế, module tiêu thụ service cũng thường phải khai báo `uses`.
+This is a **declaration snippet inside `module-info.java`**, not a standalone Java file to run with the commands in Section 4. Do not treat the presence or absence of `META-INF/services` as the sole indicator for a plugin operating as a named module. In a real JPMS configuration, the service-consuming module typically also has to declare `uses`.
 
-Dù ở classpath hay module path, nguyên tắc chung vẫn là: **chỉ định đúng service type và khai báo đúng provider tương ứng**. Các cơ chế đăng ký có thể khác nhau.
+Whether on the classpath or module path, the general principle remains: **specify the exact service type and declare the corresponding provider**. The registration mechanisms may differ.
 
-## 9. Câu hỏi và bài tập tự kiểm tra
+## 9. Self-Check Questions and Exercises
 
-1. Với `package vn.demo.spi; public interface Parser { }`, tệp cần đặt tên gì? — `META-INF/services/vn.demo.spi.Parser`.
-2. Với `public class Api { public interface Parser {} }` trong package `vn.demo.spi`, tệp cần tên gì? — `META-INF/services/vn.demo.spi.Api$Parser`, không phải `vn.demo.spi.Api.Parser`.
-3. Một tệp đăng ký nên đặt tên theo service hay provider? — **Theo service**; các dòng bên trong liệt kê provider.
-4. Tệp đăng ký đã đúng nhưng lớp provider không tồn tại thì có luôn trả danh sách trống không? — Không; khi duyệt provider có thể ném `ServiceConfigurationError`.
-5. Tên tệp có bắt buộc thêm `.class` hoặc `.txt` không? — Không, thêm hậu tố sẽ thay đổi tên tài nguyên cần tìm.
+1. For `package vn.demo.spi; public interface Parser { }`, what should the file be named? — `META-INF/services/vn.demo.spi.Parser`.
+2. For `public class Api { public interface Parser {} }` in package `vn.demo.spi`, what should the file be named? — `META-INF/services/vn.demo.spi.Api$Parser`, not `vn.demo.spi.Api.Parser`.
+3. Should a registration file be named after the service or the provider? — **After the service**; the lines inside list providers.
+4. If the registration file is right but the provider class does not exist, does it always return an empty list? — No; iterating over providers may throw `ServiceConfigurationError`.
+5. Must the file name include `.class` or `.txt`? — No, adding a suffix changes the resource name being searched for.
 
-**Thực hành:** sao chép ví dụ mục 4, dùng `Transformer.class.getName()` xác minh tên nhị phân, sau đó chủ động đổi `$` thành `.` ở tên tệp đăng ký, đóng gói lại JAR sạch và quan sát số provider. Đổi tên về đúng giá trị từ `getName()` rồi chạy lại. Bài tập này phân biệt được lỗi **đặt tên tệp cấu hình** với lỗi **viết lớp triển khai**.
+**Practice:** copy the example in Section 4, use `Transformer.class.getName()` to verify the binary name, then deliberately change `$` to `.` in the registration file name, repackage a clean JAR, and observe the provider count. Rename it back to the exact value from `getName()` and re-run. This exercise distinguishes a **configuration file naming error** from an **implementation class coding error**.
 
-## Tài liệu tham khảo
+## References
 
-- Oracle Java SE 17, `java.util.ServiceLoader` — mục *Deploying service providers on the class path*: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
+- Oracle Java SE 17, `java.util.ServiceLoader` — section *Deploying service providers on the class path*: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
 - Oracle Java SE 17, `java.lang.Class#getName()`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getName()

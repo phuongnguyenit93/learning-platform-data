@@ -1,39 +1,39 @@
-# Xử lý getEngineByName trả về null và engine không được cài đặt
+# Handling getEngineByName Returning null and Missing Installed Engines
 
-## 1. Hiểu đúng kết quả null
+## 1. Understanding the null Result Properly
 
-Trong JSR 223, \`javax.script.ScriptEngineManager\` là bộ quản lý và khám phá **scripting engine**. Lệnh:
+In JSR 223, \`javax.script.ScriptEngineManager\` is the manager and discovery mechanism for **scripting engines**. The call:
 
 \`\`\`java
 ScriptEngine engine =
         new ScriptEngineManager().getEngineByName("JavaScript");
 \`\`\`
 
-trả về một \`ScriptEngine\` nếu manager tìm được factory đã đăng ký hỗ trợ tên được yêu cầu; nếu không tìm được, API **trả về \`null\`**. Đây là một kết quả bình thường của quá trình tìm kiếm, không phải lúc nào cũng là exception hay bằng chứng script có lỗi.
+returns a \`ScriptEngine\` if the manager finds a registered factory supporting the requested name; if none is found, the API **returns \`null\`**. This is a normal outcome of the lookup process, not necessarily an exception or proof that the script itself is faulty.
 
-Cần phân biệt ba tình huống:
+Distinguish three situations:
 
-1. **Không có engine phù hợp:** không tìm được factory công bố tên đó. \`getEngineByName\` trả về \`null\`.
-2. **Có factory nhưng lỗi khởi tạo:** dependency, class loading hoặc mã factory lỗi. Có thể xuất hiện exception hoặc lỗi khác tùy implementation; không nên quy mọi lỗi về \`null\`.
-3. **Có engine nhưng script không chạy được:** \`eval\` có thể phát sinh \`ScriptException\`, hoặc runtime có lỗi/capability không hỗ trợ. Đây là lỗi thực thi, không phải lỗi khám phá.
+1. **No matching engine:** no factory advertising that name was found. \`getEngineByName\` returns \`null\`.
+2. **Factory exists but initialization fails:** dependencies, class loading, or factory code fails. An exception or other error may occur depending on the implementation; not every failure should be collapsed into \`null\`.
+3. **Engine exists but the script fails to run:** \`eval\` may throw \`ScriptException\`, or runtime execution encounters an error/unsupported capability. This is an execution error, not a discovery error.
 
-Nếu gọi \`engine.eval(...)\` ngay sau khi nhận \`null\`, Java sẽ ném \`NullPointerException\`. Thay vì để lỗi lan truyền khó hiểu, host phải kiểm tra engine trước và trả thông báo hành động rõ ràng.
+If you call \`engine.eval(...)\` immediately after receiving \`null\`, Java will throw a \`NullPointerException\`. Rather than letting a confusing error propagate, the host must check the engine first and return a clear, actionable message.
 
-## 2. Vì sao Java 17+ có thể không tìm thấy JavaScript engine?
+## 2. Why Might Java 17+ Fail to Find a JavaScript Engine?
 
-Module \`java.scripting\` có các API JSR 223 như \`ScriptEngineManager\`, \`ScriptEngine\`, \`ScriptEngineFactory\`, \`Bindings\` và \`ScriptException\`; **module này không cung cấp bắt buộc một implementation cho JavaScript hoặc mọi ngôn ngữ khác**.
+The \`java.scripting\` module contains JSR 223 APIs such as \`ScriptEngineManager\`, \`ScriptEngine\`, \`ScriptEngineFactory\`, \`Bindings\`, and \`ScriptException\`; **this module does not mandate or supply a built-in implementation for JavaScript or any other language**.
 
-Lịch sử quan trọng:
+Important history:
 
-- JDK 8 đến JDK 14 từng cung cấp Nashorn JavaScript engine trên các bản JDK tương ứng.
-- Nashorn bị đánh dấu deprecated ở JDK 11.
-- **Nashorn bị loại khỏi JDK từ JDK 15** (JEP 372). Vì vậy một JDK 17 hoặc JDK 21 thông thường không có JavaScript engine JSR 223 được cài sẵn chỉ vì có JDK.
+- JDK 8 through JDK 14 shipped the Nashorn JavaScript engine on their respective JDK distributions.
+- Nashorn was marked deprecated in JDK 11.
+- **Nashorn was removed from the JDK starting in JDK 15** (JEP 372). Therefore, a standard JDK 17 or JDK 21 does not have a pre-installed JSR 223 JavaScript engine simply by virtue of being a JDK.
 
-Tên \`JavaScript\`, \`js\` hoặc \`ECMAScript\` là **alias do factory công bố**. Một engine bên thứ ba có thể công bố alias khác hoặc chỉ tích hợp qua API riêng, không qua JSR 223. Việc jar tồn tại trên ổ đĩa chưa đủ: engine phải được khai báo đúng và được class loader/module layer liên quan nhìn thấy.
+Names like \`JavaScript\`, \`js\`, or \`ECMAScript\` are **aliases advertised by a factory**. A third-party engine may advertise different aliases or integrate only via its own proprietary API rather than JSR 223. Having the JAR on disk is not enough: the engine must be properly declared and visible to the relevant class loader/module layer.
 
-## 3. Mẫu xử lý chuẩn: kiểm tra null trước khi eval
+## 3. Standard Handling Pattern: Check for null Before eval
 
-Một đoạn tích hợp đơn giản:
+A simple integration snippet:
 
 \`\`\`java
 import javax.script.ScriptEngine;
@@ -58,28 +58,28 @@ public class SimpleScriptCall {
 }
 \`\`\`
 
-Lưu thành **\`SimpleScriptCall.java\`**, chạy:
+Save as **\`SimpleScriptCall.java\`**, run:
 
 \`\`\`bash
 javac SimpleScriptCall.java
 java SimpleScriptCall
 \`\`\`
 
-Trên JDK 17+ không có engine JavaScript, stderr là:
+On JDK 17+ without a JavaScript engine, stderr is:
 
 \`\`\`text
 JavaScript engine unavailable. Install a compatible JSR 223 engine.
 \`\`\`
 
-Chương trình không cố thực thi script khi chưa có engine. Nếu có engine phù hợp thì cách diễn giải \`1 + 2\` và kiểu giá trị trả về do engine quyết định. Ví dụ này không dựa vào một engine cụ thể và không tuyên bố mọi môi trường đều in cùng một kết quả khi có engine.
+The program does not attempt to execute the script when no engine is present. If a compatible engine is present, how \`1 + 2\` is interpreted and the returned value type depend on that engine. This example does not rely on any specific engine and does not claim every environment prints the same result when an engine is installed.
 
-Trong ứng dụng production, nên thay \`return\` bằng một **lỗi cấu hình có mã rõ ràng** (ví dụ \`SCRIPT_ENGINE_UNAVAILABLE\`) hoặc chuyển hệ thống sang trạng thái degraded nếu tính năng script chỉ là tùy chọn. Không tự ý chọn engine khác có semantics không tương đương.
+In production applications, replace \`return\` with a **clearly coded configuration error** (for example, \`SCRIPT_ENGINE_UNAVAILABLE\`) or transition the system to a degraded state if scripting is only optional. Do not arbitrarily fall back to another engine with non-equivalent semantics.
 
-## 4. Liệt kê factory có thật để chẩn đoán
+## 4. List Actual Factories to Diagnose
 
-Đừng đoán tên engine. Hãy liệt kê các factory mà manager nhìn thấy và các alias được hỗ trợ.
+Do not guess engine names. List the factories visible to the manager and their supported aliases.
 
-Ví dụ Java 17+ hoàn chỉnh, file **\`ScriptEngineDiagnostics.java\`**:
+Complete Java 17+ example, file **\`ScriptEngineDiagnostics.java\`**:
 
 \`\`\`java
 import javax.script.ScriptEngine;
@@ -119,45 +119,45 @@ public final class ScriptEngineDiagnostics {
 }
 \`\`\`
 
-Chạy:
+Run:
 
 \`\`\`bash
 javac ScriptEngineDiagnostics.java
 java ScriptEngineDiagnostics
 \`\`\`
 
-Trên JDK 17+ sạch, không có engine bên ngoài, stdout là:
+On a clean JDK 17+ with no external engine, stdout is:
 
 \`\`\`text
 Factory count: 0
 Lookup JavaScript: unavailable
 \`\`\`
 
-Khi đã cài engine JSR 223, số lượng factory và các tên/phiên bản phụ thuộc vào thư viện và môi trường. Việc \`getEngineFactories()\` chứa một factory không bảo đảm mọi \`getEngineByName\` sẽ thành công: phải đối chiếu chính xác danh sách \`getNames()\` với tên yêu cầu và kiểm tra lỗi khi factory tạo engine.
+When a JSR 223 engine is installed, the factory count and names/versions depend on the library and environment. Having \`getEngineFactories()\` contain a factory does not guarantee every \`getEngineByName\` call will succeed: match the requested name accurately against \`getNames()\` and check for errors when the factory instantiates the engine.
 
-### Bảng diễn giải kết quả
+### Result Interpretation Table
 
-| Kết quả | Ý nghĩa có khả năng nhất | Việc cần làm |
+| Result | Most Likely Meaning | Action Needed |
 |---|---|---|
-| \`Factory count: 0\` | Manager không thấy factory nào | Kiểm tra runtime dependencies, class loader và service registration |
-| Có factory, thiếu alias cần dùng | Tên tra cứu không được công bố | Dùng alias đã công bố, cấu hình lại tên, tránh đoán |
-| Có alias nhưng tạo engine lỗi | Factory/engine có vấn đề runtime | Xem stack trace, dependency, khả năng tương thích |
-| Có engine, eval lỗi | Lỗi cú pháp, dữ liệu hoặc engine | Chẩn đoán riêng \`ScriptException\` và nguyên nhân |
-| Dev hoạt động, production không | Classpath/module path/packaging khác | So sánh artifact thực tế và launcher |
+| \`Factory count: 0\` | Manager sees no factories | Check runtime dependencies, class loader, and service registration |
+| Factory exists, desired alias missing | Lookup name is not advertised | Use an advertised alias, reconfigure the name, avoid guessing |
+| Alias exists but engine creation fails | Factory/engine has a runtime issue | Inspect stack trace, dependencies, and compatibility |
+| Engine exists, eval fails | Syntax, data, or engine error | Diagnose \`ScriptException\` and root cause separately |
+| Works in dev, fails in production | Classpath/module path/packaging differs | Compare actual runtime artifacts and launcher |
 
-## 5. Engine được cài thế nào để manager tìm thấy?
+## 5. How Is an Engine Installed So the Manager Finds It?
 
-Một implementation JSR 223 cần cung cấp \`ScriptEngineFactory\` và công bố nó qua cơ chế provider thích hợp.
+A JSR 223 implementation must supply a \`ScriptEngineFactory\` and publish it via the appropriate provider mechanism.
 
-**Trên classpath**, thư viện engine thường có:
+**On the classpath**, the engine library typically contains:
 
 \`\`\`text
 META-INF/services/javax.script.ScriptEngineFactory
 \`\`\`
 
-Tệp service chứa tên đầy đủ của lớp factory. JAR engine cùng các dependency cần có mặt trong classpath được class loader sử dụng nhìn thấy.
+The service file contains the fully qualified name of the factory class. The engine JAR along with its dependencies must be present on the classpath visible to the class loader in use.
 
-**Trong explicit module**, provider có thể công bố bằng \`module-info.java\`:
+**In an explicit module**, the provider can declare it in \`module-info.java\`:
 
 \`\`\`java
 module com.example.script.engine {
@@ -167,50 +167,50 @@ module com.example.script.engine {
 }
 \`\`\`
 
-Đây là descriptor minh họa; các class thực tế cần được triển khai để biên dịch và chạy. Module tiêu thụ API cần \`requires java.scripting;\`.
+This is an illustrative descriptor; the actual classes must be implemented to compile and run. The module consuming the API requires \`requires java.scripting;\`.
 
-Một số thư viện hoặc engine ngôn ngữ có thể **không hỗ trợ JSR 223**, dù có API nhúng riêng. Cài runtime ngôn ngữ nói chung không bảo đảm \`ScriptEngineManager\` nhìn thấy nó. Phải kiểm tra tài liệu đúng phiên bản của engine, artifact bridge JSR 223 (nếu có), các dependency đi kèm và version JDK hỗ trợ.
+Some libraries or language engines may **not support JSR 223**, even though they have their own embedding API. Installing a language runtime in general does not guarantee \`ScriptEngineManager\` can see it. Verify the exact engine version's documentation, any JSR 223 bridge artifact (if separate), accompanying dependencies, and supported JDK versions.
 
-**Với Gradle/Maven**, thêm dependency vào build không đủ nếu packaging/runtime bỏ sót dependency đó. Cần kiểm tra classpath của process thực tế, fat JAR shading, việc merge tệp \`META-INF/services\`, module-path và \`jlink\` image. Nếu tạo bản runtime tùy chỉnh bằng \`jlink\`, phải bảo đảm module API và module provider được đưa vào/bound đúng cách.
+**With Gradle/Maven**, adding a dependency to the build is not enough if packaging/runtime drops that dependency. Inspect the actual process classpath, fat JAR shading, \`META-INF/services\` file merging, module-path, and \`jlink\` images. If creating a custom runtime image with \`jlink\`, ensure the API module and provider module are properly included/bound.
 
-## 6. Class loader, TCCL và ServiceLoader
+## 6. Class Loaders, TCCL, and ServiceLoader
 
-\`ScriptEngineManager()\` mặc định sử dụng class loader gắn với ngữ cảnh thread để khám phá các engine theo cơ chế service provider. Nếu host chạy trong container/plugin framework, thread context class loader (TCCL) có thể khác class loader nạp application hoặc engine JAR.
+By default, \`ScriptEngineManager()\` uses the class loader attached to the thread context to discover engines via the service provider mechanism. If the host runs inside a container/plugin framework, the thread context class loader (TCCL) may differ from the class loader that loaded the application or the engine JAR.
 
-Có constructor nhận loader tường minh:
+There is a constructor accepting an explicit loader:
 
 \`\`\`java
-ClassLoader engineLoader = /* class loader chứa engine đã xác thực */;
+ClassLoader engineLoader = /* class loader containing the verified engine */;
 ScriptEngineManager manager = new ScriptEngineManager(engineLoader);
 \`\`\`
 
-Đây là đoạn minh họa; host phải tự xây dựng \`engineLoader\` đúng và giữ vòng đời hợp lệ. Việc dùng loader tường minh giúp tránh phụ thuộc vào TCCL của thread gọi, nhưng không tự tải JAR ở đường dẫn tùy ý. Nếu engine JAR được đặt trong thư mục plugin sau khi process đã khởi chạy, cần đưa nó vào lớp loader/layer mới theo thiết kế plugin manager; \`getEngineByName\` không tự quét thư mục file.
+This is an illustrative snippet; the host must construct \`engineLoader\` properly and maintain a valid lifecycle. Using an explicit loader avoids depending on the calling thread's TCCL, though it does not automatically load JARs from arbitrary paths. If an engine JAR is placed into a plugin directory after the process has started, it must be placed into a new loader/layer according to the plugin manager's design; \`getEngineByName\` does not scan filesystem directories on its own.
 
-Khi khắc phục lỗi discovery, ghi lại:
+When troubleshooting discovery errors, record:
 
-- Class loader được truyền vào \`ScriptEngineManager\` và TCCL thực tế.
-- Vị trí engine JAR, các dependency và tệp service provider.
-- Module path và module graph nếu dùng JPMS.
-- Phiên bản Java/JDK, phiên bản engine, alias factory và package relocation/shading.
-- Log lỗi \`ServiceLoader\` hoặc factory khởi tạo không thành công.
+- The class loader passed to \`ScriptEngineManager\` and the actual TCCL.
+- Location of the engine JAR, its dependencies, and the service provider file.
+- Module path and module graph if using JPMS.
+- Java/JDK version, engine version, factory aliases, and any package relocation/shading.
+- \`ServiceLoader\` error logs or factory initialization failures.
 
-Trong môi trường module layer, đừng mặc định \`ScriptEngineManager\` có overload nhận \`ModuleLayer\`; API của nó chỉ nhận \`ClassLoader\` hoặc dùng mặc định. Thiết kế discovery trong JPMS phải nhất quán với nơi module engine được resolve và loaded.
+In a module layer environment, do not assume \`ScriptEngineManager\` has an overload accepting a \`ModuleLayer\`; its API only accepts a \`ClassLoader\` or uses the default. Discovery design in JPMS must align with where the engine module is resolved and loaded.
 
-## 7. Đừng dùng tên engine làm cơ chế kiểm tra capability duy nhất
+## 7. Do Not Use Engine Name as the Sole Capability Check
 
-Engine tồn tại chưa đủ để đáp ứng nhu cầu của ứng dụng. Sau khi tìm được, host nên kiểm tra:
+An engine's existence alone is not enough to satisfy application needs. After finding one, the host should verify:
 
-1. **Engine/language version:** phù hợp với script đang lưu trữ không?
-2. **\`Compilable\`:** cần compile/cache script thì engine có hỗ trợ không?
-3. **\`Invocable\`:** cần gọi hàm sau eval thì engine có hỗ trợ không?
-4. **Threading:** có thể chia sẻ instance giữa request không, hay cần tạo engine/context riêng?
-5. **Host interop và bảo mật:** script có thể truy cập đối tượng Java nào, có giới hạn quyền thích hợp không?
-6. **Giới hạn tài nguyên:** có timeout, cancellation, memory/CPU bound khả dụng cho engine cụ thể không?
+1. **Engine/language version:** does it match the stored scripts?
+2. **\`Compilable\`:** if scripts must be compiled/cached, does the engine support it?
+3. **\`Invocable\`:** if functions must be called after eval, does the engine support it?
+4. **Threading:** can instances be shared across requests, or are separate engines/contexts needed?
+5. **Host interop and security:** which Java objects can scripts access, and are permissions appropriately restricted?
+6. **Resource limits:** are timeouts, cancellation, and memory/CPU bounds available for this specific engine?
 
-Ví dụ kiểm tra capability:
+Capability check example:
 
 \`\`\`java
-// Đoạn tích hợp, giả định engine != null.
+// Integration snippet, assuming engine != null.
 if (!(engine instanceof javax.script.Compilable)) {
     throw new IllegalStateException("Engine does not support compilation");
 }
@@ -219,22 +219,22 @@ if (!(engine instanceof javax.script.Invocable)) {
 }
 \`\`\`
 
-Chỉ ép kiểu khi capability thực sự được triển khai. \`ScriptEngineFactory.getParameter("THREADING")\` có thể cho biết concurrency contract của engine theo JSR 223, nhưng vẫn cần đánh giá \`Bindings\`, \`ScriptContext\` và object Java chia sẻ.
+Cast only when the capability is actually implemented. \`ScriptEngineFactory.getParameter("THREADING")\` can indicate the engine's concurrency contract under JSR 223, but you must still evaluate \`Bindings\`, \`ScriptContext\`, and shared Java objects.
 
-## 8. Thiết kế fail-fast hoặc degrade có kiểm soát
+## 8. Designing Fail-Fast or Controlled Degradation
 
-Tùy vai trò của script đối với nghiệp vụ:
+Depending on the business role of scripting:
 
-**Tính năng bắt buộc:** host nên kiểm tra engine khi khởi động và từ chối đánh dấu ứng dụng là sẵn sàng nếu engine bị thiếu. Tạo thông báo kèm tên yêu cầu, engine hiện có và cách cài/configure đúng.
+**Required feature:** the host should check for the engine at startup and refuse to mark the application ready if the engine is missing. Emit a message containing the requested name, available engines, and proper installation/configuration steps.
 
-**Tính năng tùy chọn:** có thể vô hiệu hóa feature liên quan và trả phản hồi rõ ràng như “Scripting unavailable”, trong khi các chức năng không phụ thuộc script vẫn phục vụ bình thường.
+**Optional feature:** disable the related feature and return a clear response such as “Scripting unavailable”, while non-scripting features continue serving normally.
 
-**Nhiều engine được hỗ trợ:** chỉ fallback khi có danh sách engine thay thế được phê duyệt và đã kiểm thử semantics tương đương. Không thử mọi factory một cách ngẫu nhiên vì ngôn ngữ, cách chuyển kiểu và quyền host access có thể khác nhau.
+**Multiple supported engines:** fall back only when there is an approved list of alternative engines tested for equivalent semantics. Do not try factories randomly because languages, type conversions, and host access permissions can differ.
 
-Mẫu phương thức khởi tạo có lỗi tường minh:
+Initialization helper pattern with an explicit error:
 
 \`\`\`java
-// Đoạn tích hợp; caller chịu trách nhiệm cung cấp manager.
+// Integration snippet; caller is responsible for providing manager.
 static javax.script.ScriptEngine requireEngine(
         javax.script.ScriptEngineManager manager, String name) {
     javax.script.ScriptEngine engine = manager.getEngineByName(name);
@@ -246,62 +246,62 @@ static javax.script.ScriptEngine requireEngine(
 }
 \`\`\`
 
-Tách **lỗi cấu hình không có engine** khỏi **\`ScriptException\` khi eval** và lỗi dependency/runtime. Việc phân loại này giúp vận hành xử lý đúng gốc và tránh retry một thao tác không thể thành công cho đến khi cài engine.
+Separate **missing-engine configuration errors** from **\`ScriptException\` during eval** and dependency/runtime errors. This classification helps operations address the true root cause and avoids retrying an operation that cannot succeed until the engine is installed.
 
-## 9. Kiểm tra packaging và môi trường chạy
+## 9. Checking Packaging and Runtime Environment
 
-Một ứng dụng chạy được trong IDE nhưng không chạy khi đóng gói thường có khác biệt giữa các môi trường:
+An application that runs in an IDE but fails when packaged often has environmental differences:
 
-- Engine JAR chỉ nằm trong development/test dependency.
-- File \`META-INF/services/javax.script.ScriptEngineFactory\` bị mất hoặc bị ghi đè khi tạo fat JAR.
-- Dependency transitive của engine bị loại bỏ hoặc xung đột phiên bản.
-- Named module không được resolve hoặc module path khác classpath.
-- Custom runtime image thiếu module/provider.
-- Class loader isolation hoặc TCCL khiến manager không nhìn thấy engine.
-- Phiên bản JDK thay đổi: dự án dựa trên Nashorn có sẵn ở JDK cũ nhưng production dùng JDK mới.
+- The engine JAR is only in development/test dependencies.
+- \`META-INF/services/javax.script.ScriptEngineFactory\` was lost or overwritten when building a fat JAR.
+- Transitive dependencies of the engine were excluded or hit version conflicts.
+- Named modules are not resolved, or module path differs from classpath.
+- Custom runtime image is missing modules/providers.
+- Class loader isolation or TCCL prevents the manager from seeing the engine.
+- JDK version changed: the project relied on Nashorn bundled in an older JDK, while production runs a newer JDK.
 
-Một chẩn đoán hữu ích là chạy \`ScriptEngineDiagnostics\` **bên trong đúng process/runtime image** của ứng dụng, hoặc tích hợp tương đương vào health diagnostics. Chỉ xem dependency tree lúc build không xác nhận được runtime discovery thực tế.
+A useful diagnostic is running \`ScriptEngineDiagnostics\` **inside the exact process/runtime image** of the application, or integrating an equivalent check into health diagnostics. Inspecting only the build-time dependency tree does not confirm actual runtime discovery.
 
-Với plugin host, nên bổ sung automated smoke test: sau khi deploy artifact cuối cùng, tìm engine bằng tên mong muốn, in metadata phiên bản, thực thi một script kiểm tra không có side effect rồi đóng/giải phóng tài nguyên đúng contract engine.
+For plugin hosts, add an automated smoke test: after deploying the final artifact, look up the engine by the desired name, print version metadata, execute a side-effect-free test script, and close/release resources per the engine contract.
 
-## 10. Bảo mật: có engine không có nghĩa an toàn để eval
+## 10. Security: Having an Engine Does Not Mean It Is Safe to eval
 
-Không nên tự động tải engine từ nguồn không được tin cậy chỉ để làm \`getEngineByName\` hết trả \`null\`. Engine và script đều là code thực thi. JSR 223 không cung cấp sandbox thống nhất cho mọi engine.
+Do not automatically download engines from untrusted sources just to stop \`getEngineByName\` from returning \`null\`. Both engines and scripts are executable code. JSR 223 does not provide a uniform sandbox across all engines.
 
-Một ứng dụng mở rộng lúc chạy cần:
+A runtime-extensible application must:
 
-- Xác minh nguồn gốc, phiên bản và tính toàn vẹn của engine artifact.
-- Giới hạn người có quyền cài engine và nạp script.
-- Không cung cấp database client, credential, filesystem hoặc đối tượng host có quyền cao vào \`Bindings\` của script không tin cậy.
-- Quản lý execution timeout/resource theo khả năng engine; với script thiếu tin cậy, ưu tiên cô lập tiến trình/container.
-- Ghi log engine identity, script ID, kết quả và lỗi mà không lộ nội dung nhạy cảm.
-- Có cơ chế rollback và ngừng nhận request nếu engine mới không đáp ứng hợp đồng.
+- Verify the provenance, version, and integrity of engine artifacts.
+- Restrict who is permitted to install engines and load scripts.
+- Never place database clients, credentials, filesystem handles, or high-privilege host objects into \`Bindings\` for untrusted scripts.
+- Manage execution timeouts/resources according to engine capabilities; for untrusted scripts, prefer process/container isolation.
+- Log engine identity, script ID, results, and errors without leaking sensitive content.
+- Have a rollback mechanism and stop accepting requests if a new engine violates the contract.
 
-Class loader riêng và module layer riêng giúp tổ chức code, **không phải ranh giới bảo mật đủ mạnh** cho mã độc trong cùng JVM.
+Separate class loaders and separate module layers help organize code; they are **not a strong enough security boundary** for malicious code inside the same JVM.
 
-## 11. Những lỗi thường gặp
+## 11. Common Mistakes
 
-- Gọi \`engine.eval\` khi chưa kiểm tra \`engine != null\`.
-- Tưởng \`java.scripting\` chứa JavaScript runtime mặc định trên JDK 17+.
-- Đổi tên tra cứu ngẫu nhiên mà không đọc \`factory.getNames()\`.
-- Chỉ cài engine JAR nhưng bỏ sót các dependency hoặc service registration.
-- Kiểm tra trong IDE thay vì artifact/runtime deployment thật.
-- Không nhận ra sự khác nhau giữa classpath, module path và class loader của manager.
-- Bắt \`NullPointerException\` thay cho xử lý thiếu engine rõ ràng.
-- Sử dụng một engine có ngôn ngữ/capability không tương thích như fallback âm thầm.
-- Chia sẻ engine/context giữa luồng và tenant khi chưa xác minh thread safety.
-- Coi việc tìm được engine là cho phép chạy script thiếu tin cậy.
+- Calling \`engine.eval\` without checking \`engine != null\`.
+- Thinking \`java.scripting\` includes a default JavaScript runtime on JDK 17+.
+- Changing lookup names randomly without reading \`factory.getNames()\`.
+- Installing only the engine JAR while missing dependencies or service registration.
+- Testing in an IDE instead of the actual packaged artifact/runtime deployment.
+- Failing to recognize differences between classpath, module path, and the manager's class loader.
+- Catching \`NullPointerException\` instead of handling a missing engine explicitly.
+- Using an engine with an incompatible language/capability as a silent fallback.
+- Sharing engines/contexts across threads and tenants without verifying thread safety.
+- Treating successful engine discovery as permission to run untrusted scripts.
 
-## 12. Checklist xử lý khi getEngineByName trả null
+## 12. Checklist When getEngineByName Returns null
 
-1. In \`getEngineFactories()\` và danh sách \`getNames()\` của từng factory.
-2. Kiểm tra tên yêu cầu và alias đã công bố.
-3. Xác nhận engine bridge JSR 223 đúng phiên bản đã được cài trong runtime.
-4. Kiểm tra JAR, transitive dependencies và service provider declaration.
-5. Xác minh manager dùng class loader nhìn thấy engine; kiểm tra TCCL/JPMS.
-6. Kiểm tra môi trường triển khai cuối cùng (IDE, container, custom runtime).
-7. Khi có engine, kiểm tra \`Compilable\`, \`Invocable\`, threading và security policy cần thiết.
-8. Chọn fail-fast hoặc degraded mode theo mức độ bắt buộc của tính năng.
-9. Bổ sung smoke test và thông báo lỗi có hành động khắc phục rõ ràng.
+1. Print \`getEngineFactories()\` and each factory's \`getNames()\` list.
+2. Check the requested name against advertised aliases.
+3. Confirm the right version of the JSR 223 engine bridge is installed in the runtime.
+4. Check the JAR, transitive dependencies, and service provider declarations.
+5. Verify the manager uses a class loader that can see the engine; inspect TCCL/JPMS.
+6. Inspect the final deployment environment (IDE, container, custom runtime).
+7. Once an engine is present, verify \`Compilable\`, \`Invocable\`, threading, and required security policies.
+8. Choose fail-fast or degraded mode according to how critical the feature is.
+9. Add smoke tests and error messages with clear remediation steps.
 
-**Ghi nhớ:** \`getEngineByName(...) == null\` nghĩa là **manager không tìm được engine thích hợp trong phạm vi discovery hiện có**. Cách xử lý đúng là kiểm tra factory, alias, class loader và packaging, rồi chủ động cài một implementation JSR 223 tương thích nếu tính năng yêu cầu—không mặc định engine có trong JDK.
+**Key takeaway:** \`getEngineByName(...) == null\` means **the manager could not find a suitable engine within its current discovery scope**. The proper response is to check factories, aliases, class loaders, and packaging, and then intentionally install a compatible JSR 223 implementation if the feature requires it—never assume an engine is built into the JDK.

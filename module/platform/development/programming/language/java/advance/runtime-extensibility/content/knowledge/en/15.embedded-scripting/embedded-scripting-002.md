@@ -1,60 +1,60 @@
-# Tìm ScriptEngineFactory qua ScriptEngineManager và class loader phù hợp
+# Discovering ScriptEngineFactory via ScriptEngineManager and the Right Class Loader
 
-## 1. Vì sao hệ thống nhúng script cần chọn class loader đúng?
+## 1. Why Embedded Scripting Systems Need the Right Class Loader
 
-Java Scripting API (JSR 223, package `javax.script`) cho phép một host tìm và sử dụng các script engine được cung cấp dưới dạng plugin. Host thường dùng `ScriptEngineManager` để duyệt `ScriptEngineFactory`, sau đó tạo `ScriptEngine` và đánh giá kịch bản. Mấu chốt là **engine implementation phải nhìn thấy được từ class loader mà manager dùng để khám phá provider**.
+The Java Scripting API (JSR 223, package `javax.script`) lets a host discover and use script engines supplied as plugins. The host typically uses `ScriptEngineManager` to enumerate `ScriptEngineFactory` instances, then create a `ScriptEngine` and evaluate scripts. The key point is that **the engine implementation must be visible from the class loader the manager uses to discover providers**.
 
-Trong hệ thống plugin có loader riêng, engine JAR có thể tồn tại trên đĩa nhưng vẫn không xuất hiện nếu manager được tạo với loader khác. Điều này không nhất thiết là lỗi trong engine: danh sách factory được phát hiện phụ thuộc runtime class path, module graph/layer, metadata SPI và loader.
+In a plugin system with dedicated loaders, an engine JAR may exist on disk yet still not appear if the manager was created with a different loader. This is not necessarily a bug in the engine: the discovered factory list depends on the runtime class path, module graph/layer, SPI metadata, and loader.
 
-**Lưu ý phiên bản:** Java 17+ cung cấp API `javax.script` trong module `java.scripting`, nhưng không bảo đảm có engine ngôn ngữ nào mặc định. Nashorn từng có trong các JDK cũ đã bị loại khỏi JDK kể từ Java 15. Ví dụ gọi `getEngineByName("JavaScript")` trên JDK 17 thuần thường trả `null`, trừ khi đã cài một JSR 223 engine tương thích.
+**Version note:** Java 17+ provides the `javax.script` API in the `java.scripting` module, but does not guarantee any default language engine. Nashorn, which used to ship in older JDKs, was removed from the JDK starting in Java 15. For example, calling `getEngineByName("JavaScript")` on plain JDK 17 typically returns `null`, unless a compatible JSR 223 engine has been installed.
 
-## 2. Các đối tượng chính
+## 2. Key Objects
 
-| API | Công dụng |
+| API | Purpose |
 |---|---|
-| `ScriptEngineManager` | Khám phá, đăng ký và tra cứu engine factory; duy trì global bindings dùng cho engine được tạo qua manager |
-| `ScriptEngineFactory` | Mô tả ngôn ngữ/engine và tạo instance qua `getScriptEngine()` |
-| `ScriptEngine` | Đánh giá script, quản lý bindings/context theo hợp đồng engine |
-| `ScriptEngineManager.getEngineFactories()` | Trả danh sách factory đã phát hiện và đăng ký |
-| `getEngineByName(name)` | Tìm engine qua tên/alias được factory công bố |
-| `getEngineByExtension(extension)` | Tìm engine qua phần mở rộng được factory công bố |
-| `getEngineByMimeType(mimeType)` | Tìm engine qua MIME type được factory công bố |
-| `registerEngineName/Extension/MimeType` | Đăng ký thủ công ánh xạ từ định danh đến factory |
+| `ScriptEngineManager` | Discovers, registers, and looks up engine factories; maintains global bindings used for engines created through the manager |
+| `ScriptEngineFactory` | Describes the language/engine and creates instances via `getScriptEngine()` |
+| `ScriptEngine` | Evaluates scripts, manages bindings/context per the engine contract |
+| `ScriptEngineManager.getEngineFactories()` | Returns the list of discovered and registered factories |
+| `getEngineByName(name)` | Looks up an engine by a name/alias advertised by a factory |
+| `getEngineByExtension(extension)` | Looks up an engine by a file extension advertised by a factory |
+| `getEngineByMimeType(mimeType)` | Looks up an engine by a MIME type advertised by a factory |
+| `registerEngineName/Extension/MimeType` | Manually registers a mapping from an identifier to a factory |
 
-Factory có metadata để host kiểm tra trước khi tạo engine: `getEngineName()`, `getEngineVersion()`, `getLanguageName()`, `getLanguageVersion()`, `getNames()`, `getExtensions()`, `getMimeTypes()` và `getParameter(...)`. Các metadata này hữu ích để chọn engine theo khả năng hoặc chính sách. Cần nhớ ngay cả việc tìm factory có thể tải class và tạo factory instance; bước khám phá **không phải hoàn toàn không có chi phí/hiệu ứng phụ**.
+Factories expose metadata for the host to inspect before creating an engine: `getEngineName()`, `getEngineVersion()`, `getLanguageName()`, `getLanguageVersion()`, `getNames()`, `getExtensions()`, `getMimeTypes()`, and `getParameter(...)`. This metadata is useful for selecting an engine by capability or policy. Keep in mind that even looking up factories may load classes and instantiate factory instances; discovery is **not completely free of cost/side effects**.
 
-## 3. Manager mặc định và manager có loader tường minh
+## 3. Default Manager vs. Manager with Explicit Loader
 
 ```java
 ScriptEngineManager defaultManager = new ScriptEngineManager();
 ScriptEngineManager pluginManager = new ScriptEngineManager(pluginLoader);
 ```
 
-Đây là **đoạn mã minh họa** cần có import `javax.script.ScriptEngineManager` và biến `pluginLoader` kiểu `ClassLoader`.
+This is an **illustrative code snippet** requiring `import javax.script.ScriptEngineManager` and a `pluginLoader` variable of type `ClassLoader`.
 
-Constructor không tham số thường sử dụng thread context class loader (TCCL) để khám phá provider. Nếu ứng dụng server thay đổi TCCL theo request/thread, việc dùng constructor mặc định có thể cho kết quả khác nhau giữa các ngữ cảnh.
+The no-arg constructor typically uses the thread context class loader (TCCL) to discover providers. If a server application changes the TCCL per request/thread, using the default constructor can yield different results across contexts.
 
-Constructor nhận `ClassLoader` giúp host **chỉ rõ loader để thực hiện khám phá**. Trong mô hình module path/layer, cách service discovery còn liên quan module graph và những module đã được resolve; truyền loader không biến các JAR ngoài module graph thành provider một cách tự động.
+The constructor accepting a `ClassLoader` lets the host **explicitly specify the loader used for discovery**. In the module path/layer model, service discovery also involves the module graph and resolved modules; passing a loader does not automatically turn JARs outside the module graph into providers.
 
-Không nên thay TCCL toàn cục rồi giả định mọi engine sẽ được tìm thấy. Khi cần dùng TCCL cho một thư viện legacy, phải lưu giá trị cũ, đặt loader tạm thời và khôi phục trong `finally`; nhưng nếu API cho phép truyền loader trực tiếp, dùng constructor tường minh dễ kiểm soát hơn.
+Do not mutate the global TCCL and assume every engine will be found. When TCCL is needed for a legacy library, save the old value, set the temporary loader, and restore it in `finally`; however, if an API accepts a loader directly, using the explicit constructor is easier to control.
 
-## 4. Điều kiện để JAR engine được phát hiện
+## 4. Requirements for an Engine JAR to Be Discovered
 
-Với class path hoặc custom `URLClassLoader`, nhà cung cấp engine thường triển khai `javax.script.ScriptEngineFactory` và đưa file SPI vào JAR:
+With the class path or a custom `URLClassLoader`, an engine provider typically implements `javax.script.ScriptEngineFactory` and includes an SPI file in the JAR:
 
 ```text
 META-INF/services/javax.script.ScriptEngineFactory
 ```
 
-Nội dung file là tên đầy đủ của factory implementation, ví dụ:
+The file contents are the fully qualified name of the factory implementation, for example:
 
 ```text
 demo.engine.EchoEngineFactory
 ```
 
-Service descriptor chỉ liệt kê provider class; không tự khai báo alias ngôn ngữ. Alias như `echo` do `ScriptEngineFactory.getNames()` cung cấp. Factory cần công khai và có cách khởi tạo hợp lệ theo cơ chế `ServiceLoader` của môi trường tương ứng.
+The service descriptor only lists provider classes; it does not declare language aliases itself. Aliases like `echo` are provided by `ScriptEngineFactory.getNames()`. The factory must be public and validly instantiable according to the environment's `ServiceLoader` mechanism.
 
-Nếu engine là explicit named module, module descriptor thường khai báo:
+If the engine is an explicit named module, the module descriptor typically declares:
 
 ```java
 module demo.engine {
@@ -64,13 +64,13 @@ module demo.engine {
 }
 ```
 
-Đây là **module descriptor minh họa**; source implementation phải tồn tại. Named module dùng `provides` và resolution/layer phù hợp; chỉ có descriptor `META-INF/services` chưa đủ cho một explicit named module được khám phá theo quy tắc module service binding.
+This is an **illustrative module descriptor**; the implementation source must exist. Named modules use `provides` and appropriate resolution/layers; having only a `META-INF/services` descriptor is not sufficient for an explicit named module to be discovered under module service binding rules.
 
-## 5. Thực hành hoàn chỉnh: một JSR 223 engine tối giản
+## 5. Complete Hands-On Example: A Minimal JSR 223 Engine
 
-Ví dụ tạo engine `echo`, trả lại nguyên văn script được đánh giá. Engine dùng cho kiểm chứng discovery, **không phải JavaScript engine**; không thực thi ngôn ngữ tùy ý và không nên sử dụng như bộ thông dịch production.
+This example creates an `echo` engine that returns the evaluated script verbatim. The engine is for verifying discovery, **not a JavaScript engine**; it does not execute arbitrary languages and should not be used as a production interpreter.
 
-Cấu trúc source:
+Source layout:
 
 ```text
 script-demo/
@@ -82,7 +82,7 @@ script-demo/
     └── META-INF/services/javax.script.ScriptEngineFactory
 ```
 
-### 5.1. Engine implementation
+### 5.1. Engine Implementation
 
 `engine/demo/engine/EchoEngine.java`:
 
@@ -138,9 +138,9 @@ public final class EchoEngine extends AbstractScriptEngine {
 }
 ```
 
-Chú ý: `AbstractScriptEngine` cung cấp các overload còn lại của `eval` sử dụng `ScriptContext`/`Bindings`. Để làm ví dụ tối giản, engine này không diễn giải biến hay lệnh, nên `eval("hello")` đơn giản trả chuỗi `hello`.
+Note: `AbstractScriptEngine` supplies the remaining `eval` overloads that use `ScriptContext`/`Bindings`. To keep the example minimal, this engine does not interpret variables or statements, so `eval("hello")` simply returns the string `hello`.
 
-### 5.2. Factory và metadata
+### 5.2. Factory and Metadata
 
 `engine/demo/engine/EchoEngineFactory.java`:
 
@@ -195,19 +195,19 @@ public final class EchoEngineFactory implements ScriptEngineFactory {
 }
 ```
 
-Factory có các trường metadata bắt buộc của `ScriptEngineFactory`. Giá trị `THREADING = null` không cam kết engine an toàn cho truy cập đa luồng. Không nên suy diễn từ nó rằng host được dùng chung một `ScriptEngine` trên nhiều thread.
+The factory includes the required metadata fields of `ScriptEngineFactory`. The value `THREADING = null` makes no guarantee that the engine is safe for concurrent multi-threaded access. You must not infer from it that the host may share one `ScriptEngine` across multiple threads.
 
-### 5.3. Descriptor SPI
+### 5.3. SPI Descriptor
 
-Tạo file văn bản `engine/META-INF/services/javax.script.ScriptEngineFactory` với đúng một dòng:
+Create the text file `engine/META-INF/services/javax.script.ScriptEngineFactory` with exactly one line:
 
 ```text
 demo.engine.EchoEngineFactory
 ```
 
-Đảm bảo file này nằm ở root tài nguyên của JAR, không phải dưới package `demo.engine`. Dấu xuống dòng cuối file được khuyến nghị để thuận tiện khi đóng gói và đọc.
+Ensure this file sits at the resource root of the JAR, not under the `demo.engine` package. A trailing newline at the end of the file is recommended for clean packaging and reading.
 
-### 5.4. Host tạo loader riêng và tra cứu factory
+### 5.4. Host Creating a Dedicated Loader and Looking Up the Factory
 
 `host/Host.java`:
 
@@ -244,13 +244,13 @@ public final class Host {
 }
 ```
 
-Ở ví dụ này, `ClassLoader.getPlatformClassLoader()` là parent của plugin loader. `javax.script` thuộc module nền tảng `java.scripting`, nên loader vẫn có thể nhìn thấy SPI interface. Không đặt `echo-engine.jar` trên class path của host; để JAR được định nghĩa từ `pluginLoader` nhằm quan sát rõ sự khác biệt.
+In this example, `ClassLoader.getPlatformClassLoader()` is the parent of the plugin loader. `javax.script` belongs to the platform module `java.scripting`, so the loader can still see the SPI interface. Do not place `echo-engine.jar` on the host's class path; let the JAR be defined by `pluginLoader` to observe the difference clearly.
 
-**Lưu ý về `URLClassLoader.close()`:** Đóng loader giải phóng tài nguyên do loader quản lý (chẳng hạn handle JAR). Nó không ép các class đã nạp bị unload và cũng không tự dừng thread hoặc đóng tài nguyên của engine. Trong hệ thống thực, cần đóng các tài nguyên của engine theo API/provider contract trước khi đóng loader.
+**Note on `URLClassLoader.close()`:** Closing the loader releases resources managed by the loader (such as JAR handles). It does not force loaded classes to unload, nor does it automatically stop threads or close engine resources. In a real system, close engine resources according to the API/provider contract before closing the loader.
 
-### 5.5. Biên dịch, đóng gói và chạy
+### 5.5. Compile, Package, and Run
 
-Chạy các lệnh sau từ thư mục `script-demo/` bằng POSIX shell với JDK 17+:
+Run the following commands from the `script-demo/` directory using a POSIX shell with JDK 17+:
 
 ```bash
 mkdir -p build/engine-classes build/host-classes
@@ -264,7 +264,7 @@ javac -encoding UTF-8 -d build/host-classes host/Host.java
 java -cp build/host-classes Host
 ```
 
-Output dự kiến đúng khi chạy trên JDK 17 với một JAR engine demo:
+Expected output when run on JDK 17 with the demo engine JAR:
 
 ```text
 factory: Echo Engine
@@ -273,19 +273,19 @@ aliases: [echo, EchoEngine]
 result: hello plugin
 ```
 
-Đây là ví dụ có thể chạy độc lập trên JDK 17+ và không đòi hỏi engine JavaScript bên thứ ba. Không cần thêm `--module-path` vì cả host và engine demo dùng cơ chế class path/custom loader. Lệnh `jar` đưa cả class và descriptor SPI vào cùng một artifact.
+This is a self-contained runnable example on JDK 17+ and requires no third-party JavaScript engine. No `--module-path` is needed because both the host and demo engine use the class path/custom loader mechanism. The `jar` command packages both classes and the SPI descriptor into the same artifact.
 
-## 6. Chẩn đoán manager không thấy factory
+## 6. Diagnosing When the Manager Does Not See a Factory
 
-Trước tiên kiểm tra artifact:
+First inspect the artifact:
 
 ```bash
 jar --list --file build/echo-engine.jar
 ```
 
-Cần có cả `demo/engine/EchoEngineFactory.class`, `demo/engine/EchoEngine.class` và `META-INF/services/javax.script.ScriptEngineFactory`. Kiểm tra chính xác tên file descriptor và binary name trong đó; `ServiceLoader` không tự tìm provider class nếu descriptor thiếu.
+It should contain `demo/engine/EchoEngineFactory.class`, `demo/engine/EchoEngine.class`, and `META-INF/services/javax.script.ScriptEngineFactory`. Verify the exact descriptor filename and the binary name inside it; `ServiceLoader` will not automatically find the provider class if the descriptor is missing.
 
-Nếu vẫn không thấy, chẩn đoán bằng:
+If it is still not visible, diagnose with:
 
 ```java
 System.out.println("TCCL: " + Thread.currentThread().getContextClassLoader());
@@ -293,26 +293,26 @@ System.out.println("plugin loader: " + pluginLoader);
 System.out.println("factory count: " + manager.getEngineFactories().size());
 ```
 
-Đây là đoạn minh họa cần đặt bên trong `Host.main` sau khi tạo manager. Cần xác nhận `new ScriptEngineManager(pluginLoader)` thật sự sử dụng loader có thể truy cập JAR; constructor mặc định có thể dùng TCCL khác.
+This is an illustrative snippet to place inside `Host.main` after creating the manager. Confirm that `new ScriptEngineManager(pluginLoader)` actually uses a loader with access to the JAR; the default constructor may use a different TCCL.
 
-Có thể gặp các trường hợp:
+Common cases you may encounter:
 
-| Hiện tượng | Nguyên nhân phổ biến | Hướng xử lý |
+| Symptom | Common Cause | Resolution |
 |---|---|---|
-| `getEngineFactories()` rỗng | Không có JSR 223 provider được phát hiện | Kiểm tra JAR, SPI descriptor và class loader |
-| `getEngineByName("JavaScript") == null` | JDK 17 không có sẵn JavaScript engine | Cài engine JSR 223 tương thích hoặc chọn ngôn ngữ khác |
-| Factory thấy nhưng `getScriptEngine()` thất bại | Dependency của engine thiếu, constructor lỗi hoặc cấu hình sai | Kiểm tra exception và runtime dependencies |
-| `ServiceConfigurationError` | Provider class không hợp lệ/không load được | Kiểm tra descriptor, visibility, constructor và class loader |
-| `ClassCastException` hoặc provider không assignable | SPI/API bị nạp trùng qua loader khác nhau | Chia sẻ `javax.script` và contract chung qua parent |
-| Engine đã có JAR nhưng chưa hiện trong manager cũ | Manager đã snapshot danh sách factory lúc khởi tạo hoặc module chưa resolve | Tạo manager mới sau khi thiết lập loader/module graph |
+| `getEngineFactories()` is empty | No JSR 223 provider discovered | Check JAR, SPI descriptor, and class loader |
+| `getEngineByName("JavaScript") == null` | JDK 17 has no built-in JavaScript engine | Install a compatible JSR 223 engine or choose another language |
+| Factory is visible but `getScriptEngine()` fails | Missing engine dependency, constructor error, or misconfiguration | Inspect the exception and runtime dependencies |
+| `ServiceConfigurationError` | Invalid/unloadable provider class | Check descriptor, visibility, constructor, and class loader |
+| `ClassCastException` or provider not assignable | SPI/API loaded twice through different loaders | Share `javax.script` and common contracts via parent |
+| Engine JAR is present but missing from old manager | Manager snapshotted factories at initialization or module not resolved | Create a new manager after setting up the loader/module graph |
 
-Không nên thay cả class path toàn ứng dụng để sửa một plugin. Hãy xác định loader nào đang quản lý engine đó và dùng manager tương ứng.
+Do not alter the entire application class path just to fix one plugin. Identify which loader owns that engine and use the corresponding manager.
 
-## 7. Chọn factory theo metadata trước khi tạo engine
+## 7. Selecting a Factory by Metadata Before Creating an Engine
 
-Khi hệ thống có nhiều engine cùng alias, `getEngineByName` không phải luôn đủ để thực thi chính sách nghiệp vụ. Host có thể duyệt `getEngineFactories()` và chọn theo tên ngôn ngữ, phiên bản, alias, MIME type hoặc danh sách cho phép.
+When a system has multiple engines sharing an alias, `getEngineByName` is not always sufficient to enforce business policy. The host can iterate `getEngineFactories()` and filter by language name, version, alias, MIME type, or allowlist.
 
-Ví dụ đoạn minh họa:
+Illustrative snippet:
 
 ```java
 ScriptEngineFactory factory = manager.getEngineFactories().stream()
@@ -323,17 +323,17 @@ ScriptEngineFactory factory = manager.getEngineFactories().stream()
 ScriptEngine engine = factory.getScriptEngine();
 ```
 
-Đoạn này chỉ chạy trong ngữ cảnh có `manager` và các import tương ứng. Nó cho phép lựa chọn bằng metadata trước khi gọi `getScriptEngine()`, tránh khởi tạo mọi engine không cần thiết. Tuy vậy việc khám phá factory vẫn có thể khởi tạo factory class, nên code constructor của factory nên nhẹ, không thực hiện network I/O, cấp phát thread hoặc chạy script.
+This snippet only runs in a context that has `manager` and the corresponding imports. It allows selection by metadata before calling `getScriptEngine()`, avoiding instantiating unnecessary engines. However, factory discovery may still initialize factory classes, so factory constructors should be lightweight and avoid network I/O, thread allocation, or script execution.
 
-Muốn chính sách ổn định, có thể thêm tie-breaker và kiểm soát version; không nên coi thứ tự factory được ServiceLoader phát hiện là thứ tự ưu tiên nghiệp vụ. Metadata do plugin công bố phải được kiểm tra tính hợp lệ và độ tin cậy nếu plugin do bên thứ ba cung cấp.
+For a deterministic policy, add tie-breakers and version checks; do not treat the order in which `ServiceLoader` discovers factories as business priority. Metadata advertised by plugins must be checked for validity and trustworthiness if plugins come from third parties.
 
-## 8. Quan hệ giữa class loader, JPMS và ModuleLayer
+## 8. Relationship Between Class Loaders, JPMS, and ModuleLayer
 
-Trong ứng dụng JPMS, `ScriptEngineFactory` thuộc module `java.scripting`. Named engine module dùng `provides javax.script.ScriptEngineFactory with ...` và được resolve trong module graph thích hợp. `ScriptEngineManager` có thể làm việc với các provider nhìn thấy qua cơ chế dịch vụ/module, nhưng loader truyền vào manager không phải một lời gọi để resolve module mới trong layer chưa có.
+In a JPMS application, `ScriptEngineFactory` belongs to the `java.scripting` module. Named engine modules use `provides javax.script.ScriptEngineFactory with ...` and are resolved in an appropriate module graph. `ScriptEngineManager` can work with providers visible through the service/module mechanism, but passing a loader to the manager is not a call to resolve new modules in a layer that does not yet exist.
 
-Nếu host tạo một `ModuleLayer` plugin riêng sau khi khởi động, cần thiết kế discovery rõ ràng. `ServiceLoader.load(layer, ScriptEngineFactory.class)` là API cho phép khám phá provider trong layer; host có thể dùng factory nhận được và gọi `getScriptEngine()` trực tiếp, thay vì mặc định manager sẽ tự quét mọi layer con.
+If the host creates a separate plugin `ModuleLayer` after startup, discovery must be designed explicitly. `ServiceLoader.load(layer, ScriptEngineFactory.class)` is the API that discovers providers in a layer; the host can use the returned factories and call `getScriptEngine()` directly, rather than assuming the manager will automatically scan all child layers.
 
-Ví dụ minh họa **không độc lập**, đòi hỏi `pluginLayer` đã được tạo và `java.scripting` là module dùng chung:
+**Non-standalone** illustrative example requiring `pluginLayer` to already exist and `java.scripting` to be a shared module:
 
 ```java
 var factories = java.util.ServiceLoader.load(
@@ -343,12 +343,12 @@ for (var factory : factories) {
 }
 ```
 
-Không tự suy ra việc đóng module layer sẽ unload class; Java không có `ModuleLayer.close()`. Quản lý loader, engine và tài nguyên plugin phải được thiết kế rõ ràng. Việc dùng custom class loader đồng thời với JPMS cần lưu ý split package, module readability, `exports`/`opens` và type identity.
+Do not assume that closing a module layer unloads classes; Java has no `ModuleLayer.close()`. Lifecycle management of loaders, engines, and plugin resources must be designed explicitly. Using custom class loaders alongside JPMS requires attention to split packages, module readability, `exports`/`opens`, and type identity.
 
-## 9. An toàn khi chạy script nhúng
+## 9. Safety When Running Embedded Scripts
 
-Script engine là mã chạy trong process Java. `ScriptEngine.eval(...)` có thể thực thi tác vụ mà engine cho phép, bao gồm truy cập Java objects, I/O hoặc các khả năng mạnh khác tùy ngôn ngữ/engine. Việc đặt engine trong JAR riêng hoặc class loader riêng **không tạo sandbox bảo mật**.
+A script engine is code running inside the Java process. `ScriptEngine.eval(...)` can execute whatever the engine permits, including accessing Java objects, I/O, or other powerful capabilities depending on the language/engine. Placing an engine in a separate JAR or separate class loader **does not create a security sandbox**.
 
-Với script không tin cậy, host nên kiểm soát ngôn ngữ và engine được chấp nhận, giới hạn execution time, memory và I/O bằng cơ chế process/OS phù hợp; hạn chế đối tượng Java đưa vào bindings và xác định cách dừng engine khi timeout. Không giả định `ScriptEngine` thread-safe: xem đặc tả `THREADING`, tài liệu provider và thực hiện kiểm thử trước khi chia sẻ instance giữa nhiều request.
+For untrusted scripts, the host should control accepted languages and engines, limit execution time, memory, and I/O using appropriate process/OS mechanisms; restrict Java objects exposed in bindings, and define how to stop the engine on timeout. Do not assume `ScriptEngine` is thread-safe: check the `THREADING` specification, provider documentation, and run tests before sharing an instance across multiple requests.
 
-**Kết luận:** `ScriptEngineManager` khám phá các `ScriptEngineFactory` qua SPI trong phạm vi class loader/module graph có thể nhìn thấy. Với hệ thống plugin, hãy chỉ rõ loader khi tạo manager, kiểm tra descriptor/module registration, chọn factory bằng metadata và chỉ khởi tạo engine được chọn. Đối với các module layer được tạo động, sử dụng `ServiceLoader.load(layer, ScriptEngineFactory.class)` để kiểm soát phạm vi khám phá.
+**Conclusion:** `ScriptEngineManager` discovers `ScriptEngineFactory` implementations via SPI within the visible class loader/module graph scope. For plugin systems, specify the loader explicitly when creating the manager, verify descriptor/module registration, select factories by metadata, and instantiate only the chosen engine. For dynamically created module layers, use `ServiceLoader.load(layer, ScriptEngineFactory.class)` to control discovery scope.

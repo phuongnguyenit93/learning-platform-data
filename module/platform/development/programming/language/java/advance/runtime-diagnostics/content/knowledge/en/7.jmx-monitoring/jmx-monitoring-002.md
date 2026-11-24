@@ -1,58 +1,58 @@
-# 7.2 Truy cập MXBean trực tiếp, qua MBeanServerConnection hoặc proxy
+# 7.2 Accessing MXBeans directly, via MBeanServerConnection, or via proxy
 
 > **Java Advance – runtime-diagnostics** · **7. JMX**
 
-## 1. Một dữ liệu quản lý JVM, ba cách truy cập
+## 1. One JVM management datum, three access paths
 
-Khi cần biết heap đang dùng bao nhiêu byte, có bao nhiêu thread, hoặc garbage collector đã chạy mấy lần, Java cung cấp **platform MXBeans**. Cùng một MXBean có thể được truy cập theo nhiều đường, tùy code đang ở **ngay JVM đích** hay ở **một công cụ quan sát khác**, và bạn muốn làm việc bằng **interface Java có kiểu rõ ràng** hay bằng **ObjectName/attributes/operations của JMX**.
+When you need to know how many bytes of heap are in use, how many threads exist, or how many times a garbage collector has run, Java provides **platform MXBeans**. The same MXBean can be accessed through multiple paths depending on whether your code runs **inside the target JVM** or in **another observability tool**, and whether you prefer working with **strongly typed Java interfaces** or with **JMX ObjectNames/attributes/operations**.
 
-Ba cách trung tâm:
+Three central paths:
 
-1. **Trực tiếp (direct):** gọi getter của *ManagementFactory* trong chính process Java, nhận một interface như *MemoryMXBean*, rồi gọi *getHeapMemoryUsage()*.
-2. **Qua MBeanServerConnection (raw JMX):** dùng *ObjectName* để đọc attribute, lấy thông tin MBean hoặc gọi operation. Nếu attribute có kiểu Java phức hợp, dữ liệu có thể đã được ánh xạ thành *CompositeData* hay *TabularData*.
-3. **Qua MXBean proxy (typed JMX):** nhận một object triển khai interface *MemoryMXBean* nhưng thực chất **chuyển tiếp** lời gọi đến một *MBeanServerConnection*. Proxy thực hiện ánh xạ kiểu MXBean thuận tiện hơn raw JMX.
+1. **Direct:** call a *ManagementFactory* getter inside the Java process itself, receive an interface such as *MemoryMXBean*, and call *getHeapMemoryUsage()*.
+2. **Via MBeanServerConnection (raw JMX):** use an *ObjectName* to read attributes, fetch MBean metadata, or invoke operations. If an attribute has a complex Java type, the data may have been mapped into *CompositeData* or *TabularData*.
+3. **Via MXBean proxy (typed JMX):** obtain an object implementing the *MemoryMXBean* interface that actually **forwards** calls over an *MBeanServerConnection*. The proxy handles MXBean type mapping more conveniently than raw JMX.
 
-**Điểm mấu chốt:** *direct bean*, *MBeanServerConnection* và *typed proxy* là **những đường truy cập**, không phải ba bộ số đo khác nhau. Dữ liệu có thể phát sinh từ cùng một bean, nhưng **chi phí**, **khả năng kết nối từ xa**, **cách biểu diễn giá trị**, **lỗi** và **ranh giới bảo mật** khác nhau.
+**Key point:** *direct bean*, *MBeanServerConnection*, and *typed proxy* are **access paths**, not three different sets of measurements. The data can originate from the exact same bean, while **cost**, **remote reachability**, **value representation**, **failures**, and **security boundaries** differ.
 
-Kết thúc bài này, bạn có thể:
+By the end of this lesson, you will be able to:
 
-- Phân biệt gọi MXBean trực tiếp với truy cập thông qua JMX transport.
-- Hiểu *MBeanServer*, *MBeanServerConnection*, *JMXConnector*, *ObjectName* và *MXBean proxy*.
-- Lấy đúng attribute *HeapMemoryUsage* qua JMX và xử lý dạng *CompositeData*.
-- Tạo typed proxy bằng *ManagementFactory.getPlatformMXBean(connection, ...)* hoặc *newPlatformMXBeanProxy(...)*.
-- Xử lý platform beans **một thực thể** so với **nhiều thực thể**.
-- Viết chương trình Java 17+ độc lập minh họa ba đường truy cập, với stdout xác minh được.
-- Dùng JMX remote khi được cấp phép, xử lý lỗi kết nối và tránh cấu hình management endpoint nguy hiểm.
+- Distinguish direct MXBean calls from access over a JMX transport.
+- Understand *MBeanServer*, *MBeanServerConnection*, *JMXConnector*, *ObjectName*, and *MXBean proxy*.
+- Retrieve the *HeapMemoryUsage* attribute properly over JMX and handle *CompositeData*.
+- Create typed proxies using *ManagementFactory.getPlatformMXBean(connection, ...)* or *newPlatformMXBeanProxy(...)*.
+- Handle **single-instance** vs. **multi-instance** platform beans.
+- Write a standalone Java 17+ program demonstrating all three access paths with verifiable stdout.
+- Use remote JMX when authorized, handle connection failures, and avoid dangerous management endpoint configurations.
 
-## 2. Sơ đồ kiến trúc: bean, server, connector và client
+## 2. Architecture diagram: bean, server, connector, and client
 
 ~~~text
-                        PROCESS JVM ĐÍCH
+                        TARGET JVM PROCESS
 +------------------------------------------------------------------+
 |                                                                  |
-|  Code chạy trong cùng JVM                                        |
+|  Code running in the same JVM                                    |
 |        |                                                         |
-|        | A. Gọi trực tiếp                                        |
+|        | A. Direct call                                          |
 |        v                                                         |
 |  ManagementFactory.getMemoryMXBean()                             |
 |        |                                                         |
 |        v                                                         |
-|  MemoryMXBean (số liệu heap JVM)                                 |
+|  MemoryMXBean (JVM heap metrics)                                 |
 |        ^                                                         |
-|        | đăng ký/quản lý qua ObjectName                            |
+|        | registered/managed via ObjectName                       |
 |        v                                                         |
 |  Platform MBeanServer                                            |
 |        ^                                                         |
-|        | B. MBeanServerConnection local                           |
-|        | C. MXBean proxy dùng connection local                    |
+|        | B. Local MBeanServerConnection                          |
+|        | C. MXBean proxy using local connection                  |
 |        |                                                         |
 +--------|---------------------------------------------------------+
          |
-         | JMX Connector server (chỉ khi có cấu hình/phát hành)
-         | giao thức + xác thực + mã hóa + phân quyền
+         | JMX Connector server (only if configured/published)
+         | protocol + authentication + encryption + authorization
          v
 +------------------------------------------------------------------+
-|  JVM hoặc máy khác: JMX client                                   |
+|  Another JVM or host: JMX client                                 |
 |      JMXConnector.getMBeanServerConnection()                     |
 |        |                                                         |
 |        +--> B. getAttribute(ObjectName, "HeapMemoryUsage")       |
@@ -64,36 +64,36 @@ Kết thúc bài này, bạn có thể:
 +------------------------------------------------------------------+
 ~~~
 
-Các đường trong hình cần được đọc đúng:
+Read the paths in the diagram accurately:
 
-- **Direct** luôn đọc **JVM chứa đoạn code**. Lấy *ManagementFactory.getMemoryMXBean()* trên laptop không thể tự lấy heap của một service chạy trên server.
-- **MBeanServerConnection** là interface chung cho thao tác đọc/ghi/duyệt MBeans. Nó có thể là *MBeanServer* trong cùng process hoặc proxy tới MBeanServer **qua kết nối JMX từ xa**.
-- **Proxy** vẫn cần connection làm kênh chuyển tiếp. Proxy không tự vượt firewall, không tự thiết lập authentication, không tự biết URL đích và không làm biến mất độ trễ mạng.
-- **Platform MBeanServer tồn tại cục bộ** không đồng nghĩa đã bật remote JMX listener. Các bước cấu hình connector, bảo mật và routing mạng hoàn toàn riêng.
+- **Direct** always reads **the JVM executing that code**. Calling *ManagementFactory.getMemoryMXBean()* on your laptop cannot automatically read the heap of a service running on a server.
+- **MBeanServerConnection** is the common interface for reading, writing, and browsing MBeans. It can be an *MBeanServer* in the same process or a client-side proxy to an MBeanServer **over a remote JMX connection**.
+- **Proxy** still needs a connection as its forwarding channel. A proxy does not bypass firewalls, configure authentication, know the target URL on its own, or eliminate network latency.
+- **The local Platform MBeanServer existing** does not mean a remote JMX listener is enabled. Connector setup, security, and network routing are completely separate steps.
 
-### Từ API tới số đo
+### From API to measurement
 
-| Câu hỏi | Đường trực tiếp | Raw MBeanServerConnection | Typed MXBean proxy |
+| Question | Direct path | Raw MBeanServerConnection | Typed MXBean proxy |
 | --- | --- | --- | --- |
-| Bean nào? | Getter, ví dụ *getMemoryMXBean()* | *ObjectName("java.lang:type=Memory")* | Interface/đúng ObjectName |
-| Thao tác đọc heap | *getHeapMemoryUsage()* | *getAttribute(name, "HeapMemoryUsage")* | *getHeapMemoryUsage()* |
-| Giá trị trả về | *MemoryUsage* | *CompositeData* qua OpenType mapping | *MemoryUsage* qua proxy mapping |
-| Trong cùng JVM? | Có | Có thể | Có thể |
-| Đọc JVM khác? | Không qua getter trực tiếp | Có, nếu connection remote | Có, nếu proxy dùng connection remote |
-| Loại lỗi chính | Trạng thái/sự hỗ trợ bean, quyền JVM | Tên/attribute, JMX access, I/O nếu remote | Tương thích interface, JMX I/O, mapping và runtime exceptions |
-| Khi nào nên dùng? | Instrumentation nội bộ | Tool linh hoạt cần khám phá MBeans | Client muốn Java API typed, ít tự parse OpenTypes |
+| Which bean? | Getter, e.g. *getMemoryMXBean()* | *ObjectName("java.lang:type=Memory")* | Interface / exact ObjectName |
+| Heap read call | *getHeapMemoryUsage()* | *getAttribute(name, "HeapMemoryUsage")* | *getHeapMemoryUsage()* |
+| Return value | *MemoryUsage* | *CompositeData* via OpenType mapping | *MemoryUsage* via proxy mapping |
+| Same JVM? | Yes | Possible | Possible |
+| Read another JVM? | Not via direct getter | Yes, if connection is remote | Yes, if proxy uses a remote connection |
+| Main error types | Bean state/support, JVM permissions | Name/attribute, JMX access, I/O if remote | Interface compatibility, JMX I/O, mapping, and runtime exceptions |
+| When to use? | In-process instrumentation | Flexible tools needing MBean discovery | Clients wanting typed Java APIs without manual OpenType parsing |
 
-Đường truy cập không thay đổi **đơn vị** của chỉ số. Ví dụ *MemoryUsage.getUsed()* vẫn tính bằng **byte** dù dữ liệu đi qua direct hay proxy.
+The access path does not change the **unit** of a metric. For example, *MemoryUsage.getUsed()* is still measured in **bytes** whether accessed directly or via proxy.
 
-## 3. Nền tảng: MBean, MXBean, OpenType và ObjectName
+## 3. Foundations: MBean, MXBean, OpenType, and ObjectName
 
-### 3.1 MBean và MXBean không phải hai process khác nhau
+### 3.1 MBean and MXBean are not two separate processes
 
-Trong JMX, một **MBean** là đối tượng quản lý có **attributes**, **operations** và có thể phát **notifications**. **MXBean** là biến thể có quy tắc ánh xạ Java types sang hệ **JMX OpenTypes**: kiểu cơ bản, array, *CompositeData*, *TabularData* và các type phù hợp khác.
+In JMX, an **MBean** is a managed object exposing **attributes**, **operations**, and optionally **notifications**. An **MXBean** is a variant with rules mapping Java types onto **JMX OpenTypes**: primitive/basic types, arrays, *CompositeData*, *TabularData*, and other compliant types.
 
-Tại sao cần mapping? Client có thể chạy trên classpath hoặc JDK version khác với server. Nếu attribute trả một đối tượng Java tùy ý thuộc class của server, client có thể thiếu class để giải mã. OpenTypes cho phép trao đổi cấu trúc dữ liệu không phụ thuộc hoàn toàn vào class implementation riêng.
+Why is mapping needed? A client might run on a different classpath or JDK version than the server. If an attribute returned an arbitrary server-specific Java class, the client might lack that class to deserialize it. OpenTypes allow structured data exchange without depending strictly on custom implementation classes.
 
-Với platform memory bean:
+For the platform memory bean:
 
 ~~~text
 Direct:
@@ -109,22 +109,22 @@ connection.getAttribute(
 Typed MXBean proxy:
 proxy.getHeapMemoryUsage()
     -> java.lang.management.MemoryUsage
-       (proxy ánh xạ CompositeData về kiểu Java)
+       (proxy maps CompositeData back to the Java type)
 ~~~
 
-**Không được cast** một *CompositeData* lấy từ raw JMX thẳng sang *MemoryUsage*. Nếu muốn tái tạo kiểu Java và đúng CompositeData mapping, dùng phương thức *MemoryUsage.from(CompositeData)* hoặc typed MXBean proxy. Nếu chỉ cần field *used*, *CompositeData.get("used")* cũng có thể trả *Long* để lấy byte.
+**Never cast** a *CompositeData* returned from raw JMX directly to *MemoryUsage*. If you want to reconstruct the Java type following the CompositeData mapping, use *MemoryUsage.from(CompositeData)* or a typed MXBean proxy. If you only need the *used* field, *CompositeData.get("used")* also returns a *Long* in bytes.
 
-### 3.2 ObjectName: địa chỉ logic của MBean trong server
+### 3.2 ObjectName: logical address of an MBean inside a server
 
-Một MBean được nhận diện bằng **ObjectName** trong phạm vi một MBeanServer. Với MemoryMXBean chuẩn, định danh thường dùng và được đặc tả là:
+An MBean is identified by an **ObjectName** within the scope of one MBeanServer. For the standard MemoryMXBean, the conventional and specified identifier is:
 
 ~~~text
 java.lang:type=Memory
 ~~~
 
-Đây là **domain** *java.lang* và key property *type=Memory*; không phải Java package của bean, PID hay hostname. Hai JVM có thể đồng thời có bean cùng ObjectName vì chúng thuộc **hai MBeanServers/process khác nhau**.
+This consists of **domain** *java.lang* and key property *type=Memory*; it is not the bean's Java package, PID, or hostname. Two JVMs can simultaneously have beans with the exact same ObjectName because they belong to **two separate MBeanServers/processes**.
 
-Các ví dụ platform ObjectName thường gặp:
+Common platform ObjectName examples:
 
 | Bean | ObjectName |
 | --- | --- |
@@ -133,48 +133,48 @@ Các ví dụ platform ObjectName thường gặp:
 | ThreadMXBean | *java.lang:type=Threading* |
 | ClassLoadingMXBean | *java.lang:type=ClassLoading* |
 | OperatingSystemMXBean | *java.lang:type=OperatingSystem* |
-| MemoryPoolMXBean | *java.lang:type=MemoryPool,name=<tên pool>* |
-| GarbageCollectorMXBean | *java.lang:type=GarbageCollector,name=<tên collector>* |
+| MemoryPoolMXBean | *java.lang:type=MemoryPool,name=<pool name>* |
+| GarbageCollectorMXBean | *java.lang:type=GarbageCollector,name=<collector name>* |
 
-Các tên có *name* là **phần thay đổi theo collector, pool và JVM**. Khi đã có bean, **ưu tiên bean.getObjectName()** thay vì tự ghép chuỗi có thể sai escaping/quoting. Với JMX discovery, có thể dùng một *ObjectName pattern* hợp lệ để tìm các bean hiện có.
+Names containing *name* **vary by collector, pool, and JVM**. Once you hold a bean, **prefer bean.getObjectName()** rather than concatenating strings manually where escaping/quoting can go wrong. For JMX discovery, you can use a valid *ObjectName pattern* to find existing beans.
 
-*ObjectName* là danh tính của bean **trong server**; trong báo cáo chẩn đoán vẫn cần **host/pod/JVM instance/PID và timestamp** để xác định server nguồn. Không thể suy ra hai dòng thuộc cùng JVM chỉ vì đều có ObjectName *java.lang:type=Memory*.
+*ObjectName* identifies a bean **within a server**; diagnostic reports still need **host/pod/JVM instance/PID and timestamp** to identify the source server. You cannot conclude two rows came from the same JVM just because both have ObjectName *java.lang:type=Memory*.
 
-### 3.3 Attribute và method không có cùng cú pháp tên
+### 3.3 Attributes and methods do not share the same name syntax
 
-Từ getter Java *getHeapMemoryUsage()* của MemoryMXBean, JMX attribute tương ứng tên:
+From the Java getter *getHeapMemoryUsage()* on MemoryMXBean, the corresponding JMX attribute is named:
 
 ~~~text
 HeapMemoryUsage
 ~~~
 
-Do vậy:
+Accordingly:
 
 ~~~java
-// Mảnh mã minh họa: giả định đã có connection và memoryName.
+// Illustrative snippet: assumes connection and memoryName already exist.
 Object raw = connection.getAttribute(memoryName, "HeapMemoryUsage");
 ~~~
 
-Đúng hơn là gọi *getAttribute* với chuỗi *getHeapMemoryUsage()* hoặc *heapUsed*. Tên attribute **phân biệt hoa thường** và được mô tả trong MBeanInfo. Với boolean getter, properties và operation signatures, cần đọc hợp đồng JMX thay vì đoán mọi tên bằng cách bỏ tiền tố get.
+This is correct rather than calling *getAttribute* with *"getHeapMemoryUsage()"* or *"heapUsed"*. Attribute names are **case-sensitive** and described in `MBeanInfo`. For boolean getters, properties, and operation signatures, inspect the JMX contract instead of guessing every name by stripping the `get` prefix.
 
-Đọc danh sách attribute/operation được công bố bằng:
+Read the list of exposed attributes/operations with:
 
 ~~~java
-// Mảnh mã minh họa: giả định connection và memoryName đã có.
+// Illustrative snippet: assumes connection and memoryName already exist.
 javax.management.MBeanInfo info = connection.getMBeanInfo(memoryName);
-// info.getAttributes(), info.getOperations() để khám phá metadata.
+// info.getAttributes(), info.getOperations() to discover metadata.
 ~~~
 
-Không phải mọi Java method trên một class implementation đều là attribute JMX. MBeanServer chỉ công bố những thành viên theo hợp đồng quản lý của bean đã đăng ký.
+Not every Java method on an implementation class is a JMX attribute. The MBeanServer only exposes members specified by the registered bean's management contract.
 
-## 4. Đường A: truy cập MXBean trực tiếp trong process
+## 4. Path A: accessing MXBeans directly in-process
 
-### 4.1 Cách đọc trong code Java
+### 4.1 How to read in Java code
 
-Trong chính JVM cần đo, bạn có thể viết:
+Inside the exact JVM you want to measure, you can write:
 
 ~~~java
-// Mảnh mã đặt trong một phương thức, không phải chương trình độc lập.
+// Snippet inside a method, not a standalone program.
 java.lang.management.MemoryMXBean memory =
         java.lang.management.ManagementFactory.getMemoryMXBean();
 
@@ -182,38 +182,38 @@ java.lang.management.MemoryUsage usage = memory.getHeapMemoryUsage();
 long usedBytes = usage.getUsed();
 ~~~
 
-Không cần URL, username, port JMX hay *JMXConnector*. Đây là cách thuận tiện cho:
+No URL, username, JMX port, or *JMXConnector* is required. This is convenient for:
 
-- Health/diagnostic endpoints **nội bộ** có kiểm soát.
-- Metrics exporter chạy **trong service**.
-- Log định kỳ một số gauge/counter quản lý runtime.
-- Đo trong unit/integration tests của Java process hiện tại.
+- Controlled **internal** health/diagnostic endpoints.
+- Metrics exporters running **inside the service**.
+- Periodically logging selected runtime management gauges/counters.
+- Measurements inside unit/integration tests of the current Java process.
 
-**Cẩn thận:** nếu đoạn code chạy trong ứng dụng kiểm thử chứ không chạy trong JVM production, direct getter đọc JVM kiểm thử. Biến *memory* không chứa danh tính máy remote.
+**Be careful:** if this code runs in a test runner rather than the production JVM, the direct getter reads the test JVM. The *memory* variable carries no remote machine identity.
 
-### 4.2 Các getter từ ManagementFactory
+### 4.2 Getters from ManagementFactory
 
-| API chuẩn | Giá trị phổ biến |
+| Standard API | Common values |
 | --- | --- |
-| *getMemoryMXBean()* | Heap, non-heap usage |
-| *getThreadMXBean()* | Live/peak thread count, ThreadInfo và tính năng CPU time có điều kiện |
+| *getMemoryMXBean()* | Heap and non-heap usage |
+| *getThreadMXBean()* | Live/peak thread counts, ThreadInfo, and conditional CPU time features |
 | *getRuntimeMXBean()* | Start time, uptime, input arguments, VM name |
 | *getClassLoadingMXBean()* | Loaded/unloaded class counters |
-| *getOperatingSystemMXBean()* | Processor count, OS name, load average nếu hỗ trợ |
-| *getGarbageCollectorMXBeans()* | Danh sách collector, count/time theo collector |
-| *getMemoryPoolMXBeans()* | Danh sách memory pools và usage |
-| *getPlatformMBeanServer()* | Local MBeanServer; **không mở remote JMX port** |
+| *getOperatingSystemMXBean()* | Processor count, OS name, load average if supported |
+| *getGarbageCollectorMXBeans()* | List of collectors, count/time per collector |
+| *getMemoryPoolMXBeans()* | List of memory pools and usage |
+| *getPlatformMBeanServer()* | Local MBeanServer; **does not open a remote JMX port** |
 
-Gọi bean trực tiếp là API có type-safe compile-time, nhưng **không đảm bảo mọi số đo luôn tồn tại**. Ví dụ *getSystemLoadAverage()* có thể cho giá trị âm báo unsupported; GC collection count/time có thể trả -1; MemoryUsage.getMax() có thể trả -1. Không biến sentinel thành 0 trên dashboard.
+Calling beans directly gives a compile-time type-safe API, though **not every metric is guaranteed to be available**. For example, *getSystemLoadAverage()* can return a negative value indicating unsupported; GC collection count/time can return -1; `MemoryUsage.getMax()` can return -1. Never convert sentinel values into 0 on dashboards.
 
-### 4.3 Các loại một instance và nhiều instance
+### 4.3 Single-instance vs. multi-instance types
 
-**Singleton platform MXBeans:** MemoryMXBean, RuntimeMXBean, ThreadMXBean thường dùng *getPlatformMXBean(MemoryMXBean.class)* hoặc các getter riêng.
+**Singleton platform MXBeans:** MemoryMXBean, RuntimeMXBean, and ThreadMXBean typically use *getPlatformMXBean(MemoryMXBean.class)* or their dedicated getters.
 
-**Multi-instance platform MXBeans:** GarbageCollectorMXBean và MemoryPoolMXBean cần *getPlatformMXBeans(...)* (danh sách từ 0 đến nhiều phần tử).
+**Multi-instance platform MXBeans:** GarbageCollectorMXBean and MemoryPoolMXBean require *getPlatformMXBeans(...)* (a list of 0 to many elements).
 
 ~~~java
-// Mảnh mã minh họa: chạy trong một phương thức.
+// Illustrative snippet: runs inside a method.
 var localPools = java.lang.management.ManagementFactory
         .getPlatformMXBeans(java.lang.management.MemoryPoolMXBean.class);
 for (var pool : localPools) {
@@ -221,54 +221,54 @@ for (var pool : localPools) {
 }
 ~~~
 
-Số lượng, thứ tự và tên memory pools phụ thuộc JVM/GC; **không có stdout cố định**. Không gọi *getPlatformMXBean(GarbageCollectorMXBean.class)* như thể GC có một bean duy nhất; API singleton chỉ dành cho những interface được đặc tả có tối đa một thực thể.
+The count, order, and names of memory pools depend on the JVM/GC; **there is no fixed stdout**. Do not call *getPlatformMXBean(GarbageCollectorMXBean.class)* as if GC has only one bean; the singleton API is strictly for interfaces specified to have at most one instance.
 
-### 4.4 Đường direct cũng có chi phí
+### 4.4 The direct path also has cost
 
-Đọc một số snapshot heap hoặc uptime thường nhẹ; nhưng một số method của ThreadMXBean có thể thu nhiều ThreadInfo/stack, khả năng đo contention cần bật hoặc có chi phí đáng kể. Không đặt *dumpAllThreads()* trong một HTTP request path cho hàng chục nghìn request/s chỉ vì đó là một method Java bình thường.
+Reading a heap snapshot or uptime is usually cheap; however, some ThreadMXBean methods gather extensive ThreadInfo/stacks, and contention monitoring requires enabling or carries noticeable overhead. Do not place *dumpAllThreads()* on an HTTP request path serving tens of thousands of requests/s just because it looks like a normal Java method.
 
-Quy tắc: chọn **mức đo phù hợp**, tần suất polling phù hợp và kiểm tra method có thao tác **thay đổi trạng thái** (ví dụ bật contention monitoring hoặc yêu cầu GC) trước khi gọi.
+Rule of thumb: choose an **appropriate level of detail**, sensible polling frequency, and verify whether a method **mutates state** (such as enabling contention monitoring or requesting GC) before calling it.
 
-## 5. Đường B: MBeanServerConnection và cách truy cập thô
+## 5. Path B: MBeanServerConnection and raw access
 
-### 5.1 MBeanServerConnection là interface, không đồng nghĩa kết nối mạng
+### 5.1 MBeanServerConnection is an interface, not synonymous with a network connection
 
-*javax.management.MBeanServerConnection* mô tả các thao tác như:
+*javax.management.MBeanServerConnection* defines operations such as:
 
-- *getAttribute(ObjectName, attributeName)*, *getAttributes(...)*: đọc attributes.
-- *getMBeanInfo(ObjectName)*: hỏi metadata của MBean.
-- *queryNames(ObjectName pattern, QueryExp query)*: khám phá danh sách ObjectNames.
-- *isRegistered(ObjectName)*: kiểm tra MBean đang được đăng ký.
-- *invoke(ObjectName, operation, arguments, signature)*: gọi operation.
-- *setAttribute(...)* và một số method khác: **thay đổi trạng thái nếu quyền và MBean cho phép**.
+- *getAttribute(ObjectName, attributeName)*, *getAttributes(...)*: read attributes.
+- *getMBeanInfo(ObjectName)*: inspect MBean metadata.
+- *queryNames(ObjectName pattern, QueryExp query)*: discover ObjectNames.
+- *isRegistered(ObjectName)*: check whether an MBean is registered.
+- *invoke(ObjectName, operation, arguments, signature)*: invoke operations.
+- *setAttribute(...)* and related methods: **mutate state if permissions and the MBean allow**.
 
-**MBeanServerConnection không phải giao diện chỉ đọc.** Client nào có quyền phù hợp có thể gọi cả operation mang tác động; không để lộ một endpoint quản lý như thể nó chỉ cung cấp metrics.
+**MBeanServerConnection is not a read-only interface.** Any client with sufficient permissions can invoke state-altering operations; never expose a management endpoint as if it merely serves metrics.
 
-Để lấy connection **local**:
+To obtain a **local** connection:
 
 ~~~java
-// Mảnh mã minh họa.
+// Illustrative snippet.
 javax.management.MBeanServerConnection local =
         java.lang.management.ManagementFactory.getPlatformMBeanServer();
 ~~~
 
-Điều này hợp lệ vì **MBeanServer triển khai MBeanServerConnection**. Các thao tác qua biến local vẫn đi qua JMX abstraction và OpenType conversion, nhưng không đi qua network. Cần phân biệt:
+This works because **MBeanServer implements MBeanServerConnection**. Calls through `local` still pass through the JMX abstraction and OpenType conversion, without crossing the network. Distinguish between:
 
 ~~~text
 ManagementFactory.getPlatformMBeanServer()
-    -> local platform server, trong chính JVM.
+    -> local platform server, inside the same JVM.
 
 connector.getMBeanServerConnection()
-    -> connection đại diện cho server mà JMXConnector đang nối đến,
-       có thể nằm trong JVM/process khác.
+    -> connection representing the server that JMXConnector is connected to,
+       potentially in another JVM/process.
 ~~~
 
-Tên interface giống nhau để code client có thể dùng được với cả hai, nhưng **failure mode và latency không giống nhau**.
+The interface name is identical so client code can work with both, yet **failure modes and latencies are not identical**.
 
-### 5.2 Đọc MemoryMXBean theo ObjectName
+### 5.2 Reading MemoryMXBean by ObjectName
 
 ~~~java
-// Mảnh mã minh họa, cần hai biến đã khởi tạo.
+// Illustrative snippet; requires two initialized variables.
 javax.management.ObjectName memoryName =
         new javax.management.ObjectName("java.lang:type=Memory");
 
@@ -278,27 +278,27 @@ javax.management.openmbean.CompositeData data =
 long usedBytes = (Long) data.get("used");
 ~~~
 
-Dòng *connection* có thể là local MBeanServerConnection hoặc remote. Nếu remote, việc đọc attribute là **một lượt truy cập tới JVM đích**; nếu connection mất, kết quả không thể được thay bằng 0 một cách an toàn.
+Here *connection* can be a local or remote MBeanServerConnection. If remote, reading the attribute is **a round trip to the target JVM**; if the connection drops, the result cannot safely be replaced with 0.
 
-Với *CompositeData*, các keys của *MemoryUsage* gồm *init*, *used*, *committed*, *max*. Phần tử có kiểu tương ứng OpenType; dùng *data.get("used")* để đọc byte.
+For *CompositeData*, the keys of *MemoryUsage* are *init*, *used*, *committed*, and *max*. Each element has its corresponding OpenType; use *data.get("used")* to read bytes.
 
-Nếu muốn chuyển lại type Java chuẩn và mapping khớp hợp đồng:
+If you want to convert back to the standard Java type matching the mapping contract:
 
 ~~~java
-// Mảnh mã minh họa.
+// Illustrative snippet.
 java.lang.management.MemoryUsage mapped =
         java.lang.management.MemoryUsage.from(data);
 long used = mapped.getUsed();
 ~~~
 
-Khi code chỉ cần một attribute đơn giản, raw JMX hữu ích. Khi phải đọc hàng loạt attributes có kiểu phức tạp, tự xử lý OpenTypes có thể phức tạp; một typed proxy thường giúp giảm lỗi mapping.
+When code needs only one simple attribute, raw JMX is handy. When reading many attributes with complex types, manual OpenType handling gets cumbersome; a typed proxy helps reduce mapping mistakes.
 
-### 5.3 Khi nào cần queryNames?
+### 5.3 When is queryNames needed?
 
-Nếu không biết exact ObjectName — ví dụ một JVM có nhiều GarbageCollectorMXBeans — hãy **khám phá đối tượng đang đăng ký**:
+If you do not know the exact ObjectName — for example, a JVM has multiple GarbageCollectorMXBeans — **discover the registered objects**:
 
 ~~~java
-// Mảnh mã minh họa, có thể ném checked exceptions.
+// Illustrative snippet; may throw checked exceptions.
 javax.management.ObjectName pattern =
         new javax.management.ObjectName("java.lang:type=GarbageCollector,*");
 var names = connection.queryNames(pattern, null);
@@ -307,34 +307,34 @@ for (var objectName : names) {
 }
 ~~~
 
-Kết quả là tập ObjectNames trong MBeanServer được truy vấn; tên/order có thể khác giữa JVM. Đừng dựa vào thứ tự xuất ra để suy ra collector chính. **Một query thành công cũng chỉ nói về server của connection đó**, không nói về mọi JVM trên host.
+The result is the set of ObjectNames in the queried MBeanServer; names and order may vary across JVMs. Do not rely on output order to guess the primary collector. **A successful query also speaks only for that connection's server**, not every JVM on the host.
 
-Nếu client cần đọc *CollectionCount* của từng collector, có thể dùng *getAttribute* theo từng ObjectName. Nhưng với platform bean quen thuộc, typed API *ManagementFactory.getPlatformMXBeans(connection, GarbageCollectorMXBean.class)* thường đơn giản hơn và ít phải tự xử lý ObjectName.
+If a client needs *CollectionCount* per collector, it can call *getAttribute* for each ObjectName. Yet for familiar platform beans, the typed API *ManagementFactory.getPlatformMXBeans(connection, GarbageCollectorMXBean.class)* is usually simpler and avoids manual ObjectName handling.
 
-### 5.4 Exception khi truy vấn raw JMX
+### 5.4 Exceptions when querying raw JMX
 
-Những lỗi quan trọng:
+Important errors:
 
-| Lỗi/nhóm lỗi | Ý nghĩa có thể | Kiểm tra |
+| Error / group | Possible meaning | What to check |
 | --- | --- | --- |
-| *MalformedObjectNameException* | Cú pháp tên không hợp lệ khi tạo ObjectName | Kiểm tra domain, key/value, escaping |
-| *InstanceNotFoundException* | Không có bean theo ObjectName tại thời điểm truy vấn | Query names, kiểm tra đúng target |
-| *AttributeNotFoundException* | Tên attribute sai hoặc bean không công bố | MBeanInfo, tên phân biệt hoa thường |
-| *ReflectionException/MBeanException* | Vấn đề khi dispatch/thi hành operation hoặc method bean | Nội dung exception và contract của bean |
-| *IOException* | Kết nối remote bị lỗi, server không đáp ứng hoặc transport có vấn đề | Endpoint, network, connector, TLS/auth, retry policy |
-| *SecurityException/authorization failure* | Chính sách không cho phép truy vấn hoặc operation | Principal/permissions; không tắt bảo mật để thử |
-| *ClassCastException* | Giả định sai kiểu raw OpenType | Inspect *CompositeType*/OpenData, dùng MXBean mapping đúng |
+| *MalformedObjectNameException* | Invalid name syntax when constructing ObjectName | Check domain, key/value, escaping |
+| *InstanceNotFoundException* | No bean registered under ObjectName at query time | Query names, verify target |
+| *AttributeNotFoundException* | Wrong attribute name or not exposed by bean | MBeanInfo, case-sensitive names |
+| *ReflectionException/MBeanException* | Failure dispatching/executing operation or bean method | Exception message and bean contract |
+| *IOException* | Remote connection failed, server unresponsive, or transport issue | Endpoint, network, connector, TLS/auth, retry policy |
+| *SecurityException/authorization failure* | Policy forbids query or operation | Principal/permissions; do not disable security to test |
+| *ClassCastException* | Wrong raw OpenType assumption | Inspect *CompositeType*/OpenData, apply proper MXBean mapping |
 
-Một số method có checked exceptions đặc thù; đừng gom tất cả vào một catch rồi mặc định JVM đã chết. **Bean không tồn tại**, **connection hỏng** và **attribute không có** là ba tình huống khác nhau.
+Several methods throw specific checked exceptions; do not lump them all into one catch block and assume the JVM crashed. **Missing bean**, **broken connection**, and **missing attribute** are three different conditions.
 
-## 6. Đường C: typed MXBean proxy qua một connection
+## 6. Path C: typed MXBean proxy over a connection
 
-### 6.1 Factory proxy cho platform MXBeans
+### 6.1 Proxy factory for platform MXBeans
 
-Khi có *MBeanServerConnection*, *ManagementFactory* cung cấp typed proxy:
+Given an *MBeanServerConnection*, *ManagementFactory* provides typed proxies:
 
 ~~~java
-// Mảnh mã minh họa, cần connection đã có.
+// Illustrative snippet; requires an existing connection.
 java.lang.management.MemoryMXBean memory =
         java.lang.management.ManagementFactory.getPlatformMXBean(
                 connection, java.lang.management.MemoryMXBean.class);
@@ -344,16 +344,16 @@ if (memory != null) {
 }
 ~~~
 
-Đối tượng *memory* ở đây có **interface MemoryMXBean** nhưng các method của nó được proxy **chuyển tiếp qua connection**. Nó không nhất thiết là object bean thực tế trong JVM gọi; nếu connection remote, chính JVM **đích** trả số đo.
+Here *memory* implements the **MemoryMXBean interface**, yet its methods are **forwarded through the connection** by the proxy. It is not necessarily the actual bean object in the calling JVM; if the connection is remote, the **target** JVM provides the metrics.
 
-*getPlatformMXBean(connection, Class<T>)* dành cho **singleton platform MXBean interfaces**, có thể trả null nếu interface có một instance tùy chọn mà server không triển khai. Trong trường hợp interface không thuộc platform hoặc không phải singleton, API có thể ném *IllegalArgumentException*. Với connection remote, factory có thể báo *IOException* khi truy vấn server.
+*getPlatformMXBean(connection, Class<T>)* is for **singleton platform MXBean interfaces** and can return `null` if an optional single-instance interface is not implemented by the server. If the interface is not a platform bean or not a singleton, the API can throw *IllegalArgumentException*. With a remote connection, the factory can throw *IOException* while querying the server.
 
-### 6.2 Proxy theo ObjectName cụ thể
+### 6.2 Proxy by specific ObjectName
 
-Nếu đã biết tên bean (ví dụ *memoryName*), dùng:
+If you already know the bean's name (e.g., *memoryName*), use:
 
 ~~~java
-// Mảnh mã minh họa, cần memoryName và connection.
+// Illustrative snippet; requires memoryName and connection.
 java.lang.management.MemoryMXBean memory =
         java.lang.management.ManagementFactory.newPlatformMXBeanProxy(
                 connection,
@@ -361,18 +361,18 @@ java.lang.management.MemoryMXBean memory =
                 java.lang.management.MemoryMXBean.class);
 ~~~
 
-Khác biệt:
+Differences:
 
-- *getPlatformMXBean(connection, MemoryMXBean.class)* chọn singleton platform bean theo **interface**, không cần truyền ObjectName thủ công.
-- *newPlatformMXBeanProxy(connection, name, interface)* tạo proxy theo **ObjectName đã xác định**, hữu ích khi muốn cụ thể hóa đích và kiểm tra metadata.
-- Cả hai đều truy cập qua *connection* và dùng **MXBean mapping** cho kiểu phức tạp.
+- *getPlatformMXBean(connection, MemoryMXBean.class)* picks the singleton platform bean by **interface**, without passing an ObjectName manually.
+- *newPlatformMXBeanProxy(connection, name, interface)* creates a proxy for a **specified ObjectName**, useful when targeting explicitly and validating metadata.
+- Both communicate through *connection* and apply **MXBean mapping** for complex types.
 
-Đừng dùng *newPlatformMXBeanProxy* tùy tiện cho bất kỳ custom MBean không tuân theo interface platform MXBean. Với MXBean do ứng dụng tự định nghĩa, JMX API có *JMX.newMXBeanProxy(connection, objectName, CustomMXBean.class)*; đó là use case khác, có hợp đồng riêng.
+Do not use *newPlatformMXBeanProxy* arbitrarily for custom MBeans that do not follow platform MXBean interfaces. For application-defined MXBeans, the JMX API provides *JMX.newMXBeanProxy(connection, objectName, CustomMXBean.class)*; that is a separate use case with its own contract.
 
-### 6.3 Tạo danh sách proxy cho multi-instance MXBeans
+### 6.3 Creating a proxy list for multi-instance MXBeans
 
 ~~~java
-// Mảnh mã minh họa.
+// Illustrative snippet.
 var collectors = java.lang.management.ManagementFactory
         .getPlatformMXBeans(
                 connection,
@@ -383,32 +383,32 @@ for (var gc : collectors) {
 }
 ~~~
 
-Mỗi phần tử đại diện cho một collector bean. **Không giả định danh sách có một phần tử hoặc tên G1/CMS/Shenandoah giống nhau giữa JDK.** API cho phép 0, 1 hoặc nhiều kết quả tùy interface/JVM; không cam kết thứ tự ổn định.
+Each element represents one collector bean. **Do not assume the list has a single element or that G1/CMS/Shenandoah names match across JDKs.** The API permits 0, 1, or more results depending on the interface/JVM, with no guaranteed stable order.
 
-Đọc thuộc tính lần lượt qua nhiều proxies có thể phát sinh **nhiều lượt network**. Nếu dùng dashboard, phải tính chi phí polling theo số bean × số metric × tần suất × số JVM, tránh query thừa khi một server chậm.
+Reading attributes sequentially across many proxies can generate **multiple network round trips**. For dashboards, calculate polling cost as beans × metrics × frequency × JVMs, avoiding redundant queries when a server is slow.
 
-### 6.4 Proxy có typed return không có nghĩa lấy snapshot nguyên tử
+### 6.4 Typed proxy returns do not mean atomic snapshots
 
-Lời gọi *memory.getHeapMemoryUsage()* tại thời điểm T1 và *raw getAttribute* tại T2 có thể trả **used bytes khác nhau** do ứng dụng allocation/GC đang chạy. Đó không phải lỗi proxy.
+Calling *memory.getHeapMemoryUsage()* at time T1 and *raw getAttribute* at T2 can return **different used bytes** because the application continues allocating or running GC. That is not a proxy bug.
 
-Tương tự, gọi *getHeapMemoryUsage()* rồi *getNonHeapMemoryUsage()* là hai snapshot gần nhau, không phải transaction hay event stream. Không viết test bắt ba đường phải cho giá trị byte **bằng tuyệt đối**. Đúng hơn nên kiểm tra type, khả năng đọc và các invariant như used/committed không âm.
+Likewise, calling *getHeapMemoryUsage()* followed by *getNonHeapMemoryUsage()* yields two close snapshots, not a transaction or event stream. Never write tests asserting that all three paths return **identical byte counts**. Instead check types, readability, and invariants such as non-negative used/committed values.
 
-### 6.5 Lỗi proxy có thể biểu hiện khác raw JMX
+### 6.5 Proxy failures can surface differently from raw JMX
 
-Một method trên interface *MemoryMXBean* không nhất thiết khai báo checked *IOException*. Tuy nhiên proxy dùng *MBeanServerConnection* có thể gặp I/O trong quá trình forwarding. Tùy lời gọi, exception có thể được đóng gói trong runtime wrapper của dynamic proxy (ví dụ *UndeclaredThrowableException*). Vì vậy khi viết JMX client cần:
+Methods on *MemoryMXBean* do not necessarily declare checked *IOException*. However, a proxy using an *MBeanServerConnection* can hit I/O failures during forwarding. Depending on the call, exceptions may be wrapped in a dynamic proxy runtime wrapper (e.g., *UndeclaredThrowableException*). Therefore, when writing a JMX client:
 
-- Xử lý lỗi khi **tạo và sử dụng connection/proxy**, không chỉ lúc *connect()*.
-- Lưu nguyên nhân gốc có kiểm soát, phân biệt endpoint không tới được với bean/attribute không có.
-- Có timeout/retry/backoff/circuit breaker phù hợp, không retry vô hạn request chẩn đoán vào JVM đang yếu.
-- Giữ code chính xác theo các exceptions mà Javadoc của phương thức cụ thể công bố.
+- Handle errors when **both creating and using the connection/proxy**, not only during *connect()*.
+- Capture the root cause carefully, distinguishing unreachable endpoints from missing beans/attributes.
+- Apply proper timeouts/retries/backoff/circuit breakers; never hammer a struggling JVM with infinite diagnostic retries.
+- Keep error handling aligned with the exceptions documented in the specific method's Javadoc.
 
-Không nên catch mọi *RuntimeException* rồi gán giá trị metric 0; khi mất connectivity dashboard sẽ báo sai tình trạng.
+Never catch all *RuntimeException*s and substitute metric value 0; when connectivity drops, dashboards will report misleading status.
 
-## 7. Lab độc lập Java 17+: ba đường truy cập cùng JVM
+## 7. Standalone Java 17+ lab: three access paths on the same JVM
 
-Lab này chứng minh ba đường trên **trên local platform MBeanServer**, nên **không cần mở cổng JMX, không cần tài khoản và không cần thư viện bên ngoài**. Mục đích là kiểm chứng **dạng trả về và đường API**, không khẳng định việc kết nối từ xa cũng được bảo đảm.
+This lab demonstrates all three paths **against the local platform MBeanServer**, so **no JMX ports need opening, no credentials are required, and no external libraries are needed**. Its purpose is to verify **return shapes and API paths**, not to prove remote connectivity will succeed.
 
-Tạo file **MxBeanThreePathsDemo.java**:
+Create **MxBeanThreePathsDemo.java**:
 
 ~~~java
 import java.lang.management.ManagementFactory;
@@ -455,14 +455,14 @@ public final class MxBeanThreePathsDemo {
 }
 ~~~
 
-Biên dịch/chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ~~~bash
 javac -encoding UTF-8 MxBeanThreePathsDemo.java
 java MxBeanThreePathsDemo
 ~~~
 
-**Stdout của chương trình trên JVM Java 17+ thông dụng:**
+**Program stdout on a typical Java 17+ JVM:**
 
 ~~~text
 objectName=java.lang:type=Memory
@@ -477,19 +477,19 @@ localPoolsAvailable=true
 proxiedPoolsAvailable=true
 ~~~
 
-Đã biên dịch/chạy ví dụ trên JDK và xác nhận 10 dòng stdout như trên. Các kiểm tra boolean tránh phụ thuộc vào số byte của heap và số pool (luôn biến đổi theo tải/VM); nếu môi trường Java SE bất thường không có pool hoặc vi phạm giả định hỗ trợ, những kiểm tra cuối có thể khác. **Không nên coi chuỗi stdout là đặc tả bắt buộc trên mọi VM implementation.**
+This example has been compiled and run on the JDK, confirming the 10 stdout lines above. The boolean checks avoid depending on exact heap byte counts or pool counts (which vary by load/VM); on unusual Java SE environments without pools or differing support assumptions, the final checks may differ. **Do not treat stdout strings as a mandatory specification across every VM implementation.**
 
-### Giải thích từng nhánh code
+### Explaining each code branch
 
-**Nhánh direct**
+**Direct branch**
 
 ~~~java
 MemoryMXBean direct = ManagementFactory.getMemoryMXBean();
 ~~~
 
-Chính process Java đang chạy class demo là mục tiêu đo.
+The Java process executing the demo class itself is the measurement target.
 
-**Nhánh raw**
+**Raw branch**
 
 ~~~java
 Object raw = connection.getAttribute(memoryName, "HeapMemoryUsage");
@@ -497,50 +497,50 @@ CompositeData data = (CompositeData) raw;
 long rawUsed = (Long) data.get("used");
 ~~~
 
-Lấy dữ liệu qua MBeanServerConnection và nhận **OpenType**. Thao tác chỉ đọc một attribute. Không có cast *MemoryUsage* trực tiếp từ raw.
+Fetches data through `MBeanServerConnection` and receives an **OpenType**. This operation reads a single attribute. There is no direct cast from raw to *MemoryUsage*.
 
-**Nhánh typed (singleton interface)**
+**Typed branch (singleton interface)**
 
 ~~~java
 MemoryMXBean typed = ManagementFactory.getPlatformMXBean(
         connection, MemoryMXBean.class);
 ~~~
 
-Tạo interface/proxy typed cho platform memory bean thông qua connection. Trong chương trình, connection là local. Nếu thay bằng connection remote phù hợp, **logic typed proxy tương tự** nhưng lỗi/kết nối/quyền phải xử lý riêng.
+Creates a typed proxy interface for the platform memory bean over `connection`. In this program, the connection is local. If replaced with an appropriate remote connection, **the typed proxy logic is the same**, though errors, connectivity, and permissions must be handled separately.
 
-**Nhánh named proxy**
+**Named proxy branch**
 
 ~~~java
 MemoryMXBean named = ManagementFactory.newPlatformMXBeanProxy(
         connection, memoryName.getCanonicalName(), MemoryMXBean.class);
 ~~~
 
-Chọn bean theo **ObjectName cụ thể**, thay vì để factory chọn từ interface singleton.
+Selects the bean by **specific ObjectName**, rather than letting the factory locate it from a singleton interface.
 
-**Nhánh danh sách**
+**List branch**
 
 ~~~java
 List<MemoryPoolMXBean> proxiedPools = ManagementFactory.getPlatformMXBeans(
         connection, MemoryPoolMXBean.class);
 ~~~
 
-Chứng minh với những platform bean **multi-instance** bạn dùng danh sách typed proxies, không cố tìm một bean duy nhất.
+Demonstrates that for **multi-instance** platform beans, you use a list of typed proxies instead of trying to look up a single bean.
 
-### Các điều lab không chứng minh
+### What the lab does not prove
 
-- Không chứng minh JMX remote đã mở hoặc đã bảo mật. Code chỉ dùng local platform MBeanServer.
-- Không chứng minh ba số *used* lấy cùng lúc; chúng được đọc nối tiếp.
-- Không chứng minh mọi implementation có cùng GC/pool names/count.
-- Không kiểm tra mọi operations trên MBeanServerConnection đều read-only.
-- Không đánh giá overhead khi chạy trên hàng nghìn JVM; muốn benchmark cần thử dưới workload thực.
+- It does not prove remote JMX is open or secured. The code uses only the local platform MBeanServer.
+- It does not prove the three *used* readings occurred simultaneously; they are read sequentially.
+- It does not prove all implementations share the same GC/pool names or counts.
+- It does not verify every operation on `MBeanServerConnection` is read-only.
+- It does not benchmark overhead across thousands of JVMs; benchmarking requires testing under realistic load.
 
-Lab đã đủ để thấy **khác biệt về API và kiểu dữ liệu**, sau đó mới nghiên cứu kết nối remote thực sự.
+The lab is sufficient to see **API and data-type differences** before moving on to actual remote connections.
 
-## 8. Truy cập một JVM khác: JMXConnector và MBeanServerConnection remote
+## 8. Accessing another JVM: JMXConnector and remote MBeanServerConnection
 
-### 8.1 Kết nối remote xuất hiện ở đâu?
+### 8.1 Where does a remote connection fit?
 
-Trong môi trường có remote JMX connector **được cấu hình hợp lệ và bảo vệ đầy đủ**, client có thể dùng:
+In an environment with a **properly configured and secured** remote JMX connector, a client can use:
 
 ~~~text
 JMXServiceURL
@@ -551,23 +551,23 @@ JMXConnector
      |
 getMBeanServerConnection()
      |
-MBeanServerConnection (tới JVM đích)
+MBeanServerConnection (to target JVM)
      |
-getAttribute(...) hoặc platform MXBean proxy
+getAttribute(...) or platform MXBean proxy
 ~~~
 
-*JMXServiceURL* là địa chỉ **JMX connector**, không phải URL HTTP của endpoint ứng dụng. Một URL RMI có thể dùng scheme *service:jmx:rmi:///jndi/rmi://host:port/name*; địa chỉ cụ thể, port mapping, DNS, server endpoint và TLS/auth do hệ thống triển khai quyết định.
+*JMXServiceURL* is the address of the **JMX connector**, not an application HTTP endpoint URL. An RMI URL might use the scheme *service:jmx:rmi:///jndi/rmi://host:port/name*; exact address, port mapping, DNS, server endpoint, and TLS/auth depend on the deployment.
 
-Đặc biệt với RMI, cần hiểu **RMI registry port** và **RMI server endpoint** có thể không trùng nhau. Trong Docker/Kubernetes/NAT, chỉ mở một port mà không cấu hình server hostname/port phù hợp có thể khiến client lấy được stub nhưng không kết nối tiếp được. Đừng “chữa” bằng cách tắt authentication hoặc TLS.
+Specifically with RMI, understand that the **RMI registry port** and **RMI server endpoint** may differ. Inside Docker/Kubernetes/NAT, exposing only one port without configuring the server hostname/port properly can allow clients to retrieve the stub yet fail on the subsequent connection. Never "fix" this by disabling authentication or TLS.
 
-### 8.2 Minh họa client remote an toàn về cấu trúc
+### 8.2 Structurally safe remote client illustration
 
-Phần code bên dưới là **mảnh mã, không phải chương trình độc lập**: nó giả định *url* là *JMXServiceURL* hợp lệ đến endpoint đã được đội vận hành cho phép, và *environment* là *Map<String, ?>* do lớp kết nối an toàn cấp (ví dụ thông tin xác thực/TLS/connector configuration thích hợp). Không chứa credential hardcode, không tự bật server hay vô hiệu bảo mật:
+The code below is a **snippet, not a standalone program**: it assumes *url* is a valid *JMXServiceURL* pointing to an operations-approved endpoint, and *environment* is a *Map<String, ?>* supplied by a secure connection layer (containing appropriate authentication/TLS/connector settings). It contains no hardcoded credentials and does not enable servers or disable security:
 
 ~~~java
-// Mảnh mã nằm trong phương thức có checked exceptions.
-// url: JMXServiceURL đến connector đã được quản lý.
-// environment: Map<String, ?> cấu hình kết nối an toàn có sẵn.
+// Snippet inside a method declaring checked exceptions.
+// url: JMXServiceURL to a managed connector.
+// environment: Map<String, ?> with preconfigured secure connection settings.
 try (javax.management.remote.JMXConnector connector =
         javax.management.remote.JMXConnectorFactory.connect(url, environment)) {
     javax.management.MBeanServerConnection remote =
@@ -579,81 +579,81 @@ try (javax.management.remote.JMXConnector connector =
 
     if (memory != null) {
         long usedBytes = memory.getHeapMemoryUsage().getUsed();
-        // Ghi nhận usedBytes cùng danh tính JVM đích và thời điểm.
+        // Record usedBytes along with target JVM identity and timestamp.
     }
 }
 ~~~
 
-**Một số lưu ý bắt buộc:**
+**Mandatory notes:**
 
-- Đây **không** phải ví dụ chạy standalone: chưa có endpoint, DNS, protocol, credential/TLS config. Mục đích là minh họa **cách dùng connection sau khi đã được cấp an toàn**.
-- *JMXConnector* cần được đóng để giải phóng tài nguyên, ở đây dùng *try-with-resources*.
-- Mở connection không bảo đảm mọi getter sau đó thành công; JVM target có thể restart, mạng rớt, quyền bị thu hồi hoặc server quá tải.
-- Kết quả phải gắn với **identity của target** (host/pod/JVM start time) chứ không chỉ tên ObjectName.
-- Không đưa password vào ví dụ command line hoặc log credential; không tắt SSL/authentication cho tiện thử trên production.
+- This is **not** a standalone runnable example: it lacks endpoint, DNS, protocol, and credential/TLS configuration. Its goal is to show **how to use a connection once securely obtained**.
+- *JMXConnector* must be closed to release resources, handled here via *try-with-resources*.
+- Opening a connection does not guarantee subsequent getters will succeed; the target JVM might restart, the network might drop, permissions might be revoked, or the server might overload.
+- Results must be tagged with the **target's identity** (host/pod/JVM start time), not merely the ObjectName.
+- Never place passwords in command-line examples or log credentials; never disable SSL/authentication for quick production testing.
 
-**Thiết kế bảo mật:** hạn chế network reachability, bật authentication và TLS đúng chính sách, cấp quyền tối thiểu, ghi audit. JMX remote có khả năng truy cập operations quản trị; một username chỉ dùng để “xem số đo” cần phân quyền chứ không được mặc định toàn quyền. Nếu cần chẩn đoán từ máy vận hành, ưu tiên kênh truy cập quản trị được phê duyệt thay vì expose JMX trên Internet.
+**Security design:** restrict network reachability, enable authentication and TLS per policy, enforce least privilege, and audit access. Remote JMX can reach administrative operations; a username meant only for "viewing metrics" must be restricted rather than given full privileges by default. When diagnosing from operator workstations, prefer approved administrative channels over exposing JMX to the public Internet.
 
-### 8.3 Local JMX và remote JMX không phải cùng lỗi
+### 8.3 Local JMX and remote JMX do not share the same failures
 
-| Tình trạng | Local connection | Remote connection |
+| Condition | Local connection | Remote connection |
 | --- | --- | --- |
-| Tạo connection | *getPlatformMBeanServer()* | Thường qua *JMXConnectorFactory.connect()* |
-| Vấn đề mạng | Không cần network | DNS, firewall, NAT, RMI/TLS, timeout |
-| Auth/authorization | Quyền process/JMX policy local | Connector authentication, TLS và quyền MBean |
-| JVM restart | Mất process/dữ liệu local | Stale connection, reconnect có kiểm soát |
-| Overhead | Tùy bean/mapping | Mapping + marshalling + network + round trips |
-| Chỉ số động | Snapshot thay đổi | Snapshot thay đổi và có thêm network delay |
-| Lỗi ObjectName/attribute | Có thể có | Có thể có, cộng thêm connection failures |
+| Connection creation | *getPlatformMBeanServer()* | Typically via *JMXConnectorFactory.connect()* |
+| Network issues | No network needed | DNS, firewall, NAT, RMI/TLS, timeouts |
+| Auth/authorization | Local process/JMX policy permissions | Connector authentication, TLS, and MBean permissions |
+| JVM restart | Process/local data ends | Stale connection, controlled reconnect needed |
+| Overhead | Depends on bean/mapping | Mapping + marshalling + network + round trips |
+| Dynamic metrics | Changing snapshots | Changing snapshots plus network delay |
+| ObjectName/attribute errors | Possible | Possible, plus connection failures |
 
-**Một phép thử local thành công không phải bằng chứng remote production sẽ thành công.** Cần kiểm tra server endpoint, user/role, TLS, routing mạng và version tương thích ở môi trường thực.
+**A passing local test does not prove remote production access will work.** You must verify the server endpoint, user/role, TLS, network routing, and version compatibility in the real environment.
 
-## 9. Chọn đường nào cho từng nhu cầu?
+## 9. Which path to choose for each need?
 
-| Tình huống | Ưu tiên | Lý do |
+| Scenario | Preferred choice | Reason |
 | --- | --- | --- |
-| Exporter chạy bên trong service đo heap/thread | Direct platform MXBean | Không phải quản lý connection, type-safe |
-| Internal actuator/health có vài số đo JVM | Direct, nếu endpoint có policy phù hợp | Đơn giản, tránh overhead JMX transport |
-| JMX client tổng quát cần list bean và metadata | Raw MBeanServerConnection | *queryNames*, *getMBeanInfo*, khám phá runtime |
-| Dashboard Java biết rõ cần MemoryMXBean | Typed proxy | *getHeapMemoryUsage()* trả *MemoryUsage*, giảm tự parse OpenType |
-| Muốn tham chiếu bean có ObjectName cụ thể | *newPlatformMXBeanProxy()* | Điều khiển identity của bean |
-| Cần danh sách collectors/pools trên JVM remote | *getPlatformMXBeans(connection, Interface.class)* | Không đoán số lượng/tên, typed list |
-| Custom MXBean do ứng dụng tự đăng ký | Raw JMX hoặc *JMX.newMXBeanProxy()* | Không nhất thiết là platform interface |
-| JVM/OS/JDK vendor không hỗ trợ một bean extension | Chuẩn trước, capability check rồi fallback | Portable và tránh ClassNotFound/NoClassDefFoundError |
-| Muốn heap dump, thay VM option hoặc trigger GC | Quy trình chẩn đoán riêng, có phê duyệt | Không coi là getter monitoring nhẹ |
+| In-service exporter reading heap/threads | Direct platform MXBean | No connection management, type-safe |
+| Internal actuator/health with a few JVM metrics | Direct, if endpoint policy allows | Simple, avoids JMX transport overhead |
+| Generic JMX client listing beans and metadata | Raw MBeanServerConnection | *queryNames*, *getMBeanInfo*, runtime discovery |
+| Java dashboard needing MemoryMXBean specifically | Typed proxy | *getHeapMemoryUsage()* returns *MemoryUsage*, less manual OpenType parsing |
+| Targeting a bean by specific ObjectName | *newPlatformMXBeanProxy()* | Explicit control of bean identity |
+| Listing collectors/pools on a remote JVM | *getPlatformMXBeans(connection, Interface.class)* | No guessing counts/names, typed list |
+| Custom MXBean registered by application | Raw JMX or *JMX.newMXBeanProxy()* | Not necessarily a platform interface |
+| Extension bean not guaranteed across JVM/OS/vendors | Standard APIs first, capability check then fallback | Portable and avoids ClassNotFound/NoClassDefFoundError |
+| Heap dumps, changing VM options, or triggering GC | Separate approved diagnostic workflow | Not treated as lightweight monitoring getters |
 
-Không có một cách “nhanh nhất” tuyệt đối. Với code chạy cùng JVM và vài getter, direct thường đơn giản nhất. Với công cụ generic, MBeanServerConnection là nền tảng; với client ứng dụng muốn kiểu mạnh, proxy tiện hơn. Nhưng chi phí remote phụ thuộc số method calls và network, không chỉ việc tạo proxy.
+There is no single "fastest" way in absolute terms. For in-JVM code with a few getters, direct access is simplest. For generic tools, `MBeanServerConnection` is foundational; for application clients wanting strong typing, proxies are more convenient. Yet remote cost depends on call count and network overhead, not just proxy instantiation.
 
-## 10. Những khác biệt dễ mắc lỗi khi lập trình
+## 10. Common programming pitfalls
 
-### 10.1 Lấy object typed từ connection không phải lấy bean local
+### 10.1 Getting a typed object from a connection is not getting the local bean
 
-Hai dòng có kiểu đều là *MemoryMXBean* nhưng khác nơi lấy dữ liệu:
+These two lines share the *MemoryMXBean* type yet read from different places:
 
 ~~~java
-// Mảnh mã minh họa.
+// Illustrative snippet.
 var local = java.lang.management.ManagementFactory.getMemoryMXBean();
 var viaConnection = java.lang.management.ManagementFactory
         .getPlatformMXBean(connection, java.lang.management.MemoryMXBean.class);
 ~~~
 
-Nếu connection remote, *viaConnection* đo JVM **đích**, còn *local* đo JVM **đang chạy client**. Đừng gộp hai kết quả làm một series mà không ghi instance. Đây là lỗi thường gặp khi thử code trong local IDE rồi port sang monitoring backend.
+If `connection` is remote, *viaConnection* measures the **target** JVM, while *local* measures the **client** JVM. Never merge both results into one series without recording the instance. This is a common bug when testing in a local IDE and porting to a monitoring backend.
 
-### 10.2 Raw getAttribute trả kiểu OpenType
+### 10.2 Raw getAttribute returns OpenTypes
 
-Sai:
+Wrong:
 
 ~~~java
-// Mã sai: CompositeData không thể cast trực tiếp thành MemoryUsage.
+// Wrong code: CompositeData cannot be cast directly to MemoryUsage.
 java.lang.management.MemoryUsage usage =
         (java.lang.management.MemoryUsage)
         connection.getAttribute(memoryName, "HeapMemoryUsage");
 ~~~
 
-Đúng:
+Right:
 
 ~~~java
-// Mảnh mã minh họa.
+// Illustrative snippet.
 javax.management.openmbean.CompositeData data =
         (javax.management.openmbean.CompositeData)
         connection.getAttribute(memoryName, "HeapMemoryUsage");
@@ -661,250 +661,250 @@ java.lang.management.MemoryUsage usage =
         java.lang.management.MemoryUsage.from(data);
 ~~~
 
-Hoặc dùng *MemoryMXBean* typed proxy để proxy xử lý mapping.
+Or use a *MemoryMXBean* typed proxy so the proxy handles the mapping.
 
-### 10.3 Không phải mọi bean là singleton
+### 10.3 Not every bean is a singleton
 
-Sai: cố đọc *GarbageCollectorMXBean* qua singleton platform MXBean getter.
+Wrong: trying to read *GarbageCollectorMXBean* via the singleton platform MXBean getter.
 
-Đúng: gọi *ManagementFactory.getPlatformMXBeans(connection, GarbageCollectorMXBean.class)* hoặc getter danh sách trong local JVM.
+Right: call *ManagementFactory.getPlatformMXBeans(connection, GarbageCollectorMXBean.class)* or the local list getter.
 
-GC/MemoryPool names có thể thay đổi theo G1, Parallel, ZGC, Shenandoah, JDK version hoặc vendor; tuyệt đối không hardcode “collector thứ hai luôn là Old GC”.
+GC/MemoryPool names vary across G1, Parallel, ZGC, Shenandoah, JDK versions, and vendors; never hardcode "the second collector is always Old GC."
 
-### 10.4 ObjectName không phải URL process và không duy nhất giữa các JVM
+### 10.4 ObjectName is not a process URL and is not unique across JVMs
 
-*java.lang:type=Memory* chỉ định memory bean **trong một MBeanServer**. Nếu client giữ hai MBeanServerConnections tới hai JVM khác nhau, cùng ObjectName đó đại diện cho hai bean **ở hai nơi khác nhau**. Luôn gắn host/container/process start time khi lưu metrics.
+*java.lang:type=Memory* identifies the memory bean **within one MBeanServer**. If a client holds two MBeanServerConnections to two different JVMs, the same ObjectName represents two beans **in two different places**. Always attach host/container/process start time when storing metrics.
 
-### 10.5 Tạo proxy không đảm bảo bean tồn tại ở mọi lúc
+### 10.5 Creating a proxy does not guarantee the bean exists at all times
 
-Một số platform beans tùy chọn có thể vắng mặt, và multi-instance beans có thể thay đổi theo runtime. Trước khi lấy thuộc tính, kiểm tra null/empty như hợp đồng API quy định, hoặc *isRegistered* với ObjectName cụ thể khi cần. Nhưng **kiểm tra trước không loại bỏ race condition**: bean có thể biến mất sau *isRegistered*. Cần xử lý lỗi ở thao tác thực tế.
+Optional platform beans may be absent, and multi-instance beans can change at runtime. Before reading attributes, check for null/empty per the API contract, or *isRegistered* for a specific ObjectName when needed. Still, **pre-checking does not eliminate race conditions**: a bean can disappear right after *isRegistered*. Handle failures on the actual operation.
 
-### 10.6 Thao tác JMX có thể thay đổi JVM
+### 10.6 JMX operations can mutate the JVM
 
-Các method *invoke*, *setAttribute* và một số MXBean operations có thể là control plane. Ví dụ yêu cầu GC, bật thread contention monitoring hoặc thao tác diagnostic HotSpot có thể gây overhead/rủi ro. Không trao cho một dashboard chỉ cần *getAttribute* quyền gọi mọi operation. Phân quyền JMX tùy connector/chính sách, không tự nhận interface là read-only.
+*invoke*, *setAttribute*, and some MXBean operations belong to the control plane. For instance, requesting GC, enabling thread contention monitoring, or invoking HotSpot diagnostic operations can incur overhead or risk. Never grant a dashboard that only needs *getAttribute* permission to invoke arbitrary operations. JMX authorization depends on connector/policy; never assume an interface is read-only.
 
-### 10.7 JMX remote lỗi có thể nằm sâu trong dynamic proxy
+### 10.7 Remote JMX errors can be buried inside a dynamic proxy
 
-Một typed proxy gọi method không khai báo checked IOException, nhưng bên dưới connection remote có I/O. Một số lỗi có thể được bọc bởi dynamic proxy wrapper. Ghi log nguyên nhân gốc có chọn lọc, lưu endpoint identifier, không gộp lỗi kết nối và sentinel metric.
+A typed proxy invokes methods that do not declare checked `IOException`, yet the underlying remote connection performs I/O. Some errors may be wrapped by dynamic proxy wrappers. Log the root cause selectively, record the endpoint identifier, and never conflate connection errors with sentinel metrics.
 
-### 10.8 Java SE API và phần mở rộng JDK không đồng nhất
+### 10.8 Java SE APIs and JDK extensions are not uniform
 
-MemoryMXBean thuộc *java.lang.management* là chuẩn; một số thông tin process CPU/GC chuyên sâu nằm trong *com.sun.management* (module *jdk.management*). Một interface JDK extension không được bảo đảm có trên mọi vendor/runtime image. Đừng suy ra chỉ cần *ManagementFactory* là mọi extension đều có mặt. Hãy thiết kế fallback, không ép kiểu không kiểm tra.
+MemoryMXBean in *java.lang.management* is standard; certain deep process CPU/GC metrics reside in *com.sun.management* (module *jdk.management*). JDK extension interfaces are not guaranteed on every vendor or runtime image. Never assume *ManagementFactory* implies every extension is present. Design fallbacks rather than unchecked casts.
 
-## 11. Đọc metrics đúng ý nghĩa, không chỉ lấy được giá trị
+## 11. Reading metrics meaningfully, not just retrieving values
 
-Có connection và code đúng vẫn chưa chắc metric có ý nghĩa.
+Having a working connection and valid code still does not mean the numbers make sense.
 
-### 11.1 Snapshot không đồng bộ
+### 11.1 Asynchronous snapshots
 
-Trong lab, *direct*, *raw*, *typed*, *named* đọc heap used **theo thứ tự**. GC/allocation giữa các lượt có thể làm số byte đổi. Không assert bằng tuyệt đối, nhất là qua remote.
+In the lab, *direct*, *raw*, *typed*, and *named* read heap used **sequentially**. GC/allocations between calls can change the byte counts. Never assert exact equality, especially over remote connections.
 
-Nếu muốn biểu đồ theo thời gian, lấy timestamp cùng mỗi lần đo và giữ identity của JVM; không dùng timestamp collector làm timestamp event nếu cần phân tích pause rất ngắn.
+To plot values over time, capture a timestamp with each sample and retain JVM identity; never substitute the collector's polling timestamp for event timestamps when analyzing very short pauses.
 
-### 11.2 Các loại số đo khác nhau
+### 11.2 Different measurement semantics
 
-| MXBean method | Đơn vị/loại | Lưu ý |
+| MXBean method | Unit / kind | Notes |
 | --- | --- | --- |
-| *MemoryUsage.getUsed()* | byte / gauge | Heap/non-heap phạm vi bean, không phải process RSS |
-| *MemoryUsage.getCommitted()* | byte / gauge | Bộ nhớ đã cam kết, khác used |
-| *MemoryUsage.getMax()* | byte hoặc -1 | -1 nghĩa là giới hạn không xác định |
-| *ThreadMXBean.getThreadCount()* | thread / gauge | Không phải request throughput |
-| *RuntimeMXBean.getUptime()* | millisecond / elapsed time | Reset khi JVM restart |
-| *GarbageCollectorMXBean.getCollectionCount()* | count hoặc -1 | Counter tích lũy nếu được hỗ trợ |
-| *GarbageCollectorMXBean.getCollectionTime()* | millisecond hoặc -1 | Không bằng p99 GC pause |
-| *ClassLoadingMXBean.getTotalLoadedClassCount()* | count | Counter tích lũy; khác số lớp hiện đang loaded |
-| *OperatingSystemMXBean.getSystemLoadAverage()* | load average hoặc âm | Không phải CPU% và có thể unavailable |
+| *MemoryUsage.getUsed()* | bytes / gauge | Heap/non-heap within bean scope, not process RSS |
+| *MemoryUsage.getCommitted()* | bytes / gauge | Committed memory, distinct from used |
+| *MemoryUsage.getMax()* | bytes or -1 | -1 means undefined limit |
+| *ThreadMXBean.getThreadCount()* | threads / gauge | Not request throughput |
+| *RuntimeMXBean.getUptime()* | milliseconds / elapsed time | Resets on JVM restart |
+| *GarbageCollectorMXBean.getCollectionCount()* | count or -1 | Cumulative counter if supported |
+| *GarbageCollectorMXBean.getCollectionTime()* | milliseconds or -1 | Not equal to p99 GC pause |
+| *ClassLoadingMXBean.getTotalLoadedClassCount()* | count | Cumulative counter; differs from currently loaded classes |
+| *OperatingSystemMXBean.getSystemLoadAverage()* | load average or negative | Not CPU% and may be unavailable |
 
-Counter cần tính delta/rate trên **cùng instance** và xử lý restart. Không lấy delta của GC count trước restart và sau restart rồi gọi kết quả âm là “GC chạy âm lần”. Sentinel -1/null không được đưa vào dashboard như giá trị 0. Dữ liệu từ bean chuẩn vẫn cần diễn giải, sampling và metadata rõ ràng.
+Counters require computing deltas/rates on the **same instance** while handling restarts. Never subtract a pre-restart GC count from a post-restart count and report a negative result as "negative GCs." Sentinel -1/null values must never appear on dashboards as 0. Standard bean metrics still require proper interpretation, sampling, and metadata.
 
-### 11.3 Chi phí remote và N+1 calls
+### 11.3 Remote cost and N+1 calls
 
-Ví dụ một monitoring client poll 200 JVM, mỗi JVM đọc 15 attributes, cứ 5 giây. Trong mô hình thô, có thể phát sinh khoảng **3.000 attribute reads mỗi chu kỳ** chưa tính connect/metadata/retry. Không thể suy ra mỗi read là một kết nối TCP mới, nhưng số round trip và lượng serialized data có thể rất lớn.
+Suppose a monitoring client polls 200 JVMs, reading 15 attributes each every 5 seconds. In a naive design, that generates roughly **3,000 attribute reads per cycle** before counting connects, metadata, or retries. Each read is not necessarily a new TCP connection, yet round trips and serialized payload volume can be substantial.
 
-Các hướng tối ưu:
+Optimization strategies:
 
-- Chọn bộ metrics thật sự cần; tránh query mọi MBean để làm một gauge.
-- Sử dụng *getAttributes* có kiểm tra kết quả nếu phù hợp để giảm overhead so với đọc lẻ quá nhiều attributes.
-- Cache metadata/ObjectNames hợp lý nhưng refresh sau restart/reconfiguration; **không cache số đo** như thể không đổi.
-- Batch theo server, giới hạn concurrency, đặt timeout/backoff và giám sát collector errors.
-- Đọc histogram/GC logs/JFR cho những câu hỏi cần phân bố sự kiện; MXBean tổng tích lũy không thay thế chúng.
-- Nếu hệ thống đã có Prometheus/OpenTelemetry exporter nội bộ phù hợp, không nhất thiết mở một cổng JMX remote mới.
+- Select only genuinely needed metrics; avoid querying every MBean just to populate one gauge.
+- Use *getAttributes* with result checks where appropriate to cut overhead vs. many single-attribute reads.
+- Cache metadata/ObjectNames sensibly while refreshing after restarts/reconfiguration; **never cache metric measurements** as if static.
+- Batch per server, bound concurrency, enforce timeouts/backoff, and monitor collector errors.
+- Read histograms/GC logs/JFR for event-distribution questions; cumulative MXBean totals cannot replace them.
+- If the system already uses an internal Prometheus/OpenTelemetry exporter, there is no reason to open a new remote JMX port.
 
-## 12. Quy trình chẩn đoán khi ba đường cho kết quả khác nhau
+## 12. Diagnostic workflow when three paths yield different results
 
-Giả sử direct getter trong service báo heap used, còn dashboard JMX remote báo một số khác. **Đừng kết luận proxy sai ngay.**
+Suppose an in-service direct getter reports one heap used value while a remote JMX dashboard shows another. **Do not jump to concluding the proxy is broken.**
 
-### Bước 1 – Kiểm tra đúng JVM
+### Step 1 – Verify the exact JVM
 
-- Direct code nằm ở JVM nào?
-- URL remote trỏ đến pod/host/JVM nào?
-- Process đã restart giữa hai snapshot không?
-- Có load balancer, sidecar hoặc registry nhầm target không?
+- Which JVM executes the direct code?
+- Which pod/host/JVM does the remote URL target?
+- Did the process restart between the two snapshots?
+- Could a load balancer, sidecar, or registry be pointing at the wrong target?
 
-Hai bean cùng tên *java.lang:type=Memory* trên hai JVM khác nhau có thể cho số liệu hoàn toàn khác.
+Two beans both named *java.lang:type=Memory* on two different JVMs can legitimately report completely different values.
 
-### Bước 2 – Kiểm tra cùng metric và đơn vị
+### Step 2 – Verify the exact metric and unit
 
-- *HeapMemoryUsage* hay *NonHeapMemoryUsage*?
-- *used*, *committed*, *init* hay *max*?
-- Byte hay MiB? \(1\,\mathrm{MiB}=1{,}048{,}576\) byte.
-- Thời điểm đọc có gần nhau? GC diễn ra giữa hai phép đo không?
+- *HeapMemoryUsage* or *NonHeapMemoryUsage*?
+- *used*, *committed*, *init*, or *max*?
+- Bytes or MiB? \(1\,\mathrm{MiB}=1{,}048{,}576\) bytes.
+- Were the reads close in time? Did GC happen between them?
 
-### Bước 3 – Kiểm tra raw OpenType mapping
+### Step 3 – Verify raw OpenType mapping
 
-- Raw *getAttribute* có trả *CompositeData* như hợp đồng không?
-- Field *used* có kiểu *Long* và đơn vị byte không?
-- Code có cast sai *CompositeData → MemoryUsage* không?
-- Proxy có tương thích client/server JDK version không?
+- Did raw *getAttribute* return *CompositeData* per the contract?
+- Is the *used* field a *Long* in bytes?
+- Did code mis-cast *CompositeData → MemoryUsage*?
+- Are client and server JDK versions compatible for proxy mapping?
 
-### Bước 4 – Kiểm tra connectivity/authorization
+### Step 4 – Verify connectivity and authorization
 
-- Có remote JMX connector thật không?
-- Protocol/hostname/RMI endpoint/port/TLS/auth có đúng?
-- Tài khoản có quyền đọc đúng MBean không?
-- Remote server có còn sống? Lỗi chỉ xuất hiện khi JVM quá tải không?
+- Does a real remote JMX connector exist?
+- Are protocol/hostname/RMI endpoint/port/TLS/auth all correct?
+- Does the account have permission to read that MBean?
+- Is the remote server still healthy, or do errors appear only when the JVM is overloaded?
 
-### Bước 5 – Kiểm tra cách app xử lý lỗi
+### Step 5 – Verify error handling in the app
 
-- Có đang đổi *IOException* thành 0 không?
-- Có dùng cache dữ liệu cũ mà không đánh dấu stale không?
-- Có retry liên tục khiến target tăng tải không?
-- Có gộp nhiều JVM vào một series thiếu instance label không?
+- Are *IOException*s silently converted into 0?
+- Is stale cached data displayed without a staleness indicator?
+- Are aggressive retries increasing load on the target?
+- Are multiple JVMs merged into a single series without an instance label?
 
-**Kết luận đúng:** Nếu raw và proxy dùng **cùng connection + ObjectName + thời điểm đủ gần**, chúng thường phải tuân cùng hợp đồng giá trị; sai khác nhỏ về số bytes có thể là snapshot timing. Nếu cùng thời điểm chỉ một đường bị lỗi, hãy xem mapping, access policy, hoặc exception cụ thể thay vì suy đoán.
+**Correct conclusion:** If raw and proxy share **the same connection + ObjectName + close timestamps**, they must follow the same value contract; small differences in bytes come from snapshot timing. If only one path fails at the same instant, inspect mapping, access policy, or the exact exception instead of guessing.
 
-## 13. Các bài tập thực hành có lời giải
+## 13. Practical exercises with solutions
 
-### Bài 1 – Phân loại ba câu lệnh
+### Exercise 1 – Classifying three statements
 
-**Cho:**
+**Given:**
 
 ~~~java
-// Mảnh mã minh họa.
+// Illustrative snippet.
 var a = java.lang.management.ManagementFactory.getMemoryMXBean();
 var b = connection.getAttribute(memoryName, "HeapMemoryUsage");
 var c = java.lang.management.ManagementFactory.getPlatformMXBean(
         connection, java.lang.management.MemoryMXBean.class);
 ~~~
 
-**Hỏi:** Dòng nào luôn đọc JVM chứa code? Dòng nào có thể đọc JVM remote?
+**Question:** Which line always reads the JVM executing the code? Which lines can read a remote JVM?
 
-**Đáp án:** *a* là direct bean của JVM hiện tại. *b* là raw JMX, *c* là typed MXBean proxy; cả *b* và *c* truy cập JVM mà **connection** trỏ tới, có thể local hoặc remote.
+**Answer:** *a* is the direct bean of the current JVM. *b* is raw JMX and *c* is a typed MXBean proxy; both *b* and *c* access whichever JVM **connection** points to, whether local or remote.
 
-### Bài 2 – Nhận dạng kiểu dữ liệu
+### Exercise 2 – Identifying data types
 
-**Hỏi:** Tại sao một method khai báo trả *MemoryUsage* lại cho giá trị *CompositeData* khi đọc qua raw JMX?
+**Question:** Why does a method declared to return *MemoryUsage* yield a *CompositeData* value when read via raw JMX?
 
-**Đáp án:** MXBean chuyển Java value thành JMX OpenType khi dùng giao diện MBeanServer. Typed MXBean proxy chuyển về kiểu Java. Có thể parse *CompositeData* hoặc dùng *MemoryUsage.from()*.
+**Answer:** MXBeans convert Java values into JMX OpenTypes when accessed through the MBeanServer interface. Typed MXBean proxies convert them back to Java types. You can parse *CompositeData* or call *MemoryUsage.from()*.
 
-### Bài 3 – Không thấy CPU từ OperatingSystemMXBean
+### Exercise 3 – Missing CPU method on OperatingSystemMXBean
 
-**Hỏi:** Bạn gọi *java.lang.management.OperatingSystemMXBean* rồi muốn *getProcessCpuTime()* nhưng javac không tìm thấy method. Có phải do dùng proxy?
+**Question:** You obtain *java.lang.management.OperatingSystemMXBean* and try calling *getProcessCpuTime()*, but `javac` cannot find the method. Is this caused by using a proxy?
 
-**Đáp án:** Không. *getProcessCpuTime()* thuộc interface mở rộng *com.sun.management.OperatingSystemMXBean* của JDK, không nằm trong interface Java SE chuẩn. Cần module/vendor tương thích và fallback; đổi direct sang proxy không tự thêm method vào interface chuẩn.
+**Answer:** No. *getProcessCpuTime()* belongs to the JDK extension interface *com.sun.management.OperatingSystemMXBean*, not the standard Java SE interface. You need a compatible module/vendor and fallback logic; switching between direct and proxy will not add methods to the standard interface.
 
-### Bài 4 – Đọc GarbageCollectorMXBean từ JVM remote
+### Exercise 4 – Reading GarbageCollectorMXBean from a remote JVM
 
-**Hỏi:** Vì sao không dùng *getPlatformMXBean(connection, GarbageCollectorMXBean.class)*?
+**Question:** Why should you avoid *getPlatformMXBean(connection, GarbageCollectorMXBean.class)*?
 
-**Đáp án:** GC collectors có thể nhiều bean; method singleton không phù hợp. Dùng *getPlatformMXBeans(connection, GarbageCollectorMXBean.class)* và lặp qua list, không phụ thuộc index.
+**Answer:** There can be multiple GC collector beans; the singleton method does not fit. Use *getPlatformMXBeans(connection, GarbageCollectorMXBean.class)* and iterate over the list without relying on indices.
 
-### Bài 5 – Local MBeanServer
+### Exercise 5 – Local MBeanServer
 
-**Hỏi:** Chương trình đã gọi *ManagementFactory.getPlatformMBeanServer()*. Có chắc JMX client máy khác kết nối tới được không?
+**Question:** A program called *ManagementFactory.getPlatformMBeanServer()*. Does that guarantee a JMX client on another machine can connect?
 
-**Đáp án:** Không. Nó chỉ cung cấp local server. Remote access đòi connector/service URL và cấu hình bảo mật/mạng riêng.
+**Answer:** No. It only provides the local server. Remote access requires a connector/service URL plus separate security and network configuration.
 
-### Bài 6 – Cast sai
+### Exercise 6 – Wrong cast
 
-**Hỏi:** Phép cast trực tiếp *MemoryUsage usage=(MemoryUsage) connection.getAttribute(...)* thường gây lỗi gì?
+**Question:** What error does a direct cast *MemoryUsage usage=(MemoryUsage) connection.getAttribute(...)* usually cause?
 
-**Đáp án:** Runtime *ClassCastException* khi raw attribute là *CompositeData*. Phải parse OpenType hoặc dùng typed proxy.
+**Answer:** A runtime *ClassCastException* when the raw attribute is *CompositeData*. You must parse the OpenType or use a typed proxy.
 
-### Bài 7 – Lỗi từ remote proxy
+### Exercise 7 – Errors from a remote proxy
 
-**Hỏi:** *JMXConnectorFactory.connect()* thành công, nhưng vài phút sau *proxy.getHeapMemoryUsage()* lỗi. Tại sao?
+**Question:** *JMXConnectorFactory.connect()* succeeded, yet minutes later *proxy.getHeapMemoryUsage()* fails. Why?
 
-**Đáp án:** Kết nối có thể mất sau khi tạo, JVM restart, firewall/NAT timeout, permission thay đổi hoặc server không đáp ứng. Proxy vẫn dùng remote connection mỗi lần gọi; cần xử lý lỗi runtime và reconnect/backoff có kiểm soát.
+**Answer:** The connection may have dropped afterward, the JVM restarted, a firewall/NAT timed out, permissions changed, or the server became unresponsive. A proxy uses the remote connection on every call; you need runtime error handling and controlled reconnect/backoff.
 
-### Bài 8 – Hai số heap khác nhau
+### Exercise 8 – Two different heap numbers
 
-**Hỏi:** Direct đọc 120 MiB, raw đọc 116 MiB, proxy đọc 118 MiB. Có chứng minh một API sai?
+**Question:** Direct reads 120 MiB, raw reads 116 MiB, and proxy reads 118 MiB. Does this prove one API is buggy?
 
-**Đáp án:** Không. JVM allocation/GC có thể diễn ra giữa các snapshot. Cần xem timestamp, cùng instance và cùng trường *used*. Không viết test giả định ba lần đọc phải bằng nhau.
+**Answer:** No. JVM allocations/GC can run between snapshots. Check timestamps, same instance, and the same *used* field. Never write tests assuming three separate reads must be equal.
 
-### Bài 9 – Tên ObjectName có phân biệt process?
+### Exercise 9 – Does ObjectName distinguish processes?
 
-**Hỏi:** Hai JVM đều có *java.lang:type=Memory*. Có phải cùng MXBean object trên một máy?
+**Question:** Two JVMs both have *java.lang:type=Memory*. Are they the same MXBean object on one host?
 
-**Đáp án:** Không. ObjectName là tên trong phạm vi mỗi MBeanServer. Phải gắn endpoint/JVM identity để phân biệt.
+**Answer:** No. ObjectName is scoped to each MBeanServer. Attach endpoint/JVM identity to distinguish them.
 
-### Bài 10 – Kiểm soát quyền
+### Exercise 10 – Permission scoping
 
-**Hỏi:** Dashboard chỉ cần heap used nhưng được cấp mọi JMX operation, kể cả yêu cầu GC và dump heap. Đây có phải “monitoring read-only” không?
+**Question:** A dashboard only needs heap used, yet it is granted every JMX operation, including triggering GC and heap dumps. Is this "read-only monitoring"?
 
-**Đáp án:** Không. Quyền quản trị đang quá rộng; tách truy cập chỉ đọc, giới hạn operations và bảo vệ transport/authentication/TLS.
+**Answer:** No. Administrative privileges are far too broad; separate read-only access, restrict operations, and secure transport/authentication/TLS.
 
-### Bài 11 – Tính tốc độ từ GC MXBean
+### Exercise 11 – Computing rate from GC MXBean
 
-**Hỏi:** Một collector có *CollectionCount* tăng từ 40 lên 70 trong 150 giây, không restart, hai snapshot đều hợp lệ. Tốc độ trung bình là bao nhiêu?
+**Question:** A collector's *CollectionCount* rises from 40 to 70 over 150 seconds with no restart, and both snapshots are valid. What is the average rate?
 
-**Đáp án:** \((70-40)/150=0{,}2\) collection/s. Số này không cung cấp p99 pause; cần GC logs/JFR hoặc dữ liệu phân bố.
+**Answer:** \((70-40)/150=0{,}2\) collections/s. This figure does not reveal p99 pauses; use GC logs/JFR or distribution data for that.
 
-### Bài 12 – QueryNames trả nhiều MBeans
+### Exercise 12 – QueryNames returning multiple MBeans
 
-**Hỏi:** *queryNames("java.lang:type=MemoryPool,*")* cho 8 names. Có nên ghi “memoryPool1...memoryPool8” dựa trên thứ tự set?
+**Question:** *queryNames("java.lang:type=MemoryPool,*")* returns 8 names. Should you label them "memoryPool1...memoryPool8" based on set order?
 
-**Đáp án:** Không. Thứ tự không có hợp đồng ổn định. Dùng ObjectName/canonical name, tên pool và loại memory để nhận dạng; dữ liệu có thể khác ở lần chạy sau.
+**Answer:** No. Set ordering has no stability contract. Use the ObjectName/canonical name, pool name, and memory type to identify them; results can vary on later runs.
 
-## 14. Checklist thực tế trước khi triển khai JMX monitoring
+## 14. Practical checklist before deploying JMX monitoring
 
-**Tầng target**
+**Target layer**
 
-- JVM thực tế là JVM nào? Đã biết host, PID hoặc pod/container và thời điểm khởi động?
-- Bean/interface được Java SE bảo đảm hay là extension theo vendor/JDK?
-- Singleton hay multi-instance? Đã xử lý null/empty/-1/unsupported?
-- ObjectName/attribute có tồn tại theo *getMBeanInfo* hoặc hợp đồng standard?
+- Which exact JVM is it? Do you know the host, PID or pod/container, and start time?
+- Is the bean/interface guaranteed by Java SE or is it a vendor/JDK extension?
+- Singleton or multi-instance? Handled null/empty/-1/unsupported?
+- Does the ObjectName/attribute exist per *getMBeanInfo* or the standard contract?
 
-**Tầng connection**
+**Connection layer**
 
-- Direct đang ở JVM cần đo hay đang chạy bên client?
-- Connection là **local MBeanServer** hay **JMXConnector remote**?
-- Khi remote, endpoint, RMI port mapping, firewall, TLS, authentication và authorization có đúng?
-- Client có đóng connector và giới hạn concurrency/retry không?
+- Does direct code run inside the target JVM or on the client?
+- Is the connection a **local MBeanServer** or a **remote JMXConnector**?
+- When remote, are endpoint, RMI port mapping, firewall, TLS, authentication, and authorization correct?
+- Does the client close the connector and bound concurrency/retries?
 
-**Tầng dữ liệu**
+**Data layer**
 
-- Raw trả OpenType gì? Có parse CompositeData đúng schema không?
-- Proxy có interface compatible và mapping đúng không?
-- Giá trị dùng đơn vị nào, là gauge hay counter, có cần delta?
-- Timestamp và instance labels có đủ để đối chiếu giữa các lần đo không?
-- Có phân biệt metric unavailable với 0 và stale data với fresh data?
+- What OpenType does raw access return? Is CompositeData parsed per schema?
+- Does the proxy have a compatible interface and valid mapping?
+- What unit is used, is it a gauge or counter, and does it need a delta?
+- Are timestamp and instance labels sufficient to correlate across readings?
+- Are unavailable metrics distinguished from 0, and stale data from fresh data?
 
-**Tầng vận hành và an toàn**
+**Operations and safety layer**
 
-- Frequency, overhead và round trips có hợp lý dưới tải cao?
-- Có log exception gốc nhưng không lộ credential/secret?
-- Endpoint JMX remote không bị public/expose quá rộng?
-- Dashboard chỉ cần getter có được phân quyền tránh state-changing operations?
-- Có đường đối chứng bằng app metrics, GC logs, JFR hoặc OS metrics khi cần?
+- Are frequency, overhead, and round trips reasonable under high load?
+- Are root-cause exceptions logged without leaking credentials/secrets?
+- Are remote JMX endpoints protected from overly broad/public exposure?
+- Are dashboards needing only getters restricted from state-changing operations?
+- Are corroborating paths available via app metrics, GC logs, JFR, or OS metrics when needed?
 
-## 15. Tài liệu chính thức nên tra cứu theo JDK đang sử dụng
+## 15. Official documentation for your JDK version
 
-- **ManagementFactory — Java SE 17**, direct getters, local/remote platform MXBean proxy và multi-instance: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ManagementFactory.html
+- **ManagementFactory — Java SE 17**, direct getters, local/remote platform MXBean proxies, and multi-instance access: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ManagementFactory.html
 - **MemoryMXBean — Java SE 17**: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/MemoryMXBean.html
-- **MemoryUsage — Java SE 17**, gồm *from(CompositeData)*: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/MemoryUsage.html
+- **MemoryUsage — Java SE 17**, including *from(CompositeData)*: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/MemoryUsage.html
 - **MBeanServerConnection — Java SE 17**, getAttribute/queryNames/getMBeanInfo/invoke: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/javax/management/MBeanServerConnection.html
-- **JMX — Java SE 17**, mapping OpenTypes và typed MXBean proxies: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/javax/management/JMX.html
+- **JMX — Java SE 17**, OpenTypes mapping and typed MXBean proxies: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/javax/management/JMX.html
 - **CompositeData — Java SE 17**: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/javax/management/openmbean/CompositeData.html
 - **JMXConnectorFactory — Java SE 17**: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/javax/management/remote/JMXConnectorFactory.html
 - **JMX remote API — Java SE 17**: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/javax/management/remote/package-summary.html
 - **Oracle JMX Security — Java SE 17**: https://docs.oracle.com/en/java/javase/17/jmx/security.html
 
-Khả năng và chính sách JMX remote phụ thuộc JDK version, vendor, runtime flags, connector và cấu hình bảo mật thực tế. Đối chiếu tài liệu với chính môi trường bạn cần chẩn đoán.
+Remote JMX capabilities and policies depend on JDK version, vendor, runtime flags, connector, and actual security configuration. Cross-check documentation against the exact environment you are diagnosing.
 
-## Kết luận
+## Conclusion
 
-**Direct MXBean** thích hợp khi code ở **cùng JVM** và muốn gọi getter với kiểu Java rõ ràng. **MBeanServerConnection** cung cấp cách truy cập tổng quát bằng *ObjectName, attribute và operation*; có thể local hoặc remote. **Typed MXBean proxy** nằm trên một connection và chuyển các lời gọi thành dạng interface Java thuận tiện, tự xử lý mapping MXBean nhưng **không loại bỏ** network I/O, authorization, timeout hay rủi ro vận hành.
+**Direct MXBeans** fit when code runs in the **same JVM** and wants strongly typed Java getters. **MBeanServerConnection** provides general-purpose access via *ObjectName, attribute, and operation*, either locally or remotely. **Typed MXBean proxies** sit atop a connection, turning calls into convenient Java interfaces and handling MXBean mapping automatically—yet they **do not eliminate** network I/O, authorization, timeouts, or operational risk.
 
-Một phép đo đáng tin cần đủ **đúng JVM đích, đúng bean, đúng attribute/đơn vị, đúng thời điểm và đúng quyền**. Chọn đường truy cập theo vị trí code và nhu cầu khám phá/typing, không dựa chỉ vào việc lệnh biên dịch được.
+A trustworthy measurement requires **the right target JVM, the right bean, the right attribute/unit, the right timestamp, and the right permissions**. Choose the access path based on where code executes and whether you need discovery or typing, never simply because it compiles.

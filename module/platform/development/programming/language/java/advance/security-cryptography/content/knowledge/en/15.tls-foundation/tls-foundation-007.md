@@ -1,81 +1,81 @@
-# 15.7. Session, tái sử dụng phiên và vòng đời kết nối
+# 15.7. Sessions, Session Resumption, and Connection Lifecycle
 
-**Một HTTPS request mới không nhất thiết tạo một TLS connection mới. Một TLS connection mới cũng không nhất thiết làm một full handshake từ đầu.** Hai cơ chế hiệu năng thường bị gọi lẫn là **connection reuse (tái sử dụng kết nối đã mở)** và **TLS session resumption (tiếp tục một phiên bảo mật trước trên kết nối mới)**. Cùng có thể giúp giảm độ trễ, nhưng chúng vận hành ở các tầng khác nhau, yêu cầu trạng thái khác nhau và có hệ quả bảo mật khác nhau.
+**A new HTTPS request does not necessarily create a new TLS connection. Nor does a new TLS connection necessarily perform a full handshake from scratch.** Two performance mechanisms often confused are **connection reuse (reusing an already-open connection)** and **TLS session resumption (resuming a prior security session on a new connection)**. Both can reduce latency, yet they operate at different layers, require different state, and carry different security implications.
 
-Trong Java, sự nhầm lẫn còn xuất hiện do các lớp `SSLContext`, `SSLSession`, `SSLSessionContext`, `SSLSocket`, `SSLEngine`, `HttpClient` và cả connection pool có vòng đời riêng. Chẳng hạn `SSLSession.isValid() == true` **không chứng minh TCP socket đang mở**; `SSLSession.invalidate()` **không có nghĩa đóng ngay mọi socket**; và hai request đi cùng một kết nối HTTP/2 **không phải** hai lần TLS session resumption.
+In Java, confusion also arises because classes like `SSLContext`, `SSLSession`, `SSLSessionContext`, `SSLSocket`, `SSLEngine`, `HttpClient`, and connection pools each have their own lifecycle. For instance, `SSLSession.isValid() == true` **does not prove the TCP socket is open**; `SSLSession.invalidate()` **does not immediately close all sockets**; and two requests sent over one HTTP/2 connection **are not** two TLS session resumptions.
 
-Bài này giải thích ba lớp vòng đời: **transport connection**, **TLS secure connection/handshake/session state**, và **application/HTTP request**. Sau đó phân biệt TLS 1.2 session IDs/tickets với TLS 1.3 PSK resumption, cách Java expose session cache, session timeout, ticket expiration, 0-RTT, replay và những giới hạn cần nhớ khi kiểm tra production.
+This lesson explains three lifecycle layers: **transport connection**, **TLS secure connection/handshake/session state**, and **application/HTTP request**. It then contrasts TLS 1.2 session IDs/tickets with TLS 1.3 PSK resumption, how Java exposes session caches, session timeouts, ticket expiration, 0-RTT, replay, and limitations to keep in mind when verifying production.
 
-> **Lưu ý tiêu chuẩn:** Tính đến tháng 10/2026, đặc tả TLS 1.3 hiện hành là **RFC 9846 (xuất bản tháng 7/2026)**, thay thế RFC 8446 với những cập nhật làm rõ và siết chặt yêu cầu. Nhiều thư viện và tài liệu Java 17 được viết dựa trên RFC 8446; mô hình session resumption vẫn tương thích, nhưng khi thiết kế mới nên tham chiếu RFC 9846 và yêu cầu của phiên bản JDK/provider thực tế.
+> **Standards note:** As of October 2026, the current TLS 1.3 specification is **RFC 9846 (published July 2026)**, replacing RFC 8446 with clarifying updates and tightened requirements. Many Java 17 libraries and docs were written against RFC 8446; the session resumption model remains compatible, though new designs should reference RFC 9846 and actual JDK/provider requirements.
 
-## 1. Mục tiêu bài học
+## 1. Learning objectives
 
-Sau khi học, bạn có thể:
+After studying this lesson, you can:
 
-- Phân biệt **TLS connection**, **TLS session/resumption state**, **TCP socket**, **HTTP keep-alive/connection pooling**, và **HTTP/2 multiplexing**.
-- Giải thích tại sao cùng một `SSLContext` có thể duy trì session cache qua nhiều kết nối, còn một `SSLSocket` chỉ đại diện cho một kết nối cụ thể.
-- Mô tả full handshake và resumed handshake ở TLS 1.2/TLS 1.3, gồm `NewSessionTicket`, PSK identity và PSK binder.
-- Phân biệt **1-RTT PSK resumption** với **0-RTT early data**, biết vì sao 0-RTT có nguy cơ replay và có các giới hạn forward secrecy.
-- Đọc đúng `SSLSession.getProtocol()`, `getCipherSuite()`, `getCreationTime()`, `getLastAccessedTime()`, `getSessionContext()`, `isValid()` và `invalidate()`.
-- Cấu hình cơ bản `SSLSessionContext.setSessionTimeout()` và `setSessionCacheSize()` trong Java 17+, đồng thời hiểu rằng điều đó **không ép server chấp nhận resumption**.
-- Mô tả kết thúc kết nối, đóng TLS/HTTP, idle timeout, ticket expiration, server restart/rotation và tải cân bằng.
-- Xây dựng tiêu chí kiểm thử thật sự xác định được full/resumed handshake; không kết luận chỉ từ timing, HTTP status hoặc session ID.
+- Distinguish **TLS connection**, **TLS session/resumption state**, **TCP socket**, **HTTP keep-alive/connection pooling**, and **HTTP/2 multiplexing**.
+- Explain why a single `SSLContext` can maintain a session cache across many connections, while an `SSLSocket` represents one specific connection.
+- Describe full handshakes and resumed handshakes in TLS 1.2/TLS 1.3, including `NewSessionTicket`, PSK identity, and PSK binder.
+- Distinguish **1-RTT PSK resumption** from **0-RTT early data**, knowing why 0-RTT carries replay risk and forward secrecy limitations.
+- Correctly read `SSLSession.getProtocol()`, `getCipherSuite()`, `getCreationTime()`, `getLastAccessedTime()`, `getSessionContext()`, `isValid()`, and `invalidate()`.
+- Perform basic configuration of `SSLSessionContext.setSessionTimeout()` and `setSessionCacheSize()` in Java 17+, while understanding that doing so **does not force the server to accept resumption**.
+- Describe connection teardown, TLS/HTTP closure, idle timeouts, ticket expiration, server restarts/rotation, and load balancing.
+- Design test criteria that genuinely verify full vs. resumed handshakes rather than concluding from timing, HTTP status, or session IDs alone.
 
-## 2. Các khái niệm phải tách biệt
+## 2. Concepts that must be kept separate
 
-| Khái niệm | Cái gì tồn tại? | Có thể sống qua lần request sau? | Điều **không** suy ra |
+| Concept | What exists? | Can it outlive the next request? | What **not** to infer |
 | --- | --- | --- | --- |
-| TCP connection | Luồng byte giữa client/server qua socket (TLS over TCP) | Có, nếu còn mở và application cho tái dùng | Không nói handshake đã resumption hay chưa |
-| TLS connection | Trạng thái record-layer bảo mật, keys và sequence numbers cho một kết nối | Có, trong chính kết nối còn sống | Không mặc định chuyển nguyên traffic keys sang socket mới |
-| TLS handshake | Quá trình thương lượng thông số, key agreement, authentication | Thường một lần ban đầu cho kết nối, có các trường hợp cập nhật theo protocol | Không phải “mỗi HTTP request một handshake” |
-| TLS session/resumption state | Thông tin cho phép nối tiếp một sự xác thực/kết nối đã thực hiện trên **kết nối mới** | Có nếu cache/ticket/policy còn hợp lệ | Không bằng một TCP socket |
-| TLS session ticket | Vật mang/định danh cho resumption state hoặc PSK theo phiên bản TLS | Có theo lifetime/chính sách | Không phải password, không phải token ứng dụng |
-| HTTP request/response | Một thao tác nghiệp vụ của client | Mỗi thao tác có vòng đời riêng | Không tự sinh session TLS mới |
-| HTTP persistent connection | HTTP/1.1 keep-alive hoặc HTTP/2 connection còn mở | Nhiều requests dùng cùng connection | **Không** phải TLS resumption |
-| Connection pool | Bộ quản lý nhiều kết nối tới origin/route | Có trong thời gian pool giữ kết nối | Không bảo đảm server vẫn chấp nhận TLS tickets |
-| Session cookie/token ứng dụng | Trạng thái đăng nhập của user/app | Có qua nhiều kết nối TLS | Không phải `SSLSession` hay TLS session ticket |
+| TCP connection | Byte stream between client/server over socket (TLS over TCP) | Yes, if still open and app permits reuse | Does not tell whether handshake was resumed |
+| TLS connection | Record-layer security state, keys, and sequence numbers for one connection | Yes, within the still-live connection itself | Does not carry traffic keys verbatim onto a new socket |
+| TLS handshake | Negotiation of parameters, key agreement, authentication | Usually once initially per connection, with protocol-defined updates | Not "one handshake per HTTP request" |
+| TLS session/resumption state | Information allowing continuation of prior authentication/association on a **new connection** | Yes, while cache/ticket/policy remain valid | Not synonymous with a TCP socket |
+| TLS session ticket | Carrier/identifier for resumption state or PSK per TLS version | Yes, per lifetime/policy | Not a password and not an application token |
+| HTTP request/response | One business operation of the client | Each operation has its own lifecycle | Does not inherently create a new TLS session |
+| HTTP persistent connection | Open HTTP/1.1 keep-alive or HTTP/2 connection | Many requests share the same connection | **Not** TLS resumption |
+| Connection pool | Manager of multiple connections to an origin/route | Yes, while the pool keeps connections | Does not guarantee the server still accepts TLS tickets |
+| Application session cookie/token | User/app login state | Yes, across multiple TLS connections | Not `SSLSession` or a TLS session ticket |
 
-Một sơ đồ ba lớp:
+A three-layer diagram:
 
 ```text
-ỨNG DỤNG (HTTPS)
+APPLICATION (HTTPS)
     Request #1  Request #2  Request #3
           \        |        /
            \       |       /
-       HTTP/2 streams hoặc HTTP/1.1 keep-alive
+       HTTP/2 streams or HTTP/1.1 keep-alive
                      |
-        Một TLS connection đang mở
+         One open TLS connection
                      |
-             Một TCP connection
+             One TCP connection
                      |
-           Socket bị đóng sau idle / EOF
+           Socket closed after idle / EOF
                      |
-            Lần sau mở socket mới
+            Next time opens new socket
                      |
-          Full hoặc resumed TLS handshake
+          Full or resumed TLS handshake
                      |
                Request #4
 ```
 
-**Điểm nhớ:** nếu Request #1 và Request #2 được gửi trên **cùng socket/TLS connection**, bạn đang quan sát **connection reuse**, không phải hai lần resumption. Nếu một socket mới được mở và handshake sử dụng trạng thái xác thực từ trước (ticket/session), đó mới là **TLS session resumption**.
+**Key takeaway:** if Request #1 and Request #2 go over the **same socket/TLS connection**, you are observing **connection reuse**, not two resumptions. Only when a new socket is opened and its handshake uses prior authentication state (ticket/session) is it **TLS session resumption**.
 
-### 2.1. Session không phải HTTP login session
+### 2.1. A TLS session is not an HTTP login session
 
-Một người dùng có thể đăng nhập bằng cookie hoặc OAuth token trên một TLS connection, sau đó kết nối mạng được thay mới. HTTP login session có thể vẫn tiếp tục nếu cookie/token còn hiệu lực. Ngược lại, một TLS session có thể được resume giữa các TCP connections mà application-level login đã hết hạn.
+A user can log in using a cookie or OAuth token over one TLS connection, and then the network connection is replaced. The HTTP login session may continue if the cookie/token remains valid. Conversely, a TLS session can be resumed across TCP connections after the application-level login has expired.
 
-Các vòng đời phải độc lập:
-- **TLS:** cung cấp kênh mã hóa/xác thực server (và client khi dùng mTLS), phụ thuộc handshake và keys.
-- **Authentication ứng dụng:** session cookie, bearer token, mTLS principal mapping hoặc credential.
-- **Authorization:** xác định principal có quyền truy cập tài nguyên và hành động hay không, kiểm tra theo chính sách.
-- **Business idempotency/replay:** yêu cầu giao dịch lặp được xử lý thế nào.
+Lifecycles must remain independent:
+- **TLS:** provides an encrypted channel and server authentication (plus client auth in mTLS), governed by handshakes and keys.
+- **Application authentication:** session cookies, bearer tokens, mTLS principal mapping, or credentials.
+- **Authorization:** determines whether a principal may access a resource/action, checked per policy.
+- **Business idempotency/replay:** how duplicate transaction requests are handled.
 
-Không gắn “TLS session còn sống” với “user chắc chắn còn đăng nhập và có quyền như cũ”.
+Never equate "TLS session is alive" with "the user is still logged in with the same permissions".
 
-## 3. Full handshake và sử dụng lại kết nối
+## 3. Full handshake and connection reuse
 
-### 3.1. Full handshake trên một kết nối mới
+### 3.1. Full handshake on a new connection
 
-Ở TLS 1.3, một full certificate-based handshake điển hình (mô tả đơn giản):
+In TLS 1.3, a typical certificate-based full handshake (simplified):
 
 ```text
 Client                                                Server
@@ -87,14 +87,14 @@ Client                                                Server
   | --- Finished -------------------------------------> |
   | <============== Application Data =================> |
   |                                                    |
-   TCP/TLS connection tiếp tục mang các HTTP requests.
+   TCP/TLS connection continues carrying HTTP requests.
 ```
 
-Trong full handshake, server thường phải chứng minh identity qua certificate và bằng chứng private key trong handshake. TLS 1.3 key schedule dẫn xuất traffic secrets theo transcript; record-layer keys có phạm vi kết nối và có thể được cập nhật theo protocol.
+In a full handshake, the server normally proves identity via its certificate and proof of private-key possession during the handshake. The TLS 1.3 key schedule derives traffic secrets over the transcript; record-layer keys are connection-scoped and updatable per protocol.
 
-### 3.2. Tái sử dụng connection
+### 3.2. Reusing the connection
 
-Sau full handshake, client gửi nhiều HTTP requests qua connection còn mở:
+After the full handshake, the client sends multiple HTTP requests over the open connection:
 
 ```text
 TCP connect + TLS full handshake
@@ -108,53 +108,53 @@ TCP connect + TLS full handshake
      Connection idle / closed
 ```
 
-Với HTTP/1.1 keep-alive, có thể xử lý nhiều request tuần tự trên cùng kết nối theo cơ chế client/server; với HTTP/2, nhiều streams có thể hoạt động đồng thời trên một connection. Trường hợp này không cần một handshake mới giữa Request #1 và #2.
+With HTTP/1.1 keep-alive, requests are handled sequentially on the same connection per client/server behavior; with HTTP/2, multiple streams run concurrently over one connection. In this case no new handshake occurs between Request #1 and Request #2.
 
-**Không đánh đồng:** connection reuse thường tiết kiệm cả TCP setup và TLS handshake. TLS resumption chỉ giúp **rút gọn handshake khi một transport connection mới vẫn phải mở**, chứ bản thân nó không biến socket mới thành socket cũ.
+**Do not conflate them:** connection reuse normally saves both TCP setup and TLS handshakes. TLS resumption only **shortens the handshake when a new transport connection must be opened**, and does not itself turn a new socket into an old socket.
 
-## 4. TLS 1.2: session ID và session tickets
+## 4. TLS 1.2: session IDs and session tickets
 
-TLS 1.2 lịch sử có cơ chế full handshake và abbreviated handshake (resumption). Hai biến thể tiêu biểu:
+Historical TLS 1.2 includes full handshakes and abbreviated handshakes (resumption). Two typical variants:
 
 ### 4.1. Session ID + server-side session cache
 
 ```text
-Lần đầu:
+First time:
     ClientHello --------------> Server
     Full handshake <----------> Certificate/key exchange...
     Server caches session state with session ID
     Client remembers session ID + relevant secrets
 
-Lần sau (new TCP connection):
+Next time (new TCP connection):
     ClientHello(session_id) --> Server
     Server finds acceptable cached state?
        yes -> abbreviated handshake -> new connection keys
        no  -> full handshake (or handshake failure by policy)
 ```
 
-Ưu điểm: giảm chi phí của một số thao tác full handshake. Hạn chế: server cần giữ/tra lại session state phù hợp; load balancer nhiều node có thể phải dùng sticky routing hoặc chia sẻ cache để tăng tỉ lệ resume.
+Benefit: cuts the cost of several full-handshake operations. Drawback: the server must retain and look up matching session state; multi-node load balancers may need sticky routing or shared caches to improve resume rates.
 
 ### 4.2. TLS 1.2 session ticket
 
-Cơ chế ticket từng được chuẩn hóa theo RFC 5077 (một tài liệu lịch sử được RFC 9846 thay thế). Server có thể mã hóa/xác thực session state thành opaque ticket cho client giữ. Khi reconnect, client đưa ticket; server có key phù hợp để phục hồi state mà không nhất thiết lưu mỗi session ở database.
+The ticket mechanism was historically standardized in RFC 5077 (a historical document superseded by RFC 9846). A server encrypts/authenticates session state into an opaque ticket held by the client. On reconnect, the client presents the ticket; a server holding the matching key recovers the state without storing every session in a database.
 
-Cần nhớ:
-- Ticket không làm mất nhu cầu **bảo vệ server-side ticket-encryption key** và vòng đời rotation.
-- Key rotation/không chia sẻ ticket keys qua các node có thể làm resumption thất bại và fallback full handshake.
-- Chỉ “có ticket” không bắt buộc server phải chấp nhận; còn timeout, cipher suite, scope và policy.
-- Không tạo cơ chế tự chế để lưu/giải mã ticket ở application thay cho TLS provider.
+Keep in mind:
+- Tickets do not remove the need to **protect the server-side ticket-encryption key** and manage its rotation lifecycle.
+- Key rotation or unshared ticket keys across nodes can cause resumption to fail and fall back to a full handshake.
+- Merely "having a ticket" does not force the server to accept it; timeouts, cipher suites, scope, and policy still apply.
+- Never build a custom mechanism to store/decrypt tickets at the application layer in place of the TLS provider.
 
-### 4.3. Học TLS 1.2 để hiểu, không tự thiết kế giao thức cũ
+### 4.3. Study TLS 1.2 to understand it, not to design legacy protocols
 
-Các deployment hiện đại ưu tiên TLS 1.3 khi khả dụng; RFC 9846 đã cập nhật yêu cầu và loại bỏ khả năng thương lượng TLS 1.0/1.1. Khi tích hợp hệ thống cũ, cần cấu hình protocol allowlist đúng chính sách, không bật các phiên bản yếu chỉ để tăng tỷ lệ resumption.
+Modern deployments prefer TLS 1.3 where available; RFC 9846 updated requirements and removed negotiation of TLS 1.0/1.1. When integrating with legacy systems, configure protocol allowlists per policy rather than enabling weak versions just to boost resumption rates.
 
-TLS 1.2 session resumption và TLS 1.3 PSK resumption **không dùng cùng cú pháp handshake**, dù `SSLSession` của Java là một abstraction áp dụng cho nhiều phiên bản.
+TLS 1.2 session resumption and TLS 1.3 PSK resumption **do not use the same handshake syntax**, even though Java's `SSLSession` is an abstraction spanning multiple versions.
 
-## 5. TLS 1.3: resumption bằng PSK và NewSessionTicket
+## 5. TLS 1.3: resumption via PSK and `NewSessionTicket`
 
-Theo **RFC 9846**, TLS 1.3 gộp khái niệm session resumption vào mô hình **pre-shared key (PSK)**. PSK cho resumption thường được dẫn xuất từ bí mật của phiên trước và được liên hệ với một **ticket** do server phát sau handshake.
+Per **RFC 9846**, TLS 1.3 unifies session resumption under a **pre-shared key (PSK)** model. Resumption PSKs are derived from secrets of an earlier session and associated with a **ticket** issued by the server after the handshake.
 
-### 5.1. Khi nào có ticket?
+### 5.1. When is a ticket issued?
 
 ```text
 Full TLS 1.3 handshake
@@ -178,17 +178,17 @@ Application connection ready
                      Server MAY accept or decline
 ```
 
-Các từ **MAY** quan trọng:
-- Server **có thể** phát nhiều tickets, một ticket hoặc không phát.
-- Client **có thể** không lưu hoặc không offer ticket.
-- Server **có thể** từ chối resume dù ticket được client offer.
-- Vì `NewSessionTicket` có thể được gửi **sau khi handshake chính kết thúc**, client đóng connection quá nhanh có thể chưa nhận đủ các message cần cho resumption. Tùy framework/provider, việc đọc, cache và xử lý post-handshake messages có thể ảnh hưởng kết quả.
-- Ticket có lifetime và giới hạn chính sách; theo RFC 9846, không được cache ticket vô thời hạn chỉ vì application vẫn hoạt động.
+The **MAY** clauses are crucial:
+- The server **may** issue multiple tickets, one ticket, or none.
+- The client **may** choose not to store or offer a ticket.
+- The server **may** decline resumption even when the client offers a ticket.
+- Because `NewSessionTicket` can arrive **after the main handshake finishes**, a client closing the connection too quickly may miss messages needed for resumption. Depending on framework/provider, reading, caching, and processing post-handshake messages affects outcomes.
+- Tickets have lifetimes and policy limits; per RFC 9846, tickets must never be cached indefinitely just because the application stays running.
 
-### 5.2. Handshake mới với PSK
+### 5.2. New handshake with PSK
 
 ```text
-Client đã có ticket/PSK từ phiên trước        Server giữ được policy/ticket keys
+Client holding ticket/PSK from prior session   Server holding policy/ticket keys
                 |                                           |
 new TCP connection                             new TCP connection
                 |                                           |
@@ -205,30 +205,30 @@ Client Finished ------------------------------> |
               Application data over the new TLS connection
 ```
 
-Trong resumption TLS 1.3, không cần lặp lại cùng một certificate authentication exchange như full certificate-based handshake; server authentication có thể dựa trên PSK được liên hệ từ kết nối trước. **Không được hiểu rằng client không cần kiểm tra tên máy chủ nữa**: implementation phải ràng buộc việc dùng PSK với identity, SNI, ALPN/ứng dụng và security policy phù hợp.
+In TLS 1.3 resumption, the same certificate authentication exchange as a full certificate-based handshake need not repeat; server authentication relies on the PSK linked from the prior connection. **Never interpret this as the client no longer needing hostname checks**: implementations must bind PSK usage to the right identity, SNI, ALPN/application, and security policy.
 
-**PSK binder** giúp chứng minh phía client biết PSK phù hợp và ràng buộc phần liên quan của ClientHello. Client không tự gửi plaintext PSK hay tự tạo binder bằng `HMAC(password)` không theo TLS; quá trình này do TLS implementation xử lý.
+The **PSK binder** proves the client knows the matching PSK and binds the relevant portion of `ClientHello`. Clients never send plaintext PSKs or hand-roll binders with `HMAC(password)` outside TLS; the TLS implementation handles this.
 
-### 5.3. PSK-only và PSK-DHE không có bảo đảm giống nhau
+### 5.3. PSK-only and PSK-DHE do not share identical guarantees
 
-TLS 1.3 có các mode sử dụng PSK:
-- **`psk_ke` (PSK-only):** key establishment dựa vào PSK, không bổ sung fresh (EC)DHE cho 1-RTT handshake theo mode đó.
-- **`psk_dhe_ke` (PSK + ephemeral DHE):** có ephemeral key agreement mới, đóng góp forward secrecy cho traffic mới theo thiết kế protocol.
+TLS 1.3 defines PSK modes:
+- **`psk_ke` (PSK-only):** key establishment relies on the PSK without adding fresh (EC)DHE to that 1-RTT handshake.
+- **`psk_dhe_ke` (PSK + ephemeral DHE):** includes fresh ephemeral key agreement, contributing forward secrecy for new traffic per protocol design.
 
-Vì vậy không phát biểu “TLS 1.3 resumed session luôn có fresh DHE” hoặc “resumption luôn bảo vệ hoàn toàn nếu ticket key/PSK lộ”. Cần biết server chọn mode nào, lifetime/rotation ra sao và threat model liên quan.
+Hence never state "a TLS 1.3 resumed session always uses fresh DHE" or "resumption fully protects traffic if the ticket key/PSK leaks". You must know which mode the server picks, ticket lifetime/rotation, and the threat model.
 
-**Quan trọng với RFC 9846:** không tái sử dụng `KeyShare` giá trị giữa các kết nối khi triển khai protocol. Dùng TLS library chuẩn; không cố cache DH private/public ephemeral keys để “tăng tốc” handshake.
+**Important per RFC 9846:** never reuse `KeyShare` values across connections when implementing the protocol. Use standard TLS libraries; never attempt to cache ephemeral DH private/public keys to "speed up" handshakes.
 
-### 5.4. Ticket là bearer material ở tầng TLS
+### 5.4. Tickets are TLS-layer bearer material
 
-Một ticket không nhất thiết là bí mật thuần dạng raw key, nhưng nó là thành phần liên quan đến khả năng resumption; tài liệu ticket/PSK của TLS provider có thể rất nhạy cảm. Không log raw ticket, PSK hoặc session secrets ra application log. Hệ thống cần bảo vệ ticket key của server và client-side resumption cache, đồng thời quản lý lifetime/revocation/scope.
+A ticket is not necessarily a raw key itself, yet it enables resumption; TLS provider ticket/PSK material can be highly sensitive. Never log raw tickets, PSKs, or session secrets to application logs. Systems must protect server ticket keys and client-side resumption caches while enforcing lifetimes, revocation, and scope.
 
-## 6. 0-RTT early data là gì? Vì sao không giống resumption thông thường?
+## 6. What is 0-RTT early data? Why is it unlike normal resumption?
 
-Ở TLS 1.3, khi đã có PSK phù hợp, protocol **có thể** cho phép client gửi một số application data **ngay trong first flight của handshake mới** (0-RTT early data). Đây là một tính năng tùy chọn, **không đồng nghĩa** mọi TLS 1.3 resumption đều dùng 0-RTT.
+In TLS 1.3, once an eligible PSK exists, the protocol **may** let the client send some application data **right inside the first flight of a new handshake** (0-RTT early data). This is an optional feature, and **does not mean** every TLS 1.3 resumption uses 0-RTT.
 
 ```text
-Resumption 1-RTT:
+1-RTT Resumption:
 ClientHello(PSK offer) -------------------------->
                      <---------------- ServerHello/Finished
 Client Finished ------------------------------->
@@ -241,41 +241,41 @@ Client Finished ------------------------------->
 Normal Application Data <======================>
 ```
 
-### 6.1. Khác biệt an toàn
+### 6.1. Security differences
 
-RFC 9846 cảnh báo **0-RTT early data** có tính chất bảo mật yếu hơn 1-RTT data:
+RFC 9846 warns that **0-RTT early data** has weaker security properties than 1-RTT data:
 
-1. **Không có forward secrecy cho bản thân 0-RTT data** vì được bảo vệ bằng keys dẫn xuất từ offered PSK, chưa dựa trên fresh server key share cho phiên mới.
-2. **Có nguy cơ replay giữa các kết nối**. Attacker có thể tìm cách gửi lại ClientHello/early data tới server hoặc cụm server trong cửa sổ cho phép.
-3. Những biện pháp anti-replay ở tầng TLS có thể giảm nguy cơ nhưng **không thay thế kiểm soát lệnh nghiệp vụ**. Điều kiện mạng, multi-region và retries vẫn có thể làm nhận nhiều bản copy dữ liệu.
-4. Server có thể **từ chối early data** nhưng tiếp tục handshake. Ứng dụng cần biết dữ liệu nào đã/ chưa được xử lý và cách retry an toàn.
-5. Khả năng dùng 0-RTT phụ thuộc protocol/application profile, policy server, ticket và API/provider. **Không giả định Java 17 `HttpClient` tự gửi 0-RTT chỉ vì có cache**.
+1. **No forward secrecy for the 0-RTT data itself**, because it is encrypted under keys derived from the offered PSK before receiving a fresh server key share for the new session.
+2. **Cross-connection replay risk**. An attacker can attempt to replay `ClientHello`/early data to the server or cluster within the allowed window.
+3. TLS-layer anti-replay mitigations reduce risk but **do not replace business-command controls**. Network conditions, multi-region setups, and retries can still cause duplicate delivery.
+4. A server may **reject early data** yet continue the handshake. Applications must know which data was or was not processed and how to retry safely.
+5. Support for 0-RTT depends on protocol/application profiles, server policy, tickets, and API/provider capabilities. **Never assume Java 17 `HttpClient` sends 0-RTT automatically just because a cache exists.**
 
-### 6.2. Ví dụ request được và không được dùng 0-RTT
+### 6.2. Examples of requests suitable vs. unsuitable for 0-RTT
 
-| Request | 0-RTT mặc định nên như thế nào? | Lý do |
+| Request | Default 0-RTT stance? | Reason |
 | --- | --- | --- |
-| `GET` chỉ đọc, thực sự không có side effect và theo profile cho phép | Có thể cân nhắc | Phải chịu được replay và request authentication policy |
-| `HEAD` lấy metadata | Có thể cân nhắc | Cũng cần kiểm tra tình huống logging/billing/rate limits |
-| `POST /transfer-money` | **Không** | Một replay có thể kích hoạt giao dịch lặp |
-| `POST /delete-account` | **Không** | Hậu quả không idempotent/replay-safe |
-| `POST /issue-token` | **Không** nếu có side effect/nonce logic yếu | Replay có thể tạo nhiều credential |
-| `POST /create-order` dù có requestId | Mặc định không; chỉ cân nhắc khi đã có profile và idempotency **thực sự an toàn** | Idempotency store phải atomic và scope đúng |
-| API có cookie đăng nhập nhưng stateful | Không mặc định | Cookie hợp lệ không có nghĩa request replay-safe |
+| Read-only `GET`, genuinely side-effect-free and permitted by profile | May be considered | Must tolerate replay and request authentication policy |
+| Metadata-only `HEAD` | May be considered | Still check logging/billing/rate-limit effects |
+| `POST /transfer-money` | **No** | A replay can trigger duplicate transfers |
+| `POST /delete-account` | **No** | Effects are non-idempotent/not replay-safe |
+| `POST /issue-token` | **No** if side effects or weak nonce logic exist | Replay can mint multiple credentials |
+| `POST /create-order` even with `requestId` | No by default; consider only with a profile and **genuinely safe** idempotency | Idempotency store must be atomic and properly scoped |
+| API with login cookie but stateful | No by default | A valid cookie does not make a request replay-safe |
 
-“HTTP GET thường idempotent” không tự động cho phép mọi GET dùng 0-RTT: có API GET thực tế gây side effect hoặc rò rỉ dữ liệu theo session state. Ứng dụng phải xác nhận tính an toàn, kiểm soát replay và yêu cầu profile cụ thể.
+"HTTP GET is usually idempotent" does not automatically clear every GET for 0-RTT: some GET endpoints cause side effects or leak state-dependent data. Applications must verify safety, enforce replay controls, and require an explicit profile.
 
-### 6.3. Idempotency không đồng nghĩa hết rủi ro
+### 6.3. Idempotency does not eliminate all risk
 
-Dù một endpoint có `Idempotency-Key`, nếu idempotency store chỉ tồn tại trong một node thì hai early-data requests vào hai node có thể vẫn xử lý hai lần. Cần thiết kế atomicity, namespace theo principal/tenant, expiration, khóa nghiệp vụ và xử lý retry.
+Even if an endpoint checks `Idempotency-Key`, if the idempotency store lives on only a single node, two early-data requests hitting two nodes can still execute twice. Design for atomicity, principal/tenant namespacing, expiration, business keys, and safe retry handling.
 
-**Bài học:** 0-RTT là tối ưu hóa đòi hỏi thiết kế an toàn riêng; **1-RTT session resumption** đã có lợi ích hiệu năng mà không đòi client gửi dữ liệu nguy hiểm trước khi handshake hoàn thành.
+**Lesson:** 0-RTT is an optimization requiring dedicated security design; **1-RTT session resumption** already delivers performance gains without forcing the client to send risky data before handshake completion.
 
-## 7. Vòng đời của một TLS session/ticket
+## 7. Lifecycle of a TLS session/ticket
 
-Một session không “mãi mãi hợp lệ” chỉ vì handshake từng thành công.
+A session is not "valid forever" merely because a handshake once succeeded.
 
-### 7.1. Các giai đoạn
+### 7.1. Phases
 
 ```text
 HANDSHAKE AUTHENTICATED
@@ -302,54 +302,54 @@ STORED / AVAILABLE
                            +--> resumption may be declined
 ```
 
-Các nguyên nhân session không được resume:
-- Server không phát ticket, client chưa nhận ticket hoặc cache của client bị xóa.
-- Ticket/session đã hết hạn theo thời gian protocol, chính sách server hoặc provider cache.
-- Server restart mất in-memory state hoặc rotate ticket-protection keys.
-- Server cluster chọn node không có cùng resumption state/keys.
-- Client dùng `SSLContext` hoặc trust/identity configuration khác.
-- SNI, ALPN, phiên bản TLS, cipher-suite hash hoặc chính sách authentication khác.
-- Server từ chối resumption khi chính sách bảo mật thay đổi, certificate/key bị thu hồi hoặc có sự kiện an ninh.
-- Session bị evicted khỏi cache vì giới hạn dung lượng.
-- Resumption bị vô hiệu theo chính sách hoặc implementation.
+Reasons a session does not resume:
+- Server did not issue a ticket, client did not receive it yet, or client cache was cleared.
+- Ticket/session expired by protocol age, server policy, or provider cache timeout.
+- Server restart lost in-memory state or rotated ticket-protection keys.
+- Load balancer routed to a node lacking matching resumption state/keys.
+- Client used a different `SSLContext` or trust/identity configuration.
+- SNI, ALPN, TLS version, cipher-suite hash, or authentication policy changed.
+- Server declined resumption because security policy changed, a cert/key was revoked, or a security event occurred.
+- Session was evicted from cache due to size limits.
+- Resumption was disabled by policy or implementation.
 
-**Không phải mọi nguyên nhân đều là bug.** Full handshake có thể là hành vi an toàn và mong muốn nếu trạng thái không còn phù hợp.
+**Not every fallback is a bug.** A full handshake is safe and expected behavior whenever prior state is no longer suitable.
 
-### 7.2. Timeout nào chi phối?
+### 7.2. Which timeouts govern what?
 
-| Loại timeout/lifetime | Cái gì hết hạn? | Tác động |
+| Timeout / lifetime type | What expires? | Effect |
 | --- | --- | --- |
-| TCP connect timeout | Chờ tạo transport connection | Socket connect fail, chưa có TLS handshake |
-| TLS handshake timeout | Chờ hoàn tất handshake | Kết nối mới chưa sẵn sàng |
-| Socket read timeout | Chờ đọc dữ liệu trên socket | Có thể fail I/O, tùy API không nhất thiết xóa session cache |
-| HTTP request timeout | Một tác vụ HTTP | Request có thể bị hủy, không phải quy tắc TTL ticket TLS |
-| HTTP idle connection timeout | Kết nối còn mở nhưng không dùng | Pool đóng socket; lần sau cần kết nối mới |
-| TLS session cache timeout | Một cache entry có thể được dùng lại bao lâu | Có thể buộc full handshake lần sau |
-| Ticket lifetime | Resumption ticket/PSK được offer/chấp nhận bao lâu | Hết ticket thì không resume theo ticket đó |
-| Server ticket-key rotation | Khóa server giải/kiểm ticket đã phát | Ticket cũ có thể không còn được chấp nhận |
-| App authentication/session expiry | User/token/cookie ứng dụng | User cần xác thực lại dù TLS session hợp lệ |
+| TCP connect timeout | Waiting to establish transport connection | Socket connect fails before any TLS handshake |
+| TLS handshake timeout | Waiting for handshake completion | New connection fails to become ready |
+| Socket read timeout | Waiting to read bytes on socket | May fail I/O; depending on API, does not necessarily clear session cache |
+| HTTP request timeout | A single HTTP call | Request may cancel; not a TLS ticket TTL rule |
+| HTTP idle connection timeout | Open yet unused connection | Pool closes socket; next call needs a new connection |
+| TLS session cache timeout | How long a cache entry may be reused | Can force a full handshake next time |
+| Ticket lifetime | How long a resumption ticket/PSK is offered/accepted | Once expired, cannot resume with that ticket |
+| Server ticket-key rotation | Server key decrypting/verifying issued tickets | Older tickets may no longer be accepted |
+| App authentication/session expiry | Application user/token/cookie | User must reauthenticate even if the TLS session is valid |
 
-Không dùng một cấu hình `SSLSessionContext.setSessionTimeout(600)` rồi suy ra “mọi TCP socket sẽ tự đóng sau 600 giây”. Đó là **session-cache policy**, không phải connection idle timeout.
+Never configure `SSLSessionContext.setSessionTimeout(600)` and assume "all TCP sockets will close automatically after 600 seconds". That is a **session-cache policy**, not a connection idle timeout.
 
-### 7.3. Hai phía có thể có giới hạn khác nhau
+### 7.3. Both sides may have different limits
 
-Client có thể còn lưu ticket nhưng server đã đổi ticket key; client có thể chủ động gửi PSK identity và bị server từ chối. Tương tự, server còn khả năng resume nhưng client đã evict ticket. Thành công cần **hai bên đồng thuận** trong handshake mới.
+The client may still hold a ticket after the server rotated its ticket key; the client may offer the PSK identity and be declined by the server. Conversely, the server may still support resumption after the client evicted the ticket. Success requires **agreement from both sides** during the new handshake.
 
-## 8. Java 17+ biểu diễn TLS session qua những API nào?
+## 8. Which Java 17+ APIs represent TLS sessions?
 
 ### 8.1. `SSLContext`
 
-`SSLContext` chứa cấu hình TLS provider được khởi tạo với các KeyManagers, TrustManagers và nguồn ngẫu nhiên phù hợp. Từ một context có thể tạo socket/engine để thực hiện nhiều TLS connections.
+`SSLContext` holds TLS provider configuration initialized with KeyManagers, TrustManagers, and an appropriate randomness source. One context can create sockets/engines for many TLS connections.
 
-`SSLContext` cũng expose:
-- `getClientSessionContext()`: context quản lý các sessions phía client theo khả năng provider.
-- `getServerSessionContext()`: context quản lý sessions phía server theo khả năng provider.
+`SSLContext` also exposes:
+- `getClientSessionContext()`: context managing client-side sessions per provider capability.
+- `getServerSessionContext()`: context managing server-side sessions per provider capability.
 
-Không coi cùng một context là “phiên TLS duy nhất”; đây là **hạ tầng tạo connections và quản lý trạng thái**.
+Never treat one context as "one single TLS session"; it is the **factory infrastructure creating connections and managing state**.
 
 ### 8.2. `SSLSessionContext`
 
-Các API chính:
+Key APIs:
 
 ```java
 SSLSessionContext sessions = sslContext.getClientSessionContext();
@@ -361,51 +361,51 @@ int seconds = sessions.getSessionTimeout();
 int limit = sessions.getSessionCacheSize();
 ```
 
-Ý nghĩa:
-- `setSessionTimeout(int seconds)` điều chỉnh giới hạn thời gian session được giữ trong cache mà provider quản lý. **0** theo API nghĩa là không giới hạn thời gian bằng setting này; không có nghĩa tắt resumption.
-- `setSessionCacheSize(int size)` điều chỉnh giới hạn số sessions trong cache. **0** nghĩa là không áp giới hạn kích thước bằng setting này; không có nghĩa cache trống hay bị vô hiệu.
-- Giá trị âm không hợp lệ và thường dẫn tới `IllegalArgumentException` theo API.
-- `getIds()` liệt kê IDs các sessions trong cache dưới khả năng của implementation; `getSession(byte[])` truy xuất theo ID khi có.
-- Trong TLS 1.3, một server có thể gửi nhiều tickets và provider có nhiều trạng thái nội bộ; **không đảm bảo API `getIds()` hiển thị một ticket một-một**, hoặc một session ID có nghĩa giống TLS 1.2.
-- Thời gian và kích thước cache chỉ là **một phần policy**. Server có quyền từ chối; ticket lifetime và TLS implementation có thêm ràng buộc.
+Meaning:
+- `setSessionTimeout(int seconds)` adjusts the time limit for sessions retained in the provider-managed cache. **`0`** per API means no time limit enforced by this setting; it does not mean resumption is disabled.
+- `setSessionCacheSize(int size)` adjusts the limit on cached sessions. **`0`** means no size limit enforced by this setting; it does not mean the cache is empty or disabled.
+- Negative values are invalid and normally throw `IllegalArgumentException` per API.
+- `getIds()` enumerates cached session IDs as supported by the implementation; `getSession(byte[])` retrieves by ID where available.
+- In TLS 1.3, a server may issue multiple tickets and providers track internal state differently; **`getIds()` is not guaranteed to map one-to-one with tickets**, nor does a session ID mean the same thing as in TLS 1.2.
+- Cache timeout and size are only **one part of policy**. The server can still decline; ticket lifetimes and TLS implementation rules impose additional bounds.
 
-**Chú ý:** không tùy tiện đặt cache size/timeouts = 0 với hy vọng “disable”; nếu mục tiêu là vô hiệu resumption vì chính sách, phải đọc đúng tài liệu provider, áp cấu hình có hỗ trợ và kiểm thử wire handshake.
+**Note:** never arbitrarily set cache size/timeout to `0` hoping to "disable" caching; if policy requires disabling resumption, read the provider docs, apply supported configuration, and verify with a wire handshake trace.
 
 ### 8.3. `SSLSession`
 
-`SSLSession` đại diện thông tin một established TLS session theo model JSSE, có các phương thức hữu ích:
+`SSLSession` represents info about an established TLS session in the JSSE model, providing useful methods:
 
-| API | Có thể xem gì? | Giới hạn |
+| API | What can you inspect? | Limitation |
 | --- | --- | --- |
-| `getProtocol()` | Phiên bản như `TLSv1.3` | Không cho biết handshake vừa full hay resumed |
-| `getCipherSuite()` | Suite negotiated | Không đồng nghĩa ticket được sử dụng |
-| `getPeerPrincipal()` | Peer principal nếu được xác thực theo session | Có thể throw nếu không có peer authentication; không thay authorization |
-| `getCreationTime()` | Thời điểm tạo session theo model/provider | Không phải thời điểm mỗi HTTP request |
-| `getLastAccessedTime()` | Thời điểm được truy cập theo model/provider | Không phải network idle timer của socket |
-| `getId()` | Session ID bytes theo JSSE | Không phải wire ticket ID đáng tin để chứng minh resumption |
-| `getSessionContext()` | Cache context sở hữu session, có thể null | Không nói kết nối còn mở |
-| `isValid()` | Trạng thái session có thể còn hợp lệ theo API | Không bảo đảm socket còn mở hoặc server sẽ accept ticket |
-| `invalidate()` | Đánh dấu session không thể dùng tiếp cho resume/join theo API | Không tự đóng established TLS connection |
-| `getPeerCertificates()` | Peer certificate chain nếu hiện diện | Không tự thay certificate validation/hostname hoặc authz |
+| `getProtocol()` | Version such as `TLSv1.3` | Does not tell whether the handshake was full or resumed |
+| `getCipherSuite()` | Negotiated suite | Does not mean a ticket was used |
+| `getPeerPrincipal()` | Peer principal if authenticated in session | Can throw if peer was unauthenticated; does not replace authorization |
+| `getCreationTime()` | Session creation timestamp per model/provider | Not the timestamp of each HTTP request |
+| `getLastAccessedTime()` | Last accessed timestamp per model/provider | Not the socket's network idle timer |
+| `getId()` | Session ID bytes per JSSE | Not a reliable wire ticket ID to prove resumption |
+| `getSessionContext()` | Cache context owning the session, may be null | Does not say whether the connection is still open |
+| `isValid()` | Whether the session may still be valid per API | Does not guarantee the socket is open or server will accept the ticket |
+| `invalidate()` | Marks the session unusable for future resume/join per API | Does not automatically close established TLS connections |
+| `getPeerCertificates()` | Peer certificate chain if present | Does not replace certificate/hostname validation or authorization |
 
-Trong TLS 1.3, khái niệm session được mapping lên JSSE provider có thể khác về ticket/ID và thời điểm cập nhật. Đừng xây business state dựa trên `SSLSession.getId()`, `getCreationTime()` hoặc assumption rằng session object identity chứng minh resumed handshake.
+In TLS 1.3, how JSSE providers map sessions onto tickets/IDs and update timestamps can vary. Never build business state on `SSLSession.getId()`, `getCreationTime()`, or an assumption that session object identity proves a resumed handshake.
 
-### 8.4. `SSLSocket`, `SSLEngine` và HTTP client
+### 8.4. `SSLSocket`, `SSLEngine`, and HTTP clients
 
-- `SSLSocket`: TLS over socket truyền thống, có `startHandshake()`, `getSession()`, `close()`. Phải cấu hình đúng trust và endpoint identity.
-- `SSLEngine`: TLS state machine không gắn trực tiếp I/O, được NIO/framework dùng. Application chịu trách nhiệm wrap/unwrap, handshake status, close inbound/outbound và buffer.
-- `java.net.http.HttpClient`: quản lý kết nối, pooling, HTTP/2 và TLS dưới abstraction. `HttpResponse.sslSession()` có thể cung cấp thông tin phiên, **không** công khai đầy đủ quyết định reuse/resumption.
-- `HttpsURLConnection`: còn có API lấy thông tin TLS; không mặc định so sánh hai response là hai handshake.
+- `SSLSocket`: traditional socket-based TLS with `startHandshake()`, `getSession()`, `close()`. Requires proper trust and endpoint identity config.
+- `SSLEngine`: I/O-independent TLS state machine used by NIO/frameworks. The application handles wrap/unwrap, handshake status, close inbound/outbound, and buffers.
+- `java.net.http.HttpClient`: manages connections, pooling, HTTP/2, and TLS behind its abstraction. `HttpResponse.sslSession()` can expose session metadata, yet **does not** directly expose full reuse/resumption decisions.
+- `HttpsURLConnection`: also exposes TLS info; never assume two responses imply two handshakes.
 
-Không tự xây cơ chế “caching `SSLSocket` mãi mãi” để giữ security state. Một socket có thể đã đóng, mất mạng, hết idle timeout, hết certificate policy hoặc không còn phù hợp cho origin khác.
+Never invent a "cache `SSLSocket` forever" scheme to preserve security state. A socket may have closed, lost network, hit idle timeout, failed updated certificate policy, or belong to a different origin.
 
-## 9. Java 17+: chương trình chạy offline để hiểu session cache
+## 9. Java 17+: offline program to understand the session cache
 
-Ví dụ dưới đây chủ động **không kết nối mạng**; nó chỉ tạo một `SSLContext` mới, lấy session contexts của client và server, đặt timeout/cache sizes rồi kiểm tra các tham số nhận lại.
+The example below intentionally **makes no network connections**; it creates a new `SSLContext`, retrieves the client and server session contexts, sets timeout/cache sizes, and reads back the parameters.
 
-Điều này giúp phân biệt **quản lý khả năng cache session** với việc **thực sự tạo TLS handshake/session**. Demo không cố khẳng định resumption đã xảy ra khi chưa có remote server.
+This helps separate **configuring session-cache capabilities** from **actually executing TLS handshakes/sessions**. The demo makes no claim that resumption happened without a remote server.
 
-Tạo tệp `TlsSessionCacheDemo.java`:
+Create **`TlsSessionCacheDemo.java`**:
 
 ```java
 import java.security.GeneralSecurityException;
@@ -465,14 +465,14 @@ public class TlsSessionCacheDemo {
 }
 ```
 
-Biên dịch và chạy với Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac TlsSessionCacheDemo.java
 java TlsSessionCacheDemo
 ```
 
-Stdout đã kiểm tra trên JDK có `SunJSSE` tương thích Java 17:
+Verified stdout on a Java 17-compatible `SunJSSE` JDK:
 
 ```text
 Client session timeout (s): 600
@@ -485,32 +485,32 @@ Client and server cache objects differ: true
 TLS handshakes performed by demo: 0
 ```
 
-### 9.1. Giải thích kết quả
+### 9.1. Explaining the results
 
-- Các setters/getters xác nhận **cấu hình cache của context** chứ không chứng minh có session nào được tạo.
-- Client và server session caches khác nhau vì có hai vai trò TLS độc lập.
-- Tham số âm bị từ chối vì không có nghĩa hợp lệ cho thời gian/kích thước cache.
-- Dòng cuối là tuyên bố về luồng code: chương trình không mở socket/engine handshake. **Không được viết unit test “session resumption worked” dựa trên chương trình này.**
-- Một provider khác có thể có đặc điểm session-cache riêng; test trên phải được thực hiện trong môi trường thực tế nếu muốn dùng như kiểm tra tương thích. Chương trình không thiết lập chính sách certificate/hostname vì nó hoàn toàn không kết nối tới endpoint nào.
+- The setters/getters confirm **the context's cache configuration**, not that any session was created.
+- Client and server session caches differ because they represent two independent TLS roles.
+- Negative arguments are rejected as invalid cache durations or sizes.
+- The final line states the code path explicitly: no socket or engine handshake was opened. **Never write a unit test claiming "session resumption worked" based on this program.**
+- Other providers may have distinct session-cache behavior; run tests in the actual target environment for compatibility checks. The program sets no certificate/hostname policy because it connects to no endpoint at all.
 
-### 9.2. Điểm cần tránh khi cấu hình production
+### 9.2. Pitfalls when configuring production
 
-Việc đặt `setSessionTimeout(600)` không:
-- Tạo TLS session ticket.
-- Bảo đảm server đồng ý resume trong mười phút.
-- Thiết lập HTTP keep-alive idle timeout.
-- Đóng connection sau mười phút.
-- Bật 0-RTT.
-- Tái xác thực certificate hoặc app principal mỗi 600 giây.
-- Bảo đảm server ticket key còn hiệu lực hay cache được share giữa các nodes.
+Calling `setSessionTimeout(600)` does not:
+- Create a TLS session ticket.
+- Guarantee the server agrees to resume for ten minutes.
+- Configure HTTP keep-alive idle timeouts.
+- Close connections after ten minutes.
+- Enable 0-RTT.
+- Re-validate certificates or app principals every 600 seconds.
+- Guarantee server ticket keys stay valid or caches are shared across nodes.
 
-Tương tự, `setSessionCacheSize(128)` là giới hạn cache theo implementation, không phải giới hạn 128 TCP connections, 128 concurrent users hay 128 HTTP requests.
+Similarly, `setSessionCacheSize(128)` is an implementation cache limit, not a limit of 128 TCP connections, 128 concurrent users, or 128 HTTP requests.
 
-## 10. Java 17+: quan sát TLS session trong HTTPS request thật
+## 10. Java 17+: observing `SSLSession` in a real HTTPS request
 
-Ví dụ thứ hai dùng `HttpClient` cho một địa chỉ HTTPS có thật. Nó mở kết nối mạng và có thể cho thấy protocol/cipher suite; vì kết quả phụ thuộc mạng, server, proxy, provider và connection pool, **không có stdout cố định**.
+The second example uses `HttpClient` against a real HTTPS address. It opens a network connection and can display the protocol/cipher suite; because results depend on network, server, proxy, provider, and connection pool, **there is no fixed stdout**.
 
-Tệp `ObserveHttpsSession.java`:
+File **`ObserveHttpsSession.java`**:
 
 ```java
 import java.net.URI;
@@ -549,64 +549,64 @@ public class ObserveHttpsSession {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac ObserveHttpsSession.java
 java ObserveHttpsSession
 ```
 
-Điều quan sát được:
-- Hai requests cùng dùng **một `HttpClient` instance**, tăng khả năng connection pooling nhưng không bảo đảm cả hai được gửi trên cùng socket.
-- Kết quả `response.sslSession()` có thể hiển thị protocol/cipher suite. Nó **không có một boolean chuẩn “isResumedHandshake”**.
-- Nếu pool reuse một kết nối đã mở, request thứ hai **không thực hiện TLS handshake mới** và không có sự kiện resumption để đo.
-- Nếu server/route/proxy đóng kết nối giữa hai requests, client có thể tạo connection mới; handshake mới **có thể full hoặc resumed** tùy điều kiện.
-- Một server có thể phản hồi HTTP/1.1 hay HTTP/2; phiên bản HTTP không thể được suy ra chỉ từ TLS cipher suite.
-- Nếu TLS handshake thất bại hoặc không có mạng, ví dụ ném exception thay vì in stdout. Không tắt certificate verification để “chạy cho được”.
+What can be observed:
+- Both requests share **one `HttpClient` instance**, increasing the likelihood of connection pooling without guaranteeing both travel on the same socket.
+- `response.sslSession()` can display protocol/cipher suite. It **has no standard `"isResumedHandshake"` boolean**.
+- If the pool reuses an already-open connection, the second request **performs no new TLS handshake** and produces no resumption event to measure.
+- If the server/route/proxy closes the connection between requests, the client opens a new connection; the new handshake **may be full or resumed** depending on conditions.
+- A server can respond with HTTP/1.1 or HTTP/2; HTTP version cannot be inferred from the TLS cipher suite alone.
+- If the TLS handshake fails or network is unavailable, the example throws an exception instead of printing stdout. Never disable certificate verification to "make it run".
 
-**Không log raw `SSLSession.getId()`, ticket, key material hay HTTP cookie.** Nếu cần debug, nên có logging đã đánh giá bảo mật và môi trường thử nghiệm được kiểm soát.
+**Never log raw `SSLSession.getId()`, tickets, key material, or HTTP cookies.** When debugging is needed, use security-reviewed logging in a controlled test environment.
 
-### 10.1. Muốn chứng minh handshake đã resumed thật thì làm thế nào?
+### 10.1. How do you prove a handshake genuinely resumed?
 
-Một phép thử đáng tin phải:
-1. Điều khiển client và server test, cùng TLS provider/configuration và cùng peer identity.
-2. Đầu tiên tạo **full authenticated handshake**; bảo đảm session ticket được phát và được client thực sự nhận/lưu.
-3. Đóng **đúng transport/TLS connection**, nhưng giữ resumption cache/PSK state có chủ đích.
-4. Mở một **new transport connection** với cùng endpoint, policy và context.
-5. Thu thập bằng chứng từ **TLS handshake debug/protocol trace** rằng client offered PSK và server selected PSK/resumption (hoặc TLS 1.2 selected session ID/ticket).
-6. Thử lại sau khi cache evicted, ticket expired hoặc ticket key rotated; xác nhận fallback full handshake.
-7. Kiểm tra certificate validation và expected identity vẫn được thực thi theo protocol/resumption policy.
-8. Kiểm tra không xảy ra 0-RTT khi application không chủ động hỗ trợ.
+A reliable test must:
+1. Control both test client and server, with known TLS provider/configuration and peer identity.
+2. First perform a **full authenticated handshake**; confirm a session ticket was issued and actually received/stored by the client.
+3. Close the **actual transport/TLS connection**, while intentionally keeping the resumption cache/PSK state.
+4. Open a **new transport connection** with the same endpoint, policy, and context.
+5. Collect evidence from **TLS handshake debug/protocol traces** showing the client offered a PSK and the server selected PSK/resumption (or TLS 1.2 selected session ID/ticket).
+6. Retest after cache eviction, ticket expiration, or ticket-key rotation; verify fallback to a full handshake.
+7. Verify certificate validation and expected identity remain enforced per protocol/resumption policy.
+8. Verify 0-RTT does not occur unless the application intentionally supports it.
 
-**Không đủ chứng cứ:**
-- Handshake thứ hai “nhanh hơn”.
-- `SSLSession.isValid()` là true.
-- `getId()` giống hoặc khác.
-- HTTP status 200.
-- Response thứ hai dùng cùng `HttpClient`.
-- `SSLSession.getCreationTime()` vẫn cũ.
-- TCP connection bị reused nhưng không hề có new handshake.
+**Insufficient evidence:**
+- The second handshake was "faster".
+- `SSLSession.isValid()` is `true`.
+- `getId()` is identical or different.
+- HTTP status is `200`.
+- The second response used the same `HttpClient`.
+- `SSLSession.getCreationTime()` stayed unchanged.
+- The TCP connection was reused so no new handshake occurred at all.
 
-Khi phân tích trace ở TLS 1.3, nhớ rằng nhiều handshake messages/traffic đã mã hóa; phải sử dụng diagnostic/provider tooling phù hợp và tránh xuất session secrets/keys ra ngoài.
+When reading TLS 1.3 traces, remember many handshake messages and traffic are encrypted; use appropriate diagnostic/provider tooling and avoid exporting session secrets/keys externally.
 
-## 11. Session cache và connection pool: hai bộ nhớ khác nhau
+## 11. Session cache and connection pool: two distinct stores
 
-### 11.1. Connection pool giữ thứ gì?
+### 11.1. What does a connection pool hold?
 
-Một HTTP connection pool có thể giữ **sockets đã bắt tay xong**, với:
+An HTTP connection pool can hold **already-handshaked sockets**, along with:
 - Remote endpoint/origin, proxy route, network interface.
-- Giao thức HTTP/1.1 hoặc HTTP/2, trạng thái stream.
-- TLS connection đang sống.
-- Idle timeout, số kết nối tối đa, keep-alive policy.
-- Các giới hạn concurrency, HTTP/2 GOAWAY, connection health.
+- HTTP/1.1 or HTTP/2 protocol, stream state.
+- Live TLS connection.
+- Idle timeout, max connections, keep-alive policy.
+- Concurrency limits, HTTP/2 `GOAWAY`, connection health.
 
-Mục đích chính: tránh phải mở socket mới và thực hiện lại handshake nếu có kết nối đang dùng được.
+Main purpose: avoid opening a new socket and running another handshake when a usable live connection exists.
 
-### 11.2. TLS session cache giữ thứ gì?
+### 11.2. What does a TLS session cache hold?
 
-Tùy protocol/provider, TLS session cache giữ resumption state, PSK/tickets/session IDs và metadata đủ để **rút gọn handshake cho một kết nối mới**. Không tự hiểu nó là một live socket.
+Depending on protocol/provider, a TLS session cache holds resumption state, PSKs/tickets/session IDs, and metadata sufficient to **shorten the handshake on a new connection**. Never mistake it for a live socket.
 
-### 11.3. Kết hợp hai loại cache
+### 11.3. Combining both caches
 
 ```text
 HTTP request arrives
@@ -637,84 +637,84 @@ TLS conn       v
        Send HTTP request
 ```
 
-Vì thế, tăng connection pool reuse có thể làm **ít handshake mới hơn**, khiến tỷ lệ resumption trong số tất cả requests có vẻ thấp dù hiệu năng tốt. Ngược lại, giảm idle timeout khiến nhiều sockets mới và resumption attempts hơn; không mặc định kết quả là bảo mật/hiệu năng tốt hơn.
+Therefore, increasing connection-pool reuse can result in **fewer new handshakes**, making the resumption ratio across all requests appear low even while performance is great. Conversely, lowering idle timeouts causes more new sockets and resumption attempts—which is not automatically better for security or performance.
 
-### 11.4. HTTP/2, HTTP/3 và QUIC
+### 11.4. HTTP/2, HTTP/3, and QUIC
 
-- Với **HTTPS HTTP/2 over TLS/TCP**, nhiều streams cùng chia sẻ một TLS connection; không có TLS handshake riêng cho mỗi stream.
-- Với **HTTP/3**, giao vận là QUIC và TLS 1.3 được tích hợp vào QUIC, không chạy như `SSLSocket` TLS-over-TCP thông thường. QUIC có khái niệm connection migration, connection IDs và resumption/0-RTT khác với keep-alive TCP; đọc RFC 9000/9001 và stack HTTP/3 tương ứng.
-- Một thư viện Java 17 `java.net.http.HttpClient` chuẩn không nên được giả định có mọi cơ chế HTTP/3/QUIC tùy deployment. Không áp các công cụ quản lý TCP socket trực tiếp cho QUIC mà không kiểm tra implementation.
+- With **HTTPS HTTP/2 over TLS/TCP**, multiple streams share one TLS connection; there is no separate TLS handshake per stream.
+- With **HTTP/3**, the transport is QUIC and TLS 1.3 is integrated into QUIC rather than running like ordinary `SSLSocket` TLS-over-TCP. QUIC has connection migration, connection IDs, and resumption/0-RTT mechanics distinct from TCP keep-alive; consult RFC 9000/9001 and the corresponding HTTP/3 stack.
+- Never assume a standard Java 17 `java.net.http.HttpClient` supports every HTTP/3/QUIC feature depending on deployment. Never apply TCP socket management assumptions directly to QUIC without verifying the implementation.
 
-## 12. Kết thúc kết nối: close socket, close_notify và session cache
+## 12. Ending a connection: closing sockets, `close_notify`, and session cache
 
-Đây là phần thường gây bug về vòng đời.
+This area frequently causes lifecycle bugs.
 
-### 12.1. Bốn hành động khác nhau
+### 12.1. Four distinct actions
 
-| Hành động | Ảnh hưởng chính | Không nhất thiết làm gì? |
+| Action | Primary effect | What it does NOT necessarily do |
 | --- | --- | --- |
-| Đóng HTTP response body/stream | Giải phóng tài nguyên request, giúp connection pool xử lý tái dùng hoặc đóng | Không nhất thiết xóa TLS resumption state |
-| Đóng `SSLSocket` / TLS connection | Ngừng sử dụng kết nối và giải phóng tài nguyên liên quan | Không nhất thiết invalidate mọi cached sessions/tickets |
-| `SSLSession.invalidate()` | Đánh dấu session không thể tiếp tục tham gia/resume theo API | Không tự đóng kết nối đã established |
-| Ticket expired / evicted | Không còn khả năng resume bằng ticket đó | Không tự kill socket cũ đang truyền dữ liệu |
+| Close HTTP response body/stream | Frees request resources, lets connection pool reuse or close socket | Does not necessarily clear TLS resumption state |
+| Close `SSLSocket` / TLS connection | Stops using the connection and releases related resources | Does not necessarily invalidate cached sessions/tickets |
+| `SSLSession.invalidate()` | Marks the session unusable for future resume/join per API | Does not close already-established connections |
+| Ticket expired / evicted | Can no longer resume using that ticket | Does not kill live sockets already transmitting data |
 
-Ứng dụng không nên “tắt SSL session” bằng cách chỉ gọi `close()` trên một HTTP response hay “đóng socket” bằng `SSLSession.invalidate()`.
+Applications should never try to "kill an SSL session" merely by calling `close()` on an HTTP response, or "close a socket" via `SSLSession.invalidate()`.
 
 ### 12.2. TLS `close_notify`
 
-TLS có thông điệp alert `close_notify` để báo một phía không gửi thêm dữ liệu qua kênh TLS theo ngữ nghĩa protocol. Với TCP, abrupt EOF hoặc connection reset khác với orderly TLS closure.
+TLS defines a `close_notify` alert to signal that a party will send no further data over the TLS channel per protocol semantics. Over TCP, an abrupt EOF or connection reset differs from orderly TLS closure.
 
-Tuy nhiên behavior cụ thể liên quan half-close, EOF, HTTP framing và API shutdown phụ thuộc giao thức và stack. Đừng làm một chương trình đọc dữ liệu nhạy cảm rồi **chấp nhận EOF bất ngờ như bằng chứng bản tin đã hoàn chỉnh** khi protocol chưa có length/framing/integrity đúng.
+Exact behavior regarding half-close, EOF, HTTP framing, and shutdown APIs depends on the protocol and stack. Never build a program reading sensitive data that **treats an unexpected EOF as proof a message is complete** when the protocol lacks proper length/framing/integrity checks.
 
-Với HTTPS client chuẩn, framework quản lý TLS connection shutdown và pool. Với `SSLEngine`, ứng dụng phải chú ý `closeOutbound()`, wrap dữ liệu đóng và xử lý `closeInbound()` theo API/provider; không chỉ gọi `ByteBuffer.clear()` hay bỏ qua handshake status.
+With standard HTTPS clients, the framework manages TLS connection shutdown and pooling. With `SSLEngine`, the application must properly invoke `closeOutbound()`, wrap closing records, and handle `closeInbound()` per API/provider—never simply call `ByteBuffer.clear()` or ignore handshake status.
 
-### 12.3. Invalidation không thay key rotation hay revoke certificate
+### 12.3. Invalidation does not replace key rotation or certificate revocation
 
-Nếu một TLS session bị invalidate ở client, một server đã phát ticket có thể vẫn giữ state hoặc ticket key; bạn cần kiểm soát policy **ở cả phía phù hợp**. Nếu có sự cố private key/certificate hoặc PSK/ticket key, hệ thống thường phải đánh giá phạm vi resumption, rotation server keys, cache, revoke credentials và thời gian chấp nhận tickets; gọi `invalidate()` trên một session Java cục bộ **không phải** global revocation.
+If a TLS session is invalidated on the client, a server that issued a ticket may still hold state or the ticket key; enforce policy **on both appropriate sides**. During a private key/certificate or PSK/ticket key incident, systems typically must evaluate resumption scope, rotate server keys, clear caches, revoke credentials, and bound ticket acceptance windows; calling `invalidate()` on a local Java session **is not** global revocation.
 
-Trong các kết nối đang mở, việc đánh giá có cần đóng ngay/áp chính sách lại là quyết định an ninh và triển khai riêng.
+For currently open connections, deciding whether to terminate immediately or re-apply policy is a separate security and operational decision.
 
-## 13. Authentication, chứng thư và vòng đời resumption
+## 13. Authentication, certificates, and resumption lifecycle
 
-### 13.1. Resumption dựa trên xác thực trước đó
+### 13.1. Resumption builds on prior authentication
 
-Một TLS 1.3 PSK resumption bình thường kế thừa sự ràng buộc an ninh từ handshake trước và ticket/state được phát hợp lệ. Nó có thể không lặp lại `Certificate` và `CertificateVerify` của server ở mọi resumed handshake.
+A normal TLS 1.3 PSK resumption inherits the security binding from an earlier handshake and validly issued ticket/state. It may omit repeating server `Certificate` and `CertificateVerify` on every resumed handshake.
 
-Điều đó tạo yêu cầu vận hành:
-- Không kéo dài trust vào một chứng thư đã bị thu hồi hoặc key bị lộ mà không có policy.
-- Giới hạn tuổi ticket, số lần nối tiếp, và key lifetimes theo security policy.
-- Bảo đảm SNI, ALPN, protocol, cipher hash và principal binding phù hợp.
-- Nếu certificate hoặc mTLS client principal thay đổi, cần quyết định resumption state có còn được phép hay không.
-- Nếu có refresh login/authorization policy, áp ở tầng ứng dụng; không dùng resumption để bỏ qua kiểm tra quyền.
+This imposes operational requirements:
+- Never extend trust to a revoked certificate or compromised key without explicit policy.
+- Bound ticket age, resumption chains, and key lifetimes per security policy.
+- Ensure matching SNI, ALPN, protocol, cipher hash, and principal binding.
+- If the certificate or mTLS client principal changes, decide whether existing resumption state remains permitted.
+- If login/authorization refresh policies exist, enforce them at the application layer; never use resumption to bypass permission checks.
 
-RFC 9846 có hướng dẫn giới hạn tổng thời gian duy trì resumption state từ chứng thực trước, xét certificate lifetime, khả năng bị thu hồi và thời gian từ lần chứng thực online gần nhất.
+RFC 9846 guides limiting the total time resumption state may persist from an earlier authentication, accounting for certificate lifetime, revocation exposure, and time since the last online authentication.
 
-### 13.2. Hostname verification không được bị bỏ qua
+### 13.2. Hostname verification must never be skipped
 
-Khi client tạo TLS connection mới tới `payments.example.com`, việc dùng PSK/ticket từ phiên trước cần nằm trong phạm vi identity chính xác. Không sử dụng một ticket “trông hợp lệ” để kết nối tới arbitrary server chỉ vì server đó trình cùng một loại cipher suite.
+When a client opens a new TLS connection to `payments.example.com`, reusing a PSK/ticket from a prior session must stay scoped to the exact identity. Never use a "valid-looking" ticket to connect to an arbitrary server simply because it offers the same cipher suite.
 
-Nếu application tắt hostname verification hoặc dùng trust-all, rủi ro MITM vẫn còn. TLS resumption **không sửa sai** trust manager hoặc certificate validation của initial handshake.
+If the application disables hostname verification or uses trust-all, MITM risk remains. TLS resumption **cannot fix** a broken trust manager or missing certificate validation from the initial handshake.
 
-### 13.3. mTLS và vòng đời client certificate
+### 13.3. mTLS and client certificate lifecycle
 
-Với mTLS, server có thể đã xác minh client certificate trong full handshake. Khi resume bằng một session/ticket liên quan tới client identity, server phải bảo đảm policy còn phù hợp; quyền người dùng/ứng dụng có thể đã bị thu hồi hoặc đổi tenant.
+With mTLS, the server may have verified the client certificate in the full handshake. When resuming via a session/ticket tied to client identity, the server must ensure policy still permits access; user/app permissions may have been revoked or tenant assignments changed.
 
-Một service không nên tự động cấp quyền admin chỉ vì resumed connection mang trạng thái xác thực cũ:
-- Kiểm tra identity/principal mapping và thời hạn chính sách.
-- Gắn certificate identity và key IDs với tenant/role từ nguồn tin cậy.
-- Có cơ chế revoke/session invalidation phù hợp cluster và token/key lifecycle.
-- Tránh đưa thông tin quyền ứng dụng dài hạn vào TLS ticket mà không có expiry/version/revalidation policy.
+A service must never blindly grant admin rights simply because a resumed connection carries old authentication state:
+- Verify identity/principal mapping and policy validity windows.
+- Resolve certificate identities and key IDs to tenants/roles from an authoritative source.
+- Support revocation/session invalidation matching cluster architecture and token/key lifecycles.
+- Avoid embedding long-lived application permissions inside TLS tickets without expiry/version/revalidation policies.
 
-## 14. KeyUpdate không phải resumption
+## 14. `KeyUpdate` is not resumption
 
-Trong TLS 1.3, `KeyUpdate` cho phép thay đổi application traffic keys trong **một TLS connection đang tồn tại** theo protocol. Nó không:
-- Mở TCP connection mới.
-- Tạo HTTP request mới.
-- Mặc định tái xác thực certificate.
-- Bắt buộc phát session ticket mới.
-- Chứng minh một resumed handshake đã xảy ra.
+In TLS 1.3, `KeyUpdate` rotates application traffic keys inside an **existing TLS connection** per protocol. It does not:
+- Open a new TCP connection.
+- Create a new HTTP request.
+- Automatically re-verify certificates.
+- Necessarily issue a new session ticket.
+- Prove that a resumed handshake happened.
 
-Cần phân biệt:
+Distinguish clearly:
 
 ```text
 Same TLS connection:
@@ -727,253 +727,253 @@ Resumption:
     connection #2 new handshake using PSK/ticket -> new traffic keys
 ```
 
-Khi phân tích debug hoặc thiết kế key rotation, đừng lấy sự kiện key update làm thước đo session resumption rate.
+When debugging or designing key rotation, never mistake key-update events for session resumption rates.
 
-## 15. Load balancer và hệ thống nhiều node
+## 15. Load balancers and multi-node systems
 
-Một API gateway có nhiều backend nodes có thể có:
-- TLS termination ở load balancer, backend chỉ nhận HTTP/gRPC nội bộ.
-- TLS termination tại từng application instance.
-- Một lớp proxy/mesh thực hiện mTLS giữa services.
-- Các instance giữ caches/ticket keys khác nhau.
+An API gateway fronting multiple backend nodes may involve:
+- TLS termination at the load balancer, with backends receiving internal HTTP/gRPC.
+- TLS termination at each application instance.
+- A proxy/mesh layer performing mTLS between services.
+- Instances holding distinct caches or ticket keys.
 
-Khi client kết nối nhiều lần:
-- Nếu TLS kết thúc ở gateway, **session resumption được quyết định ở gateway**, không phải `SSLContext` của service phía sau.
-- Nếu terminate ở từng node với server-side session cache cục bộ, new connection tới node khác có thể full handshake vì không có state.
-- Nếu server-issued tickets dùng key chia sẻ, nhiều nodes có thể resume dễ hơn; **việc chia sẻ ticket keys tăng blast radius** nếu một node bị lộ và đòi cơ chế rotation/phân phối an toàn.
-- Nếu 0-RTT được bật ở nhiều zones, cần **anti-replay coordination**; không dùng cache cục bộ đơn giản như bằng chứng chống replay toàn cụm.
-- Restart/rolling deployment có thể làm cache miss/rotated ticket keys, dẫn tới tăng full handshake. Đây có thể là hành vi đúng.
+When a client connects repeatedly:
+- If TLS terminates at the gateway, **session resumption is decided at the gateway**, not by the backend service's `SSLContext`.
+- If TLS terminates at individual nodes with local server-side session caches, a new connection landing on another node may do a full handshake for lack of state.
+- If server-issued tickets use shared keys, multiple nodes can resume smoothly; **sharing ticket keys expands the blast radius** if one node is compromised and demands secure key distribution/rotation.
+- If 0-RTT is enabled across multiple zones, **cross-zone anti-replay coordination** is needed; never treat a single-node local cache as cluster-wide replay protection.
+- Restarts or rolling deployments can cause cache misses or rotated ticket keys, increasing full handshakes. That can be completely expected behavior.
 
-Thiết kế phải cân bằng hiệu năng, khả năng mở rộng và bí mật:
-- Chỉ chia sẻ ticket keys/trust material trong phạm vi được chính sách cho phép.
-- Rotation có overlap hạn chế, giới hạn ticket lifetime và audit.
-- Giữ cache gần nơi TLS terminate; tránh truyền TLS secret vào application logs.
-- Benchmark tỉ lệ full/resumed handshake **tại đúng tầng kết thúc TLS**, không ở service không nhìn thấy handshake.
+Design must balance performance, scalability, and secrecy:
+- Share ticket keys/trust material only within policy-approved boundaries.
+- Rotate with bounded overlap, capped ticket lifetimes, and auditing.
+- Keep caches near the TLS termination tier; keep TLS secrets out of application logs.
+- Measure full/resumed handshake ratios **at the actual TLS termination layer**, not at an upstream/downstream service that never sees the handshake.
 
-## 16. Đo lường và debug mà không tiết lộ TLS secrets
+## 16. Measuring and debugging without leaking TLS secrets
 
-### 16.1. Những chỉ số thực sự hữu ích
+### 16.1. Metrics that are genuinely useful
 
-- Số lượng **new TCP connections** và **TLS handshakes** trong một khoảng thời gian.
-- Số **full handshakes** và **resumed handshakes** được server/provider xác nhận.
-- Ticket issue rate, offer/accept/reject rate, expiration, cache hit/miss/eviction.
-- TLS handshake latency theo phiên bản/cipher/route, nhưng không suy kết quả resumption chỉ từ latency.
-- HTTP connection pool reuse, idle close, HTTP/2 stream concurrency.
-- Handshake failures theo nhóm: certificate validation, SNI/ALPN mismatch, expired ticket, key rotation, network failures.
-- 0-RTT offered/accepted/rejected, replay attempts và business idempotency outcomes nếu tính năng bật.
+- Count of **new TCP connections** and **TLS handshakes** over a time window.
+- Count of **full handshakes** vs. **resumed handshakes** confirmed by the server/provider.
+- Ticket issuance rate, offer/accept/reject rate, expiration, and cache hit/miss/eviction.
+- TLS handshake latency broken down by version/cipher/route, without inferring resumption solely from latency.
+- HTTP connection pool reuse, idle closures, and HTTP/2 stream concurrency.
+- Handshake failures grouped by certificate validation, SNI/ALPN mismatch, expired tickets, key rotation, and network errors.
+- 0-RTT offered/accepted/rejected, replay attempts, and business idempotency outcomes if enabled.
 
-**Không gom tất cả thành “TLS sessions” mà không ghi rõ đơn vị.** Sessions khác connections, handshakes và requests.
+**Never lump everything under "TLS sessions" without explicit units.** Sessions differ from connections, handshakes, and requests.
 
-### 16.2. Java TLS debug
+### 16.2. Java TLS debugging
 
-Trong môi trường thử nghiệm, JSSE có cơ chế debug cho SSL/TLS, ví dụ option thường thấy:
+In test environments, JSSE offers SSL/TLS debug options, such as the common flag:
 
 ```bash
 java -Djavax.net.debug=ssl,handshake,session ObserveHttpsSession
 ```
 
-Đây là công cụ diagnostic, **không phải cấu hình mặc định production**. Debug log có thể chứa metadata nhạy cảm như hostname, certificate subject, phiên bản, session IDs/ticket details tùy provider và mức log. Không công bố raw traces khi chưa review; tránh bất kỳ key logging/secret extraction nào không cần thiết.
+This is a diagnostic tool, **not a production default**. Debug logs can expose sensitive metadata like hostnames, certificate subjects, versions, and session IDs/ticket details depending on provider and log level. Never publish unreviewed raw traces; avoid unnecessary key logging or secret extraction.
 
-Các thông tin cần nhận diện trong trace/protocol:
-- Khi new connection được tạo, có `ClientHello`/`ServerHello` mới không?
-- Có offered `pre_shared_key` identity/PSK binder trong TLS 1.3 không?
-- Server có selected PSK/resumption không, hay fallback certificate-based full handshake?
-- Có `NewSessionTicket` sau full handshake được client tiếp nhận không?
-- HTTP request thứ hai thực ra có dùng lại socket đầu tiên không?
+What to look for in traces/protocols:
+- When a new connection opens, are there new `ClientHello`/`ServerHello` messages?
+- Is a `pre_shared_key` identity/PSK binder offered in TLS 1.3?
+- Did the server select PSK/resumption, or fall back to a certificate-based full handshake?
+- Was a `NewSessionTicket` after a full handshake actually received by the client?
+- Did the second HTTP request simply reuse the first socket?
 
-**Chỉ nhìn `CipherSuite` hoặc `SSLSession.getId()` không đủ kết luận.**
+**Checking `CipherSuite` or `SSLSession.getId()` alone is insufficient.**
 
-### 16.3. Đừng log ticket/raw PSK và token
+### 16.3. Never log raw tickets, PSKs, or tokens
 
-Dữ liệu nhạy cảm:
-- Raw ticket bytes, resumption PSK, traffic secrets.
-- Credential/cookie/token tầng HTTP.
-- Key material của certificate client hoặc ticket-protection key server.
-- Debug traces đủ chi tiết để làm lộ mối liên hệ sessions/users/hosts.
-- Application request body chứa dữ liệu cá nhân.
+Sensitive data includes:
+- Raw ticket bytes, resumption PSKs, and traffic secrets.
+- HTTP-layer credentials, cookies, and tokens.
+- Client certificate key material or server ticket-protection keys.
+- Debug traces detailed enough to correlate sessions, users, and hosts.
+- Application request bodies containing personal data.
 
-Dùng metrics aggregate và trace IDs không nhạy cảm. Khi có incident, áp quyền, retention và redaction cho artifacts như với dữ liệu bảo mật.
+Use aggregated metrics and non-sensitive trace IDs. During incidents, apply access control, retention limits, and redaction to diagnostic artifacts just like security data.
 
-## 17. Các lỗi phổ biến và cách sửa
+## 17. Common mistakes and fixes
 
-| Ngộ nhận / lỗi | Vì sao sai | Cách đúng |
+| Misconception / mistake | Why it is wrong | Right approach |
 | --- | --- | --- |
-| “Hai GET liên tiếp trên cùng HttpClient là hai lần session resumption” | Pool có thể reuse cùng live connection | Phân biệt socket reuse và new handshake |
-| “Không cần mở socket mới vì có session ticket” | Ticket giúp rút gọn handshake **sau khi** tạo connection mới | Kết nối mới vẫn cần transport và key establishment |
-| “`SSLSession.isValid()` nghĩa là TCP socket còn mở” | Session state khác socket state | Theo dõi socket/HTTP pool riêng |
-| “`SSLSession.invalidate()` đóng mọi TLS connection ngay” | Invalidation cấm resume/join trong tương lai theo API, không đồng nghĩa close | Đóng socket/engine theo lifecycle riêng |
-| “`setSessionTimeout(600)` nghĩa là đóng idle TCP sau 600s” | Là cache time policy | Cấu hình HTTP/TCP idle riêng |
-| “`setSessionCacheSize(0)` là tắt cache” | 0 biểu thị không giới hạn cache size theo API | Dùng provider policy đúng nếu muốn disable |
-| “Resumption lúc nào cũng gồm 0-RTT” | 0-RTT là feature riêng, tùy chọn | 1-RTT PSK resumption có thể không có early data |
-| “0-RTT đã có TLS nên transfer-money an toàn” | Early data có thể replay; weaker secrecy | Cấm unsafe operations, anti-replay/idempotency theo profile |
-| “Dùng PSK resumption thì mọi thứ có PFS” | PSK-only khác PSK-DHE; 0-RTT không có FS | Chọn mode/policy rõ, bảo vệ ticket/PSK |
-| “Client đã có ticket nên server bắt buộc resume” | Server có thể reject do policy/rotation/expiry | Chấp nhận fallback full handshake |
-| “Ticket lifetime = HTTP login lifetime” | Hai lớp xác thực khác nhau | AuthN/AuthZ application có TTL riêng |
-| “Server restart không ảnh hưởng resumption” | In-memory state/key rotation có thể mất | Thiết kế ticket/cache/cluster phù hợp |
-| “TLS ticket có thể dùng cho bất kỳ hostname” | Identity binding/SNI/security policy quan trọng | Verify expected endpoint, scope ticket |
-| “0-RTT GET nào cũng an toàn” | Có thể có side effect, token state hoặc retry nguy hiểm | Chỉ khi application profile chứng minh replay-safe |
-| “Full handshake là lỗi nếu đã bật cache” | Cache miss/expiry là hành vi bình thường | Monitor rate và nguyên nhân, không downgrade |
-| “KeyUpdate mở phiên TLS mới” | KeyUpdate xảy ra trong connection hiện tại | Phân biệt key rotation và resumption |
-| “TLS resumption thay certificate validation” | Tin cậy phải có nền tảng từ full handshake và policy | Không tắt trust/hostname verification |
-| “mTLS resumed = user còn được quyền admin” | App roles và certificates có thể đã bị revoke | Revalidate authorization/policy |
-| “Chỉ cần so session ID để chứng minh resumed” | TLS 1.3 abstraction/ticket và pooling phức tạp | Dùng wire/JSSE handshake evidence đúng |
-| “TLS over QUIC cũng là SSLSocket” | QUIC tích hợp TLS khác TCP/TLS | Dùng provider/API HTTP/3 và chuẩn QUIC phù hợp |
+| "Two consecutive GETs on one `HttpClient` are two session resumptions" | The pool may reuse the same live connection | Separate socket reuse from new handshakes |
+| "No need to open a new socket when you have a session ticket" | Tickets shorten the handshake **after** a new connection is opened | A new connection still needs transport and key establishment |
+| "`SSLSession.isValid()` means the TCP socket is open" | Session state is distinct from socket state | Track sockets/HTTP pools separately |
+| "`SSLSession.invalidate()` closes all TLS connections immediately" | Invalidation blocks future resume/join per API, not connection close | Close sockets/engines per their own lifecycle |
+| "`setSessionTimeout(600)` closes idle TCP sockets after 600s" | It is a cache lifetime policy | Configure HTTP/TCP idle timeouts separately |
+| "`setSessionCacheSize(0)` disables the cache" | `0` means unlimited cache size per API | Use proper provider policy to disable caching |
+| "Resumption always includes 0-RTT" | 0-RTT is a separate, optional feature | 1-RTT PSK resumption can run without early data |
+| "0-RTT has TLS so `transfer-money` is safe" | Early data can be replayed; weaker secrecy | Block unsafe ops; enforce anti-replay/idempotency per profile |
+| "With PSK resumption, everything has PFS" | PSK-only differs from PSK-DHE; 0-RTT lacks FS | Choose mode/policy explicitly; protect tickets/PSKs |
+| "Because the client holds a ticket, the server must resume" | Server can reject due to policy/rotation/expiry | Accept fallback to full handshake |
+| "Ticket lifetime = HTTP login lifetime" | Two separate authentication layers | Application AuthN/AuthZ has its own TTL |
+| "Server restarts don't affect resumption" | In-memory state or rotated keys may be lost | Design ticket/cache/cluster handling properly |
+| "A TLS ticket works for any hostname" | Identity binding, SNI, and security policy apply | Verify expected endpoint; scope tickets |
+| "Any 0-RTT GET is safe" | Can have side effects, token state, or risky retries | Allow only when app profile proves replay safety |
+| "A full handshake is a bug when caching is enabled" | Cache miss/expiry is normal behavior | Monitor rates and causes; never downgrade |
+| "`KeyUpdate` opens a new TLS session" | `KeyUpdate` happens inside the live connection | Distinguish key rotation from resumption |
+| "TLS resumption replaces certificate validation" | Trust must rest on full handshake and policy | Keep trust and hostname verification enabled |
+| "Resumed mTLS = user still has admin privileges" | App roles and certificates may have been revoked | Revalidate authorization and policy |
+| "Comparing session IDs proves resumption" | TLS 1.3 ticket abstractions and pooling complicate IDs | Use proper wire/JSSE handshake evidence |
+| "TLS over QUIC also uses `SSLSocket`" | QUIC integrates TLS differently from TCP/TLS | Use HTTP/3 APIs/providers and QUIC standards |
 
-## 18. Tình huống thực hành
+## 18. Practical scenarios
 
-### Tình huống A: HTTP/2 tải 40 resources
+### Scenario A: HTTP/2 loading 40 resources
 
-Client mở một TLS connection tới `cdn.example.com` rồi tải 40 resources qua HTTP/2 streams. Nhóm vận hành nói đã có 40 TLS resumptions vì có 40 requests.
+A client opens one TLS connection to `cdn.example.com` and fetches 40 resources over HTTP/2 streams. An ops team reports 40 TLS resumptions because there were 40 requests.
 
-**Phân tích:** Không. Có thể chỉ có **một TLS handshake** và một connection, với 40 HTTP/2 streams. Connection reuse/multiplexing khác resumption. Đo ở network/TLS layer, không lấy request count.
+**Analysis:** Incorrect. Likely only **one TLS handshake** and one connection occurred, carrying 40 HTTP/2 streams. Connection reuse/multiplexing differs from resumption. Measure at the network/TLS layer, not by request count.
 
-### Tình huống B: HTTP/1.1 keep-alive hết hạn
+### Scenario B: HTTP/1.1 keep-alive expires
 
-Request #1 hoàn thành; pool đóng socket sau idle timeout. Request #2 mở TCP connection mới, client còn ticket TLS 1.3 và server chấp nhận PSK.
+Request #1 finishes; the pool closes the socket after an idle timeout. Request #2 opens a new TCP connection, the client still holds a TLS 1.3 ticket, and the server accepts the PSK.
 
-**Phân tích:** Có **new transport connection + resumed TLS handshake**. Request #2 không reuse socket cũ. Nếu ticket bị từ chối, vẫn có thể full handshake và xử lý HTTP bình thường.
+**Analysis:** That is a **new transport connection + resumed TLS handshake**. Request #2 did not reuse the old socket. Even if the ticket were rejected, a full handshake could succeed and serve HTTP normally.
 
-### Tình huống C: Server vừa rotate certificate
+### Scenario C: Server just rotated its certificate
 
-Client còn resumption ticket gắn với handshake trước, nhưng server vừa rotate certificate hoặc thay đổi trust/policy.
+The client holds a resumption ticket from an earlier handshake, yet the server just rotated its certificate or updated trust/policy.
 
-**Phân tích:** Không mặc định resume tất cả tickets cũ. Phải xem ticket lifetime, chính sách binding, revocation/rotation và key resumption. Full handshake mới có thể được yêu cầu. Không giữ quyền an ninh cũ vô thời hạn chỉ để nhanh.
+**Analysis:** Never blindly resume all old tickets. Account for ticket lifetime, binding policy, revocation/rotation, and key resumption rules. A fresh full handshake may be required. Never preserve stale security privileges indefinitely for speed.
 
-### Tình huống D: Giao dịch chuyển tiền trong 0-RTT
+### Scenario D: Money transfer inside 0-RTT
 
-Client dùng early data gửi `POST /transfer`; kẻ tấn công ghi lại early-data flight và thử replay ở một region khác.
+A client sends `POST /transfer` in early data; an attacker records the early-data flight and replays it against another region.
 
-**Phân tích:** 0-RTT có replay risk ngay khi traffic được mã hóa. Không đưa lệnh có side effect như chuyển tiền vào early data nếu không có profile chống replay được chứng minh; biện pháp mặc định là không cho phép 0-RTT với thao tác này.
+**Analysis:** 0-RTT carries replay risk even though traffic is encrypted. Never send side-effecting commands like money transfers in early data without a proven anti-replay profile; the default control is disallowing 0-RTT for such operations.
 
-### Tình huống E: Client sửa `SSLSession.invalidate()` rồi kỳ vọng socket đóng
+### Scenario E: Client calls `SSLSession.invalidate()` expecting the socket to close
 
-Ứng dụng gọi `invalidate()` nhưng tiếp tục thấy dữ liệu truyền trên `SSLSocket` cũ.
+The app invokes `invalidate()` yet observes data continuing to flow over the existing `SSLSocket`.
 
-**Phân tích:** Không mâu thuẫn. Invalidation liên quan khả năng reuse/resumption state, còn established TLS connection vẫn có vòng đời riêng. Đóng socket/engine theo đúng API nếu muốn kết thúc truyền.
+**Analysis:** No contradiction. Invalidation affects future reuse/resumption state, whereas an established TLS connection maintains its own lifecycle. Close the socket or engine explicitly per API to stop transmission.
 
-### Tình huống F: Server restart làm resumption giảm mạnh
+### Scenario F: Server restart sharply drops resumption rate
 
-Sau deploy, tỷ lệ resumed handshake từ 80% xuống 10%, full handshake tăng, nhưng HTTP vẫn hoạt động.
+After a deploy, resumed handshakes drop from 80% to 10% and full handshakes rise, while HTTP keeps working.
 
-**Phân tích:** Có thể server mất in-memory session state hoặc rotate ticket keys, load balancer đổi route, client tickets hết hạn. Không tự suy đó là sự cố certificate hay bị tấn công; xác minh qua ticket/PSK accept diagnostics và cấu hình cluster.
+**Analysis:** Servers may have lost in-memory session state or rotated ticket keys, load balancers shifted routes, or client tickets expired. Do not immediately assume a certificate outage or attack; inspect ticket/PSK acceptance diagnostics and cluster config.
 
-### Tình huống G: Một Java service sau reverse proxy
+### Scenario G: A Java service behind a reverse proxy
 
-Client ngoài kết nối HTTPS tới API gateway; gateway kết nối HTTP nội bộ tới Java backend. Java backend kiểm tra `SSLSessionContext` của mình và không thấy TLS sessions từ client.
+External clients connect over HTTPS to an API gateway; the gateway makes internal HTTP calls to a Java backend. The Java backend checks its `SSLSessionContext` and sees zero client TLS sessions.
 
-**Phân tích:** TLS đã terminate ở gateway, backend không sở hữu sessions của client. Kiểm tra handshake ở gateway; identity propagation phải an toàn và không tin header client tự khai.
+**Analysis:** TLS terminated at the gateway, so the backend owns no client TLS sessions. Inspect handshakes at the gateway; propagate identities securely rather than trusting raw client-supplied headers.
 
-### Tình huống H: TLS 1.3 resumption nhưng không có 0-RTT
+### Scenario H: TLS 1.3 resumption without 0-RTT
 
-Client nhận ticket, lần sau dùng PSK và server chấp nhận; application data chỉ gửi sau bước Finished theo mode 1-RTT.
+A client receives a ticket, presents the PSK next time, and the server accepts; application data is sent only after `Finished` in 1-RTT mode.
 
-**Phân tích:** Đây vẫn là **session resumption hợp lệ**, không có early data. Phân biệt performance optimization thông thường với tính năng 0-RTT vốn yêu cầu replay-safe application semantics.
+**Analysis:** This is still **valid session resumption**, just without early data. Distinguish standard resumption optimization from 0-RTT, which requires replay-safe application semantics.
 
-### Tình huống I: Application session expired
+### Scenario I: Application session expired
 
-TLS connection vẫn sống và `SSLSession.isValid()` trả true, nhưng access token của user đã hết hạn.
+The TLS connection stays alive and `SSLSession.isValid()` returns `true`, yet the user's access token has expired.
 
-**Phân tích:** Server phải từ chối hoặc yêu cầu auth lại theo chính sách. TLS state không gia hạn bearer token hoặc user privileges.
+**Analysis:** The server must reject the request or require reauthentication per policy. TLS state never extends bearer tokens or user privileges.
 
-### Tình huống J: Java HTTP client đã tạo hai connections song song
+### Scenario J: Java HTTP client opened two parallel connections
 
-Hai requests đến cùng origin nhưng pool chọn hai sockets khác nhau do concurrency/HTTP version. Handshake thứ hai có thể full dù cache còn ticket.
+Two requests target the same origin, yet the pool opens two sockets due to concurrency or HTTP version behavior. The second handshake may be full even with a ticket in cache.
 
-**Phân tích:** Số socket và khả năng resumption phụ thuộc timing nhận ticket, trust, policy và provider. Không suy từ số `HttpClient` instances; chạy tests có instrument TLS handshakes và connection reuse.
+**Analysis:** Socket count and resumption depend on ticket arrival timing, trust, policy, and provider behavior. Do not infer behavior from the number of `HttpClient` instances; run instrumented tests measuring TLS handshakes and connection reuse.
 
-## 19. Checklist thiết kế và vận hành
+## 19. Design and operations checklist
 
 ### Application client
 
-- [ ] Xác định rõ có cần connection pooling, TLS resumption hay cả hai; metric cho từng thứ.
-- [ ] Sử dụng `HttpClient`/HTTP framework được hỗ trợ với trust manager và endpoint identity validation chuẩn.
-- [ ] Không thay `SSLSession` cho HTTP auth session hoặc principal.
-- [ ] Hạn chế số connections và idle timeouts theo tài nguyên/latency/threat model.
-- [ ] Nếu custom `SSLContext`, quản lý client session cache, trust material và shutdown theo policy.
-- [ ] Không tự gửi 0-RTT cho operation có side effect; kiểm tra profile/SDK hỗ trợ có chủ đích.
-- [ ] Không giả định session ID/cache state chứng minh resumption hoặc peer identity.
+- [ ] Determine whether you need connection pooling, TLS resumption, or both; collect metrics for each.
+- [ ] Use a supported `HttpClient`/HTTP framework with standard trust manager and endpoint identity validation.
+- [ ] Never substitute `SSLSession` for an HTTP auth session or user principal.
+- [ ] Cap connection counts and idle timeouts per resource, latency, and threat-model limits.
+- [ ] If using a custom `SSLContext`, manage client session caches, trust material, and shutdown per policy.
+- [ ] Never auto-send 0-RTT for side-effecting operations; check intentional profile/SDK support.
+- [ ] Never assume session IDs or cache state prove resumption or peer identity.
 
 ### TLS termination server / gateway
 
-- [ ] Chọn TLS versions, cipher suites, key-exchange modes và certificate policy cập nhật theo RFC 9846.
-- [ ] Quản lý session/ticket lifetimes, resumption cache, server ticket-key rotation và secrets an toàn.
-- [ ] Có chiến lược xử lý node restart, load balancing, key sharing và fallback full handshake.
-- [ ] Giới hạn ticket lifetime và resumption chain theo policy, xét thay đổi certificate/CA/client identity.
-- [ ] Nếu bật 0-RTT, cần anti-replay ở cluster, chỉ chấp nhận traffic replay-safe và có ứng dụng đồng thuận.
-- [ ] Bảo vệ logs, traces, metric dimensions và key material; không ghi raw PSK/tickets.
-- [ ] Kiểm tra session invalidation/revocation có scope thực tế, không tuyên bố một lệnh Java giải quyết toàn cluster.
+- [ ] Select TLS versions, cipher suites, key-exchange modes, and certificate policies aligned with RFC 9846.
+- [ ] Manage session/ticket lifetimes, resumption caches, server ticket-key rotation, and secrets securely.
+- [ ] Plan for node restarts, load balancing, key sharing, and fallback to full handshakes.
+- [ ] Cap ticket lifetimes and resumption chains per policy, accounting for cert/CA/client identity changes.
+- [ ] If enabling 0-RTT, enforce cluster-wide anti-replay, accept only replay-safe traffic, and coordinate with the application.
+- [ ] Protect logs, traces, metric dimensions, and key material; never write raw PSKs/tickets.
+- [ ] Verify the actual scope of session invalidation/revocation; never claim one local Java call clears the whole cluster.
 
-### Vòng đời kết nối và tài nguyên
+### Connection and resource lifecycle
 
-- [ ] Đóng `SSLSocket` hoặc `SSLEngine` theo contract khi không cần, xử lý lỗi/network EOF đúng.
-- [ ] HTTP response bodies được đọc/đóng đúng để giải phóng connection pool resources.
-- [ ] Không lấy timeout session cache làm socket read/HTTP request/idle timeout.
-- [ ] Theo dõi pool saturation, keep-alive, idle close, HTTP/2 streams và remote GOAWAY.
-- [ ] Duy trì authorization của ứng dụng độc lập với TLS resumption state.
-- [ ] Có load tests, restart tests, ticket-key rotation tests, browser/mobile/network-change tests.
+- [ ] Close `SSLSocket` or `SSLEngine` per contract when finished, handling errors and network EOF cleanly.
+- [ ] Read/close HTTP response bodies properly so connection pool resources are released.
+- [ ] Never mistake session cache timeout for socket read, HTTP request, or idle timeout.
+- [ ] Monitor pool saturation, keep-alive, idle closures, HTTP/2 streams, and remote `GOAWAY` frames.
+- [ ] Keep application authorization independent of TLS resumption state.
+- [ ] Run load tests, restart tests, ticket-key rotation tests, and browser/mobile/network-change tests.
 
 ### Security regression
 
-- [ ] Full handshake tới certificate hợp lệ và expected hostname thành công; sai trust/hostname fail.
-- [ ] Resumed handshake thực sự được xác nhận bằng provider/wire evidence.
-- [ ] Hết ticket/cache hoặc đổi trust/policy -> full handshake hoặc reject theo expected behavior.
-- [ ] Raw ticket/key không xuất hiện trong logs/heap-dump artifacts không được bảo vệ.
-- [ ] PSK-only/PSK-DHE policy được kiểm tra, không tái sử dụng ephemeral KeyShare.
-- [ ] Không tự kích hoạt 0-RTT trên unsafe requests.
-- [ ] Multi-instance anti-replay giữ đúng consistency nếu 0-RTT dùng.
-- [ ] App auth expired vẫn bị từ chối dù TLS session hợp lệ.
+- [ ] Full handshake to valid certificate and expected hostname succeeds; wrong trust/hostname fails.
+- [ ] Resumed handshakes are genuinely verified via provider or wire evidence.
+- [ ] Expired ticket/cache or changed trust/policy triggers a full handshake or rejection as expected.
+- [ ] Raw tickets/keys never appear in logs or unprotected heap-dump artifacts.
+- [ ] PSK-only / PSK-DHE policy is verified, with no ephemeral `KeyShare` reuse.
+- [ ] 0-RTT is never automatically enabled on unsafe requests.
+- [ ] Multi-instance anti-replay remains consistent if 0-RTT is used.
+- [ ] Expired app auth is still rejected even while the TLS session remains valid.
 
-## 20. Câu hỏi tự kiểm tra
+## 20. Self-check questions
 
-**1. Hai HTTP requests qua cùng một TCP/TLS socket có phải session resumption không?**  
-**Không.** Đó là connection reuse/HTTP pooling. TLS resumption cần một **handshake trên kết nối mới** sử dụng state từ trước.
+**1. Are two HTTP requests over the same TCP/TLS socket session resumption?**  
+**No.** That is connection reuse / HTTP pooling. TLS resumption requires a **handshake on a new connection** using prior state.
 
-**2. Một TCP socket bị đóng có xóa TLS session ticket không?**  
-**Không nhất thiết.** TLS provider có thể tiếp tục giữ session/ticket để resume trên socket mới cho đến expiry/eviction/policy.
+**2. Does closing a TCP socket erase the TLS session ticket?**  
+**Not necessarily.** The TLS provider may retain the session/ticket to resume on a new socket until expiry, eviction, or policy change.
 
-**3. `SSLSession.isValid() == true` có cho biết `SSLSocket` đang mở?**  
-**Không.** Đây là trạng thái session, không phải trạng thái transport socket.
+**3. Does `SSLSession.isValid() == true` tell you the `SSLSocket` is open?**  
+**No.** That reflects session validity, not transport socket state.
 
-**4. `SSLSession.invalidate()` có đóng socket đang chạy ngay không?**  
-**Không.** API invalidation nhằm ngăn phiên tham gia/resume trong tương lai; established connection có thể tiếp tục tới khi đóng.
+**4. Does `SSLSession.invalidate()` immediately close a running socket?**  
+**No.** Invalidation prevents future resumption/joining via the API; an established connection may continue until closed.
 
-**5. TLS 1.3 dùng gì để resume?**  
-**PSK**, thường được gắn với `NewSessionTicket` từ handshake trước; client offer PSK identity + binder, server có thể accept/reject.
+**5. What does TLS 1.3 use to resume?**  
+A **PSK**, typically tied to a `NewSessionTicket` from an earlier handshake; the client offers PSK identity + binder, and the server accepts or rejects.
 
-**6. Resumption 1-RTT có nhất thiết dùng 0-RTT không?**  
-**Không.** 0-RTT là early-data mode riêng, phải được cho phép và phù hợp profile ứng dụng.
+**6. Does 1-RTT resumption necessarily use 0-RTT?**  
+**No.** 0-RTT is a separate early-data mode that must be explicitly permitted and match the application profile.
 
-**7. Vì sao không gửi lệnh chuyển tiền bằng 0-RTT theo mặc định?**  
-Vì early data có thể bị replay giữa các kết nối; mã hóa TLS không ngăn được hành động lặp.
+**7. Why not send money-transfer commands over 0-RTT by default?**  
+Because early data can be replayed across connections; TLS encryption alone does not prevent duplicate execution.
 
-**8. Có thể kết luận ticket được server accept chỉ từ độ trễ handshake thấp không?**  
-**Không.** Cần TLS handshake trace hoặc metrics/provider evidence thể hiện PSK/resumption được chọn.
+**8. Can you conclude the server accepted a ticket solely from low handshake latency?**  
+**No.** You need TLS handshake traces or provider metrics showing PSK/resumption was selected.
 
-**9. Đặt `setSessionTimeout(600)` có buộc socket đóng sau mười phút?**  
-**Không.** Đây là session cache setting, không phải HTTP keep-alive/connection idle timeout.
+**9. Does calling `setSessionTimeout(600)` force sockets to close after ten minutes?**  
+**No.** It is a session cache setting, not an HTTP keep-alive or connection idle timeout.
 
-**10. Đặt `setSessionCacheSize(0)` có disable cache?**  
-**Không.** Theo contract của API, 0 nghĩa là không giới hạn kích thước theo setting này; muốn tắt resumption cần policy/provider configuration khác.
+**10. Does calling `setSessionCacheSize(0)` disable the cache?**  
+**No.** Per the API contract, `0` means no size limit enforced by this setting; disabling resumption requires different policy/provider configuration.
 
-**11. Nếu server có ticket key mới nhưng không nhận ticket cũ, client có phải lỗi kết nối không?**  
-Không nhất thiết. Nếu policy cho phép, server/client có thể fallback sang full handshake an toàn.
+**11. If a server rotates to a new ticket key and rejects an old ticket, must the client fail to connect?**  
+Not necessarily. When policy permits, server and client can safely fall back to a full handshake.
 
-**12. TLS resumption có tự gia hạn application login token không?**  
-**Không.** HTTP cookie, JWT, OAuth token hoặc session ứng dụng có vòng đời riêng.
+**12. Does TLS resumption automatically renew an application login token?**  
+**No.** HTTP cookies, JWTs, OAuth tokens, and application sessions have independent lifecycles.
 
-**13. Resumption và KeyUpdate khác nhau ở đâu?**  
-Resumption tạo **new handshake trên new connection** dùng trạng thái cũ; KeyUpdate thay application traffic keys **trong connection hiện tại**.
+**13. How do resumption and `KeyUpdate` differ?**  
+Resumption performs a **new handshake on a new connection** using prior state; `KeyUpdate` rotates application traffic keys **inside the existing connection**.
 
-**14. Một service Java sau TLS-terminating reverse proxy có nhìn thấy TLS sessions của browser không?**  
-Thông thường **không**. Chúng thuộc gateway/proxy; backend nhìn thấy protocol kết nối của chính nó.
+**14. Does a Java service behind a TLS-terminating reverse proxy see browsers' TLS sessions?**  
+Normally **no**. Those belong to the gateway/proxy; the backend sees only its own hop's connection protocol.
 
-**15. TLS 1.3 resumption có bảo đảm forward secrecy mọi trường hợp không?**  
-**Không**: PSK-only, PSK-DHE và 0-RTT có bảo đảm khác nhau; xét ticket/PSK compromise và kết quả DHE.
+**15. Does TLS 1.3 resumption guarantee forward secrecy in every case?**  
+**No**: PSK-only, PSK-DHE, and 0-RTT have different guarantees; consider PSK/ticket compromise and DHE usage.
 
-**16. RFC TLS 1.3 được dùng làm chuẩn chính vào tháng 10/2026 là gì?**  
-**RFC 9846**, xuất bản tháng 7/2026, thay thế RFC 8446 nhưng giữ TLS version 1.3 và tương thích về cơ bản.
+**16. Which RFC serves as the primary TLS 1.3 standard as of October 2026?**  
+**RFC 9846**, published July 2026, replacing RFC 8446 while preserving TLS version 1.3 and core compatibility.
 
-## 21. Sơ đồ ghi nhớ cuối bài
+## 21. Lesson summary diagram
 
 ```text
                 APPLICATION HTTP REQUEST
@@ -1017,14 +1017,14 @@ Thông thường **không**. Chúng thuộc gateway/proxy; backend nhìn thấy 
     Session invalidation != socket.close()
 ```
 
-**Kết luận:** Hãy tách rõ ba vòng đời: **application request**, **transport/TLS connection đang sống**, và **session/resumption state có thể sống qua nhiều connections**. Connection pooling và HTTP/2 tiết kiệm handshake bằng cách **không mở lại kết nối**; TLS session resumption tiết kiệm handshake bằng cách **tái sử dụng trạng thái được xác thực trên một kết nối mới**. TLS 1.3 theo RFC 9846 dùng PSK/tickets cho resumption; 0-RTT là một lựa chọn có rủi ro replay, không phải mặc định của resumption. Trong Java, `SSLSessionContext` giúp cấu hình cache nhưng không chứng minh handshake đã resume, còn `SSLSession.invalidate()` không đóng socket. Một hệ thống production cần policy về lifetime, hostname/authentication, cache/ticket keys, 0-RTT, authorization, logging và đóng kết nối đúng tầng.
+**Conclusion:** Keep three lifecycles separate: **application requests**, **live transport/TLS connections**, and **session/resumption state that can span multiple connections**. Connection pooling and HTTP/2 save handshakes by **not reopening connections**; TLS session resumption saves handshakes by **reusing authenticated state on a new connection**. Under RFC 9846, TLS 1.3 uses PSKs/tickets for resumption; 0-RTT is an option carrying replay risk, not the default for resumption. In Java, `SSLSessionContext` configures cache limits without proving resumption occurred, and `SSLSession.invalidate()` does not close sockets. A production system needs clear policies for lifetimes, hostname/authentication, cache/ticket keys, 0-RTT, authorization, logging, and layered connection shutdown.
 
-### Tài liệu tham khảo
+### References
 
-- RFC 9846 (2026) — *The Transport Layer Security (TLS) Protocol Version 1.3*, thay thế RFC 8446: https://www.rfc-editor.org/rfc/rfc9846
-- RFC 8446 (2018) — TLS 1.3 bản gốc, nay đã được RFC 9846 thay thế: https://www.rfc-editor.org/rfc/rfc8446
+- RFC 9846 (2026) — *The Transport Layer Security (TLS) Protocol Version 1.3*, replacing RFC 8446: https://www.rfc-editor.org/rfc/rfc9846
+- RFC 8446 (2018) — Original TLS 1.3, now replaced by RFC 9846: https://www.rfc-editor.org/rfc/rfc8446
 - RFC 9000 — *QUIC: A UDP-Based Multiplexed and Secure Transport*: https://www.rfc-editor.org/rfc/rfc9000
-- RFC 9001 — *Using TLS to Secure QUIC*, resumption và early data: https://www.rfc-editor.org/rfc/rfc9001
+- RFC 9001 — *Using TLS to Secure QUIC*, resumption and early data: https://www.rfc-editor.org/rfc/rfc9001
 - Java SE 17, `SSLContext`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLContext.html
 - Java SE 17, `SSLSessionContext`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSessionContext.html
 - Java SE 17, `SSLSession`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSession.html

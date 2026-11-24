@@ -1,0 +1,200 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Truy cập dữ liệu là gì và vai trò trong ứng dụng Spring
+  - Mối liên hệ giữa nghiệp vụ, tầng dữ liệu, kết nối và cơ sở dữ liệu
+  - Những công việc Spring xử lý thay cho mã JDBC thủ công
+  - Toàn cảnh Spring JDBC, ORM/JPA và R2DBC
+  - Phân biệt Spring Framework với Spring Data và trình cung cấp ORM
+  - Chọn SQL tường minh, ORM hoặc truy cập reactive theo bài toán
+  - Phân biệt quản lý tài nguyên, quản lý giao dịch và ánh xạ dữ liệu
+  - 'Ví dụ xuyên suốt: lưu, tìm và cập nhật đơn hàng'
+  - Lộ trình học và kiến thức Java, SQL cần có
+- level1: Nền tảng dữ liệu
+  level2:
+  - Bảng, hàng, cột và quan hệ với đối tượng Java
+  - Khóa chính, khóa ngoại, ràng buộc duy nhất và tính toàn vẹn
+  - SELECT, INSERT, UPDATE, DELETE và câu lệnh định nghĩa cấu trúc
+  - Kiểu dữ liệu SQL, NULL và logic ba giá trị
+  - Join, tập kết quả và nguy cơ nhân bản hàng
+  - Thứ tự kết quả chỉ được bảo đảm khi truy vấn yêu cầu phù hợp
+  - Commit, rollback, auto-commit và ranh giới giao dịch
+  - Chỉ mục, khóa và kế hoạch thực thi ở mức cần đọc hiểu
+- level1: Thiết kế tầng dữ liệu
+  level2:
+  - Phân biệt DAO, repository, service và đối tượng miền
+  - Tách hợp đồng truy cập dữ liệu khỏi cách triển khai
+  - '@Repository và đăng ký thành phần trong container'
+  - Tiêm DataSource, template hoặc EntityManager thay cho tự tìm tài nguyên
+  - Đặt ranh giới giao dịch ở thao tác nghiệp vụ phù hợp
+  - Quy định kết quả không có dữ liệu, nhiều dữ liệu và lỗi
+  - Trả về dữ liệu độc lập với tài nguyên đã đóng
+  - Không để SQL hoặc chi tiết trình điều khiển lan tới tầng giao diện
+- level1: DataSource
+  level2:
+  - DataSource là nguồn cung cấp Connection
+  - Đăng ký DataSource thành bean và cấp cấu hình kết nối
+  - Phân biệt DriverManagerDataSource với nguồn có nhóm kết nối
+  - 'Nhóm kết nối: mượn, sử dụng và trả lại'
+  - Số kết nối tối đa, thời gian chờ mượn và thời gian sống
+  - Kiểm tra kết nối và xử lý kết nối đã hỏng
+  - DataSource lấy qua JNDI trong môi trường được quản lý
+  - Tiêm đúng DataSource khi ứng dụng có nhiều nguồn
+  - Đóng nhóm kết nối theo vòng đời container
+  - Phân biệt cấu hình Framework với tự động cấu hình Spring Boot
+- level1: Kết nối và tài nguyên
+  level2:
+  - Chuỗi tài nguyên Connection, Statement và ResultSet
+  - JdbcTemplate quản lý tạo và giải phóng tài nguyên theo hợp đồng
+  - DataSourceUtils và kết nối tham gia giao dịch hiện tại
+  - Vì sao gọi trực tiếp DataSource.getConnection() có thể bỏ qua kết nối gắn giao dịch
+  - TransactionAwareDataSourceProxy cho mã JDBC cần thích nghi
+  - LazyConnectionDataSourceProxy và thời điểm lấy kết nối vật lý
+  - Không lưu Connection trong trường singleton hoặc chia sẻ giữa các luồng
+  - Giữ kết nối trong thời gian ngắn và tránh chờ mạng khi đang giữ giao dịch
+  - Giới hạn của try-with-resources khi thao tác với tài nguyên được Spring quản lý
+  - Đọc lỗi và số liệu để phát hiện rò rỉ kết nối
+- level1: JdbcTemplate
+  level2:
+  - JdbcTemplate và JdbcOperations trong kiến trúc truy cập dữ liệu
+  - Khởi tạo một template đã cấu hình rồi tái sử dụng
+  - JdbcTemplate an toàn khi dùng chung sau cấu hình nhưng callback vẫn cần thiết kế đúng
+  - query(), queryForObject(), update() và execute()
+  - Callback cung cấp SQL, tham số hoặc cách đọc kết quả
+  - PreparedStatementCreator và PreparedStatementSetter
+  - ConnectionCallback cho tình huống cần truy cập JDBC mức thấp
+  - Quy định quyền sở hữu tài nguyên trong callback
+  - Đặt fetchSize, maxRows và queryTimeout
+  - Nhận diện RdbmsOperation và các lớp biểu diễn thao tác SQL khi đọc mã hiện có
+- level1: Truy vấn JDBC
+  level2:
+  - Truy vấn giá trị đơn bằng queryForObject()
+  - Truy vấn một đối tượng và yêu cầu về số hàng, số cột
+  - Không có hàng với EmptyResultDataAccessException
+  - Nhiều hàng khi chỉ mong một hàng và IncorrectResultSizeDataAccessException
+  - query() để lấy danh sách đối tượng
+  - queryForList(), queryForMap() và ánh xạ không định kiểu miền
+  - Phân biệt một hàng chứa SQL NULL với không có hàng nào
+  - Thiết kế Optional hoặc kết quả rỗng ở hợp đồng repository
+  - Phân trang, sắp xếp tường minh và truy vấn tổng số khi cần
+  - queryForStream() và trách nhiệm đóng Stream còn giữ tài nguyên
+- level1: Ánh xạ kết quả
+  level2:
+  - RowMapper ánh xạ một hàng thành đối tượng
+  - RowMapper không tự gọi ResultSet.next()
+  - Đọc theo tên cột, bí danh hoặc vị trí
+  - ResultSetExtractor xử lý toàn bộ tập kết quả
+  - RowCallbackHandler xử lý từng hàng mà không gom toàn bộ vào bộ nhớ
+  - BeanPropertyRowMapper và quy tắc ánh xạ tên thuộc tính
+  - DataClassRowMapper cho kiểu có hàm khởi tạo dữ liệu phù hợp
+  - Chọn kiểu Java nullable và xử lý wasNull() khi đọc nguyên thủy
+  - Ánh xạ quan hệ một-nhiều từ kết quả join
+  - Không coi ánh xạ tự động là thay thế kiểm tra kiểu và dữ liệu đầu vào
+- level1: Tham số SQL
+  level2:
+  - PreparedStatement và cơ chế tách SQL khỏi giá trị
+  - Chỉ số tham số JDBC bắt đầu từ 1
+  - Liên kết String, số, boolean, ngày giờ và byte[]
+  - Chỉ rõ kiểu SQL khi giá trị null không đủ thông tin suy luận
+  - SqlParameterValue và khai báo java.sql.Types
+  - Tham số chỉ thay giá trị, không tự thay tên bảng, tên cột hoặc cú pháp SQL
+  - Kiểm soát danh sách tên cột sắp xếp bằng lựa chọn hợp lệ
+  - Toán tử LIKE, ký tự đại diện và chính sách tìm kiếm
+  - IN với tập giá trị và trường hợp danh sách rỗng
+  - Giữ số lượng tham số và kiểu dữ liệu tương thích với câu lệnh
+- level1: Tham số có tên
+  level2:
+  - NamedParameterJdbcTemplate bổ sung tham số theo tên trên Spring JDBC
+  - Cú pháp :name và cách chuyển về tham số vị trí
+  - MapSqlParameterSource và khai báo kiểu SQL
+  - BeanPropertySqlParameterSource lấy giá trị từ đối tượng
+  - Dùng Map và giới hạn suy luận khi giá trị null
+  - Tham số danh sách cho IN và giới hạn số tham số của cơ sở dữ liệu
+  - Không ghép trực tiếp dữ liệu người dùng vào câu SQL
+  - Tái sử dụng RowMapper giữa template cổ điển và template có tên
+  - Chọn tham số theo tên hoặc vị trí để giữ truy vấn dễ bảo trì
+- level1: JdbcClient
+  level2:
+  - JdbcClient cung cấp API liền mạch từ Spring Framework 6.1
+  - Tạo client từ DataSource hoặc template phù hợp
+  - Bắt đầu thao tác bằng sql()
+  - Liên kết tham số vị trí hoặc tham số có tên
+  - Chọn kiểu kết quả hoặc RowMapper
+  - single(), optional(), list() và hợp đồng số lượng kết quả
+  - Chạy update() và lấy khóa sinh theo API phiên bản
+  - JdbcClient dựa trên hạ tầng JdbcTemplate thay vì thay đổi bản chất JDBC
+  - Quay về template cho batch hoặc thao tác chuyên biệt chưa được facade đáp ứng
+- level1: Cập nhật và khóa sinh
+  level2:
+  - INSERT, UPDATE và DELETE bằng update()
+  - Đọc số hàng bị ảnh hưởng và kiểm tra kỳ vọng nghiệp vụ
+  - Cập nhật theo khóa để tránh sửa nhầm nhiều hàng
+  - Kiểm tra số hàng để phát hiện dữ liệu không tồn tại hoặc xung đột
+  - GeneratedKeyHolder và KeyHolder
+  - Yêu cầu trả khóa khi tạo PreparedStatement
+  - Nhiều khóa sinh hoặc nhiều cột khóa và cách đọc phù hợp
+  - Khả năng lấy khóa phụ thuộc trình điều khiển và cơ sở dữ liệu
+  - Không suy luận thành công toàn nghiệp vụ chỉ từ khóa vừa được tạo
+- level1: Cập nhật theo lô
+  level2:
+  - Batch giảm số lượt trao đổi cho nhiều thao tác tương tự
+  - BatchPreparedStatementSetter và kích thước lô
+  - Batch từ danh sách Object[] hoặc SqlParameterSource
+  - Chia dữ liệu thành các lô nhỏ để giới hạn bộ nhớ
+  - ParameterizedPreparedStatementSetter và xử lý lô cuối
+  - Đọc số hàng từng phần tử và giá trị SUCCESS_NO_INFO
+  - BatchUpdateException, thất bại một phần và thông tin từ trình điều khiển
+  - Batch không tự tạo tính nguyên tử nếu thiếu giao dịch phù hợp
+  - Khai báo kiểu cho null để tránh lỗi hoặc chi phí metadata
+  - Kiểm chứng lợi ích batch với trình điều khiển thực tế
+- level1: SimpleJdbcInsert
+  level2:
+  - SimpleJdbcInsert đơn giản hóa tạo câu lệnh thêm dữ liệu
+  - Cấu hình bảng, schema và danh sách cột
+  - Dùng metadata cơ sở dữ liệu và khi cần khai báo tường minh
+  - Truyền giá trị bằng Map hoặc SqlParameterSource
+  - executeAndReturnKey() và executeAndReturnKeyHolder()
+  - Khai báo cột khóa được cơ sở dữ liệu sinh
+  - Thêm nhiều hàng theo lô
+  - Hoàn tất cấu hình trước khi dùng chung đối tượng thao tác
+- level1: Thủ tục và hàm
+  level2:
+  - CallableStatement và nhu cầu gọi mã trong cơ sở dữ liệu
+  - SimpleJdbcCall với procedure hoặc function
+  - Tham số IN, OUT và INOUT
+  - SqlParameter, SqlOutParameter và SqlInOutParameter
+  - Metadata tự động và cấu hình tham số tường minh
+  - Đọc nhiều kết quả, giá trị OUT và con trỏ theo khả năng trình điều khiển
+  - Ánh xạ kết quả trả về bằng RowMapper
+  - Phân biệt tham số có tên phía Spring với hỗ trợ của trình điều khiển
+  - Nhận diện lớp StoredProcedure khi làm việc với mã hiện có
+  - Giao dịch, quyền truy cập và tính phụ thuộc nhà cung cấp của thủ tục
+- level1: Kiểu dữ liệu đặc biệt
+  level2:
+  - Chuyển đổi giữa kiểu SQL và kiểu Java
+  - BigDecimal, precision và scale cho dữ liệu thập phân
+  - LocalDate, LocalTime, LocalDateTime và Instant theo ngữ nghĩa cột
+  - Timestamp, offset, múi giờ và độ chính xác khi đọc ghi
+  - LOB dạng BLOB hoặc CLOB và khác biệt đọc toàn bộ với đọc luồng
+  - Chọn API LOB phù hợp phiên bản Spring và trình điều khiển
+  - SQL ARRAY, enum, JSON và kiểu riêng của cơ sở dữ liệu
+  - Xử lý null tường minh và giá trị mặc định
+  - Kiểm tra chuyển đổi đi-về để phát hiện mất dữ liệu
+- level1: Ngoại lệ dữ liệu
+  level2:
+  - DataAccessException là gốc của hệ ngoại lệ dữ liệu trong Spring
+  - Dịch SQLException mà vẫn giữ nguyên nhân gốc
+  - SQLExceptionTranslator và lựa chọn cách phân loại
+  - SQLState, mã lỗi nhà cung cấp và các translator tương ứng
+  - DuplicateKeyException, DataIntegrityViolationException và lỗi ràng buộc
+  - BadSqlGrammarException và lỗi SQL
+  - Lỗi tài nguyên, khóa, truy cập đồng thời và khả năng thử lại
+  - '@Repository cùng PersistenceExceptionTranslationPostProcessor cho dịch lỗi phù hợp'
+  - Không đồng nhất mọi DataAccessException với một lỗi nghiệp vụ
+  - Không thử lại toàn bộ thao tác một cách mù quáng khi kết quả commit chưa rõ
+- level1: Giao dịch dữ liệu
+  level2:
+  - Ranh giới giao dịch bao nhiều thao tác repository
+  - DataSourceTransactionManager và JdbcTransactionManager
+  - '@Transactional và TransactionTemplate'
+  - Chọn cùng DataSource và bộ quản lý cho các thao tác cần phối hợp

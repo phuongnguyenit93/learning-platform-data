@@ -1,61 +1,61 @@
-# 3.8 Thiết kế định dạng dữ liệu có phiên bản, độ dài và mã định danh thuật toán
+# 3.8 Designing Data Formats with Version, Length, and Algorithm Identifier
 
-## 1. Vì sao dữ liệu mật mã cần một định dạng được đặc tả?
+## 1. Why Does Cryptographic Data Need a Specified Format?
 
-Một mảng byte sau khi mã hóa **không tự nói lên cách giải mã**. Ứng dụng cần biết dữ liệu thuộc phiên bản nào, dùng thuật toán và tham số nào, chọn khóa nào, nonce/IV nằm ở đâu, có bao nhiêu byte ciphertext và authentication tag. Nếu các thông tin này chỉ nằm trong mã nguồn hoặc được đoán từ dữ liệu, việc đọc lại dữ liệu cũ, chuyển hệ thống, luân chuyển khóa và xử lý bản ghi lỗi đều trở nên khó khăn.
+A raw byte array after encryption **does not explain how to decrypt itself**. Applications must know which version the data belongs to, which algorithm and parameters were used, which key to select, where the nonce/IV sits, and how many bytes belong to ciphertext versus authentication tag. If those details live only in source code or are guessed from payload bytes, reading legacy records, migrating systems, rotating keys, and handling corrupted records all become error-prone.
 
-Bài này thiết kế một **binary envelope** (bản ghi bao dữ liệu mật mã) phục vụ lưu trữ/truyền tải. Ba thành phần cốt lõi là:
+This lesson designs a **binary envelope** (a cryptographic data wrapper record) for storage and transport. The three core elements are:
 
-- **Version**: quy định *cấu trúc và quy tắc diễn giải* byte của bản ghi.
-- **Length**: cho phép xác định ranh giới trường một cách duy nhất, kiểm tra truncation/trailing bytes và giới hạn chi phí xử lý đầu vào.
-- **Algorithm identifier**: ánh xạ một số nguyên ổn định sang một **bộ thuật toán + tham số cụ thể**, không phụ thuộc tên provider JDK.
+- **Version:** specifies the *byte layout and interpretation rules* of the record.
+- **Length:** unambiguously defines field boundaries, detects truncation/trailing bytes, and bounds input-processing cost.
+- **Algorithm identifier:** maps a stable integer to a **concrete algorithm suite + parameters**, independent of JDK provider names.
 
-Một định dạng tốt còn cần **magic**, **key identifier**, **nonce/IV**, quy tắc encoding/endianness, cách xác thực metadata và chính sách từ chối dữ liệu không hỗ trợ.
+A sound format also specifies **magic bytes**, **key identifier**, **nonce/IV**, encoding/endianness rules, metadata authentication, and a policy for rejecting unsupported data.
 
-> Ví dụ bên dưới là **định dạng minh họa do ứng dụng tự định nghĩa**, không phải chuẩn file của Java SE, JCA hay RFC 5116. Trong dự án thực tế có thể dùng chuẩn giao thức/envelope đã được kiểm chứng (ví dụ JWE khi phù hợp) thay vì tự tạo giao thức mới. Mục tiêu của bài là hiểu cách đặc tả và triển khai cấu trúc byte không mơ hồ.
+> The example below is an **illustrative application-defined format**, not a Java SE, JCA, or RFC 5116 file standard. Real projects can adopt vetted protocol/envelope standards (such as JWE when appropriate) rather than inventing a new protocol. The goal here is learning how to specify and implement an unambiguous byte structure.
 
-## 2. Tách format version, algorithm suite và key ID
+## 2. Separating Format Version, Algorithm Suite, and Key ID
 
-| Trường | Trả lời câu hỏi | Không nên hiểu nhầm |
+| Field | Answers the question | Must not be misunderstood as |
 | --- | --- | --- |
-| `magic` | “Đây có phải họ định dạng mà parser hiểu?” | Magic **không** phải chữ ký hay bằng chứng dữ liệu đáng tin. |
-| `version` | “Các byte tiếp theo được bố trí và kiểm tra theo schema nào?” | Version của **file/protocol** không phải version Java hoặc độ mạnh mật mã. |
-| `suite_id` | “Dùng thuật toán, mode, độ dài khóa, nonce và tag nào?” | Không được ánh xạ tùy ý sang chuỗi `Cipher.getInstance()` lấy trực tiếp từ file. |
-| `key_id` (`kid`) | “Nên tra khóa ứng viên nào trong kho khóa tin cậy?” | ID **không phải khóa**, không bí mật, không được tự cấp quyền truy cập. |
-| `nonce`/`IV` | “Giá trị khởi tạo duy nhất cho lần mã hóa bằng khóa này là gì?” | Không phải mật khẩu/salt; việc nonce có thể công khai **không** cho phép tái sử dụng với cùng khóa AES-GCM. |
-| `length` | “Trường kế tiếp dài bao nhiêu byte?” | Độ dài đến từ dữ liệu ngoài và phải được kiểm tra **trước khi cấp phát**. |
-| `ciphertext` + `tag` | “Dữ liệu đã mã hóa và bằng chứng toàn vẹn ở đâu?” | Chỉ được trả plaintext sau khi kiểm tra tag thành công. |
+| `magic` | "Is this the format family the parser understands?" | Magic is **not** a signature or proof of trustworthy data. |
+| `version` | "Which schema governs the layout and validation of subsequent bytes?" | **File/protocol** version is not Java version or cryptographic strength. |
+| `suite_id` | "Which algorithm, mode, key length, nonce, and tag are used?" | Never map arbitrarily to a `Cipher.getInstance()` string read directly from the file. |
+| `key_id` (`kid`) | "Which candidate key should be looked up in the trusted keystore?" | An ID is **not a key**, is not secret, and does not grant access itself. |
+| `nonce`/`IV` | "What unique initialization value was used for this encryption under this key?" | Not a password/salt; being public **does not** permit reuse under the same AES-GCM key. |
+| `length` | "How many bytes does the next field span?" | Lengths come from untrusted input and must be validated **before allocation**. |
+| `ciphertext` + `tag` | "Where are the encrypted data and integrity proof?" | Return plaintext only after tag verification succeeds. |
 
-**Version và suite không thay thế nhau.** Có thể giữ `version=1` khi thêm một suite mới nếu cách ghi byte không đổi; khi thay thứ tự trường, encoding hoặc ý nghĩa trường bắt buộc, cần version/schema mới. Bảng ánh xạ `suite_id` là một phần của tài liệu giao thức: ID không được tái sử dụng để mang ý nghĩa khác.
+**Version and suite do not substitute for one another.** You can keep `version=1` when adding a new suite if byte framing stays unchanged; when field ordering, encoding, or mandatory field semantics change, bump the version/schema. The `suite_id` mapping table is part of the protocol spec: IDs must never be reused with different meanings.
 
-Đối với ứng dụng lưu lâu dài, `kid` cho phép chọn khóa cũ trong thời gian đọc dữ liệu đã mã hóa sau khi hệ thống đổi khóa ghi mới. Khóa thật phải được lấy từ key store/KMS/HSM hoặc kho khóa đã xác thực; không lấy khóa từ chính bản ghi chưa đáng tin.
+For long-lived storage, `kid` enables selecting an older key when reading historical ciphertext after write-key rotation. Real keys must come from a key store/KMS/HSM or authenticated key repository; never pull keys from an untrusted record itself.
 
-## 3. Đặc tả cụ thể: envelope nhị phân v1
+## 3. Concrete Specification: Binary Envelope v1
 
-Giả sử ứng dụng chỉ chấp nhận `suite_id = 0x01`, định nghĩa là:
+Suppose the application accepts only `suite_id = 0x01`, defined as:
 
 - **AES-128-GCM**, JCA transformation `AES/GCM/NoPadding`.
-- Khóa **16 byte** (128 bit), nonce **12 byte**, authentication tag **16 byte** (128 bit).
-- Payload plaintext dài từ **0 đến 1.048.576 byte** (1 MiB).
-- Ciphertext được nối với tag: `body = ciphertext || tag`, dài **plaintext_length + 16**.
-- `key_id` là ASCII thuộc `[A-Za-z0-9._-]`, dài **1–32 byte**; ví dụ `key-A`.
-- Tất cả độ dài trong bảng dưới là **số byte**, không phải số ký tự Unicode. Số nguyên nhiều byte ghi theo **big-endian (network byte order)**.
+- **16-byte** key (128 bits), **12-byte** nonce, **16-byte** authentication tag (128 bits).
+- Plaintext payload length from **0 to 1,048,576 bytes** (1 MiB).
+- Ciphertext is concatenated with tag: `body = ciphertext || tag`, length **plaintext_length + 16**.
+- `key_id` is ASCII in `[A-Za-z0-9._-]`, **1–32 bytes** long; e.g., `key-A`.
+- All lengths in the table below are **byte counts**, not Unicode character counts. Multi-byte integers are encoded in **big-endian (network byte order)**.
 
-### 3.1 Layout chính xác
+### 3.1 Exact Layout
 
-| Offset, tính từ 0 | Số byte | Trường | Quy tắc |
+| Offset, 0-based | Bytes | Field | Rule |
 | --- | ---: | --- | --- |
 | `0..3` | 4 | `magic` | ASCII `JENC` (`4A 45 4E 43` hex) |
 | `4` | 1 | `version` | Unsigned `0x01` |
 | `5` | 1 | `suite_id` | Unsigned `0x01` = AES-128-GCM/nonce-96/tag-128 |
-| `6` | 1 | `kid_length` | Unsigned, phải trong `[1,32]` |
-| `7` | 1 | `nonce_length` | Unsigned, phải bằng `12` trong v1/suite 1 |
-| `8..11` | 4 | `body_length` | Unsigned 32-bit big-endian, phải trong `[16,1.048.592]` |
-| `12..(11+k)` | `k` | `key_id` | ASCII hợp lệ, `k = kid_length` |
-| `(12+k)..(23+k)` | 12 | `nonce` | 12 byte sinh cho lần mã hóa |
-| `(24+k)..(23+k+c)` | `c` | `body` | Ciphertext nối tag 16 byte, `c = body_length` |
+| `6` | 1 | `kid_length` | Unsigned, must be in `[1,32]` |
+| `7` | 1 | `nonce_length` | Unsigned, must equal `12` in v1/suite 1 |
+| `8..11` | 4 | `body_length` | Unsigned 32-bit big-endian, must be in `[16,1.048.592]` |
+| `12..(11+k)` | `k` | `key_id` | Valid ASCII, `k = kid_length` |
+| `(12+k)..(23+k)` | 12 | `nonce` | 12 bytes generated for this encryption |
+| `(24+k)..(23+k+c)` | `c` | `body` | Ciphertext plus 16-byte tag, `c = body_length` |
 
-`fixed_header_length = 12`, `authenticated_header_length = 12 + k + 12 = 24 + k` và `total_record_length = authenticated_header_length + body_length`. Parser phải yêu cầu **đúng** số byte này; không âm thầm bỏ qua byte thừa.
+`fixed_header_length = 12`, `authenticated_header_length = 12 + k + 12 = 24 + k`, and `total_record_length = authenticated_header_length + body_length`. The parser must require **exact** consumption of this byte count; never silently ignore trailing bytes.
 
 ```text
 +----------+---------+----------+---------+-----------+----------------+
@@ -66,9 +66,9 @@ Giả sử ứng dụng chỉ chấp nhận `suite_id = 0x01`, định nghĩa l�
 <------------ Authenticated header / AES-GCM AAD ------------->
 ```
 
-Ví dụ với plaintext ASCII `Hello Java` (10 byte) và `key_id = "key-A"` (5 byte): header dài `12 + 5 + 12 = 29` byte, `body` dài `10 + 16 = 26` byte, toàn bản ghi dài **55 byte**. Giá trị nonce, ciphertext và tag ngẫu nhiên theo lần mã hóa, nên không thể dự đoán toàn bộ hex output.
+Example with ASCII plaintext `Hello Java` (10 bytes) and `key_id = "key-A"` (5 bytes): header is `12 + 5 + 12 = 29` bytes, `body` is `10 + 16 = 26` bytes, total record length is **55 bytes**. Nonce, ciphertext, and tag vary with each encryption, so full hex output cannot be predicted beforehand.
 
-### 3.2 Bảng ID phải do code đáng tin kiểm soát
+### 3.2 ID Table Must Be Controlled by Trusted Code
 
 ```text
 version 1, suite 0x01:
@@ -80,20 +80,20 @@ version 1, suite 0x01:
   body encoding  = ciphertext || 16-byte tag
 ```
 
-Nếu cần suite mới, cấp **ID mới** và viết đặc tả + bộ kiểm thử riêng. Không đặt chuỗi JCA như `"AES"`, `"AES/ECB/PKCS5Padding"` hoặc tên provider vào dữ liệu rồi gọi trực tiếp theo chuỗi đó: đầu vào có thể bị sửa để ép một thuật toán không an toàn hoặc không được triển khai. **Không fallback tự động** về thuật toán yếu hơn khi suite được yêu cầu không có.
+If a new suite is needed, assign a **new ID** and write a dedicated spec + test suite. Never place JCA strings like `"AES"`, `"AES/ECB/PKCS5Padding"`, or provider names into data and pass them straight to the API: untrusted input could force an insecure or unintended algorithm. **Never automatically fall back** to a weaker algorithm when a requested suite is unavailable.
 
-Trong v1, `nonce_length` có mặt để minh họa trường độ dài và dễ kiểm tra cấu trúc; nó **không cho phép** thay nonce sang 8 hoặc 16 byte tùy ý. Giá trị hợp lệ vẫn cố định bằng 12 theo suite 1. Các giá trị có thể thay đổi phải được mô tả bằng giới hạn và thuật toán rõ ràng.
+In v1, `nonce_length` is present to illustrate a length field and simplify structural checks; it **does not permit** arbitrarily changing the nonce to 8 or 16 bytes. The valid value remains fixed at 12 under suite 1. Any variable-length field must be documented with explicit bounds and algorithm rules.
 
-## 4. Metadata phải được xác thực cùng ciphertext
+## 4. Metadata Must Be Authenticated Alongside Ciphertext
 
-Đối với **AEAD** như AES-GCM, dữ liệu được chia thành:
+For an **AEAD** such as AES-GCM, data is divided into:
 
-- **Plaintext** `P`: được mã hóa và xác thực.
-- **Associated Authenticated Data** (AAD) `A`: không mã hóa nhưng được tag xác thực.
-- **Nonce** `N`: được gửi công khai; phải đáp ứng điều kiện duy nhất theo mỗi khóa.
-- **Ciphertext + authentication tag** `C || T`: kết quả bên gửi; bên nhận chỉ chấp nhận khi kiểm tra tag thành công.
+- **Plaintext** `P`: encrypted and authenticated.
+- **Associated Authenticated Data** (AAD) `A`: unencrypted, yet authenticated by the tag.
+- **Nonce** `N`: transmitted publicly; must satisfy per-key uniqueness.
+- **Ciphertext + authentication tag** `C || T`: sender output; receiver accepts only when tag verification succeeds.
 
-Trong envelope v1, ta đặt **nguyên byte header từ offset `0` đến hết nonce** vào AAD:
+In envelope v1, we place the **exact header bytes from offset `0` through the end of the nonce** into AAD:
 
 ```text
 A = MAGIC || VERSION || SUITE || KIDLEN || NONCELEN
@@ -103,17 +103,17 @@ A = MAGIC || VERSION || SUITE || KIDLEN || NONCELEN
 P       = AES-GCM-Decrypt(key, nonce, C || T, A)
 ```
 
-Vì vậy nếu đối thủ sửa `version`, `suite_id`, `key_id`, `length` hoặc `nonce`, một bản ghi được chấp nhận phải vượt qua cả **kiểm tra cú pháp/allowlist** và **xác thực tag**. Một trường header không hợp lệ có thể bị parser từ chối trước khi tới bước xác thực; việc đọc trường ở giai đoạn này chỉ nhằm **định tuyến/kiểm tra**, chưa biến dữ liệu thành đáng tin.
+Thus if an adversary modifies `version`, `suite_id`, `key_id`, `length`, or `nonce`, an accepted record must pass both **syntax/allowlist checks** and **tag verification**. An invalid header field may be rejected by the parser before reaching verification; reading fields at this stage is solely for **routing/validation** and does not make the data trustworthy.
 
-Cần dùng **chính xác byte gốc** của header để tính AAD khi giải mã. Tránh giải mã thành đối tượng rồi tuần tự hóa lại AAD với thứ tự, case, charset hoặc dạng Unicode khác. Nếu có dữ liệu ngữ cảnh bên ngoài như tenant ID, object ID, mục đích sử dụng hay protocol domain, hai bên phải ràng buộc chúng vào AAD bằng encoding duy nhất (thường length-prefix + domain separator), để không thể chuyển một ciphertext hợp lệ sang ngữ cảnh khác.
+During decryption, use the **exact original bytes** of the header to compute AAD. Avoid deserializing into an object and re-serializing AAD with different field ordering, case, charset, or Unicode form. If external context exists—such as tenant ID, object ID, usage purpose, or protocol domain—both sides must bind it into AAD with an unambiguous encoding (usually length-prefix + domain separator) so a valid ciphertext cannot be transplanted into another context.
 
-> **AES-GCM không tự chống replay.** Kẻ tấn công có thể gửi lại *nguyên bản ghi hợp lệ* mà tag vẫn đúng. Nếu ứng dụng yêu cầu freshness/chống replay, cần thêm sequence number, record ID, timestamp theo chính sách và trạng thái theo dõi bản ghi đã dùng; đặt các trường ảnh hưởng tới quyết định vào AAD hoặc plaintext đã xác thực.
+> **AES-GCM does not prevent replay on its own.** An attacker can resend an *exact valid record* and the tag will still verify. If the application needs freshness/anti-replay, add policy-driven sequence numbers, record IDs, timestamps, and consumed-record tracking; place decision-critical fields into AAD or authenticated plaintext.
 
-## 5. Ví dụ Java 17: tạo, đọc và xác thực envelope
+## 5. Java 17 Example: Creating, Reading, and Authenticating the Envelope
 
-Chương trình sau minh họa đầy đủ `seal()` và `open()` cho đúng **v1/suite 1**. Nó dùng `ByteBuffer` big-endian, `Byte.toUnsignedInt()`, giới hạn kích thước **trước khi cấp phát**, danh sách khóa tin cậy theo `kid`, và `Cipher.updateAAD()` **trước** `doFinal()`.
+The following program demonstrates full `seal()` and `open()` for **v1/suite 1**. It uses big-endian `ByteBuffer`, `Byte.toUnsignedInt()`, size checks **before allocation**, a trusted keyring keyed by `kid`, and `Cipher.updateAAD()` **before** `doFinal()`.
 
-Tạo file **`EnvelopeDemo.java`**:
+Create **`EnvelopeDemo.java`**:
 
 ```java
 import java.nio.ByteBuffer;
@@ -276,14 +276,14 @@ public final class EnvelopeDemo {
 }
 ```
 
-Biên dịch/chạy từ thư mục chứa file, dùng JDK 17+:
+Compile/run from the file's directory using JDK 17+:
 
 ```bash
 javac --release 17 EnvelopeDemo.java
 java EnvelopeDemo
 ```
 
-Stdout (nội dung ổn định dù khóa và nonce sinh ngẫu nhiên):
+Stdout (output is stable even though key and nonce are randomly generated):
 
 ```text
 Round-trip: true
@@ -293,113 +293,113 @@ Tag modified: REJECTED
 Truncated: REJECTED
 ```
 
-**Giải thích những điểm quan trọng:**
+**Explanation of key points:**
 
-1. `KeyGenerator` tạo khóa AES-128 minh họa. Trong production, khóa sống ngoài bản ghi; `keyRing` là ánh xạ đáng tin `key_id → key`, dùng để đọc lại dữ liệu mã hóa bằng khóa cũ. Không xuất khóa ra file envelope.
-2. `SecureRandom` sinh nonce 96-bit. Ví dụ phù hợp với số bản ghi hạn chế; **không bảo đảm tránh trùng nonce tuyệt đối** ở quy mô lớn hoặc nhiều máy. Với một khóa AES-GCM, phải có chiến lược bảo đảm nonce duy nhất, giới hạn lượng bản ghi và luân chuyển khóa theo nguy cơ va chạm; hệ thống nhiều writer cần phối hợp hoặc tách khóa.
-3. `GCMParameterSpec(128, nonce)` cố định tag 128-bit; JCA `Cipher.doFinal()` trả `ciphertext || tag` khi mã hóa, kiểm tra tag khi giải mã. `updateAAD(header)` được gọi trước khi xử lý ciphertext.
-4. `open()` kiểm tra kích thước tổng, magic/version/suite, độ dài, charset, key ID và **đúng toàn bộ số byte** trước khi giải mã. Không suy ra phần còn lại từ `available()` hoặc tin vào chiều dài chưa giới hạn.
-5. Việc thay 1 byte nonce/tag khiến bản ghi không được chấp nhận; cắt mất 1 byte khiến `record.length` không khớp độ dài khai báo. Hai tình huống đầu chủ yếu thất bại ở **authentication tag**, tình huống cuối bị **parser** từ chối trước khi gọi cipher.
-6. `requireAes128()` kiểm tra `key.getEncoded()` được vì ví dụ dùng khóa xuất được (`KeyGenerator`). Khóa HSM/KMS không xuất được thường trả `null`; khi dùng chúng, phải kiểm tra loại/kích thước bằng metadata từ nhà cung cấp khóa và tích hợp provider phù hợp, **không coi `getEncoded() == null` là khóa không hợp lệ**.
-7. Đây là ví dụ bản ghi nhỏ, giữ toàn bộ ciphertext trong bộ nhớ. Dữ liệu lớn cần **chunked authenticated format** riêng, với chỉ số chunk/độ dài/tổng số chunk hoặc marker kết thúc được xác thực; không được tùy tiện cắt GCM ciphertext rồi tự giải mã từng mảnh như những bản ghi độc lập.
+1. `KeyGenerator` creates an illustrative AES-128 key. In production, keys live outside the record; `keyRing` is a trusted `key_id → key` mapping used to read data encrypted with older keys. Never export keys into the envelope file.
+2. `SecureRandom` generates a 96-bit nonce. This works for bounded record counts; it **does not guarantee zero nonce collisions** at huge scale or across multiple machines. For any AES-GCM key, enforce a nonce-uniqueness strategy, bound record counts, and rotate keys according to collision risk; multi-writer systems need coordination or distinct keys.
+3. `GCMParameterSpec(128, nonce)` pins a 128-bit tag; JCA `Cipher.doFinal()` returns `ciphertext || tag` on encryption and verifies the tag on decryption. `updateAAD(header)` is invoked before processing ciphertext.
+4. `open()` checks total size, magic/version/suite, lengths, charset, key ID, and **exact total byte count** before decrypting. Never infer remaining length from `available()` or trust unbounded lengths.
+5. Flipping 1 byte in the nonce or tag causes the record to be rejected; dropping 1 byte makes `record.length` mismatch the declared length. The first two cases fail primarily at the **authentication tag**, while the last is rejected by the **parser** before invoking the cipher.
+6. `requireAes128()` can inspect `key.getEncoded()` because the example uses exportable keys (`KeyGenerator`). Non-exportable HSM/KMS keys typically return `null`; when using them, validate key type/size via provider metadata and proper provider integration, **never treating `getEncoded() == null` as an invalid key**.
+7. This is a small-record example holding the entire ciphertext in memory. Large data requires a dedicated **chunked authenticated format**, with chunk index/length/total-chunk count or authenticated end marker; never arbitrarily slice a GCM ciphertext and decrypt chunks as independent records.
 
-Chương trình tự khởi tạo `Cipher` mới cho mỗi bản ghi. Việc dùng lại đối tượng `Cipher` không được phép dẫn tới dùng lại cùng cặp **key + nonce**.
+The program initializes a fresh `Cipher` per record. Reusing a `Cipher` object must never lead to reusing the same **key + nonce** pair.
 
-## 6. Giới hạn độ dài và chuẩn hóa byte là yêu cầu an toàn
+## 6. Bounding Lengths and Canonicalizing Bytes Are Security Requirements
 
-### 6.1 Parse các trường không đáng tin theo thứ tự an toàn
+### 6.1 Parse Untrusted Fields in a Safe Order
 
-Luồng đọc khuyến nghị:
+Recommended reading flow:
 
-1. **Kiểm tra tổng kích thước input** (ít nhất 12 byte và không quá giới hạn toàn bản ghi). Không dành bộ nhớ theo độ dài do file cung cấp khi chưa kiểm tra.
-2. Đọc cố định 12 byte đầu để kiểm tra `magic`, `version`, `suite_id`, ba trường độ dài; dùng **unsigned** cho trường 1 byte.
-3. Kiểm tra mọi `length` với **cận trên do giao thức đặt ra**, so với số byte thực tế còn lại và kiểm tra phép cộng có khả năng overflow trước khi cấp phát.
-4. Chỉ khi đã chứng minh `record.length == fixed_header + kid_length + nonce_length + body_length` mới trích `key_id`, `nonce` và body.
-5. Tra khóa ứng viên từ nguồn tin cậy, kiểm tra key/suite, đặt AAD đúng byte gốc, **xác minh tag thành công** rồi mới chuyển plaintext cho logic nghiệp vụ.
-6. Không sử dụng riêng trạng thái header chưa xác thực để đưa ra quyết định cấp quyền hay ghi dữ liệu lâu dài.
+1. **Validate total input size** (at least 12 bytes and no larger than the maximum record limit). Never allocate memory from a file-supplied length before checking it.
+2. Read the fixed first 12 bytes to check `magic`, `version`, `suite_id`, and the three length fields; use **unsigned** interpretation for 1-byte fields.
+3. Check every `length` against **protocol-defined upper bounds**, against remaining available bytes, and guard additions against overflow before allocating.
+4. Only after proving `record.length == fixed_header + kid_length + nonce_length + body_length`, extract `key_id`, `nonce`, and body.
+5. Look up the candidate key from a trusted source, validate key/suite, supply exact original header bytes as AAD, **verify the tag successfully**, and only then pass plaintext to business logic.
+6. Never rely solely on unauthenticated header state to grant permissions or persist durable state.
 
-Ở ví dụ, `body_length` lưu trên 4 byte unsigned nhưng code Java đọc `int` có dấu. Do giới hạn hợp lệ nhỏ hơn 2 GiB, mọi giá trị có bit dấu bật sẽ bị loại bởi phép so sánh phạm vi; không cần cấp phát bộ nhớ theo số unsigned rất lớn. Nếu cần định dạng hỗ trợ hơn 2 GiB, thiết kế một **streaming parser** và phép tính kích thước `long` có kiểm soát riêng.
+In the example, `body_length` is stored as 4 unsigned bytes yet Java reads it into a signed `int`. Because the valid bound is under 2 GiB, any value with the sign bit set is rejected by the range check; there is no need to allocate memory for huge unsigned numbers. Supporting formats above 2 GiB requires a dedicated **streaming parser** and checked `long` size arithmetic.
 
-### 6.2 Encoding phải duy nhất
+### 6.2 Encoding Must Be Unambiguous
 
-Các quy tắc cần cố định trong đặc tả, không dựa vào mặc định hệ thống:
+Rules must be pinned in the spec rather than relying on system defaults:
 
-- `ByteOrder.BIG_ENDIAN` hay một thứ tự byte được nêu rõ. Tránh `DataInputStream`/`ByteBuffer` và ngôn ngữ khác diễn giải không đồng nhất.
-- `length` luôn đo **byte của encoding đã chọn**, không dùng `String.length()` thay số byte UTF-8.
-- Với chuỗi tùy biến, chọn **UTF-8 chuẩn**, nêu rõ cách xử lý chuỗi lỗi encoding, normalization Unicode, quy tắc case, thứ tự trường. Ví dụ v1 giới hạn `key_id` thành ASCII để loại bỏ nhập nhằng.
-- Không cho phép nhiều encoding khác nhau cùng đại diện một bản ghi ngữ nghĩa nếu định dạng dùng cho chữ ký, hashing/canonicalization; tránh field trùng, thứ tự không xác định, whitespace/case linh động.
-- Không thêm byte cuối file, bỏ qua unknown field, hay tự thay `version=0` khi parse thất bại.
+- `ByteOrder.BIG_ENDIAN` or another explicitly stated byte order. Avoid mismatches across `DataInputStream`/`ByteBuffer` and other languages.
+- `length` always measures **bytes in the chosen encoding**, never using `String.length()` as UTF-8 byte count.
+- For free-form strings, mandate **canonical UTF-8** and define handling for invalid encodings, Unicode normalization, case rules, and field order. Our v1 example restricts `key_id` to ASCII to eliminate ambiguity.
+- Never allow multiple encodings to represent the same semantic record if the format feeds signatures or hashing/canonicalization; avoid duplicate fields, unspecified order, or flexible whitespace/case.
+- Never append trailing bytes, skip unknown fields, or default `version=0` when parsing fails.
 
-Khi đóng gói các trường metadata thay đổi độ dài để tính AAD hoặc chữ ký, phải có ranh giới rõ ràng, ví dụ `type || length || value` với quy tắc duy nhất. Ghép `userId || tenantId` trực tiếp có thể nhập nhằng (`"ab" + "c"` bằng `"a" + "bc"`). Nếu dùng TLV/CBOR/Protocol Buffers, phải quy định xử lý trường bắt buộc, field trùng, thứ tự/canonical encoding và khả năng tương thích cụ thể; **format version** vẫn cần định nghĩa ý nghĩa cấu trúc.
+When packing variable-length metadata fields for AAD or signatures, establish unambiguous boundaries such as `type || length || value` with canonical rules. Direct concatenation `userId || tenantId` can be ambiguous (`"ab" + "c"` equals `"a" + "bc"`). If using TLV/CBOR/Protocol Buffers, specify mandatory fields, duplicate-field handling, ordering/canonical encoding, and compatibility rules; **format version** must still define structural meaning.
 
-### 6.3 Kích thước ghi trong header chưa đồng nghĩa nội dung đã được xác thực
+### 6.3 Length Declared in Header Does Not Mean Content Is Authenticated
 
-`body_length` giúp biết cần bao nhiêu byte để parse, nhưng trước khi xác minh tag, đối thủ có thể sửa nó. Vì vậy:
+`body_length` tells the parser how many bytes to read, yet before tag verification an adversary can alter it. Therefore:
 
-- **Bound trước, authenticate sau:** dùng length để từ chối ngay những bản ghi sai/hại tài nguyên, rồi bao length trong AAD để bảo vệ ý nghĩa của dữ liệu được chấp nhận.
-- Tránh `new byte[untrustedLength]` trước khi kiểm tra `0 <= length <= MAX`.
-- Tránh lấy `ciphertext.length` thay cho trường độ dài khi giao thức yêu cầu kiểm tra tính nhất quán; phải phát hiện file bị cắt/thêm byte.
-- Với file lưu trữ lớn, phải có quy tắc chống quá tải khi giải mã, nén/decompress (nếu có), và parser streaming thay vì giữ toàn bộ trong RAM.
+- **Bound first, authenticate second:** use lengths to reject malformed or resource-abusing records immediately, then include lengths in AAD to protect accepted data semantics.
+- Avoid `new byte[untrustedLength]` before verifying `0 <= length <= MAX`.
+- Avoid substituting `ciphertext.length` for a declared length field when the protocol requires consistency checks; truncated or padded files must be detected.
+- For large files, enforce anti-overload rules for decryption, decompression (if any), and streaming parsing instead of holding everything in RAM.
 
-## 7. Nâng cấp phiên bản, đổi thuật toán và vòng đời khóa
+## 7. Version Upgrades, Algorithm Changes, and Key Lifecycle
 
-**Trường hợp 1: thay thuật toán nhưng giữ layout.** Nếu ngày mai hệ thống hỗ trợ suite khác, cấp ID mới và chỉ đưa vào allowlist sau khi có đặc tả và test vector. `suite_id=2` chẳng hạn phải nêu rõ JCA transformation, kích thước khóa/nonce/tag, format body và kiểm thử; không được đọc `suite_id=2` rồi tự đoán thuật toán từ tên hoặc mặc định provider.
+**Case 1: changing the algorithm while keeping layout.** When the system adds another suite later, assign a new ID and admit it to the allowlist only with a specification and test vectors. For instance, `suite_id=2` must spell out JCA transformation, key/nonce/tag sizes, body format, and tests; never read `suite_id=2` and infer the algorithm from names or provider defaults.
 
-**Trường hợp 2: đổi bố cục bản ghi.** Ví dụ cần `context_id`, `created_at`, `KDF parameters` hoặc nhiều đoạn ciphertext. Thiết kế `version=2` với layout và parser riêng. Các byte version và trường metadata của mỗi phiên bản phải được xác thực trong phạm vi AAD hoặc chữ ký tương ứng. Không tự động đoán version dựa trên độ dài, không chấp nhận thiếu trường bắt buộc và không cho phép downgrade “thử lại v1 cho tới khi chạy được”.
+**Case 2: changing the record layout.** For example, adding `context_id`, `created_at`, `KDF parameters`, or multiple ciphertext segments. Design `version=2` with its own layout and parser. Each version's version bytes and metadata fields must be authenticated within the corresponding AAD or signature scope. Never guess versions by byte length, accept missing mandatory fields, or allow silent downgrade ("retry v1 until something works").
 
-**Trường hợp 3: xoay khóa.** Tạo khóa ghi mới, cấp `key_id` mới, giữ khóa đọc cũ trong thời gian cần đọc dữ liệu lịch sử. Nếu giải mã rồi mã hóa lại, tạo **nonce mới cho khóa mới**, xác thực bản ghi cũ trước, ghi/đổi trạng thái theo cách tránh mất dữ liệu; sau khi hoàn tất di trú có thể xóa quyền đọc khóa cũ theo chính sách. `key_id` phải gắn với **tenant/purpose/quyền sử dụng** trong kho khóa đáng tin, không cho phép định tuyến chéo tùy ý.
+**Case 3: key rotation.** Generate a new write key, assign a new `key_id`, and keep old read keys while historical data remains readable. When decrypting and re-encrypting, generate a **fresh nonce for the new key**, authenticate the old record first, and update/swap state safely to avoid data loss; once migration completes, revoke old read keys per policy. `key_id` must be bound to **tenant/purpose/usage permissions** in the trusted keystore, disallowing arbitrary cross-routing.
 
-**Trường hợp 4: mã hóa từ mật khẩu thay vì khóa đã tạo.** Một format khác có thể cần **KDF ID, salt, iteration/work factor và thông số KDF** để tái tạo khóa. Những trường này phải có encoding, độ dài, giới hạn chi phí và khả năng xác thực rõ ràng. **Salt của KDF** và **nonce của AEAD** là hai giá trị khác mục đích; không lấy một giá trị thay bừa cho giá trị kia. Không đưa mật khẩu, raw key hay thông tin bí mật nhạy cảm vào header.
+**Case 4: encrypting from a password instead of a generated key.** Another format may need **KDF ID, salt, iteration/work factor, and KDF parameters** to re-derive the key. Those fields require explicit encoding, lengths, cost limits, and authentication. **KDF salts** and **AEAD nonces** serve different purposes; never swap one for the other. Never place passwords, raw keys, or sensitive secrets in the header.
 
-**Chống downgrade:** Cho phép đọc v1 vì dữ liệu lịch sử là một **chính sách tương thích**; chấp nhận một suite lỗi thời trong giao thức mới là quyết định bảo mật khác. Viết mới bằng phiên bản/suite đã phê duyệt, chỉ cho phép legacy trong phạm vi cần thiết, ghi nhận thời điểm hết hỗ trợ.
+**Anti-downgrade:** Permitting v1 reads for historical data is a **compatibility policy**; accepting an obsolete suite in a new protocol flow is a separate security decision. Write new records with the approved version/suite, scope legacy support tightly, and record deprecation timelines.
 
-## 8. Test bắt buộc đối với bộ đọc/ghi
+## 8. Mandatory Tests for Readers and Writers
 
-| Trường hợp | Kết quả kỳ vọng | Vì sao |
+| Case | Expected outcome | Why |
 | --- | --- | --- |
-| Round-trip plaintext rỗng, ngắn và tối đa 1 MiB | Dữ liệu sau giải mã khớp từng byte | Biên độ body hợp lệ từ 16 byte tag đến giới hạn đã công bố |
-| Sửa một byte `nonce`, `key_id` hoặc body/tag | Bị từ chối | Header và ciphertext/tag không thể bị tráo đổi âm thầm |
-| Sửa `magic`, `version` hoặc `suite_id` sang giá trị không hỗ trợ | Bị từ chối ngay | Không thử fallback ngầm |
-| `kid_length=0`, `kid_length=255`, `nonce_length != 12` | Bị từ chối trước cấp phát | Bounds và invariant của suite |
-| `body_length` âm khi đọc bằng `int`, lớn quá mức hoặc nhỏ hơn tag | Bị từ chối trước cấp phát | Không bị integer overflow/memory DoS |
-| File thiếu 1 byte hoặc có 1 byte thừa | Bị từ chối | Ranh giới bản ghi chính xác |
-| `key_id` lạ hoặc key sai | Không giải mã được | Chỉ đọc khóa thuộc keyring tin cậy |
-| Key đúng nhưng context bên ngoài sai (nếu format có context binding) | Authentication thất bại | Ngăn chuyển bản ghi giữa ngữ cảnh |
-| Nhiều bản ghi cùng key/nonce | Phải ngăn tại phía ghi và kiểm tra chiến lược nonce | AES-GCM yêu cầu nonce duy nhất với mỗi khóa |
-| V2/schema mới hoặc suite mới | Chỉ parser đúng phiên bản hỗ trợ mới chấp nhận | Nâng cấp có kiểm soát và tương thích rõ ràng |
+| Round-trip empty, short, and max 1 MiB plaintexts | Decrypted bytes match byte-for-byte | Valid body range from 16-byte tag up to published limit |
+| Modify one byte in `nonce`, `key_id`, or body/tag | Rejected | Header and ciphertext/tag cannot be silently swapped |
+| Modify `magic`, `version`, or `suite_id` to unsupported values | Rejected immediately | No silent fallback |
+| `kid_length=0`, `kid_length=255`, `nonce_length != 12` | Rejected prior to allocation | Bounds and suite invariants |
+| Negative `body_length` when read as `int`, oversized, or smaller than tag | Rejected prior to allocation | Prevents integer overflow / memory DoS |
+| File missing 1 byte or having 1 extra byte | Rejected | Exact record framing |
+| Unknown `key_id` or wrong key | Fails decryption | Only trusted keyring keys accepted |
+| Right key but wrong external context (if format has context binding) | Authentication fails | Prevents cross-context record transplantation |
+| Multiple records with same key/nonce | Prevented at writer side and nonce strategy verified | AES-GCM requires unique nonce per key |
+| V2/new schema or new suite | Accepted only by the matching version-aware parser | Controlled upgrades and explicit compatibility |
 
-Ngoài unit test, nên có **test vector** chứa header hex, plaintext, key thử nghiệm, nonce cố định **chỉ trong test**, ciphertext/tag kỳ vọng; kiểm thử giữa Java và ngôn ngữ khác nếu giao thức liên nền tảng. Không dùng key/nonce cố định từ test vector để mã hóa thực tế.
+Beyond unit tests, maintain **test vectors** containing header hex, plaintext, test key, fixed nonce **strictly for tests**, and expected ciphertext/tag; verify across Java and other languages if the protocol is cross-platform. Never use fixed test-vector keys/nonces for real encryption.
 
-## 9. Những lỗi thiết kế thường gặp
+## 9. Common Design Mistakes
 
-1. **Không có version:** dữ liệu cũ được giải mã bằng format hoặc thuật toán mặc định mới và không thể khôi phục khi hệ thống nâng cấp.
-2. **Chỉ ghi tên `"AES"` hoặc `"RSA"`:** thiếu mode, padding, kích thước khóa, tag/nonce; provider có thể có mặc định khác. Mã hóa có xác thực nên chọn transformation rõ ràng như `AES/GCM/NoPadding`.
-3. **Nhận chuỗi thuật toán từ file và gọi thẳng JCA:** cho dữ liệu chưa xác thực quyết định thuật toán. Dùng **numeric suite ID → allowlist cố định**.
-4. **Độ dài không giới hạn hoặc đo sai đơn vị:** parser có thể cấp phát quá mức, đọc lệch khung hoặc chấp nhận trường bị cắt. Dùng byte lengths, unsigned parsing, checked arithmetic, exact-consumption.
-5. **Metadata không nằm trong AAD/chữ ký:** có thể tráo `key_id`, version, context hoặc tham số mà không được bảo vệ đầy đủ; phải ràng buộc đúng byte.
-6. **Tái dùng nonce AES-GCM với cùng khóa:** làm suy yếu nghiêm trọng bảo mật và tính toàn vẹn. Không sinh bằng `Random`; `SecureRandom` cũng cần giới hạn số bản ghi/chiến lược tránh trùng thích hợp.
-7. **Trả plaintext từng phần trước khi xác minh tag:** dữ liệu có thể bị lợi dụng dù cuối cùng tag sai. Chỉ công bố kết quả sau khi `doFinal` xác thực thành công.
-8. **Coi Base64, magic, CRC hoặc checksum là bảo mật:** chúng hỗ trợ vận chuyển/phát hiện lỗi ngẫu nhiên, **không thay thế authentication tag/chữ ký**.
-9. **Dùng Java object serialization làm wire format tùy biến:** phụ thuộc class/JDK, tăng rủi ro giải tuần tự hóa và không có schema mật mã rõ ràng. Dùng định dạng nhị phân có phiên bản và kiểm tra biên.
-10. **Nhầm xác thực với chống replay hay xác thực danh tính người gửi:** AES-GCM chứng minh bản ghi hợp lệ với người giữ khóa; cần cơ chế khác để chống gửi lại hoặc chứng minh một bên đã ký.
+1. **No version field:** old records are parsed using a new default format or algorithm and become unrecoverable after upgrades.
+2. **Recording only `"AES"` or `"RSA"`:** omits mode, padding, key size, tag/nonce; providers may differ in defaults. Authenticated encryption should specify an explicit transformation like `AES/GCM/NoPadding`.
+3. **Reading an algorithm string from the file and passing it straight to JCA:** lets untrusted input choose the algorithm. Use **numeric suite ID → fixed allowlist**.
+4. **Unbounded lengths or wrong units:** parser can over-allocate, misframe, or accept truncated fields. Use byte lengths, unsigned parsing, checked arithmetic, and exact consumption.
+5. **Metadata left outside AAD/signature:** allows swapping `key_id`, version, context, or parameters without full protection; bind the exact bytes.
+6. **Reusing an AES-GCM nonce with the same key:** severely breaks confidentiality and integrity. Never generate with `Random`; even `SecureRandom` needs record limits and collision-prevention strategies.
+7. **Streaming out partial plaintext before tag verification:** callers may act on unauthenticated data before the tag fails. Release plaintext only after `doFinal` succeeds.
+8. **Treating Base64, magic, CRC, or checksums as security:** they aid transport and accidental-error detection, **not authentication tags or signatures**.
+9. **Using Java object serialization as an ad-hoc wire format:** class/JDK coupled, introduces deserialization risk, and lacks a clean cryptographic schema. Use a versioned, bounds-checked binary format.
+10. **Confusing authentication with replay protection or sender identity:** AES-GCM proves a record is valid for a key holder; preventing replay or proving a specific signer requires additional mechanisms.
 
-## 10. Checklist trước khi lưu trữ hoặc công bố format
+## 10. Checklist Before Storing or Publishing a Format
 
-- [ ] Có đặc tả byte chính thức: magic, version, suite registry, thứ tự trường, endianness, charset, độ dài/giới hạn và quy tắc lỗi.
-- [ ] Mỗi suite quy định đầy đủ algorithm/mode/padding, loại và kích thước khóa, nonce, tag, format ciphertext.
-- [ ] Toàn bộ header quan trọng được đưa vào AAD (hoặc chữ ký); context/purpose cần ràng buộc cũng được xác thực.
-- [ ] Parser reject unknown version/suite, malformed/truncated/trailing bytes, duplicate fields và mọi length ngoài giới hạn **trước khi cấp phát lớn**.
-- [ ] Không dùng bản ghi làm nguồn tin cậy cho khóa hoặc quyền; key ID chỉ tra khóa ứng viên trong registry đáng tin.
-- [ ] Chiến lược nonce uniqueness, key rotation, compatibility và chính sách cấm downgrade đã được thiết kế rõ.
-- [ ] Có test vector, test biên, kiểm thử tamper, test nhiều runtime/provider và chính sách xử lý replay nếu cần.
-- [ ] Quy trình ghi dữ liệu đủ tin cậy khi restart/crash; với chunked format, thứ tự, số chunk và điểm kết thúc đều được bảo vệ.
+- [ ] Formal byte specification exists: magic, version, suite registry, field order, endianness, charset, lengths/bounds, and error rules.
+- [ ] Each suite fully specifies algorithm/mode/padding, key type and size, nonce, tag, and ciphertext framing.
+- [ ] All critical header bytes are bound into AAD (or signature); required context/purpose is authenticated too.
+- [ ] Parser rejects unknown version/suite, malformed/truncated/trailing bytes, duplicate fields, and any out-of-bounds length **before large allocations**.
+- [ ] Records are never trusted for keys or permissions; key IDs only look up candidate keys in a trusted registry.
+- [ ] Nonce uniqueness, key rotation, compatibility, and anti-downgrade policies are explicitly designed.
+- [ ] Test vectors, boundary tests, tamper tests, multi-runtime/provider tests, and replay handling (if needed) are in place.
+- [ ] Writes are crash/restart-safe; for chunked formats, chunk ordering, chunk count, and end markers are all authenticated.
 
-## Tài liệu gốc
+## Primary References
 
-- [RFC 5116 — An Interface and Algorithms for Authenticated Encryption](https://www.rfc-editor.org/rfc/rfc5116.html): biểu diễn AEAD, AAD không mơ hồ, nonce uniqueness; định nghĩa AES-128-GCM với nonce 12 byte và tag 16 byte.
-- [NIST SP 800-38D — Galois/Counter Mode (GCM) and GMAC](https://csrc.nist.gov/pubs/sp/800/38/d/final): yêu cầu về GCM, IV/nonce và xác thực.
-- [Java SE 17 — `javax.crypto.Cipher`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): transformation, `updateAAD`, `doFinal` và authentication tag.
-- [Java SE 17 — `GCMParameterSpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html): `tLen` tính bằng bit, IV/nonce truyền cho GCM.
-- [Java SE 17 — `ByteBuffer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/ByteBuffer.html): quy tắc đọc/ghi byte và thứ tự byte.
+- [RFC 5116 — An Interface and Algorithms for Authenticated Encryption](https://www.rfc-editor.org/rfc/rfc5116.html): AEAD model, unambiguous AAD, nonce uniqueness; defines AES-128-GCM with 12-byte nonce and 16-byte tag.
+- [NIST SP 800-38D — Galois/Counter Mode (GCM) and GMAC](https://csrc.nist.gov/pubs/sp/800/38/d/final): requirements for GCM, IV/nonce, and authentication.
+- [Java SE 17 — `javax.crypto.Cipher`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): transformations, `updateAAD`, `doFinal`, and authentication tags.
+- [Java SE 17 — `GCMParameterSpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html): `tLen` in bits and IV/nonce passed to GCM.
+- [Java SE 17 — `ByteBuffer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/ByteBuffer.html): byte read/write rules and byte order.
 
-**Ghi nhớ:** Một format mật mã an toàn phải vừa **tự mô tả đủ để đọc**, vừa **không tin dữ liệu tự mô tả cho tới khi đã kiểm tra ranh giới và xác thực**. Version, length và algorithm ID là nền móng cho khả năng tiến hóa, còn AAD/tag, nonce và kiểm tra parser là nền móng cho an toàn.
+**Remember:** A secure cryptographic format must be **self-describing enough to parse**, while **never trusting self-described data until boundaries are checked and authentication succeeds**. Version, length, and algorithm ID underpin evolvability, while AAD/tag, nonce discipline, and parser validation underpin security.

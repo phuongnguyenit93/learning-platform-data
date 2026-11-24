@@ -1,56 +1,56 @@
-# Đánh giá nguồn gốc JAR, mã Java và kịch bản trước khi thực thi
+# Evaluating the Provenance of JARs, Java Code, and Scripts Before Execution
 
-## 1. Ranh giới tin cậy của hệ thống runtime extensibility
+## 1. Trust Boundaries of a Runtime Extensibility System
 
-Plugin JAR, source Java biên dịch động và script đều có thể đưa **mã do bên khác cung cấp** vào một ứng dụng host. Điểm nguy hiểm là từ 'phát hiện được' đến 'thực thi được' thường chỉ cách một lời gọi `ServiceLoader`, `Class.forName`, `JavaCompiler`, `JShell.eval` hoặc `ScriptEngine.eval`. Sự kiện một tệp xuất hiện trong thư mục plugin không chứng minh nó an toàn, chính hãng hay được phép chạy.
+Plugin JARs, dynamically compiled Java source, and scripts can all introduce **third-party-supplied code** into a host application. The danger is that the gap between "discoverable" and "executable" is often just a single call to `ServiceLoader`, `Class.forName`, `JavaCompiler`, `JShell.eval`, or `ScriptEngine.eval`. The mere fact that a file appears in the plugin directory does not prove it is safe, authentic, or authorized to run.
 
-Cần tách ba câu hỏi:
+Three questions must be separated:
 
-1. **Provenance (nguồn gốc):** ai phát hành artifact, artifact đến qua kênh nào, có thuộc nhà cung cấp được tổ chức cho phép không?
-2. **Integrity (toàn vẹn):** bytes nhận được có đúng với bản đã được phê duyệt hay bị sửa đổi trên đường truyền, trong kho lưu trữ hoặc trên ổ đĩa?
-3. **Authorization/Execution policy:** ngay cả artifact thật và chưa đổi, liệu mã này có được chạy trong môi trường cụ thể, với phiên bản/khả năng/quyền nào?
+1. **Provenance:** Who published the artifact, through which channel did it arrive, and does it belong to a publisher authorized by the organization?
+2. **Integrity:** Do the received bytes match the approved version, or were they modified in transit, in the repository, or on disk?
+3. **Authorization/Execution policy:** Even for an authentic and unaltered artifact, is this code allowed to run in a specific environment, and with what version, capabilities, and permissions?
 
-**Chữ ký hoặc checksum không chứng minh mã là vô hại.** Artifact có thể được ký bởi nhà phát hành đáng tin cậy nhưng vẫn có lỗ hổng, mã độc do tài khoản phát hành bị chiếm, hoặc hành vi không phù hợp chính sách host. Bảo đảm an toàn cần nhiều lớp kiểm soát trước và trong khi thực thi.
+**A signature or checksum does not prove that code is harmless.** An artifact may be signed by a trusted publisher yet still contain vulnerabilities, malicious code from a compromised publishing account, or behavior that violates host policy. Ensuring safety requires multiple layers of control before and during execution.
 
-## 2. Ba loại đầu vào cần đánh giá khác nhau
+## 2. Three Types of Inputs That Require Different Evaluations
 
-| Đầu vào | Điều cần xác minh trước tiên | Rủi ro đặc thù |
+| Input | What to verify first | Specific risks |
 |---|---|---|
-| **JAR plugin** | Danh tính publisher, hash/chữ ký, dependency tree, class/module metadata, version | Class initialization, `ServiceLoader` provider constructors, native libs, class loader leaks |
-| **Source Java** | Nguồn nộp, commit/review, policy import/dependency, compiler options, kết quả build | Annotation processor, generated sources, static initializer khi load class, mã compile nhưng gây side effect lúc chạy |
-| **Script** | Tác giả, định dạng, engine/version, input schema, quyền host objects, allowlist API | `eval` truy cập tài nguyên hệ thống, overload/proxy reflection, vòng lặp vô hạn, tài nguyên quá mức |
+| **Plugin JAR** | Publisher identity, hash/signature, dependency tree, class/module metadata, version | Class initialization, `ServiceLoader` provider constructors, native libs, class loader leaks |
+| **Java source** | Submission source, commit/review, import/dependency policy, compiler options, build output | Annotation processors, generated sources, static initializers on class load, code that compiles cleanly but causes side effects at runtime |
+| **Script** | Author, format, engine/version, input schema, host object permissions, API allowlist | `eval` accessing system resources, overload/proxy reflection, infinite loops, excessive resource consumption |
 
-Không coi các tệp văn bản tự động vô hại. `javac` có thể chạy annotation processors khi được bật; JShell/script execution có thể gọi Java API hoặc thực hiện I/O tùy quyền của process và engine.
+Do not assume text files are automatically harmless. `javac` can run annotation processors when enabled; JShell/script execution can invoke Java APIs or perform I/O depending on the permissions of the process and engine.
 
-## 3. Quy trình kiểm soát từ nhận artifact đến activation
+## 3. Control Pipeline from Artifact Receipt to Activation
 
 ```text
-Receive artifact (quarantine, chưa load)
-  -> Xác thực kênh và danh tính publisher
-  -> Tính hash / xác minh chữ ký, provenance statement
-  -> Kiểm tra allowlist, phiên bản, dependency, SBOM
-  -> Quét malware/SCA, policy & review phù hợp mức rủi ro
-  -> Staging bất biến, hạn chế quyền truy cập
+Receive artifact (quarantine, not yet loaded)
+  -> Authenticate channel and publisher identity
+  -> Compute hash / verify signature, provenance statement
+  -> Check allowlist, version, dependencies, SBOM
+  -> Scan for malware/SCA, apply risk-appropriate policy & review
+  -> Immutable staging, restricted access permissions
   -> Pre-activation validation (metadata, API compatibility)
-  -> Execution isolation và resource limits
+  -> Execution isolation and resource limits
   -> Observability, audit, revoke/rollback
 ```
 
-Phải hoàn tất các bước **không thực thi mã** trước khi tạo instance plugin, gọi static initializer hoặc đánh giá script. Ví dụ `Class.forName(name, true, loader)` có thể kích hoạt class initialization; gọi constructor của provider rõ ràng là code execution. Trong luồng đánh giá, chỉ đọc manifest/ZIP metadata cũng phải tránh giải nén tùy tiện hoặc ghi ra path không kiểm soát.
+All **non-code-executing** checks must complete before instantiating a plugin, triggering static initializers, or evaluating a script. For example, `Class.forName(name, true, loader)` can trigger class initialization; invoking a provider constructor is explicitly code execution. During the evaluation flow, even reading manifest/ZIP metadata alone must avoid arbitrary extraction or writing to uncontrolled paths.
 
-### 3.1. Quarantine và chống thay đổi giữa kiểm tra với load
+### 3.1. Quarantine and Preventing Modification Between Verification and Loading
 
-Lưu artifact mới trong staging không được application class loader đọc và không để nội dung có thể thay đổi bởi actor không đáng tin. Sau khi hash/phê duyệt, **load đúng bytes đã kiểm tra**: copy vào kho artifact immutable hoặc directory versioned với ownership/permission phù hợp. Nếu kiểm tra file A rồi load lại đường dẫn có thể bị thay thế, phát sinh race condition (TOCTOU).
+Store new artifacts in a staging area that cannot be read by the application class loader and whose contents cannot be modified by untrusted actors. After hashing/approval, **load the exact bytes that were verified**: copy them into an immutable artifact store or a versioned directory with appropriate ownership/permissions. If you verify file A and then load from a path that can be replaced, a race condition (TOCTOU) arises.
 
-Không nhận đường dẫn từ người dùng rồi dùng trực tiếp làm `URLClassLoader` input trước khi xác thực đường dẫn, canonical location, symlink, file type và quyền truy cập.
+Do not accept a user-supplied path and pass it directly as a `URLClassLoader` input before validating the path, canonical location, symlinks, file type, and access permissions.
 
-## 4. Xác minh integrity bằng SHA-256
+## 4. Verifying Integrity with SHA-256
 
-SHA-256 là hash mật mã phù hợp để so sánh nội dung với **digest mong đợi lấy từ nguồn đáng tin cậy**. Nếu attacker có thể thay cả JAR lẫn checksum bên cạnh nó, checksum không tạo ra xác thực nguồn gốc. Vì thế checksum phải gắn với một manifest phát hành, registry/artifact metadata hoặc kênh xác thực độc lập.
+SHA-256 is a cryptographic hash suitable for comparing contents against an **expected digest obtained from a trusted source**. If an attacker can replace both the JAR and the checksum file alongside it, the checksum provides no origin authentication. Therefore, the checksum must be tied to a release manifest, registry/artifact metadata, or an independent authenticated channel.
 
-### Ví dụ Java 17+ chạy độc lập
+### Standalone Java 17+ Example
 
-Tạo file `VerifyJar.java`:
+Create a file `VerifyJar.java`:
 
 ```java
 import java.io.InputStream;
@@ -96,7 +96,7 @@ public final class VerifyJar {
 }
 ```
 
-Biên dịch và tạo một JAR đơn giản bằng JDK 17+, chạy trong shell POSIX:
+Compile and create a simple JAR with JDK 17+, running in a POSIX shell:
 
 ```bash
 javac VerifyJar.java
@@ -106,71 +106,71 @@ jar --create --file demo.jar -C demo-classes .
 sha256sum demo.jar
 ```
 
-Giả sử `sha256sum` in ra digest thực tế là `<DIGEST>` (64 chữ số hex), dùng giá trị **đúng từ lệnh trên**:
+Suppose `sha256sum` prints the actual digest `<DIGEST>` (64 hex digits); pass the **exact value from the command above**:
 
 ```bash
 java VerifyJar demo.jar <DIGEST>
 ```
 
-Output có định dạng:
+The output has the format:
 
 ```text
 sha256: <DIGEST>
 verified: true
 ```
 
-`<DIGEST>` là ký hiệu thay cho giá trị hash thực nhận, không phải stdout cố định. Nếu muốn kiểm thử mismatch, đưa một chuỗi 64 ký tự hex khác với hash thật; chương trình in `verified: false` và trả exit code 1. Trên Windows có thể tính hash bằng `Get-FileHash demo.jar -Algorithm SHA256` rồi truyền kết quả cho chương trình.
+`<DIGEST>` is a placeholder for the actual observed hash value, not literal fixed stdout. If you want to test a mismatch, pass a 64-character hex string that differs from the real hash; the program prints `verified: false` and exits with code 1. On Windows, you can compute the hash with `Get-FileHash demo.jar -Algorithm SHA256` and pass the result to the program.
 
-**Giới hạn:** Ví dụ chỉ xác nhận bytes của file tại thời điểm đọc. Nó không xác minh signer, không scan malware, không kiểm tra chứng chỉ và không tránh TOCTOU nếu loader sau đó mở một file có thể bị thay thế. Trong production nên triển khai kho immutable và tránh thay đổi file đã phê duyệt.
+**Limitation:** This example only verifies the file's bytes at the time of reading. It does not verify the signer, scan for malware, check certificates, or prevent TOCTOU if the loader later opens a file that could be replaced. In production, you should deploy an immutable store and prevent modifications to approved files.
 
-## 5. Chữ ký JAR và trust policy
+## 5. JAR Signatures and Trust Policy
 
-JAR có thể được ký bằng cơ chế JAR signing. Các công cụ phổ biến của JDK gồm `jarsigner` và `keytool`:
+JARs can be signed using the JAR signing mechanism. Common JDK tools include `jarsigner` and `keytool`:
 
 ```bash
 jarsigner -verify -verbose -certs plugin.jar
 ```
 
-Chữ ký JAR giúp phát hiện thay đổi những entry đã ký và cung cấp thông tin signer theo cơ chế Java JAR signing. Nhưng xác minh chữ ký kỹ thuật **khác** với đánh giá publisher có đáng tin và còn được cấp quyền hay không.
+A JAR signature detects modifications to signed entries and provides signer information according to the Java JAR signing mechanism. However, verifying a technical signature is **different** from evaluating whether a publisher is trustworthy and still authorized.
 
-Host cần chính sách rõ:
+The host needs clear policies:
 
-- Chỉ chấp nhận signer/public key đã được phê duyệt hoặc chuỗi chứng chỉ theo trust policy.
-- Kiểm tra hiệu lực chứng chỉ, thu hồi, thuật toán yếu và thời gian ký nếu áp dụng.
-- Xử lý JAR không ký, một phần entry không được ký, nhiều signer và file manifest bất thường theo quy tắc đã xác định.
-- Có quy trình xoay khóa, thu hồi publisher và xử lý artifact đã được phát hành trước khi một key bị lộ.
-- Không cho phép một chữ ký hợp lệ bỏ qua kiểm tra version, dependency và quyền thực thi.
+- Accept only approved signers/public keys or certificate chains according to the trust policy.
+- Check certificate validity, revocation, weak algorithms, and signing timestamps where applicable.
+- Handle unsigned JARs, partially unsigned entries, multiple signers, and anomalous manifest files according to defined rules.
+- Have procedures for key rotation, publisher revocation, and handling artifacts released before a key was compromised.
+- Do not allow a valid signature to bypass version, dependency, and execution permission checks.
 
-Không coi một lệnh `jarsigner -verify` thành hệ thống supply-chain security hoàn chỉnh. Trong các pipeline cao hơn, có thể liên kết artifact với attestation/provenance build, SBOM, commit, CI identity và registry bất biến. Những chứng cứ ấy cũng phải được xác thực bằng khóa/identity policy đáng tin.
+Do not mistake a single `jarsigner -verify` command for a complete supply-chain security system. In more mature pipelines, artifacts can be linked to build attestations/provenance, SBOMs, commits, CI identities, and immutable registries. That evidence must also be authenticated using trusted keys/identity policies.
 
-## 6. Dependency, transitive risk và provenance
+## 6. Dependencies, Transitive Risk, and Provenance
 
-Plugin có thể chỉ chứa vài class tự viết nhưng kéo theo hàng chục JAR dependency. Cần kiểm tra không chỉ plugin chính mà **toàn bộ dependency được nạp ở runtime**:
+A plugin may contain only a few custom classes while pulling in dozens of dependency JARs. You must inspect not only the main plugin, but **all dependencies loaded at runtime**:
 
-- Artifact coordinates, version lock và origin registry.
-- Checksums/signatures cho dependency, kể cả transitive dependencies.
-- SBOM hoặc inventory dependency thực tế (mối liên hệ giữa component và build artifact).
-- CVE/advisory phù hợp phiên bản; kết quả scan là tín hiệu rủi ro chứ không chứng minh mã sạch.
-- License, provenance của build tool/plugins và policy tổ chức.
-- Những dependency bị shading/đóng gói trong fat JAR, native binaries và resource được trích xuất.
+- Artifact coordinates, version locks, and origin registries.
+- Checksums/signatures for dependencies, including transitive dependencies.
+- SBOM or actual dependency inventory (the link between components and build artifacts).
+- Version-matched CVEs/advisories; scan results are a risk signal, not proof that code is clean.
+- Licenses, provenance of build tools/plugins, and organizational policy.
+- Dependencies shaded/bundled inside fat JARs, native binaries, and extracted resources.
 
-Với plugin loader cô lập, một dependency bị thay bằng bản khác vẫn có thể gây lỗ hổng dù API contract không đổi. Khi dùng Maven/Gradle, khóa version, verify artifact và kiểm soát repository mirror trong CI/CD. Tránh tải dependency tùy ý tại runtime từ URL do plugin mô tả mà không qua gate kiểm tra.
+Even with an isolated plugin loader, a dependency replaced with a different version can still introduce vulnerabilities while keeping the API contract unchanged. When using Maven/Gradle, lock versions, verify artifacts, and control repository mirrors in CI/CD. Avoid downloading arbitrary dependencies at runtime from URLs specified by a plugin without passing through verification gates.
 
-## 7. Đánh giá source Java trước khi biên dịch hoặc load
+## 7. Evaluating Java Source Before Compiling or Loading
 
-Source Java có thể được đọc và phân tích tĩnh để phát hiện import/usage đáng ngờ, nhưng kiểm tra static không đủ để chứng minh an toàn. Reflection, dynamic class loading, native calls và dependency có thể làm hành vi thực tế khác source nhìn thấy.
+Java source can be read and statically analyzed to detect suspicious imports or usages, but static checks are insufficient to prove safety. Reflection, dynamic class loading, native calls, and dependencies can make actual runtime behavior differ from what the source visibly shows.
 
-Checklist cho hệ thống biên dịch lúc chạy:
+Checklist for a runtime compilation system:
 
-1. Nhận source qua kênh xác thực, gắn submitter/project ID, commit/hash và policy cho ngôn ngữ/API.
-2. Kiểm tra path, số file, kích thước, encoding, symlink và package namespace được phép.
-3. Biên dịch trong môi trường tách biệt theo quyền OS và giới hạn CPU, RAM, thời gian, disk/network.
-4. Chỉ định class path/module path của contract API từ các artifact đã phê duyệt.
-5. Không tự động cho phép annotation processors từ dependency của source; nếu không cần, dùng `-proc:none`.
-6. Thu thập `Diagnostic` nhưng không hiển thị path hoặc secret nội bộ cho người nộp nguồn.
-7. Phê duyệt bytecode/JAR đầu ra theo policy, lưu vào artifact store versioned trước activation.
+1. Receive source through an authenticated channel, attaching submitter/project ID, commit/hash, and language/API policy.
+2. Validate paths, file count, size, encoding, symlinks, and allowed package namespaces.
+3. Compile in an isolated environment with OS-level permissions and limits on CPU, RAM, time, disk, and network.
+4. Specify the contract API class path/module path exclusively from approved artifacts.
+5. Do not automatically allow annotation processors from source dependencies; if not needed, pass `-proc:none`.
+6. Collect `Diagnostic` messages without exposing internal paths or secrets to the source submitter.
+7. Approve the output bytecode/JAR under policy and store it in a versioned artifact store before activation.
 
-Ví dụ tùy chọn `JavaCompiler`:
+Example `JavaCompiler` options:
 
 ```java
 var options = java.util.List.of(
@@ -180,22 +180,22 @@ var options = java.util.List.of(
 );
 ```
 
-Đoạn này chỉ là **mảnh cấu hình**, không phải chương trình độc lập. `-proc:none` tắt annotation processing trong những compiler áp dụng tùy chọn này; nó không khiến code biên dịch trở nên an toàn để thực thi. Compile còn có thể cần plugin của compiler hoặc công cụ build khác; tất cả công cụ tham gia pipeline cần được kiểm soát.
+This snippet is only a **configuration fragment**, not a standalone program. `-proc:none` disables annotation processing in compilers that honor this option; it does not make compiled code safe to execute. Compilation may also require compiler plugins or other build tools; every tool participating in the pipeline must be controlled.
 
-## 8. Đánh giá script trước khi eval
+## 8. Evaluating Scripts Before `eval`
 
-Script engine JSR 223 có thể cho script truy cập API host, Java objects trong bindings, file/network và native functionality tùy engine. Ngay cả khi script chỉ có vài dòng, `eval` có thể mang side effect nghiêm trọng.
+A JSR 223 script engine can allow scripts to access host APIs, Java objects in bindings, files/networks, and native functionality depending on the engine. Even if a script is only a few lines long, `eval` can have severe side effects.
 
-Host nên:
+The host should:
 
-- Xác thực nguồn gốc script: tác giả, revision, checksum/signature, review status và engine/version.
-- Xác định ngôn ngữ/engine allowlist; từ chối engine không có trong chính sách.
-- Áp dụng schema cho đầu vào/đầu ra, không đưa các object quyền cao (`ClassLoader`, `Runtime`, DB admin client, credential store) vào bindings.
-- Kiểm tra policy permissions/capabilities theo từng tenant hoặc nhóm plugin.
-- Dùng process/container cô lập cho script không tin cậy, giới hạn filesystem, network, CPU, memory, execution time và OS user.
-- Đảm bảo logging/audit không lộ nội dung nhạy cảm hay script secrets.
+- Authenticate script provenance: author, revision, checksum/signature, review status, and engine/version.
+- Define a language/engine allowlist; reject engines not permitted by policy.
+- Enforce schemas for inputs/outputs, and never place privileged objects (`ClassLoader`, `Runtime`, DB admin clients, credential stores) into bindings.
+- Check permission/capability policies per tenant or plugin group.
+- Use isolated processes/containers for untrusted scripts, restricting filesystem, network, CPU, memory, execution time, and OS user.
+- Ensure logging/auditing does not leak sensitive content or script secrets.
 
-### Ví dụ cổng kiểm tra trước khi đánh giá
+### Pre-Evaluation Gate Example
 
 ```java
 static Object evaluateApproved(
@@ -213,67 +213,67 @@ static Object evaluateApproved(
 }
 ```
 
-Đây là **đoạn minh họa** trong class Java đã có engine thực tế; không tự chạy độc lập. Nó thực hiện check hash nhưng không cách ly script, và `approvedHashes` phải được quản lý từ nguồn đáng tin cậy. Chuỗi ký tự có cùng nội dung nhưng khác encoding/normalization có thể có hash khác; pipeline cần thống nhất byte representation trước khi ký/phê duyệt.
+This is an **illustrative snippet** inside a Java class that already has a live engine; it does not run standalone. It performs a hash check but does not isolate the script, and `approvedHashes` must be managed from a trusted source. Strings with identical visible content but different encodings/normalization can produce different hashes; the pipeline must standardize byte representation before signing/approving.
 
-## 9. ClassLoader, ModuleLayer và các ranh giới không phải sandbox
+## 9. ClassLoader, ModuleLayer, and Boundaries That Are Not Sandboxes
 
-Một plugin có thể được nạp bằng `URLClassLoader`, `ServiceLoader` hoặc `ModuleLayer`. Các công cụ này tổ chức dependency và class identity; **chúng không tạo ranh giới quyền OS**.
+A plugin may be loaded using `URLClassLoader`, `ServiceLoader`, or `ModuleLayer`. These tools organize dependencies and class identity; **they do not create OS permission boundaries**.
 
-- Custom class loader có thể cô lập phiên bản thư viện, nhưng plugin vẫn chạy trong JVM process host với quyền tương tự nếu không có cơ chế khác.
-- JPMS `exports`/`opens` giới hạn truy cập module API/reflection theo quy tắc JVM, nhưng không phải cơ chế để chạy arbitrary hostile code an toàn.
-- Java Security Manager đã bị deprecate for removal từ Java 17 và không nên xem nó là lớp sandbox mặc định cho hệ thống plugin hiện đại.
-- Nếu cần chạy mã không tin cậy, dùng subprocess/container/VM với OS permissions, seccomp/cgroup/namespace hoặc cơ chế nền tảng tương ứng, và giao tiếp qua protocol giới hạn capability.
+- A custom class loader can isolate library versions, but the plugin still runs inside the host JVM process with the same privileges unless another mechanism is present.
+- JPMS `exports`/`opens` restrict module API/reflection access according to JVM rules, but they are not a mechanism for safely running arbitrary hostile code.
+- The Java Security Manager has been deprecated for removal since Java 17 and should not be treated as the default sandbox layer for modern plugin systems.
+- If untrusted code must be executed, use a subprocess/container/VM with OS permissions, seccomp/cgroup/namespaces, or equivalent platform mechanisms, and communicate over a capability-restricted protocol.
 
-Phân biệt **isolation để tránh xung đột dependency** và **isolation để giới hạn tác động của mã đối kháng**. Một Java process chạy cùng quyền host có thể mở file, tạo network connection hoặc giữ CPU dù class loader của nó độc lập.
+Distinguish between **isolation to avoid dependency conflicts** and **isolation to limit the impact of adversarial code**. A Java process running with the same host privileges can open files, establish network connections, or hog CPU even if its class loader is independent.
 
-## 10. Policy ra quyết định theo mức độ tin cậy
+## 10. Decision Policies by Trust Level
 
-| Tình huống | Policy gợi ý |
+| Scenario | Recommended policy |
 |---|---|
-| Plugin nội bộ được build từ CI đã xác minh | Pin artifact, verify digest/signature, scan dependencies, test và kiểm soát release |
-| Plugin của vendor đã phê duyệt | Verify publisher identity, attestation nếu có, compatibility, allowlist capabilities, resource limits |
-| Plugin cộng đồng chưa review | Không thực thi trong host JVM; yêu cầu review và process isolation |
-| Source Java do người dùng upload | Compile ở worker cô lập, tránh processors, kiểm tra outputs, không tự động activate |
-| Script từ tenant không tin cậy | Sandboxed process với API/bindings tối thiểu, timeout và quota |
+| Internal plugin built from verified CI | Pin artifact, verify digest/signature, scan dependencies, test, and control release |
+| Approved vendor plugin | Verify publisher identity, attestation if available, compatibility, capability allowlist, resource limits |
+| Unreviewed community plugin | Do not execute in host JVM; require review and process isolation |
+| User-uploaded Java source | Compile in an isolated worker, disable processors, inspect outputs, do not auto-activate |
+| Script from untrusted tenant | Sandboxed process with minimal APIs/bindings, timeouts, and quotas |
 
-Không dùng một cờ boolean `trusted=true` không có nguồn gốc hoặc thời hạn. Trust policy nên có version, người phê duyệt, scope, thời điểm hết hạn và cơ chế revoke. Với hệ thống nhiều tenant, quyền của plugin còn phải gắn với tenant context của yêu cầu cụ thể.
+Do not use a bare `trusted=true` boolean flag without provenance or expiration. A trust policy should have a version, approver, scope, expiration time, and revocation mechanism. In multi-tenant systems, a plugin's permissions must also be bound to the tenant context of the specific request.
 
-## 11. Logging, audit và ứng phó khi nguồn bị xâm phạm
+## 11. Logging, Auditing, and Responding to a Compromised Source
 
-Mọi lần activation cần ghi ít nhất: artifact ID/hash, signer/publisher ID, version, nguồn tải, policy decision, environment, dependency set và kết quả startup. Không log private keys, secrets hay raw sensitive script inputs.
+Every activation should record at least: artifact ID/hash, signer/publisher ID, version, download source, policy decision, environment, dependency set, and startup outcome. Do not log private keys, secrets, or raw sensitive script inputs.
 
-Khi phát hiện key bị lộ hoặc plugin độc hại:
+When a compromised key or malicious plugin is detected:
 
-1. Thu hồi khả năng tải/kích hoạt phiên bản đó và mọi artifact liên quan.
-2. Ngừng routing request mới tới plugin, dọn tài nguyên và chấm dứt worker process khi phù hợp.
-3. Lưu evidence cần thiết (hash, logs, artifact metadata) theo incident policy.
-4. Xác định blast radius: data access, network activity, credentials, downstream systems.
-5. Rotate credentials và rollback/redeploy từ artifact đã xác minh.
+1. Revoke the ability to load/activate that version and all related artifacts.
+2. Stop routing new requests to the plugin, clean up resources, and terminate worker processes as appropriate.
+3. Preserve necessary evidence (hashes, logs, artifact metadata) per incident policy.
+4. Determine the blast radius: data access, network activity, credentials, downstream systems.
+5. Rotate credentials and roll back/redeploy from verified artifacts.
 
-Một quy trình revoke hiệu quả phải chặn **activation mới**, không chỉ xóa file trên registry. Các plugin đang chạy có thể vẫn giữ code và state trong memory; nếu là mã đối kháng, cách ly/dừng process riêng đáng tin hơn việc chỉ đóng class loader.
+An effective revocation process must block **new activations**, not merely delete files from a registry. Running plugins may still retain code and state in memory; for adversarial code, isolating/stopping a separate process is far more reliable than merely closing a class loader.
 
-## 12. Lỗi thường gặp
+## 12. Common Mistakes
 
-| Lỗi | Vì sao nguy hiểm | Cách khắc phục |
+| Mistake | Why it is dangerous | How to fix |
 |---|---|---|
-| Tin file vì nằm trong `plugins/` | Thư mục có thể bị ghi bởi attacker hoặc pipeline lỗi | Quarantine, file ownership, artifact policy |
-| So SHA-256 với `.sha256` cạnh JAR không xác thực | Attacker có thể đổi cả hai | Dùng digest từ registry/manifest đã xác thực |
-| Có chữ ký thì chạy ngay | Signer có thể không thuộc allowlist hoặc bản ký chứa lỗi | Verify signer trust, version và policy |
-| Chỉ scan JAR chính | Dependency độc hại không được phát hiện | Scan/capture toàn bộ dependency closure |
-| Compile source với processors không kiểm soát | Processor có thể chạy code trong lúc build | `-proc:none` hoặc processor allowlist trong worker cô lập |
-| Gọi `Class.forName(..., true, ...)` trước khi check | Kích hoạt static initializer của mã chưa được phê duyệt | Validate artifact trước class initialization |
-| Dùng class loader như sandbox | Không hạn chế quyền OS | Process/container isolation |
-| Không khóa artifact sau verification | TOCTOU: bytes load khác bytes đã kiểm tra | Immutable staged artifact, quyền hạn chặt |
+| Trusting a file because it is in `plugins/` | The directory could be written to by an attacker or a faulty pipeline | Quarantine, file ownership, artifact policy |
+| Comparing SHA-256 against an unauthenticated `.sha256` beside the JAR | An attacker can replace both | Use digests from an authenticated registry/manifest |
+| Running immediately if signed | The signer may not be allowlisted or the signed release may contain bugs | Verify signer trust, version, and policy |
+| Scanning only the main JAR | Malicious dependencies go undetected | Scan/capture the entire dependency closure |
+| Compiling source with uncontrolled processors | Processors can execute code during the build | `-proc:none` or processor allowlist in an isolated worker |
+| Calling `Class.forName(..., true, ...)` before checking | Triggers static initializers of unapproved code | Validate the artifact before class initialization |
+| Using a class loader as a sandbox | Does not restrict OS privileges | Process/container isolation |
+| Failing to lock the artifact after verification | TOCTOU: loaded bytes differ from verified bytes | Immutable staged artifact, strict permissions |
 
-## 13. Checklist tối thiểu trước khi production
+## 13. Minimum Pre-Production Checklist
 
-- [ ] Mỗi JAR/source/script có artifact ID, origin và hash được ghi nhận.
-- [ ] Hash/chữ ký đối chiếu với nguồn đáng tin và publisher được allowlist.
-- [ ] Dependency và transitive artifact được kiểm tra, version được khóa.
-- [ ] Không thực thi code trước khi hoàn tất policy; kể cả class initialization, processors và constructors.
-- [ ] Artifact đã xác minh được lưu immutable để tránh TOCTOU.
-- [ ] Class path/module path và API version được kiểm soát.
-- [ ] Có isolation theo mức độ tin cậy và resource limits.
-- [ ] Có audit log, revoke/rollback và kế hoạch xử lý compromise.
+- [ ] Every JAR/source/script has a recorded artifact ID, origin, and hash.
+- [ ] Hashes/signatures are verified against a trusted source and an allowlisted publisher.
+- [ ] Dependencies and transitive artifacts are inspected, and versions are locked.
+- [ ] No code is executed before policy checks complete, including class initialization, processors, and constructors.
+- [ ] Verified artifacts are stored immutably to prevent TOCTOU.
+- [ ] Class path/module path and API versions are controlled.
+- [ ] Isolation and resource limits match the trust level.
+- [ ] Audit logging, revoke/rollback, and compromise response plans are in place.
 
-**Kết luận:** Đánh giá nguồn gốc mã trước khi thực thi không chỉ là kiểm tra checksum. Host cần chứng minh artifact đến từ nguồn được phép, bytes chưa bị thay đổi, dependencies/phiên bản đúng policy và execution environment có giới hạn phù hợp. Đặc biệt, Java class loader, module layer, `ServiceLoader` và script API hỗ trợ mở rộng runtime nhưng không tự cung cấp sandbox cho mã không tin cậy.
+**Conclusion:** Evaluating code provenance before execution is more than checking a checksum. The host must prove that the artifact comes from an authorized source, the bytes have not been altered, dependencies/versions comply with policy, and the execution environment has appropriate boundaries. In particular, Java class loaders, module layers, `ServiceLoader`, and script APIs support runtime extensibility, but do not by themselves provide a sandbox for untrusted code.

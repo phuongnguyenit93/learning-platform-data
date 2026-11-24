@@ -1,109 +1,109 @@
-# 14.1. JFR ghi sự kiện gì? Quan hệ giữa event, timestamp, duration và stack trace
+# 14.1. What Events Does JFR Record? Relationship Between Event, Timestamp, Duration, and Stack Trace
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Mô tả **Java Flight Recorder (JFR)** thu thập dữ liệu runtime theo mô hình **event** và phân biệt event với log, metric và thread dump.
-2. Kể được các **nhóm sự kiện JFR** thường dùng để điều tra CPU, GC, cấp phát, I/O, đồng bộ, thread và hoạt động của JVM.
-3. Đọc chính xác ý nghĩa của **event type, timestamp/startTime, duration/endTime, event thread, payload và stack trace** trong một bản ghi.
-4. Phân biệt sự kiện **tức thời**, **có khoảng thời gian**, **lấy mẫu** và **định kỳ**; hiểu vì sao một event không nhất thiết có duration đáng kể hoặc stack trace.
-5. Tự tạo một file `.jfr`, lọc và đọc event bằng `jfr`/API Java 17+, rồi đặt các event trên trục thời gian mà không suy diễn sai nguyên nhân.
+1. Describe how **Java Flight Recorder (JFR)** collects runtime data using an **event** model and distinguish events from logs, metrics, and thread dumps.
+2. Name the **JFR event groups** commonly used to investigate CPU, GC, allocation, I/O, synchronization, threads, and JVM activity.
+3. Accurately interpret the meaning of **event type, timestamp/startTime, duration/endTime, event thread, payload, and stack trace** in a recording.
+4. Distinguish **instant**, **duration**, **sampled**, and **periodic** events; understand why an event does not necessarily have a significant duration or a stack trace.
+5. Create a `.jfr` file yourself, filter and read events using `jfr` or the Java 17+ API, and place events on a timeline without drawing false causal conclusions.
 
-> **Ý chính:** JFR lưu các sự kiện có kiểu và metadata. Mỗi bản ghi event cho biết *điều gì được quan sát*; timestamp định vị nó trên thời gian; duration (nếu có) biểu thị thời lượng sự kiện đo; stack trace (nếu được thu) cho biết chuỗi lời gọi tại **điểm lấy stack**. Bốn thông tin này bổ sung cho nhau nhưng không tự động tạo thành toàn bộ lịch sử thực thi của một request.
+> **Key takeaway:** JFR stores typed events with metadata. Each event record indicates *what was observed*; the timestamp locates it in time; the duration (if present) represents the length of time the event measured; the stack trace (if collected) shows the call chain at the **stack capture point**. These four pieces of information complement one another, but they do not automatically form the complete execution history of a request.
 
-## 1. JFR là gì và event khác log thế nào?
+## 1. What Is JFR and How Do Events Differ from Logs?
 
-**Java Flight Recorder** là hệ thống quan sát tích hợp với HotSpot/JDK, thu các bản ghi sự kiện từ JVM, thư viện JDK và ứng dụng. Các event thường được ghi vào buffer trong runtime, rồi tập hợp thành recording có thể lưu thành file nhị phân `.jfr`. Có thể phân tích bằng công cụ `jfr`, **Java Mission Control (JMC)** hoặc API `jdk.jfr.consumer`.
+**Java Flight Recorder** is an observability system integrated into HotSpot/JDK that collects event records from the JVM, JDK libraries, and applications. Events are typically written to buffers at runtime and then assembled into a recording that can be saved as a binary `.jfr` file. It can be analyzed using the `jfr` tool, **Java Mission Control (JMC)**, or the `jdk.jfr.consumer` API.
 
-Mô hình khái niệm:
+Conceptual model:
 
 ```text
-Ứng dụng + JVM
+Application + JVM
     |
-    | phát sinh event có kiểu/metadata
+    | emits typed events with metadata
     v
-JFR (event settings, timestamp, duration, payload, stack tùy cấu hình)
+JFR (event settings, timestamp, duration, payload, stack depending on configuration)
     |
-    | ghi vào buffer / recording
+    | writes to buffer / recording
     v
-File .jfr
+.jfr file
     |
     +--> jfr summary / jfr print
-    +--> Java Mission Control (timeline, bảng, flame graph tùy phân tích)
+    +--> Java Mission Control (timeline, tables, flame graph depending on analysis)
     +--> RecordingFile / EventStream API
 ```
 
-So sánh:
+Comparison:
 
-| Nguồn | Bản chất | Trả lời tốt câu hỏi nào? | Điểm cần nhớ |
+| Source | Nature | Which Questions Does It Answer Well? | Things to Keep in Mind |
 | --- | --- | --- | --- |
-| Log ứng dụng | Thông điệp do mã ghi ra, thường là chuỗi văn bản. | Quyết định nghiệp vụ, lỗi, correlation ID, luồng nghiệp vụ đã được log. | Không tự mang CPU/GC/stack của mọi thao tác. |
-| Metric | Số đo tổng hợp theo thời gian: tỷ lệ, bộ đếm, gauge. | CPU %, số request/s, pause GC p95, heap used. | Không tự xác định stack của một lần xảy ra. |
-| Thread dump | Ảnh chụp stack/trạng thái thread tại thời điểm lấy mẫu. | Thread đang ở đâu, chờ gì tại thời điểm chụp? | Không tự có toàn bộ lịch sử event trước đó. |
-| **JFR event** | Bản ghi có type, thời điểm, có thể có duration, thread, stack và field chuyên biệt. | Điều gì xảy ra, vào lúc nào, kéo dài bao lâu, trong ngữ cảnh nào? | Có thể chỉ là mẫu/đã lọc; sự kiện không xuất hiện chưa chắc hoạt động không xảy ra. |
+| Application log | Messages written by code, usually text strings. | Business decisions, errors, correlation IDs, logged business flows. | Does not automatically carry CPU/GC/stack data for every operation. |
+| Metric | Aggregated measurements over time: rates, counters, gauges. | CPU %, requests/s, GC pause p95, heap used. | Does not automatically identify the stack of a single occurrence. |
+| Thread dump | Snapshot of thread stacks/states at the sampling point. | Where are threads, and what are they waiting on at snapshot time? | Does not automatically contain the full history of prior events. |
+| **JFR event** | Record with type, timestamp, optional duration, thread, stack, and specialized fields. | What happened, when, for how long, and in what context? | May be sampled/filtered; absence of an event does not guarantee the activity did not occur. |
 
-JFR **không** phải một file log liên tục chứa từng lệnh Java, từng method call hoặc mọi object allocation. JVM cố gắng giảm overhead bằng cấu hình chọn event, threshold, sampling, period và buffer. Do đó **phạm vi quan sát phụ thuộc recording settings**.
+JFR is **not** a continuous log file containing every Java instruction, every method call, or every object allocation. The JVM tries to minimize overhead through configurations that select events, thresholds, sampling, periods, and buffers. Therefore, **the scope of observation depends on the recording settings**.
 
-## 2. JFR ghi những loại sự kiện gì?
+## 2. What Types of Events Does JFR Record?
 
-Tên event dưới đây là các **ví dụ tiêu biểu** trên HotSpot/JDK hiện đại; event cụ thể có được bật/được phát sinh hay không phụ thuộc **JDK, file cấu hình `.jfc`, threshold và workload**. Không phải tất cả đều hiện diện trong mọi file.
+The event names below are **representative examples** on modern HotSpot/JDK; whether a specific event is enabled or emitted depends on the **JDK, `.jfc` configuration file, threshold, and workload**. Not all of them are present in every file.
 
-| Nhóm | Ví dụ event JFR | Câu hỏi thực tế |
+| Group | Example JFR Events | Practical Questions |
 | --- | --- | --- |
-| **GC & heap** | `jdk.GarbageCollection`, các event phase GC, `jdk.GCHeapSummary` | GC diễn ra khi nào, kéo dài bao lâu, heap thay đổi thế nào? |
-| **CPU / lấy mẫu thực thi** | `jdk.ExecutionSample`, `jdk.CPULoad`, `jdk.ThreadCPULoad` | Những stack nào được lấy mẫu khi chạy? CPU tiến trình/máy biến động ra sao? |
-| **Cấp phát bộ nhớ** | `jdk.ObjectAllocationSample`, một số loại allocation event khác tùy JDK/cấu hình | Có những lớp/object nào xuất hiện trong mẫu cấp phát; điểm cấp phát nằm ở stack nào? |
-| **I/O** | `jdk.FileRead`, `jdk.FileWrite`, `jdk.SocketRead`, `jdk.SocketWrite` | I/O nào lâu, bao nhiêu byte, từ thread/stack nào? |
-| **Đồng bộ / chờ** | `jdk.JavaMonitorEnter`, `jdk.ThreadPark` | Chờ monitor/park lâu ở đâu, có tranh chấp lock hay queue wait không? |
-| **Thread và lifecycle** | `jdk.ThreadStart`, `jdk.ThreadEnd` và các event liên quan platform/virtual thread tùy JDK | Thread xuất hiện/kết thúc thời điểm nào? |
-| **Ngoại lệ** | Một số event về exception/throw, thường cần bật rõ khi muốn thu chi tiết | Exception nào được ném và tại call site nào? |
-| **Class/JIT/JVM** | Event class loading, compilation, safepoint, flags, môi trường | Runtime đang load class/JIT/stop tại safepoint ra sao? |
-| **Ứng dụng tự định nghĩa** | Chẳng hạn `demo.Task`, `app.OrderProcessed` từ lớp kế thừa `jdk.jfr.Event` | Một bước nghiệp vụ bắt đầu/kết thúc khi nào, có metadata nào? |
+| **GC & heap** | `jdk.GarbageCollection`, GC phase events, `jdk.GCHeapSummary` | When did GC occur, how long did it last, and how did the heap change? |
+| **CPU / execution sampling** | `jdk.ExecutionSample`, `jdk.CPULoad`, `jdk.ThreadCPULoad` | Which stacks were sampled while running? How did process/machine CPU fluctuate? |
+| **Memory allocation** | `jdk.ObjectAllocationSample`, other allocation event types depending on JDK/configuration | Which classes/objects appear in allocation samples; at which stacks do allocations occur? |
+| **I/O** | `jdk.FileRead`, `jdk.FileWrite`, `jdk.SocketRead`, `jdk.SocketWrite` | Which I/O operations were slow, how many bytes, from which thread/stack? |
+| **Synchronization / waiting** | `jdk.JavaMonitorEnter`, `jdk.ThreadPark` | Where are long monitor/park waits occurring; is there lock contention or queue wait? |
+| **Threads and lifecycle** | `jdk.ThreadStart`, `jdk.ThreadEnd`, and events related to platform/virtual threads depending on JDK | When were threads started or terminated? |
+| **Exceptions** | Events related to exceptions/throws, often needing explicit enabling for detailed capture | Which exceptions were thrown and at which call sites? |
+| **Class/JIT/JVM** | Class loading, compilation, safepoint, flags, and environment events | How is the runtime loading classes, JIT-compiling, or stopping at safepoints? |
+| **Application-defined** | Such as `demo.Task`, `app.OrderProcessed` from classes extending `jdk.jfr.Event` | When did a business step start/finish, and with what metadata? |
 
-Để biết **các event type thực sự có mặt trong file**, dùng `jfr summary recording.jfr` hoặc `jfr metadata recording.jfr`; để biết những setting đang bật trên bản recording, kiểm tra cấu hình `.jfc`/recording thực tế. Một dòng `jdk.SocketRead` không xuất hiện có thể do không thực hiện socket read, duration thấp hơn threshold, event bị tắt hoặc recording không bao trùm thời điểm đó.
+To see **which event types are actually present in a file**, use `jfr summary recording.jfr` or `jfr metadata recording.jfr`; to see which settings are enabled on a recording, check the actual `.jfc`/recording configuration. An absent `jdk.SocketRead` entry might mean no socket read occurred, the duration was below the threshold, the event was disabled, or the recording did not cover that time window.
 
-### Phân biệt bốn kiểu sự kiện thường gặp
+### Distinguishing Four Common Event Kinds
 
-1. **Instant event (tức thời):** mô tả một mốc, ví dụ thread start. `startTime` và `endTime` trùng nhau, `duration` bằng 0 theo API `RecordedEvent`. Không đo thời gian *sống của thread* chỉ bằng riêng event start.
-2. **Duration event (có khoảng thời gian):** mô tả thao tác từ bắt đầu đến kết thúc, ví dụ socket read, thread park, monitor wait hoặc một event nghiệp vụ tự đo bằng `begin()`/`end()`. Có `startTime`, `endTime` và `duration`; một số sự kiện ngắn có thể bị loại vì **threshold**.
-3. **Sampled event:** ví dụ `jdk.ExecutionSample`, chỉ phản ánh điểm lấy mẫu của thread/stack theo chu kỳ hay thuật toán lấy mẫu; **không** có nghĩa mỗi lần gọi method đều tạo một event và cũng không có nghĩa duration của event bằng thời gian CPU mà method đã dùng.
-4. **Periodic event:** ví dụ số liệu tải CPU hoặc trạng thái bộ nhớ thu theo chu kỳ. Timestamp đánh dấu mốc thu/ghi số liệu; field metric có thể tổng hợp thông tin qua một cửa sổ thời gian. Không suy ra toàn bộ cửa sổ ấy chính là `duration` của event.
+1. **Instant event:** describes a point in time, such as thread start. `startTime` and `endTime` are identical, and `duration` is 0 according to the `RecordedEvent` API. You cannot measure *thread lifetime* from the start event alone.
+2. **Duration event:** describes an operation from start to finish, such as socket read, thread park, monitor wait, or a custom business event measured with `begin()`/`end()`. It has `startTime`, `endTime`, and `duration`; short events may be dropped due to a **threshold**.
+3. **Sampled event:** such as `jdk.ExecutionSample`, reflects only a sample point of a thread/stack according to a periodic interval or sampling algorithm; it does **not** mean every method invocation creates an event, nor does it mean the event's duration equals the CPU time used by the method.
+4. **Periodic event:** such as CPU load or memory state metrics collected periodically. The timestamp marks when the metric was collected/recorded; payload fields may aggregate information over a time window. Do not infer that the entire window is the event's `duration`.
 
-## 3. Cấu trúc một bản ghi event: type, time, thread, payload, stack
+## 3. Structure of an Event Record: Type, Time, Thread, Payload, Stack
 
-Hãy hình dung một `jdk.SocketRead` được ghi nhận với dữ liệu minh họa sau (đây là **bảng giải thích ý nghĩa**, không phải output nguyên văn do `jfr print` tạo ra):
+Imagine a `jdk.SocketRead` recorded with the following illustrative data (this is an **explanatory table**, not verbatim output produced by `jfr print`):
 
-| Thuộc tính | Giá trị minh họa | Nghĩa |
+| Attribute | Illustrative Value | Meaning |
 | --- | --- | --- |
-| Event type | `jdk.SocketRead` | Định danh **loại** sự kiện. Nhiều bản ghi cùng type có thể tồn tại trong recording. |
-| Start timestamp | `2026-10-29T09:30:15.100Z` | Thời điểm thao tác được xem là bắt đầu. |
-| Duration | `85 ms` | Khoảng thời gian sự kiện đo: thao tác có thể chờ I/O và không nhất thiết sử dụng CPU liên tục. |
-| End timestamp | `2026-10-29T09:30:15.185Z` | Mốc kết thúc tương ứng; về logic bằng start + duration. |
-| Event thread | `worker-4` | Thread được gắn với sự kiện tại thời điểm ghi; không phải toàn bộ hệ thống thread liên quan. |
-| Payload | Ví dụ địa chỉ/socket, số byte đọc | Field cụ thể do định nghĩa event cung cấp. |
-| Stack trace | Chuỗi các frame `class.method(...)` | Call stack tại điểm JFR chụp stack, nếu recording có bật và type hỗ trợ. |
+| Event type | `jdk.SocketRead` | Identifies the event **type**. Many records of the same type can exist in a recording. |
+| Start timestamp | `2026-10-29T09:30:15.100Z` | The point in time when the operation is considered to have started. |
+| Duration | `85 ms` | The duration measured by the event: the operation may be waiting on I/O and does not necessarily use CPU continuously. |
+| End timestamp | `2026-10-29T09:30:15.185Z` | The corresponding end point; logically equal to start + duration. |
+| Event thread | `worker-4` | The thread associated with the event at recording time; not necessarily every thread involved in the system. |
+| Payload | e.g. address/socket, bytes read | Specific fields provided by the event definition. |
+| Stack trace | Sequence of `class.method(...)` frames | Call stack at the point JFR captured the stack, if enabled in the recording and supported by the type. |
 
-Định dạng thời gian hiển thị trong GUI, `jfr print` hay Java `Instant` có thể khác nhau theo công cụ và múi giờ. Khi so với log, hãy **chuẩn hóa múi giờ** trước, đừng coi timestamp format khác nhau là event xảy ra tại hai thời điểm khác nhau.
+Time formats displayed in the GUI, `jfr print`, or Java `Instant` may vary by tool and time zone. When comparing against logs, **normalize time zones** first—do not mistake different timestamp formats for events occurring at two different times.
 
-Một event type được mô tả bằng metadata (tên, nhãn, category, field descriptors và settings). **Một event instance** là một lần xảy ra cụ thể của event type đó. `jdk.SocketRead` là **type**; 500 lần read trong một recording có thể tạo nhiều **instance** event `jdk.SocketRead` nếu đáp ứng cấu hình.
+An event type is described by metadata (name, label, category, field descriptors, and settings). **An event instance** is a concrete occurrence of that event type. `jdk.SocketRead` is the **type**; 500 reads during a recording can produce many `jdk.SocketRead` event **instances** if they satisfy the configuration.
 
-### 3.1. `timestamp` / `startTime`: khi nào?
+### 3.1. `timestamp` / `startTime`: When?
 
-API `RecordedEvent.getStartTime()` trả `java.time.Instant`, tức **thời điểm bắt đầu** của event; `getEndTime()` trả thời điểm kết thúc. Nếu là instant event thì hai thời điểm bằng nhau. Nhiều công cụ hiển thị field thời gian tên `startTime`, thường gọi ngắn là *timestamp*.
+The `RecordedEvent.getStartTime()` API returns a `java.time.Instant`, i.e., the **start time** of the event; `getEndTime()` returns the end time. For an instant event, the two timestamps are equal. Many tools display the time field named `startTime`, often referred to simply as the *timestamp*.
 
-Không được nhầm:
+Do not confuse:
 
-- **Event time**: thời điểm hoạt động xảy ra/được đo.
-- **Commit time**: thời điểm recorder chấp nhận event hoặc dữ liệu tại `commit()` đối với event ứng dụng.
-- **Flush/file write time**: lúc dữ liệu ở buffer được đưa vào file; có thể muộn hơn event time.
-- **Analysis time**: lúc bạn mở file `.jfr` và xem kết quả.
+- **Event time**: when the activity occurred/was measured.
+- **Commit time**: when the recorder accepted the event, or the data at `commit()` for application events.
+- **Flush/file write time**: when buffered data is written to disk; this can be later than event time.
+- **Analysis time**: when you open the `.jfr` file and inspect the results.
 
-JFR buffer có thể được ghi ra file sau; vì thế **thời điểm file được sửa** và **thứ tự dòng khi in file** không nên dùng thay timestamp sự kiện. Khi phân tích timeline, lấy timestamp từ metadata event.
+JFR buffers can be flushed to disk later; therefore, **file modification time** and **line order when printing a file** should not be used in place of event timestamps. When analyzing a timeline, take timestamps from the event metadata.
 
-### 3.2. `duration`: kéo dài bao lâu?
+### 3.2. `duration`: How Long?
 
-`RecordedEvent.getDuration()` trả `java.time.Duration` và đo bằng độ phân giải nanosecond trong API. Về ngữ nghĩa:
+`RecordedEvent.getDuration()` returns a `java.time.Duration` measured at nanosecond resolution in the API. Semantically:
 
 ```text
 eventStart ------------------------------------- eventEnd
@@ -112,21 +112,21 @@ eventStart ------------------------------------- eventEnd
 duration ≈ endTime - startTime
 ```
 
-Với một thao tác `SocketRead` kéo dài 85 ms, đó là **thời gian thao tác đọc được đo**, có thể bao gồm thời gian bị chặn/chờ dữ liệu/scheduling. Không tự kết luận 85 ms **CPU time**. Cũng không suy ra toàn bộ request HTTP mất đúng 85 ms vì request có thể gồm nhiều bước khác.
+For a `SocketRead` operation lasting 85 ms, that is the **measured duration of the read operation**, which may include blocking/waiting for data/scheduling time. Do not automatically conclude 85 ms of **CPU time**. Nor should you infer that the entire HTTP request took exactly 85 ms, since a request may consist of many other steps.
 
-Các trường hợp:
+Cases to note:
 
-- Với **instant event**, duration bằng zero; không phải lỗi.
-- Với event có `@Threshold("10 ms")` hoặc setting `threshold=10 ms`, sự kiện dưới 10 ms có thể **không được ghi**, dù thao tác thật sự xảy ra.
-- Có event mà ý nghĩa chính là **một số đo trong payload** (tải CPU, số byte, tỷ lệ sử dụng) chứ không phải duration đáng chú ý.
-- `Duration.toMillis()` **làm tròn xuống** tới mili giây nguyên; muốn phân tích thao tác ngắn hơn có thể dùng `toNanos()` hoặc giá trị duration chính xác hơn.
-- Một event dài bất thường không tự chứng minh phương thức trên stack đang chiếm CPU: đó có thể là **waiting time**, lock, network hoặc scheduling.
+- For an **instant event**, duration is zero; this is not an error.
+- For events with `@Threshold("10 ms")` or setting `threshold=10 ms`, events under 10 ms may **not be recorded**, even though the operation actually occurred.
+- Some events have their primary meaning in a **payload measurement** (CPU load, byte count, utilization rate) rather than a meaningful duration.
+- `Duration.toMillis()` **truncates down** to whole milliseconds; to analyze shorter operations, use `toNanos()` or more precise duration values.
+- An unusually long event does not by itself prove that a method on the stack is consuming CPU: it may be **waiting time**, lock, network, or scheduling.
 
-### 3.3. `stackTrace`: chương trình đang ở đâu?
+### 3.3. `stackTrace`: Where Was the Program?
 
-`RecordedEvent.getStackTrace()` trả `RecordedStackTrace` hoặc `null`. Khi JFR thu stack cho event do ứng dụng phát ra, `@StackTrace`/setting `stackTrace=true` cho phép ghi chuỗi frame **tại lúc `Event.commit()`**, không tự ghi toàn bộ các method chạy trong suốt duration. Với event JVM, stack thể hiện ngữ cảnh điểm JVM lấy stack cho event đó; riêng event sampling có ý nghĩa là stack **tại điểm lấy mẫu**.
+`RecordedEvent.getStackTrace()` returns a `RecordedStackTrace` or `null`. When JFR collects a stack for an application-emitted event, `@StackTrace`/setting `stackTrace=true` enables recording the frame chain **at the moment of `Event.commit()`**, without automatically recording all methods executed over the entire duration. For JVM events, the stack reflects the context at the point where the JVM captures the stack for that event; for sampled events specifically, it means the stack **at the sampling point**.
 
-Một stack có thể cho thấy:
+A stack might show:
 
 ```text
 com.example.Service.load()
@@ -134,30 +134,30 @@ com.example.Service.load()
     -> java.net.Socket...
 ```
 
-Từ đó bạn có thể đặt câu hỏi “Lời gọi nào dẫn đến socket read?” nhưng chưa thể khẳng định đoạn `Service.load()` sử dụng CPU suốt duration.
+From this, you can ask "Which call path led to the socket read?", but you cannot yet assert that `Service.load()` used CPU throughout the entire duration.
 
-**Các giới hạn thiết yếu:**
+**Essential limitations:**
 
-- Stack trace có thể **vắng mặt** do type/setting/recording không bật stack trace, hoặc JVM không thể thu trong trường hợp cụ thể.
-- Stack có thể bị **giới hạn độ sâu**. Tăng số frame được `jfr print` hiển thị không phục hồi các frame vốn **không được ghi**.
-- Stack của event tại điểm commit/sampling **không phải causal graph** giữa thread, process hay service. Cần request ID/tracing/log nếu muốn nối các thao tác liên dịch vụ.
-- Stack xuất hiện thường xuyên trong **sample** gợi ý vùng cần quan sát; số sample không trực tiếp bằng số lần method được gọi.
+- A stack trace may be **absent** because the type/setting/recording did not enable stack traces, or the JVM could not capture it in a specific case.
+- Stacks may be **depth-limited**. Increasing the number of frames displayed by `jfr print` does not recover frames that were **never recorded**.
+- An event's stack at commit/sampling time is **not a causal graph** across threads, processes, or services. You need request IDs/tracing/logs to connect cross-service operations.
+- A stack appearing frequently in **samples** suggests an area worth investigating; the sample count does not directly equal the number of times the method was invoked.
 
-### 3.4. Thread và payload có vai trò gì?
+### 3.4. What Roles Do Thread and Payload Play?
 
-`eventThread`/`RecordedEvent.getThread()` chỉ ra thread gắn với lần ghi event nếu được thu; event type cũng có field nghiệp vụ riêng như `bytesRead`, `duration`, địa chỉ, loại GC, số lượng object, operation ID. Một event JFR có thể thiếu một số field, nên không áp một schema cố định cho mọi type/JDK.
+`eventThread`/`RecordedEvent.getThread()` indicates the thread associated with recording the event if captured; an event type also has domain-specific fields such as `bytesRead`, `duration`, address, GC type, object count, or operation ID. A JFR event may omit certain fields, so do not assume a fixed schema across all types/JDKs.
 
-Với **virtual threads**, tên thread và carrier thread có thể thay đổi theo thời điểm; không suy ra quan hệ cố định “một virtual thread = một platform thread” chỉ từ một event. Nếu ghép sự kiện của một request, cần khóa tương quan nghiệp vụ đáng tin cậy (ví dụ request ID) nếu ứng dụng đã chủ động ghi.
+With **virtual threads**, the thread name and carrier thread can change over time; do not infer a fixed "one virtual thread = one platform thread" relationship from a single event. When correlating events for a single request, you need a reliable business correlation key (such as a request ID) if the application explicitly records one.
 
-## 4. Quan hệ giữa bốn thành phần trong một timeline
+## 4. Relationship Among the Four Components on a Timeline
 
-Cho ba event giả định:
+Consider three hypothetical events:
 
-| Sự kiện | Start time | Duration | End time | Stack (nếu được thu) gợi ý |
+| Event | Start time | Duration | End time | What the Stack (if captured) Suggests |
 | --- | --- | --- | --- | --- |
-| `app.Request` | 10:00:00.000 | 120 ms | 10:00:00.120 | Vị trí `commit` ở mã xử lý request |
-| `jdk.SocketRead` | 10:00:00.020 | 70 ms | 10:00:00.090 | Call path đến thao tác đọc |
-| `app.Checkpoint` | 10:00:00.100 | 0 ms | 10:00:00.100 | Vị trí phát event mốc |
+| `app.Request` | 10:00:00.000 | 120 ms | 10:00:00.120 | Position of `commit` in request-handling code |
+| `jdk.SocketRead` | 10:00:00.020 | 70 ms | 10:00:00.090 | Call path to the read operation |
+| `app.Checkpoint` | 10:00:00.100 | 0 ms | 10:00:00.100 | Position where the milestone event was emitted |
 
 ```text
 10:00:00.000                    .020             .090   .100    .120
@@ -167,86 +167,86 @@ Socket :                             [====================]
 Checkpoint:                                               *
 ```
 
-Đây là **ví dụ diễn giải timeline**, không phải kết quả thật của một JVM. Có thể nói socket read diễn ra **trong khoảng** request, nhưng để khẳng định chúng thuộc **cùng request**, phải có correlation từ thread/context, mã hoặc tracing. Chỉ trùng thời gian trên JVM nhiều request **không đủ**.
+This is an **illustrative timeline interpretation example**, not real output from a JVM. You can say the socket read occurred **within the interval** of the request, but to assert they belong to the **same request**, you must have correlation from thread/context, code, or tracing. Overlapping timestamps on a multi-request JVM are **not sufficient**.
 
-Dữ liệu giải quyết các câu hỏi khác nhau:
+Different pieces of data answer different questions:
 
-- **What?** `eventType` và payload.
+- **What?** `eventType` and payload.
 - **When?** `startTime`, `endTime`.
-- **How long?** `duration` nếu event có ý nghĩa khoảng thời gian.
-- **Where in code?** `stackTrace` nếu được ghi, cộng với event thread.
-- **Why?** Phải kết hợp context, log, threshold, JFR event khác và thử nghiệm; một event đơn lẻ không tự chứng minh root cause.
+- **How long?** `duration` if the event represents a time interval.
+- **Where in code?** `stackTrace` if recorded, plus the event thread.
+- **Why?** Must combine context, logs, thresholds, other JFR events, and experiments; a single event alone does not prove root cause.
 
-Một sự kiện duration không nhất thiết ghi hai record start/end riêng; thông thường **một record event** chứa thông tin thời gian đo cả khoảng.
+A duration event does not necessarily write two separate start/end records; normally **a single event record** contains the timing information covering the whole interval.
 
-## 5. Thu recording JFR từ một JVM đang chạy bằng `jcmd`
+## 5. Capturing a JFR Recording from a Running JVM with `jcmd`
 
-Cần **JDK 17+** có `jcmd` và `jfr`, JVM đích đang chạy, có quyền attach hợp lệ. Để tìm đúng tiến trình:
+You need **JDK 17+** with `jcmd` and `jfr`, a running target JVM, and valid attach permissions. To find the right process:
 
 ```bash
 jcmd -l
 jcmd 12345 help JFR.start
 ```
 
-`12345` là **PID minh họa**, thay bằng PID JVM thật. Tên option và khả năng theo JDK nên xem bằng `jcmd <PID> help JFR.start`, `help JFR.dump`, `help JFR.stop`.
+`12345` is an **illustrative PID**; replace it with the real JVM PID. Option names and capabilities by JDK should be checked with `jcmd <PID> help JFR.start`, `help JFR.dump`, `help JFR.stop`.
 
-### Cách A: ghi liên tục rồi tự dump khi cần
+### Method A: Record continuously and dump on demand
 
 ```bash
-# Khởi động recording có tên, cấu hình ít overhead hơn:
+# Start a named recording with a lower-overhead configuration:
 jcmd 12345 JFR.start name=runtime-check settings=default
 
-# Xem recording đang hoạt động:
+# View active recordings:
 jcmd 12345 JFR.check
 
-# Tạo file .jfr snapshot của recording đang chạy:
+# Create a .jfr snapshot file of the running recording:
 jcmd 12345 JFR.dump name=runtime-check filename=/tmp/runtime-check.jfr
 
-# Khi đã đủ dữ liệu, dừng recording:
+# When enough data has been collected, stop the recording:
 jcmd 12345 JFR.stop name=runtime-check
 ```
 
-- `settings=default` dùng cấu hình JDK được thiết kế cho chi phí thấp; `settings=profile` thường ghi nhiều hơn và nên dùng trong thời gian ngắn khi cần phân tích sâu.
-- `JFR.dump` **ghi dữ liệu hiện có ra file nhưng recording tiếp tục chạy**. Không nhầm với `JFR.stop`.
-- Đường dẫn `filename` của `JFR.dump` được thực thi **từ JVM đích**. Nếu JVM chạy trong container, file `/tmp/runtime-check.jfr` nằm trong filesystem mà **container JVM** nhìn thấy.
-- Dữ liệu thu được phụ thuộc khoảng thời gian recording chạy. Nếu chưa có hoạt động hoặc event bị lọc, file có thể không chứa loại sự kiện bạn tìm.
-- Khi cần nhiều snapshot, dùng file tên khác để tránh ghi đè kết quả cũ.
+- `settings=default` uses the JDK configuration designed for low overhead; `settings=profile` typically records more data and should be used for short periods when deep analysis is needed.
+- `JFR.dump` **writes currently available data to a file while the recording continues running**. Do not confuse it with `JFR.stop`.
+- The `filename` path for `JFR.dump` is resolved **by the target JVM**. If the JVM runs inside a container, `/tmp/runtime-check.jfr` lives in the filesystem seen by the **container JVM**.
+- Collected data depends on how long the recording ran. If the activity had not occurred yet or events were filtered out, the file may not contain the event type you are looking for.
+- When taking multiple snapshots, use distinct filenames to avoid overwriting earlier results.
 
-### Cách B: recording tự kết thúc sau thời gian xác định
+### Method B: Recording that stops automatically after a fixed duration
 
 ```bash
 jcmd 12345 JFR.start name=short-profile settings=profile duration=60s filename=/tmp/short-profile.jfr
 ```
 
-Khi đủ thời lượng, JVM dừng recording và lưu file theo cấu hình. Đừng tìm file ngay lúc câu lệnh start trả về mà cho rằng đã thu đủ 60 giây. Tài liệu JFR mô tả thời lượng `duration`, thư mục, tên file và ảnh hưởng của setting; phải kiểm tra trạng thái/file thực tế sau khi hoàn thành.
+Once the duration elapses, the JVM stops the recording and saves the file according to the configuration. Do not look for the file immediately when the start command returns and assume 60 seconds of data has already been captured. JFR documentation describes `duration`, directory, filename, and setting effects; always verify the actual state/file after completion.
 
-**Quyền và nguồn lực:** cần đúng user/PID namespace; container tối giản có thể thiếu `jcmd`. JFR tạo dữ liệu nhạy cảm như class/method, đường dẫn và thông tin runtime. Chọn vị trí lưu, thời lượng, quyền truy cập, chính sách lưu trữ phù hợp. Không bật hàng loạt sự kiện rất nhiều stack trace ở tần suất cao mà không đo overhead.
+**Permissions and resources:** requires the right user/PID namespace; minimal containers may lack `jcmd`. JFR produces sensitive data such as class/method names, paths, and runtime details. Choose storage locations, durations, access permissions, and retention policies appropriately. Do not enable high-frequency events with full stack traces en masse without measuring overhead.
 
-## 6. Dùng `jfr` đọc tên event, timestamp, duration và stack
+## 6. Using `jfr` to Read Event Names, Timestamps, Durations, and Stacks
 
-Giả sử file `runtime-check.jfr` đã có trên máy bạn đang chạy bộ JDK tools (có thể cần sao chép file ra khỏi container trước).
+Assume `runtime-check.jfr` is already on the machine where you run the JDK tools (you may need to copy the file out of a container first).
 
 ```bash
-# Thống kê loại event và số lượng mẫu:
+# Summarize event types and sample counts:
 jfr summary runtime-check.jfr
 
-# In event JVM có ghi trong file:
+# Print JVM events recorded in the file:
 jfr print --events jdk.GarbageCollection runtime-check.jfr
 
-# Tập trung vào I/O, hiển thị nhiều frame hơn nếu file có stack:
+# Focus on I/O, showing more frames if the file has stacks:
 jfr print --events jdk.SocketRead,jdk.SocketWrite --stack-depth 12 runtime-check.jfr
 
-# Xuất các event được chọn dưới dạng JSON cho công cụ phân tích:
+# Export selected events as JSON for analysis tools:
 jfr print --json --events jdk.SocketRead runtime-check.jfr
 ```
 
-`jfr summary` giúp biết event nào **thực sự có trong recording** và số lượng của chúng. `jfr print` có thể lọc theo tên type hoặc category và tăng số frame được hiển thị với `--stack-depth`. Tùy event/recording mà output có thể không có field stack trace. Tùy chọn `--json` thay đổi **cách in**, không biến recording nhị phân ban đầu thành một schema bất biến giữa mọi JDK.
+`jfr summary` tells you which events **actually exist in the recording** and their counts. `jfr print` can filter by type name or category and increase the number of displayed frames with `--stack-depth`. Depending on the event/recording, the output may omit the stack trace field. The `--json` option changes **how events are printed**; it does not turn the underlying binary recording into an immutable schema across all JDKs.
 
-Khi mở bằng **Java Mission Control**, có thể xem các sự kiện trên timeline, lọc theo thời gian/loại/thread, xem duration và stack nếu có. Cách tiếp cận hiệu quả là kiểm tra **event type và count** trước, sau đó đặt duration và stack vào cùng thời điểm với load/GC/log để hiểu ý nghĩa.
+When opening in **Java Mission Control**, you can inspect events on a timeline, filter by time/type/thread, and inspect durations and stacks if present. An effective approach is to inspect **event types and counts** first, then align durations and stacks at the same timestamps with load/GC/logs to understand their meaning.
 
-### Đọc event bằng API thay vì parse văn bản
+### Reading Events via API Instead of Parsing Text
 
-Thư viện JDK `jdk.jfr.consumer.RecordingFile` có các hàm:
+The JDK library `jdk.jfr.consumer.RecordingFile` provides these methods:
 
 ```java
 RecordedEvent event = recordingFile.readEvent();
@@ -256,13 +256,13 @@ Duration elapsed = event.getDuration();
 RecordedStackTrace trace = event.getStackTrace();
 ```
 
-Đây chỉ là **đoạn minh họa trong ngữ cảnh một `RecordingFile` đã mở**; chương trình hoàn chỉnh và chạy được nằm ở mục 7. Nếu file lớn, đọc từng event bằng `hasMoreEvents()`/`readEvent()` thay vì `RecordingFile.readAllEvents()` để tránh giữ toàn bộ event trong bộ nhớ.
+This is only an **illustrative snippet in the context of an already-opened `RecordingFile`**; a complete runnable program is in section 7. For large files, iterate event by event using `hasMoreEvents()`/`readEvent()` rather than `RecordingFile.readAllEvents()` to avoid holding all events in memory.
 
-## 7. Thực hành Java 17+: tự tạo hai loại event và kiểm tra bốn thành phần
+## 7. Java 17+ Practice: Creating Two Event Types and Inspecting the Four Components
 
-Bài này tạo **một duration event** và **một instant event** rồi đọc lại từ file `.jfr`, giúp thấy quan hệ time/duration/stack mà không phụ thuộc vào việc một network call hay GC có xảy ra hay không.
+This exercise creates **one duration event** and **one instant event**, then reads them back from a `.jfr` file, letting you see the time/duration/stack relationships without depending on whether a network call or GC happens to occur.
 
-Tạo file **`JfrTimelineDemo.java`**:
+Create the file **`JfrTimelineDemo.java`**:
 
 ```java
 import java.nio.file.Path;
@@ -347,114 +347,114 @@ public class JfrTimelineDemo {
 }
 ```
 
-Biên dịch và chạy ở thư mục chứa file (không cần dependency Maven/Gradle nào):
+Compile and run in the directory containing the file (no Maven/Gradle dependencies required):
 
 ```bash
 javac --release 17 JfrTimelineDemo.java
 java JfrTimelineDemo
 ```
 
-Kết quả có thể kiểm tra chắc chắn ở **hai dòng cuối**:
+You can reliably verify the **last two lines** of output:
 
 ```text
 customEvents=2
 file=jfr-timeline-demo.jfr
 ```
 
-Các dòng `event`, `start`, `end`, `durationMs`, `stackPresent` đứng trước hai dòng cuối **phụ thuộc thời điểm và cấu hình thực thi**. Bạn sẽ thấy hai event có type `demo.Task` và `demo.Checkpoint` (không nên mặc định mọi bản JDK sắp xếp chúng cùng thứ tự khi duyệt file). `demo.Task` có thời lượng xấp xỉ hoặc lớn hơn 80 ms vì `Thread.sleep(80)` có thể chờ scheduler thêm; `demo.Checkpoint` gọi `commit()` trực tiếp không `begin()` nên thể hiện mốc tức thời với duration bằng 0. `stackPresent` thường là `true` do cấu hình `.withStackTrace()`.
+The `event`, `start`, `end`, `durationMs`, and `stackPresent` lines preceding the last two lines **depend on execution timing and configuration**. You will see two events with types `demo.Task` and `demo.Checkpoint` (do not assume every JDK version orders them identically when iterating the file). `demo.Task` has a duration around or greater than 80 ms because `Thread.sleep(80)` may wait extra for the scheduler; `demo.Checkpoint` calls `commit()` directly without `begin()`, so it represents an instant milestone with duration 0. `stackPresent` is typically `true` due to `.withStackTrace()`.
 
-Đọc file vừa tạo:
+Inspect the newly created file:
 
 ```bash
 jfr summary jfr-timeline-demo.jfr
 jfr print --events demo.Task,demo.Checkpoint --stack-depth 12 jfr-timeline-demo.jfr
 ```
 
-**Giải thích vì sao ví dụ hoạt động:**
+**Why this example works:**
 
-- `TaskEvent` và `CheckpointEvent` đều kế thừa `jdk.jfr.Event`; `@Name` đặt tên type để lọc, `@Category` là metadata phân nhóm, các field `operation`/`message` là **payload**.
-- `recording.enable(...).withThreshold(Duration.ZERO).withStackTrace()` bật event, không loại duration event ngắn vì threshold, và yêu cầu lấy stack tại commit.
-- `task.begin()` trước sleep, `task.end()` sau sleep: duration phản ánh **thời gian trôi qua** giữa hai mốc, kể cả thời gian thread chờ; **không đo CPU time**.
-- `task.commit()` ghi event cùng payload và dữ liệu thời gian; stack là vị trí commit trong `main`, không phải toàn bộ 80 ms thực thi.
-- `checkpoint.commit()` không có cặp `begin()`/`end()`: mô hình instant event.
-- `recording.stop()` đóng khoảng recording; `recording.dump(file)` lưu dữ liệu ra `.jfr` trước khi đóng recording resource.
-- `RecordingFile` duyệt nhiều event, kể cả event hệ thống nếu có; ta chỉ in những type bắt đầu bằng `demo.` đã được định danh chính xác.
+- `TaskEvent` and `CheckpointEvent` both extend `jdk.jfr.Event`; `@Name` sets the type name for filtering, `@Category` provides grouping metadata, and fields `operation`/`message` are the **payload**.
+- `recording.enable(...).withThreshold(Duration.ZERO).withStackTrace()` enables the event, prevents short duration events from being dropped by a threshold, and requests stack capture at commit time.
+- `task.begin()` before sleep and `task.end()` after sleep: duration reflects **elapsed time** between the two points, including time spent waiting; it **does not measure CPU time**.
+- `task.commit()` records the event along with its payload and timing data; the stack is the commit location in `main`, not the entire 80 ms execution.
+- `checkpoint.commit()` without a `begin()`/`end()` pair models an instant event.
+- `recording.stop()` closes the recording interval; `recording.dump(file)` saves the data to `.jfr` before closing the recording resource.
+- `RecordingFile` iterates over many events, including system events if present; we only print those whose exact type name matches our `demo.` events.
 
-**Bài tập mở rộng:** đổi `withThreshold(Duration.ZERO)` của `demo.Task` thành `withThreshold(Duration.ofMillis(200))`, giữ sleep khoảng 80 ms, chạy lại từ đầu bằng file mới/tên mới. Duration event đó thường **không được ghi** vì ngắn hơn threshold; `customEvents` thường còn 1. Hiện tượng này minh họa vì sao không tìm thấy một event **không chứng minh** thao tác chưa xảy ra.
+**Extension exercise:** change `withThreshold(Duration.ZERO)` on `demo.Task` to `withThreshold(Duration.ofMillis(200))`, keep the sleep around 80 ms, and run again from scratch with a new file/name. That duration event will normally **not be recorded** because it is shorter than the threshold; `customEvents` will typically become 1. This behavior illustrates why not finding an event **does not prove** the operation never happened.
 
-## 8. Ghép event với timestamp, duration và stack để điều tra một vấn đề
+## 8. Combining Event, Timestamp, Duration, and Stack to Investigate an Issue
 
-Giả sử latency request tăng bất thường. Tiến hành theo chuỗi có thể kiểm chứng:
+Suppose request latency increases abnormally. Proceed along a verifiable sequence:
 
-1. **Chọn khoảng thời gian lỗi thực tế.** Ghi timestamp của request từ log, múi giờ, PID, workload và thời gian recording bao phủ.
-2. **Kiểm tra recording có event cần thiết:** `jfr summary`; nếu thiếu `jdk.SocketRead` hoặc `jdk.JavaMonitorEnter`, xem cấu hình profile/threshold thay vì suy rằng không có I/O/lock.
-3. **Lọc event theo khung thời gian và thread.** Một JVM xử lý nhiều request đồng thời; cần mối nối vững chắc như request ID trong event ứng dụng, context, hoặc trace, nếu muốn quy sự kiện cho một request.
-4. **Đọc cả `startTime` và `duration`.** Một socket read 300 ms bên trong request 500 ms có thể là thành phần đáng kể; nhưng phải kiểm tra operation thực sự và sự kiện liên quan. Event `jdk.ExecutionSample` chỉ là mẫu, không đại diện độ dài thao tác.
-5. **Mở stack trace đúng ngữ nghĩa.** Với event I/O/chờ, stack gợi ý gọi từ đâu; với event sample, stack ở thời điểm lấy mẫu; với custom event stack ở commit. Có thể cần nhiều event để xác định nguyên nhân.
-6. **Đối chiếu GC/CPU/lock/metrics.** GC pause hoặc CPU nóng có thể nằm cùng thời điểm I/O chậm, nhưng trùng thời gian chưa đủ để chứng minh quan hệ nhân quả.
-7. **Thu thêm bằng chứng có kiểm soát:** so sánh các recording, điều chỉnh threshold hoặc event settings có mục tiêu, tránh bật toàn bộ event với mọi stack vô thời hạn.
+1. **Select the actual failure time window.** Record the request timestamp from logs, time zone, PID, workload, and the interval covered by the recording.
+2. **Check that the recording has the needed events:** `jfr summary`; if `jdk.SocketRead` or `jdk.JavaMonitorEnter` is missing, inspect the profile/threshold settings instead of assuming there was no I/O or lock contention.
+3. **Filter events by time window and thread.** One JVM handles many concurrent requests; you need a solid link such as a request ID in an application event, context, or trace if you want to attribute events to a single request.
+4. **Read both `startTime` and `duration`.** A 300 ms socket read inside a 500 ms request may be a major contributor; however, you must verify the actual operation and related events. `jdk.ExecutionSample` events are only samples and do not represent operation length.
+5. **Open stack traces with the right semantics.** For I/O/wait events, the stack shows where the call originated; for sampled events, the stack is at the sampling instant; for custom events, the stack is at commit time. Multiple events may be needed to establish the cause.
+6. **Cross-reference GC/CPU/locks/metrics.** A GC pause or hot CPU may coincide with slow I/O, but temporal overlap alone is not enough to prove causation.
+7. **Gather controlled follow-up evidence:** compare recordings, adjust targeted thresholds or event settings, and avoid enabling all events with all stacks indefinitely.
 
-### Ví dụ phân biệt kết luận hợp lệ và kết luận vội
+### Examples Distinguishing Valid Conclusions from Hasty Ones
 
-| Dữ liệu trong JFR | Có thể kết luận | Chưa được phép kết luận |
+| Data in JFR | Valid Conclusion | Unwarranted Conclusion |
 | --- | --- | --- |
-| `jdk.SocketRead` duration 250 ms | Một thao tác read được đo khoảng 250 ms. | CPU chạy 250 ms hoặc toàn request chỉ tốn 250 ms. |
-| `jdk.ExecutionSample` lặp nhiều ở một stack | Stack được lấy mẫu thường xuyên trong khung recording, có thể cần phân tích CPU. | Method được gọi chính xác bằng số sample hoặc dùng CPU đúng thời gian giữa hai sample. |
-| `jdk.JavaMonitorEnter` có duration dài | Có trường hợp chờ monitor đủ dài để JFR ghi. | Toàn bộ hệ thống deadlock hoặc thread bị BLOCKED mãi mãi. |
-| `jdk.CPULoad` CPU tăng | Mức CPU quan sát được cao trong kỳ đo. | Một class cụ thể gây CPU cao nếu chưa đối chiếu stack/sample. |
-| `RecordedEvent.getStackTrace() == null` | Recording không có stack trace cho event đó. | JVM không chạy Java code hoặc không có call stack. |
-| Không thấy event có duration 2 ms | Event không có trong dữ liệu ghi. | Không có thao tác 2 ms: có thể đã bị threshold lọc. |
+| `jdk.SocketRead` duration 250 ms | A read operation was measured at roughly 250 ms. | CPU ran for 250 ms, or the whole request took only 250 ms. |
+| `jdk.ExecutionSample` repeating frequently on one stack | That stack was sampled often during the recording window, warranting CPU analysis. | The method was called exactly N times or used CPU for the entire interval between two samples. |
+| `jdk.JavaMonitorEnter` with long duration | There was a monitor wait long enough for JFR to record. | The entire system is deadlocked or the thread is permanently BLOCKED. |
+| `jdk.CPULoad` CPU increasing | Observed CPU level was high during the measurement interval. | A specific class caused high CPU without checking stacks/samples. |
+| `RecordedEvent.getStackTrace() == null` | The recording has no stack trace for that event. | The JVM was not running Java code or had no call stack. |
+| No events seen with 2 ms duration | No such event exists in the recorded data. | No 2 ms operations occurred: they may have been filtered out by a threshold. |
 
-## 9. Các setting quyết định bạn nhìn thấy gì
+## 9. Settings That Determine What You See
 
-Các setting phổ biến theo JDK JFR gồm:
+Common JDK JFR settings include:
 
-| Setting | Ý nghĩa | Ảnh hưởng đến cách đọc |
+| Setting | Meaning | Effect on Interpretation |
 | --- | --- | --- |
-| `enabled` | Bật/tắt ghi một event type. | Type bị tắt không có instance được ghi. |
-| `threshold` | Chỉ ghi duration event đạt ngưỡng thời gian. | Event ngắn có thể không hiện, khiến phân bố duration **bị lệch về các thao tác dài**. |
-| `stackTrace` | Yêu cầu stack trace cho event nếu có thể. | Bật có thêm ngữ cảnh nhưng tăng dữ liệu/overhead; tắt hoặc thiếu thì API trả `null`. |
-| `period` | Chu kỳ phát event định kỳ. | Ít mẫu hơn không có nghĩa hiện tượng biến mất. |
-| Event sampling / profile | Tần suất và nhóm event được lấy mẫu/ghi. | Số sample không phải số lần method chạy. |
+| `enabled` | Enables/disables recording an event type. | Disabled types produce no recorded instances. |
+| `threshold` | Only records duration events meeting the time threshold. | Short events may disappear, **biasing the duration distribution toward long operations**. |
+| `stackTrace` | Requests a stack trace for the event when possible. | Enabling adds context but increases data/overhead; if disabled or unavailable, the API returns `null`. |
+| `period` | Interval for emitting periodic events. | Fewer samples do not mean the phenomenon vanished. |
+| Event sampling / profile | Frequency and set of events sampled/recorded. | Sample count does not equal method invocation count. |
 
-Hai cấu hình JDK thường dùng:
+Two common JDK configurations:
 
-- **`default.jfc`** (hoặc `settings=default`): tập event và mức overhead phù hợp ghi lâu hơn.
-- **`profile.jfc`** (hoặc `settings=profile`): thu thêm thông tin cho phân tích chuyên sâu, overhead cao hơn; dùng có giới hạn và đo tác động.
+- **`default.jfc`** (or `settings=default`): event set and overhead level suitable for longer-running recordings.
+- **`profile.jfc`** (or `settings=profile`): collects richer information for deep analysis at higher overhead; use within bounded windows and measure impact.
 
-JFR không luôn thu **mọi stack**, **mọi allocation**, **mọi exception** hay **mọi lệnh I/O**. Trước khi nói “không có vấn đề”, hãy xác minh **event type có enable không, threshold bao nhiêu, recording bắt đầu/kết thúc lúc nào**.
+JFR does not always collect **every stack**, **every allocation**, **every exception**, or **every I/O call**. Before saying "there is no problem," verify **whether the event type is enabled, what the threshold is, and when the recording started and stopped**.
 
-## 10. Các nhầm lẫn phổ biến
+## 10. Common Misconceptions
 
-| Nhầm lẫn | Điều đúng |
+| Misconception | What Is True |
 | --- | --- |
-| “Timestamp của event là lúc file `.jfr` được ghi.” | Event timestamp biểu thị thời điểm hoạt động được quan sát; buffer/dump có thể ghi file muộn. |
-| “Event có duration dài tức là CPU-bound.” | Duration thường là elapsed time; có thể bao gồm chờ I/O/lock/scheduler. |
-| “Event type là một lần phát sinh duy nhất.” | Một type có nhiều event instance; phân biệt type metadata với event record cụ thể. |
-| “JFR ghi mọi lời gọi hàm Java.” | JFR chọn event theo settings, threshold và sampling; không tự ghi mọi method call. |
-| “Stack trong duration event thể hiện toàn bộ quá trình chạy.” | Stack thường phản ánh điểm ghi/commit hoặc sampling, không chứa cả chuỗi trạng thái theo thời gian. |
-| “Không có stack = không có code Java.” | Stack có thể bị tắt/không có trong recording/truncate. |
-| “`jfr print --stack-depth 100` phục hồi stack đầy đủ.” | Chỉ tăng số frame **hiển thị nếu đã ghi đủ frame**; không lấy lại phần chưa thu. |
-| “Hai event gần timestamp chắc chắn thuộc cùng request.” | Cần thread/context/correlation và kiểm tra concurrency; chỉ trùng thời gian không đủ. |
-| “`JFR.dump` dừng recording.” | `JFR.dump` ghi snapshot trong khi recording có thể tiếp tục; `JFR.stop` là lệnh dừng. |
-| “Duration 0 là event lỗi.” | Instant event hợp lệ có duration bằng 0. |
+| "An event's timestamp is when the `.jfr` file was written." | Event timestamps indicate when the activity was observed; buffering/dumping may write the file later. |
+| "A long-duration event means CPU-bound work." | Duration is usually elapsed time; it can include waiting on I/O, locks, or the scheduler. |
+| "An event type is a single occurrence." | One type has many event instances; distinguish type metadata from individual event records. |
+| "JFR records every Java method call." | JFR selects events via settings, thresholds, and sampling; it does not automatically record every method call. |
+| "The stack in a duration event represents the entire execution." | The stack usually reflects the record/commit point or sampling point, not the full sequence of states over time. |
+| "No stack = no Java code." | Stacks may be disabled, unavailable in the recording, or truncated. |
+| "`jfr print --stack-depth 100` recovers the full stack." | It only increases the number of frames **displayed if enough frames were recorded**; it cannot recover uncaptured frames. |
+| "Two events with close timestamps definitely belong to the same request." | You need thread/context/correlation and concurrency checks; matching timestamps alone are not enough. |
+| "`JFR.dump` stops the recording." | `JFR.dump` writes a snapshot while the recording can continue; `JFR.stop` is the stop command. |
+| "Duration 0 is a broken event." | Valid instant events have a duration of 0. |
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-1. **JFR event khác event type ở điểm nào?** Event type là **schema/loại**; event là một bản ghi đã xảy ra mang type, time và field cụ thể.
-2. **`startTime` và `endTime` của instant event như thế nào?** Bằng nhau, `duration = 0`.
-3. **Duration của `jdk.SocketRead` có phải thời gian CPU?** Không. Nó là thời gian thao tác được đo, có thể bao gồm thời gian chờ I/O.
-4. **Vì sao một thao tác chậm có thể không có trong JFR?** Recording không bao trùm thời điểm, event disabled, threshold, sampling, cấu hình event hoặc JVM/JDK không hỗ trợ event đó.
-5. **Stack trace trong custom JFR event nằm ở thời điểm nào?** Thường được thu khi gọi `Event.commit()` nếu `stackTrace` enabled.
-6. **JFR có tự liên kết hai event ở cùng timestamp thành một request không?** Không. Cần correlation ID, ngữ cảnh thread hoặc thông tin tracing có cơ sở.
-7. **Nếu muốn biết file có bao nhiêu `jdk.SocketRead` nên chạy lệnh gì trước?** `jfr summary recording.jfr`, rồi `jfr print --events jdk.SocketRead recording.jfr` để xem chi tiết.
-8. **Sự kiện `jdk.ExecutionSample` được đọc thế nào?** Là điểm lấy mẫu stack theo cơ chế sampling; không quy mỗi sample thành một method call hay duration.
+1. **How does a JFR event differ from an event type?** An event type is the **schema/category**; an event is a recorded occurrence carrying a specific type, time, and fields.
+2. **How do `startTime` and `endTime` relate for an instant event?** They are equal, with `duration = 0`.
+3. **Is the duration of `jdk.SocketRead` CPU time?** No. It is the measured duration of the operation, which can include time spent waiting on I/O.
+4. **Why might a slow operation be missing from JFR?** The recording did not cover that time, the event was disabled, threshold/sampling filtered it, event configuration omitted it, or the JVM/JDK did not support that event.
+5. **At what point in time is the stack trace captured in a custom JFR event?** Usually when `Event.commit()` is called if `stackTrace` is enabled.
+6. **Does JFR automatically link two events at the same timestamp into one request?** No. You need a correlation ID, thread context, or grounded tracing information.
+7. **If you want to know how many `jdk.SocketRead` events are in a file, which command should you run first?** `jfr summary recording.jfr`, followed by `jfr print --events jdk.SocketRead recording.jfr` to inspect details.
+8. **How should `jdk.ExecutionSample` events be read?** As stack samples collected via a sampling mechanism; do not equate each sample with one method call or a duration.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle JDK 21 — JFR API, package `jdk.jfr`, các setting và định nghĩa event](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html).
+- [Oracle JDK 21 — JFR API, package `jdk.jfr`, settings and event definitions](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html).
 - [Oracle JDK 21 — `jdk.jfr.Event` (`begin`, `end`, `commit`, `shouldCommit`)](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Event.html).
 - [Oracle JDK 21 — `RecordedEvent` (`getStartTime`, `getEndTime`, `getDuration`, `getStackTrace`)](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedEvent.html).
 - [Oracle JDK 21 — `jcmd` (`JFR.start`, `JFR.dump`, `JFR.check`, `JFR.stop`)](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html).
 - [Oracle JDK 21 — `jfr` (`summary`, `print`, `--events`, `--stack-depth`, `--json`)](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html).
-- [Oracle JDK 21 — `RecordingFile` và cách duyệt file lớn](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html).
+- [Oracle JDK 21 — `RecordingFile` and iterating large files](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html).

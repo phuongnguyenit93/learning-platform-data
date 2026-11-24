@@ -1,86 +1,86 @@
-# 10.6 Cipher.WRAP_MODE, UNWRAP_MODE và thuật toán bọc khóa
+# 10.6 Cipher.WRAP_MODE, UNWRAP_MODE, and Key Wrapping Algorithms
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn sẽ:
+After this lesson, you will be able to:
 
-1. Giải thích **key wrapping** là gì, phân biệt **Key Encryption Key (KEK)** và **Data Encryption Key (DEK)** trong kiến trúc mã hóa khóa.
-2. Hiểu chính xác cách dùng **Cipher.WRAP_MODE**, **Cipher.UNWRAP_MODE**, **wrap(Key)** và **unwrap(byte[], String, int)** trong Java Cryptography Architecture (JCA/JCE).
-3. Lựa chọn đúng thuật toán bọc khóa: **AESWrap (RFC 3394 / AES-KW)**, **AESWrapPad (RFC 5649 / AES-KWP)**, **RSA-OAEP**, hoặc cơ chế KMS/HSM theo mục tiêu và điều kiện triển khai.
-4. Viết Java 17+ để bọc và mở bọc khóa AES, kiểm tra toàn vẹn wrapped key, và cấu hình tường minh OAEP khi dùng RSA.
-5. Hiểu giới hạn đối với khóa không thể xuất ra ngoài, metadata cần mang theo, khả năng tương thích giữa provider, luân chuyển KEK, sai lầm phổ biến và xử lý lỗi an toàn.
+1. Explain what **key wrapping** is, distinguishing **Key Encryption Key (KEK)** and **Data Encryption Key (DEK)** in a key-encryption architecture.
+2. Understand precisely how to use **Cipher.WRAP_MODE**, **Cipher.UNWRAP_MODE**, **wrap(Key)**, and **unwrap(byte[], String, int)** in the Java Cryptography Architecture (JCA/JCE).
+3. Choose the right key wrapping algorithm: **AESWrap (RFC 3394 / AES-KW)**, **AESWrapPad (RFC 5649 / AES-KWP)**, **RSA-OAEP**, or KMS/HSM mechanisms based on goals and deployment constraints.
+4. Write Java 17+ code to wrap and unwrap AES keys, verify wrapped-key integrity, and explicitly configure OAEP when using RSA.
+5. Understand limitations with non-exportable keys, required metadata, provider compatibility, KEK rotation, common mistakes, and safe error handling.
 
-**Thông điệp cốt lõi:** Bọc khóa là thao tác bảo vệ **một khóa mật mã khác** bằng khóa/phương tiện bảo vệ phù hợp; nó không phải chỉ “Base64-encode khóa”. Trong Java, hai mode WRAP/UNWRAP đặt **Cipher** vào trạng thái chuyên dùng cho đối tượng **Key**. Độ an toàn phụ thuộc vào **thuật toán bọc, khóa bọc, tham số, provider, quản lý metadata và quyền truy cập**; chỉ chọn đúng hằng số WRAP_MODE chưa làm mọi cơ chế bọc trở nên an toàn.
+**Core message:** Key wrapping is the operation of protecting **another cryptographic key** with an appropriate wrapping key/mechanism; it is not simply “Base64-encoding a key.” In Java, the WRAP/UNWRAP modes put **Cipher** into a state dedicated to **Key** objects. Security depends on the **wrapping algorithm, wrapping key, parameters, provider, metadata management, and access permissions**; merely passing the `WRAP_MODE` constant does not make every wrapping mechanism safe.
 
-## 1. Bọc khóa là gì, tại sao cần?
+## 1. What Is Key Wrapping and Why Is It Needed?
 
-Giả sử dịch vụ lưu hồ sơ bằng **AES-GCM**. Mỗi hồ sơ hoặc mỗi nhóm dữ liệu có một khóa AES ngẫu nhiên **DEK** để mã hóa nội dung. Nếu lưu DEK dưới dạng plaintext cạnh ciphertext, kẻ chiếm được cả hai sẽ giải mã được hồ sơ. Hệ thống cần một cách lưu hoặc chuyển **DEK ở trạng thái được bảo vệ**.
+Suppose a service stores records using **AES-GCM**. Each record or group of data has a random AES key **DEK** to encrypt content. Storing the DEK in plaintext alongside the ciphertext lets anyone who steals both decrypt the record. The system needs a way to store or transfer the **DEK in a protected state**.
 
-Giải pháp phổ biến là dùng **KEK** để bọc DEK:
+The standard solution is using a **KEK** to wrap the DEK:
 
 ~~~text
-TẠO VÀ LƯU
+CREATE AND STORE
 
-Plaintext hồ sơ
+Record plaintext
       |
  [AES-GCM encrypt] <--------- DEK (Data Encryption Key)
       |                           |
 Ciphertext + tag             [KEY WRAP] <------ KEK
       |                           |
-      +---- lưu record ------> wrappedDEK
-                             (không phải raw DEK)
+      +---- store record -----> wrappedDEK
+                             (not raw DEK)
 
-ĐỌC VÀ GIẢI MÃ
+READ AND DECRYPT
 
-wrappedDEK --------> [KEY UNWRAP] <------ KEK được cấp quyền
+wrappedDEK --------> [KEY UNWRAP] <------ authorized KEK
                            |
                           DEK
                            |
 Ciphertext + tag ----> [AES-GCM decrypt + verify tag]
                            |
-                   Plaintext đã xác thực
+                   Authenticated plaintext
 ~~~
 
-Hai tầng bảo vệ có hai vai trò riêng:
+The two protection layers serve two distinct roles:
 
-- **DEK:** mã hóa nội dung (ví dụ AES-GCM), thường sinh ngẫu nhiên và có phạm vi sử dụng hẹp.
-- **KEK:** bọc/giải bọc DEK; thường nằm trong **KMS/HSM/keystore**, có chính sách truy cập và rotation riêng.
+- **DEK:** encrypts content (e.g., AES-GCM), usually randomly generated with a narrow usage scope.
+- **KEK:** wraps/unwraps DEKs; typically resides in a **KMS/HSM/keystore** with its own access and rotation policies.
 
-Đây là nguyên lý cốt lõi của **envelope encryption**: dùng mã hóa đối xứng hiệu quả cho dữ liệu lớn, và cơ chế bọc khóa/trao đổi khóa để bảo vệ DEK nhỏ.
+This is the core principle of **envelope encryption**: using efficient symmetric encryption for large data, and a key-wrapping/key-exchange mechanism to protect the small DEK.
 
-**Quan trọng:** wrappedDEK vẫn là dữ liệu nhạy cảm về mặt quản trị, nhưng không tương đương raw DEK khi thiết kế an toàn. Mức an toàn không đến từ tên biến hoặc chuỗi Base64, mà từ thực chất thuật toán và quyền truy cập KEK.
+**Important:** `wrappedDEK` is still administratively sensitive data, though not equivalent to the raw DEK in a well-designed system. Security comes not from variable names or Base64 encoding, but from the underlying algorithm and KEK access controls.
 
-### 1.1 Bọc khóa khác gì mã hóa dữ liệu thông thường?
+### 1.1 How Does Key Wrapping Differ from Ordinary Data Encryption?
 
-Mã hóa dữ liệu biến **byte[] plaintext → byte[] ciphertext**. Bọc khóa nhận **Key → byte[] wrappedKey** và mở bọc nhận byte[] cùng thông tin thuật toán/loại khóa để tạo lại **Key**.
+Data encryption turns **byte[] plaintext → byte[] ciphertext**. Key wrapping takes **Key → byte[] wrappedKey**, and unwrapping takes bytes plus algorithm/key-type info to reconstruct a **Key**.
 
-Bản chất mật mã có thể dùng primitives gần nhau, nhưng **API và mục tiêu khác**:
+The underlying cryptographic primitives may be related, yet the **APIs and goals differ**:
 
-| Nhu cầu | Cơ chế thường dùng | Đầu vào → đầu ra |
+| Need | Common mechanism | Input → output |
 | --- | --- | --- |
-| Mã hóa hồ sơ/ảnh/file | AES-GCM | plaintext byte[] → ciphertext + tag |
-| Bảo vệ một khóa AES để lưu trữ | AES-KW/AES-KWP hoặc KMS WrapKey | Key DEK + KEK → wrapped key bytes |
-| Gửi một khóa AES cho người có public key RSA | RSA-OAEP | Key DEK + public key → ciphertext của khóa |
-| Dẫn xuất khóa từ secret chung | HKDF/KDF theo yêu cầu | keying material → khóa có phân tách ngữ cảnh |
-| Chuyển byte thành text | Base64, hex | byte[] ↔ text, **không thêm bảo mật** |
+| Encrypt records/images/files | AES-GCM | plaintext byte[] → ciphertext + tag |
+| Protect an AES key for storage | AES-KW/AES-KWP or KMS WrapKey | Key DEK + KEK → wrapped key bytes |
+| Send an AES key to an RSA public-key holder | RSA-OAEP | Key DEK + public key → key ciphertext |
+| Derive keys from a shared secret | HKDF/KDF per specification | keying material → context-separated keys |
+| Convert bytes to text | Base64, hex | byte[] ↔ text, **adds no security** |
 
-**Key wrapping không phải key derivation** và không đồng nghĩa key agreement. Bọc khóa dùng để **vận chuyển/lưu một khóa hiện có** dưới dạng được bảo vệ; ECDH/X25519 là cơ chế để các bên **thỏa thuận material chung**, còn KDF chuyển material đó thành khóa thích hợp.
+**Key wrapping is not key derivation** and not key agreement. Key wrapping **transports/stores an existing key** in protected form; ECDH/X25519 is how parties **agree on shared material**, while a KDF turns that material into suitable keys.
 
-## 2. Cipher trong Java: bốn chế độ và cách gọi
+## 2. Cipher in Java: Four Modes and How to Call Them
 
-Class **javax.crypto.Cipher** cung cấp bốn hằng opmode quan trọng:
+The **javax.crypto.Cipher** class provides four important opmode constants:
 
-| Opmode | Phương thức làm việc điển hình | Mục tiêu |
+| Opmode | Typical working methods | Goal |
 | --- | --- | --- |
-| **Cipher.ENCRYPT_MODE** | update(...), doFinal(...) | Mã hóa dữ liệu byte |
-| **Cipher.DECRYPT_MODE** | update(...), doFinal(...) | Giải mã dữ liệu byte |
-| **Cipher.WRAP_MODE** | **wrap(Key key)** | Bọc một đối tượng Key, trả byte[] |
-| **Cipher.UNWRAP_MODE** | **unwrap(byte[] wrapped, String algorithm, int keyType)** | Mở bọc để tạo lại Key |
+| **Cipher.ENCRYPT_MODE** | update(...), doFinal(...) | Encrypt byte data |
+| **Cipher.DECRYPT_MODE** | update(...), doFinal(...) | Decrypt byte data |
+| **Cipher.WRAP_MODE** | **wrap(Key key)** | Wrap a Key object, returning byte[] |
+| **Cipher.UNWRAP_MODE** | **unwrap(byte[] wrapped, String algorithm, int keyType)** | Unwrap to reconstruct a Key |
 
-Cấu trúc điển hình:
+Typical pattern:
 
 ~~~java
-// Đoạn minh họa; các biến kek, dek, wrapped đã có sẵn.
+// Illustrative snippet; variables kek, dek, and wrapped already exist.
 Cipher wrapper = Cipher.getInstance("AESWrap");
 wrapper.init(Cipher.WRAP_MODE, kek);
 byte[] wrapped = wrapper.wrap(dek);
@@ -91,24 +91,24 @@ Key recovered = unwrapper.unwrap(
         wrapped, "AES", Cipher.SECRET_KEY);
 ~~~
 
-Đây là đoạn mã phụ thuộc các biến/nhập khẩu từ ngữ cảnh bên ngoài, **không phải chương trình độc lập**. Chương trình Java 17 có thể biên dịch/chạy được nằm ở mục 6.
+This snippet depends on variables/imports from surrounding context and is **not a standalone program**. A compilable/runnable Java 17 program is in section 6.
 
-### 2.1 Điều gì xảy ra với wrap(Key)?
+### 2.1 What Happens with wrap(Key)?
 
-**Cipher.wrap(Key key)** yêu cầu một đối tượng Key cần được bọc. Provider dùng thuật toán, mode, wrapping key và tham số đã cấu hình để tạo **byte[]**. Với nhiều provider phần mềm, thao tác này sử dụng **dạng encoded của Key** để bảo vệ bằng mật mã. Tuy nhiên một số HSM/provider có thể hỗ trợ bọc khóa trong phần cứng mà không bao giờ xuất khóa ở dạng plaintext cho JVM.
+**Cipher.wrap(Key key)** requires a Key object to be wrapped. The provider uses the configured algorithm, mode, wrapping key, and parameters to produce **byte[]**. In many software providers, this uses the **Key's encoded form** to protect it cryptographically. However, some HSMs/providers can wrap keys in hardware without ever exporting plaintext key bytes to the JVM.
 
-Không được giả định mọi Key đều có thể wrap:
+Never assume every Key can be wrapped:
 
-- **key.getEncoded() có thể trả null** nếu khóa không cho phép xuất ra ngoài hoặc không có dạng encoding được hỗ trợ.
-- **Cipher.wrap(...)** có thể ném **InvalidKeyException** khi không thể hoặc không an toàn để bọc khóa; **IllegalBlockSizeException** có thể xảy ra tùy thuật toán và độ dài encoded key.
-- Provider có thể không hỗ trợ wrap/unwrap đối với thuật toán hoặc loại Key cụ thể, kể cả khi hỗ trợ encrypt/decrypt.
-- Quyền sử dụng KEK có thể bị giới hạn trong HSM/KMS (chỉ wrap, chỉ unwrap, chỉ cho một loại khóa).
+- **key.getEncoded() may return null** if the key is non-exportable or has no supported encoding format.
+- **Cipher.wrap(...)** may throw **InvalidKeyException** when wrapping the key is impossible or unsafe; **IllegalBlockSizeException** may occur depending on algorithm and encoded key length.
+- A provider might not support wrap/unwrap for a specific algorithm or Key type, even if it supports encrypt/decrypt.
+- KEK usage permissions may be restricted inside an HSM/KMS (wrap-only, unwrap-only, or limited to a specific key type).
 
-**WRAP_MODE không bỏ qua chính sách bảo vệ private key hoặc quy định extractability của HSM.**
+**WRAP_MODE does not bypass private-key protection policies or HSM extractability rules.**
 
-### 2.2 unwrap(...) không thể chỉ nhận một mảng byte
+### 2.2 unwrap(...) Cannot Take Only a Byte Array
 
-Chữ ký phương thức:
+Method signature:
 
 ~~~java
 Key unwrap(byte[] wrappedKey,
@@ -116,31 +116,31 @@ Key unwrap(byte[] wrappedKey,
            int wrappedKeyType)
 ~~~
 
-Hai đối số cuối có ý nghĩa:
+Meaning of the last two arguments:
 
-- **wrappedKeyAlgorithm:** tên thuật toán của **khóa sau khi mở bọc**, chẳng hạn **"AES"**, **"HmacSHA256"**, hoặc **"RSA"**. Đây **không phải** tên thuật toán bọc "AESWrap" hoặc "RSA/ECB/OAEPPadding".
-- **wrappedKeyType:** một trong ba hằng **Cipher.SECRET_KEY**, **Cipher.PUBLIC_KEY**, **Cipher.PRIVATE_KEY** để provider biết kiểu Key cần tái tạo.
+- **wrappedKeyAlgorithm:** algorithm name of the **recovered key**, such as **"AES"**, **"HmacSHA256"**, or **"RSA"**. This is **not** the wrapping algorithm name `"AESWrap"` or `"RSA/ECB/OAEPPadding"`.
+- **wrappedKeyType:** one of the three constants **Cipher.SECRET_KEY**, **Cipher.PUBLIC_KEY**, or **Cipher.PRIVATE_KEY** so the provider knows which Key type to reconstruct.
 
-Ví dụ đúng:
+Correct example:
 
 ~~~java
 Key dataKey = unwrapper.unwrap(
         wrappedBytes, "AES", Cipher.SECRET_KEY);
 ~~~
 
-Ví dụ sai về mặt ý nghĩa API:
+API-semantically incorrect example:
 
 ~~~java
-// Sai: AESWrap là thuật toán BỌC, không phải thuật toán của DEK.
+// Wrong: AESWrap is the WRAPPING algorithm, not the DEK's algorithm.
 Key dataKey = unwrapper.unwrap(
         wrappedBytes, "AESWrap", Cipher.SECRET_KEY);
 ~~~
 
-Đừng tự chọn thuật toán/loại khóa từ các chuỗi không tin cậy. **Algorithm name và key type truyền cho unwrap không tự được xác thực bởi phép bọc trong mọi định dạng.** Với nhiều provider, byte key đã mở bọc có thể được gán một nhãn thuật toán theo tham số caller; phải kiểm tra schema, key length và mục đích khóa.
+Never choose the algorithm/key type from untrusted strings. **The algorithm name and key type passed to unwrap are not authenticated by wrapping in every format.** With many providers, unwrapped key bytes get tagged with whatever algorithm label the caller supplies; you must validate schema, key length, and key purpose.
 
-### 2.3 Cipher unwrap trả về Key, không nhất thiết trả SecretKeySpec
+### 2.3 Cipher unwrap Returns Key, Not Necessarily SecretKeySpec
 
-Kết quả khai báo kiểu **java.security.Key**. Sau khi kiểm tra đúng loại, ứng dụng có thể dùng như SecretKey, PublicKey hoặc PrivateKey nếu provider trả kiểu tương ứng.
+The return type is declared as **java.security.Key**. After checking the right type, the application can use it as SecretKey, PublicKey, or PrivateKey if the provider returns the matching type.
 
 ~~~java
 Key recovered = unwrapper.unwrap(
@@ -151,49 +151,49 @@ if (!(recovered instanceof javax.crypto.SecretKey)) {
 javax.crypto.SecretKey dek = (javax.crypto.SecretKey) recovered;
 ~~~
 
-Đoạn trên là minh họa, cần biến unwrapper và wrapped có sẵn.
+The snippet above is illustrative and assumes `unwrapper` and `wrapped` exist.
 
-**Không gọi getEncoded() chỉ để sử dụng lại khóa nếu provider có thể thao tác trực tiếp bằng đối tượng Key.** Với khóa trong HSM, encoded bytes có thể không bao giờ xuất hiện. Nếu cần bảo vệ dữ liệu, tốt hơn là truyền Key cho Cipher hợp lệ và giới hạn phạm vi lộ khóa.
+**Do not call getEncoded() just to reuse a key if the provider can operate directly on the Key object.** For keys in an HSM, encoded bytes may never appear. To protect data, it is better to pass the Key to a valid Cipher and limit key exposure.
 
-## 3. Các thuật toán bọc khóa quan trọng
+## 3. Important Key Wrapping Algorithms
 
 ### 3.1 AESWrap / AES-KW (RFC 3394, NIST SP 800-38F)
 
-**AESWrap** là tên thuật toán Java cho **AES Key Wrap (AES-KW)** theo RFC 3394. Nó dùng khóa AES làm **KEK** để bảo vệ bytes của khóa khác, kèm cơ chế kiểm tra integrity theo cấu trúc thuật toán.
+**AESWrap** is the Java algorithm name for **AES Key Wrap (AES-KW)** per RFC 3394. It uses an AES key as a **KEK** to protect another key's bytes, with structural integrity checking built into the algorithm.
 
-Ví dụ tương thích điển hình:
+Typical compatible example:
 
 ~~~text
-KEK:      AES key 128 hoặc 256 bit
-DEK:      AES key 128 bit (16 byte)
+KEK:       128- or 256-bit AES key
+DEK:       128-bit AES key (16 bytes)
 Algorithm: AESWrap
-wrapped:  24 byte = 16 byte DEK + 8 byte overhead
+wrapped:   24 bytes = 16-byte DEK + 8-byte overhead
 ~~~
 
-Với **AES-KW RFC 3394**, dữ liệu đầu vào cần dài tối thiểu **16 byte** và có độ dài là bội số của **8 byte** (cho thuật toán chuẩn). Đầu ra dài hơn đầu vào **8 byte**; ví dụ 16 byte thành 24 byte, 32 byte thành 40 byte.
+With **RFC 3394 AES-KW**, input data must be at least **16 bytes** long and a multiple of **8 bytes** (for the standard algorithm). Output is **8 bytes** longer than input; e.g., 16 bytes becomes 24 bytes, 32 bytes becomes 40 bytes.
 
-Cơ chế có **kiểm tra integrity** bằng giá trị kiểm tra theo RFC 3394; kẻ không biết KEK rất khó thay đổi wrapped key rồi vẫn được unwrap chấp nhận. Tuy vậy:
+The mechanism performs an **integrity check** via the RFC 3394 check value; an attacker without the KEK can hardly modify a wrapped key and have unwrap accept it. Nevertheless:
 
-- AES-KW **không phải** một cơ chế AEAD có AAD tùy ý như AES-GCM.
-- Nó **không ràng buộc tự động** tenant ID, key ID, thời hạn hay các trường metadata bên ngoài.
-- Đừng gọi overhead 8 byte là **tag GCM 128 bit**; tính chất và định dạng khác nhau.
-- Nó không tự xác thực danh tính người gửi hoặc chứng minh khóa được phép dùng cho mọi nghiệp vụ.
+- AES-KW is **not** an AEAD mechanism with arbitrary AAD like AES-GCM.
+- It **does not automatically bind** tenant ID, key ID, expiration, or external metadata fields.
+- Never call the 8-byte overhead a **128-bit GCM tag**; their properties and formats differ.
+- It does not authenticate the sender's identity or prove the key is authorized for any business operation.
 
-Oracle Java SE 17 liệt kê **AESWrap** tương ứng AES-KW RFC 3394; provider SunJCE hỗ trợ **AESWrap**. Tùy provider, có thể dùng transformation **"AESWrap"** hoặc những tên định dạng tương đương như **"AES/KW/NoPadding"** khi được hỗ trợ. Cần kiểm tra tên thuật toán và khả năng tương thích thực tế, không tự giả định các alias luôn tương đương ở mọi provider.
+Oracle Java SE 17 lists **AESWrap** corresponding to RFC 3394 AES-KW; the SunJCE provider supports **AESWrap**. Depending on the provider, you can use transformation **"AESWrap"** or equivalent formatted names like **"AES/KW/NoPadding"** when supported. Verify actual algorithm names and compatibility rather than assuming aliases behave identically across all providers.
 
 ### 3.2 AESWrapPad / AES-KWP (RFC 5649)
 
-**AES-KWP** mở rộng AES-KW để xử lý cả dữ liệu khóa có **độ dài không phải bội số của 8 byte** hoặc ngắn hơn phạm vi của AES-KW, bằng cấu trúc padding/integrity chuyên dụng.
+**AES-KWP** extends AES-KW to handle key data whose **length is not a multiple of 8 bytes** or is shorter than AES-KW's range, using a dedicated padding/integrity construction.
 
-Tên Java chuẩn là **AESWrapPad** theo RFC 5649 và NIST SP 800-38F. Đừng tự lấy một byte[] ngắn rồi thêm zero thủ công để “vừa AESWrap”: bên unwrap sẽ cần biết chính xác độ dài gốc và chuẩn hóa, và thêm padding tự chế có thể làm sai thuộc tính bảo mật/giao thức.
+The standard Java name is **AESWrapPad** per RFC 5649 and NIST SP 800-38F. Never take a short `byte[]` and manually pad with zeros to “fit AESWrap”: the unwrapping side needs the exact original normalized length, and homegrown padding can break security/protocol properties.
 
-**Không thể trộn AESWrap và AESWrapPad** chỉ vì cả hai đều bắt đầu bằng chữ AES. Chúng là hai thuật toán với cấu trúc wrapped bytes khác nhau.
+**Never mix AESWrap and AESWrapPad** just because both start with AES. They are two different algorithms with different wrapped-byte structures.
 
-Java có danh mục tên chuẩn cho AESWrapPad, nhưng **việc provider cụ thể trong môi trường triển khai hỗ trợ hay không phải được kiểm tra**. Không suy từ việc provider có AESWrap mà kết luận AESWrapPad cũng hoạt động. Ví dụ chạy được bên dưới dùng AESWrap đã được tài liệu hóa cho SunJCE.
+Java includes the standard name AESWrapPad, yet **support by the specific provider in your deployment environment must be checked**. Never infer from a provider having AESWrap that AESWrapPad also works. The runnable example below uses AESWrap, which is documented for SunJCE.
 
-### 3.3 RSA-OAEP dùng public key để bọc secret key
+### 3.3 RSA-OAEP Using a Public Key to Wrap a Secret Key
 
-Nếu bên gửi chỉ có **public key RSA** của bên nhận, có thể dùng **RSA-OAEP** để wrap một DEK AES nhỏ; người nhận dùng private key để unwrap.
+If the sender only has the recipient's **RSA public key**, **RSA-OAEP** can be used to wrap a small AES DEK; the recipient uses the private key to unwrap it.
 
 ~~~text
 Sender                                Recipient
@@ -203,18 +203,18 @@ WRAP_MODE + RSA-OAEP                  UNWRAP_MODE + RSA-OAEP
      |                                     |
 wrap(AES DEK)                         unwrap(bytes, "AES", SECRET_KEY)
      |                                     |
-wrapped DEK ----------- gửi ----------> AES DEK
+wrapped DEK ----------- send ----------> AES DEK
 ~~~
 
-Cấu hình OAEP cần thống nhất tường minh:
+OAEP configuration must be explicitly agreed upon:
 
-- **OAEP digest** (ví dụ SHA-256).
-- **MGF** (thường MGF1).
-- **MGF1 digest** (ví dụ SHA-256).
-- **Label bytes** (ví dụ empty label hoặc UTF-8 của "key:v1").
-- RSA key pair tương ứng và ciphertext encoding.
+- **OAEP digest** (e.g., SHA-256).
+- **MGF** (typically MGF1).
+- **MGF1 digest** (e.g., SHA-256).
+- **Label bytes** (e.g., empty label or UTF-8 of `"key:v1"`).
+- Matching RSA key pair and ciphertext encoding.
 
-Trong Java 17, có thể dùng:
+In Java 17, you can use:
 
 ~~~java
 OAEPParameterSpec spec = new OAEPParameterSpec(
@@ -226,56 +226,56 @@ OAEPParameterSpec spec = new OAEPParameterSpec(
 );
 ~~~
 
-Đây là đoạn cấu hình minh họa, không phải chương trình độc lập. **Không suy luận MGF1 digest từ tên transformation có SHA-256**: với một số provider, các mặc định có thể khác nhau. Truyền **OAEPParameterSpec** giống nhau vào **Cipher.init** cho cả hai bên.
+This is an illustrative configuration snippet, not a standalone program. **Do not infer the MGF1 digest from a transformation name containing SHA-256**: defaults vary across providers. Pass the exact same **OAEPParameterSpec** to **Cipher.init** on both sides.
 
-Với RSA-2048, kết quả wrap thường là **256 byte**; với OAEP SHA-256, plaintext tối đa **190 byte** (k - 2hLen - 2), đủ chứa khóa AES 16/32 byte nhưng không đủ để mã hóa cả file. RSA-OAEP có ngẫu nhiên hóa nên wrapped key khác nhau mỗi lần wrap cho cùng DEK.
+With RSA-2048, the wrap result is typically **256 bytes**; with OAEP SHA-256, the maximum plaintext is **190 bytes** (k - 2hLen - 2), enough for a 16/32-byte AES key but not for encrypting an entire file. RSA-OAEP is randomized, so wrapped bytes differ each time you wrap the same DEK.
 
-**RSA-OAEP không tự xác thực người gửi**: ai biết public key của người nhận đều có thể tạo ciphertext mới. Nếu cần chứng minh nguồn gốc, dùng cơ chế chữ ký/xác thực giao thức độc lập.
+**RSA-OAEP does not authenticate the sender**: anyone knowing the recipient's public key can produce a new ciphertext. If origin proof is needed, use a separate digital signature or protocol authentication mechanism.
 
-### 3.4 AES-GCM có thể mã hóa key bytes không?
+### 3.4 Can AES-GCM Encrypt Key Bytes?
 
-Về mặt mật mã, **AES-GCM với nonce duy nhất và AAD** có thể bảo vệ các byte bí mật nhỏ, kể cả encoded key, khi được sử dụng qua một giao thức được thiết kế đúng.
+Cryptographically, **AES-GCM with a unique nonce and AAD** can protect small secret bytes, including encoded keys, when used within a properly designed protocol.
 
-Nhưng **không suy ra mọi provider hỗ trợ Cipher.wrap khi Cipher được cấu hình ở AES/GCM/NoPadding**; khả năng wrap/unwrap là chức năng của từng CipherSpi/provider. Nếu chọn AES-GCM để bảo vệ key bytes, phải quản lý **nonce, tag, AAD**, tuân thủ điều kiện **nonce duy nhất theo KEK**, và đưa metadata vào định dạng kết quả. Với tác vụ key wrap thông thường, AES-KW/KWP hoặc dịch vụ wrap key chuyên dụng giúp tránh tự thiết kế giao thức không cần thiết.
+However, **do not assume every provider supports Cipher.wrap when Cipher is configured as AES/GCM/NoPadding**; wrap/unwrap support depends on each CipherSpi/provider. If using AES-GCM to protect key bytes, you must manage **nonce, tag, AAD**, obey the **unique nonce per KEK** rule, and frame metadata into the output format. For ordinary key wrapping, AES-KW/KWP or a dedicated key-wrapping service avoids unnecessary custom protocol design.
 
-**Không dùng AES/ECB/NoPadding, AES/CBC/PKCS5Padding hoặc XOR tùy ý để tự bọc khóa**, rồi cho rằng độ bí mật và integrity tương đương AES-KW. CBC thuần không cung cấp xác thực toàn vẹn; ECB làm lộ cấu trúc. Những thuật toán này không trở thành key wrap an toàn chỉ nhờ gọi WRAP_MODE.
+**Never use AES/ECB/NoPadding, AES/CBC/PKCS5Padding, or ad-hoc XOR to wrap keys yourself** and assume confidentiality and integrity match AES-KW. Plain CBC provides no integrity authentication; ECB leaks structure. These algorithms do not become safe key wrappers simply by passing WRAP_MODE.
 
-## 4. So sánh thuật toán theo loại khóa và giới hạn
+## 4. Comparing Algorithms by Key Type and Constraints
 
-| Thuật toán | Khóa bọc (KEK) | Đối tượng phù hợp | Điều kiện nổi bật | Khả năng integrity |
+| Algorithm | Wrapping key (KEK) | Suitable targets | Key conditions | Integrity capability |
 | --- | --- | --- | --- | --- |
-| **AESWrap / AES-KW** | AES đối xứng | Encoded secret key bytes phù hợp độ dài | Ít nhất 16 byte, bội số 8 | Có kiểm tra theo chuẩn AES-KW |
-| **AESWrapPad / AES-KWP** | AES đối xứng | Encoded key bytes có độ dài linh hoạt | Provider phải hỗ trợ đúng chuẩn KWP | Có kiểm tra theo chuẩn AES-KWP |
-| **RSA-OAEP** | Public key RSA của người nhận | DEK nhỏ; dùng private key tương ứng để unwrap | OAEP hash, MGF1 digest, label, giới hạn modulus | Có kiểm tra cấu trúc OAEP khi giải mã; không xác thực người gửi |
-| **KMS/HSM WrapKey** | Key nội bộ KMS/HSM theo quyền | Key được quản lý bởi hạ tầng khóa | API/policy/key handle của hệ thống, quyền và audit | Theo thuật toán và bảo đảm của dịch vụ |
-| **AES-GCM trên encoded key bytes** | AES đối xứng | Key bytes trong protocol tự thiết kế đúng | Nonce duy nhất, AAD, tag, framing | Có AEAD khi xác minh tag thành công |
+| **AESWrap / AES-KW** | Symmetric AES | Encoded secret key bytes of valid length | At least 16 bytes, multiple of 8 | Checked per AES-KW standard |
+| **AESWrapPad / AES-KWP** | Symmetric AES | Encoded key bytes of flexible length | Provider must support standard KWP | Checked per AES-KWP standard |
+| **RSA-OAEP** | Recipient RSA public key | Small DEK; unwrapped with matching private key | OAEP hash, MGF1 digest, label, modulus limit | Checks OAEP structure on decrypt; does not authenticate sender |
+| **KMS/HSM WrapKey** | Internal KMS/HSM key per policy | Keys managed by key infrastructure | System API/policy/key handle, permissions, and audit | Per service's algorithm and guarantees |
+| **AES-GCM on encoded key bytes** | Symmetric AES | Key bytes inside a properly designed custom protocol | Unique nonce, AAD, tag, framing | Provides AEAD when tag verification succeeds |
 
-**Không có “một thuật toán bọc tốt cho mọi loại khóa”.** Cần xét mô hình tin cậy, yêu cầu tương thích, khả năng export key, giới hạn kích thước và loại metadata phải được xác thực.
+**There is no “one best wrapping algorithm for all key types.”** Consider trust model, compatibility requirements, key exportability, size limits, and which metadata must be authenticated.
 
-### 4.1 Tại sao tên AESWrap cũng không giải thích được DEK là AES?
+### 4.1 Why Doesn't the Name AESWrap Explain That the DEK Is AES?
 
-**"AESWrap"** là tên cipher dùng để bảo vệ key bytes. DEK được bọc có thể là một loại secret key khác nếu dạng byte và thuật toán/độ dài hợp lệ với cơ chế bọc.
+**"AESWrap"** is the cipher name used to protect key bytes. The wrapped DEK could be another secret key type if its byte representation and algorithm/length fit the wrapping mechanism.
 
-Sau unwrap, Java cần biết tên thuật toán và loại Key cần khôi phục:
+Upon unwrapping, Java needs to know the algorithm name and Key type to reconstruct:
 
 ~~~text
 Wrapping algorithm: AESWrap
-Wrapping key:       KEK là AES
+Wrapping key:       KEK is AES
 Wrapped key type:   Cipher.SECRET_KEY
-Wrapped algorithm:  "AES" hoặc "HmacSHA256" theo hợp đồng
+Wrapped algorithm:  "AES" or "HmacSHA256" per contract
 ~~~
 
-Không được nhầm wrapping algorithm với **wrappedKeyAlgorithm** trong chữ ký unwrap.
+Never confuse the wrapping algorithm with **wrappedKeyAlgorithm** in the unwrap signature.
 
-## 5. SecretKey, PublicKey, PrivateKey và encoding
+## 5. SecretKey, PublicKey, PrivateKey, and Encodings
 
-JCA có interface **java.security.Key** cùng các interface con:
+JCA has the **java.security.Key** interface and its subinterfaces:
 
-- **javax.crypto.SecretKey:** khóa đối xứng; dạng mã hóa thường là **RAW** khi export được.
-- **java.security.PublicKey:** khóa công khai; dạng mã hóa phổ biến **X.509 SubjectPublicKeyInfo**.
-- **java.security.PrivateKey:** khóa bí mật bất đối xứng; dạng mã hóa phổ biến **PKCS#8** nếu được phép xuất.
+- **javax.crypto.SecretKey:** symmetric key; encoded format is typically **RAW** when exportable.
+- **java.security.PublicKey:** public key; common encoded format is **X.509 SubjectPublicKeyInfo**.
+- **java.security.PrivateKey:** asymmetric private key; common encoded format is **PKCS#8** if export is allowed.
 
-Các constant type lúc unwrap:
+Type constants for unwrapping:
 
 ~~~java
 Cipher.SECRET_KEY
@@ -283,49 +283,49 @@ Cipher.PUBLIC_KEY
 Cipher.PRIVATE_KEY
 ~~~
 
-Đây là **hằng chỉ loại Key**, không phải thuật toán mật mã và không phải giá trị mode. Sai loại Key hoặc tên algorithm có thể làm unwrap thất bại, hoặc tạo đối tượng key không phù hợp với mục đích sử dụng sau đó.
+These are **Key type constants**, not cryptographic algorithms or mode values. Passing the wrong Key type or algorithm name can make unwrap fail, or construct a key object unsuitable for subsequent use.
 
 ### 5.1 getAlgorithm(), getFormat(), getEncoded()
 
-**Key.getAlgorithm()** nói tên thuật toán (ví dụ "AES"). **Key.getFormat()** cho biết định dạng encoded key khi được hỗ trợ. **Key.getEncoded()** trả byte[] encoding hoặc có thể **null**.
+**Key.getAlgorithm()** gives the algorithm name (e.g., `"AES"`). **Key.getFormat()** gives the encoded key format when supported. **Key.getEncoded()** returns the encoded `byte[]` or possibly **null**.
 
-Với secret key phần mềm xuất được, có thể gặp:
+For an exportable software secret key, you may see:
 
 ~~~text
 key.getAlgorithm(): AES
 key.getFormat():    RAW
-key.getEncoded():   [16, 24 hoặc 32 byte]
+key.getEncoded():   [16, 24, or 32 bytes]
 ~~~
 
-Các byte này là **secret**, không phải metadata công khai. Không ghi chúng vào log, metrics, file cấu hình hoặc response. Việc chúng có thể được trả về cho test **không có nghĩa luôn nên export** trong production.
+These bytes are **secret**, not public metadata. Never write them to logs, metrics, config files, or responses. That they can be returned in tests **does not mean you should always export them** in production.
 
-### 5.2 Khóa HSM/KMS không export được
+### 5.2 Non-Exportable HSM/KMS Keys
 
-Một HSM có thể lưu key material dưới một key handle và từ chối getEncoded(). Một Cipher phần mềm không thể tự wrap khóa mà nó không được đọc byte; ngược lại, HSM có thể có cơ chế wrap bên trong phần cứng theo policy.
+An HSM may store key material under a key handle and refuse `getEncoded()`. A software Cipher cannot wrap a key whose bytes it cannot read; conversely, the HSM may provide hardware-internal wrapping according to policy.
 
-JavaDoc của **Cipher.wrap(Key)** mô tả InvalidKeyException khi việc wrap không thể hoặc không an toàn, ví dụ một khóa bảo vệ bởi phần cứng được đưa cho cipher chỉ chạy bằng phần mềm.
+The Javadoc for **Cipher.wrap(Key)** documents `InvalidKeyException` when wrapping is impossible or unsafe—for example, passing a hardware-protected key to a software-only cipher.
 
-**Không tìm cách phá rào extractability** bằng reflection, in-memory dump hay tải private key ra JVM để “chạy ví dụ”. Hãy dùng API wrap/unwrap của provider/HSM hoặc workflow KMS chính thức, với kiểm soát vai trò và key usage thích hợp.
+**Never attempt to bypass extractability boundaries** via reflection, in-memory dumps, or pulling private keys into the JVM just to “make an example run.” Use the provider/HSM wrap/unwrap API or official KMS workflows, with proper role and key-usage controls.
 
-### 5.3 Có nên wrap private key không?
+### 5.3 Should You Wrap Private Keys?
 
-Có các trường hợp **private key backup/escrow/di chuyển** được phép và cần bảo vệ rất nghiêm ngặt. Tuy nhiên private key thường được khuyến nghị **giữ non-exportable** trong HSM khi mô hình bảo mật yêu cầu.
+There are valid cases for **private key backup/escrow/migration** that are permitted and require strict protection. However, private keys are generally recommended to **stay non-exportable** inside an HSM when the security model requires it.
 
-Nếu một private key thực sự được cho phép export, format như PKCS#8, thuật toán bọc, quản lý KEK, quyền và audit phải được quy định rõ; không giả định gọi **wrap(privateKey)** sẽ thành công trên mọi provider. Đối với private key không exportable, giải pháp thích hợp thường là key handle và chức năng bảo vệ nội bộ của HSM.
+If a private key is genuinely permitted to be exported, the format such as PKCS#8, wrapping algorithm, KEK management, permissions, and auditing must be clearly specified; never assume calling **wrap(privateKey)** will succeed across every provider. For non-exportable private keys, the right solution is usually key handles and internal HSM protection features.
 
-## 6. Java 17+ hoàn chỉnh: AESWrap, kiểm tra dữ liệu bị sửa và RSA-OAEP
+## 6. Complete Java 17+ Program: AESWrap, Tamper Detection, and RSA-OAEP
 
-Chương trình dưới đây minh họa:
+The program below demonstrates:
 
-1. Sinh **KEK AES-128** và **DEK AES-128** trong cùng lần chạy bằng KeyGenerator.
-2. Bọc DEK bằng **AESWrap**, mở bọc bằng cùng KEK.
-3. Đổi một bit của wrapped bytes để kiểm tra **integrity** của AESWrap.
-4. Sinh keypair RSA-2048, bọc chính DEK bằng public key với **RSA-OAEP SHA-256/MGF1-SHA-256/label "key:v1"**.
-5. Mở bọc bằng private key và cố tình dùng label khác để chứng minh cấu hình phải thống nhất.
+1. Generating an **AES-128 KEK** and **AES-128 DEK** in the same run using KeyGenerator.
+2. Wrapping the DEK with **AESWrap**, then unwrapping with the same KEK.
+3. Flipping one bit of the wrapped bytes to verify **AESWrap integrity**.
+4. Generating an RSA-2048 keypair and wrapping the same DEK with the public key using **RSA-OAEP SHA-256/MGF1-SHA-256/label "key:v1"**.
+5. Unwrapping with the private key and intentionally passing a different label to prove configuration must match.
 
-Đây là chương trình **độc lập**, dùng API hiện diện từ Java 17 và SunJCE/SunRsaSign trên JDK phù hợp. Demo tạo khóa ngẫu nhiên trong một tiến trình; ứng dụng thực tế dùng KEK/DEK được cấp phát và quản lý bởi hệ thống khóa phù hợp.
+This is a **standalone** program using APIs available since Java 17 and SunJCE/SunRsaSign on compatible JDKs. The demo generates random keys in one process; real applications use KEKs/DEKs provisioned and managed by an appropriate key management system.
 
-Tạo **KeyWrapDemo.java** (UTF-8):
+Create **KeyWrapDemo.java** (UTF-8):
 
 ~~~java
 import java.security.*;
@@ -407,14 +407,14 @@ public class KeyWrapDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 KeyWrapDemo.java
 java KeyWrapDemo
 ~~~
 
-Stdout mong đợi trong JDK có hỗ trợ các transformation nêu trên:
+Expected stdout on a JDK supporting the transformations above:
 
 ~~~text
 AESWrap bytes: 24
@@ -425,43 +425,43 @@ RSA-OAEP restored: true
 RSA-OAEP wrong label rejected: true
 ~~~
 
-**Cơ sở của các con số:**
+**Basis of the numbers:**
 
-- AES DEK 128 bit = **16 byte**. Với AES-KW RFC 3394, wrapped key dài **24 byte**, tức 16 + 8.
-- RSA modulus 2048 bit = **256 byte**. Wrapped RSA-OAEP dài **256 byte**.
-- Hai phép so sánh restored dùng **getEncoded() chỉ trong demo** cho khóa AES phần mềm do KeyGenerator sinh. Trong production, có thể phải thao tác trực tiếp với Key object mà không export raw bytes.
-- Đổi byte wrapped AES-KW làm integrity check thất bại với xác suất áp đảo; demo nhận ra thông qua exception.
-- OAEP SHA-256/MGF1-SHA-256 đúng nhưng **label "key:v2"** thay vì **"key:v1"** khiến unwrap không thành công.
+- 128-bit AES DEK = **16 bytes**. With RFC 3394 AES-KW, the wrapped key is **24 bytes**, i.e., 16 + 8.
+- 2048-bit RSA modulus = **256 bytes**. Wrapped RSA-OAEP output is **256 bytes**.
+- Both restoration checks use **getEncoded() in the demo only** for software AES keys generated by KeyGenerator. In production, you may have to work directly with Key objects without exporting raw bytes.
+- Flipping a byte in the AES-KW wrapped output causes the integrity check to fail with overwhelming probability; the demo detects this via exception.
+- Matching OAEP SHA-256/MGF1-SHA-256 but passing **label `"key:v2"`** instead of **`"key:v1"`** causes unwrapping to fail.
 
-Vì khóa AES và keypair RSA được tạo ngẫu nhiên mỗi lần chạy, raw wrapped bytes sẽ khác nhau. Ví dụ chỉ in **độ dài và điều kiện đúng/sai**, không in raw key, private key, ciphertext hay tag.
+Because the AES keys and RSA keypair are generated randomly on each run, the raw wrapped bytes differ each time. The example only prints **lengths and pass/fail booleans**, never raw keys, private keys, ciphertexts, or tags.
 
-**Giới hạn của ví dụ:** Đây là kiểm thử chức năng local, không có KMS, không có giao thức truyền hay quyền truy cập thực; việc bắt GeneralSecurityException nhằm minh họa đường từ chối khi unwrap lỗi, không nên dùng exception message để trả thông tin mật mã ra client.
+**Demo limitations:** This is a local functional check with no KMS, transport protocol, or real access control; catching `GeneralSecurityException` demonstrates the rejection path on failed unwrap, and exception messages must never be returned to leak cryptographic details to a client.
 
-### 6.1 Vì sao bắt GeneralSecurityException trong demo?
+### 6.1 Why Catch GeneralSecurityException in the Demo?
 
-**Cipher.wrap(...)** có thể ném InvalidKeyException hoặc IllegalBlockSizeException; **Cipher.unwrap(...)** thường báo InvalidKeyException hoặc NoSuchAlgorithmException theo JavaDoc. Việc unwrap sai không nhất thiết có cùng loại exception trên mọi provider và thuật toán.
+**Cipher.wrap(...)** can throw `InvalidKeyException` or `IllegalBlockSizeException`; **Cipher.unwrap(...)** typically reports `InvalidKeyException` or `NoSuchAlgorithmException` per Javadoc. Failed unwrapping does not necessarily throw the exact same exception class across all providers and algorithms.
 
-Dùng **GeneralSecurityException** ở ranh giới minh họa cho phép bắt các lỗi mật mã đã được khai báo, rồi xem việc unwrap không thành công là một trạng thái từ chối. Trên dịch vụ thật, có thể phân loại nội bộ theo nguyên nhân hợp lệ (khóa không có quyền, định dạng sai, thuật toán không hỗ trợ, integrity check thất bại), nhưng **trả lỗi tổng quát** cho đối tượng không tin cậy và tránh tạo một oracle tiết lộ quá nhiều thông tin.
+Catching **GeneralSecurityException** at the demo boundary captures declared cryptographic failures and treats failed unwrap as a rejection state. In a real service, you can categorize internally by valid cause (unauthorized key, bad format, unsupported algorithm, failed integrity check), while **returning a generic error** to untrusted callers and avoiding an oracle that leaks excessive detail.
 
-Lưu ý **UnsupportedOperationException** là runtime exception nếu provider không triển khai chức năng wrap/unwrap. Đây là vấn đề hỗ trợ API/cấu hình triển khai, không phải tín hiệu cho phép fallback sang mã hóa không an toàn.
+Note that **UnsupportedOperationException** is a runtime exception if a provider does not implement wrap/unwrap. This is an API-support/deployment-configuration issue, not a signal to fall back to unsafe encryption.
 
-### 6.2 Việc cùng key bytes được khôi phục chứng minh gì?
+### 6.2 What Does Recovering Identical Key Bytes Prove?
 
-Trong demo, **AES key restored: true** cho thấy byte[] encoded key khớp với DEK ban đầu. Đây là một **round-trip test**, chưa chứng minh:
+In the demo, **AES key restored: true** shows that the encoded key `byte[]` matches the original DEK. This is a **round-trip test**; it does not yet prove:
 
-- KEK đang được bảo vệ trong môi trường thực;
-- wrapped blob thuộc đúng tenant/record;
-- người gửi có quyền tạo wrapped key;
-- wrapped key chưa bị replay hoặc tráo giữa tài nguyên;
-- dữ liệu mã hóa dưới DEK đã vượt kiểm tra tag AEAD.
+- the KEK is protected in a real environment;
+- the wrapped blob belongs to the right tenant/record;
+- the sender was authorized to create the wrapped key;
+- the wrapped key was not replayed or swapped across resources;
+- data encrypted under the DEK passed AEAD tag verification.
 
-Để chứng minh hệ thống đúng, cần cả **key recovery test** lẫn **policy, metadata binding, key lifecycle và data encryption test**.
+To prove a system is sound, you need **key recovery tests** as well as **policy, metadata binding, key lifecycle, and data encryption tests**.
 
-## 7. Bọc khóa, metadata và thiết kế envelope encryption
+## 7. Key Wrapping, Metadata, and Envelope Encryption Design
 
-### 7.1 Định dạng record phải rõ ràng
+### 7.1 Record Format Must Be Explicit
 
-Một record mã hóa ứng dụng thường cần nhiều hơn wrapped bytes. Ví dụ một định dạng do ứng dụng tự thiết kế:
+An application encrypted record usually needs more than wrapped bytes. For example, an application-defined format:
 
 ~~~text
 envelopeVersion:   1
@@ -476,35 +476,35 @@ dataCiphertext:    Base64(ciphertext || GCM tag)
 keyPurpose:        record-encryption
 ~~~
 
-Đây là **ví dụ cấu trúc**, không phải giao thức tiêu chuẩn đã được xác thực. Mỗi trường có vai trò:
+This is a **structural example**, not an audited standard protocol. Each field has a role:
 
-- **envelopeVersion:** chọn schema và các thuật toán được chính sách cho phép.
-- **tenantId/recordId/keyPurpose:** ràng buộc quyền, chủ sở hữu dữ liệu, loại khóa.
-- **wrappingAlg:** xác định cách unwrap wrappedDEK.
-- **kekId:** tham chiếu KEK trong KMS/HSM; không chứa raw KEK.
-- **wrappedDek:** binary wrapped key được biểu diễn Base64 cho JSON/text, không có quyền năng bảo mật nhờ Base64.
-- **dataAlg/nonce/dataCiphertext:** mô tả dữ liệu được mã hóa bởi DEK.
+- **envelopeVersion:** selects the schema and policy-allowed algorithms.
+- **tenantId/recordId/keyPurpose:** binds permissions, data owner, and key usage type.
+- **wrappingAlg:** identifies how to unwrap `wrappedDEK`.
+- **kekId:** references the KEK in KMS/HSM; does not contain the raw KEK.
+- **wrappedDek:** binary wrapped key Base64-encoded for JSON/text; Base64 adds no cryptographic protection.
+- **dataAlg/nonce/dataCiphertext:** describes the data encrypted by the DEK.
 
-**AES-KW không có AAD**, nên những metadata như tenantId, recordId, keyPurpose **không tự được kiểm tra bằng AESWrap**. Cần ràng buộc metadata vào giao thức có xác thực (ví dụ AES-GCM AAD cho dữ liệu và metadata tương ứng, hoặc record được ký/MAC theo mô hình tin cậy), kiểm tra authorization và gắn wrappedDEK với đúng ngữ cảnh. Không nhận metadata do client tùy ý thay đổi rồi chỉ kiểm tra “unwrap thành công”.
+**AES-KW has no AAD**, so metadata such as `tenantId`, `recordId`, and `keyPurpose` **are not automatically verified by AESWrap**. You must bind metadata in an authenticated protocol (such as AES-GCM AAD covering data and matching metadata, or a signed/MACed record under a trust model), enforce authorization, and tie `wrappedDEK` to the right context. Never accept client-modifiable metadata and merely check “unwrap succeeded.”
 
-### 7.2 Luồng đọc dữ liệu được bảo vệ
+### 7.2 Protected Data Read Flow
 
-Quy trình hợp lý:
+A sound workflow:
 
-1. **Xác thực request** và kiểm tra người gọi có quyền đọc record cụ thể.
-2. Parse và kiểm tra **envelopeVersion, thuật toán cho phép, kích thước, key ID**, các trường metadata và mối quan hệ tenant/record.
-3. Tra cứu KEK theo key ID trong **KMS/HSM** theo quyền, không cấp KEK cho mọi client.
-4. **Unwrap DEK** bằng thuật toán và tham số chính xác. Nếu integrity check thất bại, từ chối.
-5. Kiểm tra loại Key, algorithm, độ dài DEK và **key usage**; không tin nhãn algorithm từ payload một cách mù quáng.
-6. Dùng DEK giải mã dữ liệu theo **AES-GCM**, cung cấp đúng nonce/AAD, xác thực tag; không sử dụng plaintext nếu xác thực thất bại.
-7. Chỉ sau các bước kiểm tra mới đưa plaintext cho phần nghiệp vụ được cấp quyền.
-8. Ghi audit tối thiểu (key ID, record ID, outcome, request ID), không log raw KEK/DEK hoặc plaintext.
+1. **Authenticate the request** and check that the caller is authorized to read the specific record.
+2. Parse and validate **envelopeVersion, allowed algorithms, sizes, key ID**, metadata fields, and tenant/record relationship.
+3. Look up the KEK by key ID in **KMS/HSM** per permissions; never hand the KEK to arbitrary clients.
+4. **Unwrap the DEK** with the exact algorithm and parameters. Reject if the integrity check fails.
+5. Verify Key type, algorithm, DEK length, and **key usage**; never blindly trust an algorithm label from the payload.
+6. Decrypt data with the DEK using **AES-GCM**, supplying the right nonce/AAD and verifying the tag; never use plaintext if verification fails.
+7. Only after all checks pass, deliver plaintext to authorized business logic.
+8. Record minimal audit logs (key ID, record ID, outcome, request ID); never log raw KEK/DEK or plaintext.
 
-Unwrap thành công **không bảo đảm payload dataCiphertext hợp lệ**: còn cần giải mã và xác thực dữ liệu. Ngược lại, payload GCM hợp lệ trong một ngữ cảnh cũng **không cấp thêm quyền truy cập** cho người gọi khác.
+Successful unwrapping **does not guarantee `dataCiphertext` payload validity**: data still must be decrypted and authenticated. Conversely, a valid GCM payload in one context **does not grant access** to another caller.
 
-### 7.3 Khi dùng RSA-OAEP thay AESWrap trong envelope
+### 7.3 Using RSA-OAEP Instead of AESWrap in an Envelope
 
-Với RSA-OAEP:
+With RSA-OAEP:
 
 ~~~text
 wrappingAlg:       RSA-OAEP
@@ -516,204 +516,204 @@ oaepLabel:         Base64(UTF8("key:v1"))
 wrappedDek:        Base64(RSAES-OAEP(publicKey, DEK))
 ~~~
 
-Người nhận chọn **private key có quyền** và cùng bộ tham số. Không để các field chưa được xác thực buộc server tự hạ cấp thuật toán hoặc thử key không thuộc tenant. Nếu các field có thể bị sửa, ứng dụng phải kiểm tra/chặn ở tầng policy hoặc ràng buộc chúng vào cơ chế xác thực của record/giao thức.
+The recipient selects the **authorized private key** and the exact same parameter set. Never let unauthenticated fields force the server to downgrade algorithms or try keys belonging to other tenants. If fields can be modified, the application must check/block them at the policy layer or bind them into the record/protocol authentication mechanism.
 
-**RSA-OAEP không chứng minh nguồn gốc của key**: người giữ public key có thể tự tạo wrapped key. Muốn biết ai gửi, cần chữ ký số hoặc xác thực kết nối và chính sách phân quyền phù hợp.
+**RSA-OAEP does not prove key origin**: anyone holding the public key can create a wrapped key. To know who sent it, you need digital signatures or authenticated transport and proper authorization policies.
 
-## 8. Vòng đời KEK và DEK: rotation, rewrap và quyền truy cập
+## 8. KEK and DEK Lifecycles: Rotation, Rewrapping, and Access Control
 
-### 8.1 Đổi KEK không nhất thiết phải mã hóa lại file lớn
+### 8.1 Changing a KEK Does Not Necessarily Require Re-Encrypting Large Files
 
-Nếu DEK vẫn còn hợp lệ và không bị lộ, có thể luân chuyển **KEK** theo cách:
+If the DEK remains valid and uncompromised, the **KEK** can be rotated like this:
 
 ~~~text
-wrappedDEK_old --[UNWRAP với KEK_old]--> DEK
-DEK            --[WRAP với KEK_new]----> wrappedDEK_new
+wrappedDEK_old --[UNWRAP with KEK_old]--> DEK
+DEK            --[WRAP with KEK_new]----> wrappedDEK_new
 ~~~
 
-Các thao tác này phải được bảo vệ bởi KMS/HSM hoặc môi trường tin cậy, hạn chế thời gian DEK xuất hiện trong bộ nhớ. Cập nhật **wrappedDEK + kekId/version** nhất quán và đảm bảo kế hoạch phục hồi nếu quá trình rotation bị ngắt.
+These operations must be protected inside a KMS/HSM or trusted environment, minimizing the time the DEK exists in memory. Update **wrappedDEK + kekId/version** consistently and ensure a recovery plan if rotation is interrupted.
 
-**Rewrap không tạo DEK mới** và không mã hóa lại dataCiphertext. Nó chỉ thay cách bảo vệ cùng DEK. Nếu chính DEK bị lộ, chỉ đổi KEK không làm ciphertext đã mã hóa dưới DEK trở nên bí mật trở lại: cần đánh giá cấp DEK mới, mã hóa lại dữ liệu, thu hồi quyền và phạm vi ảnh hưởng.
+**Rewrapping does not create a new DEK** and does not re-encrypt `dataCiphertext`. It only changes how the same DEK is protected. If the DEK itself was compromised, rotating only the KEK will not make data previously encrypted under that DEK confidential again: you must evaluate issuing a new DEK, re-encrypting data, revoking access, and assessing blast radius.
 
-### 8.2 Quyền “wrap” và “unwrap” nên tách
+### 8.2 “Wrap” and “Unwrap” Permissions Should Be Separated
 
-Một hệ thống có thể cấp cho dịch vụ ghi quyền tạo wrapped DEK, còn dịch vụ đọc có quyền mở bọc để giải mã. Không phải tiến trình nào cần lưu ciphertext cũng phải được cấp quyền unwrap mọi record.
+A system may grant a writer service permission to create wrapped DEKs, while a reader service has permission to unwrap for decryption. Not every process that stores ciphertext needs permission to unwrap every record.
 
-KMS/HSM thường cung cấp:
+KMS/HSM systems typically provide:
 
-- Key ID/alias và version.
-- Tách quyền encrypt/wrap/decrypt/unwrap theo vai trò và chính sách.
-- Audit các thao tác sử dụng key.
-- Rotation, disable, revoke và backup/restore phù hợp.
-- Khả năng giữ root/KEK không rời phần cứng.
+- Key IDs/aliases and versions.
+- Separate encrypt/wrap/decrypt/unwrap permissions by role and policy.
+- Auditing of key operations.
+- Rotation, disabling, revocation, and backup/restore.
+- Keeping root/KEKs inside hardware boundaries.
 
-**Đừng nhầm “ứng dụng được quyền wrap” với “được quyền unwrap”.** Việc cấp quyền dư thừa làm tăng tác động khi một service bị xâm nhập.
+**Do not confuse “application is allowed to wrap” with “allowed to unwrap.”** Over-privileged permissions increase impact when a service is compromised.
 
-### 8.3 Chính sách hết hạn và phục hồi
+### 8.3 Expiration and Recovery Policies
 
-Không xóa KEK cũ trước khi các wrapped DEK phụ thuộc vào nó đã được rewrap hoặc không còn cần giải mã, trừ khi có lý do thu hồi bảo mật mạnh hơn. Cần lưu key version, trạng thái rotation, dữ liệu đã migrate và chính sách phục hồi.
+Never delete an old KEK before all wrapped DEKs depending on it have been rewrapped or are no longer needed for decryption, unless a stronger security revocation reason overrides it. Track key versions, rotation state, migrated data, and recovery policies.
 
-Đồng thời, đừng giữ KEK cũ hoạt động vô hạn để tương thích nếu khóa có thể đã lộ. Kế hoạch chuyển đổi phải cân bằng khả năng phục hồi với yêu cầu thu hồi và bảo mật.
+At the same time, never keep an old KEK active indefinitely for compatibility if the key may have been compromised. Transition plans must balance recoverability with revocation and security requirements.
 
-## 9. Đúng thuật toán nhưng vẫn có thể sai an toàn
+## 9. Right Algorithm, Still Insecure Designs
 
-### 9.1 Sai lầm: lưu KEK cạnh wrapped DEK
+### 9.1 Mistake: Storing the KEK Next to the Wrapped DEK
 
-Nếu DB có wrappedDEK và cùng hệ thống cấp cho tiến trình bất kỳ quyền lấy KEK plaintext, giá trị bảo vệ giảm mạnh. **Tách miền quyền** giữa storage và key service là phần quan trọng của envelope encryption.
+If the database holds `wrappedDEK` and the same system lets any process retrieve the plaintext KEK, protection value drops sharply. **Separating privilege domains** between storage and the key service is central to envelope encryption.
 
-Có thể đặt KMS key ID cùng record; **key ID thường không phải secret**. Nhưng raw KEK không nên được lưu/ghi log trong cùng mức quyền truy cập với dữ liệu nó bảo vệ.
+You may store the KMS key ID alongside the record; **a key ID is normally not secret**. Yet the raw KEK must never be stored or logged at the same access level as the data it protects.
 
-### 9.2 Sai lầm: dùng cùng KEK cho mọi tenant và mục đích
+### 9.2 Mistake: Using the Same KEK for All Tenants and Purposes
 
-Một KEK chung làm phạm vi ảnh hưởng khi compromise rộng hơn. Thiết kế theo **tenant/ứng dụng/mục đích** khi phù hợp, kết hợp policy ngăn một client unwrap DEK của client khác. Việc tách KEK còn giúp rotation độc lập và audit rõ ràng.
+A single shared KEK widens the blast radius of a compromise. Partition by **tenant/application/purpose** where appropriate, combined with policies preventing one client from unwrapping another client's DEK. Separating KEKs also enables independent rotation and clearer auditing.
 
-**Thay khóa cho từng tenant không tự thay thế authorization**; vẫn phải kiểm tra user có quyền trên record hay không.
+**Per-tenant keys do not replace authorization**; you must still verify whether the user has permission on the record.
 
-### 9.3 Sai lầm: không kiểm tra “khóa trả về có dùng đúng mục đích?”
+### 9.3 Mistake: Not Checking “Is the Returned Key Valid for This Purpose?”
 
-**Cipher.unwrap(..., "AES", SECRET_KEY)** giúp provider dựng Key có algorithm "AES" nhưng không phải một cơ chế chứng thực mục đích sử dụng từ phía người tạo record. Nếu dữ liệu có thể đưa vào dưới ngữ cảnh khác, cần key ID/version, key type, độ dài, tenant, purpose và chính sách rõ ràng.
+**Cipher.unwrap(..., "AES", SECRET_KEY)** lets the provider build a Key with algorithm `"AES"`, but it does not attest the record creator's intended purpose. If data could be injected under another context, enforce key ID/version, key type, length, tenant, purpose, and explicit policies.
 
-Ví dụ DEK AES-128 được phép mã hóa hồ sơ nội bộ không có nghĩa service có quyền dùng nó để mã hóa payload thuộc tenant khác.
+For example, an AES-128 DEK authorized to encrypt internal records does not mean the service is permitted to use it to encrypt payloads belonging to another tenant.
 
-### 9.4 Sai lầm: xem integrity của wrapped key như integrity của mọi thứ
+### 9.4 Mistake: Treating Wrapped-Key Integrity as Integrity for Everything
 
-AES-KW kiểm tra integrity **wrapped key bytes** theo lược đồ. Nó không biết username, nội dung file, quyền truy cập, bản ghi gốc hay timestamp nếu các thông tin đó không được bảo vệ bằng cơ chế khác.
+AES-KW checks the integrity of **wrapped key bytes** per its scheme. It knows nothing about usernames, file contents, access permissions, original records, or timestamps unless those are protected by another mechanism.
 
-Hãy phân biệt ba lớp:
+Distinguish three layers:
 
-1. **Key wrapping integrity:** wrappedDEK có thể được mở bọc hợp lệ theo KEK.
-2. **Payload integrity:** ciphertext dữ liệu được xác thực bằng AES-GCM tag/MAC phù hợp.
-3. **Authorization/business integrity:** đúng tenant, đúng người, đúng thao tác và không bị replay/tráo record.
+1. **Key wrapping integrity:** `wrappedDEK` unwraps validly under the KEK.
+2. **Payload integrity:** data ciphertext is authenticated with an appropriate AES-GCM tag/MAC.
+3. **Authorization/business integrity:** right tenant, right user, right operation, and no replay/record swapping.
 
-Cần cả ba khi hệ thống có yêu cầu tương ứng.
+All three are needed when system requirements call for them.
 
-### 9.5 Sai lầm: tự fallback sang thuật toán yếu hơn
+### 9.5 Mistake: Silently Falling Back to Weaker Algorithms
 
-Nếu unwrap bằng AESWrap thất bại, không nên thử các transformation tùy ý như AES/ECB/NoPadding hay RSA/ECB/PKCS1Padding với hy vọng ra một Key “đọc được”. Với giao thức có version, server chỉ chấp nhận **thuật toán và tham số được phép cho version đó**, từ chối trường hợp không phù hợp.
+If unwrapping with AESWrap fails, never try arbitrary transformations like `AES/ECB/NoPadding` or `RSA/ECB/PKCS1Padding` hoping to recover a “readable” Key. In a versioned protocol, the server accepts only the **algorithms and parameters permitted for that version**, rejecting anything else.
 
-### 9.6 Sai lầm: wrap là thay thế cho xác thực người gửi
+### 9.6 Mistake: Treating Wrapping as a Substitute for Sender Authentication
 
-Một public RSA key được công khai. RSA-OAEP cho phép gửi wrapped key bí mật tới private-key holder, nhưng **bất kỳ ai có public key** cũng có thể tạo wrappedDEK. Nếu bên nhận cần tin “đúng Alice tạo key này”, phải có chữ ký số, MAC với khóa chung phù hợp, mTLS hoặc xác thực giao thức độc lập.
+An RSA public key is public. RSA-OAEP lets you send a secret wrapped key to the private-key holder, yet **anyone with the public key** can create a `wrappedDEK`. If the recipient must be certain “Alice created this key,” you need a digital signature, a MAC with a shared key, mTLS, or independent protocol authentication.
 
-## 10. Những lỗi và exception cần xử lý
+## 10. Errors and Exceptions to Handle
 
-| Lỗi/tình huống | Biểu hiện thường gặp | Cách xử lý |
+| Error / situation | Common symptom | How to handle |
 | --- | --- | --- |
-| Cipher chưa init WRAP_MODE, gọi wrap | IllegalStateException | Sửa trạng thái Cipher, không tiếp tục |
-| Provider không hỗ trợ wrap | UnsupportedOperationException hoặc không lấy được transformation | Kiểm tra khả năng/provider, không fallback yếu |
-| Key không thể export hoặc không tương thích | InvalidKeyException khi wrap | Dùng provider/HSM phù hợp, không phá extractability |
-| Dữ liệu key bytes không thỏa giới hạn AES-KW | Lỗi wrap hoặc khi init theo provider | Chọn KWP/hệ thống phù hợp khi đã được hỗ trợ |
-| Wrapped bytes sai/bị sửa, KEK sai | Unwrap thất bại (thường InvalidKeyException) | Từ chối, không sử dụng key nào |
-| Sai RSA private key/OAEP digest/MGF1 digest/label | Unwrap không hợp lệ | Từ chối, kiểm tra cấu hình và key ID đã thỏa thuận |
-| wrappedKeyAlgorithm không được hỗ trợ | NoSuchAlgorithmException hoặc lỗi provider | Kiểm tra whitelist algorithm, không tin text tùy ý |
-| Sai wrappedKeyType | Lỗi dựng Key hoặc dựng kiểu khác không dùng được | Đối chiếu schema, không thử mọi loại tự động |
-| Key ID/version không tồn tại | Lỗi policy/KMS | Từ chối có kiểm soát; audit metadata tối thiểu |
-| Mở bọc được nhưng GCM tag của dữ liệu sai | AEADBadTagException lúc giải mã payload | Không công bố plaintext; điều tra theo chính sách |
+| Calling wrap on Cipher not initialized in WRAP_MODE | IllegalStateException | Fix Cipher state; do not proceed |
+| Provider does not support wrap | UnsupportedOperationException or transformation unavailable | Verify provider capabilities; never fall back weakly |
+| Non-exportable or incompatible key | InvalidKeyException during wrap | Use compatible provider/HSM; never bypass extractability |
+| Key bytes violate AES-KW size limits | Error on wrap or init depending on provider | Choose standard KWP/system if supported |
+| Wrong/tampered wrapped bytes or wrong KEK | Unwrap fails (usually InvalidKeyException) | Reject; never use any key |
+| Wrong RSA private key/OAEP digest/MGF1 digest/label | Unwrap invalid | Reject; check agreed config and key ID |
+| Unsupported `wrappedKeyAlgorithm` | NoSuchAlgorithmException or provider error | Enforce algorithm allowlist; never trust arbitrary text |
+| Wrong `wrappedKeyType` | Key construction error or unusable key type | Match against schema; never brute-force all types |
+| Missing key ID/version | Policy/KMS error | Reject cleanly; audit minimal metadata |
+| Unwrap succeeds but data GCM tag is invalid | AEADBadTagException on payload decrypt | Never release plaintext; investigate per policy |
 
-**Không lấy thông điệp exception của provider làm API công khai.** Những lỗi phân biệt sâu về padding, key length, key validity có thể tạo oracle hữu ích cho đối thủ. Tạo mã lỗi tổng quát phía client và log nội bộ đã kiểm soát; tránh log raw key hoặc payload bí mật.
+**Never expose provider exception messages as a public API.** Granular errors distinguishing padding, key length, and key validity can create an oracle useful to adversaries. Return generic error codes to clients and log controlled internal diagnostics without logging raw keys or secret payloads.
 
-Trên hệ thống đa luồng, **Cipher có trạng thái và không nên dùng chung đồng thời giữa các request**. Khởi tạo riêng theo operation hoặc có cơ chế quản lý instance không dùng chung trạng thái. Không giữ Cipher đã init WRAP_MODE rồi gọi unwrap; phải init UNWRAP_MODE với đúng key và parameters.
+In multi-threaded systems, **Cipher is stateful and must not be shared concurrently across requests**. Initialize per operation or manage instances without shared mutable state. Never reuse a Cipher initialized in `WRAP_MODE` to call `unwrap`; re-initialize in `UNWRAP_MODE` with the right key and parameters.
 
-## 11. Checklist triển khai an toàn
+## 11. Secure Implementation Checklist
 
-Trước khi đưa chức năng key wrapping vào sản xuất, kiểm tra:
+Before deploying key wrapping to production, verify:
 
-- [ ] Xác định rõ **KEK/DEK**, thuật toán và mục đích của từng khóa.
-- [ ] Sinh khóa bằng **SecureRandom/KeyGenerator** hoặc KMS/HSM an toàn, không dùng password plaintext làm KEK trực tiếp.
-- [ ] Chọn **AESWrap**, **AESWrapPad**, **RSA-OAEP** hoặc dịch vụ KMS/HSM theo đặc tả; không tự chế key wrapping.
-- [ ] Kiểm tra **provider thực tế** có hỗ trợ transformation/mode/loại Key định dùng.
-- [ ] Với AES-KW, kiểm tra encoded key bytes có kích thước hợp lệ; với KWP, kiểm tra đúng chuẩn/provider.
-- [ ] Với RSA-OAEP, cấu hình **OAEP hash, MGF1 digest, label** tường minh và thống nhất hai bên.
-- [ ] Với HSM, tuân thủ tính **non-exportable**, quyền wrap/unwrap và key handle.
-- [ ] Ghi rõ **algorithm/key type/key ID/version/encoding** trong giao thức và kiểm tra whitelist.
-- [ ] Không log raw KEK, DEK, private key, plaintext hoặc các buffer bí mật.
-- [ ] Không xem Base64/hex là lớp bảo vệ mật mã.
-- [ ] Metadata và quyền truy cập phải được **kiểm tra/ràng buộc với ngữ cảnh**; chống tráo wrapped key giữa tenant/record.
-- [ ] Chỉ dùng DEK để giải mã dữ liệu sau khi unwrap hợp lệ, xác thực payload AEAD thành công và authorization được xác nhận.
-- [ ] Có kế hoạch **KEK rotation / DEK rotation / backup / recovery / revocation**.
-- [ ] Test corrupted wrapped bytes, sai KEK, sai key type, sai thuật toán/label, provider không hỗ trợ và lỗi KMS.
-- [ ] Giám sát lỗi, giới hạn request, tách quyền và không xây logic fallback hạ cấp thuật toán.
+- [ ] Clearly define **KEK/DEK**, algorithm, and purpose for each key.
+- [ ] Generate keys via **SecureRandom/KeyGenerator** or a secure KMS/HSM; never use a plaintext password directly as a KEK.
+- [ ] Select **AESWrap**, **AESWrapPad**, **RSA-OAEP**, or KMS/HSM services per specification; never invent custom key wrapping.
+- [ ] Verify the **actual provider** supports the intended transformation, mode, and Key type.
+- [ ] For AES-KW, check encoded key bytes meet size rules; for KWP, verify standard/provider support.
+- [ ] For RSA-OAEP, explicitly configure **OAEP hash, MGF1 digest, and label** identically on both sides.
+- [ ] For HSMs, respect **non-exportable** keys, wrap/unwrap permissions, and key handles.
+- [ ] Specify **algorithm/key type/key ID/version/encoding** in the protocol and enforce an allowlist.
+- [ ] Never log raw KEKs, DEKs, private keys, plaintexts, or secret buffers.
+- [ ] Never treat Base64/hex as a cryptographic protection layer.
+- [ ] Metadata and access permissions must be **checked/bound to context**; prevent wrapped-key swapping across tenants/records.
+- [ ] Only use a DEK to decrypt data after valid unwrapping, successful AEAD payload authentication, and confirmed authorization.
+- [ ] Maintain plans for **KEK rotation / DEK rotation / backup / recovery / revocation**.
+- [ ] Test corrupted wrapped bytes, wrong KEK, wrong key type, wrong algorithm/label, unsupported provider, and KMS errors.
+- [ ] Monitor errors, rate-limit requests, enforce least privilege, and never build algorithm-downgrade fallback logic.
 
-### 11.1 Test matrix tối thiểu
+### 11.1 Minimum Test Matrix
 
-| Test | Kết quả mong đợi |
+| Test | Expected result |
 | --- | --- |
-| AESWrap: KEK đúng, DEK AES-128 16 byte | wrap → unwrap khôi phục đúng Key |
-| AESWrap: lật một bit trong wrapped bytes | Integrity check thất bại |
-| AESWrap: đổi sang KEK khác | Không mở bọc thành công |
-| AESWrap: đầu vào key encoding có độ dài không hợp lệ | Reject hoặc dùng KWP đúng chuẩn nếu chính sách cho phép |
-| AESWrapPad: provider không hỗ trợ | Phát hiện ở khâu capability, không tự fallback |
-| RSA-OAEP: đúng private key/hash/MGF1/label | Mở bọc DEK thành công |
-| RSA-OAEP: sai private key hoặc label | Mở bọc thất bại |
-| Gửi raw wrapped bytes qua Base64 rồi decode | Giữ nguyên byte, không tăng bảo mật |
-| Nhầm wrappedKeyAlgorithm với wrapping algorithm | Phát hiện mismatch qua schema/key validation |
-| Non-exportable key đưa cho software-only provider | Reject; dùng hardware wrapping nếu được phép |
-| Tráo wrappedDEK từ tenant khác | Reject qua authorization/context binding |
-| Unwrap thành công nhưng payload GCM tag sai | Từ chối plaintext |
-| KEK rotation | DEK được rewrap, dữ liệu cũ giải mã được theo chính sách mới |
+| AESWrap: right KEK, 16-byte AES-128 DEK | wrap → unwrap recovers exact Key |
+| AESWrap: flip one bit in wrapped bytes | Integrity check fails |
+| AESWrap: switch to a different KEK | Unwrap fails |
+| AESWrap: invalid input key encoding length | Reject or use standard KWP if policy allows |
+| AESWrapPad: unsupported provider | Caught at capability check; no silent fallback |
+| RSA-OAEP: matching private key/hash/MGF1/label | DEK unwraps successfully |
+| RSA-OAEP: wrong private key or label | Unwrap fails |
+| Send raw wrapped bytes via Base64 then decode | Preserves bytes, adds no security |
+| Confuse `wrappedKeyAlgorithm` with wrapping algorithm | Mismatch caught by schema/key validation |
+| Pass non-exportable key to software-only provider | Rejected; use hardware wrapping if permitted |
+| Swap `wrappedDEK` from another tenant | Rejected via authorization/context binding |
+| Unwrap succeeds but payload GCM tag is invalid | Plaintext rejected |
+| KEK rotation | DEK rewrapped; old data decrypts under new policy |
 
-**Đừng chỉ đo “unwrap trả Key”.** Một bộ test an toàn phải kiểm chứng cả loại Key, độ dài, quyền, metadata và xử lý lỗi.
+**Do not measure only “unwrap returns a Key.”** A sound test suite verifies Key type, length, permissions, metadata, and error handling.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-**Câu 1.** WRAP_MODE khác ENCRYPT_MODE như thế nào?
+**Q1.** How does `WRAP_MODE` differ from `ENCRYPT_MODE`?
 
-**Trả lời:** WRAP_MODE dành cho **Cipher.wrap(Key)** để bảo vệ đối tượng Key và trả byte[]; ENCRYPT_MODE dành cho mã hóa byte dữ liệu qua doFinal/update. Chọn WRAP_MODE không tự bảo đảm thuật toán an toàn.
+**Answer:** `WRAP_MODE` is for **Cipher.wrap(Key)** to protect Key objects and return `byte[]`; `ENCRYPT_MODE` is for encrypting data bytes via `doFinal`/`update`. Choosing `WRAP_MODE` does not automatically guarantee a secure algorithm.
 
-**Câu 2.** UNWRAP_MODE cần những thông tin nào?
+**Q2.** What information does `UNWRAP_MODE` require?
 
-**Trả lời:** Cipher phải được init với key/params đúng; unwrap nhận wrapped bytes, **tên thuật toán của khóa được khôi phục** và **loại Key (SECRET_KEY/PUBLIC_KEY/PRIVATE_KEY)**.
+**Answer:** The Cipher must be initialized with the right key/params; `unwrap` takes wrapped bytes, the **recovered key's algorithm name**, and the **Key type (`SECRET_KEY`/`PUBLIC_KEY`/`PRIVATE_KEY`)**.
 
-**Câu 3.** Wrapped DEK có phải dữ liệu gốc đã mã hóa không?
+**Q3.** Is a wrapped DEK the encrypted original data?
 
-**Trả lời:** Không. Nó là **bản bảo vệ khóa DEK**, khác với ciphertext của bản ghi/hồ sơ được mã hóa bằng DEK.
+**Answer:** No. It is the **protected form of the DEK key**, distinct from the ciphertext of the record/file encrypted with that DEK.
 
-**Câu 4.** Vì sao bọc AES-128 bằng AESWrap thường tạo 24 byte?
+**Q4.** Why does wrapping AES-128 with `AESWrap` usually produce 24 bytes?
 
-**Trả lời:** AES-128 key có 16 byte; AES-KW RFC 3394 thêm overhead 8 byte khi bọc.
+**Answer:** An AES-128 key is 16 bytes; RFC 3394 AES-KW adds an 8-byte integrity overhead when wrapping.
 
-**Câu 5.** Khi nào dùng AESWrapPad?
+**Q5.** When should `AESWrapPad` be used?
 
-**Trả lời:** Khi cần bọc key bytes không đáp ứng điều kiện độ dài AES-KW, **với điều kiện provider hỗ trợ AES-KWP và giao thức thống nhất đúng thuật toán**.
+**Answer:** When wrapping key bytes that do not satisfy AES-KW length requirements, **provided the provider supports AES-KWP and both sides agree on the exact algorithm**.
 
-**Câu 6.** Key.getEncoded() trả null có phải lỗi phải sửa bằng cách xuất secret cưỡng bức không?
+**Q6.** Is `Key.getEncoded()` returning `null` a bug to fix by forcefully extracting the secret?
 
-**Trả lời:** Không. Nó có thể là thuộc tính bảo vệ của HSM/provider. Cần sử dụng API wrap/unwrap ở phần cứng hoặc KMS được phép.
+**Answer:** No. It can be a protective feature of an HSM/provider. Use authorized hardware or KMS wrap/unwrap APIs instead.
 
-**Câu 7.** RSA-OAEP dùng khóa gì để wrap và unwrap?
+**Q7.** Which keys does RSA-OAEP use for wrapping and unwrapping?
 
-**Trả lời:** Wrap bằng **public key** người nhận; unwrap bằng **private key** tương ứng, cùng OAEP digest/MGF1 digest/label.
+**Answer:** Wrap with the recipient's **public key**; unwrap with the corresponding **private key**, using matching OAEP digest/MGF1 digest/label.
 
-**Câu 8.** Bản mã RSA-OAEP bọc DEK AES có chứng minh Alice đã gửi DEK không?
+**Q8.** Does an RSA-OAEP ciphertext wrapping an AES DEK prove Alice sent the DEK?
 
-**Trả lời:** Không. Public key có thể được biết bởi nhiều người; cần xác thực nguồn gốc riêng.
+**Answer:** No. Public keys may be known to many parties; origin authentication must be handled separately.
 
-**Câu 9.** Nếu mở bọc DEK thành công, có thể bỏ qua tag AES-GCM của dữ liệu không?
+**Q9.** If unwrapping the DEK succeeds, can you skip verifying the data's AES-GCM tag?
 
-**Trả lời:** Không. Unwrap bảo vệ DEK, còn integrity của payload phải được xác thực ở tầng mã hóa dữ liệu.
+**Answer:** No. Unwrapping protects the DEK, while payload integrity must still be authenticated at the data-encryption layer.
 
-**Câu 10.** Vì sao AESWrap không tự bảo vệ tenantId trong JSON envelope?
+**Q10.** Why doesn't `AESWrap` automatically protect `tenantId` in a JSON envelope?
 
-**Trả lời:** AES-KW không có AAD tùy ý. Cần xác thực metadata ở lớp giao thức/record và kiểm tra quyền.
+**Answer:** AES-KW has no arbitrary AAD. Metadata must be authenticated at the protocol/record layer and checked by authorization.
 
-**Câu 11.** Rewrap DEK khi đổi KEK có cần mã hóa lại cả file dữ liệu không?
+**Q11.** Does rewrapping a DEK during KEK rotation require re-encrypting the entire data file?
 
-**Trả lời:** Không nhất thiết, nếu DEK vẫn an toàn và thiết kế cho phép; mở bọc bằng KEK cũ rồi bọc lại bằng KEK mới. Nếu **DEK bị lộ**, có thể phải cấp DEK mới và mã hóa lại dữ liệu.
+**Answer:** Not necessarily, if the DEK remains safe and the design allows it: unwrap with the old KEK and rewrap with the new KEK. If the **DEK was compromised**, you may need to issue a new DEK and re-encrypt the data.
 
-**Câu 12.** Nếu AESWrap unwrap báo lỗi, có nên thử AES/ECB/NoPadding để được Key không?
+**Q12.** If `AESWrap` unwrap throws an error, should you try `AES/ECB/NoPadding` to get a Key?
 
-**Trả lời:** Không. Phải từ chối và chẩn đoán theo version/thuật toán được phép, không downgrade.
+**Answer:** No. Reject and diagnose according to permitted versions/algorithms; never downgrade.
 
-## 13. Tài liệu chuẩn để tra cứu
+## 13. Standard Reference Documentation
 
-- [Oracle Java SE 17 — javax.crypto.Cipher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): WRAP_MODE, UNWRAP_MODE, wrap(Key), unwrap(...), exception và vòng đời Cipher.
-- [Oracle Java SE 17 — Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): AESWrap, AESWrapPad, RSA và tên transformation.
-- [Oracle Java SE 17 — JDK Providers Documentation](https://docs.oracle.com/en/java/javase/17/security/oracle-providers.html): những transformation được provider cụ thể hỗ trợ.
-- [RFC 3394 — Advanced Encryption Standard (AES) Key Wrap Algorithm](https://www.rfc-editor.org/rfc/rfc3394): thuật toán AES-KW, cấu trúc, độ dài và kiểm tra integrity.
-- [RFC 5649 — Advanced Encryption Standard (AES) Key Wrap with Padding](https://www.rfc-editor.org/rfc/rfc5649): AES-KWP, mở rộng điều kiện độ dài.
-- [NIST SP 800-38F — Methods for Key Wrapping](https://csrc.nist.gov/pubs/sp/800/38/f/final): khuyến nghị phương thức bảo vệ khóa.
-- [RFC 8017 — RSAES-OAEP](https://www.rfc-editor.org/rfc/rfc8017.html#section-7.1): giới hạn và cấu trúc RSA-OAEP.
+- [Oracle Java SE 17 — javax.crypto.Cipher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): WRAP_MODE, UNWRAP_MODE, wrap(Key), unwrap(...), exceptions, and Cipher lifecycle.
+- [Oracle Java SE 17 — Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): AESWrap, AESWrapPad, RSA, and transformation names.
+- [Oracle Java SE 17 — JDK Providers Documentation](https://docs.oracle.com/en/java/javase/17/security/oracle-providers.html): transformations supported by specific providers.
+- [RFC 3394 — Advanced Encryption Standard (AES) Key Wrap Algorithm](https://www.rfc-editor.org/rfc/rfc3394): AES-KW algorithm, structure, lengths, and integrity check.
+- [RFC 5649 — Advanced Encryption Standard (AES) Key Wrap with Padding](https://www.rfc-editor.org/rfc/rfc5649): AES-KWP, extended length support.
+- [NIST SP 800-38F — Methods for Key Wrapping](https://csrc.nist.gov/pubs/sp/800/38/f/final): key-wrapping method recommendations.
+- [RFC 8017 — RSAES-OAEP](https://www.rfc-editor.org/rfc/rfc8017.html#section-7.1): RSA-OAEP limits and structure.
 
-## Kết luận
+## Conclusion
 
-**Cipher.WRAP_MODE và Cipher.UNWRAP_MODE là hai chế độ API xử lý đối tượng Key, không phải thuật toán bảo mật tự thân.** Để lưu trữ hoặc chuyển DEK, hãy chọn cơ chế bọc được thiết kế cho khóa (AES-KW/KWP, RSA-OAEP hoặc KMS/HSM), quản lý KEK và tham số chặt chẽ, kiểm tra loại/độ dài khóa, bảo vệ metadata và phân quyền. **wrap(Key)** tạo wrapped bytes; **unwrap(..., wrappedKeyAlgorithm, wrappedKeyType)** tái tạo Key khi điều kiện mật mã và provider cho phép. Chỉ coi dữ liệu ứng dụng là hợp lệ khi cả **key protection**, **payload authentication** và **authorization** đã đạt yêu cầu.
+**`Cipher.WRAP_MODE` and `Cipher.UNWRAP_MODE` are two API modes for handling Key objects, not standalone security algorithms.** To store or transfer DEKs, choose a wrapping mechanism designed for keys (AES-KW/KWP, RSA-OAEP, or KMS/HSM), strictly manage KEKs and parameters, validate key types/lengths, protect metadata, and enforce access controls. **`wrap(Key)`** produces wrapped bytes; **`unwrap(..., wrappedKeyAlgorithm, wrappedKeyType)`** reconstructs the Key when cryptographic and provider checks pass. Only treat application data as valid when **key protection**, **payload authentication**, and **authorization** all succeed.

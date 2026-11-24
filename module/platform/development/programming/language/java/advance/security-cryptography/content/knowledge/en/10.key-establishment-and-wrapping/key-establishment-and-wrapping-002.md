@@ -1,19 +1,19 @@
-# 10.2 DH, ECDH, X25519 và X448 trong mô hình KeyAgreement
+# 10.2 DH, ECDH, X25519, and X448 in the KeyAgreement Model
 
-## 1. Bài toán: hai bên tạo cùng một bí mật mà không gửi bí mật đó
+## 1. The Problem: Two Parties Generate the Same Secret Without Sending It
 
-**Thỏa thuận khóa** (key agreement) cho phép Alice và Bob, mỗi người giữ một **khóa riêng** và trao đổi **khóa công khai**, tính ra **cùng một shared secret** qua mạng. Bên nghe lén có thể thấy khóa công khai và gói tin trao đổi, nhưng không dễ tính được bí mật nếu thuật toán, nhóm toán học, ngẫu nhiên và triển khai đáp ứng yêu cầu bảo mật.
+**Key agreement** allows Alice and Bob, each holding a **private key** and exchanging **public keys**, to compute **the same shared secret** over a network. An eavesdropper can see the public keys and exchanged packets, but cannot easily compute the secret if the algorithm, mathematical group, randomness, and implementation meet security requirements.
 
-Java Cryptography Architecture / Java Cryptography Extension (JCA/JCE) biểu diễn phép tính này bằng engine `javax.crypto.KeyAgreement`. Bốn biến thể trong bài:
+The Java Cryptography Architecture / Java Cryptography Extension (JCA/JCE) represents this operation via the `javax.crypto.KeyAgreement` engine. The four variants covered in this lesson:
 
-- **DH** (finite-field Diffie–Hellman, thường gọi FFDH): phép lũy thừa modulo với tham số nhóm `p, g`.
-- **ECDH** (Elliptic-Curve Diffie–Hellman): phép nhân vô hướng điểm trên một đường cong elliptic, ví dụ `secp256r1`/P-256.
-- **X25519**: hàm trao đổi khóa Diffie–Hellman dựa trên Curve25519, thiết kế theo Montgomery ladder; triển khai Java thường dùng JCA algorithm `X25519` hoặc `XDH` với `NamedParameterSpec.X25519`.
-- **X448**: tương tự với Curve448 và mức bảo mật nhắm tới cao hơn; JCA algorithm `X448` hoặc `XDH` với tham số `NamedParameterSpec.X448`.
+- **DH** (finite-field Diffie–Hellman, often called FFDH): modular exponentiation with group parameters `p, g`.
+- **ECDH** (Elliptic-Curve Diffie–Hellman): scalar point multiplication on an elliptic curve, for example `secp256r1`/P-256.
+- **X25519**: Diffie–Hellman key exchange function based on Curve25519, designed with the Montgomery ladder; Java implementations typically use JCA algorithm `X25519` or `XDH` with `NamedParameterSpec.X25519`.
+- **X448**: similar, using Curve448 and targeting a higher security level; JCA algorithm `X448` or `XDH` with parameter `NamedParameterSpec.X448`.
 
-**Điều không được nhầm:** KeyAgreement **không tự mã hóa dữ liệu, không tự xác thực đối tác, không tự cấp chứng thư và không tự tạo khóa AES an toàn theo giao thức**. Sau khi lấy shared secret, cần **KDF** có định danh ngữ cảnh (ví dụ HKDF) để dẫn xuất key cho AES-GCM hoặc key-encryption key (KEK) dùng bọc khóa. Muốn chống người ở giữa (MITM), phải **xác thực khóa công khai, chữ ký transcript hoặc danh tính đối tác**.
+**What must not be confused:** KeyAgreement **does not encrypt data on its own, does not authenticate the peer on its own, does not issue certificates on its own, and does not automatically produce protocol-safe AES keys**. After obtaining the shared secret, you need a **KDF** with a context identifier (such as HKDF) to derive keys for AES-GCM or a key-encryption key (KEK) used to wrap keys. To defend against a man-in-the-middle (MITM), you must **authenticate public keys, transcript signatures, or peer identity**.
 
-Luồng hai bên:
+Two-party flow:
 
 ```text
  Alice                                               Bob
@@ -29,51 +29,51 @@ Luồng hai bên:
                     |                                  |
              HKDF(salt, S, info)               HKDF(salt, S, info)
                     |                                  |
-                session key  <------- bằng nhau ------> session key
+                session key  <-------- equal --------> session key
                     |                                  |
-                      AEAD (chẳng hạn AES-GCM)
+                      AEAD (for example AES-GCM)
 ```
 
-Các khóa `a` và `b` không bao giờ được gửi đi. Chữ `A`, `B` trong sơ đồ là **khóa công khai được mã hóa đúng định dạng**, không phải raw shared secret.
+Keys `a` and `b` are never sent. The letters `A` and `B` in the diagram are **properly formatted encoded public keys**, not the raw shared secret.
 
-## 2. So sánh DH, ECDH, X25519 và X448
+## 2. Comparing DH, ECDH, X25519, and X448
 
-| Thuật toán | Nhóm toán học / tham số chính | JCA KeyPairGenerator | JCA KeyAgreement | Shared secret trong ví dụ |
+| Algorithm | Mathematical group / main parameters | JCA KeyPairGenerator | JCA KeyAgreement | Shared secret in the example |
 | --- | --- | --- | --- | --- |
-| DH | Nhóm hữu hạn với `p, g`; ví dụ tham số DH 2048 bit | `"DH"` (alias `"DiffieHellman"`) | `"DH"` | Thường **256 byte** với tham số 2048 bit |
-| ECDH | Đường cong EC có tên, ví dụ P-256 (`secp256r1`) | `"EC"` + `ECGenParameterSpec("secp256r1")` | `"ECDH"` | **32 byte** trên P-256 trong provider ví dụ |
-| X25519 | X25519/Curve25519, giao thức theo RFC 7748 | `"X25519"` + `NamedParameterSpec("X25519")` | `"X25519"` | **32 byte** |
-| X448 | X448/Curve448, theo RFC 7748 | `"X448"` + `NamedParameterSpec("X448")` | `"X448"` | **56 byte** |
+| DH | Finite field with `p, g`; e.g. 2048-bit DH parameters | `"DH"` (alias `"DiffieHellman"`) | `"DH"` | Typically **256 bytes** with 2048-bit parameters |
+| ECDH | Named EC curve, e.g. P-256 (`secp256r1`) | `"EC"` + `ECGenParameterSpec("secp256r1")` | `"ECDH"` | **32 bytes** on P-256 in the example provider |
+| X25519 | X25519/Curve25519, protocol per RFC 7748 | `"X25519"` + `NamedParameterSpec("X25519")` | `"X25519"` | **32 bytes** |
+| X448 | X448/Curve448, per RFC 7748 | `"X448"` + `NamedParameterSpec("X448")` | `"X448"` | **56 bytes** |
 
-Bảng cho biết **độ dài output của phép thỏa thuận**, **không** phải số byte AES key bắt buộc. KDF có thể tạo khóa AES-128 (16 byte) hoặc AES-256 (32 byte) nhưng **độ dài output dài hơn không làm tăng mức an toàn vượt entropy/security strength của đầu vào**. Ví dụ X25519 thường hướng tới mức bảo mật tương đương khoảng 128 bit; việc dẫn xuất AES-256 không tự biến toàn giao thức thành an toàn 256 bit.
+The table shows the **output length of the agreement operation**, **not** a mandatory AES key byte count. A KDF can produce an AES-128 (16-byte) or AES-256 (32-byte) key, but **a longer output length does not increase security beyond the entropy/security strength of the input**. For example, X25519 typically targets roughly 128-bit equivalent security; deriving an AES-256 key does not automatically make the entire protocol 256-bit secure.
 
-### 2.1 DH: nhóm hữu hạn phải giống nhau
+### 2.1 DH: The Finite-Field Group Must Match
 
-Với một nhóm DH hợp lệ có số nguyên tố `p` và phần tử sinh `g`, Alice chọn private exponent `a`, xuất `A = g^a mod p`; Bob chọn `b`, xuất `B = g^b mod p`. Sau khi nhận public của nhau, cả hai tính cùng:
+Given a valid DH group with prime `p` and generator `g`, Alice chooses private exponent `a` and outputs `A = g^a mod p`; Bob chooses `b` and outputs `B = g^b mod p`. After receiving each other's public values, both compute the same secret:
 
 ```text
 Alice: S = B^a mod p = g^(ab) mod p
 Bob:   S = A^b mod p = g^(ab) mod p
 ```
 
-**Điều kiện:** cả hai phải dùng **cùng nhóm p/g**, có kiểm tra độ an toàn của nhóm và public value. Không được tạo hai `DHParameterSpec` ngẫu nhiên độc lập rồi kỳ vọng DH thành công. Với `KeyPairGenerator("DH")`, có thể lấy tham số từ `((DHPublicKey) alice.getPublic()).getParams()` rồi khởi tạo generator bên còn lại bằng cùng tham số. Trong **hệ thống thực tế**, không chỉ tin một bộ `p,g` bất kỳ do phía mạng đề xuất: ưu tiên nhóm FFDHE chuẩn hóa, đủ mạnh, kiểm tra public key/subgroup và ràng buộc params vào handshake đã xác thực.
+**Requirement:** both sides must use the **same p/g group**, with validation of group security and public values. You cannot generate two random `DHParameterSpec`s independently and expect DH to succeed. With `KeyPairGenerator("DH")`, you can extract the parameters from `((DHPublicKey) alice.getPublic()).getParams()` and initialize the other side's generator with the same parameters. In **production systems**, never blindly trust an arbitrary `p,g` proposed over the network: prefer standardized, sufficiently strong FFDHE groups, validate public keys/subgroups, and bind the params into an authenticated handshake.
 
-**2048 bit DH** được dùng trong ví dụ vì dễ triển khai bằng JDK phổ biến; đây là độ dài modulus, không đồng nghĩa mức bảo mật 2048 bit. Các hệ thống có yêu cầu bảo mật cao hơn có thể cần nhóm lớn hơn hoặc chọn thuật toán khác theo chính sách.
+**2048-bit DH** is used in the example because it is easy to run on common JDKs; this is the modulus length, not 2048-bit security strength. Systems with higher security requirements may need larger groups or a different algorithm according to policy.
 
-### 2.2 ECDH: cùng đường cong, khóa khác nhau
+### 2.2 ECDH: Same Curve, Different Keys
 
-ECDH hoạt động với private scalar `a`/`b` và public points `A=aG`, `B=bG` trên cùng domain parameters. Cả hai tính shared point `abG`; provider chuyển thành byte shared secret theo quy tắc của thuật toán. `ECGenParameterSpec("secp256r1")` tạo key pair trên **P-256**, tên cũng thường gọi `prime256v1` ở nhiều công cụ.
+ECDH operates with private scalars `a`/`b` and public points `A=aG`, `B=bG` on the same domain parameters. Both compute the shared point `abG`; the provider converts it into shared secret bytes according to the algorithm's rules. `ECGenParameterSpec("secp256r1")` generates a key pair on **P-256**, also commonly named `prime256v1` in many tools.
 
-**Không** dùng public P-384 hay khóa X25519 làm peer public cho một `KeyAgreement("ECDH")` khởi tạo từ private P-256. Algorithm, curve và tham số phải tương thích. Một object `KeyPairGenerator("EC")` **không** đồng nghĩa X25519: X25519 nằm trong họ `XDH` với key interfaces và phép tính khác.
+**Never** use a P-384 public key or an X25519 key as the peer public key for a `KeyAgreement("ECDH")` initialized with a P-256 private key. Algorithm, curve, and parameters must be compatible. A `KeyPairGenerator("EC")` object is **not** X25519: X25519 belongs to the `XDH` family with different key interfaces and math.
 
-### 2.3 X25519 và X448: tên thuật toán rõ ràng
+### 2.3 X25519 and X448: Explicit Algorithm Names
 
-X25519/X448 được chuẩn hóa trong RFC 7748. Chúng cho phép triển khai phép scalar multiplication trên các đường cong Montgomery với quy tắc cụ thể; thiết kế và key format không hoán đổi với `ECGenParameterSpec("secp256r1")`.
+X25519/X448 are standardized in RFC 7748. They implement scalar multiplication on Montgomery curves with specific rules; their design and key formats are not interchangeable with `ECGenParameterSpec("secp256r1")`.
 
-Java 17+ với provider hỗ trợ có thể dùng:
+Java 17+ with a supporting provider can use:
 
 ```java
-// Đoạn minh họa; trong phương thức Java với các import tương ứng.
+// Illustrative snippet; inside a Java method with appropriate imports.
 KeyPairGenerator generator = KeyPairGenerator.getInstance("X25519");
 generator.initialize(new NamedParameterSpec("X25519"), new SecureRandom());
 KeyPair myPair = generator.generateKeyPair();
@@ -83,13 +83,13 @@ ka.doPhase(peerPublicKey, true);
 byte[] sharedSecret = ka.generateSecret();
 ```
 
-`NamedParameterSpec.X25519` và `NamedParameterSpec.X448` là các constant tiêu chuẩn có sẵn; ví dụ dùng constructor chuỗi để áp dụng cùng mã cho cả hai. Provider/phiên bản Java có thể không hỗ trợ một thuật toán/curve nhất định, khi đó cần xử lý `NoSuchAlgorithmException` hoặc `InvalidAlgorithmParameterException` một cách rõ ràng; không tự chuyển xuống nhóm yếu hoặc bỏ xác thực.
+`NamedParameterSpec.X25519` and `NamedParameterSpec.X448` are built-in standard constants; the example uses the string constructor so the same code applies to both. A provider/Java version might not support a given algorithm/curve, in which case you must handle `NoSuchAlgorithmException` or `InvalidAlgorithmParameterException` explicitly; never silently fall back to a weak group or skip authentication.
 
-X25519 public key trên wire thường được biểu diễn bằng **raw 32 bytes** theo một giao thức cụ thể *hoặc* X.509 SPKI (ví dụ Java `getEncoded()`). X448 raw public value 56 byte. **Không trộn hai encoding**: `X509EncodedKeySpec` cần SPKI DER có ASN.1 header, không phải raw 32/56 byte.
+An X25519 public key on the wire is typically represented as **raw 32 bytes** per a specific protocol *or* X.509 SPKI (such as Java `getEncoded()`). An X448 raw public value is 56 bytes. **Do not mix the two encodings**: `X509EncodedKeySpec` requires SPKI DER with an ASN.1 header, not raw 32/56 bytes.
 
-## 3. Vòng đời KeyAgreement trong JCA
+## 3. The KeyAgreement Lifecycle in JCA
 
-Mỗi bên thực hiện bốn bước cơ bản:
+Each side performs four basic steps:
 
 ```text
 KeyAgreement.getInstance(algorithm)
@@ -98,7 +98,7 @@ KeyAgreement.getInstance(algorithm)
 init(ourPrivateKey)
        |
        v
-doPhase(peerPublicKey, true)   // lần cuối trong trao đổi 2 bên
+doPhase(peerPublicKey, true)   // final phase in a 2-party exchange
        |
        v
 generateSecret()               // shared secret byte[]
@@ -107,22 +107,22 @@ generateSecret()               // shared secret byte[]
 KDF + context + salt -> symmetric key / KEK
 ```
 
-- **`getInstance`:** chọn phép thỏa thuận và provider; không tạo cặp khóa.
-- **`init(privateKey)`:** cung cấp private key của **chính mình**, khác với public key cần được gửi cho đối tác. Sai key type sẽ ném `InvalidKeyException`.
-- **`doPhase(peerPublic, true)`:** tiếp nhận public key của **đối tác**; flag `true` nói đây là pha cuối cùng. Trong giao thức DH **hai bên**, gọi đúng một lần. Các giao thức multi-party có thể có pha trung gian với `false`, không suy diễn rằng mọi thuật toán/provider đều hỗ trợ multi-party.
-- **`generateSecret()`:** lấy shared secret **mới trong byte[]** sau khi pha cuối hoàn tất. Hai bên phải dùng khóa/params đúng và byte secret giống nhau. Nếu chưa `init`, chưa `doPhase` hoặc chưa đủ pha, `IllegalStateException` có thể xảy ra.
+- **`getInstance`:** selects the agreement algorithm and provider; does not generate a key pair.
+- **`init(privateKey)`:** supplies **your own** private key, distinct from the public key that must be sent to the peer. A wrong key type throws `InvalidKeyException`.
+- **`doPhase(peerPublic, true)`:** accepts the **peer's** public key; the `true` flag indicates this is the final phase. In a **two-party** DH protocol, call this once. Multi-party protocols may have intermediate phases with `false`; do not assume every algorithm/provider supports multi-party agreement.
+- **`generateSecret()`:** retrieves the **new shared secret as a byte[]** after the final phase completes. Both sides must use compatible keys/params so the secret bytes match. Calling this before `init`, before `doPhase`, or with missing phases can throw `IllegalStateException`.
 
-Theo Javadoc, `generateSecret()` đưa `KeyAgreement` về trạng thái sau lần `init` gần nhất; về mặt API có thể gọi `doPhase` và `generateSecret` lần nữa với cùng private key. **Nhưng** trong giao thức ephemeral, tái sử dụng private key thường là sai chính sách phiên: tốt hơn sinh cặp khóa mới cho mỗi handshake và không chia sẻ `KeyAgreement` stateful giữa thread/request.
+Per the Javadoc, `generateSecret()` resets `KeyAgreement` back to the state after the most recent `init`; at the API level you can call `doPhase` and `generateSecret` again with the same private key. **However**, in ephemeral protocols, reusing a private key is usually a session policy error: it is better to generate a fresh key pair for each handshake and never share stateful `KeyAgreement` instances across threads/requests.
 
-Ngoài `generateSecret()` trả `byte[]`, JCA có overload `generateSecret(byte[], offset)` và `generateSecret(String algorithm)`; overload thứ ba phụ thuộc khả năng provider, *không thay thế một KDF có salt/info và nhãn phân tách domain theo giao thức*. **Không lấy các byte shared secret rồi dùng `new SecretKeySpec(secret, "AES")` một cách tùy tiện.** Độ dài có thể trùng kích thước AES nhưng kết quả cần qua KDF, binding ngữ cảnh và chính sách bảo mật giao thức.
+In addition to `generateSecret()` returning `byte[]`, JCA has overloads `generateSecret(byte[], offset)` and `generateSecret(String algorithm)`; the third overload depends on provider support and *does not replace a KDF with salt/info and protocol-specific domain separation labels*. **Do not take raw shared secret bytes and pass them directly to `new SecretKeySpec(secret, "AES")` arbitrarily.** Even if the length matches an AES key size, the output must pass through a KDF, context binding, and protocol security policy.
 
-## 4. Chương trình Java 17+: bốn thuật toán chung một mẫu KeyAgreement
+## 4. Java 17+ Program: Four Algorithms Sharing One KeyAgreement Pattern
 
-Chương trình tự sinh hai cặp khóa (Alice/Bob) tương thích, mỗi bên gọi `init → doPhase → generateSecret`, so sánh byte bằng `MessageDigest.isEqual` và in kích thước secret. Không in private key hoặc shared secret.
+The program generates two compatible key pairs (Alice/Bob), calls `init → doPhase → generateSecret` on each side, compares the bytes with `MessageDigest.isEqual`, and prints the secret size. It does not print private keys or shared secrets.
 
-Với **DH**, Bob nhận đúng `DHParameterSpec` (p/g) từ public key Alice trong **phạm vi demo**. Ngoài thực tế, việc trao nhóm DH phải theo chính sách nhóm chuẩn và được xác thực; không tin mù quáng params do người ngoài gửi.
+For **DH**, Bob reads the `DHParameterSpec` (p/g) from Alice's public key **within the scope of this demo**. In real systems, exchanging DH groups must follow a standardized group policy and be authenticated; never blindly trust params sent by an untrusted party.
 
-Lưu thành **`KeyAgreementFamiliesDemo.java`**:
+Save as **`KeyAgreementFamiliesDemo.java`**:
 
 ```java
 import java.security.KeyPair;
@@ -188,14 +188,14 @@ public final class KeyAgreementFamiliesDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 -encoding UTF-8 KeyAgreementFamiliesDemo.java
 java KeyAgreementFamiliesDemo
 ```
 
-Kết quả đã kiểm tra với runtime OpenJDK hỗ trợ bốn thuật toán:
+Verified output on an OpenJDK runtime supporting all four algorithms:
 
 ```text
 DH equal=true bytes=256
@@ -204,65 +204,65 @@ X25519 equal=true bytes=32
 X448 equal=true bytes=56
 ```
 
-Kết quả `equal=true` nghĩa là **hai phép thỏa thuận với private/public tương ứng đã sinh cùng các byte**, không chứng minh tính xác thực của một peer ngoài mạng. `DH bytes=256` là với modulus DH 2048 bit trong ví dụ; độ dài bytes có thể khác nếu sử dụng nhóm DH khác. `ECDH-P256 bytes=32` là encoding của shared result cho P-256; X25519/X448 có output 32/56 byte theo thuật toán.
+The result `equal=true` means **two agreements with matching private/public keys produced the same bytes**; it does not prove the authenticity of a peer over the network. `DH bytes=256` corresponds to the 2048-bit DH modulus in the example; byte lengths may differ if another DH group is used. `ECDH-P256 bytes=32` is the shared result encoding for P-256; X25519/X448 output 32/56 bytes as defined by the algorithms.
 
-**Bộ nhớ:** chương trình dùng `Arrays.fill(sa, (byte) 0)` để giảm lifetime của các mảng secret nó sở hữu, nhưng Java GC, provider, `KeyPair` objects và các bản sao nội bộ có thể tồn tại lâu hơn. Không xem `Arrays.fill` là bảo đảm xóa tuyệt đối mọi bản sao cryptographic secret.
+**Memory:** the program uses `Arrays.fill(sa, (byte) 0)` to shorten the lifetime of secret arrays it owns, but the Java GC, provider, `KeyPair` objects, and internal copies may persist longer. Never treat `Arrays.fill` as an absolute guarantee that every copy of a cryptographic secret has been erased.
 
-## 5. Khóa công khai trên mạng: cách encode và validate
+## 5. Public Keys on the Network: How to Encode and Validate
 
-Để gửi khóa công khai giữa các tiến trình Java, thường dùng `getEncoded()` lấy **DER của X.509 SubjectPublicKeyInfo** rồi gửi kèm metadata thuật toán, version, curve/group, role và handshake ID. Bên nhận dùng `KeyFactory` với đúng thuật toán để tái tạo:
+To send public keys between Java processes, you typically call `getEncoded()` to obtain **X.509 SubjectPublicKeyInfo DER** and send it alongside algorithm metadata, version, curve/group, role, and handshake ID. The receiver uses `KeyFactory` with the exact algorithm to reconstruct it:
 
 ```java
-// Đoạn minh họa trong phương thức Java; publicBytes lấy từ bản tin
-// đã được parse và giới hạn kích thước, kèm hợp đồng thuật toán rõ ràng.
+// Illustrative snippet in a Java method; publicBytes comes from a parsed
+// and size-bounded message with an explicit algorithm contract.
 java.security.PublicKey imported =
         java.security.KeyFactory.getInstance("X25519")
                 .generatePublic(new java.security.spec
                         .X509EncodedKeySpec(publicBytes));
 ```
 
-Đoạn trên cố tình **không độc lập**: `publicBytes` đến từ giao thức. Với ECDH P-256, dùng `KeyFactory("EC")`; với DH dùng `KeyFactory("DH")`; với X448 dùng `KeyFactory("X448")`. Raw X25519/X448 point bytes của RFC 7748 không phải SPKI DER. Nếu wire protocol gửi raw u-coordinate, phải parse bằng API/format đúng (ví dụ provider hỗ trợ `XECPublicKeySpec`), không gắn nhãn X.509 một cách giả tạo.
+The snippet above is intentionally **not standalone**: `publicBytes` comes from the protocol. For ECDH P-256, use `KeyFactory("EC")`; for DH use `KeyFactory("DH")`; for X448 use `KeyFactory("X448")`. RFC 7748 raw X25519/X448 point bytes are not SPKI DER. If the wire protocol sends raw u-coordinates, you must parse them with the right API/format (such as a provider supporting `XECPublicKeySpec`), not artificially wrap or label them as X.509.
 
-Đối với khóa riêng: `PrivateKey.getEncoded()` nếu được phép export thường là **PKCS#8 DER**; **không** bao giờ truyền private key giữa Alice/Bob để thực hiện phép DH. Provider phần cứng có thể trả `null` cho `getEncoded()`; dùng key handle tương ứng thay vì ép export.
+For private keys: `PrivateKey.getEncoded()`, if exportable, is typically **PKCS#8 DER**; **never** transmit private keys between Alice and Bob to perform DH. Hardware providers may return `null` from `getEncoded()`; use the corresponding key handle instead of forcing export.
 
-**Validation public key là ranh giới quan trọng:**
+**Public key validation is a critical boundary:**
 
-- **DH:** kiểm tra nhóm `p,g` nằm trong danh sách/tiêu chuẩn cho phép, độ mạnh và public DH value thuộc miền hợp lệ; với subgroup cần kiểm tra theo giao thức. Các giá trị `1`, `0`, `p-1` hoặc phần tử nhóm nhỏ có thể gây secret yếu/tấn công tùy cấu trúc nhóm. Không tin cấu hình nhóm do attacker tự đưa.
-- **ECDH:** đường cong phải là curve được phép và khớp với private key; điểm công khai hợp lệ trên curve, không phải infinity/điểm sai subgroup (tùy curve/cofactor); dùng provider đáng tin có kiểm tra thích hợp và policy bổ sung khi nhập khóa từ untrusted input.
-- **X25519/X448:** cần tuân thủ RFC 7748 và kiểm soát peer keys không hợp lệ/low-order, kể cả việc kiểm tra và từ chối **shared secret toàn số 0** theo yêu cầu giao thức. Một số JDK/provider sẽ từ chối key yếu trong `doPhase`/`generateSecret` bằng `InvalidKeyException`; đừng giả định mọi provider xử lý giống nhau. Không chấp nhận giá trị rỗng/nhóm sai như một secret bình thường.
-- Mọi wire format phải có **giới hạn kích thước**, thuật toán/curve được allow-list và parser xử lý lỗi đúng. Public key có thể công khai nhưng vẫn là dữ liệu đầu vào **không đáng tin** đối với parser.
+- **DH:** verify that the `p,g` group is on an allowed list/standard, check strength, and validate that the public DH value lies in the valid range; check subgroups as required by the protocol. Values like `1`, `0`, `p-1`, or small-subgroup elements can cause weak secrets or attacks depending on group structure. Never trust group configurations supplied by an attacker.
+- **ECDH:** the curve must be an allowed curve and match the private key; the public point must be valid on the curve, not infinity or in the wrong subgroup (depending on curve/cofactor); use a trusted provider with appropriate checks and additional policy when importing keys from untrusted input.
+- **X25519/X448:** comply with RFC 7748 and guard against invalid/low-order peer keys, including checking for and rejecting an **all-zero shared secret** as required by the protocol. Some JDKs/providers reject weak keys in `doPhase`/`generateSecret` with `InvalidKeyException`; do not assume all providers behave identically. Never accept empty values or wrong groups as a normal secret.
+- Every wire format must enforce **size limits**, an algorithm/curve allow-list, and proper parser error handling. A public key may be public, yet it is still **untrusted input** to the parser.
 
-**Nhận diện peer:** ngay cả khi public key hợp lệ về toán học, nó vẫn có thể là khóa của Mallory. Một certificate chain đã xác minh, khóa pinned được phân phối an toàn, chữ ký trên transcript hoặc PSK-based authenticated handshake mới có thể liên kết khóa với danh tính.
+**Peer identification:** even when a public key is mathematically valid, it may still belong to Mallory. Only a verified certificate chain, a securely distributed pinned key, a signature over the transcript, or a PSK-based authenticated handshake can bind a key to an identity.
 
-## 6. Từ shared secret sang AES key: HKDF với salt và info
+## 6. From Shared Secret to AES Key: HKDF with Salt and Info
 
-JCA `generateSecret()` trả vật liệu chung `S`, không phải format ciphertext. Shared secret của DH/ECDH có cấu trúc và phân bố riêng; không nên lấy `S` trực tiếp làm key AES hoặc lạm dụng `Arrays.copyOf(S, 16)`, `SHA256(S)` không có domain separation. Dùng **HKDF** chuẩn RFC 5869 với PRF như HMAC-SHA256:
+JCA `generateSecret()` returns shared material `S`, not a ciphertext format. DH/ECDH shared secrets have their own structure and distribution; do not take `S` directly as an AES key or misuse `Arrays.copyOf(S, 16)` or `SHA256(S)` without domain separation. Use standard RFC 5869 **HKDF** with a PRF such as HMAC-SHA256:
 
 ```text
 IKM  = KeyAgreement.generateSecret()
-salt = 32 byte được chia sẻ giữa hai phía, không cần bí mật
+salt = 32 bytes shared between both sides, need not be secret
 PRK  = HKDF-Extract(salt, IKM) = HMAC_SHA256(salt, IKM)
 info = protocol label || version || roles || transcript || key-purpose
 OKM  = HKDF-Expand(PRK, info, requestedLength)
 AES  = SecretKeySpec(OKM, "AES")
 ```
 
-- **IKM** là input keying material. `PRK` là pseudorandom key. `OKM` là byte khóa đầu ra.
-- **Salt** của HKDF không cần bí mật; có thể là một public handshake nonce hoặc một giá trị được hai bên thống nhất. Nếu protocol không cung cấp salt, HKDF còn có quy tắc salt toàn zero theo RFC 5869; **không** biến salt thành một private key thứ hai.
-- **Info** ràng buộc *giao thức, phiên bản, hai khóa công khai, vai trò client/server, hướng truyền và mục đích tạo key*. Cả hai bên phải encode giống nhau **theo một chuẩn duy nhất**. Một chuỗi nối thiếu độ dài/ngăn cách có thể mơ hồ; nên dùng length prefixes hoặc format nhị phân có schema.
-- Với nhiều khóa phiên, dùng label/info **khác nhau** cho `client→server key`, `server→client key`, nonce-base, key wrapping hoặc exporter secret. Không tái sử dụng cùng output HKDF cho nhiều mục đích.
-- AES-256 cần 32 byte **OKM**. Với HMAC-SHA256, nếu chỉ cần 32 byte thì `HKDF-Expand` dùng **một block**: `T(1)=HMAC(PRK, info || 0x01)`. Nếu cần nhiều byte, phải thực hiện vòng lặp `T(i)=HMAC(PRK, T(i-1)||info||i)`, giới hạn tối đa 255 block; **không** dùng mã một-block bên dưới để sinh nhiều key cùng lúc mà không sửa.
-- Key agreement không thay đổi tính chất **xác thực nguồn**. HKDF có info là transcript chưa được ký vẫn không chống MITM nếu Mallory thay các public keys và làm hai giao thức riêng.
+- **IKM** is the input keying material. `PRK` is the pseudorandom key. `OKM` is the output keying bytes.
+- HKDF **salt** does not need to be secret; it can be a public handshake nonce or a value agreed upon by both parties. If the protocol supplies no salt, RFC 5869 defines an all-zero salt rule; **do not** turn salt into a second private key.
+- **Info** binds the *protocol, version, both public keys, client/server roles, transmission direction, and key purpose*. Both sides must encode it identically **according to a single specification**. Concatenating strings without lengths/delimiters can be ambiguous; use length prefixes or a schema-driven binary format.
+- With multiple session keys, use **distinct** label/info values for `client→server key`, `server→client key`, nonce-base, key wrapping, or exporter secrets. Never reuse the same HKDF output for multiple purposes.
+- AES-256 needs 32 bytes of **OKM**. With HMAC-SHA256, if only 32 bytes are needed, `HKDF-Expand` uses **one block**: `T(1)=HMAC(PRK, info || 0x01)`. If more bytes are required, you must loop `T(i)=HMAC(PRK, T(i-1)||info||i)`, up to at most 255 blocks; **do not** use the single-block code below to generate multiple keys at once without modifying it.
+- Key agreement does not change **source authentication** properties. HKDF with an unsigned transcript in `info` still cannot stop MITM if Mallory swaps the public keys and runs two separate handshakes.
 
-Chương trình tiếp theo sẽ tự triển khai **trường hợp HKDF một block 32 byte** bằng `Mac.getInstance("HmacSHA256")` để hiểu cơ chế. Trong sản phẩm nên dùng thư viện HKDF được đánh giá, giữ metadata và test vectors, thay vì tự phát triển một KDF tổng quát.
+The next program implements the **32-byte single-block HKDF case** directly using `Mac.getInstance("HmacSHA256")` to illustrate the mechanism. In production, use an audited HKDF library, keeping metadata and test vectors, rather than inventing a general-purpose KDF yourself.
 
-## 7. Chương trình Java 17+: X25519 → HKDF-SHA256 → AES-GCM
+## 7. Java 17+ Program: X25519 → HKDF-SHA256 → AES-GCM
 
-Đây là ví dụ **end-to-end trong cùng một JVM** để chứng minh Alice/Bob tạo cùng shared secret, dẫn xuất cùng AES-256 key với **HKDF-Extract + một block HKDF-Expand**, mã hóa/giải mã bằng AES-GCM, và phát hiện sửa ciphertext/tag.
+This is an **end-to-end example in the same JVM** proving that Alice and Bob derive the same shared secret, derive the same AES-256 key using **HKDF-Extract + one HKDF-Expand block**, encrypt/decrypt with AES-GCM, and detect ciphertext/tag modification.
 
-**Cảnh báo mô hình đe dọa:** chương trình chỉ có hai peer tin cậy trong một JVM; nó **chưa** triển khai xác thực peer, chữ ký transcript, certificate/pinning, framing mạng hay replay protection. Không xem đây là giao thức trao đổi khóa hoàn chỉnh có thể chép vào sản phẩm Internet. Khi triển khai thực, ưu tiên dùng TLS 1.3 hoặc một giao thức authenticated key exchange đã được đánh giá.
+**Threat model warning:** the program only has two trusted peers in one JVM; it does **not** implement peer authentication, transcript signatures, certificates/pinning, network framing, or replay protection. Do not treat this as a complete key-exchange protocol ready to copy into an Internet product. For real deployments, prefer TLS 1.3 or an audited authenticated key exchange protocol.
 
-Lưu thành **`X25519HkdfAesGcmDemo.java`**:
+Save as **`X25519HkdfAesGcmDemo.java`**:
 
 ```java
 import java.io.ByteArrayOutputStream;
@@ -399,14 +399,14 @@ public final class X25519HkdfAesGcmDemo {
 }
 ```
 
-Biên dịch và chạy độc lập:
+Compile and run standalone:
 
 ```bash
 javac --release 17 -encoding UTF-8 X25519HkdfAesGcmDemo.java
 java X25519HkdfAesGcmDemo
 ```
 
-Đầu ra đã xác minh:
+Verified output:
 
 ```text
 sharedEqual=true
@@ -417,49 +417,49 @@ roundTrip=true
 tamperRejected=true
 ```
 
-### 7.1 Tại sao chương trình cho kết quả này?
+### 7.1 Why Does the Program Produce This Output?
 
-`sharedEqual=true`: X25519(private Alice, public Bob) và X25519(private Bob, public Alice) sinh cùng 32 byte. `derivedEqual=true`: HKDF nhận **cùng secret, salt và info**, nên hai phía tạo cùng 32 byte AES-256 material. `contextSeparated=true`: đổi một byte `info` tạo key khác (với xác suất áp đảo), minh họa domain separation.
+`sharedEqual=true`: X25519(Alice's private, Bob's public) and X25519(Bob's private, Alice's public) produce the same 32 bytes. `derivedEqual=true`: HKDF receives the **same secret, salt, and info**, so both sides produce the same 32 bytes of AES-256 material. `contextSeparated=true`: changing one byte of `info` produces a different key (with overwhelming probability), illustrating domain separation.
 
-`transcript(...)` tạo bytes gồm **length-prefixed** protocol label và SPKI DER của Alice/Bob theo một thứ tự cố định. Trong giao thức thật, cả hai phía phải đồng ý **vai trò và thứ tự**, thêm message transcript, algorithm negotiation và session identification, đồng thời **xác thực** nội dung transcript. Bản demo không tự làm việc đó.
+`transcript(...)` builds bytes containing a **length-prefixed** protocol label and Alice/Bob SPKI DER in a fixed order. In a real protocol, both sides must agree on **roles and ordering**, include handshake messages, algorithm negotiation, and session identification, and **authenticate** the transcript contents. The demo does not do that on its own.
 
-`roundTrip=true`: `Cipher("AES/GCM/NoPadding")` nhận key byte từ HKDF, IV ngẫu nhiên 12 byte, tag 128 bit và AAD giống nhau ở phía giải mã. `tamperRejected=true`: thay byte cuối của ciphertext+tag khiến `doFinal` giải mã ném `AEADBadTagException`; không được sử dụng plaintext nếu tag không hợp lệ. `Cipher.updateAAD` phải xảy ra trước phần dữ liệu mã hóa/giải mã theo yêu cầu AEAD.
+`roundTrip=true`: `Cipher("AES/GCM/NoPadding")` receives key bytes from HKDF, a random 12-byte IV, a 128-bit tag, and matching AAD on the decrypt side. `tamperRejected=true`: flipping the last byte of ciphertext+tag causes decrypt `doFinal` to throw `AEADBadTagException`; never use plaintext if the tag is invalid. `Cipher.updateAAD` must occur before encryption/decryption data as required by AEAD.
 
-**IV GCM không được lặp dưới cùng key.** Trong ví dụ chỉ có một phép mã hóa, nên IV mới ngẫu nhiên 12 byte. Đối với phiên thực với hàng triệu bản ghi, cần nonce allocation/sequence number rõ ràng theo thiết kế giao thức và các giới hạn sử dụng AES-GCM. Không chỉ gọi `new SecureRandom` tùy tiện cho từng message khi đã có quy tắc nonce đếm của protocol; tránh tái sử dụng key+IV qua restart và retry.
+**GCM IVs must never repeat under the same key.** The example only performs one encryption, so a fresh random 12-byte IV suffices. For real sessions with millions of records, you need deterministic nonce allocation/sequence numbers per protocol design and within AES-GCM usage limits. Do not just call `new SecureRandom` arbitrarily per message when the protocol specifies a counter-based nonce; avoid reusing key+IV across restarts and retries.
 
-**Bảo vệ secret:** `Arrays.fill` giảm tồn tại của các mảng do ứng dụng sở hữu, nhưng không đảm bảo xóa toàn bộ bản sao trong `KeyAgreement`/`Mac`/`Cipher`/`SecretKeySpec` hoặc các object khác. Không log raw shared secret, PRK, derived key, private keys hoặc ciphertext nhạy cảm. Chú ý `salt` và `info` trong ví dụ là public và không cần xóa để bảo mật, nhưng phải được truyền đúng giữa hai phía.
+**Protecting secrets:** `Arrays.fill` shortens the lifetime of application-owned arrays, but does not guarantee erasing every copy inside `KeyAgreement`/`Mac`/`Cipher`/`SecretKeySpec` or other objects. Never log raw shared secrets, PRK, derived keys, private keys, or sensitive ciphertexts. Note that `salt` and `info` in the example are public and do not need to be wiped for confidentiality, but must be transmitted accurately between both sides.
 
-## 8. KeyAgreement không chống MITM: xác thực handshake là bắt buộc
+## 8. KeyAgreement Does Not Prevent MITM: Handshake Authentication Is Mandatory
 
-Nếu chỉ trao public keys qua kết nối chưa xác thực:
+If you only exchange public keys over an unauthenticated connection:
 
 ```text
 Alice                     Mallory                       Bob
-  A ------> [chặn]           M1 -------->                B
-  A <------  M2             [chặn] <--------             B
+  A ------> [intercept]      M1 -------->                B
+  A <------  M2             [intercept] <--------        B
     |                       |                              |
- S_Alice-Mallory      hai shared secrets            S_Mallory-Bob
+ S_Alice-Mallory      two shared secrets            S_Mallory-Bob
 ```
 
-Mallory có thể tự tạo key pair cho mỗi phía rồi giải mã, đọc/sửa và mã hóa lại dữ liệu. **Thuật toán DH/ECDH/X25519/X448 vẫn tính đúng; thứ bị thiếu là liên kết public key với danh tính peer.** HMAC/HKDF hoặc AES-GCM chỉ xác thực **người biết key đã dẫn xuất**; không giúp Alice biết key đó thuộc Bob nếu Mallory là bên đang thỏa thuận.
+Mallory can generate a key pair for each side, then decrypt, read/modify, and re-encrypt the data. **DH/ECDH/X25519/X448 math still succeeds; what is missing is binding the public key to the peer's identity.** HMAC/HKDF or AES-GCM only authenticates **someone who knows the derived key**; it does not tell Alice that the key belongs to Bob if Mallory is the one running the agreement.
 
-Các cách khắc phục phải thuộc **một giao thức authenticated key exchange** rõ ràng:
+Mitigations must belong to an explicit **authenticated key exchange protocol**:
 
-1. **Xác thực chữ ký khóa/handshake:** peer dùng private signing key dài hạn ký transcript gồm cặp ephemeral keys, roles, algorithm/curve negotiation, random nonces và session context; phía còn lại xác minh bằng signing public key đã gắn danh tính tin cậy.
-2. **PKI/certificate:** xác minh certificate chain, trust anchor, hostname/identity, validity, key usage và các ràng buộc giao thức; nhận public signing key từ certificate đã xác minh, không chỉ parse certificate rồi tin ngay.
-3. **Pinned key / PSK:** khi có distribution channel đáng tin, dùng cơ chế pinning hoặc authenticated PSK handshake có key confirmation và chống downgrade; không tự nghĩ ra phép ghép MAC thiếu transcript binding.
-4. **Giao thức sẵn có:** với truyền thông ứng dụng thực, ưu tiên **TLS 1.3** (hoặc framework/protocol authenticated đã đánh giá). Việc tự xây dựng giao thức trao đổi khóa từ primitive JCA có nhiều rủi ro về replay, reflection, downgrade, context confusion và quản lý phiên.
+1. **Key/handshake signature authentication:** the peer uses a long-term private signing key to sign the transcript containing ephemeral public keys, roles, algorithm/curve negotiation, random nonces, and session context; the other side verifies it with a signing public key bound to a trusted identity.
+2. **PKI/certificates:** verify the certificate chain, trust anchor, hostname/identity, validity, key usage, and protocol constraints; obtain the public signing key from the verified certificate rather than merely parsing a certificate and trusting it immediately.
+3. **Pinned keys / PSK:** when a trusted distribution channel exists, use pinning or an authenticated PSK handshake with key confirmation and downgrade protection; do not invent ad-hoc MAC combinations lacking transcript binding.
+4. **Existing protocols:** for real application transport, prefer **TLS 1.3** (or an audited authenticated protocol/framework). Hand-rolling a key-exchange protocol from JCA primitives carries high risks of replay, reflection, downgrade, context confusion, and session-management bugs.
 
-**Forward secrecy** chỉ đạt được theo điều kiện: dùng ephemeral private keys mới, xác thực handshake đúng, không lộ ephemeral secret trước/sau phiên, và xóa các vật liệu không cần giữ. Static DH có trường hợp sử dụng nhưng không tự có tính chất của ephemeral DH; việc key bị compromise về sau có thể ảnh hưởng phiên cũ theo cấu trúc giao thức.
+**Forward secrecy** is achieved only conditionally: by using fresh ephemeral private keys, properly authenticating the handshake, not leaking ephemeral secrets before/after the session, and erasing unneeded material. Static DH has valid use cases, but does not inherently provide the properties of ephemeral DH; a later key compromise may expose past sessions depending on protocol structure.
 
-## 9. Kết nối thỏa thuận khóa với bọc khóa và phiên dữ liệu
+## 9. Connecting Key Agreement with Key Wrapping and Data Sessions
 
-Mục “Thỏa thuận và bọc khóa” thường gồm hai bước tách nhau:
+“Key agreement and wrapping” usually consists of two distinct steps:
 
-1. **Agreement:** Alice và Bob dùng DH/ECDH/XDH sinh shared secret, dẫn xuất khóa theo HKDF.
-2. **Protection:** dùng key dẫn xuất làm **key-encryption key (KEK)** để bọc **data-encryption key (DEK)**, hoặc dùng trực tiếp làm key cho AEAD session theo giao thức.
+1. **Agreement:** Alice and Bob use DH/ECDH/XDH to produce a shared secret and derive keys with HKDF.
+2. **Protection:** use a derived key as a **key-encryption key (KEK)** to wrap a **data-encryption key (DEK)**, or use it directly as an AEAD session key per the protocol.
 
-Ví dụ mô hình bọc DEK:
+Example DEK wrapping model:
 
 ```text
 ECDH/X25519/X448 shared secret
@@ -470,85 +470,85 @@ ECDH/X25519/X448 shared secret
           v
    256-bit key-encryption key
           |
-          +----> AES Key Wrap (theo định dạng/giao thức)
-          |      hoặc AES-GCM wrap kèm IV/tag/AAD đúng
+          +----> AES Key Wrap (per format/protocol)
+          |      or AES-GCM wrap with proper IV/tag/AAD
           v
-    wrapped DEK  --- gửi/lưu ---> bên nhận
+    wrapped DEK  --- send/store ---> recipient
                                 |
-                           cùng KEK hợp lệ
+                           same valid KEK
                                 |
                             unwrap DEK
                                 |
-                         dùng DEK cho data
+                         use DEK for data
 ```
 
-**Không** lấy raw shared secret làm DEK/KEK một cách trực tiếp chỉ vì mảng có độ dài 32 byte. Nếu bọc bằng AES-GCM, cần authenticated ciphertext, IV duy nhất và dữ liệu AAD phù hợp. Nếu dùng AES-KW, dùng transformation/format phù hợp nhà cung cấp và kiểm tra quy tắc độ dài, integrity của AES-KW. Tách nhãn `"KEK"` và `"AEAD session key"` bằng `info` trong HKDF; không dùng **cùng raw key cho mọi vai trò**.
+**Never** use the raw shared secret directly as a DEK/KEK just because the array happens to be 32 bytes long. If wrapping with AES-GCM, you need authenticated ciphertext, a unique IV, and appropriate AAD. If using AES-KW, use a provider-appropriate transformation/format and verify AES-KW length and integrity rules. Separate `"KEK"` and `"AEAD session key"` labels via `info` in HKDF; never use **the same raw key for all roles**.
 
-Bản ghi lưu/truyền nên chỉ rõ: algorithm suite, curve/group, ephemeral public keys, salt/KDF version/info schema, IV/nonce, ciphertext+tag hoặc wrapped key, key ID/session ID và các trường đã được xác thực. Việc chứa public key, salt và IV trong metadata **không cần giữ bí mật**, nhưng phải bảo đảm integrity của những metadata quan trọng để tránh bị thay đổi trong handshake.
+Stored or transmitted records should explicitly include: algorithm suite, curve/group, ephemeral public keys, salt/KDF version/info schema, IV/nonce, ciphertext+tag or wrapped key, key ID/session ID, and authenticated fields. Storing public keys, salt, and IV in metadata **does not require secrecy**, but you must ensure the integrity of critical metadata so it cannot be altered during the handshake.
 
-## 10. Bảo mật và lỗi triển khai thường gặp
+## 10. Security and Common Implementation Pitfalls
 
-| Lỗi / hiện tượng | Nguyên nhân | Cách xử lý |
+| Error / symptom | Cause | How to handle |
 | --- | --- | --- |
-| `InvalidKeyException` ở `init` / `doPhase` | Dùng public thay private, sai algorithm/curve, peer key không hợp lệ hoặc weak public key | Validate type/algorithm, nhóm và public key; dùng đúng private/public |
-| `InvalidAlgorithmParameterException` | Key generator nhận curve/param không hợp lệ hoặc provider không chấp nhận | Dùng named curve/group allow-list, kiểm tra khả năng hỗ trợ |
-| `NoSuchAlgorithmException` | Provider không có `ECDH`/`X25519`/`X448` | Kiểm tra Java/provider; không tự fallback nhóm yếu |
-| `IllegalStateException` ở `generateSecret` | Chưa `init`, chưa đủ pha, hoặc dùng state sai | Theo đúng thứ tự `init → doPhase(..., true) → generateSecret` |
-| DH tính bí mật không khớp / lỗi phase | Hai bên khởi tạo `DHParameterSpec` khác nhau | Chia sẻ cùng nhóm **đã xác thực**, kiểm tra p/g |
-| Không khớp output HKDF dù shared secret trùng | Salt, info, role order hoặc encoding transcript khác nhau | Xác định wire format dài/byte order/labels một cách duy nhất |
-| Dùng ECDH P-256 với peer public X25519 | Đây là hai thuật toán/curve không tương thích | Dùng EC/P-256 cho ECDH, XDH/X25519 cho X25519 |
-| Gửi private key/`generateSecret()` qua mạng | Nhầm shared secret với public key | Chỉ gửi **public** material theo giao thức |
-| Dùng `SecretKeySpec(shared, "AES")` ngay | Không có KDF/domain separation | HKDF với salt + context; derive key cho đúng mục đích |
-| Không xác thực public key | MITM tạo 2 phiên agreement riêng | Dùng TLS/authenticated handshake/PKI/pinning |
-| Chia sẻ cùng `KeyAgreement` giữa threads | Engine state bị trộn giữa nhiều session | Tạo engine theo mỗi handshake |
-| Reuse ephemeral private key quá lâu | Ảnh hưởng forward secrecy và unlinkability | Sinh mới per session theo protocol và xóa vật liệu cũ |
-| Dùng lại nonce AES-GCM với cùng key | Phá vỡ bảo mật AEAD | Nonce allocation không trùng và lifecycle theo protocol |
-| Không kiểm tra shared secret toàn zero XDH | Peer input không hợp lệ/low-order có thể tạo bí mật yếu | Tuân thủ RFC/provider validation; không chấp nhận all-zero |
-| Chỉ xem `equal=true` là đã an toàn | Chưa có xác thực danh tính hoặc KDF/AEAD | Bổ sung authentication, KDF, replay protection |
-| Tự xây handshake không có transcript binding | Downgrade, reflection, role confusion, unknown key-share | Dùng giao thức đã được đánh giá, ký/bind toàn transcript |
+| `InvalidKeyException` in `init` / `doPhase` | Public key passed instead of private, wrong algorithm/curve, invalid peer key, or weak public key | Validate type/algorithm, group, and public key; use the right private/public key |
+| `InvalidAlgorithmParameterException` | Key generator received an invalid curve/param or the provider rejects it | Use an allow-list of named curves/groups and check provider support |
+| `NoSuchAlgorithmException` | Provider lacks `ECDH`/`X25519`/`X448` | Check Java/provider; never auto-fallback to a weak group |
+| `IllegalStateException` in `generateSecret` | Missing `init`, missing phases, or wrong state | Follow the exact order `init → doPhase(..., true) → generateSecret` |
+| DH secrets mismatch / phase failure | Both sides initialized different `DHParameterSpec`s | Share the same **authenticated** group and verify p/g |
+| HKDF outputs mismatch despite equal shared secret | Different salt, info, role order, or transcript encoding | Define a unique length/byte-order/label wire format |
+| Using ECDH P-256 with an X25519 peer public key | These are two incompatible algorithms/curves | Use EC/P-256 for ECDH, XDH/X25519 for X25519 |
+| Sending private key/`generateSecret()` over network | Confusing the shared secret with the public key | Send only **public** material as defined by the protocol |
+| Using `SecretKeySpec(shared, "AES")` directly | Missing KDF/domain separation | HKDF with salt + context; derive purpose-specific keys |
+| Skipping public key authentication | MITM establishes two separate agreement sessions | Use TLS/authenticated handshake/PKI/pinning |
+| Sharing one `KeyAgreement` across threads | Engine state gets mixed across sessions | Create a new engine per handshake |
+| Reusing ephemeral private keys for too long | Weakens forward secrecy and unlinkability | Generate fresh per session per protocol and erase old material |
+| Reusing an AES-GCM nonce with the same key | Breaks AEAD confidentiality and integrity | Non-overlapping nonce allocation and protocol-driven lifecycle |
+| Not checking for all-zero XDH shared secret | Invalid/low-order peer input can yield a weak secret | Follow RFC/provider validation; reject all-zero secrets |
+| Treating `equal=true` as complete security | Missing identity authentication or KDF/AEAD | Add authentication, KDF, and replay protection |
+| Hand-rolling a handshake without transcript binding | Downgrade, reflection, role confusion, unknown key-share | Use an audited protocol; sign/bind the full transcript |
 
-**Lưu ý output length:** X25519 trả 32 byte, X448 56 byte; **không** cho rằng 56 byte là AES-448 key. AES chỉ nhận 16, 24 hoặc 32 byte và security strength của toàn hệ thống là mức yếu nhất trong các thành phần liên quan (group, KDF, AEAD, authentication, RNG, quản lý khóa).
+**Note on output length:** X25519 returns 32 bytes, X448 returns 56 bytes; **do not** think 56 bytes is an AES-448 key. AES only accepts 16, 24, or 32 bytes, and the security strength of the entire system is the weakest link among all involved components (group, KDF, AEAD, authentication, RNG, key management).
 
-**Khi gặp lỗi cryptographic:** không tiếp tục dùng shared secret/key chưa hoàn chỉnh hoặc plaintext AEAD chưa xác thực. Xóa/vô hiệu phiên, trả thông báo thất bại nhất quán cho tầng trên; tránh để lỗi chi tiết trở thành oracle giúp kẻ tấn công đoán private state. Không log bí mật, đừng “tạm chuyển” sang cipher không xác thực.
+**When a cryptographic error occurs:** never continue using a partial shared secret/key or unauthenticated AEAD plaintext. Wipe/invalidate the session and return a consistent failure to higher layers; avoid detailed error messages that become an oracle helping attackers infer private state. Never log secrets, and never “temporarily switch” to an unauthenticated cipher.
 
-## 11. Hướng dẫn lựa chọn thuật toán
+## 11. Algorithm Selection Guide
 
-- **Ứng dụng mới cần trao đổi khóa:** thường ưu tiên **X25519** nếu toàn bộ hạ tầng/protocol hỗ trợ. Nó có API rõ ràng và cơ chế trao đổi khóa hiện đại; vẫn cần authentication + KDF + AEAD.
-- **Liên thông với hệ thống EC/NIST:** **ECDH P-256** là lựa chọn phổ biến với `ECGenParameterSpec("secp256r1")`, thường được hỗ trợ tốt bởi PKI và hardware/enterprise systems.
-- **Yêu cầu profile 448-bit curve:** **X448** cho mức bảo mật nhắm tới cao hơn nhưng tiêu tốn tài nguyên hơn, có thể hỗ trợ kém hơn; chọn khi protocol và tương thích peer yêu cầu.
-- **Liên thông DH hữu hạn truyền thống:** **DH/FFDHE** với nhóm chuẩn tin cậy, tối thiểu độ dài theo chính sách (tránh nhóm yếu/khóa ngắn). Không dùng params nhận tùy tiện từ phía chưa xác thực; FFDHE-2048 có mức security strength thấp hơn X25519/P-256.
-- **Ứng dụng có dữ liệu cần giữ bí mật dài hạn trước máy tính lượng tử:** DH, ECDH, X25519, X448 đều là key agreement **cổ điển**, không chống được máy tính lượng tử có quy mô đủ lớn. Cần đánh giá giao thức **hybrid post-quantum KEM + classical agreement** theo tiêu chuẩn tương ứng; không thể chỉ tăng độ dài HKDF hay thay AES-256 để khắc phục.
+- **New applications needing key exchange:** generally prefer **X25519** if the entire infrastructure/protocol supports it. It has a clean API and modern key-exchange design; authentication + KDF + AEAD are still required.
+- **Interoperating with EC/NIST systems:** **ECDH P-256** is a common choice via `ECGenParameterSpec("secp256r1")`, widely supported by PKI and hardware/enterprise systems.
+- **Requiring a 448-bit curve profile:** **X448** targets a higher security level at higher computational cost and potentially narrower support; choose it when protocol and peer compatibility require it.
+- **Legacy finite-field DH interoperability:** **DH/FFDHE** with trusted standard groups and policy-compliant minimum sizes (avoid weak groups/short keys). Never use arbitrary params from an unauthenticated peer; FFDHE-2048 provides lower security strength than X25519/P-256.
+- **Applications with data requiring long-term secrecy against quantum computers:** DH, ECDH, X25519, and X448 are all **classical** key agreement algorithms and do not resist sufficiently large quantum computers. You need to evaluate **hybrid post-quantum KEM + classical agreement** protocols per relevant standards; merely increasing HKDF length or switching to AES-256 cannot fix this.
 
-Dù chọn thuật toán nào, hệ thống vẫn cần test liên thông hai endpoint, kiểm tra key validation, xác thực transcript, xử lý replay/downgrade, nonce uniqueness và key rotation. Đừng benchmark chỉ phép `generateSecret()` mà bỏ qua key generation, serialization, network latency và provider overhead.
+Whichever algorithm you choose, the system still requires two-endpoint interoperability tests, key validation checks, transcript authentication, replay/downgrade handling, nonce uniqueness, and key rotation. Never benchmark only `generateSecret()` while ignoring key generation, serialization, network latency, and provider overhead.
 
-## 12. Tự kiểm tra kiến thức
+## 12. Self-Check Knowledge Questions
 
-1. **DH/ECDH/X25519/X448 truyền thứ gì qua mạng?** Khóa **công khai**, không truyền private key hay shared secret.
-2. **Bên Alice gọi `KeyAgreement.init` với khóa nào?** Private key của **Alice**; `doPhase` với public key của **Bob**.
-3. **Vì sao `doPhase(peer, true)` dùng `true`?** Đây là **pha cuối** của thỏa thuận hai bên, có thể gọi `generateSecret()` sau đó.
-4. **Hai bên DH có thể tự tạo độc lập hai nhóm p/g khác nhau không?** Không; phải dùng **cùng nhóm phù hợp** và có validation.
-5. **`ECDH` P-256 có phải X25519 không?** Không. Thuật toán, đường cong và API tham số khác nhau.
-6. **X25519 và X448 shared secret dài bao nhiêu?** Lần lượt **32 byte** và **56 byte**.
-7. **`generateSecret()` trả về AES key đã xác thực chưa?** Chưa; đây là raw shared secret, cần **KDF + protocol context + authentication**.
-8. **Dùng HKDF với cùng IKM/salt nhưng khác info thì điều gì xảy ra?** Đầu ra khác (với xác suất áp đảo), hỗ trợ phân tách domain/key purpose.
-9. **Vì sao người trung gian vẫn có thể đọc khi DH tính đúng?** Vì public keys **chưa được xác thực**, attacker thay bằng khóa của mình và duy trì hai secret.
-10. **X25519 + HKDF + AES-GCM tự thành TLS an toàn không?** Không; còn thiếu authentication, transcript binding, replay/downgrade protection, quản lý phiên và giao thức đầy đủ.
-11. **Sau `generateSecret()` KeyAgreement có thể tái sử dụng object không?** JCA API đưa về trạng thái sau `init`, nhưng với **ephemeral DH** nên dùng private key và engine mới cho từng handshake.
-12. **GCM nhận key 56 byte của X448 trực tiếp như AES-448 không?** Không; derive ra AES-128/192/256 key qua KDF.
-13. **DH hữu hạn dùng nhóm 2048 bit có tương đương 2048-bit security không?** Không; modulus length không bằng security strength.
-14. **Muốn bọc DEK sau ECDH nên lấy khóa nào?** Derive một **KEK** bằng HKDF với purpose label và dùng cơ chế wrap có xác thực theo protocol, không dùng shared secret thô.
-15. **Dùng private ephemeral mới có tự bảo đảm forward secrecy hoàn chỉnh không?** Chưa: cần authenticated handshake, key erasure và tránh lộ secret theo threat model.
+1. **What do DH/ECDH/X25519/X448 transmit over the network?** **Public** keys—never private keys or shared secrets.
+2. **Which key does Alice pass to `KeyAgreement.init`?** **Alice's** private key; `doPhase` receives **Bob's** public key.
+3. **Why does `doPhase(peer, true)` use `true`?** It marks the **final phase** of two-party agreement, allowing `generateSecret()` afterward.
+4. **Can two DH parties independently generate two different p/g groups?** No; they must use the **same valid group** with validation.
+5. **Is `ECDH` P-256 the same as X25519?** No. The algorithms, curves, and parameter APIs are different.
+6. **How long are X25519 and X448 shared secrets?** **32 bytes** and **56 bytes**, respectively.
+7. **Does `generateSecret()` return an authenticated AES key?** No; it is a raw shared secret that needs **KDF + protocol context + authentication**.
+8. **What happens if you run HKDF with the same IKM/salt but different `info`?** The outputs differ (with overwhelming probability), supporting domain/key-purpose separation.
+9. **Why can a man-in-the-middle still read traffic when DH computes validly?** Because the public keys **are not authenticated**; the attacker substitutes their own keys and maintains two secrets.
+10. **Does X25519 + HKDF + AES-GCM automatically form a secure TLS alternative?** No; it still lacks authentication, transcript binding, replay/downgrade protection, session management, and a complete protocol.
+11. **Can a `KeyAgreement` object be reused after `generateSecret()`?** The JCA API resets it to the post-`init` state, but for **ephemeral DH** you should use a fresh private key and engine per handshake.
+12. **Does GCM accept the 56-byte X448 output directly as AES-448?** No; derive an AES-128/192/256 key through a KDF.
+13. **Does finite-field DH with a 2048-bit group provide 2048-bit security?** No; modulus length is not equal to security strength.
+14. **To wrap a DEK after ECDH, which key should you use?** Derive a **KEK** using HKDF with a purpose label and use an authenticated wrapping mechanism per protocol, not the raw shared secret.
+15. **Does using a fresh ephemeral private key guarantee complete forward secrecy on its own?** Not yet: you also need an authenticated handshake, key erasure, and protection against secret leakage under your threat model.
 
-## Tài liệu chuẩn và API chính thức
+## Reference Standards and Official APIs
 
-- [KeyAgreement, Java SE 21: init, doPhase, generateSecret và vòng đời reset](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KeyAgreement.html)
+- [KeyAgreement, Java SE 21: init, doPhase, generateSecret, and reset lifecycle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KeyAgreement.html)
 - [KeyPairGenerator, Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyPairGenerator.html)
-- [DHParameterSpec và DHPublicKey](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/spec/DHParameterSpec.html)
+- [DHParameterSpec and DHPublicKey](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/spec/DHParameterSpec.html)
 - [ECGenParameterSpec, Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/spec/ECGenParameterSpec.html)
-- [NamedParameterSpec: X25519 và X448](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/spec/NamedParameterSpec.html)
+- [NamedParameterSpec: X25519 and X448](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/spec/NamedParameterSpec.html)
 - [Mac, Java SE 21: HmacSHA256](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Mac.html)
 - [Cipher: AES/GCM/NoPadding](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Cipher.html)
 - [RFC 7748: Elliptic Curves for Security (X25519, X448)](https://www.rfc-editor.org/rfc/rfc7748.html)
 - [RFC 5869: HMAC-based Extract-and-Expand Key Derivation Function (HKDF)](https://www.rfc-editor.org/rfc/rfc5869.html)
 - [RFC 7919: Negotiated Finite Field Diffie-Hellman Ephemeral Parameters for TLS](https://www.rfc-editor.org/rfc/rfc7919.html)
-- [RFC 8446: TLS 1.3 và authenticated key exchange](https://www.rfc-editor.org/rfc/rfc8446.html)
+- [RFC 8446: TLS 1.3 and authenticated key exchange](https://www.rfc-editor.org/rfc/rfc8446.html)

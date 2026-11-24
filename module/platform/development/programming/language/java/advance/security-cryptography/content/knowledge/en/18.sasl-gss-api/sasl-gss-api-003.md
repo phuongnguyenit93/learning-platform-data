@@ -1,124 +1,124 @@
-# 18.3. Thương lượng SASL mechanism, authentication identity và authorization identity
+# 18.3. SASL Mechanism Negotiation, Authentication Identity, and Authorization Identity
 
-> Phạm vi: SASL (Simple Authentication and Security Layer) trong hệ thống Java, với bối cảnh GSS-API/Kerberos; tập trung vào việc chọn cơ chế xác thực và phân biệt người đã chứng minh danh tính với danh tính mà phiên được phép đại diện.
+> Scope: SASL (Simple Authentication and Security Layer) in Java systems, in a GSS-API/Kerberos context; focuses on selecting an authentication mechanism and distinguishing the party that proved its identity from the identity the session is permitted to represent.
 
-## 1. Mục tiêu học tập
+## 1. Learning objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích vì sao máy khách và máy chủ phải thống nhất một SASL mechanism trước khi trao đổi challenge/response, và ai chịu trách nhiệm lựa chọn cơ chế.
-2. Phân biệt **authentication identity** (`authcid` hoặc `authnId`) và **authorization identity** (`authzid`), kể cả khi hai chuỗi giống nhau.
-3. Mô tả quy tắc mặc định khi `authzid` bị bỏ trống và điều kiện để thực hiện proxy/delegated authorization.
-4. Nhận ra ranh giới giữa việc xác thực bằng một mechanism (ví dụ `GSSAPI`) và việc áp dụng chính sách phân quyền.
-5. Dùng đúng các điểm tích hợp `SaslClient`, `SaslServer`, `CallbackHandler` và `AuthorizeCallback` trong Java; tránh downgrade và giả mạo `authzid`.
+1. Explain why client and server must agree on a SASL mechanism before exchanging challenge/response messages, and who is responsible for choosing the mechanism.
+2. Distinguish **authentication identity** (`authcid` or `authnId`) from **authorization identity** (`authzid`), even when both strings are identical.
+3. Describe the default rule when `authzid` is omitted and the conditions for performing proxy/delegated authorization.
+4. Recognize the boundary between authenticating via a mechanism (such as `GSSAPI`) and enforcing authorization policies.
+5. Properly use the integration points `SaslClient`, `SaslServer`, `CallbackHandler`, and `AuthorizeCallback` in Java; avoid downgrades and `authzid` spoofing.
 
-## 2. Ba lớp khái niệm thường bị gộp nhầm
+## 2. Three conceptual layers that are often conflated
 
-**SASL là một framework**, không phải một thuật toán mật mã đơn lẻ. Nó đưa cơ chế xác thực vào một giao thức ứng dụng như IMAP, SMTP, LDAP hoặc một giao thức riêng. Giao thức ứng dụng quy định cách công bố danh sách cơ chế, cách đóng gói thông điệp, thông báo thành công/thất bại và hành vi phiên sau xác thực.
+**SASL is a framework**, not a standalone cryptographic algorithm. It plugs an authentication mechanism into an application protocol such as IMAP, SMTP, LDAP, or a custom protocol. The application protocol defines how the mechanism list is advertised, how messages are framed, how success/failure is reported, and how the session behaves after authentication.
 
-**Mechanism** là cách hai phía chứng minh danh tính và có thể thương lượng dịch vụ bảo vệ phiên, chẳng hạn `PLAIN`, `SCRAM-SHA-256`, `GSSAPI` hoặc `EXTERNAL`. Không phải mọi mechanism đều xuất hiện trong mọi giao thức hay mọi bản Java provider.
+**A mechanism** is the method by which both sides prove identity and optionally negotiate session protection services, such as `PLAIN`, `SCRAM-SHA-256`, `GSSAPI`, or `EXTERNAL`. Not every mechanism appears in every protocol or every Java provider.
 
-**Identity** gồm hai khái niệm khác nhau:
+**Identity** comprises two distinct concepts:
 
-| Khái niệm | Câu hỏi mà nó trả lời | Nguồn gốc và cách dùng |
+| Concept | Question it answers | Origin and usage |
 | --- | --- | --- |
-| Authentication identity (`authcid` / `authnId`) | **Ai đã chứng minh sở hữu thông tin xác thực?** | Server suy ra/xác minh từ password, ticket Kerberos, certificate, token… theo mechanism; không tin một username gửi lên khi chưa kiểm chứng. |
-| Requested authorization identity (`authzid`) | **Client muốn hành động dưới danh tính nào?** | Client có thể đề nghị một danh tính khác; cú pháp và chuẩn hóa do giao thức ứng dụng quy định. |
-| Effective authorization identity | **Sau khi kiểm tra, phiên thực sự được phép đại diện cho ai?** | Server quyết định sau khi xác thực và kiểm tra quyền đại diện; dùng cho ngữ cảnh phiên và kiểm soát truy cập tiếp theo. |
+| Authentication identity (`authcid` / `authnId`) | **Who proved possession of the credentials?** | The server derives/verifies it from a password, Kerberos ticket, certificate, token, etc. according to the mechanism; never trust an unverified username sent by the client. |
+| Requested authorization identity (`authzid`) | **Under which identity does the client want to act?** | The client may propose a different identity; syntax and normalization are defined by the application protocol. |
+| Effective authorization identity | **After checking, who is the session actually allowed to represent?** | Decided by the server after authentication and delegation policy checks; used for the session context and subsequent access control. |
 
-Ví dụ: service account `svc-report` đăng nhập hợp lệ bằng Kerberos và đề nghị `authzid=reports-reader`. Server đã biết `authcid=svc-report`, nhưng chỉ được chấp nhận `reports-reader` nếu chính sách cho `svc-report` quyền đại diện cho danh tính đó. Nếu người dùng `alice` yêu cầu `authzid=admin` mà không có quyền, *bắt buộc từ chối cả trao đổi SASL*. Việc đã xác thực thành công `alice` không làm yêu cầu chuyển quyền hợp lệ.
+Example: service account `svc-report` logs in validly with Kerberos and proposes `authzid=reports-reader`. The server already knows `authcid=svc-report`, but must accept `reports-reader` only if policy grants `svc-report` the right to act for that identity. If user `alice` requests `authzid=admin` without permission, *the entire SASL exchange must be rejected*. Successfully authenticating `alice` does not make an unauthorized role-switch request valid.
 
-**Quan trọng:** bước SASL kiểm tra quyền **đại diện cho một identity**; sau đó ứng dụng vẫn phải kiểm tra identity ấy được đọc, ghi, xóa tài nguyên nào (RBAC/ABAC/ACL). `authzid=admin` không tự tạo ra vai trò quản trị.
+**Important:** the SASL step checks permission to **act as an identity**; afterward, the application must still check which resources that identity may read, write, or delete (RBAC/ABAC/ACL). `authzid=admin` does not automatically grant administrative privileges.
 
-## 3. Thương lượng mechanism diễn ra ở đâu?
+## 3. Where does mechanism negotiation happen?
 
-RFC 4422 nêu rằng **mechanism negotiation là phần riêng của giao thức ứng dụng**. Thông thường server quảng bá các mechanism đang bật; client giao tập này với khả năng của mình rồi chọn một mechanism thỏa chính sách bảo mật và điều kiện triển khai. Chính SASL không định nghĩa một gói tin chung kiểu “NEGOTIATE” cho mọi ứng dụng.
+RFC 4422 states that **mechanism negotiation is specific to the application protocol**. Typically the server advertises its enabled mechanisms; the client intersects that set with its own capabilities and picks a mechanism that satisfies security policy and deployment constraints. SASL itself does not define a generic "NEGOTIATE" packet across all applications.
 
-Một phiên điển hình:
+A typical session:
 
 ```text
-(0) Thiết lập kênh, kiểm chứng server/TLS nếu giao thức yêu cầu.
-(1) S -> C: danh sách mechanism server chấp nhận (ví dụ: GSSAPI, SCRAM-SHA-256, PLAIN)
-(2) C: lọc theo local policy + provider + credentials sẵn có.
-(3) C -> S: yêu cầu AUTHENTICATE <mechanism đã chọn> [initial response nếu có]
-(4) S: kiểm tra mechanism có được cho phép trên kết nối này.
-(5) C <-> S: trao đổi response/challenge đặc thù của mechanism.
-(6) S: xác minh credentials -> tìm authcid; xác định authzid được yêu cầu.
-(7) S: kiểm tra authcid có được đại diện cho authzid không.
-(8) S -> C: SUCCESS hoặc FAILURE; khi thành công mới có effective authzid.
-(9) Ứng dụng dùng effective authzid để kiểm tra từng hành động tiếp theo.
+(0) Establish channel, verify server/TLS if required by the protocol.
+(1) S -> C: list of mechanisms accepted by server (e.g., GSSAPI, SCRAM-SHA-256, PLAIN)
+(2) C: filter against local policy + available providers + credentials.
+(3) C -> S: request AUTHENTICATE <selected mechanism> [initial response if applicable]
+(4) S: verify that the mechanism is allowed on this connection.
+(5) C <-> S: mechanism-specific response/challenge exchange.
+(6) S: verify credentials -> determine authcid; determine requested authzid.
+(7) S: verify whether authcid is permitted to represent authzid.
+(8) S -> C: SUCCESS or FAILURE; only on success is an effective authzid established.
+(9) Application uses the effective authzid to authorize each subsequent action.
 ```
 
-### Ví dụ lựa chọn có chính sách
+### Policy-driven selection example
 
-Giả sử server quảng bá `[PLAIN, GSSAPI, SCRAM-SHA-256]`, client hỗ trợ `[SCRAM-SHA-256, PLAIN]`, chính sách ứng dụng từ chối `PLAIN` và ưu tiên `SCRAM-SHA-256`; đồng thời có provider tương thích. Kết quả là `SCRAM-SHA-256`. Nếu client chỉ hỗ trợ `PLAIN` thì phải báo **không có mechanism phù hợp**, không âm thầm hạ yêu cầu bảo mật.
+Suppose the server advertises `[PLAIN, GSSAPI, SCRAM-SHA-256]`, the client supports `[SCRAM-SHA-256, PLAIN]`, application policy forbids `PLAIN` and prefers `SCRAM-SHA-256`, and a compatible provider is present. The result is `SCRAM-SHA-256`. If the client supports only `PLAIN`, it must report **no acceptable mechanism** rather than silently lowering security requirements.
 
-Đừng suy ra “mechanism mạnh nhất” chỉ từ thứ tự server công bố: lựa chọn còn phụ thuộc vào TLS đã xác thực, mức bảo vệ cần thiết, dạng credentials, server identity, hỗ trợ provider, chống downgrade và chính sách tổ chức.
+Do not infer the "strongest mechanism" solely from the server's advertised order: selection also depends on verified TLS, required protection level, credential type, server identity, provider support, downgrade resistance, and organizational policy.
 
-**Nguy cơ downgrade:** danh sách mechanism ban đầu có thể nằm ngoài thông điệp đã được xác thực, nên kẻ tấn công trên đường truyền có thể tìm cách loại bỏ cơ chế mạnh để ép client chọn cơ chế yếu. Với giao thức hỗ trợ STARTTLS, thực hiện TLS theo yêu cầu, xác minh certificate/hostname, rồi hỏi lại capabilities theo đúng đặc tả giao thức; không gửi password/token trước khi kênh đã được bảo vệ đầy đủ. Tắt fallback ngoài chính sách. Nếu giao thức cho phép, kiểm chứng capabilities sau khi hình thành security layer có integrity để phát hiện thay đổi.
+**Downgrade risk:** the initial mechanism list may lie outside authenticated messages, so an on-path attacker could strip strong mechanisms to force the client toward a weak one. For protocols supporting STARTTLS, perform TLS as required, verify the certificate/hostname, and re-query capabilities per the protocol specification; never send passwords or tokens before the channel is adequately protected. Disable out-of-policy fallback. If the protocol allows, re-verify capabilities after an integrity-protected security layer is established to detect tampering.
 
-### Các bước kiểm tra trước khi chấp nhận lựa chọn
+### Pre-acceptance checks
 
-- **Phía client:** whitelist mechanism; local provider thực sự tạo được `SaslClient`; credentials/JAAS phù hợp; TLS và xác thực server đạt ngưỡng; không fallback tùy tiện khi cơ chế mạnh lỗi.
-- **Phía server:** chỉ quảng bá/nhận mechanism đã cấu hình; áp dụng điều kiện theo kết nối (ví dụ chỉ cho `PLAIN` trên TLS hợp lệ); có `SaslServer` provider; áp dụng giới hạn kích thước, thời gian và số lần thử.
-- **Cả hai:** nhất trí mechanism theo giao thức, xử lý thông điệp đúng thứ tự, không tiếp tục sử dụng phiên khi trao đổi thất bại.
+- **Client side:** mechanism allowlist; local provider can actually instantiate `SaslClient`; appropriate credentials/JAAS setup; TLS and server verification meet requirements; no arbitrary fallback when a strong mechanism fails.
+- **Server side:** advertise and accept only configured mechanisms; enforce per-connection conditions (e.g., allow `PLAIN` only over valid TLS); ensure a `SaslServer` provider exists; enforce size, timeout, and attempt limits.
+- **Both sides:** agree on the mechanism per protocol rules, process messages in order, and never continue using the session if the exchange fails.
 
-## 4. Authentication identity và authorization identity trong trao đổi thực
+## 4. Authentication identity and authorization identity in real exchanges
 
-### 4.1. Không đưa authzid: server tự suy ra
+### 4.1. Omitting authzid: the server derives it
 
-Client có thể **không gửi** authorization identity, hoặc gửi chuỗi rỗng khi mechanism/protocol cho phép. Theo mô hình SASL, điều này yêu cầu server xác định identity thích hợp từ credentials đã xác thực. Đó thường là cùng người dùng nhưng *không bắt buộc là cùng chuỗi ký tự*: ví dụ Kerberos principal `alice@EXAMPLE.COM` có thể được ánh xạ thành tài khoản ứng dụng `alice`.
+The client may **omit** the authorization identity, or send an empty string when the mechanism/protocol permits. Under the SASL model, this asks the server to derive the appropriate identity from the authenticated credentials. It is often the same user, though *not necessarily the exact same string*: for example, Kerberos principal `alice@EXAMPLE.COM` might be mapped to application account `alice`.
 
-### 4.2. Có authzid: yêu cầu đại diện, không phải mệnh lệnh
+### 4.2. Supplying authzid: a delegation request, not a command
 
-Khi gửi `authzid=bob`, client đang **đề nghị** server cho phép authcid của mình hành động với danh tính `bob`. Server phải kiểm tra quy tắc ủy quyền/proxy, không đơn giản gán session user bằng trường client cung cấp.
+When sending `authzid=bob`, the client is **proposing** that the server allow its `authcid` to act under the identity `bob`. The server must evaluate proxy/authorization rules rather than blindly setting the session user from the client-supplied field.
 
-| Credentials đã xác thực thành | Authzid được yêu cầu | Chính sách ví dụ | Kết quả |
+| Authenticated credentials | Requested authzid | Example policy | Outcome |
 | --- | --- | --- | --- |
-| `alice` | bỏ trống | Server map credentials thành `alice` | Phiên mang quyền `alice`. |
-| `alice` | `alice` | Self-authorization được phép | Phiên mang quyền `alice`. |
-| `alice` | `admin` | Không có quyền đại diện | Từ chối trao đổi SASL. |
-| `svc-report` | `reports-reader` | Có rule ủy quyền đúng cặp | Phiên mang quyền `reports-reader`. |
-| `svc-report` | `root` | Không có rule | Từ chối, dù credentials hợp lệ. |
+| `alice` | omitted | Server maps credentials to `alice` | Session holds `alice` permissions. |
+| `alice` | `alice` | Self-authorization allowed | Session holds `alice` permissions. |
+| `alice` | `admin` | No delegation permission | Reject the SASL exchange. |
+| `svc-report` | `reports-reader` | Explicit authorization rule for this pair | Session holds `reports-reader` permissions. |
+| `svc-report` | `root` | No rule | Reject, even though credentials are valid. |
 
-Quy tắc phân quyền cần làm việc với **định danh chuẩn hóa đáng tin cậy** (realm, tenant, case-sensitivity, principal mapping); chuẩn hóa nhất quán cả hai phía để tránh `Alice`/`alice`, tên rút gọn/full principal hoặc ký tự Unicode gây nhầm. Không loại bỏ realm/tenant theo thói quen.
+Authorization rules must operate on **trusted canonical identifiers** (realm, tenant, case-sensitivity, principal mapping); normalize consistently on both sides to prevent `Alice`/`alice`, short names vs. full principals, or Unicode ambiguities from causing mistakes. Do not strip realms or tenants out of habit.
 
-### 4.3. Nhìn ở mức wire: mechanism PLAIN
+### 4.3. At the wire level: the PLAIN mechanism
 
-RFC 4616 định nghĩa payload UTF-8 của `PLAIN` theo dạng:
+RFC 4616 defines the UTF-8 payload of `PLAIN` in the format:
 
 ```text
 [authzid] <NUL> authcid <NUL> password
 ```
 
-`<NUL>` là byte `0x00`, không phải dấu cách hoặc chuỗi sáu ký tự “<NUL>”. Khi không muốn đề nghị authzid riêng, trường đầu tiên **rỗng**. Trong `PLAIN`, cả username/password được đưa vào thông điệp SASL; mechanism **không cung cấp bí mật hoặc toàn vẹn** cho thông điệp, vì vậy phải có bảo vệ kênh như TLS đã xác minh trước. Không log/trace payload, không tự mã hóa Base64 rồi coi như đã được bảo mật: Base64 chỉ là biểu diễn dữ liệu.
+`<NUL>` is the `0x00` byte, not a space or the literal character string "`<NUL>`". When no separate `authzid` is requested, the first field is **empty**. In `PLAIN`, both username and password are placed into the SASL message; the mechanism **provides neither confidentiality nor integrity** for the message, so channel protection such as previously verified TLS is mandatory. Never log or trace payloads, and never Base64-encode data and treat it as secured: Base64 is merely a data representation.
 
-### 4.4. Với GSSAPI/Kerberos
+### 4.4. With GSSAPI/Kerberos
 
-Trong SASL mechanism `GSSAPI`, GSS-API xác lập security context dựa trên credentials Kerberos; thông tin này giúp server biết principal đã được xác thực. Service principal của đích thường có dạng `imap/mail.example.com@EXAMPLE.COM` (minh họa; chính xác phải khớp môi trường). Application vẫn phải quyết định cách ánh xạ principal đó thành authcid nội bộ, xử lý authzid rỗng/được yêu cầu và từ chối ủy quyền trái phép. Ticket hợp lệ **không** đồng nghĩa được phép làm người dùng tùy ý.
+In the `GSSAPI` SASL mechanism, GSS-API establishes a security context from Kerberos credentials; this tells the server the authenticated principal. The target's service principal typically has the form `imap/mail.example.com@EXAMPLE.COM` (illustrative; the exact value must match the environment). The application still has to decide how to map that principal to an internal `authcid`, handle empty or requested `authzid`, and reject unauthorized delegation. A valid ticket does **not** mean the client may act as an arbitrary user.
 
-Phân biệt:
+Distinguish clearly:
 
-- `GSS-API` là API dùng để xác lập context bảo mật trừu tượng; Kerberos là một công nghệ thường đứng bên dưới.
-- `GSSAPI` là tên một SASL mechanism sử dụng dịch vụ GSS-API; nó hoạt động trong vòng đời `SaslClient` / `SaslServer`.
-- `javax.security.sasl.AuthorizeCallback` hỏi chính sách có cho authcid hành động như authzid không. Nó không thay việc kiểm chứng Kerberos ticket.
+- `GSS-API` is an API for establishing an abstract security context; Kerberos is a common underlying technology.
+- `GSSAPI` is the name of a SASL mechanism that uses GSS-API services; it runs inside the `SaslClient` / `SaslServer` lifecycle.
+- `javax.security.sasl.AuthorizeCallback` asks policy whether `authcid` may act as `authzid`. It does not replace Kerberos ticket verification.
 
-## 5. Một số mechanism để đặt lựa chọn vào đúng bối cảnh
+## 5. Selected mechanisms to put choices in context
 
-| Mechanism | Dữ liệu dùng để xác thực | Lưu ý khi lựa chọn và xác định identity |
+| Mechanism | Data used for authentication | Notes for selection and identity determination |
 | --- | --- | --- |
-| `GSSAPI` | Context GSS-API, thường là Kerberos ticket | Cần cấu hình realm, principal/service name, ticket/JAAS; hỗ trợ xác thực hai chiều và lớp bảo vệ tùy thương lượng. Bắt buộc kiểm tra mapping và quyền đại diện. |
-| `SCRAM-SHA-256` / `SCRAM-SHA-256-PLUS` | Challenge/response dựa trên password và salt, không truyền password trần | `-PLUS` có channel binding; vẫn cần TLS và cấu hình đúng. Provider Java chuẩn không được mặc định coi là hỗ trợ mechanism này. |
-| `PLAIN` | Authcid + password, có thể kèm authzid | Chỉ cho phép trong kênh được bảo vệ phù hợp; mechanism tự nó không bảo vệ password. |
-| `EXTERNAL` | Danh tính được chứng minh ở lớp ngoài (ví dụ TLS client certificate) | Server phải tin cậy, xác minh và ánh xạ danh tính của lớp ngoài; authzid được đề nghị vẫn cần kiểm tra. |
+| `GSSAPI` | GSS-API context, typically a Kerberos ticket | Requires realm, principal/service name, ticket/JAAS configuration; supports mutual authentication and optional protection layer negotiation. Mapping and delegation checks remain mandatory. |
+| `SCRAM-SHA-256` / `SCRAM-SHA-256-PLUS` | Challenge/response using password and salt, without sending raw password | `-PLUS` adds channel binding; still requires TLS and proper setup. Standard Java providers should not be assumed to support this mechanism out of the box. |
+| `PLAIN` | `authcid` + password, optionally with `authzid` | Allow only inside a suitable protected channel; the mechanism itself does not protect the password. |
+| `EXTERNAL` | Identity proven at an outer layer (e.g., TLS client certificate) | Server must trust, verify, and map the outer-layer identity; any proposed `authzid` still requires authorization checks. |
 
-Không đưa `CRAM-MD5`, `DIGEST-MD5` hoặc thuật toán cũ vào giải pháp mới chỉ vì provider hỗ trợ. Tên mechanism được đăng ký theo đặc tả, còn việc mechanism nào có trên **runtime hiện tại** do provider, phiên bản và cấu hình quyết định.
+Do not include `CRAM-MD5`, `DIGEST-MD5`, or legacy algorithms in new solutions merely because a provider supports them. Mechanism names are registered by specifications, while which mechanisms exist on **the current runtime** depends on providers, versions, and configuration.
 
-## 6. Ví dụ Java 17+ chạy độc lập: chọn mechanism và chặn giả mạo authzid
+## 6. Standalone Java 17+ example: selecting a mechanism and blocking authzid spoofing
 
-Ví dụ sau có hai phần: chọn mechanism từ tập đã được chính sách cho phép và mô phỏng **bước kiểm tra authorization sau khi authcid đã được xác thực** bằng `AuthorizeCallback`. Nó không thực hiện password/Kerberos handshake; không được dùng các chuỗi `authn` tự nhập từ request thực tế để thay cho kết quả xác thực.
+The following example has two parts: selecting a mechanism from a policy-approved set and simulating **the authorization check after `authcid` has been authenticated** via `AuthorizeCallback`. It performs no password or Kerberos handshake; never use raw `authn` strings from a real request as a substitute for actual authentication results.
 
-Lưu tệp `SaslIdentityDemo.java`:
+Save the file `SaslIdentityDemo.java`:
 
 ```java
 import java.io.IOException;
@@ -141,7 +141,7 @@ public class SaslIdentityDemo {
         throw new IllegalStateException("No allowed common SASL mechanism");
     }
 
-    // Quy tắc ví dụ: tự đại diện; riêng svc-report được đại diện reports-reader.
+    // Example rule: self-representation; svc-report is also allowed to act as reports-reader.
     static boolean mayAssume(String authn, String authz) {
         return authn.equals(authz)
                 || (authn.equals("svc-report") && authz.equals("reports-reader"));
@@ -184,7 +184,7 @@ public class SaslIdentityDemo {
 }
 ```
 
-Chạy với JDK 17+:
+Run with JDK 17+:
 
 ```bash
 javac --release 17 SaslIdentityDemo.java
@@ -200,20 +200,20 @@ alice -> admin: false
 svc-report -> reports-reader: true
 ```
 
-Điều ví dụ chứng minh:
+What the example demonstrates:
 
-- Server quảng bá `PLAIN` không có nghĩa client bắt buộc dùng nó: chính sách loại bỏ `PLAIN`.
-- `alice` đã xác thực vẫn không được lấy session identity `admin`.
-- Cho phép proxy phải dựa trên một **quy tắc cụ thể**, ở đây chỉ cặp `svc-report -> reports-reader`; deny by default.
-- Trong ứng dụng thật, principal đầu vào `AuthorizeCallback` phải đến từ mechanism đã xác minh credentials. Code mô phỏng không thay thế xác thực hoặc một hệ thống phân quyền sản xuất.
+- The server advertising `PLAIN` does not force the client to use it: policy filters out `PLAIN`.
+- An already authenticated `alice` still cannot obtain the `admin` session identity.
+- Allowing proxy access must rest on a **specific rule**, here only the pair `svc-report -> reports-reader`; deny by default.
+- In a real application, the principal passed into `AuthorizeCallback` must come from a mechanism that verified credentials. Simulation code does not replace authentication or a production authorization system.
 
-## 7. Ánh xạ sang Java SASL API thật
+## 7. Mapping to the real Java SASL API
 
-Java SE cung cấp package `javax.security.sasl` và các factory dựa trên Security Provider Framework. Sau khi protocol/client đã chọn mechanism hợp lệ, client tạo implementation:
+Java SE provides the `javax.security.sasl` package and factories built on the Security Provider Framework. After the protocol/client chooses an eligible mechanism, the client creates the implementation:
 
 ```java
-// Đoạn khung: các biến mechanism, requestedAuthzid và clientCallbacks
-// đến từ negotiation, chính sách và cấu hình credential thực của ứng dụng.
+// Skeleton snippet: mechanism, requestedAuthzid, and clientCallbacks
+// come from negotiation, policy, and the application's real credential config.
 SaslClient client = Sasl.createSaslClient(
         new String[] {mechanism}, requestedAuthzid,
         "imap", "mail.example.com",
@@ -224,13 +224,13 @@ if (client == null) {
 }
 ```
 
-Các import cần cho đoạn khung là `javax.security.sasl.Sasl`, `SaslClient`, `SaslException` và `java.util.Map`. Đây **không phải chương trình độc lập**: cần transport, cơ chế discovery, credentials/JAAS và `CallbackHandler` thực tế. Argument `requestedAuthzid` có thể `null` để server suy ra danh tính. Với các provider khác nhau, cùng một tên mechanism có thể được hỗ trợ hoặc không.
+The imports needed for this skeleton are `javax.security.sasl.Sasl`, `SaslClient`, `SaslException`, and `java.util.Map`. This is **not a standalone program**: it needs a transport, discovery mechanism, real credentials/JAAS, and a `CallbackHandler`. The `requestedAuthzid` argument can be `null` so the server derives the identity. Across different providers, a given mechanism name may or may not be supported.
 
-Ở server, sau khi đã kiểm tra client chọn mechanism được bật trên kết nối này:
+On the server, after verifying that the client selected a mechanism enabled for this connection:
 
 ```java
-// Đoạn khung; serverCallbacks phải đáp ứng callbacks của mechanism
-// và thực hiện chính sách AuthorizeCallback trên identity đáng tin.
+// Skeleton snippet; serverCallbacks must handle the mechanism's callbacks
+// and enforce AuthorizeCallback policy on a trusted identity.
 SaslServer server = Sasl.createSaslServer(
         mechanism, "imap", "mail.example.com", serverProperties,
         serverCallbacks);
@@ -238,83 +238,83 @@ if (server == null) {
     throw new SaslException("No eligible SASL server provider: " + mechanism);
 }
 
-// Với mỗi response nhận được theo framing của protocol:
+// For each response received per protocol framing:
 // byte[] response = server.evaluateResponse(clientResponseBytes);
-// Gửi challenge tiếp nếu chưa complete; xử lý ngoại lệ như thất bại.
+// Send next challenge if not complete; treat exceptions as failures.
 if (server.isComplete()) {
     String sessionIdentity = server.getAuthorizationID();
-    // Chỉ lúc này mới gắn sessionIdentity vào principal của phiên.
+    // Only now bind sessionIdentity to the session principal.
 }
 ```
 
-Đoạn khung server cần import `javax.security.sasl.Sasl`, `SaslServer`, `SaslException`. Lệnh `evaluateResponse(...)` (được chú thích) phải thực sự được gọi cho từng thông điệp theo giao thức; kiểm tra `isComplete()` chỉ có ý nghĩa sau vòng trao đổi. Client tương ứng dùng `hasInitialResponse()`, `evaluateChallenge(...)` và `isComplete()`. Luôn gọi `dispose()` cho client/server khi kết thúc để giải phóng tài nguyên. Không tự sáng tác challenge, response hoặc message framing: giao thức ứng dụng định nghĩa phần vận chuyển, implementation mechanism tạo/xử lý token.
+The server skeleton requires importing `javax.security.sasl.Sasl`, `SaslServer`, and `SaslException`. The commented `evaluateResponse(...)` call must actually be invoked for each message according to the protocol; checking `isComplete()` is meaningful only after the exchange loop. The client correspondingly uses `hasInitialResponse()`, `evaluateChallenge(...)`, and `isComplete()`. Always call `dispose()` on client/server when finished to release resources. Never invent challenges, responses, or message framing: the application protocol defines transport, while the mechanism implementation creates and processes tokens.
 
-### AuthorizeCallback được dùng ở đâu?
+### Where is AuthorizeCallback used?
 
-Khi một server mechanism cần quyết định authnId có thể hành động như authzid hay không, nó có thể gọi `CallbackHandler.handle(...)` với `AuthorizeCallback`:
+When a server mechanism needs to decide whether `authnId` may act as `authzid`, it may invoke `CallbackHandler.handle(...)` with an `AuthorizeCallback`:
 
-1. `getAuthenticationID()`: identity đã xác thực, do implementation mechanism cung cấp.
-2. `getAuthorizationID()`: identity được yêu cầu/đã suy ra theo cơ chế và giao thức.
-3. Server áp dụng policy: cùng identity, delegation đúng quyền/tenant, hoặc từ chối.
-4. `setAuthorized(true/false)` và, nếu chấp nhận, `setAuthorizedID(canonicalId)` để trả về identity được cho phép.
+1. `getAuthenticationID()`: the authenticated identity, supplied by the mechanism implementation.
+2. `getAuthorizationID()`: the identity requested/derived according to the mechanism and protocol.
+3. The server applies policy: matching identity, properly permitted delegation/tenant, or rejection.
+4. `setAuthorized(true/false)` and, if accepted, `setAuthorizedID(canonicalId)` to return the permitted identity.
 
-Handler thực tế có thể còn gặp `NameCallback`, `PasswordCallback`, `RealmCallback` hoặc callback đặc thù của provider. Không nên giả định mọi mechanism sẽ dùng cùng một bộ callback: triển khai theo provider và credentials được sử dụng. Không cấp quyền trong code `PasswordCallback` dựa vào username; password verification và delegation policy là hai trách nhiệm khác nhau.
+Real handlers may also encounter `NameCallback`, `PasswordCallback`, `RealmCallback`, or provider-specific callbacks. Never assume every mechanism uses the same set of callbacks: implement according to the provider and credentials in use. Never grant authorization inside `PasswordCallback` logic based on username; password verification and delegation policy are two separate responsibilities.
 
-### SASL security layer và QOP
+### SASL security layer and QOP
 
-Property `Sasl.QOP` có thể thương lượng các giá trị (nếu mechanism hỗ trợ):
+The `Sasl.QOP` property can negotiate values (if supported by the mechanism):
 
-| QOP | Ý nghĩa | Ứng dụng phải làm gì? |
+| QOP | Meaning | What must the application do? |
 | --- | --- | --- |
-| `auth` | Chỉ xác thực | Dùng TLS/transport bảo vệ theo chính sách; không có SASL integrity/confidentiality layer. |
-| `auth-int` | Xác thực + integrity | Dùng `wrap/unwrap` cho dữ liệu qua lớp SASL nếu layer này đã được thương lượng. |
-| `auth-conf` | Xác thực + integrity + confidentiality | Dùng `wrap/unwrap` và framing/buffer size theo protocol; cũng cần xác minh các điều kiện triển khai. |
+| `auth` | Authentication only | Use TLS/transport protection per policy; there is no SASL integrity/confidentiality layer. |
+| `auth-int` | Authentication + integrity | Use `wrap/unwrap` for data through the SASL layer if that layer was negotiated. |
+| `auth-conf` | Authentication + integrity + confidentiality | Use `wrap/unwrap` with protocol framing/buffer sizes; also verify deployment requirements. |
 
-Sau khi hoàn tất, kiểm tra `getNegotiatedProperty(Sasl.QOP)` thay vì chỉ tin giá trị mong muốn lúc tạo client. Không gọi `wrap/unwrap` khi không có security layer thích hợp, và không tự thay transport protocol bằng cách gửi các byte bảo vệ mà peer không mong đợi. `PLAIN` không cung cấp lớp bảo vệ SASL; `SCRAM` thông thường dựa vào TLS để bảo vệ dữ liệu ứng dụng.
+After completion, check `getNegotiatedProperty(Sasl.QOP)` rather than trusting the preference requested when creating the client. Do not call `wrap/unwrap` when no suitable security layer exists, and do not alter the transport protocol by sending protected bytes the peer does not expect. `PLAIN` provides no SASL protection layer; `SCRAM` normally relies on TLS to protect application data.
 
-## 8. Tình huống GSSAPI/Kerberos hay gặp
+## 8. Common GSSAPI/Kerberos scenarios
 
-Giả sử LDAP hoặc IMAP server xác thực Kerberos principal `svc-report@EXAMPLE.COM`. Client yêu cầu hoạt động dưới `reports-reader`:
+Suppose an LDAP or IMAP server authenticates Kerberos principal `svc-report@EXAMPLE.COM`. The client requests to act as `reports-reader`:
 
-1. Client xác định service name đúng với server, ví dụ `imap/mail.example.com@EXAMPLE.COM`, và dùng Kerberos credentials hợp lệ (ticket cache, JAAS hoặc cơ chế được provider hỗ trợ).
-2. SASL `GSSAPI` xây dựng security context. Server kiểm chứng token, mục tiêu dịch vụ và principal; một số điều kiện như mutual authentication/QOP do cơ chế và cấu hình thương lượng.
-3. Server ánh xạ `svc-report@EXAMPLE.COM` thành authcid nội bộ theo quy tắc của tổ chức. Không mặc nhiên bỏ realm hay tenant.
-4. Server nhận requested authzid `reports-reader`, hỏi chính sách ủy quyền và chỉ cấp khi rule cho phép; nếu không, báo thất bại.
-5. Sau khi thành công, quyền truy cập tài nguyên của `reports-reader` vẫn được ứng dụng kiểm tra trên từng thao tác.
+1. The client identifies the exact service name for the server, e.g., `imap/mail.example.com@EXAMPLE.COM`, and uses valid Kerberos credentials (ticket cache, JAAS, or a provider-supported mechanism).
+2. SASL `GSSAPI` establishes a security context. The server validates the token, target service, and principal; conditions such as mutual authentication and QOP depend on mechanism and configuration negotiation.
+3. The server maps `svc-report@EXAMPLE.COM` to an internal `authcid` per organizational rules. Do not strip realms or tenants by default.
+4. The server receives the requested `authzid` `reports-reader`, consults authorization policy, and grants it only when permitted by a rule; otherwise, it fails.
+5. After success, `reports-reader`'s resource access rights are still checked by the application on every operation.
 
-Cấu hình Kerberos cần kiểm tra đồng bộ DNS/hostname, service principal name, keytab hoặc ticket, realm trust, clock skew và quyền đọc credential. Đăng nhập JAAS thành công hay `Subject` có principal không tự chứng minh rằng SASL server đã xác thực đúng peer hoặc đã chấp thuận một `authzid` cụ thể.
+Kerberos configuration requires checking DNS/hostname consistency, service principal names, keytabs or tickets, realm trust, clock skew, and credential read permissions. A successful JAAS login or a `Subject` holding a principal does not prove that the SASL server authenticated the right peer or approved a specific `authzid`.
 
-## 9. Failure modes, dấu hiệu và cách xử lý
+## 9. Failure modes, symptoms, and handling
 
-| Triệu chứng | Nguyên nhân thường gặp | Phản ứng an toàn |
+| Symptom | Common cause | Safe response |
 | --- | --- | --- |
-| Không có mechanism chung | Server/client/policy/provider không giao nhau | Báo lỗi; không tự bật cơ chế yếu để “cho chạy được”. |
-| Client chọn `GSSAPI` nhưng `createSaslClient` trả `null` | Provider hoặc cấu hình không hỗ trợ | Kiểm tra factories/JAAS và cấu hình triển khai; không đoán cơ chế đã tồn tại. |
-| Kerberos token thất bại | Ticket hết hạn, realm/SPN sai, hostname không khớp, clock skew | Chẩn đoán cấu hình/credentials; tránh lộ ticket và secret trong log. |
-| Credentials đúng nhưng SASL thất bại | Requested `authzid` không được ủy quyền | Trả lỗi authorization; không thay bằng identity yêu cầu nếu chưa được cấp. |
-| Đăng nhập được nhưng sai người dùng | Dùng raw authzid hoặc map principal không nhất quán | Chỉ dùng effective authorization ID sau khi server hoàn tất, kiểm tra canonical mapping. |
-| `PLAIN` xuất hiện trước TLS | Capability công bố/điều kiện kết nối sai | Chỉ quảng bá/chấp nhận khi kênh có bảo vệ thích hợp; refresh capabilities sau TLS theo protocol. |
-| Nhầm QOP với TLS | `auth` bị tưởng là đã mã hóa dữ liệu | Kiểm tra negotiated QOP và trạng thái TLS thực tế. |
+| No common mechanism | Server/client/policy/provider sets do not intersect | Report failure; never enable weak mechanisms just to "make it work." |
+| Client picks `GSSAPI` but `createSaslClient` returns `null` | Provider or configuration lacks support | Inspect factories/JAAS and deployment config; never assume a mechanism exists. |
+| Kerberos token failure | Expired ticket, wrong realm/SPN, hostname mismatch, clock skew | Diagnose configuration/credentials; avoid leaking tickets and secrets in logs. |
+| Valid credentials but SASL fails | Requested `authzid` is not authorized | Return an authorization failure; never substitute the requested identity if not granted. |
+| Login succeeds but wrong user | Raw `authzid` used or inconsistent principal mapping | Use only the effective authorization ID after server completion; verify canonical mapping. |
+| `PLAIN` appears before TLS | Faulty capability advertisement or connection checks | Advertise/accept only when the channel has proper protection; refresh capabilities after TLS per protocol. |
+| Confusing QOP with TLS | `auth` mistaken for encrypted data | Check both negotiated QOP and actual TLS state. |
 
-### Checklist triển khai
+### Implementation checklist
 
-- Xác định rõ cơ chế nào **được phép** ở từng môi trường; không dựa vào “cơ chế đầu tiên server gửi”.
-- Bảo vệ bước discovery/negotiation theo giao thức; chống downgrade và xác thực peer/kênh trước khi gửi bí mật.
-- Tách ba bước: **verify credential -> map authcid -> authorize requested authzid**. Bất kỳ bước nào lỗi đều thất bại.
-- Định danh có realm/tenant được ánh xạ/chuẩn hóa có chủ đích; không cấp proxy bởi so sánh chuỗi tùy tiện.
-- Chỉ tin `getAuthorizationID()` sau khi `SaslServer.isComplete()`; không lấy requested authzid từ request làm principal phiên.
-- Quyền hoạt động trên resource vẫn do application authorization kiểm tra; ghi audit **cả authcid lẫn effective authzid** (không ghi credential, secret hoặc SASL token).
-- Kiểm thử các trường hợp sai mật khẩu/ticket, authzid rỗng, authzid khác cùng quyền, authzid khác không quyền, không có mechanism chung, lỗi TLS/certificate, và client cố chọn mechanism bị cấm.
+- Define explicitly which mechanisms **are permitted** per environment; never rely on "the first mechanism the server sends."
+- Protect discovery/negotiation per protocol; defend against downgrade and authenticate the peer/channel before sending secrets.
+- Separate three steps: **verify credential -> map authcid -> authorize requested authzid**. Failure at any step must fail the whole exchange.
+- Normalize and map identities with realms/tenants intentionally; never grant proxy rights via arbitrary string matching.
+- Trust `getAuthorizationID()` only after `SaslServer.isComplete()`; never take a requested `authzid` from the request as the session principal.
+- Resource permissions must still be enforced by application authorization; audit **both `authcid` and effective `authzid`** (never log credentials, secrets, or SASL tokens).
+- Test wrong password/ticket, empty `authzid`, different `authzid` with permission, different `authzid` without permission, no common mechanism, TLS/certificate errors, and a client attempting a forbidden mechanism.
 
-## 10. Câu hỏi tự kiểm tra và bài tập
+## 10. Self-check questions and exercises
 
-1. Server quảng bá `GSSAPI, PLAIN`, client chỉ có `PLAIN` nhưng đang kết nối không TLS. Nên chọn gì? **Không chọn gì** nếu chính sách đòi kênh bảo vệ; dừng hoặc thiết lập TLS đúng giao thức trước.
-2. Alice chứng minh credentials hợp lệ và gửi `authzid=admin`. Có thể trả SASL success rồi cho role `alice` không? Theo logic ở đây, **không**: yêu cầu identity trái phép làm trao đổi thất bại; không âm thầm thay nghĩa của requested identity.
-3. Kerberos principal `alice@EXAMPLE.COM` và session identity `alice` khác chuỗi, có đồng nghĩa proxy authorization không? **Không nhất thiết**: đó có thể chỉ là mapping định danh mặc định; phải theo quy tắc server.
-4. Chỉnh chương trình demo để thêm rule `svc-report -> audit-reader`, rồi kiểm tra `svc-report -> admin` vẫn `false`. Thử xóa `SCRAM-SHA-256` khỏi whitelist và quan sát cơ chế được chọn nếu client/server hỗ trợ `GSSAPI`.
-5. Viết một bảng test gồm (`authcid`, `requested authzid`, kết quả ủy quyền) cho hai tenant khác nhau; chứng minh tài khoản thuộc tenant A không thể đại diện cho tài khoản trùng tên ở tenant B.
+1. The server advertises `GSSAPI, PLAIN`, and the client only has `PLAIN`, but the connection has no TLS. What should it choose? **Nothing** if policy requires a protected channel; abort or establish TLS per the protocol first.
+2. Alice proves valid credentials and sends `authzid=admin`. Can the server return SASL success and grant `alice`'s role instead? Under the logic here, **no**: an unauthorized identity request must fail the exchange; never silently alter the meaning of the requested identity.
+3. Kerberos principal `alice@EXAMPLE.COM` and session identity `alice` differ as strings—does that imply proxy authorization? **Not necessarily**: that may simply be default identity mapping; follow server rules.
+4. Modify the demo program to add the rule `svc-report -> audit-reader`, and verify `svc-report -> admin` remains `false`. Try removing `SCRAM-SHA-256` from the allowlist and observe which mechanism is chosen if client/server support `GSSAPI`.
+5. Write a test table with (`authcid`, `requested authzid`, authorization result) for two different tenants; prove that an account in tenant A cannot act as an identically named account in tenant B.
 
-## Tài liệu đối chiếu
+## Reference documents
 
 - RFC 4422 — *Simple Authentication and Security Layer (SASL)*: https://www.rfc-editor.org/rfc/rfc4422
 - RFC 4616 — *The PLAIN SASL Mechanism*: https://www.rfc-editor.org/rfc/rfc4616

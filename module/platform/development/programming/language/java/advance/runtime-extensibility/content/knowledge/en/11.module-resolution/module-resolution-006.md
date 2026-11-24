@@ -1,55 +1,55 @@
-# Kiểm tra đồ thị kết quả qua `Configuration` và `ResolvedModule`
+# Inspecting the Resulting Graph via `Configuration` and `ResolvedModule`
 
-Khi dùng Java Platform Module System (JPMS), viết `requires` trong `module-info.java` mới chỉ **khai báo phụ thuộc**. Java còn phải phân giải (resolution) các module khả dụng thành một **đồ thị module đã phân giải** trước khi xây dựng lớp module để chạy chương trình. Để hiểu vì sao một module được chọn, module nào đọc được module nào, hoặc vì sao không tìm thấy một dependency, ta có thể kiểm tra đồ thị qua hai API chuẩn của JDK:
+When using the Java Platform Module System (JPMS), writing `requires` in `module-info.java` only **declares a dependency**. Java still has to perform resolution across available modules into a **resolved module graph** before constructing a module layer to run the program. To understand why a module was selected, which module can read which other module, or why a dependency could not be found, you can inspect the graph through two standard JDK APIs:
 
-- `java.lang.module.Configuration`: đại diện cho một **cấu hình module đã phân giải** và các cấu hình cha.
-- `java.lang.module.ResolvedModule`: đại diện cho **một module cụ thể trong cấu hình**, bao gồm mô tả module và quan hệ *readability* (khả năng đọc module khác).
+- `java.lang.module.Configuration`: represents a **resolved module configuration** and its parent configurations.
+- `java.lang.module.ResolvedModule`: represents **a specific module in the configuration**, including its module reference and *readability* relationships (ability to read other modules).
 
-Điểm quan trọng nhất: **đồ thị `requires` khai báo trong descriptor và đồ thị `reads()` sau resolution có liên quan nhưng không nhất thiết giống nhau**. Bài này dựng một ví dụ Java 17 có quan hệ `requires transitive`, in đồ thị theo thứ tự ổn định, đọc đúng `Configuration.modules()`, `findModule()`, `ResolvedModule.reference()`, `reads()` và giải thích khác biệt giữa phân giải cấu hình với nạp module để thực thi.
+The most important point: **the `requires` graph declared in descriptors and the `reads()` graph after resolution are related but not necessarily identical**. This lesson builds a Java 17 example with a `requires transitive` relationship, prints the graph in a deterministic order, properly reads `Configuration.modules()`, `findModule()`, `ResolvedModule.reference()`, and `reads()`, and explains the difference between resolving a configuration and loading modules for execution.
 
-## 1. Trước khi kiểm tra, cần phân biệt ba đối tượng
+## 1. Before Inspecting, Distinguish Three Objects
 
-| Thành phần | Vai trò | Điều nó trả lời |
+| Component | Role | Question It Answers |
 |---|---|---|
-| `ModuleDescriptor` | Mô tả tĩnh của một named module: `requires`, `exports`, `opens`, `uses`, `provides`... | “Module *khai báo* điều gì?” |
-| `Configuration` | Kết quả resolution của một tập module root, cùng quan hệ với cấu hình cha | “Trong lần phân giải này, có những module nào được chọn?” |
-| `ResolvedModule` | Một module đã được chọn, có `ModuleReference`, `configuration()` và tập `reads()` | “Module này *thực sự đọc được* những module nào trong đồ thị?” |
+| `ModuleDescriptor` | Static description of a named module: `requires`, `exports`, `opens`, `uses`, `provides`... | “What does the module *declare*?” |
+| `Configuration` | Resolution result for a set of root modules, along with parent configuration relationships | “In this resolution pass, which modules were selected?” |
+| `ResolvedModule` | A selected module, having a `ModuleReference`, `configuration()`, and `reads()` set | “Which modules can this module *actually read* in the graph?” |
 
-Có hai API dễ nhầm thêm:
+Two more APIs are easy to confuse:
 
-- `java.lang.Module` mô tả module **ở runtime** sau khi module được định nghĩa vào một `ModuleLayer`; nó có `canRead(...)`, `getLayer()` và các thao tác runtime khác.
-- `java.lang.ModuleLayer` gắn một `Configuration` với cách định nghĩa lớp/class loader và các đối tượng `Module`. **Chỉ gọi `Configuration.resolve(...)` chưa tạo `ModuleLayer`, chưa nạp class để chạy, và chưa khởi tạo provider.**
+- `java.lang.Module` represents a module **at runtime** after the module is defined into a `ModuleLayer`; it provides `canRead(...)`, `getLayer()`, and other runtime operations.
+- `java.lang.ModuleLayer` binds a `Configuration` to class definitions/class loaders and `Module` objects. **Simply calling `Configuration.resolve(...)` does not create a `ModuleLayer`, does not load classes to execute, and does not instantiate providers.**
 
-Vì vậy `ResolvedModule` không phải đối tượng `Module` runtime; `ModuleDescriptor` cũng không phải danh sách toàn bộ các cạnh sau resolution.
+Therefore `ResolvedModule` is not a runtime `Module` object; `ModuleDescriptor` is likewise not the full list of edges after resolution.
 
-## 2. Quá trình tạo đồ thị resolution
+## 2. The Resolution Graph Creation Process
 
-Một phép phân giải thường cần ba thứ:
+A resolution pass typically needs three things:
 
-1. **Root modules:** tập tên module cần có, ví dụ `demo.app`.
-2. **Nguồn tìm module (`ModuleFinder`):** module path/JAR/thư mục chứa các module quan sát được.
-3. **Cấu hình cha:** ví dụ `ModuleLayer.boot().configuration()` để tham chiếu các module nền tảng JDK đã có.
+1. **Root modules:** the set of module names required, e.g. `demo.app`.
+2. **Module lookup source (`ModuleFinder`):** module path/JARs/directories containing observable modules.
+3. **Parent configuration:** e.g. `ModuleLayer.boot().configuration()` to reference existing JDK platform modules.
 
 ```text
 Root: demo.app
        |
        v
-ModuleFinder tìm demo.app và các dependency liên quan
+ModuleFinder finds demo.app and related dependencies
        |
        v
-Resolution kiểm tra yêu cầu, khả năng đọc và ràng buộc JPMS
+Resolution checks requirements, readability, and JPMS constraints
        |
        v
-Configuration (đồ thị kết quả)
+Configuration (result graph)
        |
-       +-- modules() -> các ResolvedModule thuộc chính cấu hình mới
+       +-- modules() -> ResolvedModules belonging to the new configuration itself
        |
-       +-- parents() -> cấu hình cha, có thể chứa java.base
+       +-- parents() -> parent configurations, which may contain java.base
        |
-       +-- findModule(name) -> tìm theo tên trong cấu hình hoặc cha
+       +-- findModule(name) -> search by name in this configuration or parents
 ```
 
-Mã API điển hình:
+Typical API code:
 
 ```java
 ModuleFinder finder = ModuleFinder.of(Path.of("mods"));
@@ -61,28 +61,28 @@ Configuration graph = parent.resolve(
         Set.of("demo.app"));
 ```
 
-Đoạn này là minh họa API; chương trình hoàn chỉnh bên dưới có import, tệp nguồn và lệnh chạy.
+This snippet illustrates the API; the complete program below includes imports, source files, and run commands.
 
-Ý nghĩa tham số của `parent.resolve(before, after, roots)`:
+Meaning of parameters in `parent.resolve(before, after, roots)`:
 
-- `before`: nơi ưu tiên tìm module so với module trong cấu hình cha.
-- `after`: nguồn tìm sau khi đã xét cấu hình cha.
-- `roots`: tập module bắt đầu quá trình phân giải.
-- `parent`: cấu hình cha được kế thừa; các module ở cha có thể được dùng để thỏa phụ thuộc.
+- `before`: source checked for modules before modules in parent configurations.
+- `after`: fallback lookup source after parent configurations have been checked.
+- `roots`: set of modules starting the resolution process.
+- `parent`: inherited parent configuration; modules in the parent can be used to satisfy dependencies.
 
-API resolution không lấy danh sách class trong classpath rồi tự biến chúng thành named module. Những tệp `module-info.class` hoặc modular JAR được `ModuleFinder` nhìn thấy mới là đầu vào của phép phân giải tương ứng. Thứ tự và tính quan sát được của các module có thể ảnh hưởng kết quả, nên cần kiểm tra đầu vào trước khi kết luận lỗi do `Configuration`.
+The resolution API does not take a list of classes on the classpath and automatically turn them into named modules. Only `module-info.class` files or modular JARs visible to `ModuleFinder` serve as inputs to that resolution. Ordering and module observability can affect the outcome, so verify inputs before blaming `Configuration`.
 
-## 3. Bài toán minh họa: ba module và một cạnh đọc gián tiếp
+## 3. Illustrative Problem: Three Modules and an Indirect Read Edge
 
-Ta tạo ba named module:
+We create three named modules:
 
 ```text
 demo.app --requires--> demo.feature --requires transitive--> demo.contract
 ```
 
-`demo.app` chỉ khai báo `requires demo.feature`. `demo.feature` công bố `requires transitive demo.contract`, vì vậy `demo.app` cũng có khả năng đọc `demo.contract` theo quy tắc readability của JPMS.
+`demo.app` only declares `requires demo.feature`. `demo.feature` declares `requires transitive demo.contract`, so `demo.app` also gains readability to `demo.contract` per JPMS readability rules.
 
-Cấu trúc nguồn:
+Source structure:
 
 ```text
 module-graph-demo/
@@ -100,11 +100,11 @@ module-graph-demo/
     └── GraphInspector.java
 ```
 
-Sau khi biên dịch, `mods/` chứa ba thư mục module đã biên dịch, còn `out/` chứa lớp inspector. Inspector chạy trên classpath để nó có thể xây dựng một cấu hình mới từ `mods/` mà không cần đưa ba module demo vào boot layer của chính tiến trình inspector.
+After compilation, `mods/` contains the three compiled module directories, while `out/` contains the inspector class. The inspector runs on the classpath so it can build a new configuration from `mods/` without putting the three demo modules into the inspector process's own boot layer.
 
-### 3.1. Module hợp đồng: `demo.contract`
+### 3.1. Contract Module: `demo.contract`
 
-Tệp `src/demo.contract/module-info.java`:
+File `src/demo.contract/module-info.java`:
 
 ```java
 module demo.contract {
@@ -112,7 +112,7 @@ module demo.contract {
 }
 ```
 
-Tệp `src/demo.contract/demo/contract/Greeter.java`:
+File `src/demo.contract/demo/contract/Greeter.java`:
 
 ```java
 package demo.contract;
@@ -122,11 +122,11 @@ public interface Greeter {
 }
 ```
 
-Module này xuất gói `demo.contract` để các module đọc được nó có thể truy cập `Greeter`.
+This module exports package `demo.contract` so modules that read it can access `Greeter`.
 
-### 3.2. Module tính năng: `demo.feature`
+### 3.2. Feature Module: `demo.feature`
 
-Tệp `src/demo.feature/module-info.java`:
+File `src/demo.feature/module-info.java`:
 
 ```java
 module demo.feature {
@@ -135,7 +135,7 @@ module demo.feature {
 }
 ```
 
-Tệp `src/demo.feature/demo/feature/GreeterImpl.java`:
+File `src/demo.feature/demo/feature/GreeterImpl.java`:
 
 ```java
 package demo.feature;
@@ -150,11 +150,11 @@ public final class GreeterImpl implements Greeter {
 }
 ```
 
-`requires transitive demo.contract` có hai tác dụng liên quan: `demo.feature` đọc `demo.contract`; các module đọc `demo.feature` theo mối quan hệ phù hợp cũng được ngụ ý đọc `demo.contract`. Đừng nhầm `requires transitive` với việc mở gói: để mã ngoài module truy cập kiểu `Greeter`, `demo.contract` vẫn cần `exports demo.contract`.
+`requires transitive demo.contract` has two related effects: `demo.feature` reads `demo.contract`; and modules that read `demo.feature` under the corresponding relationship implicitly read `demo.contract` as well. Do not confuse `requires transitive` with opening/exporting packages: for code outside the module to access type `Greeter`, `demo.contract` still needs `exports demo.contract`.
 
-### 3.3. Root module: `demo.app`
+### 3.3. Root Module: `demo.app`
 
-Tệp `src/demo.app/module-info.java`:
+File `src/demo.app/module-info.java`:
 
 ```java
 module demo.app {
@@ -162,7 +162,7 @@ module demo.app {
 }
 ```
 
-Tệp `src/demo.app/demo/app/App.java`:
+File `src/demo.app/demo/app/App.java`:
 
 ```java
 package demo.app;
@@ -178,11 +178,11 @@ public final class App {
 }
 ```
 
-Điều đáng chú ý: `App` import `demo.contract.Greeter` mặc dù `demo.app` **không khai báo** `requires demo.contract`. Việc này hợp lệ vì `demo.feature` có `requires transitive demo.contract`. Chương trình sẽ in `Hello Java`.
+Worth noting: `App` imports `demo.contract.Greeter` even though `demo.app` **does not declare** `requires demo.contract`. This is valid because `demo.feature` has `requires transitive demo.contract`. The program prints `Hello Java`.
 
-## 4. Tạo `Configuration` và duyệt `ResolvedModule`
+## 4. Creating a `Configuration` and Iterating Over `ResolvedModule`
 
-Tệp `inspector/GraphInspector.java` sau đây là một chương trình Java 17 độc lập, đầy đủ import và `main`:
+The following `inspector/GraphInspector.java` file is a standalone Java 17 program with complete imports and `main`:
 
 ```java
 import java.lang.module.Configuration;
@@ -252,35 +252,35 @@ public final class GraphInspector {
 }
 ```
 
-Chương trình cố ý sắp xếp danh sách bằng `.sorted()` và `Comparator.comparing(...)`; `Set<ResolvedModule>` trả từ `modules()` hoặc `reads()` **không phải một hợp đồng thứ tự hiển thị**. Nếu in trực tiếp tập hợp, thứ tự có thể khác giữa môi trường.
+The program intentionally sorts lists using `.sorted()` and `Comparator.comparing(...)`; the `Set<ResolvedModule>` returned by `modules()` or `reads()` **is not a display-order contract**. Printing sets directly can produce different ordering across environments.
 
-Để các dòng ví dụ ổn định, ta lọc những tên bắt đầu bằng `demo.` khi so sánh `requires`/`reads`. Module thực tế còn có thể đọc `java.base` hoặc các module khác do JPMS quy định; việc lọc chỉ dành cho mục đích quan sát phần đồ thị demo.
+To keep example output stable, we filter names starting with `demo.` when comparing `requires`/`reads`. Real modules may also read `java.base` or other modules per JPMS rules; filtering is purely for observing the demo portion of the graph.
 
-## 5. Biên dịch và chạy trên Java 17 trở lên
+## 5. Compiling and Running on Java 17 or Later
 
-Ví dụ dùng `javac --release 17` để các class được biên dịch theo mức Java 17. Đứng tại thư mục `module-graph-demo`, nơi có các thư mục `src` và `inspector` như phần trên.
+The example uses `javac --release 17` so classes are compiled targeting Java 17. Stand in the `module-graph-demo` directory containing `src` and `inspector` as shown above.
 
 ### Linux/macOS (Bash)
 
-Tạo thư mục đầu ra:
+Create output directories:
 
 ```bash
 mkdir -p mods out
 ```
 
-Biên dịch ba named module. Mỗi module phải có tên thư mục trùng tên module dưới `--module-source-path src`:
+Compile the three named modules. Each module must have a directory name matching its module name under `--module-source-path src`:
 
 ```bash
 javac --release 17 -d mods --module-source-path src src/demo.contract/module-info.java src/demo.contract/demo/contract/Greeter.java src/demo.feature/module-info.java src/demo.feature/demo/feature/GreeterImpl.java src/demo.app/module-info.java src/demo.app/demo/app/App.java
 ```
 
-Biên dịch inspector vào classpath output riêng:
+Compile the inspector into a separate classpath output directory:
 
 ```bash
 javac --release 17 -d out inspector/GraphInspector.java
 ```
 
-Chạy ứng dụng named module, rồi chạy inspector:
+Run the named-module application, then run the inspector:
 
 ```bash
 java --module-path mods -m demo.app/demo.app.App
@@ -289,7 +289,7 @@ java -cp out GraphInspector mods
 
 ### Windows PowerShell
 
-Các đường dẫn tương đối dùng dấu `/` dưới đây vẫn được Java CLI và PowerShell nhận trong vị trí tên tệp ở ví dụ. Dùng:
+The relative paths using `/` below are accepted by the Java CLI and PowerShell in filename positions in this example. Run:
 
 ```powershell
 New-Item -ItemType Directory -Force mods,out | Out-Null
@@ -302,17 +302,17 @@ java --module-path mods -m demo.app/demo.app.App
 java -cp out GraphInspector mods
 ```
 
-Không cần ghép nhiều JAR bằng dấu `:` hoặc `;` vì `mods` là **một** đường dẫn module output và `out` là **một** đường dẫn classpath. Nếu sau này dùng nhiều phần tử trong `--module-path`, Linux/macOS dùng `:`, còn Windows dùng `;`.
+There is no need to join multiple JARs with `:` or `;` because `mods` is **one** module output path and `out` is **one** classpath entry. If multiple entries are later used in `--module-path`, Linux/macOS uses `:` while Windows uses `;`.
 
-### Kết quả chính xác
+### Exact Output
 
-Lệnh chạy `demo.app` in stdout:
+Running `demo.app` prints to stdout:
 
 ```text
 Hello Java
 ```
 
-Lệnh `GraphInspector` in stdout:
+Running `GraphInspector` prints to stdout:
 
 ```text
 Modules in new configuration:
@@ -330,45 +330,45 @@ java.base through graph.findModule: true
 java.base in graph.modules: false
 ```
 
-Các kết quả trên là đầu ra cho **bộ tệp nguồn và lệnh chạy vừa trình bày**, không phải đầu ra phổ quát của mọi đồ thị JPMS. Inspector chạy trên classpath, và khi nó tạo cấu hình con với `demo.app` là root thì ba module demo cùng được phân giải trong cấu hình đó.
+The outputs above are the output for **the exact source files and commands presented**, not a universal output for every JPMS graph. The inspector runs on the classpath, and when it creates a child configuration with `demo.app` as root, all three demo modules are resolved together into that configuration.
 
-## 6. Đọc từng kết quả: điều nào thực sự chứng minh điều gì?
+## 6. Reading Each Result: What Actually Proves What?
 
-### 6.1. `Configuration.modules()` cho biết tập module thuộc cấu hình mới
+### 6.1. `Configuration.modules()` Gives the Set of Modules Belonging to the New Configuration
 
 ```java
 Set<ResolvedModule> selected = graph.modules();
 ```
 
-Trong ví dụ, `selected` có ba tên `demo.app`, `demo.feature`, `demo.contract`.
+In the example, `selected` contains three names: `demo.app`, `demo.feature`, `demo.contract`.
 
-**Không được hiểu** `graph.modules()` là “mọi module mà `graph` có thể tra cứu”, vì các module nằm trong cấu hình cha **không thuộc tập này**. `java.base` thuộc cấu hình boot ở cha; vì vậy:
+**Do not interpret** `graph.modules()` as “every module `graph` can look up”, because modules residing in parent configurations **do not belong to this set**. `java.base` belongs to the boot configuration in the parent; therefore:
 
 ```text
 java.base through graph.findModule: true
 java.base in graph.modules: false
 ```
 
-Đây không phải mâu thuẫn. `Configuration.findModule(name)` tra cứu cả cấu hình hiện tại và các cấu hình cha. Khi cần liệt kê **riêng các module mới**, dùng `modules()`; khi cần tra tên module có thể đến từ cha, dùng `findModule()`.
+This is not a contradiction. `Configuration.findModule(name)` searches both the current configuration and parent configurations. When you need to list **only the newly resolved modules**, use `modules()`; when you need to look up a module name that may come from a parent, use `findModule()`.
 
-### 6.2. `ResolvedModule.name()` là tên module đã chọn
+### 6.2. `ResolvedModule.name()` Is the Selected Module Name
 
 ```java
 String name = module.name();
 ```
 
-`name()` phù hợp để ghi log, kiểm tra membership và so sánh với tên trong descriptor. Không nên tự xem tên hiển thị như một định danh duy nhất xuyên mọi configuration/layer: một tên module có thể xuất hiện trong những môi trường nạp khác nhau; khi cần hiểu một `ResolvedModule`, hãy giữ cả cấu hình sở hữu nó.
+`name()` is suitable for logging, membership checks, and comparing against descriptor names. Do not treat the display name by itself as a globally unique identifier across all configurations/layers: a module name can appear in different loading contexts; when you need to understand a `ResolvedModule`, retain its owning configuration as well.
 
-### 6.3. `ResolvedModule.reference()` dẫn tới descriptor của module
+### 6.3. `ResolvedModule.reference()` Leads to the Module's Descriptor
 
 ```java
 var descriptor = module.reference().descriptor();
 var declaredRequires = descriptor.requires();
 ```
 
-`module.reference()` trả `ModuleReference`, chứa `ModuleDescriptor` và có thể cung cấp `location()` dạng `Optional<URI>`. Không được giả định `location()` luôn có URI file/JAR: module có thể đến từ module finder của hệ thống hoặc cơ chế khác.
+`module.reference()` returns a `ModuleReference`, containing the `ModuleDescriptor` and optionally providing `location()` as `Optional<URI>`. Do not assume `location()` always has a file/JAR URI: a module may come from a system module finder or another mechanism.
 
-`descriptor.requires()` là các khai báo **trực tiếp trong descriptor**, kèm modifier. Trong chương trình, ta chỉ lấy `.name()` để so sánh. Nếu muốn phân biệt `requires transitive`, có thể đọc:
+`descriptor.requires()` holds the declarations **directly in the descriptor**, along with modifiers. In the program, we extracted only `.name()` for comparison. To distinguish `requires transitive`, you can inspect:
 
 ```java
 boolean transitive = module.reference()
@@ -380,94 +380,94 @@ boolean transitive = module.reference()
                         java.lang.module.ModuleDescriptor.Requires.Modifier.TRANSITIVE));
 ```
 
-Đoạn kiểm tra này là **minh họa biểu thức nằm trong ngữ cảnh có biến `module`**, không phải một chương trình độc lập. Giá trị `true` áp dụng khi `module` là `demo.feature`; với `demo.app` là `false` vì `demo.app` không trực tiếp khai báo `demo.contract`.
+This check is an **illustrative expression in a context where variable `module` exists**, not a standalone program. The value `true` applies when `module` is `demo.feature`; for `demo.app` it is `false` because `demo.app` does not directly declare `demo.contract`.
 
-Các yêu cầu mặc định đến `java.base` thường được thêm vào descriptor theo quy tắc JPMS. Bộ lọc `demo.` trong inspector loại chúng khỏi bảng để không làm lẫn ví dụ.
+Default requirements on `java.base` are normally added to the descriptor per JPMS rules. The `demo.` filter in the inspector excludes them from the output so they do not clutter the example.
 
-### 6.4. `ResolvedModule.reads()` biểu thị các cạnh readability
+### 6.4. `ResolvedModule.reads()` Represents Readability Edges
 
 ```java
 Set<ResolvedModule> readable = module.reads();
 ```
 
-`reads()` trả tập những module mà module này đọc được theo đồ thị resolution. Đồ thị readability có thể bao gồm các quan hệ **suy ra từ `requires transitive`**, không chỉ những mục `requires` ghi trực tiếp trong descriptor.
+`reads()` returns the set of modules this module can read according to the resolution graph. The readability graph can include relationships **derived from `requires transitive`**, not solely the `requires` entries written directly in the descriptor.
 
-Trong stdout:
+In stdout:
 
 ```text
 demo.app requires=[demo.feature] reads=[demo.contract, demo.feature]
 ```
 
-Đây là điểm học quan trọng: `demo.app` **không trực tiếp khai báo** `demo.contract`, nhưng vẫn đọc được nó vì `demo.feature` yêu cầu `demo.contract` theo chế độ `transitive`.
+This is the key learning point: `demo.app` **did not directly declare** `demo.contract`, yet it can read it because `demo.feature` requires `demo.contract` with `transitive`.
 
-Trong ví dụ, `demo.feature` trực tiếp đọc `demo.contract`. `demo.contract` không khai báo phụ thuộc demo nào nên tập readability sau khi lọc tên `demo.` là rỗng. Điều đó không nói rằng nó không đọc `java.base`; ta đã chủ động lọc các module không bắt đầu bằng `demo.`.
+In the example, `demo.feature` directly reads `demo.contract`. `demo.contract` declares no demo dependencies, so its readability set after filtering for `demo.` names is empty. That does not mean it does not read `java.base`; we intentionally filtered out modules not starting with `demo.`.
 
-### 6.5. `ResolvedModule.configuration()` chỉ ra cấu hình sở hữu module
+### 6.5. `ResolvedModule.configuration()` Points to the Owning Configuration
 
 ```java
 Configuration owner = module.configuration();
 ```
 
-Nếu lấy `demo.app` từ `graph.findModule("demo.app")`, biểu thức `module.configuration() == graph` là `true` trong chương trình này vì `demo.app` nằm trong chính cấu hình mới.
+If you fetch `demo.app` via `graph.findModule("demo.app")`, the expression `module.configuration() == graph` is `true` in this program because `demo.app` resides in the new configuration itself.
 
-Nhưng với một module trả về từ cấu hình cha qua `findModule`, `module.configuration()` sẽ là cấu hình cha sở hữu nó, **không phải** `graph`. Vì vậy, khi kiểm tra graph phân cấp, phải phân biệt **được tra cứu qua cấu hình hiện tại** và **được sở hữu bởi cấu hình hiện tại**.
+However, for a module returned from a parent configuration via `findModule`, `module.configuration()` will be the parent configuration that owns it, **not** `graph`. Thus, when inspecting hierarchical graphs, distinguish **looked up via the current configuration** from **owned by the current configuration**.
 
-## 7. So sánh đồ thị `requires` và đồ thị `reads`
+## 7. Comparing the `requires` Graph and the `reads` Graph
 
-Đặt cạnh nhau để dễ hình dung:
+Side by side for clarity:
 
 ```text
-KHAI BÁO (ModuleDescriptor.requires)
-  demo.app     -> demo.feature
-  demo.feature -> demo.contract  [TRANSITIVE]
-  demo.contract -> (không requires demo.*)
+DECLARED (ModuleDescriptor.requires)
+  demo.app      -> demo.feature
+  demo.feature  -> demo.contract  [TRANSITIVE]
+  demo.contract -> (no demo.* requires)
 
-ĐỌC ĐƯỢC (ResolvedModule.reads, chỉ lọc demo.*)
-  demo.app     -> demo.feature
-  demo.app     -> demo.contract  [suy ra qua transitive]
-  demo.feature -> demo.contract
-  demo.contract -> (không đọc demo.*)
+READABLE (ResolvedModule.reads, filtered to demo.*)
+  demo.app      -> demo.feature
+  demo.app      -> demo.contract  [inferred via transitive]
+  demo.feature  -> demo.contract
+  demo.contract -> (no demo.* reads)
 ```
 
-Bảng sau giải thích chọn API cho từng câu hỏi:
+The table below explains which API to pick for each question:
 
-| Muốn biết | API phù hợp | Lưu ý |
+| Want to Know | Right API | Note |
 |---|---|---|
-| Module nào đã được đưa vào cấu hình mới? | `configuration.modules()` | Không bao gồm module chỉ thuộc parent |
-| Module `X` có thể tìm qua cấu hình và cha không? | `configuration.findModule("X")` | Có thể trả module từ parent |
-| Module A khai báo `requires` nào? | `resolved.reference().descriptor().requires()` | Có modifier `TRANSITIVE`, `STATIC`, `MANDATED`... |
-| Module A thực sự đọc những module nào sau phân giải? | `resolved.reads()` | Có thể gồm cạnh gián tiếp |
-| Module B thuộc cấu hình nào? | `resolved.configuration()` | Hữu ích với nhiều parent/layer |
-| Module được chọn có mô tả/tài nguyên ở đâu? | `resolved.reference()` | `location()` là `Optional` |
-| Module runtime A hiện có đọc B không? | `java.lang.Module.canRead(...)` | Chỉ dùng cho module runtime sau khi được định nghĩa |
+| Which modules were added to the new configuration? | `configuration.modules()` | Excludes modules belonging only to parents |
+| Can module `X` be found through the configuration and parents? | `configuration.findModule("X")` | May return a module from a parent |
+| Which `requires` does module A declare? | `resolved.reference().descriptor().requires()` | Includes modifiers `TRANSITIVE`, `STATIC`, `MANDATED`... |
+| Which modules can module A actually read after resolution? | `resolved.reads()` | May include indirect edges |
+| Which configuration does module B belong to? | `resolved.configuration()` | Useful with multiple parents/layers |
+| Where are the selected module's descriptor/resources? | `resolved.reference()` | `location()` is `Optional` |
+| Does runtime module A currently read B? | `java.lang.Module.canRead(...)` | Only for runtime modules after they are defined |
 
-Không nên dùng `descriptor.requires()` để kết luận toàn bộ **readability**, cũng không nên dùng `reads()` để đoán chắc một quan hệ là `requires` trực tiếp. Nếu cần vẽ sơ đồ đầy đủ, nên chú thích **cạnh khai báo** và **cạnh đọc có hiệu lực** thành hai loại.
+Do not use `descriptor.requires()` to deduce full **readability**, and do not use `reads()` to assume a relationship is a direct `requires`. If drawing a full diagram, annotate **declared edges** and **effective read edges** as two distinct kinds.
 
-## 8. Khi nào `Configuration.resolve(...)` chưa đủ?
+## 8. When Is `Configuration.resolve(...)` Not Enough?
 
-`Configuration` là đồ thị metadata đã phân giải, không phải một ứng dụng được khởi chạy. Ví dụ inspector **không** định nghĩa class loader/module layer cho ba module demo.
+`Configuration` is a resolved metadata graph, not a launched application. The inspector example **does not** define class loaders/module layers for the three demo modules.
 
-Muốn thực thi các class trong module mới, cần một bước định nghĩa vào `ModuleLayer` với chiến lược class loader thích hợp, hoặc đơn giản khởi chạy chương trình modular bằng `java --module-path ... -m ...` như ví dụ. Hai lệnh:
+To execute classes in new modules, you need a step that defines them into a `ModuleLayer` with an appropriate class-loader strategy, or simply launch a modular program with `java --module-path ... -m ...` as shown. The two commands:
 
 ```text
 java --module-path mods -m demo.app/demo.app.App
 java -cp out GraphInspector mods
 ```
 
-là **hai cách chạy có mục đích khác nhau**. Lệnh đầu tạo môi trường module để chạy `demo.app`; lệnh sau tạo cấu hình để khảo sát từ một tiến trình inspector trên classpath. Hai đồ thị có thể phản ánh các dependency tương đương nhưng không phải cùng một đối tượng `Configuration` trong cùng một JVM.
+are **two executions with different purposes**. The first creates a module environment to run `demo.app`; the second builds a configuration for inspection from an inspector process on the classpath. Both graphs may reflect equivalent dependencies, but they are not the same `Configuration` object in the same JVM.
 
-Cũng cần phân biệt:
+Also distinguish:
 
-- `resolve(...)`: phân giải tập root và các phụ thuộc module cần thiết theo luật JPMS.
-- `resolveAndBind(...)`: ngoài việc phân giải, còn có thể đưa vào các module provider khi thực hiện **service binding** dựa trên khai báo `uses` và `provides`.
+- `resolve(...)`: resolves the root set and required module dependencies per JPMS rules.
+- `resolveAndBind(...)`: in addition to resolving, can bring in provider modules when performing **service binding** based on `uses` and `provides` declarations.
 
-Nếu module có `uses SomeService` mà provider chỉ được phát hiện qua service binding, kết quả `modules()` có thể khác giữa hai cách. Không nên suy luận “cứ có `provides` trên module path là provider tự vào graph” cho mọi trường hợp `resolve`. Sau khi có graph, ứng dụng còn cần `ModuleLayer` và cơ chế sử dụng dịch vụ thích hợp để thực sự gọi provider.
+If a module has `uses SomeService` and a provider is only discovered through service binding, `modules()` can differ between the two methods. Do not infer “having `provides` on the module path puts the provider into the graph automatically” for plain `resolve`. Once you have the graph, the application still needs a `ModuleLayer` and an appropriate service consumption mechanism to actually invoke the provider.
 
-## 9. Kiểm tra graph trong hệ thống có cấu hình cha
+## 9. Inspecting the Graph in a System with Parent Configurations
 
-Cấu hình không nhất thiết là một tập module phẳng. `Configuration.parents()` trả các cấu hình cha; API static còn có biến thể resolution nhận danh sách cha để phục vụ module layer phức tạp. Trong ứng dụng plugin, một plugin có thể được phân giải thành cấu hình con của boot configuration hoặc cấu hình đã chứa API chung.
+A configuration is not necessarily a flat set of modules. `Configuration.parents()` returns parent configurations; the static API also has resolution variants accepting a list of parents to support complex module layers. In a plugin application, a plugin can be resolved into a child configuration of the boot configuration or of a configuration already containing the shared API.
 
-Mô hình:
+Model:
 
 ```text
           Boot configuration
@@ -479,75 +479,75 @@ Mô hình:
          demo.contract)
 ```
 
-Quy tắc quan sát:
+Inspection rules:
 
-1. Dùng `graph.modules()` để thấy đúng module **thuộc graph** mới.
-2. Dùng `graph.parents()` để biết các cấu hình trước đó mà graph có thể dựa vào.
-3. Dùng `graph.findModule(name)` để tìm module theo tên xuyên quan hệ cấu hình.
-4. Sau khi có `ResolvedModule`, dùng `configuration()` để biết nó thuộc về parent hay child.
-5. Dùng `reads()` của từng module nếu cần xác minh đường readability. Đừng dùng riêng `findModule` để suy ra một module bất kỳ đọc được module đã tìm thấy.
+1. Use `graph.modules()` to see exactly the modules **belonging to the new graph**.
+2. Use `graph.parents()` to inspect prior configurations the graph may rely on.
+3. Use `graph.findModule(name)` to look up a module by name across configuration relationships.
+4. Once you have a `ResolvedModule`, use `configuration()` to tell whether it belongs to a parent or the child.
+5. Use each module's `reads()` if you need to verify readability paths. Do not use `findModule` alone to deduce that any given module can read the found module.
 
-`findModule("java.base").isPresent()` là câu hỏi “module đó có ở đâu trong cấu hình này hoặc cha không?”. Nó **không** có nghĩa mọi module trong graph có quyền truy cập mọi gói của `java.base` hoặc bất kỳ module parent nào; tính đọc được, `exports` và `opens` vẫn là các quan hệ/ràng buộc riêng.
+`findModule("java.base").isPresent()` answers “is that module somewhere in this configuration or its parents?”. It does **not** mean every module in the graph has access to every package of `java.base` or any parent module; readability, `exports`, and `opens` remain separate relationships/constraints.
 
-## 10. Những giới hạn khi đọc đồ thị phân giải
+## 10. Limits When Reading the Resolution Graph
 
-**Readability khác package accessibility.** Module A có thể đọc B, nhưng A chỉ được truy cập công khai các package mà B **exports** cho A. `opens` phục vụ truy cập phản chiếu theo quy tắc tương ứng; `reads()` không phải danh sách package được phép import.
+**Readability differs from package accessibility.** Module A may read B, yet A can only publicly access packages that B **exports** to A. `opens` governs reflective access under corresponding rules; `reads()` is not the list of importable packages.
 
-**Một cấu hình có thể được tạo mà chưa chạy code.** `ResolvedModule` không nói class đã được nạp, static initializer đã chạy, hay service provider đã được tạo. Các câu hỏi đó thuộc giai đoạn runtime.
+**A configuration can be created without running any code.** `ResolvedModule` does not tell you whether classes have been loaded, static initializers have run, or service providers have been instantiated. Those questions belong to the runtime stage.
 
-**Descriptor là metadata tại thời điểm resolution.** Những thay đổi readability bằng các API runtime như `Module.addReads(...)` (trong phạm vi quyền và điều kiện thích hợp) có thể làm `Module.canRead(...)` ở runtime khác với dữ liệu ta khảo sát từ cấu hình ban đầu.
+**Descriptors are metadata at resolution time.** Readability changes via runtime APIs such as `Module.addReads(...)` (within appropriate permissions and conditions) can make runtime `Module.canRead(...)` differ from the data inspected on the initial configuration.
 
-**`reads()` là tập cạnh, không phải thuật toán chỉ đường.** Nếu muốn tìm vì sao A đọc C qua những module trung gian nào, cần kết hợp descriptor (`requires`/modifier) và phân tích graph. Một cạnh xuất hiện trong `reads()` không tự ghi “nguồn gốc cạnh”.
+**`reads()` is a set of edges, not a pathfinding explanation.** If you want to trace why A reads C through intermediate modules, you must combine descriptors (`requires`/modifiers) and graph analysis. An edge appearing in `reads()` does not record “the origin of the edge”.
 
-**Module version không thay thế dependency management.** `ModuleDescriptor` có thể mang version metadata, nhưng JPMS resolution không phải bộ giải phiên bản semantic dependency giống Maven/Gradle. Module path cần được chuẩn bị với các artifact tương thích; việc có tên module đúng chưa đủ để kết luận API tương thích.
+**Module versions do not replace dependency management.** `ModuleDescriptor` can carry version metadata, but JPMS resolution is not a semantic dependency version solver like Maven/Gradle. The module path must be assembled with compatible artifacts; having matching module names alone is not enough to conclude API compatibility.
 
-**Không phải mọi thứ trên classpath đều vào JPMS graph.** Mã của unnamed module và các dependency thuần classpath không tự xuất hiện trong `Configuration.modules()` với tư cách resolved named module. Các automatic module trên module path có quy tắc riêng; cần phân biệt chúng với plain classpath JAR.
+**Not everything on the classpath enters the JPMS graph.** Code in the unnamed module and pure classpath dependencies do not automatically appear in `Configuration.modules()` as resolved named modules. Automatic modules on the module path have their own rules; distinguish them from plain classpath JARs.
 
-## 11. Chẩn đoán kết quả bất thường
+## 11. Diagnosing Anomalous Results
 
-| Hiện tượng | Khả năng thường gặp | Cách kiểm tra |
+| Symptom | Common Possibility | How to Check |
 |---|---|---|
-| `findModule("demo.app")` rỗng | Không đưa `demo.app` vào root hoặc không có nó trong các cấu hình liên quan | In roots, kiểm tra ModuleFinder và tên module |
-| Resolution thất bại vì thiếu module | Một dependency bắt buộc không được quan sát từ finder/parent | Kiểm tra `requires`, đường dẫn module path và module thực sự có mặt |
-| Module có trong finder nhưng không có ở `modules()` | Nó có thể không thuộc dependency closure của roots, hoặc đã được thỏa từ parent | Kiểm tra root, parent và `findModule` |
-| `findModule("java.base")` có nhưng `modules()` không liệt kê | `java.base` thuộc cấu hình cha | Đọc `parents()` và `ResolvedModule.configuration()` |
-| `reads()` có nhiều tên hơn `requires()` | Cạnh đọc suy ra, ví dụ `requires transitive` | Đọc modifier trong `ModuleDescriptor.Requires` |
-| Đọc được module B nhưng không import được package trong B | Package chưa được `exports` phù hợp hoặc API không public | Kiểm tra `ModuleDescriptor.exports()` và visibility của kiểu |
-| Kết quả khác giữa `resolve` và `resolveAndBind` | Service binding có thể đưa thêm provider modules | Kiểm tra `uses`/`provides` và finder liên quan |
-| In `Set` ra thứ tự thay đổi | Tập hợp không quy định thứ tự trình bày | Sắp xếp theo `ResolvedModule.name()` trước khi in |
-| Cấu hình phân giải được nhưng app chạy lỗi liên kết | Module graph hợp lệ chưa bảo đảm API binary tương thích hay class đã nạp đúng | Kiểm tra phiên bản artifact, chữ ký phương thức và log runtime |
-| `ResolvedModule` tìm được nhưng không có `Module` runtime | Mới thực hiện resolution, chưa tạo layer | Định nghĩa layer hoặc chạy ứng dụng modular để có runtime Module |
+| `findModule("demo.app")` is empty | `demo.app` was not passed as a root or is absent from relevant configurations | Print roots, check `ModuleFinder` and module names |
+| Resolution fails with missing module | A required dependency is not observable from finders/parents | Check `requires`, module-path paths, and actually present modules |
+| Module is in finder but missing from `modules()` | It may not be in the roots' dependency closure, or was satisfied from a parent | Check roots, parents, and `findModule` |
+| `findModule("java.base")` is present but `modules()` omits it | `java.base` belongs to the parent configuration | Read `parents()` and `ResolvedModule.configuration()` |
+| `reads()` has more names than `requires()` | Inferred read edges, e.g. `requires transitive` | Inspect modifiers in `ModuleDescriptor.Requires` |
+| Can read module B but cannot import a package in B | Package is not properly `exports`ed or API is not public | Check `ModuleDescriptor.exports()` and type visibility |
+| Results differ between `resolve` and `resolveAndBind` | Service binding may have added provider modules | Check `uses`/`provides` and relevant finders |
+| Printing `Set` gives changing order | Sets do not define presentation order | Sort by `ResolvedModule.name()` before printing |
+| Configuration resolves but app fails linkage at runtime | A valid module graph does not guarantee binary API compatibility or correct class loading | Check artifact versions, method signatures, and runtime logs |
+| `ResolvedModule` found but no runtime `Module` exists | Only resolution ran, no layer created yet | Define a layer or run a modular application to get a runtime `Module` |
 
-Nếu muốn quan sát resolution khi chính JVM chạy ứng dụng, có thể dùng:
+If you want to observe resolution when the JVM itself launches the application, you can use:
 
 ```bash
 java --show-module-resolution --module-path mods -m demo.app/demo.app.App
 ```
 
-Tùy JDK, module path và cấu hình môi trường, lệnh này có thể in thêm các module hệ thống và thông tin resolution; không nên coi văn bản debug đó là định dạng ổn định để máy khác phụ thuộc. Đối với bài kiểm tra tự động có yêu cầu output nhất quán, cách duyệt `Configuration` và sắp xếp danh sách như `GraphInspector` thường thuận tiện hơn.
+Depending on the JDK, module path, and environment configuration, this command may print additional system modules and resolution info; do not treat that debug text as a stable format for downstream tools to depend on. For automated tests requiring consistent output, traversing `Configuration` and sorting lists like `GraphInspector` is usually far more reliable.
 
-Khi `resolve` ném ngoại lệ, hãy đọc **nguyên nhân đầu tiên và module name trong thông báo**. Các vấn đề như thiếu module, finder quan sát trùng module, hoặc mô tả module không hợp lệ cần được xử lý ở nguồn tìm module/descriptor; không thể giải quyết bằng cách `catch` rồi giả vờ graph đủ module.
+When `resolve` throws an exception, read **the first cause and the module name in the message**. Issues like missing modules, finders seeing duplicate modules, or invalid module descriptors must be fixed at the module lookup source/descriptor; you cannot solve them by `catch`ing and pretending the graph has all modules.
 
-## 12. Một quy trình kiểm tra thực tế
+## 12. A Practical Investigation Workflow
 
-Khi một module trong ứng dụng lớn không tìm được hoặc không đọc được module khác, đi theo trình tự:
+When a module in a large application cannot find or read another module, follow this sequence:
 
-1. **Xác định root thật:** ứng dụng khởi chạy bằng `-m` nào, hoặc framework gọi resolution với `roots` nào? Đừng lấy tất cả JAR có mặt làm root nếu không có lý do.
-2. **Ghi lại module finders và parent:** phân biệt các module ứng dụng được phát hiện từ module path với module đã nằm trong boot/parent configuration.
-3. **Phân giải và chặn lỗi sớm:** nếu có lỗi, xử lý nguyên nhân trong `requires`, module path hoặc descriptor.
-4. **Kiểm tra membership:** dùng `modules()` và `findModule(name)`. Ghi rõ module thuộc cấu hình hiện tại hay parent.
-5. **Đối chiếu khai báo và readability:** từ `ResolvedModule.reference().descriptor().requires()` xem cạnh trực tiếp và modifier; từ `ResolvedModule.reads()` xem kết quả thực tế.
-6. **Kiểm tra quyền truy cập package:** readability không thay `exports`/`opens`; đọc descriptor của module đích khi có lỗi biên dịch hoặc phản chiếu.
-7. **Nếu cần chạy plugin:** sau khi graph hợp lệ, kiểm tra tạo `ModuleLayer`, class loader, và cơ chế nạp dịch vụ. Đừng dừng ở “đồ thị đã phân giải” mà kết luận mọi provider đã chạy.
-8. **Tự động hóa:** sắp xếp tên module, so sánh tập đỉnh/cạnh cần thiết và cho kiểm thử thất bại khi một dependency quan trọng hoặc một cạnh `reads` bất ngờ biến mất.
+1. **Identify the real roots:** which `-m` did the app launch with, or which `roots` did the framework pass to resolution? Do not treat every present JAR as a root without reason.
+2. **Record module finders and parents:** separate application modules discovered from the module path from modules already in the boot/parent configuration.
+3. **Resolve and fail fast:** if an error occurs, fix the root cause in `requires`, module path, or descriptors.
+4. **Check membership:** use `modules()` and `findModule(name)`. Clearly note whether each module belongs to the current configuration or a parent.
+5. **Cross-check declarations and readability:** from `ResolvedModule.reference().descriptor().requires()`, check direct edges and modifiers; from `ResolvedModule.reads()`, check the effective result.
+6. **Check package accessibility:** readability does not replace `exports`/`opens`; read the target module's descriptor on compile or reflection errors.
+7. **If running plugins:** once the graph is valid, inspect `ModuleLayer` creation, class loaders, and service loading. Do not stop at “graph resolved” and conclude all providers are running.
+8. **Automate:** sort module names, assert required node/edge sets, and fail tests if an important dependency or an unexpected `reads` edge appears or disappears.
 
-## 13. Bài tập củng cố
+## 13. Reinforcement Exercises
 
-1. **Bỏ `transitive`:** đổi `demo.feature` thành `requires demo.contract;`. Dự đoán việc `demo.app` biên dịch khi vẫn import `demo.contract.Greeter`. Sau đó bỏ import `Greeter` khỏi `App` hoặc thêm `requires demo.contract` trực tiếp và giải thích thay đổi đồ thị.
-2. **Đổi roots:** truyền root là `demo.feature` thay cho `demo.app`. So sánh tập `modules()` mới, các cạnh `reads()` và module `demo.app` có còn được phân giải không.
-3. **Tìm trong parent:** dùng `graph.findModule("java.base")`, in `configuration()` của module nhận được và đối chiếu với `graph.modules()`. Vì sao `java.base` không phải module được chọn mới?
-4. **Kiểm tra modifier:** bổ sung vòng lặp in các `ModuleDescriptor.Requires.Modifier` của từng dependency. Đảm bảo phân biệt `TRANSITIVE` của `demo.feature` với `requires` thường của `demo.app`.
-5. **Thử sai module path:** bỏ thư mục module `demo.contract` khỏi finder (trên bản sao môi trường thử nghiệm), rồi xem resolution có thất bại hay được thỏa từ parent. Diễn giải lỗi thay vì bỏ qua.
-6. **Phân biệt resolution và runtime:** giải thích vì sao `Configuration.resolve(...)` cho bạn một `ResolvedModule` nhưng chưa cung cấp đối tượng `java.lang.Module` runtime của module ấy. Viết thêm phép kiểm tra trên `ModuleLayer` nếu bài toán triển khai cần.
+1. **Remove `transitive`:** change `demo.feature` to `requires demo.contract;`. Predict what happens when compiling `demo.app` while it still imports `demo.contract.Greeter`. Then remove the `Greeter` import from `App` or add `requires demo.contract` directly and explain the graph change.
+2. **Change roots:** pass `demo.feature` as root instead of `demo.app`. Compare the new `modules()` set, `reads()` edges, and whether `demo.app` is still resolved.
+3. **Look up in parent:** call `graph.findModule("java.base")`, print `configuration()` of the returned module, and compare against `graph.modules()`. Why is `java.base` not a newly selected module?
+4. **Inspect modifiers:** add a loop printing `ModuleDescriptor.Requires.Modifier` for each dependency. Make sure you distinguish `TRANSITIVE` on `demo.feature` from regular `requires` on `demo.app`.
+5. **Test a broken module path:** remove the `demo.contract` module directory from the finder (in a test copy), then observe whether resolution fails or is satisfied from a parent. Diagnose the error instead of ignoring it.
+6. **Distinguish resolution and runtime:** explain why `Configuration.resolve(...)` gives you a `ResolvedModule` but does not yet provide that module's runtime `java.lang.Module` object. Add a `ModuleLayer` check if your deployment scenario needs it.
 
-**Ghi nhớ:** `ModuleDescriptor` là bản khai báo, `Configuration` là tập module đã được phân giải theo một phạm vi và các parent, còn `ResolvedModule.reads()` cho biết cạnh đọc có hiệu lực trong đồ thị ấy. Sử dụng cả ba góc nhìn mới đủ cơ sở phân tích quan hệ phụ thuộc JPMS, đặc biệt khi `requires transitive` hoặc cấu hình cha làm đồ thị kết quả khác danh sách `requires` nhìn thấy trong từng `module-info.java`.
+**Remember:** `ModuleDescriptor` is the declaration, `Configuration` is the set of modules resolved for a scope and parents, and `ResolvedModule.reads()` reports the effective read edges in that graph. Using all three views gives you a complete basis for analyzing JPMS dependencies, especially when `requires transitive` or parent configurations make the resulting graph differ from the `requires` list seen in individual `module-info.java` files.

@@ -1,80 +1,80 @@
-# Bộ nhớ đệm của iterator, stream và ảnh hưởng của reload trong Java ServiceLoader
+# Iterator Caching, Stream Caching, and the Effect of reload in Java ServiceLoader
 
-## 1. Bối cảnh: ServiceLoader khám phá provider như thế nào?
+## 1. Context: How Does ServiceLoader Discover Providers?
 
-`ServiceLoader<S>` (Java 6+, mở rộng với `stream()` từ Java 9) giúp ứng dụng tìm implementation của một **service contract** ở runtime. Chẳng hạn host định nghĩa `TaskProvider`, còn những JAR provider đăng ký implementation bằng `META-INF/services/<tên-đầy-đủ-của-service>` trên class path hoặc bằng `provides ... with ...` trong named module. Host có thể duyệt provider mà không phụ thuộc trực tiếp vào class implementation.
+`ServiceLoader<S>` (Java 6+, extended with `stream()` since Java 9) helps an application locate implementations of a **service contract** at runtime. For example, a host defines `TaskProvider`, while provider JARs register implementations via `META-INF/services/<fully-qualified-service-name>` on the class path or via `provides ... with ...` in a named module. The host can traverse providers without directly depending on implementation classes.
 
-Đề bài này tập trung vào một chi tiết ảnh hưởng lớn tới hành vi lúc chạy: **`ServiceLoader` nạp lười (lazy loading) và ghi nhớ các provider đã tìm/nạp trong bộ nhớ đệm (cache)**. Hai API duyệt quan trọng là:
+This topic focuses on a detail that heavily affects runtime behavior: **`ServiceLoader` performs lazy loading and retains discovered/loaded providers in a cache**. Two key traversal APIs are:
 
-- `iterator()`: trả về `Iterator<S>`; khi duyệt, các phần tử nhận được là **instance thực** của service.
-- `stream()`: trả về `Stream<ServiceLoader.Provider<S>>`; mỗi phần tử là **mô tả/đầu mối tạo provider** (`Provider<S>`), từ đó có thể xem `type()` hoặc gọi `get()` để lấy instance.
+- `iterator()`: returns `Iterator<S>`; when traversing, the elements obtained are **actual instances** of the service.
+- `stream()`: returns `Stream<ServiceLoader.Provider<S>>`; each element is a **provider descriptor/handle** (`Provider<S>`), from which you can inspect `type()` or call `get()` to obtain an instance.
 
-Phương thức `reload()` **xóa cache provider của đối tượng `ServiceLoader` đang dùng**. Nó không tự khởi tạo ngay instance mới và không phải cơ chế thay class bytecode, gỡ class cũ hay cập nhật JAR tự động.
+The `reload()` method **clears the provider cache of the `ServiceLoader` object currently in use**. It does not immediately instantiate new instances and is not a mechanism for replacing class bytecode, unloading old classes, or automatically updating JARs.
 
-### Cần phân biệt bốn đối tượng
+### Four Objects That Must Be Distinguished
 
-| Đối tượng | Vai trò | Có tự giữ instance/provider không? |
+| Object | Role | Retains instances/providers itself? |
 | --- | --- | --- |
-| `ServiceLoader<S>` | Giữ thông tin service, phạm vi tìm provider (class loader/module layer) và các cache của chính nó | **Có** cache những provider đã được nạp/duyệt |
-| `Iterator<S>` | Con trỏ duyệt instance, được tạo bởi `serviceLoader.iterator()` | Đọc lại instance đã cached, sau đó tìm/nạp phần chưa được duyệt |
-| `Stream<Provider<S>>` | Pipeline một lần dùng để duyệt metadata của provider | Dùng nguồn provider descriptor của `ServiceLoader`; stream **không phải** danh sách instance mặc định |
-| `Provider<S>` | Đầu mối cho `type()` và `get()` | `get()` lấy/tạo instance; không nên giả định luôn trả về cùng một đối tượng |
+| `ServiceLoader<S>` | Holds service info, provider search scope (class loader/module layer), and its own caches | **Yes**, caches already loaded/traversed providers |
+| `Iterator<S>` | Instance traversal cursor, created by `serviceLoader.iterator()` | Re-reads cached instances, then searches/loads unvisited ones |
+| `Stream<Provider<S>>` | One-shot pipeline for traversing provider metadata | Uses `ServiceLoader`'s provider descriptor source; a stream is **not** a default list of instances |
+| `Provider<S>` | Handle for `type()` and `get()` | `get()` obtains/creates an instance; do not assume it always returns the same object |
 
-“Cache” ở đây là cache của **một instance `ServiceLoader`**, không phải cache toàn JVM; `Stream` thông thường cũng có tính lazy nhưng đó là khái niệm khác với cache của `ServiceLoader`. Gọi `ServiceLoader.load(...)` lần nữa sẽ tạo **một `ServiceLoader` khác** có cache riêng; việc cả hai loader thấy cùng một class không bắt buộc chúng chia sẻ đối tượng provider đã tạo.
+"Cache" here is the cache of **a single `ServiceLoader` instance**, not a JVM-wide cache; standard `Stream`s are also lazy, yet that is a different concept from `ServiceLoader`'s cache. Calling `ServiceLoader.load(...)` again creates **another `ServiceLoader`** with its own cache; having both loaders see the same class does not force them to share created provider objects.
 
-## 2. Cache của iterator(): nạp đến đâu, nhớ đến đó
+## 2. Iterator Cache: Load as Needed, Remember What Was Loaded
 
-Theo Java SE 17 API:
+According to the Java SE 17 API:
 
-1. Lời gọi `ServiceLoader.load(TaskProvider.class)` tạo service loader. Provider không được đảm bảo đã instantiate ở bước này.
-2. `loader.iterator()` tạo một iterator; provider được tìm và instantiate **khi việc duyệt đòi hỏi**, thay vì khởi tạo toàn bộ ngay khi tạo loader.
-3. Khi iterator gặp provider cần được instantiate, `ServiceLoader` thêm **instance** đó vào cache tương ứng.
-4. Một lần gọi `loader.iterator()` khác trên **cùng loader** sẽ trả lại các instance đã cache **theo thứ tự chúng được nạp trước đó**, rồi tiếp tục tìm và instantiate những provider còn lại khi cần.
-5. `loader.findFirst()` là cách tiện lợi lấy provider đầu tiên bằng cơ chế iterator; nếu đầu tiên đã nằm trong cache, nó có thể trả lại chính instance cached.
+1. Calling `ServiceLoader.load(TaskProvider.class)` creates a service loader. Providers are not guaranteed to be instantiated at this step.
+2. `loader.iterator()` creates an iterator; providers are located and instantiated **as traversal demands**, instead of instantiating everything when creating the loader.
+3. When the iterator encounters a provider that needs instantiation, `ServiceLoader` adds that **instance** to the corresponding cache.
+4. Another call to `loader.iterator()` on the **same loader** returns cached instances **in the order they were previously loaded**, then continues finding and instantiating remaining providers as needed.
+5. `loader.findFirst()` is a convenience method to retrieve the first provider via the iterator mechanism; if the first is already cached, it can return that cached instance.
 
-Ví dụ có ba provider A, B, C. Nếu lần duyệt đầu chỉ lấy A rồi dừng, cache instance hiện tại mới bao gồm A. Lần duyệt thứ hai có thể trả A từ cache, sau đó instantiate B và C nếu thực sự duyệt tới chúng. **Tạo iterator mới không có nghĩa là bỏ cache.**
+Suppose there are three providers A, B, C. If the first traversal stops after taking only A, the current instance cache contains only A. A second traversal can return A from cache, then instantiate B and C if actually traversed to. **Creating a new iterator does not discard the cache.**
 
-Vì thế `for (TaskProvider p : loader) { ... }` trong nhiều vòng lặp trên cùng loader thường tái sử dụng những instance trước đó. Đây là hành vi đáng lưu tâm nếu constructor mở connection, provider giữ trạng thái mutable hoặc có phương thức `close()`: các vòng duyệt lặp lại không tự tạo tài nguyên mới, và `ServiceLoader` cũng không tự gọi `close()` cho provider.
+Therefore, `for (TaskProvider p : loader) { ... }` across multiple loops on the same loader usually reuses previous instances. This behavior is important to consider if a constructor opens connections, a provider holds mutable state, or it implements `close()`: repeated traversals do not automatically create fresh resources, and `ServiceLoader` does not automatically call `close()` on providers.
 
-### Tính lazy không đồng nghĩa không thể xảy ra lỗi
+### Laziness Does Not Mean Errors Cannot Occur
 
-`hasNext()` hoặc `next()` có thể gây `ServiceConfigurationError` khi đọc metadata/provider configuration, load class, resolve dependency hoặc instantiate provider. Không nên nhận định “mọi lỗi chỉ xảy ra ở `next()`”. Một provider lỗi có thể làm quá trình discovery ngắt giữa chừng; việc khôi phục bằng cách tiếp tục duyệt chỉ được tài liệu API mô tả là nỗ lực best effort, **không được đảm bảo**.
+`hasNext()` or `next()` can throw `ServiceConfigurationError` while reading metadata/provider configurations, loading classes, resolving dependencies, or instantiating providers. Do not claim "all errors only occur in `next()`". A broken provider can interrupt discovery midway; recovering by continuing traversal is described in the API docs only as best-effort, **not guaranteed**.
 
-## 3. Cache của stream(): mô tả provider trước, instance sau
+## 3. Stream Cache: Provider Descriptors First, Instances Later
 
-`loader.stream()` trả về `Stream<ServiceLoader.Provider<S>>`. Nó **không** trả thẳng `Stream<S>`. Việc duyệt stream được trì hoãn tới một terminal operation như `findFirst()`, `toList()` hoặc `forEach(...)`.
+`loader.stream()` returns `Stream<ServiceLoader.Provider<S>>`. It does **not** return `Stream<S>` directly. Stream traversal is deferred until a terminal operation such as `findFirst()`, `toList()`, or `forEach(...)`.
 
 ~~~java
 ServiceLoader<TaskProvider> loader = ServiceLoader.load(TaskProvider.class);
 
-// Đọc metadata: chưa cần tạo instance để lọc theo loại provider.
+// Read metadata: no need to create instances to filter by provider kind.
 List<Class<? extends TaskProvider>> types = loader.stream()
         .map(ServiceLoader.Provider::type)
         .toList();
 
-// Chỉ khi cần sử dụng mới lấy instance.
+// Only retrieve instances when actually needed.
 List<TaskProvider> instances = loader.stream()
         .map(ServiceLoader.Provider::get)
         .toList();
 ~~~
 
-**Đây là đoạn minh họa**, cần interface `TaskProvider` và provider đã đăng ký để chạy độc lập. `Provider.type()` hỗ trợ xem type và annotation mà không cần gọi constructor của service implementation. Với provider trong named module được tạo bằng static `provider()` factory method, `type()` trả về **return type của provider method**, không nhất thiết là class chứa method.
+**This is an illustrative snippet**, requiring the `TaskProvider` interface and registered providers to run standalone. `Provider.type()` supports inspecting types and annotations without calling the service implementation's constructor. For a named-module provider created via a static `provider()` factory method, `type()` returns **the return type of the provider method**, not necessarily the class containing the method.
 
-Khi stream duyệt, `ServiceLoader` nhớ các **provider descriptor** đã tìm được từ những lần xử lý stream trước. Lần gọi `loader.stream()` mới có thể xử lý các descriptor đã cache trước rồi khám phá thêm provider còn lại. Thứ tự provider phụ thuộc quy tắc lookup, configuration/module; **đừng dựa vào thứ tự ngẫu nhiên giữa các JAR/module** để xác định ưu tiên nghiệp vụ.
+As the stream traverses, `ServiceLoader` remembers **provider descriptors** discovered from previous stream runs. A fresh `loader.stream()` call can process already-cached descriptors first and then discover remaining providers. Provider ordering depends on lookup rules and configuration/modules; **do not rely on arbitrary ordering across JARs/modules** to determine business priority.
 
-Các ranh giới dễ lẫn:
+Easily confused boundaries:
 
-- `Provider.type()` **không có nghĩa** provider instance đã được tạo.
-- `Provider.get()` trả về một instance. API không cam kết đó là singleton hay trùng tham chiếu với một lần `get()` khác. Với class-path provider được tạo bằng public no-arg constructor, các lần `get()` có thể dẫn tới nhiều lần xây dựng object. Đừng dùng phép `==` như hợp đồng lựa chọn provider khi đi qua API này.
-- **Không giả định cache của `iterator()` và `stream()` có chung cùng một object instance hoặc cùng thời điểm khởi tạo.** Một phía làm việc với instance, phía kia làm việc với `Provider` descriptor; nếu cần quản lý một object duy nhất cho nghiệp vụ, host nên tự sở hữu registry/snapshot rõ ràng.
-- `stream()` tạo một Java `Stream` **chỉ được thực hiện một terminal operation**. Dùng lại một stream đã consumed có thể ném `IllegalStateException`; lỗi này khác hoàn toàn với stream bị `reload()` vô hiệu hóa.
-- `sorted()`, `collect()` hoặc `toList()` có thể buộc khám phá toàn bộ danh sách descriptor. `findFirst()` có thể dừng sớm. Có metadata của tất cả provider **không đồng nghĩa** đã gọi `get()` cho tất cả.
+- `Provider.type()` **does not mean** a provider instance has been created.
+- `Provider.get()` returns an instance. The API does not promise it is a singleton or reference-identical to another `get()` call. For class-path providers created via a public no-arg constructor, repeated `get()` calls can construct multiple objects. Do not use `==` as a provider selection contract through this API.
+- **Do not assume the caches of `iterator()` and `stream()` share the exact same object instances or creation timing.** One side works with instances, the other with `Provider` descriptors; if business logic needs a single managed object, the host should own an explicit registry/snapshot.
+- `stream()` creates a Java `Stream` on which **only one terminal operation may be executed**. Reusing an already-consumed stream can throw `IllegalStateException`; this error is completely different from a stream invalidated by `reload()`.
+- `sorted()`, `collect()`, or `toList()` can force discovery of the entire descriptor list. `findFirst()` can stop early. Having metadata for all providers **does not mean** `get()` has been called for all of them.
 
-## 4. Thực hành Java 17+: quan sát cache và reload một cách chạy được
+## 4. Java 17+ Practice: Runnable Observation of Cache and Reload
 
-Ví dụ dưới đây dùng **một provider duy nhất** và constructor tự in số lần tạo. Nó cho thấy rõ: iterator tái sử dụng instance; reload bỏ cache; một instance đã giao cho caller vẫn tồn tại; stream lấy metadata trước khi tạo object.
+The example below uses **a single provider** whose constructor prints creation counts. It clearly shows: the iterator reuses instances; reload drops the cache; an instance already handed to a caller remains alive; streams fetch metadata before creating objects.
 
-### 4.1. Cấu trúc thư mục
+### 4.1. Directory Structure
 
 ~~~text
 service-cache-demo/
@@ -87,12 +87,12 @@ service-cache-demo/
 │   └── META-INF/
 │       └── services/
 │           └── demo.TaskProvider
-└── out/                  # Sinh ra khi biên dịch
+└── out/                  # Generated when compiling
 ~~~
 
-Provider-configuration file phải nằm trên **runtime class path** và có tên trùng **fully qualified binary name** của service interface.
+The provider-configuration file must reside on the **runtime class path** and match the **fully qualified binary name** of the service interface.
 
-Tệp `src/demo/TaskProvider.java`:
+File `src/demo/TaskProvider.java`:
 
 ~~~java
 package demo;
@@ -102,7 +102,7 @@ public interface TaskProvider {
 }
 ~~~
 
-Tệp `src/demo/CountingProvider.java`:
+File `src/demo/CountingProvider.java`:
 
 ~~~java
 package demo;
@@ -123,17 +123,17 @@ public final class CountingProvider implements TaskProvider {
 }
 ~~~
 
-Nội dung tệp `src/META-INF/services/demo.TaskProvider`:
+Contents of `src/META-INF/services/demo.TaskProvider`:
 
 ~~~text
 demo.CountingProvider
 ~~~
 
-Với cơ chế class path, `CountingProvider` là public class, implement service và có public constructor không tham số. **Named module** có thêm cách khai báo provider bằng `provides ... with ...` và có thể dùng public static `provider()` factory method; ví dụ này cố ý dùng class path để dễ quan sát constructor.
+With the class-path mechanism, `CountingProvider` is a public class implementing the service with a public no-argument constructor. **Named modules** also allow declaring providers via `provides ... with ...` and can use a public static `provider()` factory method; this example intentionally uses the class path to make constructor observation easy.
 
-### 4.2. Iterator: cùng cache trước reload, instance mới sau reload
+### 4.2. Iterator: Same Cache Before Reload, New Instance After Reload
 
-Tệp `src/demo/IteratorCacheDemo.java`:
+File `src/demo/IteratorCacheDemo.java`:
 
 ~~~java
 package demo;
@@ -168,16 +168,16 @@ public final class IteratorCacheDemo {
 }
 ~~~
 
-Giải thích:
+Explanation:
 
-- Lần `next()` đầu tiên tạo `CountingProvider` id=1 và cache instance.
-- Lần `next()` thứ hai trên **iterator mới của cùng loader** lấy lại id=1; constructor **không** chạy lại.
-- `staleIterator` được tạo **trước** `reload()`. Sau khi cache bị xóa, `hasNext()` trên iterator cũ ném `ConcurrentModificationException`; dù không hề có hai thread.
-- Iterator mới sau reload tạo id=2 khi cần. Instance cũ `first` vẫn sống do biến `first` đang giữ tham chiếu, nên `first.name()` vẫn dùng được.
+- The first `next()` creates `CountingProvider` id=1 and caches the instance.
+- The second `next()` on **a new iterator from the same loader** retrieves id=1 again; the constructor does **not** run again.
+- `staleIterator` was created **before** `reload()`. After the cache is cleared, `hasNext()` on the old iterator throws `ConcurrentModificationException`, even though there are not two threads.
+- A fresh iterator after reload creates id=2 on demand. The old instance `first` stays alive because the `first` variable still holds a reference, so `first.name()` still works.
 
-### 4.3. Stream: type trước, Provider.get() sau; stream cũ hết hiệu lực
+### 4.3. Stream: type First, Provider.get() Later; Old Stream Becomes Invalid
 
-Tệp `src/demo/StreamReloadDemo.java`:
+File `src/demo/StreamReloadDemo.java`:
 
 ~~~java
 package demo;
@@ -217,13 +217,13 @@ public final class StreamReloadDemo {
 }
 ~~~
 
-Ở đây `metadataStream.findFirst()` dùng terminal operation và chỉ lấy metadata provider; constructor chưa cần chạy. `entry.get()` mới yêu cầu instance. Với provider class ở ví dụ và hành vi Java 17, hai lời gọi `get()` sẽ tạo hai object mới và in hai dòng constructor. Nhưng **đừng thiết kế dựa vào một giả định singleton hay identity cụ thể khi dùng `Provider.get()`**; hãy quản lý lifecycle trong host nếu phải dùng chung một instance.
+Here `metadataStream.findFirst()` runs a terminal operation and retrieves only the provider metadata; the constructor does not need to run yet. Only `entry.get()` requests an instance. With this example's provider class and Java 17 behavior, two calls to `get()` create two new objects and print two constructor lines. However, **do not design around a singleton or specific identity assumption when using `Provider.get()`**; manage lifecycle in the host if a single shared instance is required.
 
-`staleStream` được tạo trước `reload()` nhưng chưa thực hiện terminal operation. Spliterator lấy từ `ServiceLoader.stream()` kiểm tra thay đổi cache; khi bắt đầu duyệt sau reload, nó phát hiện generation đã thay đổi và ném `ConcurrentModificationException`. Chúng ta tạo **stream mới** sau reload để duyệt tiếp.
+`staleStream` was created before `reload()` without executing a terminal operation yet. The spliterator obtained from `ServiceLoader.stream()` checks for cache modifications; when traversal starts after reload, it detects the changed generation and throws `ConcurrentModificationException`. We create a **fresh stream** after reload to continue traversing.
 
-### 4.4. Biên dịch và chạy
+### 4.4. Compiling and Running
 
-Chạy các lệnh sau **tại thư mục `service-cache-demo`** bằng PowerShell với JDK 17+ đã cài:
+Run the following commands **from the `service-cache-demo` directory** in PowerShell with JDK 17+ installed:
 
 ~~~powershell
 New-Item -ItemType Directory -Force out | Out-Null
@@ -233,7 +233,7 @@ java -cp out demo.IteratorCacheDemo
 java -cp out demo.StreamReloadDemo
 ~~~
 
-Output của `IteratorCacheDemo`:
+Output of `IteratorCacheDemo`:
 
 ~~~text
 constructor #1
@@ -244,7 +244,7 @@ same after reload = false
 old object = provider-1
 ~~~
 
-Output của `StreamReloadDemo` (quá trình `java` thứ hai là JVM mới nên biến static `sequence` bắt đầu lại từ 0):
+Output of `StreamReloadDemo` (the second `java` process is a new JVM so static `sequence` starts from 0 again):
 
 ~~~text
 stream created
@@ -257,79 +257,79 @@ stale stream = ConcurrentModificationException
 type after reload = CountingProvider
 ~~~
 
-Nếu constructor in thiếu/thừa, trước tiên kiểm tra provider-configuration file được copy nguyên dạng vào `out/META-INF/services/demo.TaskProvider`, class path thật sự chỉ chứa ví dụ mong muốn và chương trình đang chạy một JVM mới. Có thể dùng `jar tf` khi đóng gói thành JAR.
+If the constructor prints fewer/extra times, first check that the provider-configuration file was copied intact to `out/META-INF/services/demo.TaskProvider`, that the class path truly contains only the intended example, and that the program runs in a fresh JVM. You can use `jar tf` when packaging into a JAR.
 
-## 5. reload() thực sự làm gì với iterator, stream và instance cũ?
+## 5. What Does reload() Actually Do to Old Iterators, Streams, and Instances?
 
-Java SE 17 mô tả `reload()` là thao tác **xóa provider caches của ServiceLoader**. Các lời gọi `iterator()` hoặc `stream()` *mới sau reload* quay về trạng thái tìm provider lười từ đầu; những iterator/stream được lấy *trước reload* phải bị loại bỏ.
+Java SE 17 describes `reload()` as clearing **the `ServiceLoader`'s provider caches**. *New* `iterator()` or `stream()` calls after reload return to lazy provider lookup from scratch; iterators/streams obtained *before reload* must be discarded.
 
-| Hạng mục | Trước `reload()` | Sau `reload()` |
+| Item | Before `reload()` | After `reload()` |
 | --- | --- | --- |
-| Cache instance của iterator | Chứa những provider instance đã được duyệt | Bị xóa; lần duyệt mới có thể instantiate lại |
-| Cache provider descriptor của stream | Chứa provider đã discover qua stream | Bị xóa; stream mới tra cứu lại khi cần |
-| Iterator đã tạo trước đó | Có thể đi tiếp hoặc lấy cached instance | `hasNext()/next()` ném `ConcurrentModificationException` khi sử dụng |
-| Stream đã tạo trước đó | Có thể thực hiện một terminal operation | Nguồn spliterator là fail-fast sau reload; bỏ stream cũ và tạo stream mới |
-| Object instance đã trả cho caller | Caller có thể giữ tham chiếu | **Không bị hủy**; vẫn tồn tại nếu còn tham chiếu |
-| Provider class đã load trong JVM | Đã được class loader định nghĩa | **Không bị unload/redefine** chỉ vì reload |
-| Các provider JAR/module nhìn thấy được | Do class loader/module layer quyết định | **Không tự mở rộng** phạm vi tìm class/JAR/module |
-| Thread đang sử dụng plugin | Có thể có request đang chạy | **Không bị dừng** bởi reload |
+| Iterator instance cache | Holds provider instances already traversed | Cleared; fresh traversals may re-instantiate |
+| Stream provider descriptor cache | Holds providers discovered via stream | Cleared; new streams look up again on demand |
+| Previously created iterator | Can advance or pull cached instances | `hasNext()/next()` throws `ConcurrentModificationException` when used |
+| Previously created stream | Can execute one terminal operation | Backing spliterator is fail-fast after reload; discard old stream and create a new one |
+| Object instance already returned to caller | Caller may hold references | **Not destroyed**; remains alive while references exist |
+| Provider class already loaded in JVM | Defined by class loader | **Not unloaded/redefined** just by reload |
+| Visible provider JARs/modules | Determined by class loader/module layer | **Does not automatically expand** class/JAR/module lookup scope |
+| Threads currently using plugin | May have in-flight requests | **Not stopped** by reload |
 
-**Hệ quả lớn nhất:** `reload()` làm mới **cache discovery/instantiation của một loader**, chứ không thay thế toàn bộ trạng thái runtime. Nếu một request đang giữ provider instance cũ, request đó vẫn có thể tiếp tục; nếu instance cũ giữ file handle, thread, connection pool hay ClassLoader, `reload()` không tự giải phóng chúng.
+**Biggest consequence:** `reload()` refreshes **one loader's discovery/instantiation cache**, not the entire runtime state. If a request holds an old provider instance, that request can continue; if the old instance holds file handles, threads, connection pools, or a `ClassLoader`, `reload()` does not release them automatically.
 
-### 5.1. Vì sao lại có ConcurrentModificationException?
+### 5.1. Why Does ConcurrentModificationException Happen?
 
-Đây là hành vi **fail-fast đối với thay đổi trạng thái cache**. Một iterator/stream đã gắn với trạng thái cache/generation cũ sẽ không biết duyệt nhất quán như thế nào sau khi cache bị reset. Java SE 17 quy định:
+This is **fail-fast behavior for cache state changes**. An iterator/stream tied to an old cache/generation state cannot traverse consistently after the cache has been reset. Java SE 17 specifies:
 
-- Iterator `hasNext()` và `next()` sau `reload()`: ném `ConcurrentModificationException`.
-- Spliterator nguồn của `stream()`: fail-fast nếu provider cache bị xóa.
+- Iterator `hasNext()` and `next()` after `reload()`: throws `ConcurrentModificationException`.
+- Backing spliterator of `stream()`: fail-fast if the provider cache is cleared.
 
-Tên exception thường gắn với concurrency nhưng **một thread duy nhất** gọi `reload()` ở giữa hai thao tác cũng có thể tạo ra nó. Ngược lại, fail-fast **không** phải cơ chế khóa hay bảo đảm an toàn đa luồng.
+The exception name is often associated with concurrency, yet **a single thread** calling `reload()` between two operations can trigger it too. Conversely, fail-fast is **not** a locking mechanism or a multi-thread safety guarantee.
 
-### 5.2. Reload không giống “stream reusable”
+### 5.2. Reload Is Not "Reusable Stream"
 
-Hai lỗi cần phân biệt bằng ví dụ:
+Two errors to distinguish by example:
 
 ~~~java
-// Minh họa riêng: source là một ServiceLoader<TaskProvider> hợp lệ.
+// Standalone illustration: loader is a valid ServiceLoader<TaskProvider>.
 var once = loader.stream();
-once.count();          // Terminal operation đầu tiên
-once.count();          // IllegalStateException: đã dùng stream
+once.count();          // First terminal operation
+once.count();          // IllegalStateException: stream already consumed
 
 var stale = loader.stream();
 loader.reload();
-stale.findFirst();     // ConcurrentModificationException do cache reset
+stale.findFirst();     // ConcurrentModificationException due to cache reset
 ~~~
 
-Đây là **đoạn minh họa không độc lập**, cố ý thể hiện hai lỗi; không gộp vào ứng dụng production. Trong thực tế, quy tắc an toàn nhất là **tạo stream mới cho mỗi lần duyệt** và **không giữ iterator/stream qua điểm reload**.
+This is a **non-standalone illustrative snippet** deliberately showing two errors; do not put it into a production app. In practice, the safest rule is **create a new stream for each traversal** and **do not hold iterators/streams across a reload point**.
 
-### 5.3. Reload không đảm bảo thấy JAR mới
+### 5.3. Reload Does Not Guarantee Seeing New JARs
 
-Một số nhầm lẫn cần loại bỏ:
+Several misconceptions to eliminate:
 
-- Nếu bạn copy một plugin JAR mới vào thư mục `plugins/` nhưng **class loader hiện tại không có URL đó**, gọi `reload()` không tự bổ sung URL/class path. Cần cơ chế loader có khả năng nhìn thấy provider đó hoặc tạo loader/module layer phù hợp.
-- Nếu provider class đã được load bởi class loader, sửa bytecode trên đĩa rồi gọi `reload()` **không** làm class ấy được định nghĩa lại từ bytecode mới. Java class identity gắn với binary name và defining class loader.
-- Nếu muốn hot-deploy/hot-swap implementation hoặc cách ly versions, thường cần quản lý **một thế hệ plugin loader** mới (ví dụ `URLClassLoader` hoặc `ModuleLayer` phù hợp), khởi tạo provider mới, chuyển traffic, dừng provider cũ và bỏ tham chiếu cũ. Chỉ dùng `reload()` là chưa đủ.
-- Nếu `ServiceLoader.load(Service.class)` dùng overload một tham số, nó lấy **thread context class loader** tại thời điểm tạo loader. Việc thay TCCL của thread về sau không tự đổi phạm vi của `ServiceLoader` đã tạo; cần tạo loader mới với class loader đúng.
+- If you copy a new plugin JAR into `plugins/` but **the current class loader lacks that URL**, calling `reload()` does not add the URL/class path. You need a loader capable of seeing that provider or create an appropriate new loader/module layer.
+- If the provider class was already loaded by a class loader, editing bytecode on disk and calling `reload()` **does not** redefine that class from new bytecode. Java class identity is tied to binary name and defining class loader.
+- To hot-deploy/hot-swap implementations or isolate versions, you usually need to manage **a new plugin loader generation** (such as an appropriate `URLClassLoader` or `ModuleLayer`), initialize new providers, switch traffic, stop old providers, and drop old references. Calling `reload()` alone is insufficient.
+- If `ServiceLoader.load(Service.class)` uses the one-argument overload, it captures the **thread context class loader** at loader creation time. Changing the thread's TCCL later does not change the scope of the already-created `ServiceLoader`; you must create a new loader with the right class loader.
 
-## 6. Cách thiết kế việc làm mới provider an toàn trong ứng dụng thực
+## 6. How to Design Safe Provider Refreshing in Real Applications
 
-`ServiceLoader` **không thread-safe**. Không nên để một thread duyệt trong khi thread khác gọi `reload()` trên cùng instance, và cũng không nên chia sẻ iterator/stream có thể bị đổi generation mà không điều phối.
+`ServiceLoader` is **not thread-safe**. Do not let one thread traverse while another calls `reload()` on the same instance, and do not share iterators/streams whose generation may change without coordination.
 
-### Mức 1: Chỉ cần nạp lại cache ở điểm dừng an toàn
+### Level 1: Only Need to Reload Cache at Safe Pauses
 
-Dùng khi tất cả truy vấn discovery đều chạy tuần tự, provider source vẫn nằm trong cùng phạm vi loader:
+Use when all discovery queries run sequentially and provider sources remain within the same loader scope:
 
-1. Ngừng phát sinh lần duyệt mới trên loader cũ và chờ các lần duyệt hiện tại hoàn tất.
-2. Đảm bảo mọi iterator và stream cũ đã bị bỏ; nếu còn object cũ đang chạy, tách lifecycle của chúng.
-3. Gọi `loader.reload()`.
-4. Với mỗi lần tra cứu mới, tạo `loader.iterator()` hoặc `loader.stream()` mới. Chỉ bắt đầu dùng các instance mới sau khi xác thực cấu hình.
-5. Đóng tài nguyên do host quản lý của thế hệ cũ khi không còn request sử dụng.
+1. Stop issuing new traversals on the old loader and wait for current traversals to finish.
+2. Ensure all old iterators and streams are discarded; if old objects are still running, separate their lifecycles.
+3. Call `loader.reload()`.
+4. For each new lookup, create a fresh `loader.iterator()` or `loader.stream()`. Only start using new instances after validating configuration.
+5. Close host-managed resources of the old generation once no requests are using them.
 
-### Mức 2: Snapshot bất biến cho nhiều request đồng thời
+### Level 2: Immutable Snapshot for Concurrent Requests
 
-Đối với một host phục vụ request trên nhiều thread, thuận tiện hơn là dùng discovery để tạo một **snapshot các instance đã chọn**, rồi cho request đọc snapshot. Khi refresh, xây dựng snapshot mới ở một luồng điều phối, kiểm tra nó đầy đủ trước khi công bố; traffic đọc một tham chiếu được thay thế nguyên tử.
+For a host serving requests across multiple threads, it is cleaner to use discovery to build a **snapshot of selected instances**, then have requests read the snapshot. On refresh, build the new snapshot on a coordinator thread and validate it thoroughly before publishing; traffic reads an atomically replaced reference.
 
-Đoạn minh họa **không độc lập**, giả định `TaskProvider`, `pluginClassLoader` và `activeProviders` đã được khai báo đúng kiểu:
+**Non-standalone** illustrative snippet, assuming `TaskProvider`, `pluginClassLoader`, and `activeProviders` are properly declared:
 
 ~~~java
 ServiceLoader<TaskProvider> discovery =
@@ -337,89 +337,89 @@ ServiceLoader<TaskProvider> discovery =
 
 List<TaskProvider> nextProviders = discovery.stream()
         .map(ServiceLoader.Provider::get)
-        .toList();                    // Materialize và kiểm tra trước khi publish
+        .toList();                    // Materialize and validate before publishing
 
 List<TaskProvider> previous =
         activeProviders.getAndSet(nextProviders); // AtomicReference<List<TaskProvider>>
 
-// Chỉ dừng/đóng các provider trong previous khi không còn request đang dùng chúng.
+// Only stop/close providers in previous when no requests are still using them.
 ~~~
 
-`Stream.toList()` (Java 16+) tạo danh sách không thể sửa qua các operation thêm/xóa của `List`; điều đó **không làm từng provider instance trở nên thread-safe**. Có thể cần một đối tượng `Generation` chứa danh sách provider, class loader, phiên bản và lifecycle tracker, để điều phối việc dừng/giải phóng đúng thế hệ. Nếu host không quản lý thời điểm request cũ hoàn thành, việc đóng provider sớm có thể làm request đang chạy thất bại.
+`Stream.toList()` (Java 16+) produces a list unmodifiable via `List` add/remove operations; that **does not make individual provider instances thread-safe**. You may need a `Generation` object holding the provider list, class loader, version, and lifecycle tracker to coordinate stopping/releasing the right generation. If the host does not track when old requests finish, closing providers prematurely can cause in-flight requests to fail.
 
-### Mức 3: Plugin được thay JAR/version lúc chạy
+### Level 3: Plugins Whose JARs/Versions Are Replaced at Runtime
 
-Tạo class loader/module layer mới cho thế hệ mới, discovery và validate provider trong thế hệ mới, rồi hoán đổi snapshot chỉ khi đã sẵn sàng. Sau khi thế hệ cũ không còn request, dừng provider, đóng tài nguyên của plugin, bỏ reference đến instance/`Class`/`ClassLoader` và đóng `URLClassLoader` khi thích hợp. `URLClassLoader.close()` đóng tài nguyên loader nhưng **không ép JVM unload class ngay lập tức**.
+Create a new class loader/module layer for the new generation, discover and validate providers in the new generation, and swap snapshots only once ready. After the old generation has no remaining requests, stop providers, close plugin resources, drop references to instances/`Class`/`ClassLoader`, and close `URLClassLoader` when appropriate. `URLClassLoader.close()` closes loader resources, yet **does not force the JVM to unload classes immediately**.
 
-Class loader/JPMS cũng không phải sandbox bảo mật: chỉ nạp mã plugin được tin cậy, hoặc tách process/container nếu cần thực thi mã không tin cậy.
+Class loaders/JPMS are also not security sandboxes: load only trusted plugin code, or isolate into separate processes/containers if untrusted code must execute.
 
-## 7. Những tình huống thực tế và quyết định phù hợp
+## 7. Real-World Scenarios and Sound Decisions
 
-| Tình huống | Nên làm | Không nên suy diễn |
+| Scenario | Do | Do Not Infer |
 | --- | --- | --- |
-| Vòng lặp dùng `iterator()` nhiều lần trên cùng loader | Hiểu rằng provider instance cached sẽ được dùng lại; quản lý state/thread-safety | “Mỗi vòng lặp là một provider mới” |
-| Muốn liệt kê implementation theo annotation mà chưa khởi tạo | `stream().filter(p -> p.type()...).toList()` | “`stream()` luôn gọi constructor” |
-| Cần khởi tạo provider sau khi chọn | `Provider.get()` và quản lý instance do host sở hữu | “`get()` luôn singleton như cache iterator” |
-| Sau một lần duyệt, muốn tìm lại source provider | `reload()` tại điểm điều phối an toàn, rồi tạo iterator/stream mới | “Có thể dùng tiếp iterator/stream cũ” |
-| Thấy `ConcurrentModificationException` | Kiểm tra reload giữa vòng duyệt và mọi quyền truy cập đa luồng | “Chắc chắn có hai thread sửa cùng collection” |
-| Provider mới không xuất hiện | Kiểm tra metadata SPI, class loader visibility, module layer, runtime class path | “Gọi reload nhiều lần sẽ tự tìm JAR mới” |
-| Provider cũ vẫn chạy sau reload | Hoàn thành lifecycle/drain request, loại reference và giải phóng resource đúng lúc | “Reload sẽ gọi stop/close” |
-| Cần refresh an toàn dưới tải | Build/validate snapshot mới rồi swap nguyên tử, drain thế hệ cũ | “ServiceLoader có sẵn đồng bộ hóa đa luồng” |
+| Loop uses `iterator()` multiple times on the same loader | Understand cached provider instances will be reused; manage state/thread-safety | "Every loop gets a fresh provider" |
+| Want to list implementations by annotation without instantiating | `stream().filter(p -> p.type()...).toList()` | "`stream()` always calls constructors" |
+| Need to instantiate a provider after selection | `Provider.get()` and host-owned instance management | "`get()` is always a singleton like the iterator cache" |
+| After one traversal, want to re-read provider sources | `reload()` at a safe coordination point, then create new iterator/stream | "Can keep using old iterator/stream" |
+| Seeing `ConcurrentModificationException` | Check for reload mid-traversal and any multi-thread access | "Two threads definitely modified the same collection" |
+| New provider does not appear | Check SPI metadata, class loader visibility, module layer, runtime class path | "Calling reload repeatedly will find the new JAR" |
+| Old provider still runs after reload | Complete lifecycle/drain requests, drop references, release resources at the right time | "Reload will call stop/close" |
+| Need safe refresh under load | Build/validate new snapshot then atomically swap, drain old generation | "`ServiceLoader` has built-in multi-thread synchronization" |
 
-## 8. Bẫy thường gặp khi xử lý exception và trạng thái
+## 8. Common Pitfalls When Handling Exceptions and State
 
-### 8.1. Nhầm lỗi discovery với lỗi cache invalidation
+### 8.1. Confusing Discovery Errors with Cache Invalidation Errors
 
-- `ServiceConfigurationError`: lỗi cấu hình provider, load/instantiate provider, resource metadata hoặc dependency (có thể phát sinh khi `hasNext()`/`next()` hoặc terminal operation stream).
-- `ConcurrentModificationException`: trong ngữ cảnh đề bài, iterator/stream cũ tiếp tục dùng sau `reload()`; có thể xuất hiện ngay cả với một thread.
-- `IllegalStateException`: Java Stream bị dùng lại sau terminal operation.
-- `ClassNotFoundException`/`NoClassDefFoundError`: class không tìm thấy hoặc không định nghĩa/khởi tạo được trong phạm vi loader; phải kiểm tra nguyên nhân và dependency, không quy mọi lỗi thành “cache cũ”.
+- `ServiceConfigurationError`: provider configuration error, provider load/instantiation error, metadata resource or dependency error (can arise during `hasNext()`/`next()` or stream terminal operations).
+- `ConcurrentModificationException`: in this lesson's context, an old iterator/stream used after `reload()`; can happen even on a single thread.
+- `IllegalStateException`: Java `Stream` reused after a terminal operation.
+- `ClassNotFoundException`/`NoClassDefFoundError`: class not found or cannot be defined/initialized within the loader scope; investigate root cause and dependencies rather than blaming "stale cache".
 
-Đừng nuốt `ServiceConfigurationError` rồi silently bỏ qua provider: có thể làm host hoạt động thiếu tính năng mà không có cảnh báo. Nên log service type, nguồn class loader/module, provider-configuration location (khi có thể) và exception cause; trong hệ plugin có mức lỗi cô lập, ghi rõ chính sách skip/fallback.
+Do not swallow `ServiceConfigurationError` and silently skip providers: it can leave the host running without features and without warning. Log the service type, class loader/module source, provider-configuration location (when possible), and exception cause; in plugin systems with error isolation, document the skip/fallback policy clearly.
 
-### 8.2. Rò rỉ bộ nhớ do cache và tham chiếu cũ
+### 8.2. Memory Leaks from Caches and Old References
 
-`ServiceLoader` sống lâu có thể giữ instance/provider metadata, kéo theo class loader, các class của plugin và resource gián tiếp. `reload()` xóa cache bên trong loader đó nhưng **không xóa reference trong registry khác**, thread-local, static field, listener hoặc request đang giữ instance. Hãy điều tra nơi giữ strong reference thay vì coi `reload()` là lệnh GC.
+A long-lived `ServiceLoader` can hold instances/provider metadata, keeping the class loader, plugin classes, and resources alive indirectly. `reload()` clears the cache inside that loader, yet **does not clear references in other registries**, thread-locals, static fields, listeners, or requests holding instances. Investigate where strong references are held instead of treating `reload()` as a GC command.
 
-### 8.3. Sai giả định về thứ tự
+### 8.3. Wrong Assumptions About Ordering
 
-Cache bảo toàn thứ tự **đã được nạp**; không có nghĩa nhà cung cấp nào đó luôn đứng đầu trong mọi cấu hình class path/module layer. Nếu host cần priority hoặc capability, cần metadata và quy tắc sắp xếp/chọn tường minh. Gọi `findFirst()` phù hợp khi provider đầu tiên theo discovery order thực sự đã đủ.
+The cache preserves **loaded** order; it does not mean a certain provider always comes first in every class path/module layer configuration. If the host requires priority or capabilities, use explicit metadata and sorting/selection rules. `findFirst()` is suitable when whichever provider comes first in discovery order genuinely suffices.
 
-### 8.4. Nhầm giới hạn phạm vi cache với lifecycle của service
+### 8.4. Confusing Cache Scope with Service Lifecycle
 
-`ServiceLoader` quản lý tìm/instantiate provider nhưng không quản lý toàn bộ lifecycle ứng dụng. Nếu provider là stateful service, singleton theo host, hoặc cần start/stop/health-check, hãy xây service registry/container riêng. Cache mặc định có ích cho discovery nhưng không đủ thay thế service management.
+`ServiceLoader` manages finding/instantiating providers, not the full application lifecycle. If a provider is a stateful service, host-wide singleton, or needs start/stop/health-check, build a dedicated service registry/container. Default caching helps discovery, not full service management.
 
-## 9. Checklist QA và bài tập củng cố
+## 9. QA Checklist and Reinforcement Exercises
 
-Thực hiện các test sau với ứng dụng mẫu (mỗi test độc lập hoặc khởi tạo loader mới cho từng tình huống):
+Run these tests against the sample app (each test isolated or creating a fresh loader per scenario):
 
-1. **Lazy iterator:** tạo loader nhưng chưa `next()`; xác nhận chưa thấy dòng constructor, sau `next()` thấy đúng một lần.
-2. **Cache instance:** lấy `loader.iterator().next()` hai lần trên cùng loader, xác nhận `== true` và constructor chạy một lần.
-3. **Partial discovery:** thêm provider thứ hai trong `META-INF/services/demo.TaskProvider`. Lần đầu chỉ lấy một provider; lần sau duyệt hết và kiểm tra cache được mở rộng khi cần.
-4. **Stream metadata:** chỉ thực hiện `stream().map(Provider::type).toList()` và kiểm tra không có log constructor provider; tiếp đó `Provider.get()` để quan sát việc instantiate.
-5. **Hai lần Provider.get():** trong ví dụ `CountingProvider`, hai lần gọi tạo instance mới; không dựa vào identity này như một singleton contract tổng quát.
-6. **Reload:** tạo iterator và stream, gọi `reload()`, dùng lại các bộ duyệt cũ để thấy `ConcurrentModificationException`; tạo bộ duyệt mới và xác nhận hoạt động.
-7. **Old reference:** giữ object id=1 trước reload; sau reload vẫn gọi được `name()` trên object cũ và lấy object mới qua iterator.
-8. **One-shot Stream:** cố dùng hai terminal operation trên cùng stream; phân biệt `IllegalStateException` với cache invalidation.
-9. **TCCL/loader visibility:** thử thay class loader được truyền vào `load(service, loader)`. Khi provider JAR không được loader nhìn thấy, `reload()` không tự khắc phục.
-10. **Concurrency/lifecycle:** tạo một coordinator duy nhất thực hiện refresh, publish snapshot bất biến và thử nhiều request song song; xác định rõ khi nào thế hệ cũ được đóng.
+1. **Lazy iterator:** create the loader without calling `next()`; confirm no constructor line appears yet, then after `next()` confirm it appears once.
+2. **Instance cache:** call `loader.iterator().next()` twice on the same loader, confirm `== true` and constructor runs once.
+3. **Partial discovery:** add a second provider in `META-INF/services/demo.TaskProvider`. First retrieve only one provider; next traverse all and verify the cache expands on demand.
+4. **Stream metadata:** run only `stream().map(Provider::type).toList()` and check for zero provider constructor logs; then call `Provider.get()` to observe instantiation.
+5. **Two `Provider.get()` calls:** in the `CountingProvider` example, two calls create new instances; do not rely on this identity as a general singleton contract.
+6. **Reload:** create an iterator and stream, call `reload()`, reuse the old traversals to see `ConcurrentModificationException`; create new traversals and verify they work.
+7. **Old reference:** keep object id=1 before reload; after reload confirm `name()` still works on the old object and a new object is obtained via the iterator.
+8. **One-shot Stream:** try running two terminal operations on the same stream; distinguish `IllegalStateException` from cache invalidation.
+9. **TCCL/loader visibility:** try changing the class loader passed to `load(service, loader)`. When the provider JAR is invisible to that loader, `reload()` does not fix it.
+10. **Concurrency/lifecycle:** create a single coordinator that performs refresh, publishes an immutable snapshot, and test multiple concurrent requests; clearly define when the old generation is closed.
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-- Cache thuộc về `ServiceLoader` hay về từng lời gọi `iterator()`?
-- Vì sao `stream()` trả `Provider<S>` thay vì `S`?
-- Gọi `type()` có bắt buộc instantiate implementation không?
-- Hai lần `Provider.get()` có được API cam kết trả cùng instance không?
-- `reload()` có làm mọi instance cũ biến mất không?
-- Tại sao dùng iterator cũ sau reload có thể ném `ConcurrentModificationException` dù một thread?
-- Nếu copy JAR mới vào thư mục nhưng nó chưa thuộc class loader, `reload()` có tác dụng gì?
-- Vì sao khi refresh cho nhiều request, snapshot mới + chuyển traffic có thể an toàn hơn việc chia sẻ một `ServiceLoader` đang reload?
+- Does the cache belong to `ServiceLoader` or to each `iterator()` call?
+- Why does `stream()` return `Provider<S>` instead of `S`?
+- Does calling `type()` necessarily instantiate the implementation?
+- Does the API guarantee two `Provider.get()` calls return the same instance?
+- Does `reload()` make all old instances disappear?
+- Why can using an old iterator after reload throw `ConcurrentModificationException` even on a single thread?
+- If a new JAR is copied into a directory not yet on the class loader, what effect does `reload()` have?
+- When refreshing for multiple requests, why is a new snapshot + traffic swap safer than sharing a `ServiceLoader` that is reloading?
 
-Nếu trả lời được bằng **cơ chế** và kiểm chứng bằng log constructor/identity cùng exception, bạn đã nắm được trọng tâm: **iterator cache instance, stream giúp duyệt provider descriptor, còn reload đặt lại trạng thái discovery của cùng `ServiceLoader` và làm các bộ duyệt cũ không còn hợp lệ**.
+If you can answer via the **mechanics** and verify with constructor/identity logs and exceptions, you have grasped the core: **the iterator caches instances, streams let you inspect provider descriptors, and reload resets discovery state on that `ServiceLoader` while invalidating old iterators/streams**.
 
-## 10. Tài liệu chuẩn
+## 10. Standard References
 
-- Java SE 17 API — `ServiceLoader` (đặc biệt “Timing of provider discovery”, “iterator”, “stream”, “reload”, “Concurrency”): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
+- Java SE 17 API — `ServiceLoader` (especially "Timing of provider discovery", "iterator", "stream", "reload", "Concurrency"): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
 - Java SE 17 API — `ServiceLoader.Provider`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.Provider.html
 - Java SE 17 API — `Stream`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Stream.html
 - Java SE 17 API — `ConcurrentModificationException`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ConcurrentModificationException.html

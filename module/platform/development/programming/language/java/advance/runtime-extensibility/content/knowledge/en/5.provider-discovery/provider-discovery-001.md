@@ -1,95 +1,95 @@
-# Chọn ServiceLoader.load theo class loader hoặc ngữ cảnh luồng (TCCL)
+# Selecting ServiceLoader.load by Class Loader or Thread Context (TCCL)
 
-## 1. Vấn đề cần giải quyết khi khám phá provider
+## 1. The Problem to Solve When Discovering Providers
 
-Một ứng dụng Java có thể công bố một **Service Provider Interface (SPI)**, ví dụ `Greeting`, rồi để các JAR/plugin khác cung cấp implementation. `java.util.ServiceLoader<S>` tìm provider theo metadata triển khai (trên class path hoặc trong module), thay vì buộc host gọi trực tiếp constructor của từng implementation.
+A Java application can publish a **Service Provider Interface (SPI)**, for example `Greeting`, and let other JARs/plugins supply implementations. `java.util.ServiceLoader<S>` locates providers from deployment metadata (on the class path or in modules), instead of forcing the host to invoke each implementation's constructor directly.
 
-Vấn đề quan trọng trong runtime extensibility là **provider nằm trong không gian nạp lớp nào**. Trong ứng dụng một class path, `ServiceLoader.load(Greeting.class)` thường tìm được provider và khiến ta tưởng cách chọn class loader không quan trọng. Trong ứng dụng dùng plugin JAR, application server, module layer, nhiều ứng dụng cùng JVM hoặc thread pool, cùng một SPI có thể cho kết quả khác nhau khi chọn loader khác nhau.
+The critical issue in runtime extensibility is **which class-loading space the provider lives in**. In a single-classpath application, `ServiceLoader.load(Greeting.class)` usually finds the provider and makes it look as though choosing a class loader does not matter. In applications using plugin JARs, application servers, module layers, multiple applications in the same JVM, or thread pools, the exact same SPI can produce different results when different loaders are chosen.
 
-Bài này tập trung vào quyết định giữa hai overload:
+This lesson focuses on the decision between two overloads:
 
 ```java
 ServiceLoader<S> ServiceLoader.load(Class<S> service);
 ServiceLoader<S> ServiceLoader.load(Class<S> service, ClassLoader loader);
 ```
 
-Đây là **chữ ký dạng minh họa** để so sánh; chương trình đầy đủ và lệnh chạy nằm ở mục 5. Trong mã Java thật, kiểu `S` được suy ra từ `Class<S>`, ví dụ `ServiceLoader<Greeting> providers = ServiceLoader.load(Greeting.class);`.
+These are **illustrative signatures** for comparison; the complete program and run commands are in Section 5. In real Java code, type `S` is inferred from `Class<S>`, for example `ServiceLoader<Greeting> providers = ServiceLoader.load(Greeting.class);`.
 
-**Tư tưởng cốt lõi:** Chọn loader theo *ranh giới triển khai provider mà ta chủ ý cho phép nhìn thấy*, rồi bảo đảm cả service type và provider đều thuộc mô hình class loading tương thích. TCCL là một cách truyền ngữ cảnh từ bên gọi tới thư viện chung; overload nhận `ClassLoader` là cách quyết định ngữ cảnh khám phá một cách tường minh.
+**Core idea:** Choose the loader according to the *provider deployment boundary you intentionally allow to be visible*, and ensure that both the service type and the provider belong to a compatible class-loading model. TCCL is a way to pass context from the caller down to a shared library; the overload taking `ClassLoader` is the way to decide the discovery context explicitly.
 
-## 2. Hai overload thực sự chọn loader như thế nào?
+## 2. How Do the Two Overloads Actually Select a Loader?
 
-### 2.1. `load(Class<S> service)` lấy context class loader của thread
+### 2.1. `load(Class<S> service)` Reads the Thread's Context Class Loader
 
-Java 17 định nghĩa:
+Java 17 defines:
 
 ```java
 ServiceLoader.load(service)
 ```
 
-tương đương với:
+as equivalent to:
 
 ```java
 ServiceLoader.load(service, Thread.currentThread().getContextClassLoader())
 ```
 
-**Thread Context Class Loader (TCCL)** là giá trị gắn với thread, đọc bằng `getContextClassLoader()` và có thể tạm đổi bằng `setContextClassLoader(loader)`. Nó **không bắt buộc** phải bằng loader đã định nghĩa class đang gọi `ServiceLoader`, loader của SPI, hoặc system class loader.
+The **Thread Context Class Loader (TCCL)** is a value attached to a thread, read via `getContextClassLoader()` and temporarily changeable via `setContextClassLoader(loader)`. It does **not necessarily** equal the loader that defined the class calling `ServiceLoader`, the SPI's loader, or the system class loader.
 
-Cần nhớ bốn điểm:
+Four points to remember:
 
-1. TCCL được lấy **ở thời điểm gọi `ServiceLoader.load(service)`**. Một `ServiceLoader` đã tạo không tự chuyển sang loader mới chỉ vì sau đó TCCL của thread đổi.
-2. TCCL là ngữ cảnh của *thread hiện tại*, không phải thuộc tính của `Greeting.class` hay của plugin. Hai thread có thể khám phá các provider khác nhau nếu TCCL khác nhau.
-3. Framework/container có thể chủ động đặt TCCL để thư viện ở tầng chung tìm được provider của ứng dụng/plugin. Thread pool tái sử dụng thread, nên không thể giả định TCCL đang có là ngữ cảnh phù hợp cho tác vụ mới.
-4. Khi `getContextClassLoader()` trả `null`, overload hai tham số nhận `null` sử dụng **system class loader** (nếu không có thì dùng bootstrap loader) theo hợp đồng JDK. Đừng diễn giải `null` là “chỉ tìm lớp bootstrap”.
+1. TCCL is captured **at the moment `ServiceLoader.load(service)` is called**. An already-created `ServiceLoader` does not automatically switch to a new loader just because the thread's TCCL changes afterward.
+2. TCCL is the context of the *current thread*, not a property of `Greeting.class` or of a plugin. Two threads can discover different providers if their TCCLs differ.
+3. A framework/container may proactively set TCCL so that libraries in a shared layer can find providers belonging to an application/plugin. Thread pools reuse threads, so you cannot assume the existing TCCL is the right context for a new task.
+4. When `getContextClassLoader()` returns `null`, the two-argument overload receiving `null` uses the **system class loader** (or the bootstrap loader if unavailable) per the JDK contract. Do not interpret `null` as "search only bootstrap classes".
 
-Overload một tham số ngắn gọn khi **runtime/container đã công bố rõ ai thiết lập TCCL, trong phạm vi nào, và khi nào khôi phục giá trị cũ**. Nếu không tồn tại hợp đồng đó, kết quả discovery có thể phụ thuộc thread đang chạy.
+The one-argument overload is concise when **the runtime/container has clearly documented who sets TCCL, within what scope, and when the previous value is restored**. If no such contract exists, discovery results can depend on whichever thread happens to run.
 
-### 2.2. `load(Class<S> service, ClassLoader loader)` chọn tường minh
+### 2.2. `load(Class<S> service, ClassLoader loader)` Selects Explicitly
 
 ```java
-ClassLoader pluginLoader = /* class loader mà runtime sở hữu */;
+ClassLoader pluginLoader = /* class loader owned by the runtime */;
 ServiceLoader<Greeting> providers =
         ServiceLoader.load(Greeting.class, pluginLoader);
 ```
 
-Đây là đoạn minh họa dùng một loader do runtime tạo sẵn, chưa phải chương trình độc lập. Tham số `loader` là **điểm bắt đầu** để ServiceLoader tìm provider, cấu hình `META-INF/services` và class provider.
+This is an illustrative snippet using a loader pre-created by the runtime, not a standalone program. The `loader` parameter is the **starting point** for `ServiceLoader` to locate providers, `META-INF/services` configurations, and provider classes.
 
-Khác biệt thực tế:
+Practical differences:
 
-- Việc khám phá không phụ thuộc TCCL đang gắn trên thread đã gọi. Dùng được từ thread của scheduler, executor hay request handler khi runtime biết chính xác loader của plugin.
-- Dễ thể hiện quyền sở hữu và vòng đời: registry của plugin A dùng loader A, registry plugin B dùng loader B.
-- Không đồng nghĩa “chỉ nhìn thấy lớp do loader này tự định nghĩa”: parent delegation cho phép nhìn thấy lớp/tài nguyên từ parent; với **named modules** trong module layer, cơ chế tìm provider còn có quy tắc riêng của JDK.
-- `load(service, null)` không có nghĩa tạo loader rỗng. JDK dùng system class loader, hoặc bootstrap khi không có system loader.
+- Discovery does not depend on the TCCL attached to the calling thread. It works from scheduler, executor, or request handler threads whenever the runtime knows the exact loader of the plugin.
+- It makes ownership and lifecycle clear: plugin A's registry uses loader A, plugin B's registry uses loader B.
+- It does not mean "see only classes defined by this loader itself": parent delegation allows seeing classes/resources from the parent; with **named modules** in a module layer, provider lookup also follows JDK-specific rules.
+- `load(service, null)` does not mean creating an empty loader. The JDK uses the system class loader, or bootstrap when no system loader is available.
 
-**Lưu ý về tên gọi:** `Greeting.class.getClassLoader()` trả loader *đã định nghĩa lớp SPI*, còn `Thread.currentThread().getContextClassLoader()` trả loader ngữ cảnh hiện tại. Hai giá trị có thể bằng nhau trong chương trình đơn giản nhưng có thể khác nhau trong kiến trúc plugin.
+**Note on naming:** `Greeting.class.getClassLoader()` returns the loader *that defined the SPI class*, whereas `Thread.currentThread().getContextClassLoader()` returns the current context loader. These two values may be identical in a simple program, yet differ in a plugin architecture.
 
-### 2.3. Bảng chọn nhanh
+### 2.3. Quick Selection Table
 
-| Bối cảnh | Cách gọi nên cân nhắc | Lý do và điều kiện |
+| Context | Call to Consider | Reason and Conditions |
 |---|---|---|
-| Ứng dụng Java class path thông thường, TCCL đã được quản lý | `ServiceLoader.load(Spi.class)` | Gọn, nhưng vẫn phụ thuộc TCCL |
-| Host biết chính xác class loader của plugin | `ServiceLoader.load(Spi.class, pluginLoader)` | Tường minh, tránh lệ thuộc thread nào gọi |
-| Framework chung được gọi bên trong ứng dụng có TCCL do container thiết lập | `ServiceLoader.load(Spi.class)` | Cho phép thư viện chung khám phá provider của ứng dụng theo contract container |
-| Công việc chạy trong thread pool mà TCCL có thể thuộc tác vụ trước | Overload nhận loader tường minh; hoặc quản lý TCCL trong `try/finally` | Tránh đọc sai provider và tránh giữ class loader cũ |
-| Host chỉ muốn provider nằm trên class path của nó | `ServiceLoader.load(Spi.class, hostLoader)` | Chỉ đúng trong phạm vi class loader delegation và cấu hình thực tế |
-| Provider nằm trong custom **named module layer** | `ServiceLoader.load(layer, Spi.class)` | Chọn layer và tổ tiên của nó; khác bài toán class path/TCCL |
-| Chỉ tìm provider do platform loader nhìn thấy | `ServiceLoader.loadInstalled(Spi.class)` | Java 17 dùng platform class loader; không phải cách tìm plugin trên application class path |
+| Standard Java class-path application, TCCL already managed | `ServiceLoader.load(Spi.class)` | Concise, though still depends on TCCL |
+| Host knows the exact class loader of a plugin | `ServiceLoader.load(Spi.class, pluginLoader)` | Explicit, avoids depending on which thread calls it |
+| Shared framework invoked inside an app whose TCCL is set by a container | `ServiceLoader.load(Spi.class)` | Allows the shared library to discover application providers per the container contract |
+| Work running in a thread pool where TCCL might belong to a previous task | Overload taking an explicit loader; or manage TCCL in `try/finally` | Avoids reading the wrong provider and avoids retaining old class loaders |
+| Host only wants providers on its own class path | `ServiceLoader.load(Spi.class, hostLoader)` | True only within actual class loader delegation and configuration |
+| Providers reside in a custom **named module layer** | `ServiceLoader.load(layer, Spi.class)` | Selects the layer and its ancestors; distinct from the class path/TCCL problem |
+| Find only providers visible to the platform loader | `ServiceLoader.loadInstalled(Spi.class)` | Java 17 uses the platform class loader; not for finding plugins on the application class path |
 
-Bảng là gợi ý thiết kế, không thay thế kiểm tra mô hình nạp lớp của runtime cụ thể.
+This table is a design guide, not a substitute for verifying the specific runtime's class-loading model.
 
-## 3. Quan hệ giữa SPI, provider, loader và TCCL
+## 3. Relationship Between SPI, Provider, Loader, and TCCL
 
-Giả sử có ba phần:
+Suppose there are three parts:
 
-- **Host/API:** interface `demo.spi.Greeting` và lớp ứng dụng `demo.app.LoaderDemo`, được application class loader tải.
-- **Plugin:** class `demo.plugin.EnglishGreeting` cùng cấu hình `META-INF/services/demo.spi.Greeting`, nằm ngoài application class path.
-- **Plugin class loader:** `URLClassLoader` của runtime trỏ tới thư mục/JAR plugin và nhận loader của SPI làm parent.
+- **Host/API:** interface `demo.spi.Greeting` and application class `demo.app.LoaderDemo`, loaded by the application class loader.
+- **Plugin:** class `demo.plugin.EnglishGreeting` together with configuration `META-INF/services/demo.spi.Greeting`, located outside the application class path.
+- **Plugin class loader:** runtime's `URLClassLoader` pointing to the plugin directory/JAR and taking the SPI's loader as its parent.
 
-Khi đó:
+Then:
 
 ```text
 Application/host loader
-   ├── demo.spi.Greeting         (SPI chung)
+   ├── demo.spi.Greeting         (shared SPI)
    └── demo.app.LoaderDemo
             ^
             | parent delegation
@@ -99,33 +99,33 @@ Plugin URLClassLoader
    └── META-INF/services/demo.spi.Greeting
 ```
 
-Trong kiểu bố trí này, `ServiceLoader.load(Greeting.class, pluginLoader)` có thể tìm provider, còn `ServiceLoader.load(Greeting.class)` phụ thuộc TCCL hiện tại. Nếu TCCL vẫn là host loader và host không thấy metadata của plugin, discovery sẽ trả rỗng.
+In this layout, `ServiceLoader.load(Greeting.class, pluginLoader)` can find the provider, while `ServiceLoader.load(Greeting.class)` depends on the current TCCL. If TCCL is still the host loader and the host cannot see the plugin's metadata, discovery returns empty.
 
-**Class identity đặc biệt quan trọng.** Trong JVM, tên nhị phân giống nhau không đủ để hai class được xem là một loại: loader định nghĩa class cũng là một phần của danh tính runtime. Nếu plugin tự chứa một bản `demo.spi.Greeting` được định nghĩa bởi child loader thay vì sử dụng cùng `Greeting.class` của host, provider có thể không assignable với SPI của host, dẫn đến `ServiceConfigurationError`. Vì vậy hãy đặt API dùng chung ở parent được cả host và plugin nhìn thấy, rồi để plugin loader tải implementation và dependency riêng.
+**Class identity is especially important.** In the JVM, having the same binary name is not enough for two classes to be treated as the same type: the defining loader of a class is also part of its runtime identity. If a plugin bundles its own copy of `demo.spi.Greeting` defined by the child loader instead of using the host's `Greeting.class`, the provider may not be assignable to the host's SPI, resulting in `ServiceConfigurationError`. Therefore, place the shared API in a parent visible to both host and plugin, and let the plugin loader load the implementation and its private dependencies.
 
-Một `ClassLoader` không phải cơ chế sandbox bảo mật đáng tin cậy. Parent delegation, visibility, module access, resource lookup và lifecycle là các quyết định cần kiểm chứng; việc dùng loader riêng tự nó không cô lập quyền truy cập CPU, bộ nhớ, file hay mạng.
+A `ClassLoader` is not a reliable security sandbox mechanism. Parent delegation, visibility, module access, resource lookup, and lifecycle are decisions that must be verified; using a separate loader by itself does not isolate CPU, memory, file, or network access.
 
-## 4. Provider discovery hoạt động khi nào và từ đâu?
+## 4. When and Where Does Provider Discovery Work?
 
-Với provider ở **unnamed module/class path**, JDK đọc file UTF-8:
+For providers in an **unnamed module/class path**, the JDK reads the UTF-8 file:
 
 ```text
-META-INF/services/<tên.nhị.phân.đầy.đủ.của.SPI>
+META-INF/services/<fully.qualified.binary.name.of.SPI>
 ```
 
-Ví dụ service `demo.spi.Greeting` có file `META-INF/services/demo.spi.Greeting`, mỗi dòng khai báo tên class provider, chẳng hạn `demo.plugin.EnglishGreeting`. Class provider cần được loader liên quan nhìn thấy, implement SPI và có constructor `public` không tham số đối với provider class-path thông thường.
+For example, service `demo.spi.Greeting` has the file `META-INF/services/demo.spi.Greeting`, with each line declaring a provider class name, such as `demo.plugin.EnglishGreeting`. The provider class must be visible to the relevant loader, implement the SPI, and have a `public` no-argument constructor for conventional class-path providers.
 
-Với **named modules**, module của consumer khai báo `uses`, module provider khai báo `provides ... with ...`. `ServiceLoader.load(service, loader)` có quy tắc tìm các provider ở named modules, bao gồm một số provider ở cùng layer nhưng do loader khác định nghĩa; đây là lý do không nên coi tham số loader là bộ lọc “chỉ đúng một JAR”. Nếu mục tiêu chính là khoanh một module layer cụ thể, dùng overload `load(ModuleLayer layer, Class<S> service)`: overload này tìm provider trong layer đó và các layer tổ tiên, không quét unnamed modules.
+With **named modules**, the consumer module declares `uses`, and the provider module declares `provides ... with ...`. `ServiceLoader.load(service, loader)` has rules for locating providers in named modules, including certain providers in the same layer defined by a different loader; that is why the loader parameter should not be treated as a "strictly one JAR only" filter. If the primary goal is to scope to a specific module layer, use the overload `load(ModuleLayer layer, Class<S> service)`: this overload finds providers in that layer and its ancestor layers, and does not scan unnamed modules.
 
-Một `ServiceLoader` **không nhất thiết đọc và instantiate tất cả provider ngay khi gọi `load(...)`**. Iterator, `findFirst()` và terminal operation trên `stream()` mới kích hoạt việc khám phá và khởi tạo theo nhu cầu. Bởi vậy, thao tác tạo `ServiceLoader` thành công chưa chứng minh provider có thể dùng được; lỗi cấu hình có thể phát sinh lúc duyệt.
+A `ServiceLoader` **does not necessarily read and instantiate all providers immediately when `load(...)` is called**. Only the iterator, `findFirst()`, and terminal operations on `stream()` trigger on-demand discovery and instantiation. Consequently, successfully creating a `ServiceLoader` does not prove providers are usable; configuration errors may surface during iteration.
 
-## 5. Ví dụ đầy đủ Java 17+: plugin được tìm bằng explicit loader và TCCL
+## 5. Complete Java 17+ Example: Plugin Discovered via Explicit Loader and TCCL
 
-Ví dụ này chạy trên **class path**, không sử dụng `module-info.java`. Quan trọng: **không đưa `build/plugin` lên application class path khi chạy host**; nếu thêm nó vào `java -cp`, thử nghiệm sẽ không còn kiểm tra được sự khác biệt về visibility.
+This example runs on the **class path**, without using `module-info.java`. Important: **do not put `build/plugin` on the application class path when running the host**; if you add it to `java -cp`, the experiment will no longer test visibility differences.
 
-### 5.1. Cây thư mục
+### 5.1. Directory Tree
 
-Tạo các tệp sau từ thư mục làm việc `demo/`:
+Create the following files from the working directory `demo/`:
 
 ```text
 demo/
@@ -135,10 +135,10 @@ demo/
 │   └── plugin/
 │       ├── demo/plugin/EnglishGreeting.java
 │       └── META-INF/services/demo.spi.Greeting
-└── build/                         (tạo bằng lệnh ở bên dưới)
+└── build/                         (created by the commands below)
 ```
 
-**Tệp `src/api/demo/spi/Greeting.java`:**
+**File `src/api/demo/spi/Greeting.java`:**
 
 ```java
 package demo.spi;
@@ -148,7 +148,7 @@ public interface Greeting {
 }
 ```
 
-**Tệp `src/plugin/demo/plugin/EnglishGreeting.java`:**
+**File `src/plugin/demo/plugin/EnglishGreeting.java`:**
 
 ```java
 package demo.plugin;
@@ -166,15 +166,15 @@ public final class EnglishGreeting implements Greeting {
 }
 ```
 
-**Tệp UTF-8 `src/plugin/META-INF/services/demo.spi.Greeting` chứa chính xác một dòng:**
+**UTF-8 file `src/plugin/META-INF/services/demo.spi.Greeting` containing exactly one line:**
 
 ```text
 demo.plugin.EnglishGreeting
 ```
 
-Tên file mô tả **SPI**, còn nội dung là tên class **provider**. File này là resource và phải được copy vào output của plugin bên cạnh class đã biên dịch; `javac` không tự copy resource.
+The file name identifies the **SPI**, while its content is the **provider** class name. This file is a resource and must be copied to the plugin output alongside the compiled classes; `javac` does not copy resources automatically.
 
-**Tệp `src/host/demo/app/LoaderDemo.java`:**
+**File `src/host/demo/app/LoaderDemo.java`:**
 
 ```java
 package demo.app;
@@ -197,7 +197,7 @@ public final class LoaderDemo {
         ClassLoader originalTccl = thread.getContextClassLoader();
         ClassLoader hostLoader = Greeting.class.getClassLoader();
 
-        // Đặt TCCL về host để output không phụ thuộc launcher.
+        // Set TCCL to host so output does not depend on the launcher.
         thread.setContextClassLoader(hostLoader);
         try {
             System.out.println("host-default=" +
@@ -206,7 +206,7 @@ public final class LoaderDemo {
             URL pluginUrl = Path.of("build/plugin")
                     .toAbsolutePath().toUri().toURL();
 
-            // Parent nạp SPI, child tìm provider và metadata riêng.
+            // Parent loads SPI, child looks up provider and its own metadata.
             try (URLClassLoader pluginLoader =
                     new URLClassLoader(new URL[] { pluginUrl }, hostLoader)) {
                 System.out.println("explicit-plugin=" +
@@ -218,7 +218,7 @@ public final class LoaderDemo {
                     System.out.println("tccl-plugin=" +
                             describe(ServiceLoader.load(Greeting.class)));
                 } finally {
-                    // Không để plugin loader rò vào công việc kế tiếp.
+                    // Do not leak plugin loader into subsequent work.
                     thread.setContextClassLoader(hostLoader);
                 }
 
@@ -232,11 +232,11 @@ public final class LoaderDemo {
 }
 ```
 
-Không có class provider nào được import ở host. Host chỉ biết `Greeting`, còn tên provider nằm trong resource `META-INF/services`.
+No provider class is imported in the host. The host only knows `Greeting`, while the provider name lives in the `META-INF/services` resource.
 
-### 5.2. Biên dịch và chạy trên Windows PowerShell
+### 5.2. Compiling and Running on Windows PowerShell
 
-Đứng ở thư mục `demo/`, với JDK 17+ trên `PATH`:
+From the `demo/` directory, with JDK 17+ on `PATH`:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path build/api,build/host,build/plugin/META-INF/services | Out-Null
@@ -247,7 +247,7 @@ javac -cp build/api -d build/host src/host/demo/app/LoaderDemo.java
 java -cp "build/api;build/host" demo.app.LoaderDemo
 ```
 
-### 5.3. Lệnh tương đương trên Linux/macOS
+### 5.3. Equivalent Commands on Linux/macOS
 
 ```bash
 mkdir -p build/api build/host build/plugin/META-INF/services
@@ -258,9 +258,9 @@ javac -cp build/api -d build/host src/host/demo/app/LoaderDemo.java
 java -cp "build/api:build/host" demo.app.LoaderDemo
 ```
 
-Lưu ý dấu phân cách class path: `;` trên Windows, `:` trên Linux/macOS. Chạy từ đúng thư mục `demo/` vì `Path.of("build/plugin")` được tính theo working directory.
+Note the class path separator: `;` on Windows, `:` on Linux/macOS. Run from the `demo/` directory because `Path.of("build/plugin")` is resolved relative to the working directory.
 
-### 5.4. Stdout dự kiến chính xác
+### 5.4. Exact Expected Stdout
 
 ```text
 host-default=(none)
@@ -269,45 +269,45 @@ tccl-plugin=Hello, Java
 after-restore=(none)
 ```
 
-**Giải thích từng dòng:**
+**Line-by-line explanation:**
 
-1. `host-default=(none)`: host không đưa `build/plugin` vào application class path; TCCL tạm đặt về `hostLoader` nên không thấy resource/provider plugin.
-2. `explicit-plugin=Hello, Java`: overload hai tham số dùng `pluginLoader`, có URL tới `build/plugin`. Loader này thấy cấu hình service và nạp `EnglishGreeting`; class `Greeting` được chia sẻ qua parent.
-3. `tccl-plugin=Hello, Java`: tạm đặt TCCL thành `pluginLoader`; overload một tham số từ đó tương đương với overload hai tham số dùng chính loader này.
-4. `after-restore=(none)`: đã trả TCCL về `hostLoader`, nên lần discovery mới lại không thấy plugin. Hai khối `finally` bảo đảm dọn ngữ cảnh thread kể cả khi có lỗi; `try-with-resources` đóng `URLClassLoader`.
+1. `host-default=(none)`: the host does not include `build/plugin` on the application class path; TCCL is temporarily set to `hostLoader`, so it cannot see the plugin resource/provider.
+2. `explicit-plugin=Hello, Java`: the two-argument overload uses `pluginLoader`, which has a URL pointing to `build/plugin`. This loader sees the service configuration and loads `EnglishGreeting`; the `Greeting` class is shared via the parent.
+3. `tccl-plugin=Hello, Java`: TCCL is temporarily set to `pluginLoader`; from there, the one-argument overload is equivalent to the two-argument overload using that same loader.
+4. `after-restore=(none)`: TCCL has been restored to `hostLoader`, so the new discovery once again does not see the plugin. The two `finally` blocks guarantee thread context cleanup even on errors; `try-with-resources` closes `URLClassLoader`.
 
-Chương trình chỉ tạo **một provider** để stdout không phụ thuộc thứ tự nhiều provider. Nếu API cho phép nhiều provider, phải định nghĩa tiêu chí chọn theo metadata, tính năng hoặc priority; đừng mặc nhiên cho rằng provider đầu tiên ổn định trong mọi môi trường.
+The program creates only **one provider** so stdout does not depend on multi-provider ordering. If an API allows multiple providers, you must define selection criteria based on metadata, capabilities, or priority; do not assume the first provider is stable across all environments.
 
-## 6. Vì sao không chọn loader theo “class hiện tại” một cách máy móc?
+## 6. Why Not Mechanically Choose the Loader Based on the "Current Class"?
 
-Trong framework, class của thư viện chung có thể được parent loader định nghĩa, còn service implementation thuộc một ứng dụng con. Ba lựa chọn dưới đây có thể khác nhau:
+In a framework, shared library classes may be defined by a parent loader, while service implementations belong to a child application. These three choices below can differ:
 
 ```java
-// Loader định nghĩa API, thường phù hợp làm parent để chia sẻ SPI.
+// Loader that defines the API, usually suitable as parent to share the SPI.
 ClassLoader apiLoader = Greeting.class.getClassLoader();
 
-// Loader định nghĩa class của thư viện đang gọi (có thể ở tầng khác).
+// Loader that defines the calling library class (may be at another layer).
 ClassLoader libraryLoader = LoaderDemo.class.getClassLoader();
 
-// Loader ngữ cảnh do phía gọi / container gắn vào thread.
+// Context loader attached to the thread by the caller / container.
 ClassLoader contextLoader =
         Thread.currentThread().getContextClassLoader();
 ```
 
-Đây là **đoạn minh họa** dùng tên class của ví dụ mục 5; không thay thế chương trình ở mục 5. Trong ví dụ class path đơn giản, `apiLoader` và `libraryLoader` cùng là application loader. Trong container nhiều tầng, `libraryLoader` có thể không tìm thấy JAR plugin; dùng nó một cách vô thức khiến thư viện thấy ít provider hơn runtime mong muốn.
+This is an **illustrative snippet** using class names from Section 5's example; it does not replace the program in Section 5. In the simple class-path example, `apiLoader` and `libraryLoader` are both the application loader. In a multi-tier container, `libraryLoader` might not be able to find plugin JARs; using it blindly causes the library to see fewer providers than the runtime intends.
 
-**Phân biệt rõ hai câu hỏi:**
+**Clearly distinguish two questions:**
 
-- *Class nào được coi là cùng SPI?* Phụ thuộc `Class<?>` được truyền vào và danh tính runtime của nó (tên lớp + loader định nghĩa).
-- *Tìm resource và implementation ở đâu?* Phụ thuộc class loader được chọn để discovery, cộng quy tắc delegate/module của JVM.
+- *Which class counts as the same SPI?* Depends on the `Class<?>` passed in and its runtime identity (class name + defining loader).
+- *Where to look for resources and implementations?* Depends on the class loader chosen for discovery, plus the JVM's delegation/module rules.
 
-Hai quyết định phải tương thích. Đặt một bản API trùng lặp bên trong plugin có thể làm `EnglishGreeting` không phải subtype của `Greeting` do host nhìn thấy dù tên class trong log giống nhau.
+Both decisions must be compatible. Placing a duplicate copy of the API inside a plugin can make `EnglishGreeting` not a subtype of the `Greeting` seen by the host even though the class names look identical in logs.
 
-## 7. Quy tắc đặt và khôi phục TCCL an toàn
+## 7. Rules for Safely Setting and Restoring TCCL
 
-TCCL là trạng thái mutable của một thread. Nếu runtime thật sự cần tạm đặt nó (ví dụ API của bên thứ ba chỉ gọi `ServiceLoader.load(Spi.class)`), hãy bảo đảm **lưu giá trị cũ, đặt ngữ cảnh trong phạm vi ngắn nhất, và khôi phục bằng `finally`**.
+TCCL is mutable per-thread state. If the runtime truly needs to set it temporarily (for example, a third-party API that only calls `ServiceLoader.load(Spi.class)`), make sure to **save the old value, set the context in the narrowest possible scope, and restore it with `finally`**.
 
-Một helper minh họa (đặt bên trong class phù hợp và import `java.util.function.Supplier`):
+An illustrative helper (place inside an appropriate class and import `java.util.function.Supplier`):
 
 ```java
 static <T> T withContextLoader(
@@ -324,7 +324,7 @@ static <T> T withContextLoader(
 }
 ```
 
-Dùng:
+Usage:
 
 ```java
 String result = withContextLoader(pluginLoader, () ->
@@ -334,34 +334,34 @@ String result = withContextLoader(pluginLoader, () ->
                 .orElse("(none)"));
 ```
 
-Hai khối code ở đây là **minh họa tích hợp** trong phạm vi có `Greeting` và `pluginLoader`; ví dụ đầy đủ ở mục 5 có thể biên dịch và chạy độc lập.
+These two code blocks are **integration illustrations** within a scope that has `Greeting` and `pluginLoader`; the complete example in Section 5 compiles and runs standalone.
 
-Không dùng `setContextClassLoader` như một cài đặt toàn JVM. Với executor dùng lại thread, một tác vụ quên restore sẽ làm tác vụ khác tìm nhầm provider hoặc giữ tham chiếu tới plugin loader đã hết vòng đời. Nếu code của bạn chủ động nắm `pluginLoader`, overload tường minh thường dễ kiểm soát hơn việc thay đổi TCCL để gọi một overload ngắn hơn.
+Do not use `setContextClassLoader` as a JVM-wide setting. With an executor that reuses threads, a task that forgets to restore will cause subsequent tasks to discover the wrong provider or hold references to an expired plugin loader. If your code already holds `pluginLoader`, the explicit overload is usually easier to control than mutating TCCL just to call a shorter overload.
 
-**Chú ý:** Java `ThreadLocal` và TCCL là hai cơ chế khác nhau. Một `CompletableFuture`, executor hay scheduler không tự đảm bảo mang đúng TCCL từ request này sang task khác. Truyền loader tường minh hoặc bọc tác vụ trong scope restore khi cần.
+**Note:** Java `ThreadLocal` and TCCL are two different mechanisms. A `CompletableFuture`, executor, or scheduler does not automatically guarantee propagating the right TCCL from one request to another task. Pass the loader explicitly or wrap the task in a restore scope when needed.
 
-### TCCL được chụp vào lúc tạo ServiceLoader
+### TCCL Is Captured When Creating ServiceLoader
 
 ```java
-// TCCL đang là hostLoader:
+// TCCL is currently hostLoader:
 ServiceLoader<Greeting> captured =
         ServiceLoader.load(Greeting.class);
 
-// Đổi TCCL sang pluginLoader sau đó không đổi loader đã chọn
-// bên trong captured. Muốn khám phá theo pluginLoader, hãy gọi lại
-// ServiceLoader.load(Greeting.class, pluginLoader).
+// Changing TCCL to pluginLoader afterward does not change the loader
+// selected inside captured. To discover via pluginLoader, call
+// ServiceLoader.load(Greeting.class, pluginLoader) again.
 ```
 
-Đừng suy luận rằng iterator đọc TCCL mới mỗi khi `hasNext()` hoặc `next()` được gọi. Đối tượng `ServiceLoader` đã lưu ngữ cảnh loader được chọn lúc tạo.
+Do not assume the iterator reads the new TCCL each time `hasNext()` or `next()` is called. The `ServiceLoader` object already saved the loader context chosen at creation time.
 
-## 8. Named modules: class loader và module layer không phải cùng một trục
+## 8. Named Modules: Class Loader and Module Layer Are Not the Same Axis
 
-Ví dụ class path ở mục 5 không khai báo module. Khi chuyển sang Java Platform Module System (JPMS), consumer trong một **explicit named module** phải khai báo `uses` cho service, còn module provider khai báo `provides`.
+Section 5's class-path example declares no modules. When moving to the Java Platform Module System (JPMS), a consumer in an **explicit named module** must declare `uses` for the service, and the provider module must declare `provides`.
 
-Ví dụ định hướng (chỉ là các *module descriptor* minh họa, không phải bộ source độc lập để biên dịch):
+Directional example (illustrative *module descriptors* only, not a standalone compilable source set):
 
 ```java
-// module-info.java của module chứa host
+// module-info.java of the module containing the host
 module demo.host {
     requires demo.spi;
     uses demo.spi.Greeting;
@@ -369,50 +369,50 @@ module demo.host {
 ```
 
 ```java
-// module-info.java của module chứa provider
+// module-info.java of the module containing the provider
 module demo.plugin {
     requires demo.spi;
     provides demo.spi.Greeting with demo.plugin.EnglishGreeting;
 }
 ```
 
-Module `demo.spi` trong bố trí này cần `exports demo.spi;` để host/provider truy cập service type. Trong named module, provider được chỉ định bằng `provides`; không nên giả định file `META-INF/services` của ví dụ class path thay thế đầy đủ cấu hình module.
+Module `demo.spi` in this layout needs `exports demo.spi;` so the host/provider can access the service type. In named modules, providers are specified via `provides`; do not assume the `META-INF/services` file from the class-path example fully replaces module configuration.
 
-Nếu ứng dụng tạo các plugin bằng `ModuleLayer` riêng, có thể chọn:
+If the application creates plugins with their own `ModuleLayer`, you can choose:
 
 ```java
 ServiceLoader<Greeting> providers =
         ServiceLoader.load(pluginLayer, Greeting.class);
 ```
 
-Đây là phác thảo khi đã có biến `pluginLayer` và module hợp lệ. Cách gọi này tìm provider ở **named modules của layer và tổ tiên**, không tìm provider trong unnamed modules. Ngược lại, overload nhận `ClassLoader` trong JDK 17 có thể tìm named-module provider thuộc các module layer có quan hệ qua loader/parent theo quy tắc JDK; không bảo đảm chỉ tìm provider do duy nhất loader đó định nghĩa.
+This is a sketch assuming an existing `pluginLayer` variable and valid modules. This call finds providers in **named modules of the layer and its ancestors**, and does not find providers in unnamed modules. Conversely, the overload taking `ClassLoader` in JDK 17 can find named-module providers belonging to module layers related via loader/parent under JDK rules; it is not guaranteed to find only providers defined solely by that loader.
 
-**Khi nào dùng lớp nào?** Nếu ranh giới runtime là URL/JAR loader của plugin class path, overload nhận loader tường minh tự nhiên hơn. Nếu ranh giới là module layer do runtime tạo và quản lý, hãy cân nhắc overload nhận `ModuleLayer`. TCCL vẫn có thể hữu ích cho code dùng overload mặc định, nhưng không phải tên thay thế cho module layer.
+**When to use which?** If the runtime boundary is a URL/JAR loader for class-path plugins, the explicit-loader overload is more natural. If the boundary is a module layer created and managed by the runtime, consider the overload taking `ModuleLayer`. TCCL can still be useful for code using the default overload, but it is not a substitute name for a module layer.
 
-## 9. Cache, reload và vòng đời plugin
+## 9. Caching, Reloading, and Plugin Lifecycle
 
-`ServiceLoader` giữ cache những provider đã tìm/nạp trong **chính instance** của nó. `iterator()` có thể trả lại các provider đã được instantiate ở lần duyệt trước; `reload()` xóa cache và yêu cầu khám phá lại ở các lần duyệt tiếp theo.
+`ServiceLoader` caches the providers it has found/loaded inside **its own instance**. `iterator()` may return providers already instantiated in a previous traversal; `reload()` clears the cache and requests re-discovery on subsequent traversals.
 
-Các điểm dễ nhầm:
+Common misconceptions:
 
-- `reload()` **không biến class loader cũ thành loader có thể nạp lại một phiên bản khác của class đã định nghĩa**. Với plugin JAR thay thế, hot reload thật sự có thể cần loader mới/layer mới và chuyển toàn bộ registration, cache, tài nguyên, reference sang phiên mới.
-- Sau `reload()`, iterator/stream cũ của cùng `ServiceLoader` có thể trở nên không hợp lệ; tạo iterator/stream mới. Javadoc cho phép `ConcurrentModificationException` nếu dùng iterator sau khi cache bị xóa.
-- `ServiceLoader` instance **không thread-safe**. Đừng chia sẻ và duyệt cùng instance trên nhiều thread mà thiếu đồng bộ phù hợp; thường dễ hơn khi tạo instance theo phiên discovery.
-- Không cache `ServiceLoader.load(Spi.class)` trong singleton dùng chung cho mọi ứng dụng trong JVM khi các ứng dụng có TCCL khác nhau. Điều đó có thể trả nhầm provider và giữ tham chiếu class loader lâu dài.
-- `URLClassLoader.close()` đóng các tài nguyên mà loader sở hữu như JAR/file đã mở; nó **không tự hủy instance provider**, không tự đóng các tài nguyên nghiệp vụ của plugin và không xóa các class đã được JVM định nghĩa.
-- Khi unload, runtime phải hủy callback/subscription của provider, giải phóng reference tới provider/`ServiceLoader`/loader, trả TCCL về ngữ cảnh cũ và đóng loader trong phạm vi phù hợp. Class loader chỉ có thể được thu gom sau khi không còn tham chiếu mạnh liên quan.
+- `reload()` **does not turn an old class loader into one that can reload a different version of an already-defined class**. For hot-swapping plugin JARs, true hot reload may require a new loader/new layer and migrating all registrations, caches, resources, and references to the new version.
+- After `reload()`, previous iterators/streams of the same `ServiceLoader` may become invalid; create a new iterator/stream. The Javadoc allows `ConcurrentModificationException` if an iterator is used after the cache has been cleared.
+- A `ServiceLoader` instance is **not thread-safe**. Do not share and traverse the same instance across multiple threads without proper synchronization; it is usually easier to create an instance per discovery session.
+- Do not cache `ServiceLoader.load(Spi.class)` in a singleton shared across all applications in the JVM when those applications have different TCCLs. That can return the wrong provider and retain class loader references long-term.
+- `URLClassLoader.close()` closes resources owned by the loader such as open JARs/files; it **does not destroy provider instances**, does not close the plugin's business resources, and does not unload classes already defined by the JVM.
+- On unload, the runtime must cancel provider callbacks/subscriptions, release references to providers/`ServiceLoader`/loader, restore TCCL to its previous context, and close the loader within the appropriate scope. A class loader can only be garbage-collected once no relevant strong references remain.
 
-Vì discovery là lazy, thời điểm xuất hiện lỗi có thể nằm ở `findFirst()`, `iterator().hasNext()/next()`, xử lý `stream()` hoặc `Provider.get()`. Hãy ghi log đủ service type, loader identity, tên provider và đường dẫn metadata nếu có thể, thay vì biến mọi lỗi thành “không tìm thấy provider”.
+Because discovery is lazy, failures can occur during `findFirst()`, `iterator().hasNext()/next()`, `stream()` processing, or `Provider.get()`. Log enough detail—service type, loader identity, provider name, and metadata path if possible—rather than collapsing every failure into "provider not found".
 
-## 10. Xử lý lỗi khám phá và phân biệt “rỗng” với “cấu hình hỏng”
+## 10. Handling Discovery Errors and Distinguishing "Empty" from "Broken Configuration"
 
-Ba kết quả có ý nghĩa khác nhau:
+Three outcomes have different meanings:
 
-1. **Không có provider hợp lệ nào được tìm**: iterator hết, `findFirst()` trả `Optional.empty()`; ứng dụng chọn fallback hoặc báo thiếu tính năng tùy hợp đồng.
-2. **Có cấu hình provider nhưng nạp/khởi tạo thất bại**: có thể nhận `ServiceConfigurationError` (ví dụ sai tên class, constructor không dùng được, provider không implement đúng SPI, metadata hỏng).
-3. **Provider nạp được nhưng logic nghiệp vụ lỗi**: callback/service method ném lỗi riêng; ServiceLoader không phải cơ chế xử lý lỗi nghiệp vụ tự động.
+1. **No valid provider found**: the iterator is exhausted, `findFirst()` returns `Optional.empty()`; the application picks a fallback or reports a missing feature depending on its contract.
+2. **Provider configuration exists, but loading/instantiation fails**: you may receive a `ServiceConfigurationError` (for example wrong class name, unusable constructor, provider does not properly implement the SPI, corrupted metadata).
+3. **Provider loads, but business logic fails**: callbacks/service methods throw their own exceptions; `ServiceLoader` is not an automatic business-error handling mechanism.
 
-`ServiceConfigurationError` là subclass của `Error`, vì vậy một `catch (RuntimeException)` thông thường **không bắt** được nó. Khi runtime muốn báo lỗi cấu hình có ngữ cảnh, có thể bắt cụ thể tại ranh giới discovery:
+`ServiceConfigurationError` is a subclass of `Error`, so a normal `catch (RuntimeException)` **does not catch** it. When the runtime wants to report a configuration error with context, it can catch it specifically at the discovery boundary:
 
 ```java
 try {
@@ -428,49 +428,49 @@ try {
 }
 ```
 
-Đây là đoạn tích hợp dùng `pluginLoader` đã tồn tại, không phải chương trình chạy riêng. Đừng catch rộng `Throwable` để âm thầm bỏ qua provider lỗi; một cấu hình SPI sai thường cần sửa triển khai. Nếu muốn cô lập plugin hỏng để tiếp tục plugin khác, phải công bố chính sách rõ ràng và kiểm thử khả năng recover của iterator, vì JDK không bảo đảm luôn bỏ qua được provider hỏng sau mỗi lỗi.
+This is an integration snippet using an existing `pluginLoader`, not a standalone program. Do not broadly catch `Throwable` to silently ignore failing providers; an invalid SPI configuration usually needs the deployment to be fixed. If you want to isolate a broken plugin so others can continue, publish a clear policy and test the iterator's recovery behavior, as the JDK does not guarantee the iterator can always skip a broken provider after every failure.
 
-### Đọc nguyên nhân lỗi theo biểu hiện
+### Diagnosing Error Causes by Symptom
 
-| Biểu hiện | Hướng kiểm tra |
+| Symptom | What to Check |
 |---|---|
-| `findFirst()` rỗng dù JAR tồn tại | TCCL/loader có thấy đúng resource? `build/plugin` có thực sự nằm trên URL/class path của loader đang dùng? |
-| `ServiceConfigurationError: Provider ... not found` | Sai tên provider, thiếu class file, sai package, thiếu dependency, visibility qua parent |
-| `... not a subtype` | Có copy SPI khác loader không? Provider có implement đúng class `Greeting` của host không? |
-| Constructor/provider method lỗi | Kiểm tra yêu cầu public no-args constructor khi dùng class-path provider, dependency khi init, exception gốc |
-| Chạy từ CLI được, vào executor/container lại không thấy | In ra TCCL của từng luồng và loader đã chọn khi gọi `ServiceLoader.load` |
-| Sau redeploy vẫn thấy provider cũ | Còn cache `ServiceLoader`/reference đến loader cũ? Có tạo loader mới và close lifecycle cũ chưa? |
-| `ConcurrentModificationException` sau `reload()` | Iterator/stream đã tạo trước reload phải bỏ và tạo mới |
-| Provider load được nhưng cast sai | Xác minh SPI Class object dùng chung và classloader delegation; đừng chỉ so tên class |
+| `findFirst()` is empty even though JAR exists | Can TCCL/loader see the right resource? Is `build/plugin` actually on the URL/class path of the loader being used? |
+| `ServiceConfigurationError: Provider ... not found` | Wrong provider name, missing class file, wrong package, missing dependency, visibility through parent |
+| `... not a subtype` | Is there a duplicate SPI copy in another loader? Does the provider implement the host's exact `Greeting` class? |
+| Constructor/provider method error | Check public no-args constructor requirement for class-path providers, init dependencies, root exception |
+| Works from CLI, fails to see provider in executor/container | Print each thread's TCCL and the loader chosen when calling `ServiceLoader.load` |
+| Still sees old provider after redeploy | Lingering `ServiceLoader` cache/reference to old loader? Was a new loader created and the old lifecycle closed? |
+| `ConcurrentModificationException` after `reload()` | Iterators/streams created before reload must be discarded and recreated |
+| Provider loads but fails cast | Verify shared SPI `Class` object and classloader delegation; do not just compare class names |
 
-Phục vụ chẩn đoán, có thể in `Greeting.class.getClassLoader()`, `Thread.currentThread().getContextClassLoader()` và loader explicit đang dùng. Không dựa vào chuỗi `toString()` của loader để đánh giá identity duy nhất; có thể so reference hoặc dùng identity trong log có ngữ cảnh.
+For diagnostics, you can print `Greeting.class.getClassLoader()`, `Thread.currentThread().getContextClassLoader()`, and the explicit loader in use. Do not rely on a loader's `toString()` string to judge unique identity; compare references or use identity in contextual logs.
 
-## 11. Kiểm thử contract lựa chọn class loader
+## 11. Testing the Class Loader Selection Contract
 
-Với một runtime hỗ trợ plugin, nên có các case tích hợp xác nhận đúng ranh giới:
+For a plugin-capable runtime, you should have integration cases verifying the exact boundaries:
 
-| Tình huống | Kết quả mong muốn |
+| Scenario | Expected Result |
 |---|---|
-| Host class path chỉ chứa API/host, plugin ở loader riêng | Overload mặc định với host TCCL không thấy plugin |
-| `load(Spi.class, pluginLoader)` với metadata chính xác | Provider plugin được nạp; cast theo SPI của host thành công |
-| Đặt TCCL thành plugin loader rồi dùng overload mặc định | Provider tương đương với explicit loader trong bố trí đơn giản |
-| Khôi phục TCCL rồi gọi lại overload mặc định | Không giữ nhầm loader của plugin |
-| Tạo ServiceLoader trước khi đổi TCCL | Instance cũ vẫn khám phá theo loader đã chọn khi tạo |
-| Resource service tồn tại nhưng class provider không thấy | Báo lỗi cấu hình, không coi như tập provider rỗng bình thường |
-| Plugin mang bản API duplicate do loader khác định nghĩa | Phát hiện lỗi class identity / assignability |
-| Nhiều plugin loader độc lập | Mỗi lượt discovery dùng đúng loader, không lẫn provider ngoài ranh giới chủ ý |
-| Reload/hot swap | Tạo vòng đời và class loader mới khi cần; không giữ instance/tài nguyên cũ |
-| Thread pool xử lý nhiều tác vụ | TCCL được restore kể cả khi provider ném lỗi; không rò ngữ cảnh qua task |
+| Host class path contains only API/host, plugin is in a separate loader | Default overload with host TCCL does not see the plugin |
+| `load(Spi.class, pluginLoader)` with accurate metadata | Plugin provider is loaded; casting to host SPI succeeds |
+| Set TCCL to plugin loader then use default overload | Provider matches explicit loader in a simple layout |
+| Restore TCCL then call default overload again | Does not mistakenly retain the plugin loader |
+| Create `ServiceLoader` before changing TCCL | Old instance still discovers according to the loader chosen at creation |
+| Service resource exists but provider class is not visible | Reports configuration error, does not treat as a normal empty provider set |
+| Plugin carries duplicate API copy defined by another loader | Detects class identity / assignability error |
+| Multiple independent plugin loaders | Each discovery pass uses the right loader, without mixing providers outside the intended boundary |
+| Reload/hot swap | Creates a new lifecycle and class loader when needed; does not retain old instances/resources |
+| Thread pool handling multiple tasks | TCCL is restored even if a provider throws; no context leaks across tasks |
 
-Đừng assert thứ tự tổng quát của provider ở nhiều module/JAR khi JDK không bảo đảm; với nhiều provider, sắp xếp hoặc chọn bằng quy tắc ứng dụng sau discovery.
+Do not assert a general ordering of providers across multiple modules/JARs when the JDK does not guarantee one; with multiple providers, sort or select using application rules after discovery.
 
-## 12. Quy tắc triển khai thực tế
+## 12. Practical Implementation Rules
 
-- **Chọn chủ sở hữu loader:** Runtime tạo/quản lý loader plugin; thư viện không tùy tiện sử dụng `ClassLoader.getSystemClassLoader()` nếu container cung cấp ranh giới khác.
-- **Chọn overload theo hợp đồng:** Nắm loader thì truyền explicit; chỉ dựa TCCL khi đã biết ai thiết lập và khôi phục; dùng `ModuleLayer` cho discovery scoped theo named module layer.
-- **Giữ một SPI chung:** Host và plugin phải nhìn thấy cùng class của hợp đồng; provider implementation có thể ở loader/layer riêng.
-- **Kiểm chứng packaging:** Có đúng `META-INF/services/<SPI>` trong output class path hoặc `uses/provides` trong module descriptor, provider được nạp thực sự, constructor/provider method tương thích.
-- **Quản lý vòng đời:** `ServiceLoader` có cache và không thread-safe; hot reload đòi hỏi xử lý reference, active subscription, tài nguyên và class loader, không chỉ gọi `reload()`.
-- **Đo được kết quả:** Test cả trường hợp tìm thấy, không tìm thấy, cấu hình sai, thread pool đổi ngữ cảnh và unload/redeploy.
+- **Choose the loader owner:** The runtime creates/manages plugin loaders; libraries should not arbitrarily use `ClassLoader.getSystemClassLoader()` if the container provides a different boundary.
+- **Choose the overload by contract:** Pass explicitly if you hold the loader; rely on TCCL only when you know who sets and restores it; use `ModuleLayer` for discovery scoped to a named module layer.
+- **Keep one shared SPI:** Host and plugin must see the same contract class; provider implementations may live in separate loaders/layers.
+- **Verify packaging:** Correct `META-INF/services/<SPI>` in the class-path output or `uses/provides` in the module descriptor, provider actually loadable, compatible constructor/provider method.
+- **Manage lifecycle:** `ServiceLoader` caches and is not thread-safe; hot reload requires handling references, active subscriptions, resources, and class loaders, not just calling `reload()`.
+- **Make results measurable:** Test found, not-found, misconfigured, thread-pool context-switching, and unload/redeploy cases.
 
-Tài liệu chuẩn để đối chiếu: [Java SE 17 `ServiceLoader` Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html) và [Java SE 17 `ClassLoader` Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html). Hai API này định nghĩa chính xác overload, module discovery, cache, lỗi và hợp đồng TCCL.
+Standard references to check against: [Java SE 17 `ServiceLoader` Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html) and [Java SE 17 `ClassLoader` Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html). These two APIs define the exact overloads, module discovery, caching, errors, and TCCL contract.

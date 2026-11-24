@@ -1,65 +1,65 @@
-# Chọn interface, lớp trừu tượng hoặc factory cho một điểm mở rộng
+# Choosing an Interface, Abstract Class, or Factory for an Extension Point
 
-## 1. Hiểu đúng bài toán
+## 1. Understanding the Problem Correctly
 
-**Điểm mở rộng (extension point)** là vị trí mà một ứng dụng hoặc thư viện cho phép mã bên ngoài cung cấp hành vi mới mà không cần sửa phần lõi. Trong Java, ví dụ điển hình là thêm một bộ biến đổi dữ liệu, một bộ kiểm tra quy tắc hoặc một adapter cho hệ thống bên thứ ba.
+An **extension point** is a location where an application or library allows external code to provide new behavior without modifying the core. In Java, typical examples include adding a data transformer, a rule validator, or an adapter for a third-party system.
 
-Thiết kế điểm mở rộng cần trả lời ba câu hỏi **khác nhau**:
+Designing an extension point requires answering three **distinct** questions:
 
-- **Mã mở rộng phải làm được gì?** Đây là **hợp đồng hành vi**. Interface thường phù hợp nhất.
-- **Các triển khai có bắt buộc dùng chung một quy trình hoặc trạng thái nền không?** Abstract class có thể cung cấp **khung triển khai** và bảo vệ bất biến.
-- **Ai chọn, cấu hình và tạo đối tượng triển khai?** Factory chịu trách nhiệm **khởi tạo và lựa chọn**.
+- **What must the extension code do?** This is the **behavioral contract**. An interface is usually the best fit.
+- **Must implementations share a common workflow or base state?** An abstract class can provide an **implementation skeleton** and protect invariants.
+- **Who selects, configures, and instantiates the implementation?** A factory is responsible for **instantiation and selection**.
 
-Vì vậy, interface, abstract class và factory không phải lúc nào cũng là ba phương án loại trừ nhau. Một thiết kế thường dùng **interface làm hợp đồng công khai**, **abstract class làm lớp nền tùy chọn**, và **factory trả về interface**. Host chỉ phụ thuộc vào hợp đồng, không phụ thuộc trực tiếp vào từng plugin.
+Therefore, interfaces, abstract classes, and factories are not always three mutually exclusive options. A common design uses an **interface as the public contract**, an **abstract class as an optional base class**, and a **factory returning the interface**. The host depends only on the contract, not directly on individual plugins.
 
-Ví dụ: một hệ thống nhận văn bản và áp dụng nhiều kiểu biến đổi. Host gọi **Transformer.transform(input)**. Nhà phát triển plugin cung cấp triển khai Transformer; một factory chọn triển khai theo tên và cấu hình. Một số plugin có thể kế thừa lớp nền xử lý chuẩn hóa đầu vào, một số khác triển khai trực tiếp interface.
+For example: a system receives text and applies multiple types of transformations. The host calls **Transformer.transform(input)**. Plugin developers provide Transformer implementations; a factory selects an implementation by name and configuration. Some plugins may extend a base class that handles input normalization, while others implement the interface directly.
 
-## 2. So sánh nhanh ba công cụ
+## 2. Quick Comparison of the Three Tools
 
-| Tiêu chí | Interface | Abstract class | Factory |
+| Criterion | Interface | Abstract class | Factory |
 |---|---|---|---|
-| Mục đích chính | Công bố khả năng và hợp đồng gọi | Tái sử dụng mã, giữ bất biến, định nghĩa quy trình có điểm móc | Chọn và tạo đối tượng, che giấu cách khởi tạo |
-| Host nhìn thấy | Kiểu trừu tượng cùng các phương thức | Thường chỉ cần nhìn interface mà lớp nền triển khai | Phương thức tạo, đầu vào cấu hình và kiểu kết quả |
-| Nhiều kiểu triển khai khác nhau | Rất phù hợp, kể cả các class đã có superclass | Bị giới hạn bởi đơn kế thừa class | Có thể tạo bất kỳ kiểu triển khai nào phù hợp hợp đồng |
-| Logic/trạng thái dùng chung | Default method hỗ trợ logic đơn giản, không giữ trạng thái instance | Có field, constructor, method cụ thể, protected hook | Quản lý cấu hình, dependency và chính sách tạo/cache |
-| Buộc tuân thủ một chuỗi thao tác | Chỉ thông qua đặc tả và kiểm thử; default method không tự khóa việc override | Có thể dùng public final template method | Không trực tiếp; có thể chỉ tạo những triển khai hợp lệ |
-| Thêm provider khi chạy | Kết hợp registry, DI hoặc ServiceLoader | Không tự giải quyết việc khám phá provider | Có thể bọc registry/ServiceLoader để chọn provider |
-| Đánh đổi | Hợp đồng phải nhỏ, rõ, ổn định | Ràng buộc kế thừa và API protected/constructor | Thêm lớp gián tiếp và chính sách vòng đời |
+| Primary purpose | Declare capabilities and invocation contract | Reuse code, preserve invariants, define workflows with hooks | Select and create objects, hide instantiation details |
+| What the host sees | Abstract type and its methods | Often only needs to see the interface implemented by the base class | Creation method, configuration inputs, and result type |
+| Multiple distinct implementation types | Very well suited, including classes that already have a superclass | Constrained by single class inheritance | Can create any implementation type matching the contract |
+| Shared logic/state | Default methods support simple logic without instance state | Has fields, constructors, concrete methods, protected hooks | Manages configuration, dependencies, and creation/caching policies |
+| Enforcing a sequence of steps | Only via specification and tests; default methods do not prevent overriding | Can use a public final template method | Not directly; can restrict creation to valid implementations |
+| Adding providers at runtime | Combines with a registry, DI, or ServiceLoader | Does not solve provider discovery on its own | Can wrap a registry/ServiceLoader to select providers |
+| Trade-offs | Contract must stay small, clear, and stable | Inheritance coupling and protected/constructor API surface | Adds a layer of indirection and lifecycle policy |
 
-**Quy tắc khởi đầu:** Nếu điểm mở rộng chỉ cần mô tả “làm gì”, bắt đầu bằng **interface**. Chỉ thêm abstract class khi có bất biến hoặc quy trình chung thực sự đáng bảo vệ. Thêm factory khi việc chọn hay tạo đối tượng cần được tách khỏi host.
+**Starting rule:** If an extension point only needs to describe "what to do", start with an **interface**. Only add an abstract class when there are shared invariants or workflows truly worth protecting. Add a factory when object selection or creation needs to be separated from the host.
 
-## 3. Khi nào chọn interface?
+## 3. When to Choose an Interface?
 
-Chọn interface nếu:
+Choose an interface if:
 
-1. Host chỉ cần gọi một khả năng; các provider có thể dùng thuật toán, thư viện hoặc superclass khác nhau.
-2. Người viết plugin không nên bị ép kế thừa một cây class của framework.
-3. Cần dễ thay thế provider bằng fake/stub trong kiểm thử, hoặc cho phép triển khai bằng lambda khi interface là functional interface.
-4. Hợp đồng cần là ranh giới ổn định giữa module lõi và module mở rộng.
+1. The host only needs to invoke a capability; providers may use different algorithms, libraries, or superclasses.
+2. Plugin authors should not be forced to extend a framework class hierarchy.
+3. Providers need to be easily replaced with fakes/stubs in tests, or implemented as lambdas when the interface is a functional interface.
+4. The contract needs to serve as a stable boundary between the core module and extension modules.
 
-Một hợp đồng tối thiểu có thể là:
+A minimal contract can look like this:
 
 ~~~java
-/** Nhận chuỗi khác null và trả về chuỗi khác null. */
+/** Accepts a non-null string and returns a non-null string. */
 public interface Transformer {
     String transform(String input);
 }
 ~~~
 
-Đoạn này mô tả **hành vi**, chưa quyết định ai tạo đối tượng hoặc thuật toán triển khai. Phần chú thích cần được chuyển thành quy tắc có thể kiểm thử: xử lý null ra sao, có được thay đổi dữ liệu đầu vào không, exception nào được ném, có an toàn khi gọi đồng thời không và có cần đóng tài nguyên không.
+This snippet describes **behavior**, without deciding who creates the object or which algorithm implements it. The comment needs to be turned into testable rules: how null is handled, whether input data may be mutated, which exceptions may be thrown, whether concurrent calls are safe, and whether resources need to be closed.
 
-Interface có thể có phương thức default, static và private (với phiên bản Java phù hợp), nhưng **không có field trạng thái của từng instance**. Default method nên cung cấp hành vi mặc định có ý nghĩa độc lập; không nên dùng để che giấu một hợp đồng quá lớn hay làm mọi plugin bị buộc tuân theo logic không phù hợp.
+An interface can have default, static, and private methods (with an appropriate Java version), but **no per-instance state fields**. Default methods should provide independently meaningful default behavior; they should not be used to hide an overly large contract or force every plugin to follow unsuitable logic.
 
-**Tránh “god interface”:** Nếu mỗi provider chỉ hỗ trợ một phần trong hàng chục phương thức, hãy tách các khả năng thành interface nhỏ, hoặc mô tả capability rõ ràng. Cung cấp phương thức ném UnsupportedOperationException khắp nơi thường là dấu hiệu hợp đồng sai.
+**Avoid a "god interface":** If each provider only supports a subset of dozens of methods, split the capabilities into small interfaces, or describe capabilities explicitly. Providing methods that throw UnsupportedOperationException everywhere is usually a sign of a flawed contract.
 
-## 4. Khi nào chọn abstract class?
+## 4. When to Choose an Abstract Class?
 
-Chọn abstract class nếu những triển khai thực sự phải chia sẻ **một thuật toán khung (Template Method)**, một bất biến hoặc trạng thái được quản lý thống nhất. Ví dụ: mọi bộ xử lý thuộc một họ đều phải kiểm tra input, chuẩn hóa, đo thời gian rồi mới gọi bước biến đổi tùy biến.
+Choose an abstract class if implementations truly must share **a skeleton algorithm (Template Method)**, an invariant, or uniformly managed state. For example: every processor in a family must validate input, normalize it, measure execution time, and only then invoke the custom transformation step.
 
 ~~~java
 import java.util.Objects;
 
-// Đoạn minh họa; Transformer là interface đã định nghĩa ở trên.
+// Illustrative snippet; Transformer is the interface defined above.
 public abstract class NormalizingTransformer implements Transformer {
     @Override
     public final String transform(String input) {
@@ -71,43 +71,43 @@ public abstract class NormalizingTransformer implements Transformer {
 }
 ~~~
 
-Phương thức **transform** được đánh dấu **final**, nên subclass chỉ thay đổi bước **transformNormalized**, không thể bỏ qua bước kiểm tra null và strip do lớp nền quản lý. Lớp nền có thể dùng constructor để kiểm tra các phụ thuộc hoặc trạng thái chung nếu thực sự cần.
+The **transform** method is marked **final**, so subclasses only customize the **transformNormalized** step and cannot bypass the null check and strip step managed by the base class. The base class can use a constructor to validate shared dependencies or state if genuinely needed.
 
-Đổi lại, Java chỉ cho phép **extends một class**. Provider đã kế thừa class khác không thể kế thừa lớp nền này. API protected và constructor của abstract class cũng trở thành bề mặt tương thích mà người viết thư viện phải duy trì.
+In return, Java only allows **extending one class**. A provider that already extends another class cannot extend this base class. The protected API and constructors of the abstract class also become part of the compatibility surface that the library author must maintain.
 
-Vì vậy, nếu dùng lớp nền, hãy ưu tiên cho nó **implements interface công khai**, còn host nhận **interface**. Để plugin được phép triển khai trực tiếp interface mà không kế thừa lớp nền; chỉ đặt quy tắc vào lớp nền khi đó là quy tắc của *họ triển khai dùng lớp nền*. Nếu quy tắc bắt buộc với **mọi** provider, phải thể hiện trong hợp đồng và kiểm tra ở ranh giới host, thay vì giả định mọi provider đều kế thừa một class.
+Therefore, if you use a base class, prefer having it **implement the public interface**, while the host accepts the **interface**. Allow plugins to implement the interface directly without extending the base class; only put rules into the base class when they belong to the *family of implementations using that base class*. If a rule is mandatory for **all** providers, express it in the contract and enforce it at the host boundary instead of assuming every provider inherits from a single class.
 
-**Không cần abstract class** nếu chỉ chia sẻ vài utility không trạng thái: một helper/service được truyền vào bằng composition thường ít ràng buộc hơn kế thừa.
+**No abstract class is needed** if you only want to share a few stateless utilities: a helper/service passed via composition is usually less restrictive than inheritance.
 
-## 5. Khi nào chọn factory?
+## 5. When to Choose a Factory?
 
-Factory giải quyết câu hỏi: “Từ tên provider, cấu hình và phụ thuộc hiện có, lấy được đối tượng triển khai bằng cách nào?”. Nó hữu ích khi:
+A factory answers the question: "Given a provider name, configuration, and available dependencies, how do we obtain an implementation instance?". It is useful when:
 
-- Cần chọn triển khai theo cấu hình, môi trường, feature flag hoặc khả năng hệ thống.
-- Constructor của các provider khác nhau, có bước validate, khởi tạo phụ thuộc hoặc quản lý tài nguyên.
-- Host không nên biết tên class cụ thể và các chi tiết tạo plugin.
-- Cần quy định rõ đối tượng mới cho mỗi yêu cầu, một đối tượng cho mỗi phiên, hay cache một đối tượng dùng chung.
+- An implementation must be chosen based on configuration, environment, feature flags, or system capabilities.
+- Provider constructors differ, involving validation steps, dependency initialization, or resource management.
+- The host should not know concrete class names or plugin construction details.
+- You need to specify clearly whether to create a new object per request, one object per session, or cache a shared object.
 
-Một factory thường trả về **interface**, ví dụ:
+A factory typically returns an **interface**, for example:
 
 ~~~java
 import java.util.Map;
 
-// Đoạn minh họa; Transformer được định nghĩa ở trên.
+// Illustrative snippet; Transformer is defined above.
 public interface TransformerFactory {
     Transformer create(String id, Map<String, String> options);
 }
 ~~~
 
-Interface là **kiểu hợp đồng của sản phẩm**; factory là **cách có được sản phẩm**. Hai khái niệm bổ sung nhau. Factory cũng có thể được mô tả bằng interface để thay thế cách đăng ký/khám phá provider.
+The interface is the **contract type of the product**; the factory is **how to obtain the product**. The two concepts complement each other. A factory itself can also be described by an interface to abstract over provider registration/discovery.
 
-Factory **không mặc định cần thiết**: nếu chỉ có một class đơn giản, constructor rõ ràng và không có chính sách lựa chọn hoặc vòng đời, gọi constructor hoặc để dependency-injection container tạo đối tượng có thể đủ. Cũng không nên tạo factory chỉ để đổi tên thao tác new mà không tạo ra ranh giới trừu tượng có ích.
+A factory is **not needed by default**: if there is only a simple class with a straightforward constructor and no selection or lifecycle policy, calling the constructor or letting a dependency-injection container create the object may suffice. Nor should you create a factory merely to rename the `new` operation without establishing a useful abstraction boundary.
 
-Trong hệ thống thực tế, hãy cân nhắc cấu hình kiểu rõ ràng thay vì Map chuỗi; Map chỉ giúp ví dụ bên dưới ngắn gọn và chạy độc lập.
+In real systems, consider strongly typed configuration instead of a string Map; Map only keeps the example below concise and self-contained.
 
-## 6. Ví dụ hoàn chỉnh: phối hợp cả ba
+## 6. Complete Example: Combining All Three
 
-Ví dụ Java 17 sau chứa trong **một tệp ExtensionChoiceDemo.java**. Interface Transformer là hợp đồng host; NormalizingTransformer là lớp nền **tùy chọn**; UppercaseTransformer kế thừa lớp nền; PrefixTransformer triển khai trực tiếp interface; factory tạo cả hai và trả về cùng kiểu Transformer.
+The following Java 17 example is contained in **a single file ExtensionChoiceDemo.java**. The Transformer interface is the host contract; NormalizingTransformer is an **optional** base class; UppercaseTransformer extends the base class; PrefixTransformer implements the interface directly; the factory creates both and returns the same Transformer type.
 
 ~~~java
 import java.util.Locale;
@@ -179,110 +179,110 @@ public class ExtensionChoiceDemo {
 }
 ~~~
 
-Biên dịch và chạy (cần JDK 17 trở lên):
+Compile and run (requires JDK 17 or later):
 
 ~~~bash
 javac -encoding UTF-8 ExtensionChoiceDemo.java
 java ExtensionChoiceDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 JAVA
 >> plugin
 ~~~
 
-Giải thích:
+Explanation:
 
-1. **first** nhận triển khai UppercaseTransformer. Lớp nền kiểm tra null, bỏ khoảng trắng đầu/cuối bằng String.strip rồi uppercase với Locale.ROOT, nên đầu ra là “JAVA”.
-2. **second** nhận PrefixTransformer, không kế thừa NormalizingTransformer. Nó ghép prefix với input giữ nguyên, nên đầu ra là “>> plugin”.
-3. Host chỉ thao tác với **TransformerFactory** và **Transformer**. Host không cần downcast và không cần gọi constructor của hai provider.
-4. Factory ở đây dùng **switch cố định** để dễ chạy độc lập. Nó phù hợp khi danh sách provider do ứng dụng kiểm soát; nếu muốn JAR ngoài đăng ký provider mà không sửa switch, cần thay phần tìm provider bằng registry, DI hoặc ServiceLoader.
-5. Lớp nền là tùy chọn: **strip không phải cam kết chung** của mọi Transformer. Hợp đồng chung chỉ đảm bảo đầu vào/đầu ra khác null và hành vi transform theo từng triển khai. Muốn host luôn nhận đầu vào đã chuẩn hóa, nên chuẩn hóa tại host hoặc ghi rõ và kiểm thử nghĩa vụ đó cho mọi plugin.
+1. **first** receives an UppercaseTransformer implementation. The base class checks for null, trims leading/trailing whitespace using String.strip, and converts to uppercase with Locale.ROOT, so the output is "JAVA".
+2. **second** receives a PrefixTransformer, which does not extend NormalizingTransformer. It prepends the prefix to the unmodified input, so the output is ">> plugin".
+3. The host interacts only with **TransformerFactory** and **Transformer**. The host does not need to downcast or call either provider's constructor.
+4. The factory here uses a **fixed switch** to keep the example self-contained and runnable. This works when the provider list is controlled by the application; if external JARs must register providers without editing the switch, replace the provider lookup with a registry, DI, or ServiceLoader.
+5. The base class is optional: **strip is not a universal guarantee** of every Transformer. The shared contract only guarantees non-null input/output and per-implementation transform behavior. If the host should always receive normalized input, normalize at the host or explicitly specify and test that obligation for every plugin.
 
-Trong dự án thật, tách interface công khai ra package API, đặt các provider ở module triển khai, và đặt factory/registry ở lớp tích hợp. Các kiểu nested trong ví dụ chỉ để chạy gọn trong một tệp.
+In a real project, separate the public interfaces into an API package, place providers in implementation modules, and place the factory/registry in the integration layer. Nested types in the example are only for running cleanly in a single file.
 
-## 7. Nếu provider đến từ JAR/module bên ngoài
+## 7. When Providers Come from External JARs/Modules
 
-Khi “mở rộng” nghĩa là **thêm provider mới sau khi host được biên dịch**, cần thêm **cơ chế khám phá (discovery)** ngoài interface/abstract class. Java cung cấp **ServiceLoader**, hoặc ứng dụng có thể dùng DI container hay registry riêng.
+When "extensibility" means **adding new providers after the host has been compiled**, a **discovery mechanism** is needed alongside the interface/abstract class. Java provides **ServiceLoader**, or an application can use a DI container or its own registry.
 
-Một thiết kế thường dùng **provider factory** thay vì đăng ký trực tiếp đối tượng Transformer cần cấu hình:
+A common design uses a **provider factory** instead of directly registering a Transformer instance that requires configuration:
 
 ~~~java
 import java.util.Map;
 
-// Mảnh API minh họa trong module SPI; Transformer là kiểu hợp đồng.
+// Illustrative API snippet in the SPI module; Transformer is the contract type.
 public interface TransformerProvider {
     String id();
     Transformer create(Map<String, String> options);
 }
 ~~~
 
-Host có thể dùng ServiceLoader để tìm các TransformerProvider được đăng ký, chọn provider theo id rồi gọi create. Với provider trên classpath, cơ chế service file sử dụng đường dẫn **META-INF/services/tên.đầy.đủ.của.TransformerProvider**, trong đó liệt kê tên lớp triển khai đầy đủ; provider phải đáp ứng các điều kiện khởi tạo của ServiceLoader, thường là một lớp công khai có constructor không tham số. Với Java Platform Module System, module tiêu thụ khai báo **uses**, module provider khai báo **provides ... with ...** và tuân thủ quy tắc provider của JPMS.
+The host can use ServiceLoader to find registered TransformerProvider instances, choose a provider by id, and call create. For providers on the classpath, the service file mechanism uses the path **META-INF/services/fully.qualified.name.of.TransformerProvider**, listing the fully qualified implementation class names; providers must satisfy ServiceLoader instantiation requirements, typically being a public class with a no-arg constructor. With the Java Platform Module System, the consuming module declares **uses**, and the provider module declares **provides ... with ...** and follows JPMS provider rules.
 
-Khi chuyển từ switch sang registry, cần xử lý thêm **id trùng**, provider không có, cấu hình thiếu, lỗi khởi tạo, và chính sách vòng đời. Có thể khởi tạo provider một lần nhưng vẫn tạo **Transformer mới** cho mỗi phiên nếu implementation có trạng thái thay đổi. Khởi tạo một instance dùng chung chỉ khi hợp đồng xác nhận an toàn cho truy cập đồng thời và tương thích với vòng đời.
+When switching from a switch statement to a registry, you also need to handle **duplicate ids**, missing providers, missing configuration, initialization failures, and lifecycle policies. You can instantiate a provider once while still creating a **new Transformer** per session if the implementation holds mutable state. Instantiate a single shared instance only when the contract confirms it is safe for concurrent access and compatible with the lifecycle.
 
-**ServiceLoader chỉ là cơ chế phát hiện/khởi tạo provider**, không phải hệ thống sandbox, hot-swap hoặc unload plugin tự động. Nếu cần nạp gỡ JAR, cô lập classloader/module layer, quản lý phiên bản thư viện và giải phóng tài nguyên, phải thiết kế các trách nhiệm đó riêng.
+**ServiceLoader is only a provider discovery/instantiation mechanism**, not a sandbox, hot-swap system, or automatic plugin unloader. If you need JAR loading/unloading, classloader/module-layer isolation, library version management, and resource cleanup, those responsibilities must be designed separately.
 
-## 8. Kiểm tra độ bền của hợp đồng mở rộng
+## 8. Checking the Robustness of an Extension Contract
 
-Một điểm mở rộng tốt cần mô tả rõ hơn chữ ký phương thức:
+A good extension point needs to specify more than method signatures:
 
-| Nội dung hợp đồng | Câu hỏi phải trả lời |
+| Contract aspect | Questions to answer |
 |---|---|
-| Input/output | Có cho phép null, dữ liệu rỗng, kết quả null hoặc biến đổi input không? |
-| Lỗi | Exception nào do plugin ném, host xử lý hay bao bọc thế nào? |
-| Thread safety | Một instance được gọi đồng thời không? Provider có được lưu trạng thái phiên không? |
-| Vòng đời | Ai tạo, ai đóng, khi nào đóng? Có cần AutoCloseable hay hook shutdown không? |
-| Tài nguyên | Ai sở hữu stream, executor, connection và trách nhiệm cleanup? |
-| Thời gian chạy | Plugin có thể chạy chậm, block hoặc gọi lại host không? Cần timeout/giới hạn nào? |
-| Tương thích | API tối thiểu, phiên bản nào được hỗ trợ và có kiểm thử compatibility không? |
-| Tính độc lập | Hợp đồng có lộ class implementation/framework cụ thể khiến provider khó thay thế không? |
+| Input/output | Are null, empty data, null results, or mutating the input allowed? |
+| Errors | Which exceptions may the plugin throw, and how does the host handle or wrap them? |
+| Thread safety | Can one instance be called concurrently? May a provider store per-session state? |
+| Lifecycle | Who creates, who closes, and when? Is AutoCloseable or a shutdown hook needed? |
+| Resources | Who owns streams, executors, and connections, and who is responsible for cleanup? |
+| Runtime behavior | Can a plugin run slowly, block, or call back into the host? What timeouts/limits are needed? |
+| Compatibility | What is the minimum API, which versions are supported, and are there compatibility tests? |
+| Independence | Does the contract expose concrete implementation/framework classes that make providers hard to replace? |
 
-**Tiến hóa API cần thận trọng:**
+**Evolve the API carefully:**
 
-- **Thêm abstract method vào interface** làm implementation cũ không đáp ứng hợp đồng mới: mã nguồn cũ phải được cập nhật; nếu binary cũ vẫn được tải, lời gọi phương thức thiếu có thể dẫn tới AbstractMethodError.
-- **Thêm default method** thường giảm nhu cầu cập nhật implementation, nhưng vẫn có thể tạo xung đột phương thức hoặc mang ngữ nghĩa sai. Không xem default là bảo đảm tương thích trong mọi trường hợp.
-- **Thay đổi constructor, protected hook hoặc thêm abstract method vào abstract class** có thể phá subclass ngoài thư viện. Vì vậy lớp nền nên nhỏ, ổn định và chỉ mang trách nhiệm có thật.
-- **Đổi tên id provider, key cấu hình hoặc hành vi lỗi của factory** cũng là thay đổi hợp đồng, dù chữ ký Java không đổi.
-- Tách khả năng mới thành interface bổ sung khi phù hợp hơn việc buộc tất cả provider cũ phải triển khai phương thức mới.
+- **Adding an abstract method to an interface** makes old implementations fail the new contract: old source code must be updated; if old binaries are still loaded, calling the missing method can lead to AbstractMethodError.
+- **Adding a default method** often reduces the need to update implementations, but can still cause method conflicts or carry wrong semantics. Do not treat default methods as a compatibility guarantee in all cases.
+- **Changing constructors, protected hooks, or adding abstract methods to an abstract class** can break external subclasses. Therefore, a base class should stay small, stable, and hold only genuine responsibilities.
+- **Renaming provider ids, configuration keys, or factory error behavior** is also a contract change, even if Java signatures do not change.
+- Split new capabilities into supplementary interfaces when doing so is cleaner than forcing all old providers to implement new methods.
 
-Để kiểm tra tương thích, tạo một **contract test suite** chạy trên mọi implementation: kiểm tra null, kết quả, lỗi, gọi lặp, gọi đồng thời (nếu được cam kết), lifecycle và hành vi biên. Test factory riêng cho id hợp lệ, id lạ, cấu hình sai và scope của đối tượng. Trong test host, có thể thay Transformer bằng lambda trả kết quả cố định để chứng minh host thực sự phụ thuộc vào interface.
+To verify compatibility, build a **contract test suite** that runs against every implementation: checking null handling, outputs, errors, repeated calls, concurrent calls (if promised), lifecycle, and edge-case behavior. Test the factory separately for valid ids, unknown ids, invalid configuration, and object scope. In host tests, you can replace Transformer with a lambda returning fixed results to prove that the host genuinely depends only on the interface.
 
-## 9. Những lựa chọn dễ sai và cách sửa
+## 9. Common Wrong Choices and How to Fix Them
 
-**Ép tất cả plugin kế thừa một BasePlugin lớn.** Điều này khóa đường kế thừa, buộc provider phụ thuộc vào những hook không cần thiết và làm tiến hóa API khó khăn. Tách **interface công khai nhỏ**, chỉ giữ một abstract base tùy chọn cho họ triển khai có quy trình chung.
+**Forcing every plugin to extend a large BasePlugin.** This locks in the inheritance path, forces providers to depend on unneeded hooks, and makes API evolution difficult. Extract a **small public interface**, keeping only an optional abstract base for implementation families with a shared workflow.
 
-**Dùng abstract class chỉ để tái sử dụng vài dòng.** Nếu logic không cần ràng buộc một thuật toán, hãy chuyển thành helper/service và composition. Kế thừa chỉ nên dùng khi quan hệ “là một dạng của” thực sự có ý nghĩa và các điểm móc có giới hạn rõ.
+**Using an abstract class just to reuse a few lines.** If the logic does not need to enforce an algorithm, move it to a helper/service and use composition. Inheritance should only be used when an "is-a" relationship genuinely makes sense and hooks have clear boundaries.
 
-**Host switch trên kiểu cụ thể, downcast provider rồi gọi phương thức riêng.** Khi đó hợp đồng Transformer không đủ cho nhu cầu host. Bổ sung capability interface phù hợp hoặc thiết kế lại SPI; giữ factory/registry ở ranh giới tạo đối tượng.
+**Host switching on concrete types, downcasting providers, and calling custom methods.** This means the Transformer contract is insufficient for the host's needs. Add an appropriate capability interface or redesign the SPI; keep the factory/registry at the object-creation boundary.
 
-**Cho factory kiêm luôn toàn bộ thuật toán xử lý.** Factory nên tập trung vào lựa chọn, validate cấu hình và xây dựng đối tượng. Hành vi nghiệp vụ nằm ở implementation tương ứng; tránh một factory khổng lồ chứa mã cho mọi plugin.
+**Letting the factory also contain all processing algorithms.** The factory should focus on selection, configuration validation, and object construction. Business behavior belongs in the corresponding implementations; avoid a giant factory containing code for every plugin.
 
-**Chia sẻ singleton stateful mà không xác định thread safety.** Nếu Transformer giữ bộ đếm, buffer hoặc context theo request, việc dùng chung có thể gây race condition và rò rỉ dữ liệu giữa yêu cầu. Factory phải đưa ra scope rõ ràng; provider phải có hợp đồng concurrency phù hợp.
+**Sharing a stateful singleton without defining thread safety.** If a Transformer keeps counters, buffers, or per-request context, sharing it can cause race conditions and cross-request data leaks. The factory must specify a clear scope; the provider must have a matching concurrency contract.
 
-**Tin rằng ServiceLoader tự giải quyết an toàn và tương thích.** Discovery không xác thực mã bên thứ ba, không tự giới hạn quyền truy cập và không bảo đảm tương thích nhị phân. Cần kiểm soát provider được phép tải, API version, phụ thuộc và cơ chế cách ly nếu môi trường yêu cầu.
+**Assuming ServiceLoader automatically guarantees safety and compatibility.** Discovery does not verify third-party code, restrict access permissions, or guarantee binary compatibility. You need to control which providers are allowed to load, API versions, dependencies, and isolation mechanisms if the environment requires them.
 
-**Tạo quá nhiều tầng factory/abstract class khi chưa có nhu cầu.** Với hai chiến lược đơn giản, interface cùng constructor/DI có thể đủ. Bổ sung factory khi xuất hiện một chính sách chọn/khởi tạo có lý do cụ thể, và bổ sung abstract class khi thấy quy trình dùng chung ổn định.
+**Creating too many factory/abstract class layers before they are needed.** For two simple strategies, an interface with constructors/DI may be enough. Add a factory when a concrete selection/instantiation policy arises for a specific reason, and add an abstract class when a stable shared workflow emerges.
 
-## 10. Cách ra quyết định cho một điểm mở rộng mới
+## 10. How to Decide for a New Extension Point
 
-Đi theo thứ tự sau:
+Follow this order:
 
-1. **Viết hợp đồng quan sát được:** host gọi phương thức nào, input/output, lỗi, đồng thời, tài nguyên và vòng đời ra sao? Nếu có nhiều implementation không cùng quan hệ kế thừa, mô tả bằng **interface**.
-2. **Xác định bất biến thực sự dùng chung:** có một chuỗi bước mà subclass chỉ được thay một vài hook hay không? Nếu có, xây **abstract class implements interface**, dùng final cho template method cần được bảo vệ. Nếu chỉ chia sẻ tiện ích, ưu tiên composition.
-3. **Quyết định người tạo đối tượng:** host biết kiểu cụ thể và việc new luôn đơn giản hay cần lựa chọn động, tiêm dependency, cấu hình hoặc quản lý scope? Trường hợp sau dùng **factory trả về interface**.
-4. **Xác định cách tìm provider:** nếu tập provider đóng, switch/DI có thể đủ; nếu JAR mới phải tự đăng ký, thiết kế provider registry hoặc ServiceLoader bên sau factory.
-5. **Thử một provider không dùng lớp nền và một fake cho host:** nếu host vẫn chạy qua interface mà không cần downcast hay biết implementation, ranh giới mở rộng đang được giữ đúng.
-6. **Thử thay đổi phiên bản API:** một provider viết ở phiên bản cũ còn biên dịch/chạy được không, và lỗi không tương thích được phát hiện ở đâu?
+1. **Write down the observable contract:** which methods does the host call, and what are the inputs/outputs, errors, concurrency, resources, and lifecycle? If multiple implementations do not share an inheritance relationship, describe it with an **interface**.
+2. **Identify truly shared invariants:** is there a sequence of steps where subclasses may only override specific hooks? If so, build an **abstract class implementing the interface**, using final for template methods that must be protected. If only sharing utilities, prefer composition.
+3. **Decide who creates the object:** does the host know the concrete type and is `new` always trivial, or do you need dynamic selection, dependency injection, configuration, or scope management? In the latter case, use a **factory returning the interface**.
+4. **Determine how to locate providers:** if the provider set is closed, a switch/DI may suffice; if new JARs must self-register, design a provider registry or ServiceLoader behind the factory.
+5. **Test a provider that does not use the base class and a fake for the host:** if the host still works through the interface without downcasting or knowing implementations, the extension boundary is being preserved properly.
+6. **Test API version changes:** can a provider written against an older version still compile/run, and where are incompatibility errors detected?
 
-### Ba tình huống điển hình
+### Three Typical Scenarios
 
-| Tình huống | Lựa chọn khuyến nghị | Lý do |
+| Scenario | Recommended choice | Reason |
 |---|---|---|
-| Cho bên thứ ba bổ sung thuật toán xử lý văn bản độc lập | **Interface** làm SPI | Không ép provider theo superclass; host chỉ gọi hợp đồng |
-| Nhiều bộ parser cùng bắt buộc theo chuỗi kiểm tra → đọc → parse → cleanup | **Interface + abstract class tùy chọn hoặc bắt buộc trong họ parser** | Template method kiểm soát trình tự chung và chỉ mở các hook cần thiết |
-| Người dùng chọn provider theo tên; từng provider cần token, cấu hình, kết nối hoặc scope riêng | **Interface + factory**, có thể thêm registry/ServiceLoader | Tách thuật toán khỏi việc tạo, chọn, cấu hình và quản lý vòng đời |
+| Allow third parties to add independent text-processing algorithms | **Interface** as SPI | Does not force providers into a superclass; host only calls the contract |
+| Multiple parsers must all follow validate → read → parse → cleanup | **Interface + optional or family-required abstract class** | Template method controls the shared sequence and opens only needed hooks |
+| Users pick providers by name; each provider needs its own token, config, connection, or scope | **Interface + factory**, optionally backed by registry/ServiceLoader | Separates algorithm from creation, selection, configuration, and lifecycle management |
 
-**Tiêu chuẩn của một thiết kế tốt:** host biết **hợp đồng và cách yêu cầu một provider**, mỗi provider chỉ cần biết **phần nghĩa vụ của nó**, còn chi tiết khởi tạo và triển khai được giữ sau ranh giới trừu tượng.
+**Criterion of a good design:** the host knows **the contract and how to request a provider**, each provider only needs to know **its own obligations**, and instantiation and implementation details stay behind the abstraction boundary.

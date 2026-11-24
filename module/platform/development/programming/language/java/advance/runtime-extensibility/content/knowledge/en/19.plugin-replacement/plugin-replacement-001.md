@@ -1,33 +1,33 @@
-# Phân biệt reload bộ nhớ đệm SPI, thay đối tượng và thay định nghĩa lớp
+# Distinguishing SPI Cache Reload, Object Replacement, and Class Definition Replacement
 
-Trong ứng dụng Java có khả năng mở rộng bằng plugin, từ **“reload”** thường bị dùng cho ba hành động khác nhau:
+In a Java application extensible via plugins, the word **“reload”** is often used for three different actions:
 
-1. Xóa bộ nhớ đệm khám phá service của `ServiceLoader` để duyệt provider lại.
-2. Thay **đối tượng provider đang được ứng dụng sử dụng**, chẳng hạn hoán đổi một reference trong registry.
-3. Nạp **định nghĩa lớp mới** khi thay phiên bản bytecode/JAR, thường bằng một `ClassLoader` mới hoặc cơ chế tái định nghĩa lớp chuyên dụng.
+1. Clearing the service discovery cache of `ServiceLoader` to iterate over providers again.
+2. Replacing **the provider object currently used by the application**, such as swapping a reference in a registry.
+3. Loading **a new class definition** when replacing a bytecode/JAR version, usually with a new `ClassLoader` or a dedicated class redefinition mechanism.
 
-Chúng **không tương đương**. Gọi `ServiceLoader.reload()` không tự thay bytecode; tạo một object provider mới không chứng minh class đã thay đổi; còn có định nghĩa class mới cũng không tự chuyển các request đang chạy sang object mới.
+They are **not equivalent**. Calling `ServiceLoader.reload()` does not replace bytecode by itself; creating a new provider object does not prove the class has changed; and having a new class definition does not automatically route in-flight requests to the new object.
 
-Bài này xây dựng ba mức thay thế, giải thích ranh giới và vòng đời, rồi chạy một chương trình **Java 17** dùng hai JAR plugin cùng chứa `demo.plugin.GreetingProvider` nhưng có implementation khác nhau. Mọi kết quả quan sát được đều có thể kiểm chứng qua object identity, class identity và `ClassLoader`.
+This lesson builds all three levels of replacement, explains their boundaries and lifecycles, and then runs a **Java 17** program using two plugin JARs that both contain `demo.plugin.GreetingProvider` but have different implementations. Every observable result can be verified through object identity, class identity, and `ClassLoader`.
 
-## 1. Ba lớp trạng thái cần theo dõi
+## 1. Three layers of state to track
 
-Khi một host Java sử dụng SPI, có ít nhất ba thành phần độc lập:
+When a Java host uses SPI, there are at least three independent components:
 
 ```text
-SPI chung: demo.spi.Greeter
+Shared SPI: demo.spi.Greeter
            |
            v
-  ServiceLoader<Greeter>      (cache khám phá/instance)
+  ServiceLoader<Greeter>      (discovery/instance cache)
            |
            v
-  Greeter provider instance  (object được ứng dụng giữ)
+  Greeter provider instance  (object held by the application)
            |
            v
-  Class<?> + ClassLoader     (định nghĩa bytecode được JVM nạp)
+  Class<?> + ClassLoader     (bytecode definition loaded by the JVM)
 ```
 
-Nếu ứng dụng có registry giữ provider đang dùng:
+If the application has a registry holding the currently used provider:
 
 ```text
 ServiceLoader instance  ---->  cached provider A
@@ -39,41 +39,41 @@ Host registry ----------->  active provider A
                            defining ClassLoader
 ```
 
-Sau đó có thể xảy ra ba thay đổi **riêng biệt**:
+Then three **separate** changes can occur:
 
-| Hành động | Thứ được thay đổi trực tiếp | Điều **không tự thay đổi** |
+| Action | What is changed directly | What does **not change automatically** |
 |---|---|---|
-| `ServiceLoader.reload()` | Cache provider thuộc **đúng instance** `ServiceLoader` | Đối tượng cũ host giữ, `Class<?>` đã định nghĩa, classpath, JAR trên đĩa |
-| `active.set(newProvider)` | Reference active mà host dùng để chọn provider | Cache của `ServiceLoader`, bytecode/class hiện có, reference cũ đã được các request giữ |
-| Nạp JAR mới bằng loader mới | Có thể tạo `Class<?>` mới và instance từ bytecode mới | Reference active, phiên đang xử lý, object/class của loader cũ |
+| `ServiceLoader.reload()` | Provider cache belonging to **that exact `ServiceLoader` instance** | Old object held by the host, already-defined `Class<?>`, classpath, JAR on disk |
+| `active.set(newProvider)` | Active reference that the host uses to select the provider | `ServiceLoader` cache, existing bytecode/class, old references already held by requests |
+| Loading a new JAR with a new loader | Can create a new `Class<?>` and instance from new bytecode | Active reference, in-progress sessions, objects/classes of the old loader |
 
-Một thao tác **triển khai plugin mới** hoàn chỉnh có thể cần thực hiện cả ba theo một chiến lược; nhưng phải ghi rõ ai chịu trách nhiệm từng bước. Không nên coi `reload()` là API hot deployment toàn diện.
+A complete **new plugin deployment** operation may need to perform all three according to a strategy; however, it must explicitly specify who is responsible for each step. `reload()` should not be treated as a comprehensive hot-deployment API.
 
-## 2. ServiceLoader là cơ chế khám phá provider, không phải bộ cập nhật mã
+## 2. ServiceLoader is a provider discovery mechanism, not a code updater
 
-Trên **classpath**, các provider được đăng ký bằng tài nguyên:
+On the **classpath**, providers are registered using the resource:
 
 ```text
-META-INF/services/<tên nhị phân đầy đủ của service type>
+META-INF/services/<fully qualified binary name of the service type>
 ```
 
-Ví dụ SPI `demo.spi.Greeter` sẽ có tài nguyên:
+For example, the SPI `demo.spi.Greeter` will have the resource:
 
 ```text
 META-INF/services/demo.spi.Greeter
 ```
 
-Trong file đăng ký có tên đầy đủ của implementation, ví dụ:
+Inside the registration file is the fully qualified name of the implementation, for example:
 
 ```text
 demo.plugin.GreetingProvider
 ```
 
-`ServiceLoader.load(Greeter.class, loader)` sẽ dùng class loader được truyền để tìm service configuration, kiểm tra kiểu provider và khởi tạo provider theo quy tắc tương ứng. Các provider thường được phát hiện/khởi tạo **lười** khi ứng dụng duyệt iterator hoặc stream; chỉ tạo đối tượng `ServiceLoader` chưa bảo đảm mọi provider đã được instantiate.
+`ServiceLoader.load(Greeter.class, loader)` uses the passed class loader to locate service configurations, check the provider type, and instantiate providers according to the corresponding rules. Providers are usually discovered/instantiated **lazily** when the application iterates over the iterator or stream; merely creating the `ServiceLoader` object does not guarantee that all providers have been instantiated.
 
-Một instance `ServiceLoader` duy trì **cache các provider đã được nạp**. Khi lặp lại bằng `iterator()` mà chưa gọi `reload()`, provider đã được cache thường chính là **object từng trả trước đó**. Điều này cho phép cùng một service loader trả lại object mà nó đã nạp, thay vì xây mới mỗi lần duyệt.
+A `ServiceLoader` instance maintains a **cache of loaded providers**. When iterating again with `iterator()` without calling `reload()`, the cached provider is normally the **same object returned earlier**. This allows the same service loader to return the object it already loaded, rather than constructing a new one on every iteration.
 
-### Chính xác `reload()` làm gì?
+### What exactly does `reload()` do?
 
 ```java
 ServiceLoader<Greeter> services =
@@ -84,64 +84,64 @@ services.reload();
 Greeter after = services.iterator().next();
 ```
 
-Đây là **trích đoạn minh họa**, giả định `Greeter`, `pluginLoader` đã có và service loader chỉ tìm được ít nhất một provider. Trong chương trình hoàn chỉnh ở dưới, ta kiểm tra luôn số lượng provider.
+This is an **illustrative snippet**, assuming `Greeter` and `pluginLoader` already exist and the service loader finds at least one provider. In the complete program below, we also check the provider count.
 
-Hành vi cần nhớ:
+Behaviors to remember:
 
-- `services.reload()` **xóa cache** provider của `services`; lần duyệt tiếp theo có thể khám phá và khởi tạo provider lại. Với provider classpath có public constructor không tham số như ví dụ này, nó tạo một **instance mới**.
-- `reload()` **không xóa object `before` mà ứng dụng đang giữ**. Reference `before` vẫn trỏ đến object cũ; nếu object chưa bị đóng theo chính sách ứng dụng, nó vẫn có thể sử dụng.
-- `reload()` **không xóa class khỏi JVM và không gọi `ClassLoader` mới**. Nếu provider class đã được định nghĩa bởi cùng loader, instance mới tiếp tục có cùng `Class<?>`.
-- **Static fields, static caches và static initializer của lớp đã nạp không được reset chỉ vì reload service.** Instance mới vẫn nhìn thấy static state thuộc cùng class.
-- `reload()` **không tự đưa một JAR mới vào classpath hoặc module path**, không thay một JAR đã mở, không cập nhật các URL của class loader, không chọn provider cho host.
-- Iterator/stream đang dùng trước khi gọi `reload()` cần được bỏ và tạo vòng duyệt mới; đừng vừa duyệt vừa reload, vì có thể gặp lỗi do cache thay đổi.
+- `services.reload()` **clears the provider cache** of `services`; the next iteration can discover and instantiate providers again. For a classpath provider with a public no-argument constructor as in this example, it creates a **new instance**.
+- `reload()` **does not delete the `before` object held by the application**. The `before` reference still points to the old object; if the object has not been closed under application policy, it can still be used.
+- `reload()` **does not remove the class from the JVM and does not invoke a new `ClassLoader`**. If the provider class was already defined by the same loader, the new instance continues to have the same `Class<?>`.
+- **Static fields, static caches, and static initializers of an already-loaded class are not reset merely by reloading the service.** The new instance still sees the static state belonging to the same class.
+- `reload()` **does not automatically add a new JAR to the classpath or module path**, does not replace an already-open JAR, does not update the class loader's URLs, and does not select a provider for the host.
+- Iterators/streams in use before calling `reload()` must be discarded and a new iteration started; do not iterate and reload at the same time, because errors may occur due to cache changes.
 
-`ServiceLoader` cũng không được bảo đảm thread-safe cho những thao tác dùng chung trên cùng instance. Nếu một luồng đang duyệt còn luồng khác gọi `reload()`, đừng kỳ vọng đó là quy trình cập nhật an toàn. Cần có đồng bộ và ownership phù hợp, hoặc xây một snapshot immutable riêng sau khám phá.
+`ServiceLoader` is also not guaranteed to be thread-safe for concurrent operations on the same instance. If one thread is iterating while another thread calls `reload()`, do not expect that to be a safe update procedure. Proper synchronization and ownership are needed, or a separate immutable snapshot should be built after discovery.
 
-### Khi nào reload cache thực sự hữu ích?
+### When is cache reload actually useful?
 
-Bạn có thể dùng `reload()` khi **cấu hình khám phá mà class loader hiện tại có khả năng nhìn thấy** đã thay đổi theo cách được hỗ trợ và muốn duyệt lại service. Tuy nhiên, không được suy ra rằng mọi cách “thả file JAR vào thư mục” sẽ được loader tự nhận. Với `URLClassLoader` đã tạo cố định từ URL JAR, gọi `reload()` **không tự thêm URL** mới.
+You can use `reload()` when **the discovery configuration visible to the current class loader** has changed in a supported way and you want to re-iterate services. However, do not assume that every approach of “dropping a JAR file into a directory” will be picked up automatically by the loader. With a `URLClassLoader` created statically from JAR URLs, calling `reload()` **does not automatically add new URLs**.
 
-Đặc biệt, nếu bytecode của một class đã được loader định nghĩa, reload không thay class definition đó. Để làm mới phiên bản implementation, cần giải quyết class loading hoặc instrumentation, không chỉ cache.
+In particular, if a class's bytecode has already been defined by the loader, reload does not replace that class definition. To refresh the implementation version, you must address class loading or instrumentation, not just the cache.
 
-## 3. Thay đối tượng: chuyển reference active có kiểm soát
+## 3. Object replacement: controlled switching of the active reference
 
-Giả sử host giữ provider đang hoạt động trong:
+Suppose the host holds the active provider in:
 
 ```java
 AtomicReference<Greeter> active =
         new AtomicReference<>(oldProvider);
 ```
 
-Khi có một provider object mới đủ điều kiện chạy:
+When a new provider object is eligible to run:
 
 ```java
 active.set(newProvider);
 ```
 
-Đây là **trích đoạn**, không phải chương trình độc lập. `AtomicReference` bảo đảm việc đọc/ghi reference qua API đó có tính nguyên tử và phù hợp về visibility giữa các luồng, nhưng **không** tự tổ chức thay thế trọn vẹn mọi resource.
+This is a **snippet**, not a standalone program. `AtomicReference` ensures that reading/writing the reference through that API is atomic and has proper visibility across threads, but it does **not** automatically orchestrate full replacement of all resources.
 
-Các điểm quan trọng:
+Key points:
 
-1. **Object identity đổi:** `active.get()` trả `newProvider` cho các lượt đọc sau khi reference được cập nhật.
-2. **Class identity có thể không đổi:** nếu `oldProvider` và `newProvider` được tạo từ cùng class loader, `oldProvider.getClass() == newProvider.getClass()` là `true`.
-3. **Reference cũ không biến mất:** một request đã làm `Greeter p = active.get()` trước lần thay vẫn có thể tiếp tục gọi `p` sau khi registry được đổi.
-4. **Không tự đóng plugin cũ:** nếu object cũ giữ file, socket, thread, executor hoặc callback, ứng dụng phải xác định cách dừng/thu hồi.
-5. **Không reset static state:** hai object khác nhau nhưng thuộc cùng `Class<?>` có thể vẫn chia sẻ static fields.
+1. **Object identity changes:** `active.get()` returns `newProvider` for reads after the reference is updated.
+2. **Class identity may not change:** if `oldProvider` and `newProvider` were created from the same class loader, `oldProvider.getClass() == newProvider.getClass()` is `true`.
+3. **Old references do not vanish:** a request that executed `Greeter p = active.get()` before the swap can still continue calling `p` after the registry is switched.
+4. **Old plugin is not closed automatically:** if the old object holds files, sockets, threads, executors, or callbacks, the application must define how to stop/reclaim them.
+5. **Static state is not reset:** two different objects belonging to the same `Class<?>` can still share static fields.
 
-Ví dụ với provider có số thứ tự instance:
+For example, with a provider that has an instance sequence number:
 
 ```text
-v1#1:Java  <-- object đầu tiên
-v1#2:Java  <-- object khác, cùng class và cùng static counter
+v1#1:Java  <-- first object
+v1#2:Java  <-- different object, same class and same static counter
 ```
 
-Việc nhìn thấy `#2` thay cho `#1` chứng minh object khác nhau nhưng **không** chứng minh bytecode đã được thay.
+Seeing `#2` instead of `#1` proves the objects are different, but it does **not** prove the bytecode was replaced.
 
-Trong hệ thống đa luồng, `active.set(...)` chỉ là **đổi điểm vào**. Nếu plugin cũ không được phép bị dừng khi request đang chạy, host cần **quiescence / draining / lease / reference counting** hoặc giao thức chuyển giao phù hợp. Không đóng ngay class loader/resource cũ khi vẫn có request sử dụng nó.
+In a multithreaded system, `active.set(...)` is only **switching the entry point**. If the old plugin must not be stopped while requests are running, the host needs **quiescence / draining / lease / reference counting** or an appropriate handoff protocol. Never close the old class loader or resources immediately while requests are still using them.
 
-## 4. Thay định nghĩa lớp: vấn đề nằm ở class loader
+## 4. Class definition replacement: the issue lies in the class loader
 
-JVM phân biệt class không chỉ bằng tên đầy đủ. Về danh tính nạp lớp, một class được xác định bởi **tên nhị phân và class loader định nghĩa nó**:
+The JVM distinguishes classes not only by their fully qualified name. In terms of class-loading identity, a class is identified by **its binary name and its defining class loader**:
 
 ```text
 ("demo.plugin.GreetingProvider", loaderV1)
@@ -149,19 +149,19 @@ JVM phân biệt class không chỉ bằng tên đầy đủ. Về danh tính n�
 ("demo.plugin.GreetingProvider", loaderV2)
 ```
 
-Ký hiệu trên là mô tả mô hình, không phải cú pháp Java.
+The notation above describes the model, not Java syntax.
 
-Nếu hai plugin JAR đều chứa class có cùng tên `demo.plugin.GreetingProvider`:
+If two plugin JARs both contain a class with the same name `demo.plugin.GreetingProvider`:
 
-- `loaderV1` có thể định nghĩa class này từ `plugin-v1.jar`.
-- `loaderV2` có thể định nghĩa một class **cùng tên** từ `plugin-v2.jar`.
-- Hai đối tượng `Class<?>` khác nhau: `v1.getClass() != v2.getClass()`.
-- Những static fields của lớp thuộc hai class loader được giữ **riêng**.
-- Nếu host dùng SPI đúng cách, cả hai class đều có thể được ép kiểu thành **cùng một interface** `demo.spi.Greeter`.
+- `loaderV1` can define this class from `plugin-v1.jar`.
+- `loaderV2` can define a class **with the same name** from `plugin-v2.jar`.
+- The two `Class<?>` objects are different: `v1.getClass() != v2.getClass()`.
+- Static fields of the class belonging to the two class loaders are kept **separate**.
+- If the host uses SPI properly, both classes can be cast to **the same interface** `demo.spi.Greeter`.
 
-Để đạt điều cuối, host phải **chia sẻ định nghĩa SPI từ một class loader cha**. Nếu mỗi loader con tự định nghĩa bản sao `demo.spi.Greeter`, chúng là hai interface khác nhau dù có cùng tên; host có thể gặp `ClassCastException` hoặc `ServiceConfigurationError` khi provider không phải subtype của kiểu mà host yêu cầu.
+To achieve the last point, the host must **share the SPI definition from a parent class loader**. If each child loader defines its own copy of `demo.spi.Greeter`, they are two different interfaces despite having the same name; the host may encounter `ClassCastException` or `ServiceConfigurationError` because the provider is not a subtype of the type required by the host.
 
-Sơ đồ:
+Diagram:
 
 ```text
                  Application ClassLoader (parent)
@@ -180,26 +180,26 @@ Sơ đồ:
               |                               |
               +---------------+---------------+
                               |
-                       host dùng Greeter
+                       host uses Greeter
 ```
 
-Trong demo, application classpath **không chứa provider JAR**. Bởi thế quy tắc delegation parent-first mặc định của `URLClassLoader` không khiến parent nạp nhầm provider. Mỗi child chỉ có URL trỏ tới đúng JAR của mình.
+In the demo, the application classpath **does not contain the provider JARs**. Therefore, the default parent-first delegation rule of `URLClassLoader` does not cause the parent to mistakenly load the provider. Each child only has a URL pointing to its own JAR.
 
-**Cảnh báo:** Nếu host classpath cũng chứa class provider trùng tên, parent-first có thể khiến child thấy class của parent thay vì class trong JAR riêng. Với kiến trúc plugin phức tạp, phải thiết kế namespace, package và quy tắc delegation rõ ràng. Không tùy tiện dùng child-first cho cả package SPI, vì như vậy có thể nhân đôi hợp đồng.
+**Warning:** If the host classpath also contains a provider class with the same name, parent-first delegation can cause the child to see the parent's class instead of the class in its own JAR. For complex plugin architectures, namespaces, packages, and delegation rules must be designed clearly. Do not arbitrarily use child-first for the entire SPI package, as doing so can duplicate the contract.
 
-## 5. Ví dụ chạy được: cùng provider name, hai bản JAR
+## 5. Runnable example: same provider name, two JAR versions
 
-Bài toán: host biết duy nhất SPI `Greeter`, trong khi provider phiên bản 1 và 2 được đóng gói thành **hai artifact độc lập**, có cùng class name nhưng khác bytecode.
+Problem: the host knows only the SPI `Greeter`, while provider versions 1 and 2 are packaged as **two independent artifacts**, sharing the same class name but having different bytecode.
 
-Ta sẽ quan sát ba giai đoạn:
+We will observe three phases:
 
-1. `ServiceLoader` duyệt hai lần cho cùng cache → trả lại cùng instance.
-2. Gọi `reload()`, duyệt lại → instance khác, class vẫn cùng.
-3. Tạo loader mới trỏ tới JAR v2 và chuyển `active` sang provider mới → class khác, vẫn là cùng SPI chung.
+1. `ServiceLoader` iterates twice on the same cache → returns the same instance.
+2. Call `reload()`, iterate again → different instance, still the same class.
+3. Create a new loader pointing to the v2 JAR and switch `active` to the new provider → different class, still the same shared SPI.
 
-### 5.1. Cây tệp
+### 5.1. File tree
 
-Tạo các tệp sau bên trong thư mục `spi-replacement-demo`:
+Create the following files inside the `spi-replacement-demo` directory:
 
 ```text
 spi-replacement-demo/
@@ -215,7 +215,7 @@ spi-replacement-demo/
     └── src/demo/host/Main.java
 ```
 
-Khi biên dịch, ta tạo bốn JAR:
+When compiling, we produce four JARs:
 
 ```text
 dist/
@@ -225,11 +225,11 @@ dist/
 └── plugin-v2.jar
 ```
 
-Không đặt hai phiên bản provider lên cùng application classpath. `host.jar` chỉ phụ thuộc `spi.jar` tại compile time, không import implementation cụ thể.
+Do not place both provider versions on the same application classpath. `host.jar` depends only on `spi.jar` at compile time, without importing a concrete implementation.
 
-### 5.2. Hợp đồng SPI — chỉ một bản
+### 5.2. SPI contract — only one copy
 
-Tệp `contract/src/demo/spi/Greeter.java`:
+File `contract/src/demo/spi/Greeter.java`:
 
 ```java
 package demo.spi;
@@ -241,13 +241,13 @@ public interface Greeter {
 }
 ```
 
-SPI giữ chữ ký ổn định. Những phiên bản plugin có thể thay mã nội bộ, nhưng đều `implements Greeter`. `id()` minh họa định danh nghiệp vụ; hai phiên bản cùng trả `"greeting"`, vì **chúng là hai bản thay thế của cùng chức năng**, không phải hai loại dịch vụ khác nhau.
+The SPI keeps a stable signature. Plugin versions can change internal code, yet all `implements Greeter`. `id()` illustrates a business identifier; both versions return `"greeting"`, because **they are two replacement versions of the same capability**, not two different kinds of services.
 
-Cần phân biệt định danh nghiệp vụ với **class identity**: hai provider cùng `id()` không có nghĩa là cùng object, cùng bytecode hoặc cùng class loader. Nếu host cùng lúc đăng ký nhiều provider có cùng ID vào **một registry đang hoạt động**, phải có chính sách chọn phiên bản rõ ràng.
+Business identity must be distinguished from **class identity**: two providers having the same `id()` does not mean they are the same object, the same bytecode, or from the same class loader. If the host simultaneously registers multiple providers with the same ID into **an active registry**, there must be an explicit version selection policy.
 
-### 5.3. Implementation phiên bản 1
+### 5.3. Version 1 implementation
 
-Tệp `plugin-v1/src/demo/plugin/GreetingProvider.java`:
+File `plugin-v1/src/demo/plugin/GreetingProvider.java`:
 
 ```java
 package demo.plugin;
@@ -270,11 +270,11 @@ public final class GreetingProvider implements Greeter {
 }
 ```
 
-`constructed` là static field tăng khi khởi tạo object; `number` lưu số thứ tự của từng instance. Ví dụ thực thi tuần tự, không chia sẻ constructor giữa luồng. Trong ứng dụng thực tế có concurrency, bộ đếm dùng để kiểm tra có thể cần `AtomicInteger` hoặc đồng bộ phù hợp.
+`constructed` is a static field incremented upon object instantiation; `number` stores the sequence number of each instance. The example executes sequentially without sharing the constructor across threads. In a real application with concurrency, a counter used for inspection may need `AtomicInteger` or appropriate synchronization.
 
-### 5.4. Implementation phiên bản 2
+### 5.4. Version 2 implementation
 
-Tệp `plugin-v2/src/demo/plugin/GreetingProvider.java`:
+File `plugin-v2/src/demo/plugin/GreetingProvider.java`:
 
 ```java
 package demo.plugin;
@@ -297,32 +297,32 @@ public final class GreetingProvider implements Greeter {
 }
 ```
 
-Hai source file cùng khai báo `public final class GreetingProvider` trong `package demo.plugin`, nhưng **khác return value**. Mỗi source được biên dịch vào một output directory khác và đóng một JAR khác.
+Both source files declare `public final class GreetingProvider` in `package demo.plugin`, but with **different return values**. Each source is compiled into a separate output directory and packaged into a separate JAR.
 
-Nếu lấy cả hai source đưa cho một lời gọi `javac` với cùng package/class, sẽ đụng định nghĩa trùng. Cơ chế cô lập ở đây diễn ra **khi nạp class**, không phải khi biên dịch hai tệp cùng tên vào một thư mục.
+Passing both sources to a single `javac` invocation with the same package/class would collide on duplicate definitions. The isolation mechanism here occurs **at class loading time**, not by compiling two files of the same name into a single directory.
 
-### 5.5. Đăng ký bằng `META-INF/services`
+### 5.5. Registration via `META-INF/services`
 
-Trong **cả hai** thư mục resource:
+In **both** resource directories:
 
 ```text
 plugin-v1/resources/META-INF/services/demo.spi.Greeter
 plugin-v2/resources/META-INF/services/demo.spi.Greeter
 ```
 
-nội dung file **giống nhau**:
+the file contents are **identical**:
 
 ```text
 demo.plugin.GreetingProvider
 ```
 
-Điều này hợp lệ vì mỗi `URLClassLoader` chỉ có URL cho một provider JAR; mỗi loader tìm ra lớp có cùng tên nhưng định nghĩa khác nhau. File đăng ký phải nằm trong JAR tương ứng, không đặt trong `spi.jar`/`host.jar`.
+This is valid because each `URLClassLoader` only has the URL for one provider JAR; each loader finds the class with the same name but a different definition. The registration file must reside inside the corresponding JAR, not inside `spi.jar`/`host.jar`.
 
-Cả hai provider là class công khai với constructor không tham số công khai mặc định; chúng phù hợp với cơ chế khởi tạo provider trên classpath trong ví dụ.
+Both providers are public classes with a default public no-argument constructor; they conform to classpath provider instantiation in this example.
 
-## 6. Host: quan sát cache, đổi object, đổi class
+## 6. Host: observing cache, swapping object, replacing class
 
-Tệp `host/src/demo/host/Main.java` đầy đủ:
+Complete file `host/src/demo/host/Main.java`:
 
 ```java
 package demo.host;
@@ -408,15 +408,15 @@ public final class Main {
 }
 ```
 
-Chương trình chỉ import `demo.spi.Greeter`. Nó **không import** `demo.plugin.GreetingProvider`, không gọi constructor provider bằng tay và không ghép các plugin JAR vào application classpath.
+The program imports only `demo.spi.Greeter`. It **does not import** `demo.plugin.GreetingProvider`, does not call provider constructors manually, and does not merge the plugin JARs onto the application classpath.
 
-`exactlyOne(...)` yêu cầu mỗi loader cung cấp **đúng một provider**; đây là chính sách của demo. Trong hệ thống thật, nếu một vùng class loader có nhiều provider, cần bộ chọn theo ID/capability/cấu hình thay vì lấy phần tử đầu tiên. Trả về `Greeter` còn giúp host không phụ thuộc vào tên implementation.
+`exactlyOne(...)` requires each loader to supply **exactly one provider**; this is the demo's policy. In a real system, if a class loader scope has multiple providers, a selector by ID/capability/configuration is needed instead of taking the first element. Returning `Greeter` also keeps the host independent of implementation names.
 
-`AtomicReference<Greeter>` mô phỏng registry active. Trong ví dụ nó chỉ được cập nhật tuần tự trong `main`; việc có `AtomicReference` **không tự tạo cơ chế lifecycle an toàn** cho một hệ thống server đa luồng.
+`AtomicReference<Greeter>` simulates the active registry. In the example it is updated sequentially in `main`; merely having `AtomicReference` **does not automatically create a safe lifecycle mechanism** for a multithreaded server system.
 
-## 7. Biên dịch và chạy với Java 17+
+## 7. Compiling and running with Java 17+
 
-Cần có JDK 17 trở lên (`java`, `javac`, `jar`). Đứng ở thư mục gốc `spi-replacement-demo` chứa các thư mục `contract`, `plugin-v1`, `plugin-v2`, `host`.
+JDK 17 or newer (`java`, `javac`, `jar`) is required. Run from the root directory `spi-replacement-demo` containing `contract`, `plugin-v1`, `plugin-v2`, and `host`.
 
 ### 7.1. Linux/macOS (Bash)
 
@@ -440,7 +440,7 @@ java -cp "dist/spi.jar:dist/host.jar" demo.host.Main
 
 ### 7.2. Windows PowerShell
 
-Trong Windows, các phần tử classpath phân cách bằng dấu `;`. Khi dùng PowerShell, nên đặt chuỗi classpath trong dấu nháy đơn:
+On Windows, classpath entries are separated by `;`. When using PowerShell, wrap the classpath string in single quotes:
 
 ```powershell
 New-Item -ItemType Directory -Force out/spi,out/plugin-v1,out/plugin-v2,out/host,dist | Out-Null
@@ -460,9 +460,9 @@ jar --create --file dist/host.jar -C out/host .
 java -cp 'dist/spi.jar;dist/host.jar' demo.host.Main
 ```
 
-**Lưu ý quan trọng:** `java -cp` cuối chỉ chứa `spi.jar` và `host.jar`, không chứa hai plugin JAR. Host tự mở `plugin-v1.jar` và `plugin-v2.jar` qua hai `URLClassLoader` khác nhau. Nếu chạy từ thư mục khác, `Path.of("dist")` không còn trỏ đúng vị trí và cần chỉnh lại path hoặc working directory.
+**Important note:** The final `java -cp` contains only `spi.jar` and `host.jar`, not the two plugin JARs. The host itself opens `plugin-v1.jar` and `plugin-v2.jar` through two separate `URLClassLoader` instances. If run from another directory, `Path.of("dist")` will no longer point to the right location and the path or working directory must be adjusted.
 
-### 7.3. Stdout chính xác
+### 7.3. Exact stdout
 
 ```text
 cached same object: true
@@ -479,127 +479,127 @@ same runtime Class: false
 shared SPI Class: true
 ```
 
-Giải nghĩa:
+Explanation:
 
-- `cached same object: true`: duyệt lại cùng `ServiceLoader` trước `reload()` trả instance đã cache.
-- `before reload: v1#1:Java`: provider v1 đầu tiên đã được khởi tạo, `constructed == 1`.
-- `after reload: v1#2:Java`: khi duyệt sau `reload()`, constructor v1 chạy lần nữa, tạo instance thứ hai.
-- `same object after reload: false`: hai lần khởi tạo cho hai Java object khác nhau.
-- `same Class after reload: true`: cả hai object vẫn cùng runtime class và cùng defining class loader.
-- `old object still works`: cache bị xóa không đồng nghĩa JVM tự hủy object cũ.
-- `active after object swap: v1#2:Java`: chỉ registry active đổi sang instance mới.
-- `active after loader switch: v2#1:Java`: host tạo provider qua loader v2 rồi trỏ active sang nó; static counter của bản v2 bắt đầu riêng ở 1.
-- `same binary name: true` nhưng `same runtime Class: false`: hai phiên bản có tên Java giống nhau, song JVM coi là hai class khác vì khác defining loader.
-- `shared SPI Class: true`: cả hai child ủy quyền cùng `demo.spi.Greeter` về parent, nên cả hai có thể được host gọi thông qua SPI.
+- `cached same object: true`: iterating the same `ServiceLoader` again before `reload()` returns the cached instance.
+- `before reload: v1#1:Java`: the first v1 provider was instantiated, `constructed == 1`.
+- `after reload: v1#2:Java`: when iterating after `reload()`, the v1 constructor runs again, creating a second instance.
+- `same object after reload: false`: two instantiations produce two distinct Java objects.
+- `same Class after reload: true`: both objects still share the same runtime class and the same defining class loader.
+- `old object still works`: clearing the cache does not mean the JVM automatically destroys the old object.
+- `active after object swap: v1#2:Java`: only the active registry changed to the new instance.
+- `active after loader switch: v2#1:Java`: the host created a provider via the v2 loader and pointed active to it; the static counter of v2 starts separately at 1.
+- `same binary name: true` yet `same runtime Class: false`: both versions have the same Java name, yet the JVM treats them as two different classes because their defining loaders differ.
+- `shared SPI Class: true`: both children delegate the same `demo.spi.Greeter` to the parent, so both can be invoked by the host via the SPI.
 
-Ví dụ đã phân biệt được **thay cache**, **thay object** và **thay class** bằng quan sát độc lập, thay vì suy đoán từ một dòng log “reloaded”.
+The example distinguishes **cache replacement**, **object replacement**, and **class replacement** through independent observations, rather than guessing from a single “reloaded” log line.
 
-## 8. Bảng so sánh chi tiết: trạng thái nào còn sống?
+## 8. Detailed comparison table: which state stays alive?
 
-Giả sử `loaderV1` đã định nghĩa `GreetingProvider` v1, và host đang giữ `first`.
+Assume `loaderV1` has defined `GreetingProvider` v1, and the host holds `first`.
 
-| Phép thử | Sau `ServiceLoader.reload()` | Sau `active.set(fresh)` cùng loader | Sau tạo loader v2 và `active.set(v2)` |
+| Check | After `ServiceLoader.reload()` | After `active.set(fresh)` on same loader | After creating v2 loader and `active.set(v2)` |
 |---|---|---|---|
-| Cache của instance ServiceLoader v1 | Bị xóa; sẽ khám phá lại khi duyệt | Không đổi bởi `active.set` | Không đổi tự động |
-| Đối tượng `first` | Còn nếu host giữ reference | Vẫn còn nếu host/request giữ | Vẫn có thể còn |
-| Đối tượng provider active | Không tự đổi | Đổi thành `fresh` | Đổi thành v2 |
-| `Class<?>` của provider mới | Thường cùng class nếu vẫn cùng loader | Cùng với `first` trong demo | Khác vì định nghĩa bởi loader v2 |
-| Static state v1 | Vẫn tồn tại | Vẫn được `fresh` chia sẻ | Không biến mất nếu loader v1 còn sống |
-| Static state v2 | Không liên quan | Không liên quan | Bắt đầu trong class v2 khi được khởi tạo |
-| Bytecode của class v1 đã nạp | Không bị thay | Không bị thay | Không bị thay |
-| Các request đã lấy provider v1 | Không tự đổi | Không tự đổi | Không tự đổi |
-| Tài nguyên/JAR của loader cũ | Không tự đóng | Không tự đóng | Không tự đóng |
+| Cache of v1 ServiceLoader instance | Cleared; will rediscover upon iteration | Unchanged by `active.set` | Unchanged automatically |
+| Object `first` | Alive if host holds reference | Still alive if host/requests hold it | May still remain alive |
+| Active provider object | Does not change automatically | Changes to `fresh` | Changes to v2 |
+| `Class<?>` of new provider | Usually same class if still same loader | Same as `first` in the demo | Different because defined by loader v2 |
+| Static state v1 | Still exists | Still shared by `fresh` | Does not vanish while loader v1 is alive |
+| Static state v2 | Not involved | Not involved | Starts in class v2 when initialized |
+| Loaded bytecode of class v1 | Not replaced | Not replaced | Not replaced |
+| Requests already holding v1 provider | Do not switch automatically | Do not switch automatically | Do not switch automatically |
+| Resources/JAR of old loader | Not closed automatically | Not closed automatically | Not closed automatically |
 
-Nếu một provider tự lưu state ở static field, object mới của **cùng class** có thể mang cảm giác “mới hoàn toàn” nhưng vẫn ảnh hưởng hoặc bị ảnh hưởng bởi state chung. Muốn cô lập một class version, class loader là một phần thiết yếu của thiết kế; muốn dọn state cũ, còn phải giải quyết references và lifecycle.
+If a provider stores state in static fields, a new object of **the same class** may feel “brand new” yet still affect or be affected by shared state. To isolate a class version, the class loader is an essential part of the design; to clean up old state, references and lifecycle must also be handled.
 
-## 9. Thay file JAR trên đĩa không phải thay class đã nạp
+## 9. Replacing the JAR file on disk is not replacing the loaded class
 
-Một class sau khi được định nghĩa trong JVM không tự đổi bytecode chỉ vì file JAR nguồn bị thay:
+Once a class is defined in the JVM, its bytecode does not automatically change just because the source JAR file was replaced:
 
 ```text
-plugin.jar v1 trên đĩa
+plugin.jar v1 on disk
       |
       v
-ClassLoader đã define GreetingProvider v1
+ClassLoader has defined GreetingProvider v1
       |
       v
-Thay plugin.jar bằng file v2 ở cùng đường dẫn
+Replace plugin.jar with v2 file at the same path
       |
       x
-Không tự sửa GreetingProvider đã định nghĩa
+Does not automatically modify the already-defined GreetingProvider
 ```
 
-Cơ chế `ClassLoader.loadClass()` thường kiểm tra lớp đã được nạp trước khi tìm và định nghĩa lớp mới. Vì vậy, dù loader có đọc lại tài nguyên service, nếu class `demo.plugin.GreetingProvider` đã được loader đó định nghĩa, `ServiceLoader.reload()` không làm nó trở thành class v2.
+`ClassLoader.loadClass()` typically checks whether a class is already loaded before searching for and defining a new class. Therefore, even if the loader re-reads service resources, if `demo.plugin.GreetingProvider` has already been defined by that loader, `ServiceLoader.reload()` will not turn it into the v2 class.
 
-Thay nội dung JAR ngay dưới một `URLClassLoader` đang hoạt động còn có rủi ro do JAR URL/resource caching, file locks và trạng thái triển khai; không nên coi đó là phương pháp nâng cấp đáng tin cậy.
+Replacing JAR contents directly underneath an active `URLClassLoader` also carries risks from JAR URL/resource caching, file locks, and deployment state; it should not be treated as a reliable upgrade method.
 
-**Chiến lược dễ kiểm soát:** dùng artifact phiên bản hóa, ví dụ `plugin-v1.jar`, `plugin-v2.jar`; tạo loader mới trỏ tới đúng artifact mới; kiểm chứng provider trước khi chuyển traffic. Nhờ vậy không yêu cầu “ghi đè” định nghĩa lớp trong loader cũ.
+**Controllable strategy:** use versioned artifacts, such as `plugin-v1.jar`, `plugin-v2.jar`; create a new loader pointing to the exact new artifact; verify the provider before shifting traffic. That avoids requiring “overwriting” class definitions inside an old loader.
 
-## 10. “Định nghĩa lớp mới” khác “redefine class tại chỗ”
+## 10. “Defining a new class” differs from “redefining a class in place”
 
-Có **hai** loại thay đổi bytecode thường cùng được gọi là “thay lớp”:
+There are **two** kinds of bytecode changes commonly referred to together as “replacing a class”:
 
-### 10.1. Tạo `Class<?>` mới bằng loader mới
+### 10.1. Creating a new `Class<?>` with a new loader
 
-Đây là chiến lược của demo:
+This is the demo's strategy:
 
 ```text
 old loader -> old Class<?> -> old provider
 new loader -> new Class<?> -> new provider
 ```
 
-Ưu điểm: có thể giữ hai phiên bản song song để kiểm thử, chuyển traffic dần và rollback bằng cách chuyển registry về provider cũ khi còn hợp lệ.
+Advantages: both versions can be kept side by side for testing, gradual traffic shifting, and rollback by switching the registry back to the old provider while it remains valid.
 
-Giới hạn: các object cũ vẫn thuộc class cũ; không thể tự ép object phiên bản cũ thành class mới chỉ vì hai class cùng tên. Static state của hai loader tách biệt; thông tin muốn chuyển phải qua dữ liệu chung/SPI/DTO hoặc quy trình migration có chủ đích.
+Limitations: old objects still belong to the old class; an old-version object cannot be automatically cast to the new class simply because both classes have the same name. Static state of the two loaders is separated; any information to be transferred must pass through shared data/SPI/DTOs or an intentional migration procedure.
 
-### 10.2. Redefinition/retransformation qua Java Instrumentation
+### 10.2. Redefinition/retransformation via Java Instrumentation
 
-Java có API `java.lang.instrument.Instrumentation`, ví dụ `redefineClasses(...)` và `retransformClasses(...)` khi agent/JVM hỗ trợ. Đây là cơ chế chuyên dụng **thay định nghĩa bytecode của một class đã nạp** trong phạm vi các hạn chế của JVM/agent.
+Java provides the `java.lang.instrument.Instrumentation` API, such as `redefineClasses(...)` and `retransformClasses(...)` when supported by the agent/JVM. This is a specialized mechanism for **replacing the bytecode definition of an already-loaded class** within JVM/agent constraints.
 
-Khác biệt cơ bản:
+Fundamental differences:
 
-- Không cần tạo một `Class<?>` mới bằng class loader mới cho tên class đó.
-- Những instance hiện có vẫn thuộc runtime class đã được tái định nghĩa; các lần gọi method tiếp theo có thể dùng phần mã đã được thay.
-- Class initialization không tự chạy lại chỉ vì redefine; static fields không được xem như một bộ nhớ mới hoàn toàn.
-- Các frame method đã đang thực thi có thể tiếp tục dùng bytecode cũ cho tới khi kết thúc, thay vì bị sửa giữa lệnh.
-- Các JVM phổ biến giới hạn thay đổi **cấu trúc lớp** như thêm/xóa field hoặc method, thay đổi chữ ký/hệ thừa kế; cần kiểm tra khả năng `isRedefineClassesSupported()`/`isRetransformClassesSupported()` và những ràng buộc thực tế.
+- No need to create a new `Class<?>` using a new class loader for that class name.
+- Existing instances still belong to the redefined runtime class; subsequent method calls can use the replaced code.
+- Class initialization does not automatically rerun just because of redefinition; static fields are not treated as brand-new storage.
+- Method frames already executing can continue running old bytecode until they finish, rather than being patched mid-instruction.
+- Common JVMs restrict **class structure changes** such as adding/removing fields or methods, or changing signatures/inheritance hierarchy; check `isRedefineClassesSupported()`/`isRetransformClassesSupported()` capabilities and practical constraints.
 
-**`ServiceLoader.reload()` không gọi `Instrumentation` và không kích hoạt HotSwap.** Thay loader bằng artifact phiên bản hóa và redefine tại chỗ là **hai chiến lược khác nhau**, có phạm vi và rủi ro khác nhau. Bài này chỉ **giải thích** Instrumentation, không cung cấp agent HotSwap runnable vì đó là một cơ chế triển khai độc lập với bài toán làm mới cache SPI.
+**`ServiceLoader.reload()` does not invoke `Instrumentation` and does not trigger HotSwap.** Replacing the loader with a versioned artifact and redefining in place are **two different strategies** with different scopes and risks. This lesson only **explains** Instrumentation and does not provide a runnable HotSwap agent because that is a separate deployment mechanism from refreshing the SPI cache.
 
-## 11. Quy trình thay plugin an toàn trong ứng dụng server
+## 11. Safe plugin replacement workflow in a server application
 
-Một lần nâng cấp plugin có thể được thiết kế theo pha:
+A plugin upgrade can be designed in phases:
 
 ```text
-[1] Chuẩn bị artifact mới, kiểm tra checksum/phiên bản/phụ thuộc
+[1] Prepare new artifact, verify checksum/version/dependencies
                        |
                        v
-[2] Tạo class loader mới, giữ SPI/API chung ở parent
+[2] Create new class loader, keep shared SPI/API in parent
                        |
                        v
-[3] Khám phá provider mới, kiểm tra contract/cấu hình
+[3] Discover new provider, verify contract/configuration
                        |
                        v
-[4] Khởi tạo, warm-up, health-check, xác minh tương thích
+[4] Initialize, warm up, health-check, verify compatibility
                        |
                        v
-[5] Chuyển registry active sang provider mới (atomic pointer)
+[5] Switch active registry to new provider (atomic pointer)
                        |
                        v
-[6] Đợi request cũ dùng provider cũ kết thúc
+[6] Wait for old requests using the old provider to finish
                        |
                        v
-[7] Gỡ callback, dừng thread/worker, đóng resource
+[7] Unregister callbacks, stop threads/workers, close resources
                        |
                        v
-[8] Đóng loader cũ khi an toàn; bỏ reference để JVM có thể GC/unload
+[8] Close old loader when safe; drop references so the JVM can GC/unload
 ```
 
-Lệnh `AtomicReference.set(newProvider)` chỉ xử lý một phần của bước [5]. Nó **không thay** các bước [6]–[8]. Khi thực hiện bước [4], không được để provider mới làm thay đổi dữ liệu production chưa được phép; kiểm tra warm-up cần được thiết kế an toàn.
+`AtomicReference.set(newProvider)` handles only part of step [5]. It **does not replace** steps [6]–[8]. During step [4], the new provider must not mutate unauthorized production data; warm-up checks must be designed safely.
 
-Một `PluginHandle` trong ứng dụng thật thường chứa ít nhất provider, loader, version, trạng thái lifecycle và bộ đếm request đang sử dụng. Registry nên trỏ tới **handle**, không chỉ riêng object provider, để hệ thống biết loader nào cần giữ sống và khi nào được đóng.
+A `PluginHandle` in a real application typically holds at least the provider, loader, version, lifecycle state, and an in-flight request counter. The registry should point to the **handle**, not solely the provider object, so the system knows which loader must be kept alive and when it can be closed.
 
-Minh họa ý tưởng, **không phải một chương trình độc lập**:
+Conceptual illustration, **not a standalone program**:
 
 ```java
 record PluginHandle(
@@ -612,73 +612,73 @@ AtomicReference<PluginHandle> current = ...;
 PluginHandle candidate = prepareAndValidateNewPlugin();
 PluginHandle old = current.getAndSet(candidate);
 
-// Không đóng old.loader() ngay nếu request đang giữ old.
-// Cần chờ drain/in-flight requests, hủy resource rồi mới close.
+// Do not close old.loader() immediately if requests are still holding old.
+// Must wait to drain/in-flight requests, release resources, and only then close.
 ```
 
-Các biến và hàm `prepareAndValidateNewPlugin()` là ký hiệu trong thiết kế, không có trong chương trình chạy của phần 6. Việc dùng `getAndSet` bảo đảm đổi handle atomically tại điểm đọc registry, nhưng request đã lấy handle cũ vẫn giữ nó. Nếu muốn mạnh hơn, cần giao thức lease/acquire/release để tránh race giữa request mới và việc drain.
+The variables and `prepareAndValidateNewPlugin()` function are design notation, not present in the runnable program in Section 6. Using `getAndSet` ensures the handle is swapped atomically at the registry read point, but requests that already read the old handle still hold it. For stronger guarantees, a lease/acquire/release protocol is needed to prevent races between new requests and draining.
 
 ### Rollback
 
-Nếu chuyển sang provider v2 rồi phát hiện lỗi:
+If switching to the v2 provider reveals a bug:
 
-- Có thể chuyển registry **về provider v1** khi artifact, loader, instance và tài nguyên v1 vẫn còn ở trạng thái sử dụng được.
-- Không thể giả định rollback chỉ bằng `ServiceLoader.reload()`; cache không phải lịch sử phiên bản.
-- Nếu đã đóng hoặc giải phóng v1, có thể phải tạo loader/instance v1 mới; state của plugin cũ có thể cần phục hồi hoặc migration ngược.
-- Việc rollback bytecode không tự rollback dữ liệu đã thay đổi bên ngoài như database/schema hoặc message đã gửi.
+- The registry can be switched **back to the v1 provider** as long as the v1 artifact, loader, instance, and resources remain in a usable state.
+- Do not assume rollback works merely via `ServiceLoader.reload()`; the cache is not a version history.
+- If v1 was already closed or released, a new v1 loader/instance may have to be created; old plugin state may require restoration or reverse migration.
+- Rolling back bytecode does not automatically roll back external data changes such as database/schema updates or already-sent messages.
 
-## 12. Những ràng buộc khi unload một plugin
+## 12. Constraints when unloading a plugin
 
-Đóng `URLClassLoader` bằng `close()` **đóng các tài nguyên do loader quản lý** như các JAR/file mà nó đang giữ, nhưng **không buộc JVM lập tức unload class** và không hủy các object provider còn sống.
+Closing a `URLClassLoader` with `close()` **closes resources managed by the loader**, such as the JARs/files it holds, but **does not force the JVM to unload classes immediately** and does not destroy live provider objects.
 
-Class unloading phụ thuộc khả năng thu hồi class loader và những reference liên quan. Các nguồn giữ plugin ở lại thường gặp:
+Class unloading depends on the reachability of the class loader and related references. Common sources keeping a plugin alive include:
 
-- Registry/caches vẫn giữ instance hoặc `Class<?>` cũ.
-- Request đang chạy hoặc thread do plugin tạo vẫn giữ đối tượng thuộc loader cũ.
-- `ThreadLocal`, timer, scheduler hoặc executor giữ callback/class từ plugin.
-- Thread context class loader (`Thread.currentThread().getContextClassLoader()`) của thread sống còn trỏ tới loader cũ.
-- Listener, MBean, shutdown hook, logging/app framework registry hoặc resource provider đã đăng ký nhưng chưa tháo.
-- Một `ServiceLoader` được host giữ có thể còn giữ provider instance trong cache cho tới khi reload/bỏ reference.
-- Object của plugin bị chuyển ra ngoài qua một API chung và tiếp tục sống ở host.
+- Registries/caches still holding old instances or `Class<?>`.
+- In-flight requests or threads created by the plugin still holding objects from the old loader.
+- `ThreadLocal`, timers, schedulers, or executors holding callbacks/classes from the plugin.
+- Thread context class loader (`Thread.currentThread().getContextClassLoader()`) of a live thread still pointing to the old loader.
+- Listeners, MBeans, shutdown hooks, logging/application framework registries, or resource providers registered and not yet removed.
+- A `ServiceLoader` retained by the host may still hold provider instances in its cache until reloaded/dereferenced.
+- Plugin objects leaked outward through a shared API and kept alive in the host.
 
-Vì vậy cần chính sách `start`, `stop`, đóng resource, xóa callback/registration, dọn cache và kiểm tra classloader leak. Có thể dùng tham chiếu yếu trong kiểm thử để quan sát khả năng thu hồi, nhưng **không** dựa vào thời điểm GC như một deadline chắc chắn.
+Therefore, an explicit `start`/`stop` policy, resource closing, callback/registration removal, cache clearing, and classloader leak checks are required. Weak references can be used in tests to observe reclaimability, but do **not** rely on GC timing as a deterministic deadline.
 
-Class loader chỉ cô lập **namespace của class**; nó không tự sandbox mã không đáng tin cậy, không tách process, quyền truy cập mạng hoặc filesystem. Khi plugin không đáng tin, cần biện pháp cách ly mạnh hơn.
+A class loader only isolates **class namespaces**; it does not sandbox untrusted code by itself, nor does it isolate the process, network access, or filesystem permissions. When plugins are untrusted, stronger isolation measures are necessary.
 
-## 13. Lưu ý khi SPI chạy trong module path/JPMS
+## 13. Notes when SPI runs on the module path/JPMS
 
-Demo ở trên dùng **classpath + tài nguyên `META-INF/services` + URLClassLoader**. Với named modules trong Java Platform Module System, provider thường được khai báo bằng `provides ... with ...` trong `module-info.java`, còn consumer dùng `uses`. Khi xây dựng một `ModuleLayer` mới cho plugin, có thể dùng API `ServiceLoader.load(layer, ServiceType.class)` phù hợp kiến trúc module.
+The demo above uses **classpath + `META-INF/services` resources + `URLClassLoader`**. With named modules in the Java Platform Module System, providers are typically declared with `provides ... with ...` in `module-info.java`, while consumers use `uses`. When building a new `ModuleLayer` for a plugin, the module-aware `ServiceLoader.load(layer, ServiceType.class)` API can be used.
 
-Các điểm chung vẫn giữ nguyên:
+The common principles still hold:
 
-- `ServiceLoader` khám phá và cache provider, **không tự cập nhật bytecode**.
-- Host phải có ranh giới API/SPI chung mà plugin thật sự dùng được; không nhân đôi service type qua vùng class loading.
-- Chuyển provider active là một quyết định routing/lifecycle riêng.
-- Tạo `ModuleLayer`/class loader mới cho artifact mới khác với redefine class tại chỗ.
-- Provider cũ không tự dừng khi có một module layer mới được tạo.
+- `ServiceLoader` discovers and caches providers; **it does not automatically update bytecode**.
+- The host must have a shared API/SPI boundary that plugins can actually use; do not duplicate the service type across class-loading scopes.
+- Switching the active provider is a separate routing/lifecycle decision.
+- Creating a new `ModuleLayer`/class loader for a new artifact is different from redefining classes in place.
+- The old provider does not stop automatically when a new module layer is created.
 
-Không nên copy nguyên cú pháp classpath của demo sang module path rồi giả định chỉ cần tài nguyên `META-INF/services`; cách đăng ký và discovery của named modules phải tuân theo JPMS.
+Do not copy the demo's classpath syntax verbatim onto the module path assuming only `META-INF/services` resources are needed; registration and discovery for named modules must follow JPMS rules.
 
-## 14. Sai lầm hay gặp và cách chẩn đoán
+## 14. Common mistakes and how to diagnose them
 
-| Hiện tượng/niềm tin sai | Thực tế | Hướng khắc phục |
+| Symptom / misconception | Reality | Remediation |
 |---|---|---|
-| “`reload()` là thay plugin JAR” | Nó chỉ xóa cache của một `ServiceLoader` | Dùng loader/layer mới nếu cần định nghĩa class mới |
-| “Object sau reload mới thì code cũng mới” | Instance mới có thể vẫn thuộc `Class<?>` cũ | So sánh `getClass()` và defining class loader |
-| “Gọi `reload()` sẽ hủy provider cũ” | Reference cũ vẫn có thể hoạt động | Quản lý stop/close và quyền sở hữu object |
-| “Đổi `AtomicReference` sẽ cập nhật mọi request” | Request đã đọc reference cũ vẫn có thể tiếp tục dùng cũ | Draining/lease, kế hoạch chuyển giao |
-| “Đè file JAR là JVM lập tức dùng v2” | Lớp đã định nghĩa không tự bị đổi | Artifact phiên bản hóa và loader mới, hoặc Instrumentation theo điều kiện hỗ trợ |
-| “Cùng class name thì là cùng class” | Class identity phụ thuộc defining loader | In `getClassLoader()` và so sánh `Class<?>` |
-| “Mỗi plugin đóng SPI của riêng nó cũng được” | Gây hai service type khác nhau, có thể không ép kiểu | Dùng SPI do parent/layer chung sở hữu |
-| “`URLClassLoader.close()` nghĩa là unload class” | Nó đóng resource, không bắt GC unload ngay | Dọn reference, thread, callbacks và lifecycle |
-| “Static counter sẽ reset sau `reload()`” | Same class giữ static state | Kiểm tra loader và static fields |
-| “Có `ServiceLoader` là tự hỗ trợ concurrent reload” | `ServiceLoader` không bảo đảm thread-safe | Đừng reload trong lúc thread khác duyệt |
-| “Ứng dụng chỉ có một provider vì lấy `.next()`” | Có thể có nhiều provider hoặc duplicate config | Kiểm tra 0/1/n ứng viên, chọn theo chính sách |
-| “Loader mới bảo đảm không rò memory” | Host/thread vẫn có thể giữ loader cũ | Quan sát vòng đời instance và tham chiếu |
+| “`reload()` replaces the plugin JAR” | It only clears the cache of one `ServiceLoader` | Use a new loader/layer if new class definitions are needed |
+| “New object after reload means new code too” | The new instance may still belong to the old `Class<?>` | Compare `getClass()` and defining class loader |
+| “Calling `reload()` destroys the old provider” | Old references can still remain active | Manage stop/close and object ownership |
+| “Updating `AtomicReference` updates every request” | Requests that already read the old reference can continue using the old one | Draining/lease and a handoff plan |
+| “Overwriting the JAR file makes the JVM use v2 immediately” | Already-defined classes are not replaced automatically | Versioned artifacts and a new loader, or Instrumentation where supported |
+| “Same class name means the same class” | Class identity depends on the defining loader | Print `getClassLoader()` and compare `Class<?>` |
+| “Each plugin can bundle its own SPI” | Produces two distinct service types, which may fail to cast | Use the SPI owned by a shared parent/layer |
+| “`URLClassLoader.close()` means unload classes” | It closes resources, not forcing immediate GC unload | Clear references, threads, callbacks, and lifecycle |
+| “Static counter resets after `reload()`” | Same class preserves static state | Check the loader and static fields |
+| “Having `ServiceLoader` automatically supports concurrent reload” | `ServiceLoader` is not guaranteed thread-safe | Do not reload while another thread is iterating |
+| “The app has only one provider because it calls `.next()`” | There may be multiple providers or duplicate configs | Check 0/1/n candidates and select by policy |
+| “A new loader guarantees no memory leak” | Host/threads can still retain the old loader | Monitor instance lifecycles and references |
 
-### Các phép kiểm tra hữu ích
+### Useful diagnostic checks
 
-Khi một lần nâng cấp không thay hành vi như mong muốn, hãy log có kiểm soát:
+When an upgrade does not change behavior as expected, log in a controlled way:
 
 ```java
 Class<?> type = provider.getClass();
@@ -687,9 +687,9 @@ System.out.println("binary name = " + type.getName());
 System.out.println("defining loader = " + type.getClassLoader());
 ```
 
-Đây là trích đoạn cần đặt trong phương thức có biến `provider` kiểu `Greeter`. Chỉ log tên class/loader không đủ để chứng minh source artifact; trong hệ thống lớn cần thông tin thêm về artifact version, checksum và cơ chế định tuyến.
+This is a snippet to place inside a method that has a `provider` variable of type `Greeter`. Logging only the class/loader name is not enough to prove the source artifact; larger systems need additional information about artifact version, checksum, and routing mechanism.
 
-Nếu phải so sánh thật sự, dùng:
+When true comparison is needed, use:
 
 ```java
 boolean sameObject = oldProvider == newProvider;
@@ -699,30 +699,30 @@ boolean sameLoader =
                 == newProvider.getClass().getClassLoader();
 ```
 
-Ba giá trị trả lời ba câu hỏi khác nhau. Nhớ rằng hai object khác nhau có thể cùng class; hai class có cùng tên có thể khác loader; và chỉ đổi reference không đồng nghĩa đã thay bytecode.
+These three values answer three different questions. Remember that two different objects can share the same class; two classes with the same name can have different loaders; and changing a reference alone does not mean bytecode was replaced.
 
-## 15. Bài tập áp dụng
+## 15. Practice exercises
 
-1. **Bỏ `reload()`:** dùng `ServiceLoader` v1 duyệt hai lần và so sánh object. Dự đoán vì sao cả hai lần đều nhận `v1#1`.
-2. **Chỉ `reload()` cache:** gọi lại `servicesV1.reload()`, in static instance ordinal và so sánh `Class<?>`. Giải thích vì sao instance tăng nhưng class vẫn y nguyên.
-3. **Không chuyển active:** tạo `v2Provider` qua `loaderV2` nhưng không gọi `active.set(v2Provider)`. Vì sao host vẫn dùng provider v1?
-4. **Chuyển active sớm:** mô phỏng request A lấy `Greeter old = active.get()` trước khi đổi registry; request B lấy sau khi đổi. Cho cả hai gọi `greet("Java")` và chỉ ra vì sao A vẫn dùng bản cũ.
-5. **Phá ranh giới SPI:** cố tình đóng thêm `Greeter.class` vào mỗi JAR và sử dụng chiến lược child-first cho cả package `demo.spi`. Phân tích vì sao host có thể gặp lỗi “provider not a subtype” hoặc ép kiểu; sau đó khôi phục shared SPI từ parent.
-6. **Thay JAR sai cách:** thử nạp v1 rồi thay file JAR tại cùng URL (trên môi trường thử nghiệm có thể dọn lại). Giải thích vì sao không được dựa vào `reload()` để thay định nghĩa class và vì sao việc ghi đè JAR đang mở còn rủi ro.
-7. **Thiết kế rollout:** mô tả `prepare -> validate -> swap -> drain -> close` và cách rollback nếu v2 lỗi sau khi đã xử lý một số request. Vì sao atomic pointer chỉ giải quyết một phần bài toán?
-8. **HotSwap vs loader mới:** nêu trường hợp phù hợp với Instrumentation và trường hợp phù hợp với versioned artifact cùng class loader mới; chỉ ra tác động của static state và object identity ở hai chiến lược.
+1. **Skip `reload()`:** use v1 `ServiceLoader` to iterate twice and compare objects. Predict why both iterations yield `v1#1`.
+2. **Cache `reload()` only:** call `servicesV1.reload()` again, print the static instance ordinal, and compare `Class<?>`. Explain why the instance number increments while the class stays identical.
+3. **Skip switching active:** create `v2Provider` via `loaderV2` without calling `active.set(v2Provider)`. Why does the host still use the v1 provider?
+4. **Early active switch:** simulate request A calling `Greeter old = active.get()` before the registry switch, and request B calling it after the switch. Have both call `greet("Java")` and explain why A still uses the old version.
+5. **Break the SPI boundary:** intentionally package `Greeter.class` into each JAR as well and use a child-first strategy for the entire `demo.spi` package. Analyze why the host can hit a “provider not a subtype” or casting error; then restore the shared SPI from the parent.
+6. **Wrong JAR replacement:** try loading v1 and then replacing the JAR file at the same URL (in a test environment you can clean up afterwards). Explain why you cannot rely on `reload()` to replace class definitions and why overwriting an open JAR is risky.
+7. **Design a rollout:** describe `prepare -> validate -> swap -> drain -> close` and how to roll back if v2 fails after already handling some requests. Why does an atomic pointer solve only part of the problem?
+8. **HotSwap vs new loader:** state a scenario suited for Instrumentation and a scenario suited for versioned artifacts with a new class loader; point out the impact on static state and object identity in both strategies.
 
-## 16. Checklist trước khi bật thay plugin ở môi trường thật
+## 16. Checklist before enabling plugin replacement in production
 
-- **Versioning:** artifact/JAR có định danh, checksum, dependency và giao thức tương thích rõ ràng?
-- **Shared contract:** toàn bộ plugin dùng đúng một SPI/API type từ parent, chữ ký không chứa class private của loader con?
-- **Discovery:** provider được đăng ký đúng, class loader/layer nào phụ trách tìm, có kiểm tra số lượng và lựa chọn provider?
-- **Cache:** phân biệt rõ `ServiceLoader` nào được reload; iterator cũ được bỏ, không thao tác đồng thời trái quy định?
-- **Object:** biết object nào đang active, đã warm-up và kiểm thử provider mới trước khi chuyển chưa?
-- **Class:** đã có định nghĩa class mới từ loader/layer mới khi yêu cầu đổi bytecode, hay vẫn chỉ tạo object mới từ class cũ?
-- **Traffic:** có phương pháp xử lý request in-flight, đồng bộ trạng thái và migration khi cần?
-- **Resources:** có stop callback, xóa listener, đóng file/socket/executor và giải phóng loader cũ?
-- **Security:** plugin có đáng tin cậy, có giới hạn tài nguyên và quyền phù hợp không?
-- **Observability:** log được provider ID, version, class name, loader identity, thời điểm swap và lỗi rollback mà không lộ thông tin nhạy cảm?
+- **Versioning:** Do artifacts/JARs have clear identifiers, checksums, dependencies, and compatibility protocols?
+- **Shared contract:** Do all plugins use the exact single SPI/API type from the parent, with signatures containing no child-loader private classes?
+- **Discovery:** Are providers registered properly, is it clear which class loader/layer performs discovery, and are provider count and selection checked?
+- **Cache:** Is it clear which `ServiceLoader` is reloaded, are old iterators discarded, and are invalid concurrent operations prevented?
+- **Object:** Do you know which object is active, and has the new provider been warmed up and tested before switching?
+- **Class:** Is there a new class definition from a new loader/layer when bytecode changes are required, or is it merely creating a new object from the old class?
+- **Traffic:** Is there a strategy to handle in-flight requests, synchronize state, and migrate data when needed?
+- **Resources:** Are callbacks stopped, listeners removed, files/sockets/executors closed, and the old loader released?
+- **Security:** Are plugins trusted, and are resource limits and appropriate permissions in place?
+- **Observability:** Can you log provider ID, version, class name, loader identity, swap timestamp, and rollback errors without exposing sensitive information?
 
-**Kết luận:** `ServiceLoader.reload()` chỉ **làm mới cache khám phá SPI**; đổi một reference trong registry chỉ **chọn một object khác**; muốn nạp một bản bytecode khác thường phải dùng **class loader/module layer mới** hoặc cơ chế **Instrumentation** chuyên dụng. Bất kể cách nào, host vẫn phải quản lý vòng đời của provider cũ và request đang chạy. Đó là ranh giới quyết định giữa “làm mới bộ nhớ đệm”, “đổi instance” và “triển khai plugin mới” thực sự.
+**Conclusion:** `ServiceLoader.reload()` only **refreshes the SPI discovery cache**; updating a registry reference only **selects a different object**; loading a different bytecode version usually requires a **new class loader/module layer** or dedicated **Instrumentation**. Regardless of the approach, the host must still manage the lifecycle of the old provider and in-flight requests. That is the boundary separating “refreshing a cache,” “swapping an instance,” and true “new plugin deployment.”

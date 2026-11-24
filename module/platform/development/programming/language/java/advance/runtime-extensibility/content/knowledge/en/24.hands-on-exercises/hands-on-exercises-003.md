@@ -1,20 +1,20 @@
-# Thực hành: Nạp hai plugin dùng hai phiên bản thư viện riêng bằng classloader độc lập
+# Hands-On: Loading Two Plugins with Separate Library Versions via Independent Classloaders
 
-## 1. Mục tiêu và kết quả cần đạt
+## 1. Objectives and Expected Outcomes
 
-Một ứng dụng host Java phải chạy đồng thời hai plugin, mỗi plugin phụ thuộc vào **một phiên bản khác nhau của cùng thư viện**. Ví dụ plugin A cần `vendor.Helper` phiên bản `1.0`, còn plugin B cần `vendor.Helper` phiên bản `2.0`. Hai JAR thư viện đều chứa class có tên nhị phân `vendor.Helper`, nên nếu đặt cả hai lên cùng application classpath, classloader thường chỉ định nghĩa một bản cho tên đó và plugin còn lại có thể chạy sai hoặc gặp `NoSuchMethodError`.
+A Java host application must run two plugins simultaneously, where each plugin depends on **a different version of the same library**. For example, plugin A requires `vendor.Helper` version `1.0`, while plugin B requires `vendor.Helper` version `2.0`. Both library JARs contain a class with the binary name `vendor.Helper`, so if both are placed on the same application classpath, the classloader usually defines only one version for that name and the other plugin may behave incorrectly or throw `NoSuchMethodError`.
 
-Giải pháp thực hành: đặt hợp đồng SPI ở **parent classloader**, còn mỗi plugin và JAR thư viện riêng vào **một child URLClassLoader độc lập**. Mục tiêu kiểm chứng:
+Hands-on solution: place the SPI contract in the **parent classloader**, and place each plugin along with its own library JAR in **an independent child URLClassLoader**. Verification goals:
 
-- Cả hai provider đều ép kiểu được về cùng interface `spi.Plugin` của host.
-- Plugin A trả kết quả chứa version `1.0`, plugin B trả version `2.0`.
-- Hai class `vendor.Helper` có **cùng tên nhị phân nhưng khác identity** vì được định nghĩa bởi hai loader khác nhau.
-- Plugin A không thể nhìn thấy private dependency của plugin B thông qua loader của mình.
-- Dừng plugin, bỏ tham chiếu và đóng loader đúng vòng đời; không nhầm classloader isolation với security sandbox.
+- Both providers can be cast to the same `spi.Plugin` interface of the host.
+- Plugin A returns a result containing version `1.0`, and plugin B returns version `2.0`.
+- The two `vendor.Helper` classes have the **same binary name but different identities** because they are defined by two different loaders.
+- Plugin A cannot see plugin B's private dependency through its own loader.
+- Stop plugins, clear references, and close loaders following proper lifecycle rules; do not confuse classloader isolation with a security sandbox.
 
 ```text
                            Parent / AppClassLoader
-                           spi.Plugin (API chung)
+                           spi.Plugin (shared API)
                                     |
                          +----------+----------+
                          |                     |
@@ -27,20 +27,20 @@ Giải pháp thực hành: đặt hợp đồng SPI ở **parent classloader**, 
                    '1.0: alpha'          '2.0: beta'
 ```
 
-## 2. Cơ chế class identity và parent delegation
+## 2. Class Identity and Parent Delegation Mechanics
 
-Trong JVM, một runtime class được xác định bởi **binary name cùng defining classloader**, không chỉ bằng tên package/class. Vì thế hai loader khác nhau có thể định nghĩa `vendor.Helper` từ bytecode khác nhau. Nhưng `spi.Plugin` mà cả hai provider implement phải là **cùng runtime class** do parent loader định nghĩa; nếu child chứa và nạp một bản sao API theo child-first, host có thể gặp `ClassCastException` dù tên interface giống hệt.
+In the JVM, a runtime class is identified by its **binary name together with its defining classloader**, not solely by package/class name. Therefore, two different loaders can define `vendor.Helper` from different bytecode. However, `spi.Plugin` implemented by both providers must be the **exact same runtime class** defined by the parent loader; if a child contains and loads a copy of the API using child-first delegation, the host may encounter `ClassCastException` even though the interface names are identical.
 
-Ví dụ dùng `URLClassLoader` mặc định theo **parent-first delegation**. Điều này phù hợp khi:
+This example uses the default `URLClassLoader` with **parent-first delegation**. This works when:
 
-1. Parent classpath chứa duy nhất **API chung + host**, không chứa `vendor.Helper` hoặc class implementation plugin.
-2. Mỗi child có đúng plugin JAR và dependency JAR cùng phiên bản của nó.
-3. Plugin implementations là class mới trong child nên parent không tìm thấy; child sẽ định nghĩa chúng.
-4. Dependency `vendor.Helper` không nằm trong parent, nên từng child sẽ tải bản của mình.
+1. The parent classpath contains only the **shared API + host**, and does not contain `vendor.Helper` or plugin implementation classes.
+2. Each child has only its own plugin JAR and matching dependency JAR version.
+3. Plugin implementations are new classes in the child, so the parent cannot find them; the child defines them.
+4. The `vendor.Helper` dependency is not in the parent, so each child loads its own version.
 
-**Lưu ý quan trọng:** URLClassLoader riêng không tự cô lập dependency nếu parent đã tải cùng tên class. Không nên đưa cả hai `helper-v*.jar` lên system classpath rồi kỳ vọng child chọn đúng bản. Đây là lý do đường dẫn chạy bên dưới chỉ chứa host và API.
+**Important note:** A separate URLClassLoader does not automatically isolate dependencies if the parent has already loaded a class with the same name. You must not place both `helper-v*.jar` files on the system classpath and expect the child to pick the right version. This is why the runtime classpath below contains only the host and the API.
 
-## 3. Cấu trúc dự án
+## 3. Project Structure
 
 ```text
 plugin-isolation-demo/
@@ -67,11 +67,11 @@ plugin-isolation-demo/
     host.jar
 ```
 
-Đây là **classpath-based plugin isolation** bằng `URLClassLoader`, không phải ví dụ JPMS named modules. Khi dùng JPMS layer riêng, phải xem thêm module resolution và split packages. Bài thực hành hiện tại tập trung vào khả năng đặt hai phiên bản thư viện chung tên class trong hai classloader độc lập.
+This is **classpath-based plugin isolation** using `URLClassLoader`, not a JPMS named modules example. When using separate JPMS layers, you must also consider module resolution and split packages. This exercise focuses on loading two versions of a library sharing the same class name into two independent classloaders.
 
-## 4. Viết hợp đồng SPI chung
+## 4. Writing the Shared SPI Contract
 
-Tạo `src/api/spi/Plugin.java`:
+Create `src/api/spi/Plugin.java`:
 
 ```java
 package spi;
@@ -84,11 +84,11 @@ public interface Plugin extends AutoCloseable {
 }
 ```
 
-Interface nằm trong `api.jar` do host/parent loader sở hữu. Các JAR plugin **không đóng gói bản sao** `spi/Plugin.class`; khi biên dịch, plugin chỉ tham chiếu API trên compilation classpath.
+The interface resides in `api.jar` owned by the host/parent loader. Plugin JARs **do not bundle a copy** of `spi/Plugin.class`; when compiling, plugins only reference the API on the compilation classpath.
 
-## 5. Tạo hai phiên bản của cùng thư viện
+## 5. Creating Two Versions of the Same Library
 
-Thư viện V1 ở `src/lib-v1/vendor/Helper.java`:
+Library V1 at `src/lib-v1/vendor/Helper.java`:
 
 ```java
 package vendor;
@@ -101,7 +101,7 @@ public final class Helper {
 }
 ```
 
-Thư viện V2 ở `src/lib-v2/vendor/Helper.java`:
+Library V2 at `src/lib-v2/vendor/Helper.java`:
 
 ```java
 package vendor;
@@ -114,9 +114,9 @@ public final class Helper {
 }
 ```
 
-Hai source có cùng package, class name và method signature để chứng minh rõ version nào được tải; version thật ngoài đời có thể thay cả implementation hoặc API. Khi compile vào thư mục/JAR tách biệt, JVM sẽ có thể nạp đồng thời cả hai bản trong hai loader.
+Both sources share the same package, class name, and method signature to clearly demonstrate which version is loaded; real-world versions may change both implementation and API. When compiled into separate directories/JARs, the JVM can load both versions concurrently in two loaders.
 
-## 6. Tạo hai plugin độc lập
+## 6. Creating Two Independent Plugins
 
 `src/plugin-a/plugins/PluginA.java`:
 
@@ -150,11 +150,11 @@ public final class PluginB implements Plugin {
 }
 ```
 
-Mỗi plugin phụ thuộc vào `spi.Plugin` chung nhưng gọi `vendor.Helper` từ bản dependency **trong loader của chính nó**. Để kiểm chứng, host sẽ đọc class `vendor.Helper` bằng đúng loader của từng plugin.
+Each plugin depends on the shared `spi.Plugin` but invokes `vendor.Helper` from the dependency version **inside its own loader**. To verify this, the host will inspect the `vendor.Helper` class using each plugin's respective loader.
 
-## 7. Host nạp plugin bằng hai URLClassLoader
+## 7. Host Loading Plugins with Two URLClassLoaders
 
-Tạo `src/host/Host.java`:
+Create `src/host/Host.java`:
 
 ```java
 import spi.Plugin;
@@ -200,15 +200,15 @@ public final class Host {
 }
 ```
 
-Ở đây `new URLClassLoader(urls, parent)` cấp cho hai plugin hai **namespace độc lập**. Hàm `Class.forName(..., loader)` dùng đúng loader. `asSubclass(Plugin.class)` xác nhận provider dùng cùng API class identity; nếu class không tương thích sẽ báo lỗi ngay. `try-with-resources` đóng cả hai loader, nhưng trong ứng dụng thật phải đảm bảo không còn callback/thread đang sử dụng plugin trước khi đóng.
+Here, `new URLClassLoader(urls, parent)` gives the two plugins two **independent namespaces**. `Class.forName(..., loader)` uses the designated loader. `asSubclass(Plugin.class)` confirms that the provider uses the same API class identity; if the class is incompatible, it fails immediately. `try-with-resources` closes both loaders, though in a real application you must ensure no callbacks or threads are still using the plugin before closing.
 
-### Lưu ý về teardown
+### Teardown notes
 
-Ví dụ dùng `try/finally` lồng để vẫn thử đóng B khi đóng A ném lỗi. Trong production nên tổng hợp exceptions bằng `addSuppressed`, dừng request, đóng executor/listener/socket và chỉ sau đó đóng loader. `URLClassLoader.close()` giải phóng tài nguyên do loader giữ; nó **không tự unload mọi class hoặc dừng thread của plugin**.
+The example uses nested `try/finally` so that closing B is still attempted if closing A throws an error. In production, aggregate exceptions with `addSuppressed`, stop incoming requests, close executors/listeners/sockets, and only then close the loader. `URLClassLoader.close()` releases resources held by the loader; it **does not automatically unload all classes or stop plugin threads**.
 
-## 8. Biên dịch các thành phần tách biệt trên Java 17+
+## 8. Compiling Components Separately on Java 17+
 
-Đứng ở thư mục gốc `plugin-isolation-demo` và chạy trong shell bash:
+From the root directory `plugin-isolation-demo`, run in a bash shell:
 
 ```bash
 mkdir -p build/api build/lib-v1 build/lib-v2 build/plugin-a build/plugin-b build/host dist
@@ -229,9 +229,9 @@ jar --create --file dist/host.jar -C build/host .
 java -cp dist/api.jar:dist/host.jar Host
 ```
 
-Trên Windows, `javac -cp` và `java -cp` dùng dấu phân cách `;` thay vì `:`; ví dụ `-cp "build/api;build/lib-v1"`. `Path` trong `Host` lấy file từ thư mục `dist` dựa trên working directory; chạy chương trình từ gốc dự án.
+On Windows, `javac -cp` and `java -cp` use `;` instead of `:` as the separator; for example, `-cp "build/api;build/lib-v1"`. `Path` in `Host` resolves files from the `dist` directory relative to the working directory; run the program from the project root.
 
-Output kỳ vọng:
+Expected output:
 
 ```text
 plugin-A -> 1.0: alpha
@@ -240,29 +240,29 @@ same helper class? false
 same API? true
 ```
 
-Hai class có cùng `vendor.Helper` nhưng `helperA != helperB`, vì mỗi child loader định nghĩa class riêng. Ngược lại hai provider đều implement một `spi.Plugin` runtime class từ parent nên phép kiểm tra `instanceof Plugin` đều true.
+Both classes have the same `vendor.Helper` name, yet `helperA != helperB` because each child loader defines its own class. Conversely, both providers implement the single `spi.Plugin` runtime class from the parent, so the `instanceof Plugin` checks both evaluate to true.
 
-## 9. Vì sao cách đơn giản hơn thường thất bại?
+## 9. Why Does the Simpler Approach Usually Fail?
 
-Nếu đặt mọi JAR vào cùng classpath:
+If you place all JARs on the same classpath:
 
 ```bash
 java -cp dist/api.jar:dist/host.jar:dist/plugin-a.jar:dist/plugin-b.jar:dist/helper-v1.jar:dist/helper-v2.jar Host
 ```
 
-thì application classloader có thể tìm thấy `vendor.Helper` ở parent trước child loader; cả plugin có thể dùng cùng version V1, phá mục tiêu isolation. Lệnh này là **ví dụ cấu hình sai, không phải bước chạy chuẩn**. Ngoài ra khi parent chứa implementation plugin, class `plugins.PluginA` có thể được định nghĩa bởi parent, làm bạn hiểu lầm rằng classloader riêng đã được sử dụng.
+then the application classloader may find `vendor.Helper` in the parent before the child loader; both plugins may end up using the same V1 version, defeating the isolation goal. This command is an **example of a misconfiguration, not a standard run step**. Furthermore, when the parent contains plugin implementations, `plugins.PluginA` may be defined by the parent, misleading you into thinking a separate classloader was used.
 
-Vì vậy chỉ đặt `api.jar` và `host.jar` trên parent classpath; plugin và thư viện được trao riêng cho child loaders.
+Therefore, place only `api.jar` and `host.jar` on the parent classpath; plugins and their libraries are handed exclusively to child loaders.
 
-## 10. Khi hai phiên bản có API không tương thích
+## 10. When Two Versions Have Incompatible APIs
 
-Trong ví dụ, cả hai version có method `transform(String)` nên source compile đơn giản. Thực tế V2 có thể đổi method signature hoặc return type. Plugin A và B phải compile với version thư viện đúng của mình; nếu vô tình chạy plugin B với V1, có thể gặp `NoSuchMethodError`, `NoClassDefFoundError` hoặc lỗi logic.
+In this example, both versions share the `transform(String)` method so the source compiles cleanly. In reality, V2 may change method signatures or return types. Plugin A and B must compile against their respective correct library versions; if plugin B is accidentally run with V1, you may get `NoSuchMethodError`, `NoClassDefFoundError`, or logic bugs.
 
-Quy tắc là: mỗi plugin bundle/loader gồm **toàn bộ dependency phù hợp** và API chung được chia sẻ ở parent. Nếu cả hai plugin cần tương tác, đừng truyền trực tiếp object thuộc `vendor.Helper` qua ranh giới; chuyển qua DTO/interface trong API chung hoặc dữ liệu chuẩn như `String`, `byte[]`, immutable records thuộc parent API.
+The rule is: each plugin bundle/loader includes its **complete matching set of dependencies**, and the shared API lives in the parent. If both plugins need to interact, never pass `vendor.Helper` objects directly across the boundary; exchange data through DTOs/interfaces in the shared API or standard types such as `String`, `byte[]`, or immutable records belonging to the parent API.
 
-## 11. TCCL, ServiceLoader và tài nguyên
+## 11. TCCL, ServiceLoader, and Resources
 
-Một số thư viện khám phá dịch vụ bằng thread context classloader (TCCL) hoặc `ServiceLoader.load(Service.class)` mặc định, nên có thể không nhìn đúng resources của plugin. Khi chạy code plugin cần TCCL cụ thể, host có thể tạm đặt loader:
+Some libraries discover services using the thread context classloader (TCCL) or the default `ServiceLoader.load(Service.class)`, and thus may fail to see a plugin's resources. When executing plugin code that requires a specific TCCL, the host can temporarily set the loader:
 
 ```java
 Thread thread = Thread.currentThread();
@@ -275,49 +275,49 @@ try {
 }
 ```
 
-Đây là đoạn minh họa trong method có biến `loaderA` và plugin `a`, không phải chương trình đầy đủ. Không quên phục hồi TCCL: nếu giữ loader trong thread pool lâu sống, nó có thể ngăn garbage collection của classloader đã dừng.
+This is an illustrative snippet inside a method that has variables `loaderA` and plugin `a`, not a complete program. Never forget to restore the TCCL: if a loader remains referenced by a long-lived thread pool, it can prevent garbage collection of a stopped classloader.
 
-Plugin còn có thể có `META-INF/services` riêng. Với `ServiceLoader.load(service, loaderA)`, phải bảo đảm SPI interface `service` là class identity từ parent và descriptor nằm đúng plugin/dependency JAR. Không dùng TCCL hoặc `ServiceLoader` để cố ép type objects của plugin-private dependencies qua boundary.
+Plugins can also have their own `META-INF/services`. With `ServiceLoader.load(service, loaderA)`, ensure that the SPI interface `service` has its class identity from the parent and that the descriptor resides in the right plugin/dependency JAR. Do not use TCCL or `ServiceLoader` to try forcing objects of plugin-private dependencies across the boundary.
 
-## 12. Kiểm thử cô lập và vòng đời
+## 12. Testing Isolation and Lifecycle
 
-Test không nên chỉ nhìn output. Nên xác nhận:
+Tests should not only inspect output. You should verify:
 
 1. **Class identity:** `loaderA.loadClass("vendor.Helper") != loaderB.loadClass("vendor.Helper")`.
-2. **API chung:** `a instanceof spi.Plugin` và `b instanceof spi.Plugin`.
-3. **Phiên bản:** output A chứa V1, B chứa V2 như expected.
-4. **Không rò rỉ:** parent classpath không chứa plugin/vendor classes.
-5. **Negative test:** cố ý gán dependency V1 cho B và quan sát mismatch hoặc hành vi sai.
-6. **Reload:** tạo loader mới với JAR phiên bản mới; không định nghĩa lại class cùng name trong loader cũ.
-7. **Teardown:** dừng plugin, close loader, unregister listener và dọn threads.
-8. **Artifact test:** chạy host từ JAR phân phối, không chỉ class files trong IDE.
+2. **Shared API:** `a instanceof spi.Plugin` and `b instanceof spi.Plugin`.
+3. **Versions:** A's output contains V1, and B's output contains V2 as expected.
+4. **No leakage:** the parent classpath does not contain plugin/vendor classes.
+5. **Negative test:** intentionally assign the V1 dependency to B and observe the mismatch or failure behavior.
+6. **Reload:** create a new loader with the new version JAR; do not redefine a class with the same name in the old loader.
+7. **Teardown:** stop plugins, close loaders, unregister listeners, and clean up threads.
+8. **Artifact test:** run the host from the distributed JARs, not only from compiled class files in the IDE.
 
-## 13. Những lỗi thường gặp
+## 13. Common Errors
 
-| Lỗi | Nguyên nhân | Cách sửa |
+| Error | Cause | Fix |
 | --- | --- | --- |
-| Hai plugin đều dùng V1 | `vendor.Helper` nằm trên parent classpath | Bỏ dependency riêng khỏi parent |
-| `ClassCastException` sang `spi.Plugin` | Mỗi child chứa/nạp bản sao API | Parent sở hữu API, child không bundle API |
-| `NoSuchMethodError` | Plugin load sai version dependency | Bundle đúng per-plugin dependency |
-| `ClassNotFoundException` | JAR không nằm trong URLs của loader tương ứng | Kiểm tra URL list và filenames |
-| Resources/SPI không được tìm thấy | Loader/TCCL sai hoặc descriptors thiếu | Dùng đúng classloader, giữ resource files |
-| Jar vẫn bị khóa hoặc loader leak | Không close loader, thread/listener giữ reference | Lifecycle stop và dọn TCCL/registry |
-| `LinkageError` khi reload | Define lại tên class trong cùng loader | Tạo loader mới cho phiên bản mới |
+| Both plugins use V1 | `vendor.Helper` is on the parent classpath | Remove private dependencies from the parent |
+| `ClassCastException` to `spi.Plugin` | Each child bundles/loads a copy of the API | Parent owns the API; children do not bundle the API |
+| `NoSuchMethodError` | Plugin loads the wrong dependency version | Bundle the matching per-plugin dependencies |
+| `ClassNotFoundException` | JAR is missing from the corresponding loader's URLs | Check the URL list and filenames |
+| Resources/SPI not found | Wrong loader/TCCL or missing descriptors | Use the proper classloader and keep resource files |
+| JAR remains locked or loader leaks | Loader not closed, or thread/listener holds a reference | Follow lifecycle stop and clean up TCCL/registries |
+| `LinkageError` on reload | Redefining the same class name in the same loader | Create a new loader for the new version |
 
-## 14. Giới hạn bảo mật
+## 14. Security Limitations
 
-Classloader isolation chỉ tách **namespace class** và hỗ trợ quản lý phiên bản dependency; các plugin vẫn chạy trong cùng JVM, cùng user OS, heap, thread pools và có thể làm hỏng state của host. Không dùng `URLClassLoader` như sandbox cho code chưa tin cậy. Với plugin không tin cậy, chuyển sang JVM/process hoặc container riêng với quyền OS tối thiểu và IPC có schema, timeout, quota.
+Classloader isolation only separates **class namespaces** and supports dependency version management; plugins still run in the same JVM, OS user, heap, and thread pools, and can corrupt host state. Do not use `URLClassLoader` as a sandbox for untrusted code. For untrusted plugins, move to a separate JVM/process or container with minimal OS privileges and schema-validated IPC with timeouts and quotas.
 
-## 15. Checklist hoàn thành bài thực hành
+## 15. Exercise Completion Checklist
 
-- [ ] Hai phiên bản `vendor.Helper` được biên dịch và đóng gói **riêng**.
-- [ ] Host + API chỉ xuất hiện trên parent classpath.
-- [ ] Mỗi plugin có child `URLClassLoader` với đúng plugin JAR và vendor JAR.
-- [ ] Provider implement interface `spi.Plugin` duy nhất từ parent.
-- [ ] Chạy cùng lúc plugin A/V1 và plugin B/V2, đúng output.
-- [ ] Kiểm chứng `vendor.Helper` identity khác nhau.
-- [ ] Quản lý TCCL khi thư viện cần và phục hồi trong `finally`.
-- [ ] Đóng plugin và loader theo lifecycle, kiểm tra memory leaks.
-- [ ] Không nhầm dependency isolation với security isolation.
+- [ ] Both versions of `vendor.Helper` are compiled and packaged **separately**.
+- [ ] Host + API appear only on the parent classpath.
+- [ ] Each plugin has a child `URLClassLoader` with its exact plugin JAR and vendor JAR.
+- [ ] Providers implement the single `spi.Plugin` interface from the parent.
+- [ ] Plugin A/V1 and plugin B/V2 run simultaneously with the expected output.
+- [ ] Different `vendor.Helper` identities are verified.
+- [ ] TCCL is managed when libraries require it and restored in `finally`.
+- [ ] Plugins and loaders are closed following lifecycle rules, with checks for memory leaks.
+- [ ] Dependency isolation is not confused with security isolation.
 
-**Kết luận:** mô hình **một parent API + một classloader cho mỗi plugin và dependency set riêng** cho phép Java chạy đồng thời hai phiên bản thư viện trùng tên class. Bài thực hành nhấn mạnh phải kiểm chứng **class identity**, **API sharing**, **artifact classpath sạch** và **vòng đời loader**, không chỉ kiểm tra một dòng output.
+**Conclusion:** The model of **one parent API + one classloader per plugin and its private dependency set** allows Java to run two versions of a library sharing the same class name simultaneously. This exercise emphasizes verifying **class identity**, **API sharing**, **clean artifact classpaths**, and **loader lifecycles**, rather than just checking a single line of output.

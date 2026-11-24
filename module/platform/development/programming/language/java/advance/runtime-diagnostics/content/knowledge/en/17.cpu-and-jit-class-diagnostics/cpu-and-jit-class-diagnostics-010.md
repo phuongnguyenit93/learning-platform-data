@@ -1,143 +1,143 @@
-# 17.10 Phân biệt thay đổi do JIT hoặc tải với bằng chứng của một lỗi hiệu năng
+# 17.10 Distinguishing Changes Caused by JIT or Load from Evidence of a Performance Bug
 
-## Mục tiêu bài học
+## Learning Objectives
 
-Khi CPU của một ứng dụng Java tăng hoặc p95 latency xấu đi, có ba cách giải thích rất khác nhau:
+When a Java application's CPU climbs or p95 latency degrades, three very different explanations exist:
 
-1. **JIT, class loading và warm-up:** JVM đang tải lớp, thu profile, biên dịch và tối ưu các method; vì vậy cùng một mã và cùng tải có thể nhanh/chậm khác nhau theo thời điểm.
-2. **Tải hoặc tài nguyên thay đổi:** số request, concurrency, payload, cache hit, CPU quota, queue hay dependency latency đã đổi; p95 có thể tăng khi bão hòa dù không có thay đổi mã.
-3. **Lỗi hiệu năng (regression) có bằng chứng:** ở điều kiện so sánh tương đương, cùng chức năng, một thay đổi làm tăng công việc hoặc thời gian chờ, kết quả lặp lại và tìm được cơ chế gây chênh lệch.
+1. **JIT, class loading, and warm-up:** the JVM is loading classes, gathering profiles, and compiling/optimizing methods; thus the same code under the same load can run faster or slower over time.
+2. **Changed load or resources:** request count, concurrency, payloads, cache hits, CPU quota, queues, or dependency latency shifted; p95 can climb near saturation even with zero code changes.
+3. **Evidence-backed performance bug (regression):** under comparable conditions for the same functionality, a change increases work or wait time, the result reproduces, and a mechanism explains the difference.
 
-Bài này hướng dẫn **tách tín hiệu của JVM và tải khỏi chứng cứ của bug**, không gắn nhãn “regression” chỉ dựa trên một biểu đồ CPU. Người học sẽ biết đặt giả thuyết kiểm chứng được, dùng JFR/JIT/class metrics, tổ chức thí nghiệm A/B, đọc một ví dụ Java 17+ chạy được, và viết báo cáo với mức tin cậy phù hợp.
+This lesson teaches how to **separate JVM and load signals from bug evidence**, rather than labeling something a "regression" from a single CPU graph. You will learn to formulate testable hypotheses, use JFR/JIT/class metrics, structure A/B experiments, read a runnable Java 17+ example, and write reports with calibrated confidence.
 
-## 1. Chênh lệch hiệu năng không đồng nghĩa lỗi
+## 1. A Performance Difference Does Not Equal a Bug
 
-**Latency** là thời gian tường (wall-clock) từ khi request bắt đầu đến khi trả kết quả. Nó có thể chứa **CPU computation**, **queue wait**, GC pause, lock contention, sleep, I/O, network, database và scheduling. **CPU time** đo thời gian CPU thực sự dùng chạy thread, không bao gồm phần lớn thời gian chờ.
+**Latency** is wall-clock time from when a request begins until it returns a result. It can include **CPU computation**, **queue wait**, GC pauses, lock contention, sleep, I/O, network, database, and scheduling. **CPU time** measures actual CPU time spent running threads, excluding most waiting time.
 
 ```text
-Latency của request
-  = queue wait + application service time + các thời gian chờ liên quan
+Request latency
+  = queue wait + application service time + related wait times
 Application service time
-  = CPU work + GC/lock/I/O/dependency/scheduling delays (tùy đường đo)
+  = CPU work + GC/lock/I/O/dependency/scheduling delays (per measurement boundary)
 
-Process CPU usage cao
-  có thể do nhiều request hơn, mỗi request đắt hơn,
-  JIT/GC/background work, hoặc busy-loop.
+High process CPU usage
+  may come from more requests, costlier requests,
+  JIT/GC/background work, or a busy-loop.
 ```
 
-Đừng suy:
+Do not infer:
 
-- **CPU tăng → lỗi:** 600 RPS thường cần nhiều tổng CPU hơn 300 RPS.
-- **CPU thấp → ứng dụng nhanh:** hệ thống chờ DB/lock có thể CPU thấp nhưng p95 rất cao.
-- **p95 tăng → mỗi method chậm:** khi queue dài, request mất thêm thời gian đợi dù code phục vụ không đổi.
-- **Method X có 60% sample CPU → X vừa chậm 60%:** tỉ lệ mẫu là phần của tổng mẫu trong cửa sổ, không phải độ trễ tuyệt đối của method.
-- **Sau restart khác tốc độ → chắc là JIT bug:** JVM uptime, class initialization, cache và compiler tier chưa tương đương.
+- **CPU up → bug:** 600 RPS normally requires more total CPU than 300 RPS.
+- **CPU low → app fast:** a system waiting on DB/locks can have low CPU yet very high p95.
+- **p95 up → every method slowed down:** when queues grow, requests spend extra time waiting even if service code did not change.
+- **Method X has 60% of CPU samples → X just got 60% slower:** sample share is a fraction of total samples in the window, not an absolute method latency.
+- **Different speed after restart → must be a JIT bug:** JVM uptime, class initialization, caches, and compiler tiers are not yet equivalent.
 
-### Bộ số đo tối thiểu phải đọc cùng nhau
+### Minimum Set of Metrics to Read Together
 
-| Khía cạnh | Metrics | Mục đích |
+| Aspect | Metrics | Purpose |
 | --- | --- | --- |
-| Người dùng | p50/p95/p99, error/timeout, SLO | Xác nhận triệu chứng |
-| Offered workload | arrival RPS, concurrency, request mix, payload size | Biết có thực sự cùng tải không |
-| Served workload | completed RPS, queue depth, active workers, rejection | Biết hệ thống đang phục vụ hay từ chối |
-| CPU | process/thread CPU time, CPU%, CPU quota, cgroup throttling | Phân biệt dùng CPU với chờ CPU |
-| JVM | uptime, class load/unload, JIT compilation, code cache, GC pauses | Nhận diện warm-up và overhead JVM |
-| Ngoài CPU | lock waits, I/O, database/network, cache hit | Tránh đổ lỗi sai cho JIT |
+| User | p50/p95/p99, errors/timeouts, SLO | Confirm symptom |
+| Offered workload | arrival RPS, concurrency, request mix, payload size | Know whether load is truly the same |
+| Served workload | completed RPS, queue depth, active workers, rejections | Know whether the system is serving or rejecting |
+| CPU | process/thread CPU time, CPU%, CPU quota, cgroup throttling | Distinguish using CPU from waiting for CPU |
+| JVM | uptime, class load/unload, JIT compilation, code cache, GC pauses | Recognize warm-up and JVM overhead |
+| Non-CPU | lock waits, I/O, database/network, cache hits | Avoid wrongly blaming JIT |
 
-Chỉ khi biết đơn vị, mẫu số và cửa sổ đo, mới có thể so hai giá trị.
+Only when units, denominators, and measurement windows are known can two values be compared.
 
-## 2. Giả thuyết 1 — Warm-up/JIT/Class loading
+## 2. Hypothesis 1 — Warm-Up/JIT/Class Loading
 
-HotSpot Java có interpreter và JIT. **Tiered compilation** thường bật mặc định trên Server VM: JVM ban đầu chạy mã ở mức ít tối ưu hơn và thu thông tin về call sites, branches, type profiles; C1/C2 hoặc compiler tương ứng dần tạo machine code được tối ưu. Trong ứng dụng Java 17+/21, một tiến trình vừa start có thể trải qua:
+HotSpot Java has an interpreter and JIT. **Tiered compilation** is usually enabled by default on Server VMs: the JVM initially runs code in less-optimized modes while collecting info on call sites, branches, and type profiles; C1/C2 or equivalent compilers progressively emit optimized machine code. In a Java 17+/21 app, a newly started process may go through:
 
-1. **Class load/link/init:** framework khởi tạo, reflection, proxy, lambda, serialization và class loader nạp lớp.
-2. **Profile collection:** các hot paths được gọi lặp lại; JVM biết các type và nhánh thường gặp.
-3. **Compilation/inlining:** compiler tạo optimized code; code cache và compiler threads tiêu thụ tài nguyên.
-4. **Steady state:** cùng workload thường có throughput/latency ổn định hơn sau warm-up.
-5. **Profile thay đổi:** khi workload chuyển dạng, JVM có thể **deoptimize** rồi biên dịch lại. Deoptimization là cơ chế thích nghi bình thường, **không tự động là bug**.
+1. **Class load/link/init:** framework startup, reflection, proxies, lambdas, serialization, and class loaders load classes.
+2. **Profile collection:** hot paths run repeatedly; the JVM learns frequent types and branches.
+3. **Compilation/inlining:** compilers generate optimized code; code cache and compiler threads consume resources.
+4. **Steady state:** the same workload typically shows more stable throughput/latency after warm-up.
+5. **Profile shift:** when the workload shape shifts, the JVM may **deoptimize** and recompile. Deoptimization is a normal adaptation mechanism, **not automatically a bug**.
 
-### Dấu hiệu thường thấy
+### Common Signs
 
-| Quan sát | Giả thuyết JIT/class loading | Cách xác minh |
+| Observation | JIT/Class-Loading Hypothesis | How to Verify |
 | --- | --- | --- |
-| p95 xấu lúc đầu rồi giảm ở RPS cố định | Warm-up và nạp lớp | Plot latency theo uptime và compilation/class load |
-| Compiler threads ngắn hạn dùng CPU | Nhiều method được compile | JFR compilation events, compiler queue, log biên dịch |
-| Khi lần đầu gọi endpoint X mới chậm | Lazy initialization/class load/cache miss | Đối chiếu class load, first-hit logs, cache warm-up |
-| Thay đổi request mix gây chậm ngắn hạn | Type profile/compiled code thay đổi | JIT/compiler data và cùng workload replay |
-| Code cache sát giới hạn | Compilation có thể bị ảnh hưởng | `Compiler.codecache` và JVM logs |
+| p95 starts poor then drops at constant RPS | Warm-up and class loading | Plot latency vs. uptime alongside compilation/class loads |
+| Short-term CPU on compiler threads | Many methods being compiled | JFR compilation events, compiler queue, compilation logs |
+| Slow only on the first call to endpoint X | Lazy initialization/class load/cache miss | Correlate class loads, first-hit logs, cache warm-up |
+| Shift in request mix causes brief slowdown | Type profiles/compiled code changing | JIT/compiler data and replaying the same workload |
+| Code cache near limit | Compilation may be affected | `Compiler.codecache` and JVM logs |
 
-**Quan trọng:** nếu sản phẩm có cold-start SLO, warm-up gây p95 quá cao **vẫn là một vấn đề hiệu năng cần sửa**. “Giải thích bằng JIT” không có nghĩa “không có tác động người dùng”; nó chỉ phân biệt với regression của steady-state business code.
+**Important:** if a product has a cold-start SLO, warm-up causing excessive p95 **is still a performance problem to fix**. "Explained by JIT" does not mean "zero user impact"; it simply separates it from a steady-state business-code regression.
 
-Không thấy compiler activity ở một thời điểm không chứng minh trước đó không có compilation. Không thấy class load event trong JFR cũng chưa đủ kết luận không nạp lớp: event có thể không được bật hoặc cửa sổ thu không bao phủ hoạt động.
+Not seeing compiler activity at one instant does not prove no compilation occurred earlier. Not seeing class load events in JFR is also insufficient to conclude no classes loaded: events may be disabled or the recording window may have missed the activity.
 
-### Khác nhau giữa class loading và class loader leak
+### Difference Between Class Loading and a Class Loader Leak
 
-Số `totalLoadedClassCount` là **tích lũy**, nên tăng ngay cả khi class có thể unload về sau. Số class đang loaded và số class unload phải đọc riêng. Dynamic proxies/lambdas/plugin reload có thể hợp lệ, nhưng nếu mỗi lần reload đều giữ loader cũ và metaspace tăng, đó là giả thuyết **retention** cần điều tra riêng. Dù vậy, số class tăng không tự chứng minh hot-path CPU regression.
+`totalLoadedClassCount` is **cumulative**, so it increases even when classes later unload. Currently loaded classes and unloaded classes must be read separately. Dynamic proxies/lambdas/plugin reloads can be normal, whereas if each reload retains old loaders and metaspace grows, that is a **retention** hypothesis requiring its own investigation. Even then, rising class counts do not by themselves prove a hot-path CPU regression.
 
-## 3. Giả thuyết 2 — Tải tăng, CPU bão hòa và queueing
+## 3. Hypothesis 2 — Rising Load, CPU Saturation, and Queueing
 
-Giả sử ứng dụng chạy 300 request/giây với 45% CPU, p95=70ms. Khi lên 650 request/giây, CPU gần quota và p95=280ms. Các số này **chỉ là giả định minh họa**.
+Suppose an app handles 300 requests/s at 45% CPU, p95=70ms. At 650 requests/s, CPU nears quota and p95=280ms. These numbers are **purely illustrative**.
 
-Có thể lý giải không cần một commit lỗi:
+This can occur without any buggy commit:
 
-- **Làm nhiều việc hơn:** RPS cao hơn khiến tổng CPU time tăng, kể cả khi CPU dùng cho mỗi request giữ nguyên.
-- **Queueing tăng mạnh gần saturation:** hệ thống có thể xử lý từng request với cùng CPU work nhưng request phải chờ lâu hơn vì arrival rate vượt hoặc gần service capacity.
-- **Request mix đổi:** một endpoint nặng chiếm tỉ lệ lớn hơn, payload lớn hơn, key cardinality cao hơn hoặc cache miss nhiều hơn.
-- **Cgroup throttling:** container được cấp quota CPU nhỏ hơn trước, làm thread bị trì hoãn mặc dù đồ thị host CPU không cao.
-- **Host contention:** một tiến trình khác dùng CPU; JVM bị cạnh tranh tài nguyên.
+- **Doing more work:** higher RPS raises total CPU time even if CPU per request stays identical.
+- **Sharp queueing growth near saturation:** the system may process each request with the same CPU work, yet requests wait much longer as arrival rate approaches or exceeds service capacity.
+- **Request mix shift:** a heavy endpoint takes a larger share, payloads grow, key cardinality rises, or cache misses increase.
+- **Cgroup throttling:** the container receives a smaller CPU quota than before, delaying threads even when host CPU graphs look low.
+- **Host contention:** another process uses CPU; the JVM faces resource contention.
 
-### Tại sao CPU% dễ gây hiểu lầm?
+### Why Can CPU% Mislead?
 
-Một công cụ trên Linux có thể hiển thị 100% khi **một logical core** bận hoàn toàn; dashboard khác chuẩn hóa theo tổng số cores hoặc quota nên 100% tương ứng mức sử dụng ngân sách CPU đầy đủ. Cần ghi **đơn vị và mẫu số** của metric, số vCPU được phép dùng và CPU throttling.
+One Linux tool may show 100% when **one logical core** is fully busy; another dashboard normalizes against total cores or quota so 100% means full CPU budget usage. Always record the metric's **unit and denominator**, allowed vCPUs, and CPU throttling.
 
-### Ước tính CPU-seconds/request
+### Estimating CPU-Seconds/Request
 
-Ở một cửa sổ tương đối ổn định:
+In a relatively steady window:
 
 ```text
 CPU-seconds per completed request
-≈ Δ(process CPU time tính bằng giây) / số request hoàn thành
+≈ Δ(process CPU time in seconds) / completed requests
 
-Ví dụ giả định:
-  120 CPU-seconds trong 60 giây,
-  12.000 request hoàn thành
-  => khoảng 0,010 CPU-second/request = 10ms CPU/request.
+Hypothetical example:
+  120 CPU-seconds over 60 seconds,
+  12,000 completed requests
+  => ~0.010 CPU-second/request = 10ms CPU/request.
 ```
 
-Đây là **trung bình cấp process**, gồm JVM GC/JIT/background work và không phải CPU time chính xác của một request. Chỉ so khi operation mix, error rate, retries và background load tương đương. Nếu CPU/req gần như ổn nhưng tổng CPU tăng theo RPS, chưa thể gọi đó là regression CPU; nếu CPU/req tăng khi RPS giữ nguyên thì cần điều tra chi phí thực thi/GC/JIT/tập dữ liệu.
+This is a **process-level average**, including JVM GC/JIT/background work, not the exact CPU time of a single request. Compare only when operation mix, error rate, retries, and background load match. If CPU/req stays nearly flat while total CPU rises with RPS, you cannot yet call it a CPU regression; if CPU/req rises while RPS stays flat, investigate execution/GC/JIT/dataset cost.
 
-### Thí nghiệm đường cong tải
+### Load-Curve Experiment
 
-Đừng chỉ so A ở 300 RPS với B ở 650 RPS. Hãy chạy cả A và B lần lượt ở 300, 450, 600 RPS với cùng request mix, concurrency policy, payload và resource quota. Plot throughput completed, error, p95, CPU/req, backlog. Khi một phiên bản đạt saturation sớm hơn **ở cùng điều kiện**, đó là bằng chứng đáng tin hơn về giảm capacity.
+Do not compare A at 300 RPS solely against B at 650 RPS. Run both A and B at 300, 450, and 600 RPS with identical request mix, concurrency policy, payloads, and resource quotas. Plot completed throughput, errors, p95, CPU/req, and backlog. When one version saturates earlier **under identical conditions**, that is far stronger evidence of lost capacity.
 
-## 4. Giả thuyết 3 — Khi nào có bằng chứng regression?
+## 4. Hypothesis 3 — When Do You Have Evidence of a Regression?
 
-Một kết luận “B chậm hơn A vì lỗi trong code” phải vượt qua nhiều mức độ:
+A conclusion that "B is slower than A because of a bug in code" must pass multiple levels:
 
-| Mức | Bằng chứng | Suy luận hợp lệ |
+| Level | Evidence | Valid Inference |
 | --- | --- | --- |
-| 1. Triệu chứng | Dashboard báo p95 hoặc CPU tăng | Có hiện tượng cần điều tra |
-| 2. Cùng điều kiện | JDK, GC, quota, data, mix, RPS và warm-up tương đương | Giảm khả năng nhiễu do tải/JIT |
-| 3. Tái hiện | Nhiều lượt A/B, đảo thứ tự, khoảng đo ổn định, chênh lệch vượt noise | Bằng chứng regression có thể lặp lại |
-| 4. Cơ chế | JFR/profile và phân tích code chỉ ra CPU work, allocation, waiting hoặc thuật toán mới | Có giả thuyết nguyên nhân gắn với thay đổi |
-| 5. Can thiệp | Rollback một thay đổi hoặc sửa đúng đường đó, đo lại cùng điều kiện, hiệu năng phục hồi | Bằng chứng nhân quả mạnh hơn |
+| 1. Symptom | Dashboard shows p95 or CPU rising | Phenomenon exists to investigate |
+| 2. Same conditions | Equivalent JDK, GC, quota, data, mix, RPS, and warm-up | Reduces confounding from load/JIT |
+| 3. Reproducible | Multiple A/B runs, alternated order, steady windows, delta exceeds noise | Evidence of repeatable regression |
+| 4. Mechanism | JFR/profiles and code analysis pinpoint new CPU work, allocation, wait, or algorithm | Causal hypothesis tied to a change |
+| 5. Intervention | Reverting one change or fixing that exact path, re-measuring identically, restores performance | Stronger causal evidence |
 
-**Không có phép thử nào chỉ bằng một con số chứng minh mọi nguyên nhân.** A/B và rollback phải được lặp lại, tính đến biến động cache, GC, runtime tier, host/noisy-neighbor và dữ liệu nghiệp vụ.
+**No single-number test proves every cause.** A/B and rollbacks must be repeated, accounting for cache variance, GC, runtime tiers, noisy neighbors, and business data.
 
-Ví dụ regression logic: cùng 400 RPS và cùng data sau warm-up, phiên bản B làm CPU/req từ 8ms thành 13ms, p95 từ 88ms thành 158ms; CPU profile cho thấy nhiều work hơn trong `List.contains`; thay lại cách lookup có hiệu quả giúp CPU/req và p95 trở về gần baseline. Đây là **mẫu lập luận**, không phải số liệu thực của ứng dụng.
+Logic-regression example: at the same 400 RPS and data after warm-up, version B raises CPU/req from 8ms to 13ms and p95 from 88ms to 158ms; CPU profiling shows more work in `List.contains`; restoring an efficient lookup brings CPU/req and p95 back near baseline. This is a **reasoning pattern**, not real application measurements.
 
-### Cùng p95 nhưng CPU khác, hoặc ngược lại
+### Same p95 Yet Different CPU, or Vice Versa
 
-- **CPU cao, p95 cao:** có thể là extra CPU work, GC, JIT, busy-loop hoặc saturation/queueing. Cần thêm threads/GC/profile.
-- **CPU thấp, p95 cao:** nghi I/O, downstream, lock, park, request queue. Một CPU profiler thu sample CPU sẽ không nói hết thời gian **off-CPU**.
-- **CPU cao, p95 vẫn đạt SLO:** có thể workload hợp lệ; cân nhắc efficiency/cost nhưng chưa có bằng chứng lỗi sản phẩm.
-- **Completed RPS giảm, errors/rejection tăng:** phải so **offered rate**; đừng đọc số request hoàn thành thấp thành “có ít tải”.
+- **High CPU, high p95:** may be extra CPU work, GC, JIT, a busy-loop, or saturation/queueing. Inspect threads/GC/profiles.
+- **Low CPU, high p95:** suspect I/O, downstream services, locks, parks, or request queues. A CPU profiler sampling on-CPU threads will not reveal **off-CPU** waiting time.
+- **High CPU, p95 still meets SLO:** may be legitimate workload; weigh efficiency/cost, though no product bug is proven yet.
+- **Completed RPS drops, errors/rejections rise:** always compare **offered rate**; never read low completed requests as "light load."
 
-## 5. Thu bằng chứng JVM: JFR, jcmd và metrics
+## 5. Collecting JVM Evidence: JFR, jcmd, and Metrics
 
-### 5.1. Các lệnh chẩn đoán HotSpot
+### 5.1. HotSpot Diagnostic Commands
 
-`12345` chỉ là PID ví dụ: thay bằng PID Java thật, bảo đảm quyền attach phù hợp và chú ý PID namespace nếu ứng dụng trong container.
+`12345` is only an example PID: substitute the real Java PID, ensure proper attach permissions, and mind PID namespaces if running in a container.
 
 ```bash
 jcmd -l
@@ -148,67 +148,67 @@ jcmd 12345 Compiler.codecache
 jcmd 12345 VM.classloader_stats
 ```
 
-- `VM.version`, `VM.flags` kiểm tra runtime/flags; không so hai lần chạy khác JDK/GC như thể cùng điều kiện.
-- `Compiler.queue` là ảnh chụp các method đang chờ biên dịch **ở lúc gọi**, không phải lịch sử JIT.
-- `Compiler.codecache` cho code cache statistics; cần đối chiếu log và thời điểm nếu nghi cache pressure.
-- `VM.classloader_stats` cho thông tin class loader/classes; không tự chứng minh class loader leak hoặc CPU bug.
+- `VM.version`, `VM.flags` verify runtime/flags; do not compare two runs with different JDKs/GCs as if conditions were identical.
+- `Compiler.queue` snapshots methods awaiting compilation **at call time**, not JIT history.
+- `Compiler.codecache` gives code cache statistics; correlate with logs and timestamps when suspecting cache pressure.
+- `VM.classloader_stats` gives class loader/class info; does not by itself prove a class loader leak or CPU bug.
 
-Có thể bật log compiler **trong một lần chạy chẩn đoán riêng**:
+You can enable compiler logging **in a dedicated diagnostic run**:
 
 ```bash
 java -XX:+PrintCompilation -cp . CpuJitEvidenceDemo
 java -Xlog:class+load=info -cp . CpuJitEvidenceDemo
 ```
 
-Các lệnh có thể in rất nhiều dòng khác nhau giữa JDK/runs; chỉ để quan sát, **không dùng thời gian thu cùng verbose log như benchmark chuẩn**. Nếu cần thử `-Xint` hoặc `-XX:-TieredCompilation` để khảo sát cơ chế, nhớ rằng việc đó thay đổi lớn chế độ thực thi; không kết luận “code bị JIT bug” chỉ vì kết quả tốc độ khác biệt giữa chế độ đó và production.
+These commands can print many lines differing across JDKs/runs; use only for observation, **never treat timings captured with verbose logging as a clean benchmark**. If testing `-Xint` or `-XX:-TieredCompilation` to explore mechanisms, remember they drastically change execution mode; do not conclude "there's a JIT bug in the code" merely because speed differs between that mode and production.
 
-### 5.2. Thu JFR khi tái hiện
+### 5.2. Capture JFR During Reproduction
 
 ```bash
 jcmd 12345 JFR.start name=perf-check settings=profile duration=120s filename=perf-check.jfr
 jcmd 12345 JFR.check name=perf-check verbose=true
 
-# Khi file JFR hoàn tất:
+# Once the JFR file completes:
 jfr summary perf-check.jfr
 jfr print --events jdk.CPULoad,jdk.ThreadCPULoad perf-check.jfr
 ```
 
-Trong ví dụ, recording dài 120 giây, workload phải thực sự chạy trong cửa sổ này. `profile` có thể thu nhiều event/samples hơn `default`, với overhead tăng; **không bảo đảm mọi event đã bật**. Nếu cần snapshot trong khi recording vẫn đang chạy:
+In this example, the recording spans 120 seconds; the workload must actually run within that window. `profile` can capture more events/samples than `default` at higher overhead; **not all events are guaranteed enabled**. To snapshot while the recording is still running:
 
 ```bash
 jcmd 12345 JFR.dump name=perf-check filename=perf-check-now.jfr
 ```
 
-Lệnh `JFR.dump` không tự dừng recording. Kiểm tra timestamp, nội dung và đường dẫn file; tệp cũ cùng tên không phải chứng cứ dump mới thành công.
+`JFR.dump` does not stop the recording. Check timestamps, contents, and file paths; an old file with the same name is not proof a new dump succeeded.
 
-Các tín hiệu nên đối chiếu:
+Signals to cross-check:
 
-| Event/metric | Ý nghĩa | Hạn chế |
+| Event/Metric | Meaning | Limitations |
 | --- | --- | --- |
-| `jdk.CPULoad` | CPU của JVM và máy theo thời gian | Không cho biết method gây CPU |
-| `jdk.ThreadCPULoad` | Thread nào đang tiêu tốn CPU | Khác với stack sampling; cần so các cửa sổ |
-| `jdk.ExecutionSample` | Stack của thread đang thực thi được lấy mẫu | Sampling, không phải số lần gọi method |
-| `jdk.Compilation` | Activity/time biên dịch của JIT | Có thể chưa bật; event không tự chứng minh gây chậm |
-| `jdk.ClassLoad`/`jdk.ClassUnload` | Hoạt động lớp theo thời gian | Tần suất/enable tùy cấu hình |
-| GC events/GC logs | Allocation/collection/pause có thể kéo p95 | Phải phân biệt GC và CPU application |
-| Monitor/park/file/socket events | Thread bị chờ ở đâu | Threshold có thể loại bỏ các sự kiện ngắn |
+| `jdk.CPULoad` | JVM and machine CPU over time | Does not say which method caused CPU |
+| `jdk.ThreadCPULoad` | Which threads are consuming CPU | Differs from stack sampling; compare windows |
+| `jdk.ExecutionSample` | Sampled stacks of executing threads | Sampling, not method invocation counts |
+| `jdk.Compilation` | JIT compilation activity/duration | May not be enabled; event alone does not prove slowdown |
+| `jdk.ClassLoad`/`jdk.ClassUnload` | Class activity over time | Frequency/enabled state depends on config |
+| GC events/GC logs | Allocations/collections/pauses can stretch p95 | Must separate GC from application CPU |
+| Monitor/park/file/socket events | Where threads wait | Thresholds may filter out short events |
 
-JDK Mission Control hỗ trợ xem CPU, hot methods, call tree, class load, GC và compilations; hãy chọn **cùng khoảng thời gian và cấu hình thu** cho hai bản ghi. Trước khi nói “không có compilation”, chạy `jfr summary`, xem `JFR.check verbose=true` khi recording hoạt động, kiểm tra event enabled, threshold, sampling và retention.
+JDK Mission Control helps inspect CPU, hot methods, call trees, class loads, GC, and compilations; select **matching time ranges and capture settings** for two recordings. Before saying "no compilations," run `jfr summary`, check `JFR.check verbose=true` while recording is active, and verify enabled flags, thresholds, sampling, and retention.
 
-### 5.3. Không lấy phần trăm sample làm độ chậm
+### 5.3. Do Not Equate Sample Percentage with Slowness
 
-Nếu method A chiếm 30% CPU samples trước và 60% sau, **không chứng minh A tốn gấp đôi CPU time**: các method khác có thể bớt hoạt động, tổng sample thay đổi hoặc input mix thay đổi. Self time và inclusive time khác nhau; kiểm tra call tree, per-request CPU và số lượng công việc thực tế.
+If method A goes from 30% of CPU samples before to 60% after, **that does not prove A uses twice the CPU time**: other methods may have become less active, total samples may differ, or input mix may have shifted. Self time and inclusive time differ; inspect call trees, per-request CPU, and actual work volume.
 
-## 6. Bài thực hành Java 17+: cùng kết quả, khác chi phí thuật toán
+## 6. Java 17+ Lab: Same Output, Different Algorithmic Cost
 
-Ví dụ dưới đây cố ý so hai cách lookup cùng dữ liệu:
+The example below intentionally compares two lookup approaches on identical data:
 
-- `ArrayList.contains` phải tìm tuần tự, mỗi lookup tốn O(N) trong trường hợp xấu; N queries có thể kéo tới O(N²).
-- `HashSet.contains` có kỳ vọng trung bình gần O(1) mỗi lookup khi hash tốt; N queries có thể gần O(N), **không kể chi phí xây set**.
+- `ArrayList.contains` scans sequentially, costing O(N) worst-case per lookup; N queries can scale toward O(N²).
+- `HashSet.contains` expects near-O(1) average per lookup with good hashes; N queries scale near O(N), **excluding set-construction cost**.
 
-Đây là **thí nghiệm giảng dạy**, không phải benchmark chuẩn: chương trình warm-up 6 lượt, đo 7 lượt, xen kẽ thứ tự, tính median, dùng `volatile` và kiểm chứng kết quả để hạn chế dead-code elimination. Nó vẫn chịu noise của JIT, GC, CPU frequency và không dùng nhiều process forks. Dùng JMH để đo microbenchmark nghiêm túc.
+This is a **teaching experiment**, not a rigorous benchmark: the program warms up 6 rounds, measures 7 rounds, alternates order, computes the median, uses `volatile`, and verifies results to curb dead-code elimination. It still experiences noise from JIT, GC, and CPU frequency scaling, and does not use separate JVM forks. Use JMH for serious microbenchmarking.
 
-### Chương trình hoàn chỉnh
+### Complete Program
 
 ```java
 // File: CpuJitEvidenceDemo.java
@@ -312,14 +312,14 @@ public class CpuJitEvidenceDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17+ (không dùng thư viện ngoài):
+Compile and run with JDK 17+ (no external libraries):
 
 ```bash
 javac CpuJitEvidenceDemo.java
 java CpuJitEvidenceDemo
 ```
 
-**Stdout xác định**, đã kiểm chứng thực tế bằng OpenJDK 24:
+**Deterministic stdout**, verified on OpenJDK 24:
 
 ```text
 keys=4000
@@ -329,142 +329,142 @@ sameResult=true
 measurementRounds=7
 ```
 
-**Stderr thay đổi giữa các máy/lần chạy.** Một lần đo minh họa đã thực hiện:
+**Stderr varies across machines/runs.** One illustrative run produced:
 
 ```text
 listMedianMs=4.629
 setMedianMs=0.130
 ```
 
-Không coi hai giá trị thời gian ở stderr là cam kết tốc độ. Dòng `sameResult=true` chỉ cho thấy các phép tra cứu cho cùng kết quả trên bộ input này, không chứng minh hai phương pháp tương đương về mọi thuộc tính ứng dụng.
+Do not treat those two stderr timings as speed guarantees. `sameResult=true` only shows the lookups return the same result on this input set, not that both structures are equivalent across all application properties.
 
-### Từ thí nghiệm đến bằng chứng regression
+### From Experiment to Regression Evidence
 
-Nếu một commit chuyển lookup từ `HashSet` sang `ArrayList` và dữ liệu lớn lên, Big-O cho **giả thuyết** về CPU work tăng. Để xác nhận lỗi production, cần cùng input distribution, cùng số lượng request, cùng warm-up và quota; đo CPU/request và latency nhiều lượt; JFR/profile thấy chi phí tăng trong đường lookup; sửa/rollback đúng yếu tố rồi lặp lại.
+If a commit switches a lookup from `HashSet` to `ArrayList` and data grows, Big-O provides a **hypothesis** for increased CPU work. To confirm a production bug, keep input distribution, request volume, warm-up, and quota equal; measure CPU/request and latency across multiple runs; observe increased cost in the lookup path via JFR/profiles; fix/revert that exact change and repeat.
 
-Chi phí **xây HashSet**, memory footprint và lifecycle cũng phải tính nếu set được xây lại trên mỗi request. Một cấu trúc lookup nhanh hơn có thể không mang lại lợi ích end-to-end khi dữ liệu nhỏ hoặc chi phí tạo index lấn át. Đừng coi Big-O hoặc một lần chạy demo là kết luận cuối.
+The cost of **building the `HashSet`**, memory footprint, and lifecycle must also be counted if the set is rebuilt per request. A faster lookup structure may yield no end-to-end gain when data is small or index creation dominates. Never treat Big-O or a single demo run as the final conclusion.
 
-### Vì sao cần JMH?
+### Why Is JMH Needed?
 
-Các vòng đo `System.nanoTime()` có thể bị nhiễu bởi warm-up, JIT inlining/deoptimization, DCE/constant folding, GC, CPU scheduler và việc đo quá ngắn. **OpenJDK JMH** hỗ trợ warm-up iterations, measurement iterations, forks, tiêu thụ kết quả, statistical reporting. Dùng JMH cho **hot-path microbenchmark**; dùng **end-to-end load test** để kết luận throughput/p95 dưới concurrency, vì JMH không đo toàn bộ queue, network, DB và dependency path của dịch vụ.
+Manual `System.nanoTime()` loops can be skewed by warm-up, JIT inlining/deoptimization, DCE/constant folding, GC, OS scheduling, and overly short intervals. **OpenJDK JMH** provides warm-up iterations, measurement iterations, forks, blackhole consumption, and statistical reporting. Use JMH for **hot-path microbenchmarks**; use **end-to-end load tests** to conclude throughput/p95 under concurrency, because JMH does not measure service queues, networks, DBs, or downstream paths.
 
-## 7. Ba tình huống giải thích cùng một triệu chứng
+## 7. Three Scenarios Explaining the Same Symptom
 
-Các số trong ba bảng sau là **dữ liệu giả định minh họa**, không phải hệ thống thật.
+Numbers in the three tables below are **hypothetical illustrative data**, not a real system.
 
-### A — Tạm thời do JIT/class initialization
+### A — Temporary Due to JIT/Class Initialization
 
-| Từ lúc start, cùng 400 RPS | CPU theo quota | p95 | Compilation/class load |
+| Since start, constant 400 RPS | CPU vs. Quota | p95 | Compilation/Class Load |
 | --- | ---: | ---: | --- |
-| 0–30 giây | 78% | 240ms | Nhiều |
-| 2–3 phút | 53% | 112ms | Giảm |
-| 5–10 phút | 50% | 105ms | Tương đối ổn định |
+| 0–30 seconds | 78% | 240ms | High |
+| 2–3 minutes | 53% | 112ms | Decreasing |
+| 5–10 minutes | 50% | 105ms | Relatively steady |
 
-Kết luận phù hợp: có **warm-up effect**, chưa có bằng chứng lỗi steady-state. Nhưng nếu cold-start SLO yêu cầu p95 dưới 150ms, vẫn cần giải pháp cho giai đoạn đầu. Không dùng trạng thái ổn định để xóa bỏ trải nghiệm startup của người dùng.
+Appropriate conclusion: **warm-up effect** present, no steady-state bug proven yet. However, if a cold-start SLO requires p95 under 150ms, the initial phase still needs a fix. Do not use steady state to dismiss the user's startup experience.
 
-### B — Tăng theo tải và hàng đợi
+### B — Driven by Load and Queueing
 
-| Offered RPS | CPU theo quota | Queue depth | p95 |
+| Offered RPS | CPU vs. Quota | Queue Depth | p95 |
 | --- | ---: | ---: | ---: |
 | 300 | 43% | 0–3 | 70ms |
 | 450 | 65% | 4–10 | 85ms |
 | 650 | 96% | 120+ | 280ms |
 
-Kết luận sơ bộ: dấu hiệu capacity/queueing gần saturation; **chưa có chứng cứ commit regression**. Kiểm tra completed RPS, CPU/req, resource quota, errors, request mix. Nếu B chậm hơn A tại cùng 450 RPS, trở lại giả thuyết lỗi.
+Preliminary conclusion: signs of capacity/queueing near saturation; **no commit regression proven yet**. Check completed RPS, CPU/req, resource quotas, errors, and request mix. If B is slower than A at the same 450 RPS, revisit the bug hypothesis.
 
-### C — Lỗi có đối chứng và can thiệp
+### C — Bug with Controls and Intervention
 
-| Điều kiện chung: 400 RPS, sau warm-up | A | B | B sau fix |
+| Shared conditions: 400 RPS, post-warm-up | A | B | B after fix |
 | --- | ---: | ---: | ---: |
 | p95 | 88ms | 158ms | 91ms |
-| CPU/request | 8ms | 13ms | 8,2ms |
-| Error rate | 0,1% | 0,1% | 0,1% |
-| Profile | Lookup ít CPU samples | Nhiều sample trong đường `List.contains` | Trở lại gần baseline |
+| CPU/request | 8ms | 13ms | 8.2ms |
+| Error rate | 0.1% | 0.1% | 0.1% |
+| Profile | Few lookup CPU samples | Many samples in `List.contains` path | Returned near baseline |
 
-Nếu A/B lặp nhiều lượt trong cùng điều kiện, B có CPU work/request tăng, JFR hỗ trợ cơ chế lookup đắt hơn và fix đúng đường đó phục hồi metrics, đây là **bằng chứng mạnh** của regression. Vẫn phải báo độ phân tán, các điều kiện chưa kiểm soát và xác minh tính đúng đắn sau fix.
+If A/B repeats across multiple runs under identical conditions, B has higher CPU work/request, JFR supports the costlier lookup mechanism, and fixing that exact path restores metrics, that is **strong evidence** of a regression. You must still report variance, uncontrolled factors, and functional correctness after the fix.
 
-## 8. Thiết kế phép đo A/B đủ tin cậy
+## 8. Designing Reliable A/B Measurements
 
-1. **Định nghĩa triệu chứng:** endpoint/job, p50/p95/p99, throughput, error, thời điểm và SLO. “CPU tăng” là tín hiệu, chưa phải đề bài chẩn đoán đầy đủ.
-2. **Khóa cấu hình:** app commit, JDK vendor/version, GC, JVM flags, CPU quota, memory, concurrency, feature flags, host và dependencies. Nếu đang kiểm tra đổi JDK, nói rõ **runtime là biến A/B**.
-3. **Giữ workload tương đương:** cùng RPS/concurrency, data/cardinality, payload, request mix, cache warm/cold và error handling. Tránh Simpson’s paradox khi tỷ trọng endpoint nặng thay đổi.
-4. **Xác định warm-up:** chờ hot paths, class load, JIT compilation và caches tương đối ổn; đo startup riêng nếu có cold-start SLO.
-5. **Lặp lượt/đảo thứ tự:** không luôn chạy A trước B. Dùng vài lượt và theo dõi median, percentile, dispersion; tránh kết luận từ một khác biệt 3% trong môi trường noise 10%.
-6. **Thu profile tương đồng:** JFR cùng settings, cùng cửa sổ, CPU/GC/class/compilation. Chú ý overhead, sampling, threshold, missing data.
-7. **Kiểm tra cơ chế:** CPU/req, code hot path, allocations/GC, lock/I/O/queue. Mọi kết luận “do JIT” phải hợp với thời điểm compilation/profile change.
-8. **Can thiệp một yếu tố:** rollback/fix nghi vấn, chạy lại workload tương đương và theo dõi cả chức năng lẫn hiệu năng.
+1. **Define the symptom:** endpoint/job, p50/p95/p99, throughput, errors, time, and SLO. "CPU went up" is a signal, not a complete diagnostic statement.
+2. **Lock configuration:** app commit, JDK vendor/version, GC, JVM flags, CPU quota, memory, concurrency, feature flags, host, and dependencies. If testing a JDK upgrade, explicitly mark **runtime as the A/B variable**.
+3. **Keep workload equivalent:** identical RPS/concurrency, data/cardinality, payload, request mix, warm/cold cache state, and error handling. Avoid Simpson's paradox when heavy-endpoint share shifts.
+4. **Define warm-up:** wait for hot paths, class loads, JIT compilation, and caches to stabilize; measure startup separately if a cold-start SLO exists.
+5. **Repeat runs / alternate order:** do not always run A before B. Run multiple trials and track medians, percentiles, and dispersion; avoid concluding from a 3% difference in 10% noise.
+6. **Collect matching profiles:** JFR with identical settings and windows for CPU/GC/class/compilation. Watch overhead, sampling, thresholds, and missing data.
+7. **Verify mechanism:** CPU/req, hot code paths, allocations/GC, locks/I/O/queues. Any "caused by JIT" claim must align with compilation/profile-change timestamps.
+8. **Single-factor intervention:** revert/fix the suspect change, re-run an equivalent workload, and verify both correctness and performance.
 
-### Mẫu bảng kiểm thử
+### Test Matrix Template
 
-| Trường | A | B |
+| Field | A | B |
 | --- | --- | --- |
-| JDK/GC/flags | Ghi chính xác | Ghi chính xác |
-| App commit/flag | Ghi ID | Ghi ID |
-| CPU quota, memory, host | Ghi | Ghi |
-| Warm-up và thời lượng đo | Ghi tiêu chí ổn định | Cùng tiêu chí |
-| Offered/completed RPS, mix | Ghi | Cùng mix |
-| Cache/key cardinality/data | Ghi | Tương đương |
-| p50/p95/p99/errors | Đo | Đo |
-| Process CPU time, CPU/req | Đo | Đo |
-| GC/queue/throttling | Đo | Đo |
-| JFR/compiled methods/class activity | Thu cùng setting | Thu cùng setting |
-| Số lượt, độ biến thiên | Ghi | Ghi |
+| JDK/GC/flags | Record exact | Record exact |
+| App commit/flags | Record ID | Record ID |
+| CPU quota, memory, host | Record | Record |
+| Warm-up and measurement duration | Record stability criteria | Same criteria |
+| Offered/completed RPS, mix | Record | Same mix |
+| Cache/key cardinality/data | Record | Equivalent |
+| p50/p95/p99/errors | Measure | Measure |
+| Process CPU time, CPU/req | Measure | Measure |
+| GC/queue/throttling | Measure | Measure |
+| JFR/compiled methods/class activity | Same settings | Same settings |
+| Run count, variance | Record | Record |
 
-## 9. Những tình huống dễ nhầm
+## 9. Easily Confused Situations
 
-**“JIT deoptimization = bug.”** Không. Deoptimization là cơ chế HotSpot thích nghi khi giả định tối ưu không còn phù hợp. Cần thấy deopt/recompile lặp lại bất thường và hiệu ứng định lượng dưới tải ổn định mới có giả thuyết performance issue.
+**"JIT deoptimization = bug."** No. Deoptimization is HotSpot's adaptation mechanism when optimization assumptions break. You need abnormal repeated deopt/recompile and measurable impact under steady load before forming a performance-issue hypothesis.
 
-**“Code cache lớn = RAM leak.”** Không. Code cache chứa compiled code hợp lệ; chỉ khi pressure/compilation disable hoặc hành vi tương ứng làm giảm năng lực thì điều tra sâu. Đọc `Compiler.codecache` và các dấu hiệu runtime.
+**"Large code cache = RAM leak."** No. The code cache holds valid compiled code; investigate deeply only when pressure, compiler disabling, or related behavior degrades capacity. Check `Compiler.codecache` and runtime indicators.
 
-**“Class count tăng = CPU regression.”** Không. Class load hợp lệ sau warm-up hoặc khi tạo proxy cũng làm count tăng. Xem thời gian class loading, classloader lifetime và impact thật lên CPU/latency.
+**"Class count rose = CPU regression."** No. Legitimate class loading after warm-up or proxy creation also increases counts. Inspect class-loading duration, classloader lifetime, and actual CPU/latency impact.
 
-**“GC pause làm chậm tức là JIT không liên quan.”** Không nhất thiết, nhưng phải phân biệt cơ chế. Thu GC logs, allocation rate và JFR GC events trước khi quy nguyên nhân. Một request có thể chậm do GC mà application CPU thấp.
+**"GC pauses cause slowness so JIT is unrelated."** Not necessarily, though mechanisms must be separated. Collect GC logs, allocation rates, and JFR GC events before assigning blame. A request can stall on GC while application CPU is low.
 
-**“CPU thấp mà p95 cao → JIT optimizer làm chậm.”** Không đủ. Kiểm tra off-CPU waits: monitor/park, network, DB, thread scheduling và queue. CPU profiler chỉ quan sát phần đang chạy.
+**"Low CPU with high p95 → JIT optimizer slowed it down."** Insufficient. Check off-CPU waits: monitor/park, network, DB, thread scheduling, and queues. A CPU profiler only observes executing threads.
 
-**“Profile method A từ 30% lên 60% → A chậm gấp đôi.”** Không đúng. Phần trăm sample phụ thuộc mẫu số, sampling và đường gọi. Ưu tiên CPU work/request, thread CPU và JFR call tree.
+**"Method A profile went from 30% to 60% → A is twice as slow."** False. Sample share depends on denominators, sampling, and call paths. Prefer CPU work/request, thread CPU, and JFR call trees.
 
-**“Tắt JIT bằng -Xint cho kết quả khác → lỗi do JIT.”** Tắt JIT làm thay đổi phương thức chạy và performance rất lớn; đó là một thử nghiệm khảo sát, không phải baseline so sánh production.
+**"Disabling JIT with `-Xint` gives different results → JIT caused the bug."** Disabling JIT drastically changes execution mode and performance; that is an exploratory probe, not a production comparison baseline.
 
-**“Chạy nhiều lần System.nanoTime đã đủ.”** Chưa chắc. JMH giúp giảm bẫy DCE/constant folding, warm-up/fork/order; load test end-to-end mới mô tả queue và downstream.
+**"Running `System.nanoTime()` several times is enough."** Not necessarily. JMH helps prevent DCE/constant-folding and warm-up/fork/order traps; end-to-end load tests capture queues and downstream dependencies.
 
-**“Chỉ cần sửa xong CPU giảm.”** Nếu p95 và completion/error không cải thiện, có thể chỉ tối ưu resource cost chứ chưa sửa bottleneck tác động người dùng. Đặt mục tiêu đúng.
+**"Once CPU drops, the job is done."** If p95 and completion/errors did not improve, you may have lowered resource cost without fixing the user-facing bottleneck. Set the right target.
 
-## 10. Checklist quyết định và mẫu kết luận
+## 10. Decision Checklist and Conclusion Template
 
-Trước khi gọi một thay đổi là regression:
+Before calling a change a regression:
 
-- [ ] Biết **triệu chứng thực**: p95, p99, throughput, error/SLO, phạm vi endpoint.
-- [ ] So workload theo **offered rate, completed rate, mix, data và concurrency**, không chỉ tổng request.
-- [ ] Kiểm tra **CPU denominator/quota/throttling**, tránh so tỷ lệ CPU không đồng đơn vị.
-- [ ] Đã tách **startup/warm-up** khỏi steady-state, hoặc chủ động đo cold-start theo SLO.
-- [ ] Xem JIT compilation/class loading/code cache/GC trong cửa sổ tương ứng; không kết luận từ một event đơn lẻ.
-- [ ] A/B chạy cùng JDK/config/resource, cùng load và nhiều lượt; chênh lệch lớn hơn noise.
-- [ ] Đã kiểm tra CPU/request, queue, off-CPU waits, GC và JFR call stacks.
-- [ ] Có giả thuyết về method/thuật toán/lock/alloc và cách kiểm chứng độc lập.
-- [ ] Fix/rollback một yếu tố phục hồi kết quả trong lần đo lặp lại, chức năng vẫn đúng.
-- [ ] Báo rõ **đã xác nhận / nghi ngờ / chưa đủ bằng chứng**, cùng những giới hạn dữ liệu JFR và thí nghiệm.
+- [ ] Know the **real symptom**: p95, p99, throughput, errors/SLO, affected endpoints.
+- [ ] Compare workload by **offered rate, completed rate, mix, data, and concurrency**, not total requests alone.
+- [ ] Verify **CPU denominator/quota/throttling**, avoiding comparisons across mismatched CPU units.
+- [ ] Separated **startup/warm-up** from steady state, or intentionally measured cold start against an SLO.
+- [ ] Checked JIT compilation/class loading/code cache/GC in the same window; did not conclude from a single event.
+- [ ] A/B ran on identical JDK/config/resources, identical load, and multiple trials; difference exceeds noise.
+- [ ] Inspected CPU/request, queues, off-CPU waits, GC, and JFR call stacks.
+- [ ] Formulated a hypothesis on method/algorithm/lock/allocation with an independent verification check.
+- [ ] Single-factor fix/rollback restores metrics in repeated runs while preserving correctness.
+- [ ] Clearly state **confirmed / suspected / insufficient evidence**, along with JFR and experimental limitations.
 
-Mẫu kết luận:
+Conclusion template:
 
 ```text
-Triệu chứng: p95 /search tăng từ 90ms lên 160ms.
-Cửa sổ: sau warm-up, 400 RPS, cùng input mix, quota, JDK/GC.
-Quan sát: CPU-seconds/request tăng; errors, throughput và queue đã đối chiếu.
-JIT/class loading: activity không giải thích được thay đổi kéo dài
-    trong cửa sổ đo (theo các event/setting thực tế có thể thu).
-Profile: CPU tăng ở method X trên call path Y.
-Can thiệp: thay đổi X hoặc rollback commit Z, đo lại cùng điều kiện.
-Kết luận: regression đã xác nhận / còn nghi ngờ / chưa đủ chứng cứ.
-Giới hạn: độ phân tán, event bị lọc và điều kiện chưa khống chế.
+Symptom: p95 /search rose from 90ms to 160ms.
+Window: post-warm-up, 400 RPS, identical input mix, quota, JDK/GC.
+Observation: CPU-seconds/request rose; errors, throughput, and queues verified.
+JIT/class loading: activity does not explain sustained change
+    in the measurement window (per collectable events/settings).
+Profile: CPU rose in method X on call path Y.
+Intervention: changed X or reverted commit Z, re-measured identically.
+Conclusion: regression confirmed / still suspected / insufficient evidence.
+Limitations: variance, filtered events, and uncontrolled conditions.
 ```
 
-**Thông điệp cốt lõi:** JIT và class loading giải thích thay đổi **theo thời gian/pha thực thi**; tăng tải giải thích thay đổi **theo offered work, saturation và queueing**. Một lỗi hiệu năng được bảo vệ bằng **đối chứng cùng điều kiện**, **tái hiện**, **cơ chế đo được** và **can thiệp xác nhận**. Không dùng một đồ thị CPU, một JFR hot method hay một lần benchmark ngắn làm bằng chứng duy nhất.
+**Core takeaway:** JIT and class loading explain changes **across time and execution phases**; rising load explains changes **via offered work, saturation, and queueing**. A performance bug is established through **matched controls**, **reproducibility**, **a measurable mechanism**, and **confirming intervention**. Never treat a single CPU chart, one JFR hot method, or a brief benchmark as sole proof.
 
-## Tài liệu tham khảo
+## References
 
 - Oracle JDK 21 — Java HotSpot VM Performance Enhancements (tiered compilation, code cache): https://docs.oracle.com/en/java/javase/21/vm/java-hotspot-virtual-machine-performance-enhancements.html
-- Oracle JDK 21 — Diagnostic Tools, JFR và `jcmd`: https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
+- Oracle JDK 21 — Diagnostic Tools, JFR, and `jcmd`: https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
 - Oracle JDK 21 — `jcmd` command: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
 - Oracle JDK 21 — JFR event settings: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html
 - Oracle JDK 21 — `jfr` command: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html

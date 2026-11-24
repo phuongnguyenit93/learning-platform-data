@@ -1,82 +1,82 @@
-# 4.7 Giới hạn của digest công khai trước dữ liệu bị thay thế và mật khẩu yếu
+# 4.7 Limitations of Public Digests Against Replaced Data and Weak Passwords
 
-Một **digest công khai** như SHA-256 rất hữu ích để phát hiện dữ liệu bị thay đổi **khi người kiểm tra đã có một giá trị digest đáng tin cậy**. Nhưng hàm băm không chứa bí mật: bất kỳ ai có dữ liệu cũng có thể tính lại digest. Vì thế, nếu kẻ tấn công có thể thay **cả nội dung lẫn digest đi kèm**, phép so khớp vẫn thành công. Tương tự, băm trực tiếp một mật khẩu dễ đoán bằng SHA-256 không làm mật khẩu đó trở nên khó đoán: khi digest bị lộ, đối thủ có thể thử hàng loạt ứng viên **offline**, không cần gửi yêu cầu đăng nhập.
+A **public digest** such as SHA-256 is very useful for detecting altered data **when the verifier already holds a trusted digest value**. However, a hash function contains no secret: anyone who has the data can recompute the digest. Consequently, if an attacker can replace **both the content and the accompanying digest**, the comparison will still succeed. Similarly, directly hashing a predictable password with SHA-256 does not make that password hard to guess: once the digest leaks, an adversary can test huge numbers of candidates **offline** without sending login requests.
 
-Hai tình huống này cùng liên quan tới hàm băm nhưng có **mô hình đe dọa khác nhau**:
+These two scenarios both involve hash functions yet have **different threat models**:
 
-- **Tính toàn vẹn/xác thực nguồn dữ liệu:** người kiểm tra cần biết digest tham chiếu đến từ nguồn nào và đã được bảo vệ như thế nào. Nếu cần xác thực nguồn gốc, dùng **HMAC** với khóa bí mật chung hoặc **chữ ký số** với khóa công khai đáng tin cậy, tùy kiến trúc.
-- **Lưu trữ và xác minh mật khẩu:** máy chủ cần kiểm chứng mật khẩu mà không lưu plaintext, đồng thời khiến mỗi lần đoán mật khẩu bị lộ tốn tài nguyên. Dùng **password hashing/KDF có salt riêng và work factor**, ưu tiên Argon2id khi có thư viện thích hợp; PBKDF2-HMAC-SHA256 là ví dụ thực hiện được qua API JCA/JCE trong Java.
+- **Data integrity / origin authentication:** the verifier needs to know where the reference digest came from and how it was protected. When origin authentication is needed, use **HMAC** with a shared secret key or **digital signatures** with a trusted public key, depending on the architecture.
+- **Password storage and verification:** the server needs to verify a password without storing plaintext, while making every guess against a leaked record expensive in resources. Use a **salted password-hashing/KDF function with a work factor**, preferring Argon2id when a suitable library is available; PBKDF2-HMAC-SHA256 is an example achievable through JCA/JCE APIs in Java.
 
-Bài này chỉ ra chính xác giới hạn của digest, minh họa hai cuộc tấn công ở mức kiến thức, rồi xây dựng cách kiểm tra phù hợp bằng Java 17+.
+This lesson pinpoints the exact limitations of digests, illustrates both attacks at a conceptual level, and builds appropriate checks using Java 17+.
 
-## 1. Digest công khai thực sự bảo đảm điều gì?
+## 1. What Does a Public Digest Actually Guarantee?
 
-Với `SHA-256`:
+With `SHA-256`:
 
 ```text
-Dữ liệu gốc (bytes)  ── SHA-256 ──>  digest 256 bit (32 byte)
+Original data (bytes)  ── SHA-256 ──>  256-bit digest (32 bytes)
 
-Người kiểm tra:
-  digestTinhLai = SHA-256(duLieuNhanDuoc)
-  digestTinhLai == digestThamChieu ? "khớp" : "không khớp"
+Verifier:
+  recomputedDigest = SHA-256(receivedData)
+  recomputedDigest == referenceDigest ? "match" : "mismatch"
 ```
 
-SHA-256 là một hàm băm mật mã được thiết kế có các tính chất bảo mật như kháng tìm tiền ảnh, kháng tìm tiền ảnh thứ hai và kháng va chạm. Đầu ra có độ dài cố định; thay đổi một byte của dữ liệu thường làm digest khác đi. Tuy nhiên, **đó không phải cơ chế xác thực người phát hành**. Hàm băm là thuật toán công khai, không cần khóa, nên một bên đối địch cũng có thể tính `SHA-256(noiDungGia)`.
+SHA-256 is a cryptographic hash function designed with security properties such as preimage resistance, second-preimage resistance, and collision resistance. Its output has fixed length; changing a single byte of data normally changes the digest. However, **it is not a publisher authentication mechanism**. A hash function is a public, unkeyed algorithm, so an adversary can equally compute `SHA-256(forgedContent)`.
 
-Phân biệt các thuật ngữ thường gặp:
+Distinguish common terms:
 
-| Khái niệm | Câu hỏi được trả lời | Giới hạn cần nhớ |
+| Concept | Question answered | Limitation to remember |
 | --- | --- | --- |
-| **Digest khớp** | Dữ liệu đang có khớp với **giá trị tham chiếu được dùng để so sánh** không? | Chưa chứng minh giá trị tham chiếu đó đáng tin. |
-| **Kháng va chạm** | Có khó tìm hai thông điệp khác nhau cùng digest không? | Kẻ tấn công thay cả nội dung lẫn digest **không cần tìm va chạm**. |
-| **Kháng tiền ảnh** | Có khó tìm dữ liệu từ digest cho một đầu vào đủ khó đoán không? | Mật khẩu ngắn/phổ biến có không gian thử nhỏ; có thể thử từ điển. |
-| **Tính toàn vẹn có nguồn tin cậy** | Dữ liệu hiện tại có trùng nội dung mà nguồn đã xác thực công bố không? | Phụ thuộc cách bảo vệ/bắt nguồn của digest tham chiếu. |
-| **Xác thực nguồn gốc** | Dữ liệu có thực sự do chủ thể nắm khóa hợp lệ tạo ra không? | Cần MAC/chữ ký số và quản lý khóa; digest thuần không đủ. |
+| **Digest match** | Does the data on hand match the **reference value used for comparison**? | Does not prove that the reference value itself is trustworthy. |
+| **Collision resistance** | Is it hard to find two distinct messages with the same digest? | An attacker replacing both content and digest **does not need to find a collision**. |
+| **Preimage resistance** | Is it hard to find input data from a digest for a sufficiently unpredictable input? | Short/common passwords have a small search space; dictionary guessing works. |
+| **Integrity with a trusted source** | Does the current data match content published by an authenticated source? | Depends on how the reference digest is protected or sourced. |
+| **Origin authentication** | Was the data genuinely produced by a party holding a valid key? | Requires MAC/digital signatures and key management; a plain digest is insufficient. |
 
-Một checksum SHA-256 được đăng trên trang chính thức có thể hữu ích nếu chính trang/kênh lấy checksum được xác thực và đối thủ không sửa được. Nếu tải file và checksum từ **cùng một kho HTTP không đáng tin** mà đối thủ kiểm soát, việc khớp checksum gần như không mang bằng chứng chống giả mạo.
+A SHA-256 checksum posted on an official page can be useful if the page/channel serving the checksum is itself authenticated and cannot be altered by an adversary. If both the file and checksum are fetched from **the same untrusted HTTP repository** controlled by an adversary, matching the checksum offers virtually no proof against tampering.
 
-### 1.1 Tấn công thay cả dữ liệu và digest
+### 1.1 Attack Replacing Both Data and Digest
 
 ```text
-BÊN PHÁT HÀNH               KÊNH CÓ THỂ BỊ THAY                BÊN NHẬN
-file.bin  ----------------> [thay bằng fake.bin] ------------> fake.bin
-SHA256(file.bin) ----------> [đổi thành SHA256(fake.bin)] ----> SHA256(fake.bin)
+PUBLISHER                   MUTABLE CHANNEL                    RECEIVER
+file.bin  ----------------> [replaced with fake.bin] --------> fake.bin
+SHA256(file.bin) ----------> [changed to SHA256(fake.bin)] --> SHA256(fake.bin)
 
-Bên nhận: SHA256(fake.bin) == SHA256(fake.bin)  => true
-Bên nhận: không hề biết file.bin ban đầu là gì!
+Receiver: SHA256(fake.bin) == SHA256(fake.bin)  => true
+Receiver: has no idea what the original file.bin was!
 ```
 
-Kẻ tấn công không phá SHA-256, không giải thuật toán, cũng không cần tìm hai file trùng digest. Họ chỉ thay **một cặp dữ liệu + digest tương ứng**. Nếu người nhận có digest gốc được xác minh từ một kênh độc lập, phép đối chiếu với cặp giả sẽ **không khớp**.
+The attacker does not break SHA-256, does not invert the algorithm, and does not need to find two files sharing a digest. They simply swap in **a matching pair of data + digest**. If the receiver has the original digest verified from an independent channel, comparing against the forged pair will **fail to match**.
 
-Do đó cần đặt đúng câu hỏi: *“Ai có quyền thay nội dung? Ai có quyền thay digest tham chiếu? Dựa vào đâu ta tin digest tham chiếu?”* Trả lời ba câu này trước khi nói một checksum “bảo vệ tính toàn vẹn”.
+Therefore, ask the right questions: *"Who is allowed to change the content? Who is allowed to change the reference digest? On what basis do we trust the reference digest?"* Answer these three questions before claiming a checksum "protects integrity."
 
-### 1.2 Khi nào chỉ SHA-256 là phù hợp?
+### 1.2 When Is SHA-256 Alone Appropriate?
 
-- **Phát hiện lỗi truyền/lưu trữ ngoài ý muốn:** ví dụ checksum của bản sao lưu hoặc file build, khi điểm đối chiếu ban đầu đáng tin.
-- **Nhận diện nội dung (content addressing/deduplication):** dùng digest để phân loại nội dung; cần bổ sung biện pháp kiểm soát nguồn/giá trị mong đợi khi có đối thủ chủ động.
-- **Kiểm tra tải xuống:** file có digest trùng với digest chuẩn đã nhận qua kênh tin cậy. Digest lấy từ cùng nguồn không bảo vệ thì không chứng minh nhà phát hành.
-- **Không thích hợp một mình:** xác thực webhook, bảo đảm manifest cập nhật không bị tráo, ký gói phần mềm, bảo vệ dữ liệu khỏi người có thể sửa đồng thời cả dữ liệu và checksum, hoặc bảo vệ cơ sở dữ liệu mật khẩu yếu.
+- **Detecting accidental transmission/storage corruption:** e.g., checksums of backups or build artifacts, when the initial reference point is trusted.
+- **Content identification (content addressing/deduplication):** using digests to index content; additional source/expected-value controls are needed when an active adversary exists.
+- **Download verification:** checking that a file's digest matches an official digest obtained via a trusted channel. A digest fetched from the same unprotected source does not prove the publisher.
+- **Not appropriate alone:** authenticating webhooks, ensuring update manifests are not swapped, signing software packages, protecting data against an attacker who can modify both data and checksum, or protecting databases of weak passwords.
 
-## 2. Ba cách bảo vệ dữ liệu khỏi bị tráo
+## 2. Three Ways to Protect Data Against Substitution
 
-Khi cần chống đối thủ có thể thay đổi dữ liệu, lựa chọn cơ chế theo bên nào cần kiểm chứng và bên nào nắm khóa.
+When defending against an adversary who can alter data, choose the mechanism based on who needs to verify and who holds the keys.
 
-| Cơ chế | Bí mật/điểm tin cậy cần giữ | Ai có thể kiểm chứng? | Dùng cho |
+| Mechanism | Secret / trust anchor to maintain | Who can verify? | Used for |
 | --- | --- | --- | --- |
-| `SHA-256(data)` và **expected digest được xác thực** | Kênh/manifest chứa digest tham chiếu phải đáng tin | Bất cứ ai có expected digest đáng tin | Kiểm tra file download, checksum bản phát hành. |
-| `HMAC-SHA256(key, data)` | **Khóa đối xứng bí mật** chỉ chia sẻ giữa các bên hợp lệ | Bên giữ cùng khóa | Xác thực webhook nội bộ hoặc thông điệp giữa hai dịch vụ chia sẻ khóa. |
-| **Chữ ký số** `Sign(privateKey, data)` | Khóa riêng của bên ký; danh tính và khóa công khai của họ phải được xác thực | Bất cứ ai có **khóa công khai tin cậy** | Phân phối phần mềm, manifest phát hành, nhiều bên xác minh độc lập. |
-| **AEAD** (ví dụ AES-GCM) | Khóa mã hóa hợp lệ, nonce/IV đúng quy tắc và tag | Bên giữ khóa giải mã | Khi cần **bí mật nội dung và xác thực bản mã**, không phải chỉ checksum. |
+| `SHA-256(data)` and **authenticated expected digest** | The channel/manifest holding the reference digest must be trusted | Anyone with the trusted expected digest | Verifying file downloads, release checksums. |
+| `HMAC-SHA256(key, data)` | **Symmetric secret key** shared only among authorized parties | Parties holding the same key | Authenticating internal webhooks or messages between two key-sharing services. |
+| **Digital signature** `Sign(privateKey, data)` | Signer's private key; their identity and public key must be authenticated | Anyone with a **trusted public key** | Software distribution, release manifests, independent verification by many parties. |
+| **AEAD** (e.g., AES-GCM) | Valid encryption key, proper nonce/IV discipline, and tag | Parties holding the decryption key | When both **content confidentiality and ciphertext authentication** are needed, not just a checksum. |
 
-**HMAC** dùng hàm băm bên trong nhưng có **khóa bí mật**, nên một bên chỉ sửa dữ liệu mà không biết khóa sẽ không tự tạo được MAC hợp lệ. Không dùng `SHA256(key || message)` tự chế thay cho HMAC; hãy dùng `javax.crypto.Mac` và `HmacSHA256`. Khóa HMAC phải đủ ngẫu nhiên, được cấp và quản lý an toàn, không hardcode. Bên nào biết cùng khóa cũng có khả năng tạo MAC, vì vậy HMAC không đem lại tính chứng minh công khai ai đã ký như chữ ký số.
+**HMAC** uses a hash function internally together with a **secret key**, so a party that alters data without knowing the key cannot generate a valid MAC. Do not use a homemade `SHA256(key || message)` instead of HMAC; use `javax.crypto.Mac` and `HmacSHA256`. HMAC keys must be sufficiently random, provisioned and managed securely, and never hardcoded. Any party knowing the same key can also generate a MAC, so HMAC does not provide public non-repudiation of who signed as digital signatures do.
 
-Với chữ ký số, API Java là `java.security.Signature`. Nhà phát hành ký bằng `PrivateKey`, bên nhận kiểm tra bằng `PublicKey` **được gắn với danh tính đáng tin**. Tải khóa công khai từ cùng kho đang bị tấn công mà không kiểm tra nguồn cũng có thể dẫn tới xác minh một chữ ký giả được tạo bằng khóa của đối thủ. Nếu dùng certificate, phải kiểm tra chuỗi tin cậy, mục đích sử dụng và trạng thái phù hợp chính sách.
+For digital signatures, the Java API is `java.security.Signature`. The publisher signs with `PrivateKey`, and recipients verify with a `PublicKey` **bound to a trusted identity**. Fetching a public key from the same compromised repository without verifying its origin can still result in verifying a forged signature made with an adversary's key. When using certificates, validate the trust chain, key usage, and revocation/validity status per policy.
 
-HMAC/chữ ký số cũng **không tự ngăn phát lại** một thông điệp cũ vốn hợp lệ. Nếu hệ thống cần chống replay/rollback, đưa version, timestamp, sequence/nonce hoặc định danh sự kiện vào dữ liệu được xác thực và kiểm soát trạng thái ở phía nhận.
+HMAC/digital signatures also **do not automatically prevent replaying** an older valid message. If the system must prevent replay/rollback, include version, timestamp, sequence/nonce, or event ID in the authenticated data and enforce state checks on the receiving side.
 
-## 3. Ví dụ Java 17+: thay dữ liệu, thay digest, đối chiếu HMAC và đoán mật khẩu yếu
+## 3. Java 17+ Example: Replacing Data, Replacing Digest, Comparing HMAC, and Guessing a Weak Password
 
-Lưu thành **`PublicDigestDemo.java`**. Ví dụ dùng `MessageDigest` tính SHA-256; `Mac` tính HMAC-SHA256. Đoạn đoán mật khẩu chỉ chạy trên mẫu `123456` được tạo ngay trong chương trình để giải thích cơ chế tấn công offline.
+Save as **`PublicDigestDemo.java`**. The example uses `MessageDigest` for SHA-256 and `Mac` for HMAC-SHA256. The password-guessing block runs only on a sample `123456` created inside the program to explain the offline attack mechanism.
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -106,27 +106,27 @@ public final class PublicDigestDemo {
         byte[] trustedDigest = sha256(original);
         byte[] replacedDigest = sha256(changed);
 
-        // Attacker chỉ thay file; expected digest gốc được bảo vệ.
-        System.out.println("1. Digest cu khop noi dung bi doi: "
+        // Attacker replaces only the file; the original expected digest is protected.
+        System.out.println("1. Old digest matches modified content: "
                 + MessageDigest.isEqual(trustedDigest, sha256(changed)));
 
-        // Attacker thay được cả file lẫn expected digest đi kèm.
-        System.out.println("2. Digest gia khop noi dung bi doi: "
+        // Attacker replaces both the file and the accompanying expected digest.
+        System.out.println("2. Forged digest matches modified content: "
                 + MessageDigest.isEqual(replacedDigest, sha256(changed)));
 
-        // Khóa ví dụ được tạo ngẫu nhiên, hai đầu hợp lệ phải chia sẻ an toàn.
+        // Example key generated randomly; legitimate endpoints must share it securely.
         byte[] key = new byte[32];
         new SecureRandom().nextBytes(key);
         try {
             byte[] trustedMac = hmac(original, key);
-            // Bên nhận tự tính lại MAC bằng khóa bí mật của mình.
-            System.out.println("3. HMAC cu khop noi dung bi doi: "
+            // Receiver recomputes the MAC using its own secret key.
+            System.out.println("3. Old HMAC matches modified content: "
                     + MessageDigest.isEqual(trustedMac, hmac(changed, key)));
         } finally {
             Arrays.fill(key, (byte) 0);
         }
 
-        // Chỉ minh họa một mật khẩu yếu tự tạo; không dùng làm xử lý thật.
+        // Illustrates only a self-created weak password; do not use in real handling.
         byte[] leakedDigest = sha256("123456");
         boolean guessed = false;
         for (String candidate : new String[]{"admin", "123456", "welcome"}) {
@@ -135,116 +135,116 @@ public final class PublicDigestDemo {
                 break;
             }
         }
-        System.out.println("4. Doan duoc mat khau yeu offline: " + guessed);
+        System.out.println("4. Weak password guessed offline: " + guessed);
     }
 }
 ```
 
-Chạy bằng Java 17+ với provider JDK thông dụng hỗ trợ SHA-256 và HmacSHA256:
+Run with Java 17+ using a standard JDK provider supporting SHA-256 and HmacSHA256:
 
 ```bash
 javac -encoding UTF-8 PublicDigestDemo.java
 java PublicDigestDemo
 ```
 
-Stdout (không phụ thuộc giá trị khóa ngẫu nhiên):
+Stdout (independent of the random key value):
 
 ```text
-1. Digest cu khop noi dung bi doi: false
-2. Digest gia khop noi dung bi doi: true
-3. HMAC cu khop noi dung bi doi: false
-4. Doan duoc mat khau yeu offline: true
+1. Old digest matches modified content: false
+2. Forged digest matches modified content: true
+3. Old HMAC matches modified content: false
+4. Weak password guessed offline: true
 ```
 
-Đọc kỹ bốn kết quả:
+Read the four outputs carefully:
 
-1. `false`: digest của dữ liệu giả **khác** digest gốc đáng tin. Đây là trường hợp đối chiếu checksum hữu ích.
-2. `true`: digest giả được tính trên dữ liệu giả nên khớp. Đây là **thất bại của nguồn tham chiếu không được bảo vệ**, không phải lỗi của SHA-256.
-3. `false`: MAC hợp lệ của thông điệp gốc không còn khớp với thông điệp đã thay. Trong thực tế, đối thủ **không biết khóa** nên không thể đơn giản tự tính một MAC mới hợp lệ; bên nhận phải lấy MAC gốc từ nguồn chính sách cho phép và kiểm tra nó.
-4. `true`: chỉ từ một digest SHA-256 của mật khẩu yếu, chương trình đoán trúng bằng danh sách ứng viên nhỏ. Không có thao tác “giải mã hash”: nó chỉ **băm từng ứng viên rồi so sánh**.
+1. `false`: the forged data's digest **differs** from the trusted original digest. This is the case where checksum comparison is useful.
+2. `true`: the forged digest was computed over the forged data, so it matches. This is a **failure of an unprotected reference source**, not a flaw in SHA-256.
+3. `false`: the valid MAC of the original message no longer matches the altered message. In practice, an adversary **does not know the key** and therefore cannot simply compute a new valid MAC; the receiver obtains the original MAC from a policy-permitted source and verifies it.
+4. `true`: from just a SHA-256 digest of a weak password, the program guesses it using a small candidate list. There is no "hash decryption" operation: it simply **hashes each candidate and compares**.
 
-`MessageDigest.isEqual(byte[], byte[])` phù hợp để so sánh các digest/MAC ở mức byte; tránh phép so chuỗi tự chế dừng tại ký tự sai đầu tiên. Không được nhầm “so sánh cẩn thận” với “ngăn brute force”: nó không làm phép băm trở nên chậm và không tạo bí mật cho digest công khai. Ví dụ dùng `String` cố định để dễ đọc; dữ liệu thực phải được xác thực trên **chuỗi byte chính xác**, với định dạng/canonicalization nhất quán.
+`MessageDigest.isEqual(byte[], byte[])` is appropriate for comparing digests/MACs at the byte level; avoid homemade string comparisons that exit at the first differing character. Do not confuse "careful comparison" with "preventing brute force": it does not slow down hashing and does not add secrecy to a public digest. The example uses fixed `String`s for readability; real data must be authenticated over **exact byte sequences**, with consistent formatting/canonicalization.
 
-## 4. Vì sao SHA-256 thuần không bảo vệ mật khẩu yếu?
+## 4. Why Does Plain SHA-256 Fail to Protect Weak Passwords?
 
-Giả sử cơ sở dữ liệu lưu:
+Suppose a database stores:
 
 ```text
 username = alice
 password_hash = SHA256("123456")
 ```
 
-Khi bản ghi bị lộ, đối thủ biết thuật toán là SHA-256 và biết digest được lưu. Họ có thể đoán hàng triệu ứng viên từ từ điển/bộ quy tắc ở máy riêng, tính `SHA256(candidate)` rồi so sánh. Không bị giới hạn bởi tốc độ endpoint đăng nhập, CAPTCHA hoặc khóa tài khoản, vì đây là **tấn công offline trên dữ liệu đã lộ**. Năng lực thực tế tùy phần cứng và thuật toán, nhưng SHA-256 được thiết kế chạy nhanh; điều đó rất tốt cho checksum, lại bất lợi khi mật khẩu có độ ngẫu nhiên thấp.
+When the record leaks, the adversary knows the algorithm is SHA-256 and knows the stored digest. They can try millions of candidates from dictionaries/rule sets on their own machines, compute `SHA256(candidate)`, and compare. They are not constrained by login endpoint rate limits, CAPTCHAs, or account lockouts, because this is an **offline attack on leaked data**. Actual throughput depends on hardware and algorithm, yet SHA-256 is designed to run fast; that is great for checksums, and detrimental when passwords have low randomness.
 
-Các hiểu lầm cần sửa:
+Misconceptions to correct:
 
-- **“SHA-256 không đảo ngược nên không ai tìm được mật khẩu.”** Không cần đảo ngược: chỉ cần thử các mật khẩu có xác suất cao. Một giá trị như `123456` bị đoán rất nhanh.
-- **“Đổi SHA-256 sang SHA-512 là đủ.”** SHA-512 cũng là digest tổng quát nhanh; chỉ tăng độ dài digest không bổ sung work factor đủ lớn.
-- **“Băm hai/lần vài lần sẽ an toàn.”** Lặp một vài vòng SHA-256 tự thiết kế không tương đương password hashing đã được phân tích và điều chỉnh chi phí.
-- **“Thêm salt sẽ khiến mật khẩu khó đoán.”** Salt chủ yếu ngăn dùng bảng băm tính trước và giảm hiệu quả tái sử dụng kết quả trên nhiều tài khoản. Salt **không tăng entropy thực** của mật khẩu.
-- **“Giữ kín tên thuật toán là đủ.”** Không nên dựa vào bí mật của thuật toán: thiết kế phải chống chịu ngay cả khi lộ thuật toán, tham số và salt.
-- **“Có rate limit là đã an toàn.”** Rate limit bảo vệ truy cập **online**, không chặn thử offline trên dữ liệu hash bị lộ.
+- **"SHA-256 is irreversible, so no one can find the password."** No inversion is needed: just test high-probability passwords. A value like `123456` is guessed very quickly.
+- **"Switching SHA-256 to SHA-512 is enough."** SHA-512 is also a fast general-purpose digest; merely increasing digest length does not add a substantial work factor.
+- **"Hashing twice or a few times is secure."** Looping a few homemade rounds of SHA-256 is not equivalent to analyzed and cost-tuned password hashing.
+- **"Adding a salt makes the password hard to guess."** A salt primarily prevents precomputed hash tables and reduces the effectiveness of reusing computations across multiple accounts. A salt **does not increase the true entropy** of the password.
+- **"Keeping the algorithm name secret is enough."** Never rely on algorithm secrecy: the design must hold up even if the algorithm, parameters, and salt are exposed.
+- **"Having rate limiting makes it safe."** Rate limiting protects **online** access, not offline guessing over leaked hash data.
 
-Nếu mật khẩu chỉ thuộc một tập nhỏ, đối thủ có thể thử toàn bộ tập đó với bất kỳ hash công khai nào. Mật khẩu phải đủ khó đoán, hệ thống nên sàng lọc mật khẩu phổ biến/đã lộ theo chính sách và dùng password hashing có chi phí đáng kể.
+If a password belongs to a small set, an adversary can test that entire set against any public hash. Passwords must be sufficiently unpredictable, systems should screen out common/breached passwords per policy, and password hashing with substantial cost must be used.
 
-### 4.1 Salt, work factor và pepper khác nhau ra sao?
+### 4.1 How Do Salt, Work Factor, and Pepper Differ?
 
 ```text
-password (bí mật người dùng) + salt riêng (công khai)
+password (user secret) + unique salt (public)
                 |
                 v
- Password KDF (ví dụ PBKDF2-HMAC-SHA256)
-   có cost / iterations lớn và được hiệu chuẩn
+ Password KDF (e.g., PBKDF2-HMAC-SHA256)
+   with high, calibrated cost / iterations
                 |
                 v
     derived hash / verifier
                 |
                 v
-Lưu: algorithm + parameters + salt + derived hash
+Store: algorithm + parameters + salt + derived hash
 ```
 
-| Thành phần | Vai trò | Có thể lưu cùng hash? |
+| Component | Role | Can it be stored with the hash? |
 | --- | --- | --- |
-| **Salt** | Sinh riêng, ngẫu nhiên cho mỗi bản ghi; làm hai mật khẩu giống nhau thường có kết quả khác nhau; chống bảng tra cứu tính trước dùng chung. | **Có.** Salt không phải mật khẩu và không cần giữ bí mật. |
-| **Work factor** | Làm mỗi lần đoán đắt hơn về CPU và/hoặc RAM; cập nhật theo thời gian khi phần cứng thay đổi. | **Có.** Phải lưu để xác minh bản ghi và hỗ trợ nâng cấp. |
-| **Pepper** (tùy chọn) | Một bí mật bổ sung dùng trong thiết kế phù hợp, giúp chống lại tình huống chỉ lộ database. | **Không.** Lưu tách DB, ví dụ hệ quản lý secret hoặc HSM; không nhúng trong mã nguồn/cùng bảng hash. |
-| **Password** | Bí mật mà người dùng cung cấp để xác minh. | **Không lưu plaintext** và không ghi vào log. |
+| **Salt** | Generated uniquely and randomly per record; ensures identical passwords usually yield different outputs; defeats shared precomputed lookup tables. | **Yes.** A salt is not a password and does not need to stay secret. |
+| **Work factor** | Makes each guess costlier in CPU and/or RAM; updated over time as hardware evolves. | **Yes.** Must be stored to verify the record and support upgrades. |
+| **Pepper** (optional) | An additional secret used in an appropriate design, helping defend against database-only leaks. | **No.** Store separately from the DB, e.g., in a secret manager or HSM; do not embed in source code or the same hash table. |
+| **Password** | The secret supplied by the user for verification. | **Never store plaintext** and never write to logs. |
 
-**Salt không phải khóa HMAC.** Một `SHA256(salt || password)` đơn lẻ có salt tốt vẫn là phép băm **nhanh**; không đủ chống đoán offline. Salt cần dùng **cùng** KDF chuyên cho mật khẩu. Hai người có chung password nên có salt riêng và hash riêng, nhưng một mật khẩu phổ biến vẫn dễ bị đoán hơn một passphrase ngẫu nhiên mạnh.
+**A salt is not an HMAC key.** A single `SHA256(salt || password)` with a good salt is still a **fast** hash; it is insufficient against offline guessing. Salts must be used **with** a dedicated password KDF. Two users sharing a password should have separate salts and separate hashes, yet a common password remains easier to guess than a strong random passphrase.
 
-**Pepper không thay thế salt/KDF**. Nó là biện pháp bổ sung có chi phí vận hành (quản lý/luân chuyển khóa, phục hồi), chỉ hữu ích khi khóa pepper không bị lộ cùng dữ liệu. Nếu kẻ tấn công có quyền sửa bảng hash trong database, họ còn có thể thay bản ghi theo cách khác: việc làm chậm đoán mật khẩu **không tự cung cấp tính toàn vẹn** hay phân quyền ghi cơ sở dữ liệu.
+**Pepper does not replace salt/KDF**. It is an additional control with operational overhead (key management/rotation, recovery), useful only when the pepper key does not leak alongside the data. If an attacker has write access to the hash table in the database, they can alter records in other ways: slowing down password guessing **does not by itself provide integrity** or database write access control.
 
-## 5. Chọn cơ chế lưu mật khẩu đúng
+## 5. Choosing the Right Password Storage Mechanism
 
-Mục tiêu của password hashing là làm tốn tài nguyên **mỗi lần thử ứng viên**, kể cả khi kẻ tấn công có bản ghi hash/salt. Các lựa chọn được dùng phổ biến:
+The goal of password hashing is to consume significant resources **for every candidate guess**, even when an attacker possesses the hash/salt record. Commonly used options:
 
-| Cơ chế | Đặc điểm | Khi nên dùng |
+| Mechanism | Characteristics | When to use |
 | --- | --- | --- |
-| **Argon2id** | KDF chuyên cho mật khẩu, có tham số RAM, thời gian và song song; chống đoán bằng phần cứng song song tốt hơn digest nhanh. | **Ưu tiên cho thiết kế mới** nếu có thư viện tin cậy và vận hành phù hợp. |
-| **scrypt** | KDF phụ thuộc bộ nhớ với tham số CPU/RAM. | Khi Argon2id không có nhưng thư viện scrypt tin cậy sẵn có. |
-| **bcrypt** | Password hash có cost điều chỉnh; nhiều triển khai có giới hạn độ dài đầu vào 72 byte. | Hệ thống cũ đã dùng bcrypt; kiểm tra chính xác giới hạn và migration. |
-| **PBKDF2-HMAC-SHA256** | KDF dựa trên số vòng lặp HMAC; phổ biến và có thể dùng qua `SecretKeyFactory` trên JDK thích hợp. Không phải memory-hard. | Khi có yêu cầu tương thích/tuân thủ hoặc muốn học API JCA/JCE; phải hiệu chuẩn số vòng lặp. |
-| **SHA-256/SHA-512/MD5 thuần** | Digest tổng quát, chạy nhanh, không có cost/password salt tích hợp. | **Không** dùng trực tiếp làm password verifier. |
+| **Argon2id** | Purpose-built password KDF with RAM, time, and parallelism parameters; resists parallel hardware guessing better than fast digests. | **Preferred for new designs** when a trusted library and operational support are available. |
+| **scrypt** | Memory-hard KDF with CPU/RAM parameters. | When Argon2id is unavailable yet a trusted scrypt library is available. |
+| **bcrypt** | Password hash with tunable cost; many implementations have a 72-byte input length limit. | Legacy systems already using bcrypt; check exact limits and migration. |
+| **PBKDF2-HMAC-SHA256** | KDF based on HMAC iteration count; widely supported and usable via `SecretKeyFactory` on suitable JDKs. Not memory-hard. | When compatibility/compliance requires it or for learning JCA/JCE APIs; iteration count must be calibrated. |
+| **Plain SHA-256/SHA-512/MD5** | Fast general-purpose digests without built-in password cost/salting. | **Never** use directly as a password verifier. |
 
-Theo **OWASP Password Storage Cheat Sheet** được tham khảo cho bài này, cấu hình tối thiểu điển hình với Argon2id là `m=19456 KiB (~19 MiB), t=2, p=1`; với PBKDF2-HMAC-SHA256 là **600.000 vòng** (đặc biệt khi cần giải pháp theo FIPS). Các giá trị là **mức tham chiếu tại thời điểm triển khai**, phải rà lại tài liệu mới và đo trên môi trường sản xuất. Tăng cost quá mức có thể làm máy chủ bị quá tải khi nhiều lần đăng nhập; cần hạn chế lưu lượng và đánh giá tài nguyên. Không dùng duy nhất một mốc benchmark trên laptop cho mọi môi trường.
+Per the **OWASP Password Storage Cheat Sheet** referenced for this lesson, a typical minimum configuration for Argon2id is `m=19456 KiB (~19 MiB), t=2, p=1`; for PBKDF2-HMAC-SHA256 it is **600,000 iterations** (especially when a FIPS-compliant solution is needed). These values are **baseline references at implementation time**; always check current guidance and measure in your production environment. Raising cost excessively can overload servers during login spikes; combine with traffic limits and capacity sizing. Never rely on a single laptop benchmark for every environment.
 
-Java 17 cung cấp API `javax.crypto.SecretKeyFactory`, `javax.crypto.spec.PBEKeySpec` cho PBKDF2 qua provider có hỗ trợ `PBKDF2WithHmacSHA256`. JDK chuẩn không đưa ra một API tích hợp chung bảo đảm có Argon2id trên mọi môi trường: nếu chọn Argon2id, sử dụng thư viện được duy trì, kiểm tra phiên bản/dependency và triển khai theo hướng dẫn của thư viện.
+Java 17 provides `javax.crypto.SecretKeyFactory` and `javax.crypto.spec.PBEKeySpec` for PBKDF2 via providers supporting `PBKDF2WithHmacSHA256`. The standard JDK does not expose a built-in API guaranteed to offer Argon2id across all environments: if choosing Argon2id, use a maintained library, verify versions/dependencies, and follow the library's guidance.
 
-### 5.1 Quy tắc lưu bản ghi verifier
+### 5.1 Rules for Storing Verifier Records
 
-Một bản ghi nên chứa đủ thông tin **để xác minh và nâng cấp**, chẳng hạn:
+A record should contain enough information **to verify and upgrade**, for example:
 
 ```text
 pbkdf2-sha256$600000$base64(salt)$base64(derivedHash)
 ```
 
-Đây là **định dạng riêng của ví dụ**; các trường lần lượt là tên scheme, số vòng lặp, salt và hash đã dẫn xuất. Tất cả các trường trừ password có thể công khai. Trong production, cần định nghĩa encoding và phiên bản định dạng ổn định, giới hạn độ dài và cost được chấp nhận để dữ liệu bản ghi hỏng không gây DoS, áp dụng migration cho bản ghi cũ, và bảo vệ quyền ghi/tính toàn vẹn của kho lưu trữ. Không bao giờ lưu mật khẩu ở dạng Base64: Base64 chỉ là mã hóa biểu diễn.
+This is a **custom format for the example**; the fields are scheme name, iteration count, salt, and derived hash. Every field except the password may be public. In production, define stable encoding and format versioning, enforce acceptable bounds on lengths and costs so malformed records cannot trigger DoS, apply migrations for legacy records, and protect write permissions/integrity of the store. Never store passwords in Base64: Base64 is merely a representation encoding.
 
-## 6. Ví dụ Java 17+: lưu và xác minh mật khẩu bằng PBKDF2 có salt
+## 6. Java 17+ Example: Storing and Verifying Passwords with Salted PBKDF2
 
-Ví dụ này chọn **PBKDF2WithHmacSHA256**, salt 16 byte từ `SecureRandom`, **600.000** vòng lặp và output 256 bit. Tên thuật toán/salt/cost được lưu cùng verifier; khi xác minh, dùng salt/cost đã lưu và so sánh `MessageDigest.isEqual`. Mật khẩu trong `main` là giá trị minh họa công khai, **không** dùng làm mật khẩu thật.
+This example uses **PBKDF2WithHmacSHA256**, a 16-byte salt from `SecureRandom`, **600,000** iterations, and a 256-bit output. Algorithm name/salt/cost are stored with the verifier; upon verification, the stored salt/cost are reused and compared with `MessageDigest.isEqual`. The password in `main` is a public illustrative value—**never** use it as a real password.
 
-Lưu thành **`PasswordStorageDemo.java`**:
+Save as **`PasswordStorageDemo.java`**:
 
 ```java
 import java.security.GeneralSecurityException;
@@ -299,7 +299,7 @@ public final class PasswordStorageDemo {
         } catch (NumberFormatException ex) {
             return false;
         }
-        // Chặn cost bất thường trong định dạng demo do chính ứng dụng tạo.
+        // Reject abnormal cost values in the demo format produced by this application.
         if (rounds < 100_000 || rounds > 2_000_000) return false;
 
         byte[] salt;
@@ -327,10 +327,10 @@ public final class PasswordStorageDemo {
         char[] wrong = "wrong-guess".toCharArray();
         try {
             String record = store(good);
-            System.out.println("4. Dung mat khau: " + verify(good, record));
-            System.out.println("5. Sai mat khau: " + verify(wrong, record));
+            System.out.println("4. Correct password: " + verify(good, record));
+            System.out.println("5. Wrong password: " + verify(wrong, record));
             String[] fields = record.split("\\$");
-            System.out.println("6. Salt 16 byte duoc luu: "
+            System.out.println("6. 16-byte salt stored: "
                     + (Base64.getDecoder().decode(fields[2]).length == 16));
         } finally {
             Arrays.fill(good, '\0');
@@ -345,103 +345,103 @@ javac -encoding UTF-8 PasswordStorageDemo.java
 java PasswordStorageDemo
 ```
 
-Stdout (salt và hash mỗi lần chạy là ngẫu nhiên, nhưng các dòng kiểm tra dưới đây cố định):
+Stdout (the salt and hash on each run are random, yet the verification lines below are deterministic):
 
 ```text
-4. Dung mat khau: true
-5. Sai mat khau: false
-6. Salt 16 byte duoc luu: true
+4. Correct password: true
+5. Wrong password: false
+6. 16-byte salt stored: true
 ```
 
-Giải thích các bước:
+Step-by-step explanation:
 
-1. `store` tạo **salt mới** cho từng bản ghi bằng `SecureRandom`, không dùng chung một salt cố định.
-2. `PBEKeySpec(password, salt, rounds, KEY_BITS)` mô tả các tham số của PBKDF2; `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")` tạo kết quả dẫn xuất. Không thay bằng `MessageDigest.getInstance("SHA-256")` lặp vài lần tự chế.
-3. Trường `SCHEME` và `rounds` được lưu, nên sau này có thể phân biệt bản ghi cũ/mới. Salt phải giống với lúc tạo bản ghi; **không sinh salt mới khi verify**.
-4. `verify` kiểm tra định dạng, giới hạn rounds, độ dài salt và hash trước khi tính lại. Giới hạn rounds trong ví dụ ngăn tham số do bản ghi bất thường khiến CPU bị chiếm quá lâu; hệ thống thực phải định nghĩa chính sách migration cho các giá trị lịch sử.
-5. `MessageDigest.isEqual` so sánh byte array sau dẫn xuất; không dùng `String.equals` trên plaintext hoặc so từng ký tự đến khi khác.
-6. `PBEKeySpec.clearPassword()` xóa **bản sao password bên trong spec**, và `Arrays.fill` xóa một số buffer do chương trình sở hữu. Điều đó không bảo đảm xóa mọi bản sao trong JVM hay provider. Vì `main` chứa string literal công khai để demo, không dùng cách này nhận mật khẩu production; hãy nhận đầu vào qua quy trình bảo mật phù hợp và tránh lưu/log dưới dạng `String` lâu dài.
+1. `store` generates a **fresh salt** for each record using `SecureRandom`, never reusing a single fixed salt.
+2. `PBEKeySpec(password, salt, rounds, KEY_BITS)` specifies the PBKDF2 parameters; `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")` computes the derived key. Never replace this with a homemade loop of a few `MessageDigest.getInstance("SHA-256")` calls.
+3. `SCHEME` and `rounds` are stored so old and new records can later be distinguished. The salt must match the one used when creating the record; **never generate a new salt during verification**.
+4. `verify` validates the format, round bounds, salt length, and hash length before recomputing. Bounding `rounds` in the example prevents abnormal record parameters from tying up the CPU for too long; real systems must define a migration policy for historical values.
+5. `MessageDigest.isEqual` compares the derived byte arrays; never use `String.equals` on plaintext or compare character by character until mismatch.
+6. `PBEKeySpec.clearPassword()` clears the **password copy inside the spec**, and `Arrays.fill` zeroes several buffers owned by the program. This does not guarantee clearing every copy inside the JVM or provider. Because `main` uses a public string literal for demonstration, never accept production passwords that way; collect input through a secure flow and avoid keeping/logging it as a long-lived `String`.
 
-**Giới hạn của ví dụ:** đây là mô-đun Java console giúp học JCA/JCE, chưa có database, API đăng nhập, TLS, rate limit, pepper, kiểm tra mật khẩu đã lộ, migration hoặc giám sát tải. Các bản ghi bị kẻ tấn công **sửa trực tiếp** vẫn đòi hỏi kiểm soát quyền ghi/đảm bảo toàn vẹn database. `PBKDF2` làm chậm đoán offline nhưng không bù đắp một mật khẩu cực yếu và không thay thế quy trình quản lý tài khoản.
+**Limitations of this example:** this is a console Java module for learning JCA/JCE, without a database, login API, TLS, rate limiting, pepper, breached-password checking, migration, or load monitoring. Records that an attacker can **modify directly** still require database write-access/integrity controls. `PBKDF2` slows down offline guessing, yet cannot compensate for an extremely weak password and does not replace account management workflows.
 
-## 7. Vận hành password verifier thực tế
+## 7. Operating Password Verifiers in Production
 
-Một thiết kế thực tế cần xem password hashing trong toàn bộ vòng đời:
+A practical design considers password hashing across its entire lifecycle:
 
-1. **Đăng ký/đổi mật khẩu:** kiểm tra theo chính sách chấp nhận độ dài, mật khẩu phổ biến/đã lộ và Unicode; không ép các quy tắc ghép ký tự tùy tiện. NIST SP 800-63B-4 nhấn mạnh độ dài, blocklist, mật khẩu đủ mạnh và khả năng dùng trình quản lý mật khẩu.
-2. **Chuẩn hóa nhất quán:** cùng một password phải đi vào KDF dưới cùng encoding/quy tắc Unicode khi tạo và xác minh. Nếu áp dụng Unicode normalization như NFC, đưa vào contract và thực hiện nhất quán. Không âm thầm `trim`, lowercase hoặc cắt ngắn password khi xác minh.
-3. **Tạo verifier:** dùng KDF, salt mới và work factor theo cấu hình đã đo. Không để người dùng điều khiển thuật toán/cost qua request; không tạo salt bằng `Random` hoặc thời gian hệ thống.
-4. **Lưu có cấu trúc:** ghi algorithm/version, salt, cost và derived hash. Phân quyền DB, sao lưu và log phù hợp; không lưu plaintext/recovery hint.
-5. **Xác minh:** nhận password qua TLS hoặc kênh bảo vệ tương đương; dùng tham số đã lưu, so sánh an toàn, trả thông báo thất bại không lộ account internals. Rate limit và bảo vệ abuse vẫn cần thiết dù có KDF.
-6. **Nâng cấp:** khi cost hoặc scheme cũ, **sau một lần xác minh hợp lệ** có thể tạo verifier mới với salt/cost mới rồi cập nhật an toàn. Không thể chuyển trực tiếp SHA-256 hash cũ thành một password KDF mạnh tương đương mà không có password gốc; lập kế hoạch rehash hoặc reset.
-7. **Giám sát và xử lý sự cố:** theo dõi thời gian/công suất xác minh, phát hiện credential stuffing và tấn công account, bảo vệ pepper riêng (nếu dùng), buộc đổi mật khẩu khi có bằng chứng lộ bí mật.
+1. **Registration / password change:** enforce policies on length, common/breached passwords, and Unicode support; avoid arbitrary character-composition rules. NIST SP 800-63B-4 emphasizes length, blocklists, sufficiently strong passwords, and password-manager compatibility.
+2. **Consistent normalization:** the exact same password must enter the KDF under identical encoding/Unicode rules at creation and verification. If Unicode normalization such as NFC is applied, put it in the contract and apply it consistently. Never silently `trim`, lowercase, or truncate passwords during verification.
+3. **Verifier creation:** use the KDF, a fresh salt, and a configured, measured work factor. Never let clients control the algorithm/cost via requests; never generate salts from `Random` or system timestamps.
+4. **Structured storage:** record algorithm/version, salt, cost, and derived hash. Enforce proper DB permissions, backups, and logging; never store plaintext or recovery hints.
+5. **Verification:** receive passwords over TLS or an equivalent protected channel; use stored parameters, compare safely, and return failure messages that do not leak account internals. Rate limiting and abuse protection remain essential even with a KDF.
+6. **Upgrading:** when cost or scheme is outdated, **right after a valid verification** you can generate a new verifier with a fresh salt/cost and update it safely. You cannot directly convert a legacy SHA-256 hash into an equivalent strong password KDF without the original password; plan a rehash-on-login or reset flow.
+7. **Monitoring and incident response:** track verification latency/capacity, detect credential stuffing and account attacks, protect any separate pepper, and force password resets upon evidence of secret exposure.
 
-### 7.1 Đo chi phí và chống quá tải
+### 7.1 Measuring Cost and Preventing Overload
 
-Password hashing cố ý tốn tài nguyên. Nếu mỗi lần xác minh dùng nhiều CPU/RAM, nhiều request đồng thời có thể làm dịch vụ cạn tài nguyên. Kết hợp work factor được hiệu chuẩn, giới hạn số lần thử, kiểm soát đồng thời, timeout và theo dõi latency. Khi dùng Argon2id, đặc biệt phải tính tổng RAM ở số lượng request đồng thời; không chỉ tăng `m` đến mức tối đa trong tài liệu tham khảo.
+Password hashing is intentionally resource-intensive. If each verification consumes significant CPU/RAM, high concurrency can exhaust service resources. Combine a calibrated work factor, attempt limits, concurrency controls, timeouts, and latency monitoring. With Argon2id in particular, calculate total RAM across concurrent requests rather than blindly raising `m` to the maximum value in reference docs.
 
-**Không giảm work factor một cách im lặng** chỉ vì hệ thống quá tải. Hãy xác định tải thực, tối ưu luồng xác minh, thiết lập giới hạn, rồi chọn cấu hình đã được phê duyệt và tái đo khi đổi máy/JDK/provider.
+**Never silently lower the work factor** just because the system is overloaded. Profile real traffic, optimize the verification pipeline, set concurrency limits, choose an approved configuration, and re-measure whenever hardware/JDK/provider changes.
 
-## 8. Phân biệt lựa chọn qua các tình huống
+## 8. Choosing the Right Mechanism Across Scenarios
 
-| Tình huống | Chọn gì? | Vì sao? |
+| Scenario | What to choose? | Why? |
 | --- | --- | --- |
-| Muốn biết file tải xuống có đúng byte so với checksum **đã xác minh** hay không | SHA-256 + expected digest tin cậy | Kiểm tra tính khớp, không cần khóa mới khi nguồn expected đã được xác thực. |
-| File và checksum cùng nằm trong kho mà đối thủ có thể thay | Chữ ký số của manifest/file hoặc digest từ nguồn bảo vệ độc lập | Digest thuần của file giả vẫn khớp digest giả. |
-| Hai dịch vụ dùng bí mật chung để xác thực payload webhook | HMAC-SHA256 với quản lý key, định dạng xác thực rõ ràng | Bên không giữ key không tự tạo MAC mới hợp lệ. |
-| Public download được nhiều bên kiểm tra độc lập | Chữ ký số và khóa công khai gắn danh tính đáng tin | Không phải chia sẻ khóa bí mật HMAC cho mọi người dùng. |
-| Cần cả tính bí mật và xác thực bản mã | AEAD phù hợp, ví dụ AES-GCM | Digest/MAC không tự mã hóa để giấu plaintext. |
-| Lưu verifier đăng nhập | Argon2id/scrypt hoặc PBKDF2 phù hợp + salt riêng + cost | Làm chậm tấn công đoán offline vào mật khẩu có thể bị lộ. |
-| Người dùng chọn `123456` | Blocklist/chính sách mật khẩu, mật khẩu mạnh, KDF và cơ chế xác thực khác | KDF không biến một bí mật cực dễ đoán thành bí mật mạnh. |
-| Đối thủ có quyền ghi bảng password verifier | Bảo vệ quyền ghi DB, kiểm tra toàn vẹn, giám sát thay đổi | KDF chống thử password trên bản ghi bị lộ; không tự ngăn thay bản ghi. |
+| Want to know if a downloaded file matches the exact bytes of a **verified** checksum | SHA-256 + trusted expected digest | Verifies byte match; no new key is needed when the expected source is already authenticated. |
+| File and checksum sit in the same repository an adversary could alter | Digital signature on the manifest/file or digest from an independently protected source | A plain digest of a forged file still matches a forged digest. |
+| Two services use a shared secret to authenticate webhook payloads | HMAC-SHA256 with key management and clear authentication formatting | Parties without the key cannot forge a valid new MAC. |
+| Public download verified independently by many parties | Digital signature and public key bound to a trusted identity | Avoids sharing a secret HMAC key with every user. |
+| Need both confidentiality and ciphertext authentication | Appropriate AEAD, e.g., AES-GCM | Digests/MACs do not encrypt to hide plaintext. |
+| Storing login verifiers | Argon2id/scrypt or suitable PBKDF2 + unique salt + cost | Slows offline guessing attacks on potentially leaked passwords. |
+| User picks `123456` | Blocklist/password policy, strong passwords, KDF, and additional auth controls | A KDF cannot turn an easily guessed secret into a strong one. |
+| Adversary has write access to the password verifier table | Protect DB write permissions, integrity checks, and change monitoring | KDF resists password guessing on leaked records; it does not stop record replacement itself. |
 
-### 8.1 Bốn câu hỏi để tự kiểm tra
+### 8.1 Four Questions for Self-Checking
 
-**Câu 1.** “Tôi tải file từ máy chủ A, và máy chủ A trả kèm SHA-256. Hai giá trị khớp; tôi có chắc file không bị tráo?”  
-**Trả lời:** Chỉ chắc rằng file khớp với giá trị checksum được nhận. Nếu đối thủ thay được cả hai trên đường truyền/kho lưu, không có bảo đảm về nguồn gốc. Cần xác thực kênh, checksum kỳ vọng đáng tin, hoặc chữ ký số.
+**Question 1.** "I downloaded a file from server A, and server A also returned a SHA-256. The two values match; am I sure the file was not swapped?"  
+**Answer:** You are only sure the file matches the checksum you received. If an adversary can alter both in transit or storage, there is no origin guarantee. You need channel authentication, a trusted expected checksum, or a digital signature.
 
-**Câu 2.** “Nếu tấn công thay file và checksum mà vẫn khớp, có phải SHA-256 bị collision?”  
-**Trả lời:** Không. Đối thủ tính digest mới của file mới, không cần hai file khác nhau có cùng digest. Va chạm không liên quan đến ví dụ này.
+**Question 2.** "If an attacker replaces both the file and checksum and they still match, did SHA-256 suffer a collision?"  
+**Answer:** No. The adversary computed a new digest for the new file; they did not need two distinct files with the same digest. Collisions are unrelated to this scenario.
 
-**Câu 3.** “Thêm 16 byte salt ngẫu nhiên vào `SHA256(password)` đã đủ lưu password chưa?”  
-**Trả lời:** Chưa. Salt làm hash của các bản ghi khác nhau và chống bảng tính trước, nhưng SHA-256 một vòng vẫn nhanh. Dùng KDF chuyên dụng với work factor, salt riêng và mật khẩu khó đoán.
+**Question 3.** "Is adding a 16-byte random salt to `SHA256(password)` enough for password storage?"  
+**Answer:** No. A salt differentiates hashes across records and defeats precomputed tables, yet single-round SHA-256 remains fast. Use a dedicated KDF with a work factor, per-record salt, and strong passwords.
 
-**Câu 4.** “Trong chương trình PBKDF2, vì sao lúc xác minh phải đọc salt và rounds từ record?”  
-**Trả lời:** KDF phải nhận lại đúng tham số đã dùng khi tạo verifier; salt mới sẽ tạo kết quả khác. Lưu version/work factor cho phép xác minh bản ghi lịch sử và nâng cấp qua thời gian.
+**Question 4.** "In the PBKDF2 program, why must verification read the salt and rounds from the record?"  
+**Answer:** The KDF must receive the exact parameters used when creating the verifier; a new salt would yield a different output. Storing version/work factor allows verifying historical records and upgrading over time.
 
-**Câu 5.** “Có nên che giấu tên `PBKDF2WithHmacSHA256` hoặc giá trị salt để chống lộ mật khẩu?”  
-**Trả lời:** Không cần. Chúng được xem là thông tin công khai. An toàn phụ thuộc mật khẩu khó đoán, KDF được chọn/hiệu chuẩn và biện pháp bảo vệ dữ liệu/secret phụ trợ.
+**Question 5.** "Should we hide the name `PBKDF2WithHmacSHA256` or the salt value to prevent password exposure?"  
+**Answer:** No need. They are treated as public information. Security relies on unpredictable passwords, a properly chosen/calibrated KDF, and protections for auxiliary secrets/data.
 
-**Câu 6.** “Tôi dùng HMAC cho webhook. Payload cũ hợp lệ được gửi lại y hệt thì HMAC có chặn không?”  
-**Trả lời:** Không. MAC vẫn hợp lệ trên thông điệp cũ. Nếu replay có hại, ký/xác thực cả timestamp, message ID hoặc sequence và kiểm tra giới hạn thời gian/dedupe ở bên nhận.
+**Question 6.** "I use HMAC for webhooks. If a valid old payload is replayed identically, will HMAC block it?"  
+**Answer:** No. The MAC remains valid on the old message. If replay is harmful, sign/authenticate a timestamp, message ID, or sequence number as well and check time windows/deduplication on the receiver.
 
-## 9. Những lỗi thường gặp
+## 9. Common Mistakes
 
-- Kiểm tra `SHA256(file)` bằng digest nằm trong cùng một phản hồi không đáng tin rồi kết luận file do đúng nhà phát hành tạo ra.
-- Nghĩ tấn công thay `file + digest` đòi hỏi tìm va chạm SHA-256; thực ra chỉ cần tính digest của dữ liệu giả.
-- Dùng `MessageDigest` trực tiếp làm password hash hoặc băm vài vòng tự chế rồi cho là password storage KDF.
-- Dùng một salt cố định cho tất cả người dùng; lấy salt từ username, timestamp hoặc nguồn dễ đoán; hoặc coi salt là bí mật phải giấu.
-- Cho rằng salt/pepper/MFA/rate limit có thể thay thế lẫn nhau. Chúng giải quyết những lớp đe dọa khác nhau.
-- Dùng `SHA256(key || message)` tự chế thay HMAC; không bảo vệ key, không quản lý key rotation hoặc không kiểm soát replay.
-- Dùng chữ ký số nhưng tải khóa công khai chưa xác thực từ cùng nguồn không đáng tin với file cần kiểm tra.
-- Lưu plaintext password, log password, dùng Base64 như biện pháp bảo mật, giữ credential test hardcode trong production.
-- Tạo record PBKDF2 nhưng không lưu salt/work factor/version; cố verify với salt mới; bỏ qua xử lý dữ liệu hỏng hoặc cost quá mức.
-- Đưa toàn bộ mật khẩu yếu/compromised vào hệ thống và hy vọng KDF mạnh sẽ bù mọi rủi ro.
+- Checking `SHA256(file)` against a digest in the same untrusted response and concluding the file was created by the true publisher.
+- Thinking an attack replacing `file + digest` requires finding a SHA-256 collision; in fact, it only requires computing the digest of the forged data.
+- Using `MessageDigest` directly as a password hash or looping a few homemade rounds and treating it as a password-storage KDF.
+- Using one static salt for all users; deriving the salt from username, timestamp, or predictable sources; or treating the salt as a secret to hide.
+- Assuming salt/pepper/MFA/rate limiting can substitute for one another. They address different threat layers.
+- Using homemade `SHA256(key || message)` instead of HMAC; failing to protect keys, manage key rotation, or control replay.
+- Using digital signatures yet downloading an unauthenticated public key from the same untrusted source as the file being checked.
+- Storing plaintext passwords, logging passwords, treating Base64 as security, or keeping hardcoded test credentials in production.
+- Creating PBKDF2 records without storing salt/work factor/version; trying to verify with a new salt; omitting malformed-data or excessive-cost checks.
+- Allowing weak/compromised passwords into the system and hoping a strong KDF will offset every risk.
 
-## 10. Checklist trước khi triển khai
+## 10. Pre-Deployment Checklist
 
-**Đối với file/thông điệp:** xác định ai có thể sửa nội dung và digest; chọn expected digest đáng tin, HMAC hoặc chữ ký số; xác thực trust anchor; kiểm tra chính xác bytes/encoding và định dạng; bổ sung chống replay/rollback nếu cần.
+**For files/messages:** identify who can alter content and digests; choose a trusted expected digest, HMAC, or digital signature; authenticate the trust anchor; verify exact bytes/encoding and format; add replay/rollback protection if needed.
 
-**Đối với mật khẩu:** không lưu plaintext; sàng lọc mật khẩu yếu theo chính sách; dùng KDF đã được phân tích; sinh salt riêng; hiệu chuẩn cost; lưu schema/version/salt/cost/hash; so sánh an toàn; giới hạn thử online; kiểm soát quyền ghi DB; thiết kế nâng cấp/migration và bảo vệ pepper nếu có.
+**For passwords:** never store plaintext; screen weak passwords per policy; use a vetted KDF; generate unique salts; calibrate cost; store schema/version/salt/cost/hash; compare safely; rate-limit online attempts; restrict DB write permissions; design upgrades/migration and protect any pepper.
 
-## Tài liệu đối chiếu
+## Reference Materials
 
-- [Java SE 21 — MessageDigest](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/MessageDigest.html): tính digest, `digest`, `isEqual`.
-- [Java SE 21 — Mac](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Mac.html): HMAC, `init` và `doFinal`.
-- [Java SE 21 — Signature](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/Signature.html): ký và kiểm tra chữ ký số.
-- [Java SE 21 — SecretKeyFactory](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/SecretKeyFactory.html) và [PBEKeySpec](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html): tạo verifier PBKDF2 với salt và số vòng lặp.
+- [Java SE 21 — MessageDigest](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/MessageDigest.html): computing digests, `digest`, `isEqual`.
+- [Java SE 21 — Mac](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Mac.html): HMAC, `init`, and `doFinal`.
+- [Java SE 21 — Signature](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/Signature.html): signing and verifying digital signatures.
+- [Java SE 21 — SecretKeyFactory](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/SecretKeyFactory.html) and [PBEKeySpec](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html): generating PBKDF2 verifiers with salt and iteration count.
 - [OWASP — Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html): Argon2id, scrypt, bcrypt, PBKDF2, salt, pepper, work factor, migration.
-- [NIST SP 800-63B-4 — Password verifiers](https://pages.nist.gov/800-63-4/sp800-63b.html#verifierreq): bảo vệ password verifier khỏi tấn công offline, salt, cost và điều chỉnh theo thời gian.
-- [OWASP — Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html): chọn cơ chế mật mã dựa trên mô hình đe dọa.
+- [NIST SP 800-63B-4 — Password verifiers](https://pages.nist.gov/800-63-4/sp800-63b.html#verifierreq): protecting password verifiers against offline attacks, salt, cost, and adjusting over time.
+- [OWASP — Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html): choosing cryptographic mechanisms based on threat models.
 
-**Điểm cần nhớ:** digest công khai có ích để **so sánh với giá trị kỳ vọng đáng tin**; nó không tự xác thực tác giả khi cả dữ liệu và digest đều bị thay. Để xác thực nguồn, cần HMAC/chữ ký số với quản lý khóa phù hợp. Để bảo vệ mật khẩu yếu khỏi đoán offline, cần password hashing có salt và cost — và vẫn phải khuyến khích mật khẩu đủ mạnh.
+**Key takeaway:** a public digest is useful for **comparing against a trusted expected value**; it does not authenticate the author when both data and digest can be replaced. For origin authentication, use HMAC/digital signatures with proper key management. To protect weak passwords from offline guessing, use salted, cost-tuned password hashing—while still encouraging sufficiently strong passwords.

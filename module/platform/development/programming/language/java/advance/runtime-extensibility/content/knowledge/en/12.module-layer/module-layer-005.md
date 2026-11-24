@@ -1,50 +1,50 @@
-# Khám phá dịch vụ qua ServiceLoader.load(layer, service)
+# Discovering Services via ServiceLoader.load(layer, service)
 
-## 1. Mục đích
+## 1. Purpose
 
-Trong Java Platform Module System (JPMS), ứng dụng có thể tạo một **ModuleLayer** riêng cho các module plugin. Sau khi giải quyết dependency và định nghĩa layer, host cần tìm các implementation của một service interface mà plugin công bố.
+In the Java Platform Module System (JPMS), an application can create a dedicated **ModuleLayer** for plugin modules. After resolving dependencies and defining the layer, the host needs to discover implementations of a service interface published by the plugins.
 
-Java cung cấp overload:
+Java provides the overload:
 
 \`\`\`java
 public static <S> ServiceLoader<S> load(ModuleLayer layer, Class<S> service)
 \`\`\`
 
-Phương thức này tạo một \`ServiceLoader<S>\` để khám phá các provider của service trong **layer chỉ định và các ancestor layer** theo quy tắc của JPMS. Khác với \`ServiceLoader.load(Service.class)\`, overload này sử dụng **layer làm phạm vi khám phá**, thay vì lấy thread context class loader làm điểm xuất phát.
+This method creates a \`ServiceLoader<S>\` to discover service providers in **the specified layer and its ancestor layers** according to JPMS rules. Unlike \`ServiceLoader.load(Service.class)\`, this overload uses **the layer as the discovery scope**, rather than starting from the thread context class loader.
 
-Ví dụ, host định nghĩa service \`GreetingService\`, còn plugin module khai báo:
+For example, the host defines the \`GreetingService\` service, while the plugin module declares:
 
 \`\`\`java
 provides com.example.api.GreetingService
     with com.example.plugin.VietnameseGreeting;
 \`\`\`
 
-Sau khi host tạo layer chứa plugin, lệnh:
+After the host creates the layer containing the plugin, the call:
 
 \`\`\`java
 ServiceLoader<GreetingService> loader =
         ServiceLoader.load(pluginLayer, GreetingService.class);
 \`\`\`
 
-sẽ cho phép host tìm provider có thể sử dụng mà không cần gọi \`Class.forName\` theo tên implementation.
+allows the host to find usable providers without calling \`Class.forName\` on implementation names.
 
-**Điểm cần nhớ:** \`ServiceLoader.load(layer, service)\` không tạo layer, không tự nạp JAR mới từ ổ đĩa và không bảo đảm tự cập nhật khi có plugin JAR mới. Việc tìm provider qua \`ServiceLoader\` cũng có thể dẫn đến khởi tạo provider khi duyệt; vì thế phải hoàn tất kiểm tra nguồn gốc và khả năng tin cậy của plugin trước khi sử dụng.
+**Key points to remember:** \`ServiceLoader.load(layer, service)\` does not create layers, does not automatically load new JARs from disk, and does not automatically refresh when new plugin JARs appear. Discovering providers via \`ServiceLoader\` can also trigger provider instantiation during iteration; therefore, provenance and trust verification of plugins must be completed before use.
 
-## 2. Vai trò của service, provider và layer
+## 2. Roles of Service, Provider, and Layer
 
-Một hệ thống thường có những thành phần sau:
+A system typically includes the following components:
 
-| Thành phần | Vai trò |
+| Component | Role |
 |---|---|
-| Service interface | Hợp đồng mà host và provider cùng tham chiếu |
-| API module | Cung cấp service interface dùng chung |
-| Provider module | Khai báo implementation bằng \`provides ... with ...\` |
-| \`ModuleFinder\` | Tìm module trong JAR hoặc thư mục plugin |
-| \`Configuration\` | Graph module đã được phân giải dependency |
-| \`ModuleLayer\` | Tập module đang tồn tại trong một lớp runtime |
-| \`ServiceLoader\` | Tìm và khởi tạo provider theo hợp đồng service |
+| Service interface | Contract referenced by both host and provider |
+| API module | Supplies the shared service interface |
+| Provider module | Declares the implementation with \`provides ... with ...\` |
+| \`ModuleFinder\` | Finds modules in JARs or plugin directories |
+| \`Configuration\` | Module graph with resolved dependencies |
+| \`ModuleLayer\` | Set of modules existing in a runtime layer |
+| \`ServiceLoader\` | Discovers and instantiates providers per the service contract |
 
-Luồng tổng quát:
+General flow:
 
 \`\`\`text
         Host application
@@ -66,19 +66,19 @@ Luồng tổng quát:
           Invocation
 \`\`\`
 
-Khái niệm *service* ở đây là giao diện Java công bố dưới dạng service provider mechanism, không nhất thiết là HTTP service hoặc microservice.
+The term *service* here refers to a Java interface exposed via the service provider mechanism, not necessarily an HTTP service or microservice.
 
-Với JPMS, lớp provider có thể nằm trong package không được \`exports\` cho host; cơ chế \`provides\` vẫn cho phép \`ServiceLoader\` khởi tạo và trả về đối tượng thông qua service interface được chia sẻ.
+With JPMS, the provider class can reside in a package not \`exports\`ed to the host; the \`provides\` mechanism still permits \`ServiceLoader\` to instantiate and return the object through the shared service interface.
 
-## 3. Chuẩn bị module-info.java
+## 3. Preparing module-info.java
 
-Giả sử hệ thống gồm ba module:
+Suppose the system consists of three modules:
 
-- \`com.example.greeting.api\`: khai báo interface \`GreetingService\`.
-- \`com.example.greeting.plugin\`: triển khai service và công bố provider.
-- \`com.example.greeting.host\`: tạo layer, khám phá và gọi provider.
+- \`com.example.greeting.api\`: declares the \`GreetingService\` interface.
+- \`com.example.greeting.plugin\`: implements the service and publishes the provider.
+- \`com.example.greeting.host\`: creates the layer, discovers, and invokes providers.
 
-### API module
+### API Module
 
 \`src/com.example.greeting.api/module-info.java\`:
 
@@ -99,9 +99,9 @@ public interface GreetingService {
 }
 \`\`\`
 
-\`exports\` cho phép host và plugin truy cập interface theo cơ chế JPMS.
+\`exports\` allows the host and plugin to access the interface under JPMS rules.
 
-### Provider module
+### Provider Module
 
 \`src/com.example.greeting.plugin/module-info.java\`:
 
@@ -136,9 +136,9 @@ public final class VietnameseGreeting implements GreetingService {
 }
 \`\`\`
 
-Provider có public no-argument constructor để service loader khởi tạo. Trong explicit module, provider cũng có thể sử dụng quy tắc provider method \`provider()\` được API hỗ trợ; ví dụ này chọn constructor để dễ theo dõi. Không cần \`exports com.example.greeting.plugin\` chỉ để cung cấp provider bằng \`provides\`.
+The provider has a public no-argument constructor so the service loader can instantiate it. In an explicit module, a provider can also use the static \`provider()\` method convention supported by the API; this example chooses a constructor for clarity. \`exports com.example.greeting.plugin\` is not required solely to supply a provider via \`provides\`.
 
-### Host module
+### Host Module
 
 \`src/com.example.greeting.host/module-info.java\`:
 
@@ -149,9 +149,9 @@ module com.example.greeting.host {
 }
 \`\`\`
 
-\`uses\` khai báo rằng module host sử dụng service. Việc thiếu \`uses\` trong named module có thể khiến \`ServiceLoader\` từ chối yêu cầu khi chạy. \`requires\` cung cấp khả năng truy cập interface, còn \`uses\` khai báo tiêu thụ service; hai chỉ thị có vai trò khác nhau.
+\`uses\` declares that the host module consumes the service. Omitting \`uses\` in a named module can cause \`ServiceLoader\` to reject the request at runtime. \`requires\` grants access to the interface, whereas \`uses\` declares service consumption; the two directives serve different roles.
 
-## 4. Ví dụ Java 17+: tạo ModuleLayer và khám phá provider
+## 4. Java 17+ Example: Creating ModuleLayer and Discovering Providers
 
 \`src/com.example.greeting.host/com/example/greeting/host/Main.java\`:
 
@@ -200,18 +200,18 @@ public final class Main {
 }
 \`\`\`
 
-Giải thích từng bước:
+Step-by-step explanation:
 
-1. \`ModuleFinder.of(pluginDirectory)\` phát hiện module từ thư mục \`plugins\`.
-2. \`ModuleLayer.boot()\` cung cấp parent layer chứa host và API module trong ví dụ này.
-3. \`resolve(..., Set.of("com.example.greeting.plugin"))\` tìm module root và giải quyết các dependency.
-4. \`defineModulesWithOneLoader\` tạo layer chứa plugin theo configuration đã resolve.
-5. \`ServiceLoader.load(pluginLayer, GreetingService.class)\` tìm provider của service trong phạm vi layer.
-6. \`Provider::get\` tạo/lấy instance, sau đó host gọi method của interface chung.
+1. \`ModuleFinder.of(pluginDirectory)\` discovers modules from the \`plugins\` directory.
+2. \`ModuleLayer.boot()\` provides the parent layer containing the host and API module in this example.
+3. \`resolve(..., Set.of("com.example.greeting.plugin"))\` locates the root module and resolves dependencies.
+4. \`defineModulesWithOneLoader\` creates the layer containing the plugin per the resolved configuration.
+5. \`ServiceLoader.load(pluginLayer, GreetingService.class)\` searches for service providers within the layer's scope.
+6. \`Provider::get\` instantiates/obtains the instance, after which the host calls methods of the shared interface.
 
-Ở bước \`stream()\`, \`ServiceLoader.Provider\` cho phép xem \`type()\` trước khi gọi \`get()\`, hữu ích khi muốn lọc hoặc kiểm tra kiểu provider. Nhưng thao tác phát hiện và định nghĩa class vẫn có các quy tắc liên kết riêng; không được xem \`type()\` là một sandbox hoặc một bước xác thực mã không tin cậy.
+At the \`stream()\` step, \`ServiceLoader.Provider\` lets you inspect \`type()\` before calling \`get()\`, which is useful for filtering or checking provider types. However, class discovery and definition still follow their own linkage rules; do not treat \`type()\` as a sandbox or validation step for untrusted code.
 
-### Cấu trúc thư mục
+### Directory Structure
 
 \`\`\`text
 project/
@@ -228,7 +228,7 @@ project/
 └── plugins/
 \`\`\`
 
-Từ thư mục \`project\`, chạy trên JDK 17+:
+From the \`project\` directory, run on JDK 17+:
 
 \`\`\`bash
 javac --module-source-path src -d mods \
@@ -248,104 +248,104 @@ java --module-path mods/com.example.greeting.api:mods/com.example.greeting.host 
   --module com.example.greeting.host/com.example.greeting.host.Main
 \`\`\`
 
-Các lệnh trên trình bày theo shell POSIX (dấu \`\\\` nối dòng). Với Windows PowerShell, chạy mỗi lệnh trên một dòng và thay dấu phân tách module path \`:\` bằng \`;\`. Tránh đặt thư mục \`mods\` chứa module plugin trực tiếp trên \`--module-path\` khi host khởi chạy nếu muốn chứng minh plugin chỉ được đưa vào **child layer** do code tạo; lệnh trên chỉ đưa API và host lên module path.
+The commands above are written for a POSIX shell (\`\\\` line continuations). For Windows PowerShell, run each command on a single line and replace the module path separator \`:\` with \`;\`. Avoid putting the \`mods\` directory containing the plugin module directly on \`--module-path\` at host startup if you want to prove the plugin is only brought into the **child layer** created by code; the command above puts only the API and host on the module path.
 
-Kết quả mong đợi:
+Expected output:
 
 \`\`\`text
 vi: Xin chào, Lan
 \`\`\`
 
-Nếu không có JAR hoặc module name sai, bước resolve sẽ thất bại. Nếu provider có lỗi khi khởi tạo, lỗi có thể xuất hiện khi duyệt \`ServiceLoader\` hoặc gọi \`Provider.get()\`.
+If the JAR is missing or the module name is wrong, resolution will fail. If the provider fails during initialization, an error can occur while iterating \`ServiceLoader\` or calling \`Provider.get()\`.
 
-## 5. Vì sao ServiceLoader.load(layer, service) khác các overload khác?
+## 5. Why Is ServiceLoader.load(layer, service) Different from Other Overloads?
 
-Java cung cấp nhiều cách tạo service loader:
+Java provides several ways to create a service loader:
 
-| API | Điểm xuất phát khám phá | Khi nào dùng |
+| API | Discovery Starting Point | When to Use |
 |---|---|---|
-| \`ServiceLoader.load(Service.class)\` | Thread context class loader | Ứng dụng dùng classpath/TCCL hoặc cơ chế mặc định |
-| \`ServiceLoader.load(Service.class, loader)\` | Class loader chỉ định | Cần kiểm soát loader theo cơ chế classpath/module |
-| \`ServiceLoader.loadInstalled(Service.class)\` | Platform class loader | Dịch vụ cài đặt nhìn thấy qua loader thích hợp |
-| \`ServiceLoader.load(layer, Service.class)\` | Module layer được chỉ định và ancestor layers | Hệ plugin sử dụng JPMS \`ModuleLayer\` |
+| \`ServiceLoader.load(Service.class)\` | Thread context class loader | Applications using classpath/TCCL or default mechanisms |
+| \`ServiceLoader.load(Service.class, loader)\` | Specified class loader | Need to control the loader in classpath/module setups |
+| \`ServiceLoader.loadInstalled(Service.class)\` | Platform class loader | Installed services visible via the appropriate loader |
+| \`ServiceLoader.load(layer, Service.class)\` | Specified module layer and ancestor layers | Plugin systems using JPMS \`ModuleLayer\` |
 
-Sự khác biệt có ý nghĩa khi host sử dụng nhiều layer, có cùng tên implementation ở nhiều nơi hoặc muốn giới hạn nguồn khám phá. Tuy nhiên, khám phá theo layer **không tự đảm bảo chỉ có provider thuộc đúng plugin đang xét**: API cũng tìm trong các ancestor layer. Nếu cần chính xác provider nào thuộc layer/plugin hiện tại, kiểm tra \`provider.type().getModule().getLayer()\` và metadata/allowlist tương ứng.
+The difference matters when the host uses multiple layers, has implementations in multiple places, or wants to restrict the discovery source. However, layer-based discovery **does not by itself guarantee only providers from the exact target plugin appear**: the API also searches ancestor layers. If you need precisely which providers belong to the current layer/plugin, check \`provider.type().getModule().getLayer()\` and corresponding metadata/allowlists.
 
-Thứ tự các provider do ServiceLoader trả về không phải chính sách ưu tiên nghiệp vụ. Muốn single-provider selection, fan-out hoặc pipeline, hãy xây bước lựa chọn và thứ tự riêng sau discovery.
+The order of providers returned by \`ServiceLoader\` is not a business priority policy. For single-provider selection, fan-out, or pipelines, build a dedicated selection and ordering step after discovery.
 
-## 6. Phân biệt module name, service type và class identity
+## 6. Distinguishing Module Name, Service Type, and Class Identity
 
-Các lỗi khi khám phá provider thường không nằm ở cú pháp \`ServiceLoader.load\` mà ở cách tổ chức module và class loader.
+Errors during provider discovery usually do not stem from \`ServiceLoader.load\` syntax, but from how modules and class loaders are organized.
 
-**Service type phải là một \`Class\` chung** giữa host và plugin. Nếu host và plugin tự định nghĩa hai bản sao của \`GreetingService\` bằng hai loader khác nhau, việc implementation có cùng tên interface chưa đảm bảo phép cast hợp lệ. Đặt API module trong parent layer dùng chung là mô hình thông dụng.
+**The service type must be one shared \`Class\`** between host and plugin. If host and plugin each define their own copy of \`GreetingService\` via different loaders, having matching interface names does not guarantee a valid cast. Placing the API module in a shared parent layer is the standard pattern.
 
-**Module root phải tồn tại trong finder**. \`Set.of("com.example.greeting.plugin")\` chọn tên JPMS module, không phải tên JAR hay class. \`ModuleFinder.of(Path.of("plugins"))\` phải thấy JAR hoặc exploded module có descriptor hợp lệ và không bị xung đột tên.
+**The module root must exist in the finder.** \`Set.of("com.example.greeting.plugin")\` selects a JPMS module name, not a JAR filename or class name. \`ModuleFinder.of(Path.of("plugins"))\` must see a JAR or exploded module with a valid descriptor and no name conflicts.
 
-**Provider phải đúng hợp đồng**. Service implementation phải đáp ứng quy tắc \`provides\` và kiểu service. Trong explicit module, khai báo module descriptor quyết định việc công bố provider; chỉ có implementation class trong JAR chưa đủ.
+**The provider must match the contract.** The service implementation must satisfy \`provides\` rules and the service type. In an explicit module, the module descriptor declaration governs provider publication; merely having an implementation class in the JAR is not enough.
 
-**Layer đã tạo không tự cập nhật**. Chép JAR mới vào \`plugins\` không làm \`ServiceLoader\` của layer cũ phát hiện module mới. Muốn cập nhật động, host phải xây finder/configuration/layer mới theo lifecycle của plugin manager.
+**An already-created layer does not update automatically.** Copying a new JAR into \`plugins\` does not cause an old layer's \`ServiceLoader\` to discover the new module. To update dynamically, the host must construct a new finder/configuration/layer following the plugin manager's lifecycle.
 
-## 7. Xử lý provider lỗi và chính sách lựa chọn
+## 7. Handling Faulty Providers and Selection Policies
 
-Khi duyệt \`ServiceLoader\`, một provider lỗi có thể gây \`ServiceConfigurationError\`. Tùy nguyên nhân còn có thể xảy ra lỗi class loading/linkage hoặc exception do mã constructor/provider method. Không nên bắt một exception chung rồi lặng lẽ bỏ qua mọi provider.
+When iterating \`ServiceLoader\`, a faulty provider can cause \`ServiceConfigurationError\`. Depending on the cause, class loading/linkage errors or exceptions from a constructor/provider method can also occur. Do not catch a broad exception and silently ignore every provider.
 
-Các chính sách có thể cân nhắc:
+Policies to consider:
 
-- **Fail-fast:** nếu tất cả provider bắt buộc hợp lệ, từ chối kích hoạt layer/plugin khi phát hiện lỗi.
-- **Best-effort:** nếu service là optional observer, có thể ghi nhận provider lỗi và tiếp tục theo cơ chế có kiểm soát, không che khuất sự cố.
-- **Single provider:** chọn đúng một provider theo \`pluginId\`, capability, phiên bản hoặc cấu hình; từ chối nếu không có ứng viên hoặc mơ hồ.
-- **Pipeline:** áp dụng order/dependency metadata của host sau discovery; không dựa trên thứ tự iteration.
-- **Hot reload:** tạo snapshot provider mới, kiểm tra health, rồi chuyển request mới qua snapshot đó; drain tác vụ cũ trước khi giải phóng tham chiếu.
+- **Fail-fast:** if all required providers must be valid, reject layer/plugin activation upon detecting an error.
+- **Best-effort:** if the service is an optional observer, log the faulty provider and continue under a controlled mechanism without masking the incident.
+- **Single provider:** select exactly one provider by \`pluginId\`, capability, version, or configuration; reject if there are no candidates or if ambiguous.
+- **Pipeline:** apply the host's ordering/dependency metadata after discovery; do not rely on iteration order.
+- **Hot reload:** build a new provider snapshot, run health checks, then route new requests through that snapshot; drain old work before releasing references.
 
-Không thực hiện side effect nghiệp vụ trong constructor nếu có thể tránh; ưu tiên lifecycle rõ ràng như \`initialize\`, \`start\`, \`stop\`, \`close\` để host chủ động xác định lúc plugin được phép nhận công việc.
+Avoid performing business side effects in constructors whenever possible; prefer explicit lifecycle methods such as \`initialize\`, \`start\`, \`stop\`, and \`close\` so the host controls when the plugin may accept work.
 
-## 8. Khám phá service và bảo mật
+## 8. Service Discovery and Security
 
-Đây là điểm dễ bỏ sót trong plugin runtime: \`ModuleFinder\` và \`ModuleDescriptor\` cho phép đọc metadata mà chưa cần chạy logic plugin, còn \`ServiceLoader\` có thể khởi tạo object provider và chạy mã từ JAR.
+This is easy to overlook in plugin runtimes: \`ModuleFinder\` and \`ModuleDescriptor\` let you read metadata without executing plugin logic, whereas \`ServiceLoader\` can instantiate provider objects and run code from the JAR.
 
-Trước khi gọi \`Provider.get()\`, host nên kiểm tra:
+Before calling \`Provider.get()\`, the host should verify:
 
-1. Artifact đến từ nguồn được phép, metadata và chữ ký/hash đáp ứng chính sách.
-2. Module name, version, API dependency và service declaration phù hợp.
-3. Không có duplicate/xung đột module hoặc provider vượt quyền.
-4. Loader/layer được tạo từ bản artifact đã kiểm tra, tránh thay JAR trong lúc dùng.
-5. Có chính sách lifecycle, timeout, logging và rollback nếu init thất bại.
+1. The artifact comes from an authorized source, and metadata and signatures/hashes satisfy policy.
+2. Module name, version, API dependencies, and service declarations match expectations.
+3. There are no duplicate/conflicting modules or unauthorized providers.
+4. Loaders/layers are created from verified artifacts, avoiding JAR replacement while in use.
+5. Lifecycle, timeout, logging, and rollback policies exist if initialization fails.
 
-JPMS điều khiển module readability, exports và opens; \`ModuleLayer\` không phải sandbox cho mã không đáng tin trong cùng JVM. Đối với plugin thiếu tin cậy, dùng cô lập process/container và giao thức trao đổi với host.
+JPMS governs module readability, exports, and opens; \`ModuleLayer\` is not a sandbox for untrusted code in the same JVM. For untrusted plugins, use process/container isolation and a communication protocol with the host.
 
-## 9. Câu hỏi thường gặp
+## 9. Frequently Asked Questions
 
-### Vì sao ServiceLoader trả về danh sách rỗng?
+### Why does ServiceLoader return an empty list?
 
-Kiểm tra module provider đã có mặt trong layer chưa, \`module-info.java\` có đúng \`provides\` hay không, service type có được chia sẻ đúng không, module host có \`uses\` hay không, và layer được truyền vào \`load\` có đúng layer chứa provider không. Nếu dùng automatic module hoặc classpath, quy tắc provider declaration có thể khác explicit module.
+Check whether the provider module is present in the layer, whether \`module-info.java\` has the right \`provides\`, whether the service type is properly shared, whether the host module has \`uses\`, and whether the layer passed to \`load\` is the layer containing the provider. If using automatic modules or the classpath, provider declaration rules may differ from explicit modules.
 
-### Có cần export package implementation không?
+### Do I need to export the implementation package?
 
-Thông thường **không** cần chỉ để dùng \`provides ... with ...\`. Java service loader có thể tạo provider trong package implementation không export, trong khi host chỉ gọi qua interface của API module.
+Normally **no**, not solely for \`provides ... with ...\`. The Java service loader can instantiate providers in unexported implementation packages, while the host invokes them only through the API module's interface.
 
-### Có thể gọi ServiceLoader.load(layer, service) nhiều lần không?
+### Can ServiceLoader.load(layer, service) be called multiple times?
 
-Có. Mỗi lời gọi tạo một service loader riêng, có cache provider/instance riêng theo quy tắc API. Không nên giả định chúng dùng chung singleton provider. Với cùng một \`ServiceLoader\`, \`reload()\` xóa cache provider để iteration kế tiếp tìm lại trong phạm vi layer đó, nhưng **không thêm module mới vào layer đã tồn tại**.
+Yes. Each call creates a separate service loader with its own provider/instance cache per API rules. Do not assume they share singleton providers. On the same \`ServiceLoader\`, \`reload()\` clears the provider cache so the next iteration re-discovers within that layer's scope, yet **does not add new modules to an existing layer**.
 
-### ServiceLoader có sắp xếp theo priority không?
+### Does ServiceLoader sort by priority?
 
-Không tự xử lý priority nghiệp vụ. Host cần đọc metadata của provider và áp dụng selector/sorter rõ ràng. Đừng gán ý nghĩa ưu tiên cho thứ tự tình cờ do discovery.
+It does not handle business priority automatically. The host needs to read provider metadata and apply an explicit selector/sorter. Do not assign priority meaning to accidental discovery order.
 
-### Có được tạo layer cho mỗi plugin không?
+### Can I create a layer per plugin?
 
-Có thể, nếu graph dependency, class identity và lifecycle cho phép. Tuy vậy chi phí loader/module, quản lý shared API, service visibility và tài nguyên sẽ phức tạp hơn. Một layer chứa nhiều plugin hoặc nhiều layer độc lập đều là lựa chọn kiến trúc, cần kiểm thử xung đột dependency và hot reload.
+Yes, if the dependency graph, class identity, and lifecycle allow it. However, loader/module overhead, shared API management, service visibility, and resources become more complex. Either one layer holding multiple plugins or multiple independent layers is a valid architectural choice; test dependency conflicts and hot reload behavior.
 
-## 10. Checklist áp dụng
+## 10. Implementation Checklist
 
-- API module xuất service interface và được chia sẻ bởi host/plugin.
-- Host named module khai báo \`uses\`.
-- Provider module khai báo \`requires\` API và \`provides\` implementation.
-- Finder trỏ đúng thư mục/JAR, module root chính xác.
-- Configuration resolve được trên parent module graph.
-- Layer được định nghĩa với class loader phù hợp.
-- \`ServiceLoader.load(layer, Service.class)\` dùng đúng đối tượng layer và service type.
-- Provider được lựa chọn theo chính sách riêng; xử lý trùng, thiếu và lỗi khởi tạo.
-- Metadata/integrity được xác thực trước khi thực thi mã provider.
-- Hot reload tạo layer/snapshot mới và dọn lifecycle cũ.
+- The API module exports the service interface and is shared by host and plugins.
+- The host named module declares \`uses\`.
+- The provider module declares \`requires\` for the API and \`provides\` for the implementation.
+- The finder points to the right directory/JAR and the module root is exact.
+- Configuration resolves cleanly against the parent module graph.
+- The layer is defined with appropriate class loaders.
+- \`ServiceLoader.load(layer, Service.class)\` uses the right layer object and service type.
+- Providers are selected by explicit policy; duplicates, missing providers, and init failures are handled.
+- Metadata/integrity is verified before executing provider code.
+- Hot reload creates a new layer/snapshot and cleans up the old lifecycle.
 
-**Ghi nhớ:** \`ServiceLoader.load(layer, service)\` là cầu nối từ **JPMS ModuleLayer** đến **service provider**. Nó giúp host khám phá implementation theo module graph, nhưng quản lý plugin hoàn chỉnh vẫn cần kiểm tra nguồn gốc, giải quyết dependency, lựa chọn provider và kiểm soát vòng đời.
+**Remember:** \`ServiceLoader.load(layer, service)\` is the bridge from a **JPMS ModuleLayer** to **service providers**. It helps the host discover implementations according to the module graph, while complete plugin management still requires origin verification, dependency resolution, provider selection, and lifecycle control.

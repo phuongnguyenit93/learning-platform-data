@@ -1,64 +1,64 @@
-# 16.6 Ghi mã tương quan, kết quả và độ trễ nghiệp vụ với dữ liệu giới hạn
+# 16.6 Recording Correlation Codes, Outcomes, and Business Latency with Bounded Data
 
-> **Phạm vi:** Java 17+ và Java Flight Recorder (JFR) qua module `jdk.jfr`. Trọng tâm là thiết kế **custom JFR event** cho một thao tác nghiệp vụ: gắn mã tương quan có thể tra cứu, ghi nhận kết quả thành công/thất bại, đo đúng khoảng thời gian nghiệp vụ và kiểm soát **loại dữ liệu, kích thước, tần suất** phát sinh. Các ví dụ sử dụng JDK 17+; lệnh đã được kiểm tra trên OpenJDK 24.
+> **Scope:** Java 17+ and Java Flight Recorder (JFR) via the `jdk.jfr` module. The focus is designing a **custom JFR event** for a business operation: attaching a searchable correlation code, recording success/failure outcomes, measuring the exact business interval, and controlling **data types, size, and emission rate**. Examples use JDK 17+; commands were verified on OpenJDK 24.
 
-## 1. Vì sao nên ghi business event vào JFR?
+## 1. Why Record Business Events in JFR?
 
-Các JFR event dựng sẵn như GC, CPU sampling, lock contention, socket I/O và file I/O giúp biết **JVM đang làm gì**. Nhưng chúng thường không trả lời trực tiếp:
+Built-in JFR events such as GC, CPU sampling, lock contention, socket I/O, and file I/O show **what the JVM is doing**. However, they rarely answer directly:
 
-- Request **đặt chỗ** hoặc **xác nhận đơn** nào đã chậm?
-- Nó đã thành công, bị từ chối vì kiểm tra nghiệp vụ, bị timeout hay bị hủy?
-- Khoảng chậm ở tầng nghiệp vụ bắt đầu/kết thúc ở đâu?
-- Làm sao nối một thời điểm JFR với log hoặc trace của đúng thao tác mà không ghi cả request body hay thông tin cá nhân?
+- Which **reservation** or **order confirmation** request was slow?
+- Did it succeed, fail business validation, time out, or get cancelled?
+- Where did the business-layer slowdown start and end?
+- How do you link a JFR timestamp to logs or traces of the exact operation without recording full request bodies or personal data?
 
-Một custom event cho phép ghi bối cảnh vừa đủ:
+A custom event lets you record just enough context:
 
 ```text
 Custom JFR event: demo.BusinessOperation
-  startTime       : thời điểm bắt đầu đoạn được đo
-  duration        : thời lượng đoạn đó (JFR tự ghi)
-  correlationCode : mã tra cứu nội bộ không chứa dữ liệu cá nhân
-  operation       : tên nghiệp vụ thuộc danh sách cố định
+  startTime       : start timestamp of the measured segment
+  duration        : duration of that segment (recorded automatically by JFR)
+  correlationCode : internal lookup code containing no personal data
+  operation       : business operation name from a fixed list
   outcome         : SUCCESS | FAILED | CANCELLED
   failureCategory : NONE | VALIDATION | DEPENDENCY | TIMEOUT | INTERRUPTED | OTHER
-  itemCount       : số lượng đầu vào hợp lệ, đã giới hạn theo chính sách
+  itemCount       : valid input count, bounded by policy
 ```
 
-`startTime` và `duration` do cơ chế `Event.begin()`/`Event.end()` của JFR quản lý. Các trường còn lại do ứng dụng tự định nghĩa. Thay vì “log thật nhiều để chắc chắn đủ dữ liệu”, hãy xác định **câu hỏi cần điều tra** rồi chọn vài trường ổn định, không nhạy cảm, chi phí thấp.
+`startTime` and `duration` are managed by JFR's `Event.begin()`/`Event.end()` mechanism. The remaining fields are defined by the application. Rather than "logging as much as possible just in case", identify **the investigative question** and pick a few stable, non-sensitive, low-cost fields.
 
-**Sự khác biệt với metrics và logs:**
+**Differences from metrics and logs:**
 
-| Tín hiệu | Mạnh nhất khi | Giới hạn cần nhớ |
+| Signal | Strongest when | Limitations to remember |
 | --- | --- | --- |
-| **JFR business event** | Đối chiếu một giao dịch/nhóm giao dịch với thời điểm JVM bị GC, pause, lock hoặc I/O; xem duration cùng JVM timeline | Chịu event settings, threshold, buffer/retention; có thể không chứa mọi request |
-| **Metrics (counter/histogram)** | Tính throughput, error rate, latency p50/p95/p99 trên toàn bộ mẫu được instrument | Thường không giữ mã riêng của từng giao dịch; các nhãn có cardinality cao dễ gây tốn tài nguyên |
-| **Structured logs** | Tìm diễn biến chi tiết theo một mã, theo dõi cảnh báo và lỗi nghiệp vụ | Cần giới hạn dữ liệu cá nhân; timestamp riêng lẻ thường không cho duration đầy đủ |
-| **Distributed tracing** | Theo đường request qua nhiều service, spans và critical path | Cần context propagation, sampling và chính sách thu thập; không tự thay thế thông tin JFR trong JVM |
+| **JFR business event** | Correlating a transaction or group of transactions with JVM GC pauses, locks, or I/O; viewing durations on the same JVM timeline | Subject to event settings, thresholds, buffers/retention; may not capture every request |
+| **Metrics (counter/histogram)** | Computing throughput, error rate, and p50/p95/p99 latency across all instrumented samples | Typically do not retain per-transaction codes; high-cardinality labels exhaust resources |
+| **Structured logs** | Tracing detailed progression for a single code, tracking warnings and business errors | Must restrict personal data; standalone log timestamps often lack full duration |
+| **Distributed tracing** | Following a request across services, spans, and the critical path | Requires context propagation, sampling, and collection policies; does not replace in-JVM JFR detail |
 
-Kết hợp JFR + metrics + logs/traces là cách có thể kiểm chứng nguyên nhân. JFR không phải hệ thống lưu audit bắt buộc, hệ thống thanh toán hay cơ chế bảo đảm ghi nhận 100% giao dịch.
+Combining JFR + metrics + logs/traces provides verifiable root-cause analysis. JFR is not a mandatory audit store, billing ledger, or 100%-guaranteed transaction capture system.
 
-## 2. Thiết kế hợp đồng event trước khi viết code
+## 2. Designing the Event Contract Before Writing Code
 
-### 2.1. Event name và các trường ổn định
+### 2.1. Event name and stable fields
 
-Tên event nên có namespace rõ ràng và ổn định, ví dụ `demo.BusinessOperation` trong lab và `com.acme.checkout.BusinessOperation` trong sản phẩm thực. Tên này được dùng khi cấu hình event, lọc `jfr print` và phân tích trong JDK Mission Control (JMC).
+The event name should have a clear, stable namespace—for instance, `demo.BusinessOperation` in labs and `com.acme.checkout.BusinessOperation` in production. This name is used to configure events, filter with `jfr print`, and analyze in JDK Mission Control (JMC).
 
-| Trường | Kiểu JFR phù hợp | Quy ước dữ liệu | Không được đưa vào |
+| Field | Suitable JFR type | Data convention | Must never include |
 | --- | --- | --- | --- |
-| `correlationCode` | `String` | Mã ngẫu nhiên/opaque do hệ thống phát hành; giới hạn chiều dài, alphabet cho phép và vòng đời | Email, số điện thoại, tên khách hàng, mã phiên đăng nhập, access token, nội dung request |
-| `operation` | `String` | Một giá trị thuộc allowlist cố định, ví dụ `reserve`, `checkout`, `refund` | URL nguyên bản có query string, tên class động, chuỗi tùy ý từ người dùng |
-| `outcome` | `String` | `SUCCESS`, `FAILED`, `CANCELLED` hoặc schema được thống nhất | Thông điệp exception tùy ý |
-| `failureCategory` | `String` | Nhóm lỗi ít giá trị, ví dụ `NONE`, `VALIDATION`, `TIMEOUT`, `DEPENDENCY`, `OTHER` | SQL, full stack trace, HTTP body, raw error messages có thể chứa bí mật |
-| `itemCount` | `int` | Số lượng không âm với giới hạn và ý nghĩa rõ ràng | Giá trị giả làm số chính xác khi thực tế đã bị cắt |
-| `startTime`/`duration` | Trường hệ thống của event | Thời gian do `begin`/`end` xác định | Không tự gắn timestamp lấy từ đồng hồ khác nếu không có nhu cầu đối chiếu |
+| `correlationCode` | `String` | System-issued random/opaque code; bounded length, allowed alphabet, and lifecycle | Email, phone number, customer name, login session ID, access token, request content |
+| `operation` | `String` | One value from a fixed allowlist, e.g., `reserve`, `checkout`, `refund` | Raw URLs with query strings, dynamic class names, arbitrary user strings |
+| `outcome` | `String` | `SUCCESS`, `FAILED`, `CANCELLED`, or an agreed schema | Arbitrary exception messages |
+| `failureCategory` | `String` | Low-cardinality error category, e.g., `NONE`, `VALIDATION`, `TIMEOUT`, `DEPENDENCY`, `OTHER` | SQL, full stack traces, HTTP bodies, raw error messages that may contain secrets |
+| `itemCount` | `int` | Non-negative count with a clear bound and meaning | Clamped values disguised as exact counts when truncation occurred |
+| `startTime`/`duration` | Event system fields | Timing determined by `begin`/`end` | Do not manually attach timestamps from another clock unless needed for cross-checking |
 
-Đối với custom event class, `jdk.jfr.Event` chỉ ghi các trường instance có kiểu **Java primitive, `String`, `Thread` hoặc `Class`**. Một `enum`, `Map`, `List`, array, object DTO, v.v. **không** tự động được ghi thành payload; những kiểu reference khác có thể bị bỏ qua mà không báo lỗi. Do đó nếu business layer dùng `enum Outcome`, hãy chuyển sang **tên String thuộc allowlist** trước khi ghi.
+For a custom event class, `jdk.jfr.Event` only records instance fields of type **Java primitive, `String`, `Thread`, or `Class`**. An `enum`, `Map`, `List`, array, DTO object, etc., is **not** automatically serialized as payload; unsupported reference types may be silently ignored without error. Therefore, if the business layer uses `enum Outcome`, convert it to an **allowlisted `String` name** before recording.
 
-`@Name`, `@Label`, `@Category`, `@Description` giúp JFR tools nhận diện schema và trình bày trường dễ hiểu. Đổi tên/kiểu field có thể làm hỏng query hoặc dashboard đã viết trước; nên xem event schema như một **hợp đồng dữ liệu** có kiểm soát phiên bản.
+`@Name`, `@Label`, `@Category`, and `@Description` help JFR tools recognize schemas and present fields clearly. Renaming or changing field types can break existing queries or dashboards; treat the event schema as a versioned **data contract**.
 
-### 2.2. Mã tương quan là khóa nối, không phải dữ liệu nghiệp vụ
+### 2.2. A correlation code is a join key, not business data
 
-Một mã tương quan có nhiệm vụ nối:
+A correlation code bridges signals:
 
 ```text
 log/service-A  -- correlationCode=c-7f3... --> JFR/service-A
@@ -68,83 +68,83 @@ log/service-A  -- correlationCode=c-7f3... --> JFR/service-A
                   service-B logs/traces
 ```
 
-**Các cách tạo hợp lý:**
+**Sensible ways to generate it:**
 
-1. Tạo một opaque ID ngẫu nhiên phía server khi bắt đầu luồng nghiệp vụ. Nếu cần đi qua nhiều service, truyền ID theo kênh được kiểm soát và giữ nhất quán.
-2. Nếu đã có trace context được chấp nhận, dùng `traceId`/`spanId` với **định dạng và giới hạn rõ ràng**; tránh đưa toàn bộ tracing baggage vào JFR.
-3. Khi chỉ có business ID nhạy cảm, **không ghi trực tiếp**. Có thể phát hành một ID nội bộ ánh xạ an toàn hoặc dùng HMAC có khóa và policy phù hợp để tạo pseudonym khi thực sự cần tương quan. Hash thường của email/order ID dễ bị suy đoán từ danh sách giá trị; nó không đương nhiên bảo vệ danh tính.
-4. Giới hạn mã theo độ dài (ví dụ tối đa 64 ký tự ASCII), format và nguồn tin cậy. Chỉ kiểm tra regex không đủ để bảo đảm chuỗi không chứa dữ liệu cá nhân nếu caller gửi chính email/token dưới dạng hợp lệ.
+1. Generate a server-side random opaque ID at the start of the business flow. If it crosses multiple services, propagate it through controlled channels and keep it consistent.
+2. If an approved trace context already exists, use `traceId`/`spanId` with **explicit format and size bounds**; avoid dumping arbitrary tracing baggage into JFR.
+3. When only a sensitive business ID exists, **do not record it directly**. Issue a safely mapped internal ID or use a keyed HMAC under an appropriate policy to create a pseudonym when correlation is truly needed. Plain hashes of emails/order IDs are easily guessed from known value sets and do not automatically protect identity.
+4. Enforce length limits (e.g., max 64 ASCII characters), format validation, and trusted sources. Regex validation alone cannot guarantee a string lacks personal data if a caller passes an email or token in a matching format.
 
-Một mã có cardinality cao có thể chấp nhận được **trong một số JFR events có retention giới hạn** vì nó dùng để tìm một giao dịch; nhưng **không** đưa từng mã vào label của time-series metrics. Số event và dữ liệu String khác nhau trên mỗi event vẫn có chi phí lưu trữ, index và phân tích.
+A high-cardinality code can be acceptable **in bounded-retention JFR events** because it locates an individual transaction; however, **never** put per-request codes into time-series metric labels. Distinct event counts and unique `String` values per event still carry storage, indexing, and analysis costs.
 
-### 2.3. Kết quả là trạng thái cuối của vùng đo
+### 2.3. Outcome is the final status of the measured scope
 
-`outcome` phải mô tả **đoạn nghiệp vụ đang được đo**, không suy ra từ việc method có/không ném exception:
+`outcome` must describe **the business segment being measured**, not simply whether a method threw an exception:
 
-- `SUCCESS`: bước nghiệp vụ được xác nhận hoàn tất theo hợp đồng của bước đó.
-- `FAILED`: bước thất bại (có thể vì validation, dependency hoặc lý do khác).
-- `CANCELLED`: bước bị hủy/ngắt với ngữ nghĩa nghiệp vụ tương ứng.
+- `SUCCESS`: the business step was confirmed complete per its contract.
+- `FAILED`: the step failed (due to validation, dependency error, or other reasons).
+- `CANCELLED`: the step was cancelled or interrupted with corresponding business semantics.
 
-Một phương thức trả HTTP 200 nhưng kết quả nghiệp vụ **từ chối giao dịch** vẫn có thể là `FAILED` về mặt nghiệp vụ. Ngược lại một retry đã thành công có thể là `SUCCESS` cho **attempt cuối**, nhưng luồng toàn bộ vẫn có latency khác. Hãy định nghĩa rõ event đo **một attempt** hay **toàn bộ operation**, tránh trộn hai loại.
+A method returning HTTP 200 whose business result **declines the transaction** can still be `FAILED` functionally. Conversely, a successful retry may be `SUCCESS` for the **final attempt**, while the overall flow has a different latency. Clearly define whether the event measures **a single attempt** or **the entire operation**, and do not mix the two.
 
-## 3. Đo đúng “độ trễ nghiệp vụ”
+## 3. Measuring "Business Latency" Accurately
 
-### 3.1. `begin()` và `end()`
+### 3.1. `begin()` and `end()`
 
-API JFR cho custom event:
+JFR API for custom events:
 
 ```java
 BusinessEvent event = new BusinessEvent();
 event.begin();
 try {
-    // Công việc muốn đo.
+    // Work to measure.
 } finally {
     event.end();
     if (event.shouldCommit()) {
-        // Chỉ tạo payload hữu ích khi event thực sự được thu.
+        // Only build useful payload when the event is actually captured.
         event.commit();
     }
 }
 ```
 
-`event.begin()` bắt đầu đồng hồ JFR; `event.end()` kết thúc khoảng đo; `commit()` ghi event khi event đang enabled và đáp ứng threshold. JFR lưu `startTime`, `duration` cùng các trường bổ sung. `end()` phải được gọi sau `begin()`; nếu không gọi `end()`, `commit()` có thể đánh dấu thời điểm kết thúc, nhưng `finally` rõ ràng giúp không vô tình bỏ qua nhánh lỗi.
+`event.begin()` starts the JFR timer; `event.end()` closes the interval; `commit()` records the event when enabled and above threshold. JFR stores `startTime`, `duration`, and custom fields. `end()` must be called after `begin()`; if omitted, `commit()` marks the end time, but an explicit `finally` block prevents accidentally skipping error paths.
 
-**Chọn ranh giới đo có ý nghĩa:** Nếu muốn “thời gian xử lý đặt chỗ”, gọi `begin()` ngay trước khi bắt đầu business operation, `end()` khi outcome của operation đã xác định. Nó sẽ **không tính** thời gian trước `begin()` như request đứng trong queue tại API gateway; cũng không tính công việc async tiếp diễn **sau** khi method đã trả về. Đặt `end()` trước hay sau ghi DB, retry, external call, transaction commit sẽ thay đổi SLI nên cần thống nhất.
+**Choose meaningful measurement boundaries:** If you want "reservation processing time", call `begin()` right before starting the business operation and `end()` once the operation's outcome is decided. It will **exclude** time spent prior to `begin()`, such as sitting in an API gateway queue, as well as async work continuing **after** the method returns. Placing `end()` before or after DB writes, retries, external calls, or transaction commits changes the SLI, so be consistent.
 
-Các điểm cần phân biệt:
+Points to distinguish:
 
-- JFR `duration` là **thời gian elapsed** giữa begin và end; không phải CPU time của thread.
-- Nếu đoạn đo chờ DB/network, lock, sleep hoặc scheduler, `duration` vẫn tăng dù thread không sử dụng CPU.
-- Nếu operation chạy nhiều thread hay async, một event trên một method không tự động cộng thời gian của những task chưa `join`/`await`; hãy chọn **điểm bắt đầu/kết thúc logic của operation** rồi truyền correlation context.
-- Với virtual threads, JFR vẫn ghi event theo logic begin/end, nhưng `eventThread` không đủ để suy ra request xuyên nhiều async boundaries.
-- Không tự chuyển `duration` sang “số ms từ `System.currentTimeMillis()`” trong JFR payload khi JFR đã cung cấp duration; thêm trường riêng chỉ khi một metric khác có semantics khác rõ ràng.
+- JFR `duration` is **elapsed time** between `begin` and `end`; it is not thread CPU time.
+- If the measured block waits on DB/network, locks, sleep, or the scheduler, `duration` still increases even while the thread uses no CPU.
+- If an operation spans multiple threads or async tasks, a single-method event does not automatically sum unawaited/unjoined tasks; pick the **logical start/end points of the operation** and propagate correlation context.
+- With virtual threads, JFR still records events per `begin`/`end` logic, though `eventThread` alone is insufficient to trace a request across async boundaries.
+- Do not manually store `duration` as "ms from `System.currentTimeMillis()`" in the JFR payload when JFR already records `duration`; add a separate timing field only when it carries genuinely distinct semantics.
 
-### 3.2. `shouldCommit()` và threshold
+### 3.2. `shouldCommit()` and thresholds
 
-JFR cho phép đặt `threshold`: duration **nhỏ hơn ngưỡng** sẽ không được ghi. Sau khi đã `end()`, `shouldCommit()` giúp tránh tính toán/khử dữ liệu đắt đỏ cho event không được lưu.
+JFR supports configuring a `threshold`: durations **shorter than the threshold** are not recorded. After `end()`, `shouldCommit()` avoids computing/sanitizing expensive fields for events that will be dropped.
 
-- Với **lab**: threshold 0, thu cả thành công và thất bại, kể cả nhanh.
-- Với **chẩn đoán chậm**: ví dụ threshold 50 ms để chỉ giữ các operation mất ít nhất 50 ms.
-- Với **đo tỷ lệ lỗi**: một `FAILED` rất nhanh có thể bị bỏ qua nếu cùng event bị threshold 50 ms. Không được kết luận “không có lỗi” từ JFR slow-event recording; nếu bắt buộc quan sát lỗi nhanh, thiết kế event lỗi riêng với quota/sampling phù hợp hoặc dùng metrics/logs.
-- Với **phân phối latency**: nếu chỉ lưu operation chậm hơn threshold, dữ liệu là mẫu **đã bị cắt ở phía ngắn**; không thể lấy p50/p95/p99 cho **toàn bộ request** bằng cách tính trực tiếp từ những event đó. Dùng latency histogram phù hợp cho SLI; JFR để soi trường hợp cụ thể.
+- For **labs**: threshold 0, capturing both successes and failures, even fast ones.
+- For **slow-operation diagnostics**: e.g., 50 ms threshold to keep only operations taking at least 50 ms.
+- For **error-rate measurement**: a very fast `FAILED` event may be dropped if it shares a 50 ms threshold. Never conclude "zero errors" from a slow-event JFR recording; if fast failures must be observed, use a separate failure event with appropriate quotas/sampling, or rely on metrics/logs.
+- For **latency distribution**: capturing only operations slower than a threshold yields a **left-truncated sample**; you cannot compute p50/p95/p99 across **all requests** directly from those events. Use proper latency histograms for SLIs, and JFR for inspecting concrete slow cases.
 
-`Event.isEnabled()` kiểm tra có recording nào bật loại event đó; `shouldCommit()` còn xét ngưỡng duration. Đây là các công cụ giảm overhead, không phải cách đảm bảo event sẽ được lưu trên đĩa vĩnh viễn: JFR vẫn có buffer, rotation, retention và giới hạn vận hành.
+`Event.isEnabled()` checks whether any recording enables the event type; `shouldCommit()` also evaluates the duration threshold. These are overhead-reduction tools, not guarantees that events stay on disk forever: JFR still has buffers, rotation, retention, and operational limits.
 
-## 4. Dữ liệu giới hạn nghĩa là giới hạn những gì?
+## 4. What Does "Bounded Data" Mean?
 
-Có **ba loại giới hạn phải thiết kế đồng thời**.
+There are **three kinds of bounds to design together**.
 
-### 4.1. Giới hạn *loại và kích thước* dữ liệu
+### 4.1. Bounding data *types and size*
 
-Một event tốt thường chỉ chứa **vài trường số và các String ngắn có cấu trúc**:
+A well-designed event usually contains only **a few numeric fields and short structured `String`s**:
 
-- Sử dụng **allowlist** cho `operation`, `outcome`, `failureCategory`; giá trị lạ được gộp thành `OTHER` có kiểm soát.
-- Mã tương quan phải từ nguồn đáng tin cậy, có max length và không mang PII/credential. Không dùng trực tiếp session ID, JWT, cookie, URL/query, header tùy ý hay raw customer ID.
-- Không ghi request/response payload, SQL text, exception message hoặc stack trace cho mọi event. Một số thông điệp lỗi chứa token, địa chỉ, đường dẫn hoặc dữ liệu riêng tư mà người viết code không dự đoán được.
-- Với số lượng có thể rất lớn, xác định kiểu và giới hạn. Nếu ghi giá trị đã capped, thêm `wasCapped=true` hoặc dùng bucket để không khiến người đọc hiểu nhầm nó là số thực.
-- Không thêm field `String debugData` rồi serialize object/JSON vào đó. Kích thước event và số biến thể sẽ tăng nhanh, lại khó kiểm soát nội dung nhạy cảm.
+- Use an **allowlist** for `operation`, `outcome`, and `failureCategory`; unknown values collapse safely into `OTHER`.
+- Correlation codes must come from a trusted source, have a max length, and carry no PII/credentials. Never use raw session IDs, JWTs, cookies, URLs/queries, arbitrary headers, or raw customer IDs directly.
+- Never record request/response payloads, SQL text, exception messages, or stack traces for every event. Error messages often contain tokens, addresses, paths, or private data that authors did not anticipate.
+- For counts that can grow very large, define types and caps. If recording a capped value, add `wasCapped=true` or use buckets so readers do not mistake it for an exact count.
+- Never add a `String debugData` field and serialize objects or JSON into it. Event size and cardinality explode, and sensitive content becomes hard to control.
 
-Ví dụ một quy tắc kiểm tra mã từ **hệ thống tự sinh**, tách khỏi dữ liệu khách hàng:
+Example validation rule for a **system-generated** code separated from customer input:
 
 ```java
 static String safeCode(String systemCode) {
@@ -157,36 +157,36 @@ static String safeCode(String systemCode) {
 }
 ```
 
-Đây là **minh họa policy đầu vào**, không phải một chương trình Java độc lập. Hàm này chỉ kiểm tra format; không thể phát hiện rằng caller đã đưa thông tin nhạy cảm vào String. Nếu bị lỗi format, nên đánh dấu `INVALID`/`MISSING` và xử lý trong log/trace theo policy, **không** nhét lại nguyên bản lỗi format vào JFR.
+This is an **input policy illustration**, not a standalone Java program. It checks format only; it cannot detect whether a caller put sensitive info inside a format-valid string. On invalid formats, emit `INVALID`/`MISSING` and handle details in policy-compliant logs/traces rather than stuffing the raw malformed value into JFR.
 
-### 4.2. Giới hạn *tần suất* và *số event*
+### 4.2. Bounding *frequency* and *event volume*
 
-Giả sử hệ thống có 30.000 operation/s, trung bình event 200 byte (số minh họa, chưa tính metadata, chunk overhead và sampling). Nếu ghi mỗi operation, riêng payload lý thuyết đã khoảng 6 MB/s. Dung lượng thực còn tùy field strings, encoding, stack traces và các event JDK khác. Không dùng công thức đó như phép đo thực.
+Suppose a system handles 30,000 operations/s with an average 200-byte event (illustrative numbers excluding metadata, chunk overhead, and sampling). Recording every operation yields roughly 6 MB/s in theoretical payload alone. Actual size depends on string fields, encoding, stack traces, and other JDK events. Never treat that back-of-the-envelope formula as a real benchmark.
 
-Những chiến lược thường dùng:
+Common strategies:
 
-- Event detail chỉ cho **slow operations**, dựa trên threshold; dùng histogram/counters để giữ cái nhìn tổng thể.
-- Event kết quả `FAILED` cần riêng chính sách capture nếu lỗi nhanh cũng quan trọng; không ghi dữ liệu lớn chỉ vì là lỗi.
-- Chọn **bounded sampling** theo hệ thống, hoặc phát event theo request/tracing sampling policy. Thông báo rõ tỷ lệ và mục đích; mẫu JFR sau sampling không tương đương toàn bộ lưu lượng.
-- Tắt stack trace cho event nghiệp vụ có mã tương quan nếu stack không trả lời câu hỏi; chỉ bật ở thời điểm điều tra bằng recording/settings riêng khi chi phí phù hợp.
-- Đặt `maxage`/`maxsize`, disk headroom, quota trên storage và retention/ACL khi xuất file `.jfr`.
+- Detailed events only for **slow operations** via thresholds; use histograms/counters for overall visibility.
+- `FAILED` outcome events need their own capture policy if fast failures matter; never dump large payloads merely because an operation failed.
+- Use **bounded sampling** at the system level, or emit events aligned with request/tracing sampling policies. Document rates and intent clearly; sampled JFR data does not represent total traffic directly.
+- Disable stack traces on business events that already have correlation codes if stacks do not answer the question; enable them selectively in timed investigative recordings when overhead is acceptable.
+- Configure `maxage`/`maxsize`, disk headroom, storage quotas, and retention/ACLs for exported `.jfr` files.
 
-JFR recording settings không tự cung cấp “mỗi business ID tối đa một event” hay giới hạn bảo mật cho String fields; ứng dụng phải quyết định policy và triển khai giới hạn phù hợp tại **điểm tạo payload**.
+JFR recording settings do not natively provide "at most one event per business ID" or security sanitization for `String` fields; the application must define policies and enforce bounds at **payload construction time**.
 
-### 4.3. Giới hạn *mức độ truy cập và thời gian giữ*
+### 4.3. Bounding *access and retention*
 
-`.jfr` là artifact chẩn đoán có thể chứa chi tiết JVM/runtime, môi trường, stack/method names và custom payload. Nó không mặc nhiên được ẩn danh hoặc mã hóa. Cần:
+A `.jfr` file is a diagnostic artifact that can contain JVM/runtime details, environment info, stack/method names, and custom payloads. It is not anonymized or encrypted by default. You must:
 
-- Hạn chế người đọc file, kiểm soát nơi lưu, chia sẻ và thời gian xóa.
-- Khi trích xuất để gửi cho bên khác, kiểm tra dữ liệu và áp dụng quy trình giảm thiểu/ẩn danh nếu cần.
-- Không dựa vào “không ghi email” để kết luận an toàn tuyệt đối: mã tương quan cũng có thể nối ngược ra dữ liệu khách hàng qua hệ thống nội bộ.
-- Phân biệt retention của JFR recording và retention của bản export/log/report; chúng có thể khác nhau.
+- Restrict file readers and control storage locations, sharing, and deletion schedules.
+- When extracting files to share externally, inspect contents and apply minimization/anonymization workflows if needed.
+- Do not assume "we did not log emails" guarantees complete safety: correlation codes can still link back to customer records through internal systems.
+- Distinguish retention of the active JFR recording from retention of exported files, logs, or reports; they often differ.
 
-## 5. Lab Java 17+: ghi và đọc event nghiệp vụ hoàn chỉnh
+## 5. Java 17+ Lab: Recording and Reading a Complete Business Event
 
-Chương trình dưới đây chạy độc lập; nó cố tình tạo **hai operation** gồm một thành công, một thất bại đã được xử lý. Event được ghi khi operation kết thúc, dù nhánh thất bại ném exception. Không có dữ liệu cá nhân: `r-0001` và `r-0002` là mã demo cố định.
+The standalone program below intentionally runs **two operations**: one successful and one handled failure. Events are recorded when each operation finishes, even when the failure branch throws an exception. No personal data is used: `r-0001` and `r-0002` are fixed demo codes.
 
-### 5.1. Tạo `BusinessJfrDemo.java`
+### 5.1. Create `BusinessJfrDemo.java`
 
 ```java
 import java.nio.file.Path;
@@ -296,27 +296,27 @@ public class BusinessJfrDemo {
 }
 ```
 
-Cách chương trình hoạt động:
+How the program works:
 
-1. `BusinessEvent` kế thừa `jdk.jfr.Event` và khai báo các field JFR hỗ trợ: bốn `String`, một `int`.
-2. `@Name("demo.BusinessOperation")` là tên event để cấu hình và tìm kiếm. `@StackTrace(false)` cho biết không cần JFR stack trace mặc định với loại event này.
-3. `process()` gọi `begin()` trước phần mô phỏng nghiệp vụ, bắt exception để chuyển thành **nhóm kết quả ổn định**, rồi gọi `end()` trong `finally`.
-4. Sau `end()`, `shouldCommit()` xét recording/threshold. Chỉ khi cần lưu event mới điền các field; exception message `simulated failure` **không được đưa vào payload**.
-5. `Recording` trong `main` chỉ dùng để tạo một bản ghi lab. `enable(...).withThreshold(Duration.ZERO).withoutStackTrace()` bật event, bỏ ngưỡng duration và tắt stack trace.
-6. `RecordingFile` đọc binary `.jfr`, lọc đúng event name rồi in các trường an toàn. Chương trình kiểm tra duration không âm, nhưng không in số ms cụ thể vì phụ thuộc máy.
+1. `BusinessEvent` extends `jdk.jfr.Event` and declares supported JFR fields: four `String`s and one `int`.
+2. `@Name("demo.BusinessOperation")` is the event name for configuration and querying. `@StackTrace(false)` indicates JFR stack traces are disabled by default for this event type.
+3. `process()` calls `begin()` before the simulated business work, catches exceptions to map them into **stable outcome categories**, and calls `end()` in `finally`.
+4. After `end()`, `shouldCommit()` checks recording/threshold. Only when the event is kept are fields populated; the exception message `simulated failure` is **not included in the payload**.
+5. `Recording` in `main` is only used to create a lab recording. `enable(...).withThreshold(Duration.ZERO).withoutStackTrace()` enables the event, removes the duration threshold, and disables stack traces.
+6. `RecordingFile` reads the binary `.jfr` file, filters for the target event name, and prints the safe fields. The program checks that duration is non-negative, without printing exact millisecond values since those depend on the host machine.
 
-**Giới hạn của lab:** `code`, `operation` và `itemCount` là những giá trị kiểm soát sẵn. Trong production, phải gọi hàm giới hạn/allowlist và tuân thủ policy **trước khi** gán các field; không sao chép thẳng dữ liệu request không đáng tin vào `event`.
+**Limitation of this lab:** `code`, `operation`, and `itemCount` are pre-controlled values. In production, invoke sanitization/allowlist functions and enforce policy **before** assigning fields; never copy untrusted request data directly into `event`.
 
-### 5.2. Biên dịch và chạy
+### 5.2. Compile and run
 
-Từ thư mục chứa file:
+From the directory containing the file:
 
 ```bash
 javac BusinessJfrDemo.java
 java BusinessJfrDemo
 ```
 
-Stdout chính xác từ mã Java trên (đã kiểm tra trên OpenJDK 24):
+Exact stdout from the Java code above (verified on OpenJDK 24):
 
 ```text
 business-events=2
@@ -324,9 +324,9 @@ r-0001|reserve|SUCCESS|NONE|1
 r-0002|reserve|FAILED|VALIDATION|1
 ```
 
-Chương trình tạo file `business.jfr` trong current working directory. Trong lab, các dòng được sắp bằng `Collections.sort()` trước khi in, do đó output không phụ thuộc thứ tự các event khác có thể tồn tại trong recording.
+The program creates `business.jfr` in the current working directory. In this lab, lines are sorted with `Collections.sort()` before printing, so output does not depend on the ordering of other events that may exist in the recording.
 
-### 5.3. Kiểm tra trực tiếp bằng công cụ JFR
+### 5.3. Inspecting directly with JFR tools
 
 ```bash
 jfr summary business.jfr
@@ -334,7 +334,7 @@ jfr print --events demo.BusinessOperation business.jfr
 jfr metadata --events demo.BusinessOperation business.jfr
 ```
 
-`jfr summary` sẽ liệt kê `demo.BusinessOperation` với **2 event** trong lab đã chạy thành công. `jfr print` cung cấp những trường dạng:
+`jfr summary` lists `demo.BusinessOperation` with **2 events** in a successful lab run. `jfr print` outputs fields in this form:
 
 ```text
 demo.BusinessOperation {
@@ -349,15 +349,15 @@ demo.BusinessOperation {
 }
 ```
 
-Dấu `...` trong block trên **chỉ là hình minh họa schema của output JFR**, không phải stdout cố định. Timestamp, duration, thread ID và thứ tự metadata có thể khác giữa lần chạy hoặc JDK. Với kết quả thật, xem file `business.jfr` bằng lệnh trên; hai trường duration và startTime do JFR tạo, không cần tự thêm vào custom class.
+The `...` placeholders above **only illustrate the JFR output schema**, not fixed stdout. Timestamps, durations, thread IDs, and metadata ordering may vary across runs or JDK versions. For actual results, inspect `business.jfr` with the commands above; `duration` and `startTime` are generated by JFR without needing custom fields in your class.
 
-Một bản ghi thực nghiệm trên JDK 24 có hai event với duration khoảng vài chục ms. Điều này chỉ kiểm chứng **cách instrument**, không phải phép đo benchmark hay cam kết latency 30 ms trên mọi hệ thống.
+An experimental run on JDK 24 produced two events with durations of a few tens of milliseconds. This only verifies **instrumentation behavior**, not a benchmark or guarantee of 30 ms latency across systems.
 
-## 6. Đưa ý tưởng vào ứng dụng thực: vị trí và vòng đời
+## 6. Applying This in Real Applications: Placement and Lifecycle
 
-### 6.1. Đặt event quanh đơn vị nghiệp vụ có nghĩa
+### 6.1. Placing events around meaningful business units
 
-Giả sử một luồng đặt chỗ gồm:
+Suppose a reservation flow consists of:
 
 ```text
 HTTP request
@@ -368,48 +368,48 @@ HTTP request
   -> return response
 ```
 
-Hãy xác định ranh giới mà business team gọi là “thời gian đặt chỗ”. Nếu muốn đo từ lúc vào service đến khi DB commit xong, `begin()` cần bao phủ toàn bộ các bước đó. Nếu chỉ đo dependency call, đặt tên riêng như `InventoryLookup` và `begin/end` quanh call đó. **Không dùng cùng tên event cho hai định nghĩa latency khác nhau**, vì dữ liệu không thể so sánh trung thực.
+Define the boundary the business team calls "reservation time". If you want to measure from service entry through DB commit, `begin()` must span all those steps. If you only want to measure a dependency call, create a separate name like `InventoryLookup` and wrap `begin`/`end` around that call. **Never reuse the same event name for two different latency definitions**, because the data cannot be compared honestly.
 
-Một operation có retry có thể thiết kế:
+An operation with retries can be designed as:
 
-- `BusinessOperation`: một event cho **toàn bộ** operation, outcome cuối và tổng elapsed time.
-- `DependencyAttempt`: event riêng khi cần điều tra **một lần retry**, có cùng correlationCode và `attemptNumber` có giới hạn.
-- Metrics đi kèm ghi tổng số operations/attempts và duration histograms.
+- `BusinessOperation`: one event for the **overall** operation, final outcome, and total elapsed time.
+- `DependencyAttempt`: a separate event when investigating **individual retries**, carrying the same `correlationCode` and a bounded `attemptNumber`.
+- Accompanying metrics recording total operations/attempts and duration histograms.
 
-Không phát event ở cả controller và service cùng tên rồi cộng chúng như hai giao dịch độc lập; đó là double counting.
+Never emit the same event name at both controller and service layers and sum them as independent transactions; that causes double counting.
 
-### 6.2. Duy trì correlation khi bất đồng bộ
+### 6.2. Preserving correlation across async boundaries
 
-Trong callback/executor/virtual thread hoặc request chuyển service, **mã tương quan phải được truyền qua boundary**. `eventThread` là thread ghi event; nó không tự chứa business correlation. Cũng không nên dựa vào tên thread để tái dựng quan hệ qua thread pool.
+Across callbacks, executors, virtual threads, or service boundaries, **the correlation code must be propagated explicitly**. `eventThread` is simply the thread committing the event; it does not automatically carry business correlation. Nor should you rely on thread names to reconstruct relationships across thread pools.
 
-Có thể truyền một context object nhỏ, immutable, chỉ gồm opaque code và các thuộc tính được phép qua method parameters hoặc tracing context. Với structured concurrency/async, muốn đo end-to-end latency thì `end()` chỉ chạy sau khi kết quả từ các nhánh cần thiết đã được await/hoàn tất. Nếu `end()` chạy lúc task vừa được submit, duration đo **submission latency**, không phải business completion.
+Pass a small, immutable context object containing only the opaque code and permitted attributes via method parameters or tracing context. With structured concurrency/async execution, to measure end-to-end latency, `end()` must run only after results from required branches have been awaited/completed. If `end()` runs right after task submission, duration measures **submission latency**, not business completion.
 
-Tách rõ ba thời gian khi phân tích:
+Separate three timings during analysis:
 
-1. **Queue delay** trước lúc công việc thực sự bắt đầu.
-2. **Execution/elapsed duration** từ `begin()` đến `end()` của business operation.
-3. **End-to-end request duration** phía client/gateway bao gồm network và những giai đoạn trước/sau vùng đo.
+1. **Queue delay** before work actually begins.
+2. **Execution/elapsed duration** from `begin()` to `end()` of the business operation.
+3. **End-to-end request duration** at the client/gateway including network and phases outside the measured region.
 
-Nếu cần cả ba, định nghĩa events/metrics khác nhau và đặt tên rõ thay vì trộn vào một `duration`.
+If all three are needed, define distinct events/metrics with clear names rather than lumping them into one `duration`.
 
-### 6.3. Giữ logic nghiệp vụ độc lập với lỗi ghi telemetry
+### 6.3. Keeping business logic independent of telemetry errors
 
-Một event chẩn đoán không được biến failure nghiệp vụ thành success hoặc che exception gốc. Những phương thức ghi JFR bình thường không yêu cầu I/O đồng bộ trên hot path, nhưng code phụ tự viết để chuẩn hóa payload có thể ném exception. Vì vậy:
+A diagnostic event must never turn a business failure into a success or mask the original exception. Standard JFR recording methods do not perform synchronous I/O on the hot path, yet custom helper code normalizing payloads can throw exceptions. Therefore:
 
-- Dùng `finally` để đóng khoảng đo trên success/failure/cancel.
-- Giữ nhóm outcome trong các nhánh `catch` thích hợp; **không nuốt exception** chỉ để tạo event.
-- Không gọi thêm network/DB từ đoạn tạo payload JFR.
-- Tránh serialize object lớn hoặc gọi `toString()` trên dữ liệu không tin cậy trong `finally`.
-- Ghi nhận `InterruptedException` là `CANCELLED`/`INTERRUPTED` theo semantics ứng dụng, giữ cờ interrupt nếu cần.
-- Không để một lỗi trong instrumentation làm mất dấu stack/exception nghiệp vụ đang xảy ra.
+- Use `finally` to close the measurement interval on success, failure, and cancellation.
+- Set outcome categories in appropriate `catch` blocks; **never swallow exceptions** just to emit an event.
+- Never make extra network or DB calls inside JFR payload construction.
+- Avoid serializing large objects or calling `toString()` on untrusted data inside `finally`.
+- Record `InterruptedException` as `CANCELLED`/`INTERRUPTED` per application semantics, preserving the interrupt flag when appropriate.
+- Never let an instrumentation error obscure the active business stack trace or exception.
 
-Lab ở mục 5 làm rõ success/failure/interrupt với Java exception handling thông thường, không thêm side effect ngoài recording.
+The lab in section 5 demonstrates success/failure/interrupt with standard Java exception handling and no side effects outside the recording.
 
-## 7. Bật custom event trong recording của service
+## 7. Enabling Custom Events in Service Recordings
 
-### 7.1. Hai cách cấu hình
+### 7.1. Two configuration approaches
 
-**Cách A — chương trình tự tạo recording** (chủ yếu phục vụ test/tooling):
+**Approach A — programmatic recording** (mainly for tests/tooling):
 
 ```java
 try (Recording recording = new Recording()) {
@@ -417,15 +417,15 @@ try (Recording recording = new Recording()) {
         .withThreshold(Duration.ofMillis(20))
         .withoutStackTrace();
     recording.start();
-    // Thực thi phần cần chẩn đoán.
+    // Execute the code under diagnosis.
     recording.stop();
     recording.dump(Path.of("sample.jfr"));
 }
 ```
 
-Block trên là **mã minh họa**, chỉ biên dịch khi đặt trong class/method có imports và xử lý exception như ví dụ hoàn chỉnh ở mục 5. Trong ứng dụng server production, **không tạo một `Recording` cho mỗi request**: recording là một cơ chế cấp JVM, có chi phí quản lý và tài nguyên; thường tạo một recording cho khoảng thời gian chẩn đoán, hoặc quản lý bằng `jcmd`/JMC.
+The block above is **illustrative code** that compiles only inside a class/method with imports and exception handling as in section 5. In a production server, **never create a `Recording` per request**: a recording is a JVM-level mechanism with management and resource overhead; typically create one recording for a diagnostic window, or manage it via `jcmd`/JMC.
 
-**Cách B — recording quản trị qua JVM/JFR settings**. Tạo `.jfc` có custom event:
+**Approach B — recording managed via JVM/JFR settings.** Create a `.jfc` containing the custom event:
 
 ```bash
 jfr configure --output business.jfc \
@@ -434,18 +434,18 @@ jfr configure --output business.jfc \
   "+demo.BusinessOperation#stackTrace=false"
 ```
 
-Các dấu `+` trong `jfr configure` yêu cầu **thêm event setting** nếu profile cơ sở chưa chứa custom event. Tên `demo.BusinessOperation` phải khớp `@Name` trong code. Các đối số có `#` nên được quote khi gọi shell. Cấu hình `20ms` thích hợp để xem operation **chậm**; không thích hợp khi bạn cần quan sát tất cả các lần thất bại rất nhanh.
+The `+` prefixes in `jfr configure` instruct it to **add event settings** if the base profile does not already contain the custom event. `demo.BusinessOperation` must match `@Name` in code. Arguments containing `#` should be quoted in the shell. A `20ms` setting suits observing **slow** operations; it is unsuitable when you need to observe all fast failures.
 
-Dùng file tạo ra:
+Using the generated file:
 
 ```bash
 java -XX:StartFlightRecording=name=business,settings=business.jfc,disk=true,filename=business-service.jfr,dumponexit=true \
   -jar app.jar
 ```
 
-`app.jar` là ứng dụng giả định có chứa custom event class và instrumentation như trên. `filename` là file JFR đầu ra; `dumponexit=true` yêu cầu dump khi JVM thoát thông thường, không bảo đảm nếu tiến trình bị kill bất ngờ. Ghi dài hạn cần đặt retention/storage và đánh giá overhead.
+`app.jar` is a hypothetical application containing the custom event class and instrumentation shown above. `filename` is the output JFR file; `dumponexit=true` requests a dump on normal JVM exit, not guaranteed if the process is killed abruptly. Long-running recordings require retention/storage limits and overhead evaluation.
 
-Với JVM đang chạy (sử dụng PID thật và quyền attach thích hợp):
+For a running JVM (using the actual PID and appropriate attach permissions):
 
 ```bash
 jcmd -l
@@ -453,29 +453,29 @@ jcmd <PID> JFR.start name=business settings=business.jfc duration=60s filename=b
 jcmd <PID> JFR.check name=business verbose=true
 ```
 
-`JFR.check verbose=true` giúp xác nhận các event settings thật của recording. Sau khi đủ thời gian, đọc `business-snapshot.jfr`; khi cần snapshot trong lúc recording còn sống:
+`JFR.check verbose=true` confirms the recording's active event settings. Once duration elapses, inspect `business-snapshot.jfr`; to grab a snapshot while the recording is still live:
 
 ```bash
 jcmd <PID> JFR.dump name=business filename=business-now.jfr
 ```
 
-Không xem `jfr configure` là lệnh khởi chạy recording: nó chỉ tạo/chỉnh file `.jfc`. Không xem `jcmd JFR.configure` là chỗ đặt ngưỡng cho một custom event: command này chủ yếu cấu hình recorder toàn cục. Tên event và threshold của recording thuộc `JFR.start settings=...` hoặc `Recording.enable(...).withThreshold(...)`.
+Do not mistake `jfr configure` for starting a recording: it only creates or edits `.jfc` files. Do not mistake `jcmd JFR.configure` for setting thresholds on a custom event: that command primarily configures global recorder options. Per-event names and thresholds belong in `JFR.start settings=...` or `Recording.enable(...).withThreshold(...)`.
 
-### 7.2. Chọn ngưỡng theo câu hỏi cần trả lời
+### 7.2. Choosing thresholds based on the question
 
-| Mục đích | Cấu hình gợi ý | Cảnh báo |
+| Goal | Suggested configuration | Warning |
 | --- | --- | --- |
-| Lab xác nhận đúng event schema | `threshold=0`, stack trace off, recording ngắn | Không nhân nguyên cấu hình này lên workload lớn mà chưa đo overhead. |
-| Tìm business operations chậm | `threshold=20ms`/`50ms` hoặc theo SLO thực tế | Không đủ để suy tỷ lệ thành công hay phân phối của mọi request. |
-| Tìm lỗi nhanh và hiếm | Event riêng cho failure hoặc cơ chế sampling/metrics đồng bộ | Một slow-only event sẽ bỏ qua lỗi dưới ngưỡng. |
-| Cần stack tại thời điểm commit | Bật stackTrace có thời hạn cho event phù hợp | Stack trace tạo thêm dữ liệu, vị trí commit không nhất thiết là nơi bắt đầu operation. |
-| Theo dõi hành vi dài hạn | Metrics cho count/histograms; JFR sample/slow-case có retention | Không dùng JFR event như sổ cái giao dịch bắt buộc. |
+| Lab verifying event schema | `threshold=0`, stack trace off, short recording | Do not carry this exact config to high-volume workloads without measuring overhead. |
+| Finding slow business operations | `threshold=20ms`/`50ms` or aligned with actual SLO | Insufficient to infer overall success rate or full request distribution. |
+| Catching fast, rare errors | Dedicated failure event or synchronized sampling/metrics | A slow-only event drops errors below threshold. |
+| Needing stack at commit time | Temporarily enable `stackTrace` for targeted events | Stack traces add data; the commit location is not necessarily where the operation started. |
+| Long-term behavior tracking | Metrics for counts/histograms; JFR samples/slow cases with retention | Never use JFR events as a mandatory transaction ledger. |
 
-`@StackTrace(false)` định cấu hình mặc định của loại event; recording-specific setting có thể ghi đè. `stackTrace=true` lấy stack tại **lúc commit**; nếu muốn biết call path trước đó, phải xem nó có thực sự đại diện cho câu hỏi của bạn không.
+`@StackTrace(false)` sets the event type's default; recording-specific settings can override it. `stackTrace=true` captures the stack **at commit time**; if you want an earlier call path, check whether that commit site actually represents what you need.
 
-## 8. Đọc và tương quan dữ liệu đã thu
+## 8. Reading and Correlating Collected Data
 
-### 8.1. Dùng JFR CLI/JMC
+### 8.1. Using JFR CLI / JMC
 
 ```bash
 jfr summary business-service.jfr
@@ -483,104 +483,104 @@ jfr print --events demo.BusinessOperation business-service.jfr
 jfr metadata --events demo.BusinessOperation business-service.jfr
 ```
 
-Quan sát:
+What to inspect:
 
-- `startTime`: so với thời điểm log/trace theo múi giờ thống nhất.
-- `duration`: khoảng thời gian đoạn business logic thực sự được instrument.
-- `correlationCode`: khóa tra cứu log/tracing; đừng dựa vào thread ID làm request ID.
-- `operation` + `outcome` + `failureCategory`: xác định trường hợp cần điều tra và loại lỗi.
-- `itemCount`: bối cảnh tải nhỏ gọn; không đồng nghĩa độ phức tạp công việc nếu business logic có nhiều biến khác.
-- `eventThread`: có ích khi đối chiếu JVM thread events, nhưng không đủ chứng minh quan hệ end-to-end khi có async.
+- `startTime`: align with log/trace timestamps using a consistent timezone.
+- `duration`: elapsed time of the instrumented business segment.
+- `correlationCode`: lookup key into logs/tracing; never rely on thread ID as a request ID.
+- `operation` + `outcome` + `failureCategory`: identify the case under investigation and failure type.
+- `itemCount`: compact load context; does not equal total work complexity if business logic varies on other dimensions.
+- `eventThread`: helpful when correlating with JVM thread events, though insufficient to prove end-to-end relationships under async execution.
 
-JDK Mission Control cho phép lọc custom event theo các field và so timestamp với GC, allocation, locks hoặc I/O. Một sequence phân tích có cơ sở:
+JDK Mission Control lets you filter custom events by fields and compare timestamps with GC, allocations, locks, or I/O. A sound analysis sequence:
 
-1. Tìm `correlationCode` của request chậm trong log/trace.
-2. Lấy event `demo.BusinessOperation` có cùng code, cùng operation và đúng khoảng thời gian.
-3. Xem duration, outcome và failureCategory.
-4. So khoảng thời gian event với GC pauses, CPU load, socket/monitor events cùng JVM.
-5. Đối chiếu logs/traces để xác nhận câu chuyện; ví dụ JFR có GC pause trùng khoảng request chậm **chưa đủ** chứng minh GC là nguyên nhân duy nhất.
+1. Find the slow request's `correlationCode` in logs/traces.
+2. Locate the `demo.BusinessOperation` event with the matching code, operation, and timeframe.
+3. Check `duration`, `outcome`, and `failureCategory`.
+4. Compare the event's time window against GC pauses, CPU load, and socket/monitor events in the same JVM.
+5. Cross-check logs/traces to confirm the narrative; e.g., a GC pause overlapping a slow request in JFR **is not enough alone** to prove GC was the sole root cause.
 
-### 8.2. Đọc trực tiếp bằng Java
+### 8.2. Reading directly in Java
 
-Lab ở mục 5 dùng `RecordingFile` và `RecordedEvent`. Với ứng dụng phân tích offline, có thể truy xuất:
+The lab in section 5 uses `RecordingFile` and `RecordedEvent`. For offline analysis tools, you can extract fields like this:
 
 ```java
 if (e.getEventType().getName().equals("demo.BusinessOperation")) {
     String code = e.getString("correlationCode");
     String status = e.getString("outcome");
     Duration elapsed = e.getDuration();
-    // Áp dụng bộ lọc thời gian, operation, status và quyền truy cập.
+    // Apply filters for time, operation, status, and access control.
 }
 ```
 
-Đây là **đoạn code minh họa trong vòng lặp đã có biến `RecordedEvent e`**, không phải chương trình độc lập. Những API như `getString`, `getInt`, `getDuration` giúp đọc có kiểu; cần xử lý schema/version đúng và không giả định một field do code mới thêm sẽ luôn có trong recording cũ.
+This is an **illustrative snippet inside a loop with an existing `RecordedEvent e`**, not a standalone program. Typed getters like `getString`, `getInt`, and `getDuration` read values cleanly; handle schema/version differences properly and do not assume a newly added field exists in older recordings.
 
-### 8.3. Kết quả tiêu biểu
+### 8.3. Representative results
 
-Giả sử nhận được ba event **minh họa**:
+Suppose you obtain three **illustrative** events:
 
-| Mã | Operation | Duration | Outcome | Failure category |
+| Code | Operation | Duration | Outcome | Failure category |
 | --- | --- | ---: | --- | --- |
 | `a-01` | `reserve` | 15 ms | `SUCCESS` | `NONE` |
 | `a-02` | `reserve` | 760 ms | `FAILED` | `DEPENDENCY` |
 | `a-03` | `reserve` | 82 ms | `CANCELLED` | `INTERRUPTED` |
 
-Nếu recording có threshold 20 ms, `a-01` **không xuất hiện** còn `a-02`/`a-03` có thể xuất hiện. Điều tra `a-02` bằng cùng mã ở trace và JVM events để tìm xem dependency timeout, pool wait, GC hay network có thực sự tham gia. Không dùng bảng đã lọc này để tính business success rate; denominator đã bị thay đổi.
+If the recording has a 20 ms threshold, `a-01` **will not appear**, while `a-02`/`a-03` can appear. Investigate `a-02` using the same code in traces and JVM events to determine whether dependency timeout, pool wait, GC, or network was involved. Never use this filtered table to compute business success rate—the denominator has been altered.
 
-## 9. Các bẫy thường gặp
+## 9. Common Pitfalls
 
-| Sai lầm | Vì sao sai | Cách sửa |
+| Mistake | Why it is wrong | How to fix |
 | --- | --- | --- |
-| Ghi `orderId`, email hoặc token vào correlation field | Có thể lộ PII/credential qua file `.jfr` | Dùng mã opaque do hệ thống cấp và policy truy cập rõ ràng. |
-| Ghi `Exception.toString()`/raw error message | Có thể mang SQL, URL, path, token, dữ liệu khách hàng | Chuyển sang `failureCategory` được duyệt. |
-| Truyền `Map`, `enum`, DTO vào field custom Event | JFR không tự serialize các kiểu field đó | Dùng primitive/String/Thread/Class và schema rõ. |
-| Đo `begin/end` chỉ quanh `submit()` rồi gọi là “end-to-end latency” | Công việc async có thể chưa xong | Kết thúc vùng đo khi outcome logic đã xác định. |
-| Chỉ ghi `SUCCESS` trong nhánh return | Các nhánh exception và cancel mất event | Dùng `try/catch/finally`; outcome đặt trước khi commit. |
-| `shouldCommit()` trước khi `end()` và kết luận event nhanh sẽ bị lọc đúng | Duration lúc đó chưa phải duration cuối của operation | Kết thúc timing rồi xét threshold. |
-| Thêm stack trace/exception message cho mọi request | Kích thước và rủi ro dữ liệu tăng mạnh | Tắt stack mặc định, bật có thời hạn khi cần. |
-| Dùng mã tương quan làm metric label | Cardinality có thể tăng tới số requests | Metrics dùng operation/outcome allowlist; ID trong trace/JFR/log được kiểm soát. |
-| Bật threshold 50 ms nhưng tuyên bố đã ghi mọi lỗi | Lỗi nhanh bị loại | Dùng failure event riêng hoặc counters/histograms phù hợp. |
-| Tính p99 từ những event được thu vì “chậm” | Dữ liệu bị lọc theo duration | Dùng histogram trên toàn bộ yêu cầu đã instrument. |
-| Log cùng một event hai lần ở controller và service | Phân tích có thể đếm đôi operation | Phân biệt scope và event name, hoặc chọn một ranh giới chuẩn. |
-| Recording chạy liên tục không giới hạn | Có thể tăng disk/memory footprint và làm khó bảo quản | Đặt duration, maxage, maxsize, quota, sampling, ACL. |
-| Dựa vào `eventThread` thay cho correlation code | Thread pool/virtual threads/async phá vỡ giả định 1 thread = 1 request | Truyền correlation context một cách tường minh. |
-| Đọc một JFR file rồi khẳng định đã ghi mọi operation | JFR có settings, threshold, buffer và retention | Kiểm tra cấu hình và so sánh với metrics/logs. |
+| Writing `orderId`, email, or token into correlation field | Can leak PII/credentials via `.jfr` files | Use a system-issued opaque code and clear access policies. |
+| Recording `Exception.toString()` or raw error messages | May contain SQL, URLs, paths, tokens, or customer data | Map into an approved `failureCategory`. |
+| Putting `Map`, `enum`, or DTO into custom Event fields | JFR does not serialize those field types automatically | Use primitive/`String`/`Thread`/`Class` and an explicit schema. |
+| Wrapping `begin`/`end` only around `submit()` and calling it "end-to-end latency" | Async work may not have finished | End the measurement interval when the logical outcome is decided. |
+| Recording `SUCCESS` only on the return path | Exception and cancellation paths lose events | Use `try/catch/finally`; assign outcome before committing. |
+| Calling `shouldCommit()` before `end()` and assuming fast events filter right | Duration is not finalized yet | Finish timing first, then check threshold. |
+| Adding stack traces/exception messages to every request | Size and data-leak risk surge | Disable stack traces by default; enable temporarily when needed. |
+| Using correlation codes as metric labels | Cardinality explodes with request volume | Metrics use allowlisted operation/outcome; IDs live in controlled traces/JFR/logs. |
+| Setting a 50 ms threshold yet claiming all errors are captured | Fast failures are dropped | Use a dedicated failure event or appropriate counters/histograms. |
+| Computing p99 from events collected only for "slow" cases | Data is truncated by duration | Use histograms across all instrumented requests. |
+| Emitting the same event at both controller and service layers | Analytics may double-count operations | Distinguish scopes/event names or pick a single canonical boundary. |
+| Running unbounded continuous recordings | Can grow disk/memory footprint and complicate governance | Set duration, maxage, maxsize, quotas, sampling, and ACLs. |
+| Relying on `eventThread` instead of a correlation code | Thread pools/virtual threads/async break 1 thread = 1 request | Propagate correlation context explicitly. |
+| Reading one JFR file and claiming every operation was recorded | JFR has settings, thresholds, buffers, and retention | Check configuration and cross-verify with metrics/logs. |
 
-## 10. Bài thực hành mở rộng
+## 10. Extension Exercises
 
-**Bài A — Kiểm tra ngưỡng:** thay `.withThreshold(Duration.ZERO)` thành `.withThreshold(Duration.ofMillis(100))` và chạy lại. Với mỗi operation ngủ khoảng 30 ms, thông thường custom event không được ghi (có thể còn phụ thuộc scheduling và thời gian thực tế). Dùng `jfr summary` xác minh. Nếu vẫn có event, kiểm tra elapsed time và whether nó vượt threshold, không suy luận từ số ms yêu cầu `sleep()`.
+**Exercise A — Testing threshold:** change `.withThreshold(Duration.ZERO)` to `.withThreshold(Duration.ofMillis(100))` and rerun. With each operation sleeping roughly 30 ms, the custom event is normally not recorded (though actual scheduling and elapsed time apply). Verify with `jfr summary`. If an event still appears, check elapsed time and whether it exceeded the threshold rather than relying on the requested `sleep()` ms.
 
-**Bài B — Thêm nhánh timeout:** mô phỏng một dependency timeout, bắt exception ở business boundary và gán outcome `FAILED`, failureCategory `TIMEOUT`. Kiểm tra bằng `jfr print` rằng **không có message tùy ý** trong event, chỉ có category.
+**Exercise B — Adding a timeout branch:** simulate a dependency timeout, catch the exception at the business boundary, and assign outcome `FAILED` with failureCategory `TIMEOUT`. Verify via `jfr print` that **no arbitrary message** appears in the event, only the category.
 
-**Bài C — Async:** chuyển bước business sang một `CompletableFuture`. Chọn một trong hai định nghĩa latency: thời gian submit task hoặc thời gian có kết quả thực. Viết hai phiên bản và giải thích vì sao thời lượng khác nhau. Truyền mã tương quan vào callback bằng tham số/context cụ thể, không giả định `ThreadLocal` tự theo task.
+**Exercise C — Async:** move the business step into a `CompletableFuture`. Choose between two latency definitions: task submission time vs. actual result completion time. Write both versions and explain why the durations differ. Pass the correlation code into callbacks explicitly via parameters/context rather than assuming `ThreadLocal` follows tasks automatically.
 
-**Bài D — Data limits:** thiết kế allowlist gồm tối đa 5 operation, 3 outcome, 6 failure category và correlation code ASCII tối đa 64 ký tự do server cấp. Gửi một chuỗi vượt giới hạn và xác minh event chỉ có sentinel `INVALID`, không chứa giá trị bị từ chối.
+**Exercise D — Data limits:** design an allowlist of at most 5 operations, 3 outcomes, 6 failure categories, and a server-issued ASCII correlation code of at most 64 characters. Pass an out-of-bounds string and verify the event records only the `INVALID` sentinel without storing the rejected value.
 
-**Bài E — Liên hệ JVM:** bật recording với custom event và các JDK events phù hợp, tạo workload có chờ lock/I/O; đọc timeline và xác định chỗ các dữ kiện **tương quan theo thời gian**. Chỉ kết luận nguyên nhân khi có thêm stack, trace hoặc số liệu đo độc lập.
+**Exercise E — Linking with JVM events:** enable a recording with both the custom event and relevant JDK events, generate a workload with lock/I/O waits, read the timeline, and identify where events **correlate in time**. Draw root-cause conclusions only with corroborating stacks, traces, or independent measurements.
 
-## 11. Checklist đưa vào production
+## 11. Production Readiness Checklist
 
-- [ ] Một event name tương ứng **một phạm vi nghiệp vụ được định nghĩa rõ**; schema field/version ổn định.
-- [ ] Correlation code là mã nội bộ opaque, nguồn tin cậy, định dạng/độ dài giới hạn; có chính sách xử lý khi thiếu/malformed.
-- [ ] `operation`, `outcome`, `failureCategory` đều dùng allowlist; không có payload, PII, token, URL/query hoặc raw exceptions.
-- [ ] `begin/end` bao đúng khoảng latency cần đo; các nhánh `SUCCESS`, `FAILED`, `CANCELLED` đều được xử lý.
-- [ ] `end()` và `shouldCommit()` đặt đúng thứ tự; công việc tạo payload đặt sau kiểm tra khi có thể.
-- [ ] Threshold và sampling phục vụ câu hỏi chẩn đoán; **không suy ra success rate/latency SLI** từ mẫu JFR đã lọc.
-- [ ] Kiểm tra event settings thực bằng JFR tools/recording settings, và xác nhận event có thật trong file sau ghi.
-- [ ] Dữ liệu được giới hạn cả field size, event rate, stack trace, retention, file access và chia sẻ.
-- [ ] Với async/multi-service, context propagation không phụ thuộc thread name; traces/logs/JFR cùng dùng ID đã chuẩn hóa.
-- [ ] Đo overhead, CPU, allocation, dung lượng JFR trước khi phát event trên lưu lượng lớn.
-- [ ] Kiểm chứng bằng ít nhất một operation success, một failure, một cancellation/timeout và so với metrics/logs để thấy sự khác nhau về semantics.
+- [ ] One event name maps to **one well-defined business scope**; field schema/versioning is stable.
+- [ ] Correlation code is an opaque internal ID from a trusted source with bounded format/length and a policy for missing/malformed values.
+- [ ] `operation`, `outcome`, and `failureCategory` all use allowlists; zero payloads, PII, tokens, URLs/queries, or raw exceptions.
+- [ ] `begin`/`end` wrap the exact target latency span; `SUCCESS`, `FAILED`, and `CANCELLED` branches are all handled.
+- [ ] `end()` and `shouldCommit()` are ordered properly; payload construction occurs after the check whenever possible.
+- [ ] Thresholds and sampling serve diagnostic questions; **never derive success rate or latency SLIs** from a filtered JFR sample.
+- [ ] Actual event settings have been verified via JFR tools/recording settings, and events are confirmed present in dumped files.
+- [ ] Bounds are enforced on field sizes, event rates, stack traces, retention, file access, and sharing.
+- [ ] For async/multi-service flows, context propagation does not depend on thread names; traces/logs/JFR share a standardized ID.
+- [ ] Overhead, CPU, allocations, and JFR storage footprint are measured before enabling on high-throughput traffic.
+- [ ] Verified with at least one success, one failure, and one cancellation/timeout, compared against metrics/logs to understand semantic differences.
 
-**Ghi nhớ:** Mục tiêu không phải “nhét mọi dữ liệu nghiệp vụ vào JFR”, mà là tạo **một dấu mốc chẩn đoán gọn, có thể nối với các tín hiệu khác**. Một custom event đáng tin cần bốn yếu tố: **đúng ranh giới thời gian, outcome có nghĩa, mã tương quan an toàn và ngân sách dữ liệu rõ ràng**.
+**Takeaway:** The goal is not "stuffing all business data into JFR", but creating **a compact diagnostic milestone that links cleanly with other signals**. A trustworthy custom event requires four elements: **accurate timing boundaries, meaningful outcomes, a safe correlation code, and an explicit data budget**.
 
-## Tài liệu tham khảo
+## References
 
 - [Oracle JDK 21 — `jdk.jfr.Event`: field types, `begin()`, `end()`, `shouldCommit()`, `commit()`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Event.html)
-- [Oracle JDK 21 — `jdk.jfr` package và event settings](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html)
-- [Oracle JDK 21 — `EventSettings`, threshold và stack trace](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html)
+- [Oracle JDK 21 — `jdk.jfr` package and event settings](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html)
+- [Oracle JDK 21 — `EventSettings`, threshold, and stack trace](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html)
 - [Oracle JDK 21 — `Recording`: enable, start, stop, dump](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html)
-- [Oracle JDK 21 — `RecordingFile` (đọc offline)](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html)
+- [Oracle JDK 21 — `RecordingFile` (offline reading)](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html)
 - [Oracle JDK 21 — `jfr` command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html)
-- [Dev.java — Cấu hình JFR (`jfr configure`)](https://dev.java/learn/jvm/jfr/configure/)
+- [Dev.java — Configuring JFR (`jfr configure`)](https://dev.java/learn/jvm/jfr/configure/)
 - [Oracle Java 21 — Flight Recorder API Programmer's Guide](https://docs.oracle.com/en/java/javase/21/jfapi/flight-recorder-api-programmers-guide.pdf)

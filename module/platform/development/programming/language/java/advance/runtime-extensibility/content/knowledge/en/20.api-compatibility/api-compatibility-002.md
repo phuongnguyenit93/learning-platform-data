@@ -1,10 +1,10 @@
-# Tác động khi thêm, xóa hoặc đổi chữ ký phương thức của interface
+# Impact of Adding, Removing, or Changing Interface Method Signatures
 
-## 1. Vì sao thay đổi interface gây sự cố với plugin cũ?
+## 1. Why do interface changes break old plugins?
 
-Trong ứng dụng có khả năng mở rộng lúc chạy, host và plugin thường được biên dịch, phát hành và triển khai vào những thời điểm khác nhau. Một thư viện công bố interface cho bên thứ ba implements, sau đó thư viện thay đổi API. JVM không tự biên dịch lại plugin JAR đã phát hành; nó thực thi file .class và tham chiếu phương thức đã được ghi trong bytecode.
+In runtime-extensible applications, host and plugins are often compiled, released, and deployed at different times. A library publishes an interface for third parties to implement, and later the library changes its API. The JVM does not automatically recompile already-released plugin JARs; it executes `.class` files and method references recorded in bytecode.
 
-Giả sử API v1 công bố:
+Suppose API v1 publishes:
 
 ~~~java
 package demo.spi;
@@ -14,7 +14,7 @@ public interface Handler {
 }
 ~~~
 
-Plugin được biên dịch với API v1:
+A plugin is compiled against API v1:
 
 ~~~java
 package demo.impl;
@@ -29,7 +29,7 @@ public final class LegacyHandler implements Handler {
 }
 ~~~
 
-Sau đó API v2 thêm một phương thức bắt buộc:
+Later, API v2 adds a mandatory method:
 
 ~~~java
 package demo.spi;
@@ -40,42 +40,42 @@ public interface Handler {
 }
 ~~~
 
-Recompile source của LegacyHandler với API v2 sẽ gặp lỗi vì class chưa triển khai version(). Tuy nhiên **LegacyHandler.class v1** có thể vẫn nạp được và gọi execute(). Chỉ khi host mới gọi version() trên object cũ, JVM mới không tìm thấy một implementation cụ thể và có thể ném **AbstractMethodError**.
+Recompiling `LegacyHandler` source against API v2 will fail because the class does not implement `version()`. However, **v1 `LegacyHandler.class`** can still be loaded and have `execute()` invoked. Only when the new host calls `version()` on the old object does the JVM fail to find a concrete implementation and possibly throw **`AbstractMethodError`**.
 
-**Câu hỏi phải đặt ra không chỉ là “API mới compile được không?”, mà là “source cũ, binary cũ và hành vi khi chạy còn phù hợp không?”** Đây là trọng tâm của tương thích API Java.
+**The question to ask is not only “does the new API compile?”, but “do old source, old binaries, and runtime behavior remain compatible?”** That is the core of Java API compatibility.
 
-## 2. Ba lớp tương thích phải phân biệt
+## 2. Three layers of compatibility to distinguish
 
-| Loại | Câu hỏi | Kiểm thử |
+| Layer | Question | Testing |
 |---|---|---|
-| **Source compatibility** | Source client/implementer cũ có biên dịch lại với interface mới không? | Recompile old source + API v2 |
-| **Binary compatibility** | Client.class và plugin.class cũ có tiếp tục liên kết với interface mới mà không rebuild? | Giữ old binaries, thay API runtime |
-| **Behavioral compatibility** | Method vẫn làm đúng chức năng, trả giá trị và lỗi theo hợp đồng cũ không? | Contract/integration tests với nhiều phiên bản |
+| **Source compatibility** | Does old client/implementer source recompile against the new interface? | Recompile old source + API v2 |
+| **Binary compatibility** | Do old `Client.class` and `plugin.class` continue linking against the new interface without rebuilding? | Keep old binaries, swap runtime API |
+| **Behavioral compatibility** | Do methods still perform the right work, returning values and errors per the old contract? | Contract/integration tests across versions |
 
-Theo **Java Language Specification (JLS) Chapter 13**, binary compatibility chú trọng các binary đã có từ trước tiếp tục link được. Một thay đổi có thể được JLS đánh giá **binary-compatible** trong khi việc recompile source cũ thất bại hoặc lời gọi mới trên old instance phát sinh lỗi.
+According to the **Java Language Specification (JLS) Chapter 13**, binary compatibility focuses on whether pre-existing binaries continue to link. A change may be deemed **binary-compatible** by the JLS while recompiling old source fails or a new call on an old instance throws an error.
 
-Ví dụ về những khác biệt:
+Examples of such differences:
 
-- Thêm abstract method có thể giữ binary compatibility nhưng phá source compatibility của concrete implementer cũ.
-- Thêm default method có thể giữ việc gọi method mới nhưng làm thay đổi semantics hoặc gây default conflict.
-- Thêm overload giữ lời gọi bytecode cũ, nhưng code cũ khi recompile có thể chọn overload mới.
-- Đổi return type có thể nhìn “hợp lý” trong Java source nhưng làm thay JVM descriptor.
+- Adding an abstract method can preserve binary compatibility yet break source compatibility for old concrete implementers.
+- Adding a default method can preserve calling the new method yet change semantics or cause default conflicts.
+- Adding an overload preserves old bytecode calls, yet old code upon recompilation may pick the new overload.
+- Changing a return type can look “reasonable” in Java source yet alter the JVM descriptor.
 
-Với SPI/ServiceLoader/URLClassLoader, càng phải kiểm tra **old plugin JAR + new host API**, vì plugin có thể do người khác phát hành và không nằm trong mã nguồn của bạn.
+With SPI/`ServiceLoader`/`URLClassLoader`, it is even more critical to test **old plugin JAR + new host API**, because plugins may be released by third parties outside your source repository.
 
-## 3. Chữ ký Java source và JVM descriptor không đồng nhất
+## 3. Java source signatures and JVM descriptors are not identical
 
-Trong Java source, phương thức được phân biệt theo method signature (tên và các kiểu tham số theo quy tắc JLS); **return type một mình không đủ để overload**:
+In Java source, methods are distinguished by method signature (name and parameter types per JLS rules); **return type alone is not enough to overload**:
 
 ~~~java
-// Không hợp lệ: hai khai báo cùng Java signature.
+// Invalid: two declarations with the same Java signature.
 interface Wrong {
     String get();
     Object get();
 }
 ~~~
 
-Ở class file, **JVM method descriptor** chứa **parameter descriptors và return descriptor**. Đây là các ví dụ:
+In a class file, the **JVM method descriptor** contains **parameter descriptors and the return descriptor**. Examples:
 
 | Java method | JVM descriptor |
 |---|---|
@@ -87,9 +87,9 @@ interface Wrong {
 | **String find(String id)** | **(Ljava/lang/String;)Ljava/lang/String;** |
 | **void send(String... names)** | **([Ljava/lang/String;)V** |
 
-**V** biểu diễn void, **I** là int, **J** là long, **L...;** biểu diễn kiểu reference và **[** là mảng. Tên class trong descriptor dùng dấu gạch chéo giữa các phần package.
+**V** denotes `void`, **I** is `int`, **J** is `long`, **L...;** denotes a reference type, and **[** is an array. Class names in descriptors use forward slashes between package segments.
 
-Vì descriptor bao gồm return type, hai interface có các method:
+Because the descriptor includes the return type, two interfaces with methods:
 
 ~~~java
 // V1:
@@ -99,45 +99,45 @@ String execute();
 Object execute();
 ~~~
 
-không có cùng descriptor, dù Java source của method có cùng tên và danh sách tham số. Old caller.class có thể vẫn tham chiếu **execute:()Ljava/lang/String;**; nó không tự đổi sang **execute:()Ljava/lang/Object;** khi JVM nạp API mới. Covariant return trong một số tình huống overriding có thể khiến compiler tạo bridge, nhưng **không thể mặc định dựa vào bridge để giữ ABI của một interface bị sửa declaration**.
+do not have the same descriptor, even though the Java source methods share the same name and parameter list. An old `caller.class` may still reference **`execute:()Ljava/lang/String;`**; it does not automatically switch to **`execute:()Ljava/lang/Object;`** when the JVM loads the new API. Covariant returns in certain overriding scenarios can cause the compiler to emit a bridge, yet **you cannot assume by default that a bridge preserves the ABI of an interface whose declaration was altered**.
 
-Tương tự, đổi **save(int)** sang **save(long)** làm descriptor đổi từ **(I)V** sang **(J)V**. Java compiler có thể widen int thành long trong một lời gọi source mới, nhưng old .class không thực hiện lại overload resolution.
+Similarly, changing **`save(int)`** to **`save(long)`** changes the descriptor from **`(I)V`** to **`(J)V`**. The Java compiler can widen `int` to `long` in a new source call, but an old `.class` file does not re-run overload resolution.
 
-**Lệnh kiểm tra descriptor của một API:**
+**Command to inspect an API's descriptors:**
 
 ~~~bash
 javap -classpath api.jar -s -p demo.spi.Handler
 ~~~
 
-Lệnh **javap -c -p** giúp inspect instruction của old caller, đặc biệt **invokeinterface**, và xác nhận symbol mà client đã biên dịch.
+The **`javap -c -p`** command helps inspect instructions of an old caller, especially **`invokeinterface`**, and confirm the exact symbol the client compiled against.
 
-## 4. Ma trận ảnh hưởng của các thay đổi interface
+## 4. Impact matrix of interface changes
 
-| Thay đổi | Recompile source cũ | Old binaries | Rủi ro runtime |
+| Change | Recompiling old source | Old binaries | Runtime risk |
 |---|---|---|---|
-| **Thêm abstract method** | Concrete implementer thiếu method thường báo lỗi | Theo JLS vẫn binary-compatible | New caller gọi old object: **AbstractMethodError** |
-| **Thêm default method** | Thường không cần implement; có thể clash | Binary-compatible theo quy tắc JLS | Xung đột defaults: **IncompatibleClassChangeError**; behavior đổi |
-| **Thêm static/private method** | Không tạo thêm obligation instance | Binary-compatible | Source naming/overload hoặc logic nội bộ có thể chịu ảnh hưởng |
-| **Thêm overload khác tham số** | Có thể đổi overload resolution hoặc ambiguous | Old caller tiếp tục gọi descriptor đã chọn | Behavior giữa old/rebuilt caller khác |
-| **Xóa method** | Old client dùng method không compile | Có thể binary-incompatible | **NoSuchMethodError** nếu symbol không còn được resolve |
-| **Đổi tên method** | Client và implementer cần cập nhật | Giống xóa tên cũ + thêm tên mới | **NoSuchMethodError** |
-| **Đổi số lượng/kiểu tham số** | Có thể phải sửa lời gọi | Descriptor cũ biến mất nếu không giữ overload | **NoSuchMethodError** |
-| **Đổi return type có erasure khác** | Có thể phải cập nhật cả caller và provider | Return descriptor thay đổi | **NoSuchMethodError** hoặc lỗi dispatch |
-| **Đổi throws clause** | Caller có thể cần đổi catch/throws | Không đổi descriptor | Behavior/checked exception contract đổi |
-| **Đổi generic arguments cùng erasure** | Có thể mất type compatibility | Thường giữ descriptor | Lỗi cast/semantics có thể xuất hiện |
-| **Đổi default thành abstract** | Old implementation có thể thiếu body | Không phải tiến hóa an toàn ở mức invocation | Có thể **AbstractMethodError** |
+| **Add abstract method** | Concrete implementer missing the method usually fails to compile | Binary-compatible per JLS | New caller calling old object: **`AbstractMethodError`** |
+| **Add default method** | Usually requires no implementation; may clash | Binary-compatible per JLS rules | Default conflict: **`IncompatibleClassChangeError`**; behavior changes |
+| **Add static/private method** | Creates no extra instance obligation | Binary-compatible | Source naming/overloads or internal logic may be affected |
+| **Add overload with different parameters** | May alter overload resolution or cause ambiguity | Old callers keep invoking the already-chosen descriptor | Behavior differs between old and rebuilt callers |
+| **Remove method** | Old clients calling the method fail to compile | Can be binary-incompatible | **`NoSuchMethodError`** if symbol no longer resolves |
+| **Rename method** | Clients and implementers must update | Equivalent to removing old name + adding new name | **`NoSuchMethodError`** |
+| **Change parameter count/types** | Call sites may need updates | Old descriptor disappears unless overload is kept | **`NoSuchMethodError`** |
+| **Change return type with different erasure** | Both callers and providers may need updates | Return descriptor changes | **`NoSuchMethodError`** or dispatch errors |
+| **Change throws clause** | Callers may need to update catch/throws | Descriptor unchanged | Behavior/checked exception contract changes |
+| **Change generic arguments with same erasure** | Type compatibility may break | Usually preserves descriptor | Cast errors/semantics issues can occur |
+| **Change default to abstract** | Old implementations may lack a body | Not a safe evolution at invocation level | Possible **`AbstractMethodError`** |
 
-Bảng là quy tắc định hướng, **không phải lời hứa rằng mọi tình huống đều ném đúng một loại error**. Ví dụ xóa method khỏi một interface cụ thể nhưng còn declaration phù hợp ở superinterface có thể vẫn resolve được. Khi chẩn đoán phải kiểm tra hierarchy và bytecode runtime thực tế.
+This table is a guiding rule, **not a guarantee that every situation throws one exact error type**. For example, removing a method from a specific interface while a matching declaration remains in a superinterface may still resolve. When diagnosing, inspect the actual runtime hierarchy and bytecode.
 
-## 5. Thêm abstract method: link được không có nghĩa gọi được
+## 5. Adding an abstract method: being linkable does not mean callable
 
-API v1 chỉ có **execute()**; API v2 có thêm **String version()** abstract. Hai phép thử có kết quả khác nhau:
+API v1 has only **`execute()`**; API v2 adds abstract **`String version()`**. Two tests produce different results:
 
-**A. Recompile LegacyHandler.java cùng API v2.** Java compiler yêu cầu concrete class phải cung cấp implementation cho version(). Đây là sự cố **source compatibility**.
+**A. Recompile `LegacyHandler.java` against API v2.** The Java compiler requires concrete classes to provide an implementation for `version()`. This is a **source compatibility** failure.
 
-**B. Không recompile LegacyHandler.class v1; chạy với API v2.** Theo JLS §13.5.4, thêm abstract interface method không tự phá binary compatibility của pre-existing binaries. Plugin class cũ có thể được nạp và gọi execute().
+**B. Do not recompile v1 `LegacyHandler.class`; run against API v2.** Per JLS §13.5.4, adding an abstract interface method does not by itself break binary compatibility of pre-existing binaries. The old plugin class can still load and run `execute()`.
 
-Tuy nhiên, new host biên dịch với API v2 khi gọi **Handler.version()** trên LegacyHandler v1 sẽ không tìm được implementation phù hợp, và có thể ném **AbstractMethodError**. Lỗi xuất hiện ở **invocation**, không nhất thiết ở class load.
+However, a new host compiled against API v2 calling **`Handler.version()`** on v1 `LegacyHandler` will not find a suitable implementation and may throw **`AbstractMethodError`**. The error occurs at **invocation**, not necessarily at class load time.
 
 ~~~text
 Handler v1: execute()
@@ -150,11 +150,11 @@ Handler v1: execute()
                                             +-- version() -> AbstractMethodError
 ~~~
 
-Vì vậy, nếu interface là **SPI bên thứ ba tự implement**, không nên bổ sung abstract method rồi mặc định tất cả plugin cũ có khả năng thực hiện nó. Dùng **default method đúng ngữ nghĩa**, **capability interface** hoặc chính sách bắt nâng cấp plugin.
+Therefore, if an interface is a **third-party implemented SPI**, do not add an abstract method and assume all old plugins can fulfill it. Use a **semantically valid default method**, a **capability interface**, or a policy requiring plugin upgrades.
 
-## 6. Thêm default method: thường an toàn hơn nhưng không tuyệt đối
+## 6. Adding a default method: usually safer, not absolute
 
-Default method có implementation trong interface:
+A default method has an implementation in the interface:
 
 ~~~java
 public interface Handler {
@@ -166,15 +166,15 @@ public interface Handler {
 }
 ~~~
 
-Old plugin có thể kế thừa version() mặc định. Nhưng có các điều kiện quan trọng:
+Old plugins can inherit the default `version()`. Yet important conditions apply:
 
-1. **Hành vi fallback phải hợp lệ.** "unknown" không được coi là version xác thực nếu host cần version chính xác.
-2. **Class method có thể thắng interface default.** Method trên class hoặc superclass được chọn theo dispatch rules tương ứng.
-3. **Xung đột nhiều defaults.** Một class cũ implements hai interfaces độc lập; khi cả hai sau đó thêm default cùng chữ ký, JVM có thể ném **IncompatibleClassChangeError** lúc gọi.
-4. **Đổi implementation của default** thay đổi behavior dù descriptor không đổi.
-5. **Một method trùng tên đã tồn tại trong class** có thể bất ngờ được xem là override của method interface mới, gây semantics ngoài dự kiến.
+1. **Fallback behavior must be valid.** `"unknown"` must not be treated as a verified version if the host requires an exact version.
+2. **Class methods can beat interface defaults.** Methods on a class or superclass are selected according to the corresponding dispatch rules.
+3. **Conflicts among multiple defaults.** An old class implements two independent interfaces; when both later add defaults with the same signature, the JVM may throw **`IncompatibleClassChangeError`** at call time.
+4. **Changing a default's implementation** alters behavior even though the descriptor stays unchanged.
+5. **A same-named method already present in a class** may unexpectedly count as an override of the new interface method, producing unintended semantics.
 
-Ví dụ khái niệm:
+Conceptual example:
 
 ~~~java
 interface Left {
@@ -186,13 +186,13 @@ interface Right { }
 final class Both implements Left, Right { }
 ~~~
 
-Nếu Right phiên bản mới cũng cung cấp **default String label()**, một Both.class đã biên dịch với Right cũ có thể gặp conflict khi JVM chọn method. JLS §13.5.7 mô tả tình huống gây **IncompatibleClassChangeError**; build source lại có thể báo lỗi compile trước khi đến runtime. Hai loại lỗi không mâu thuẫn vì một bên là source mới, bên kia là binary cũ.
+If a new version of `Right` also provides **`default String label()`**, a `Both.class` compiled against old `Right` can hit a conflict when the JVM resolves the method. JLS §13.5.7 describes how this throws **`IncompatibleClassChangeError`**; rebuilding source may report a compile error before runtime. The two error types do not contradict each other because one is new source and the other is old binary.
 
-**Quy tắc thực tế:** Default method hữu ích để mở rộng ABI nhưng không thay thế bài toán hợp đồng nghiệp vụ và việc kiểm thử mọi plugin đã phát hành.
+**Practical rule:** Default methods are useful for extending an ABI, yet they do not eliminate business-contract design or testing every released plugin.
 
-## 7. Thêm static, private method hoặc overload
+## 7. Adding static, private methods, or overloads
 
-Một interface Java 17 có thể có static method và private helper:
+A Java 17 interface can contain static methods and private helpers:
 
 ~~~java
 public interface Handler {
@@ -213,9 +213,9 @@ public interface Handler {
 }
 ~~~
 
-Thêm static hoặc private method **không buộc plugin implement thêm một instance abstract method**, và JLS xem đây là thay đổi binary-compatible. Nhưng **display()** là default method mới nên vẫn phải cân nhắc conflict và behavior như phần 6.
+Adding static or private methods **does not force plugins to implement an extra instance abstract method**, and the JLS treats it as binary-compatible. However, **`display()`** is a new default method, so conflicts and behavior still need evaluation as in section 6.
 
-Thêm overload có một loại rủi ro khác:
+Adding an overload carries a different kind of risk:
 
 ~~~java
 // V1:
@@ -223,20 +223,20 @@ interface Format {
     String apply(Object value);
 }
 
-// V2 thêm overload:
+// V2 adds overload:
 interface Format {
     String apply(Object value);
     String apply(String value);
 }
 ~~~
 
-Old caller đã compile **apply("hello")** khi chỉ có **apply(Object)**. Binary cũ vẫn tham chiếu descriptor của apply(Object). Nếu recompile client với API v2, Java compiler có thể chọn apply(String), và hai version chạy khác behavior. Thêm overload **apply(Integer)** cùng apply(String) còn có thể khiến **apply(null)** trở thành ambiguous khi compile lại.
+An old caller compiled **`apply("hello")`** when only **`apply(Object)`** existed. The old binary still references the `apply(Object)` descriptor. If the client is recompiled against API v2, the Java compiler may select `apply(String)`, and the two versions run with different behavior. Adding an **`apply(Integer)`** overload alongside `apply(String)` can also make **`apply(null)`** ambiguous upon recompilation.
 
-**Overload resolution xảy ra tại compile-time**, không chạy lại mỗi khi một API JAR được thay.
+**Overload resolution happens at compile time**, not re-evaluated whenever an API JAR is swapped.
 
-## 8. Xóa method: tác động lên old caller.class
+## 8. Removing a method: impact on old `caller.class`
 
-Giả sử v1 có:
+Suppose v1 has:
 
 ~~~java
 public interface Handler {
@@ -244,28 +244,28 @@ public interface Handler {
 }
 ~~~
 
-V3 xóa execute():
+V3 removes `execute()`:
 
 ~~~java
 public interface Handler {
-    // Không còn execute().
+    // No longer has execute().
 }
 ~~~
 
-Một old client.class đã chứa symbolic reference đến **demo/spi/Handler.execute:()Ljava/lang/String;**. Nếu runtime interface/hierarchy không còn method khớp, reference đó không được resolve, nên JVM có thể ném **NoSuchMethodError**.
+An old `client.class` already contains a symbolic reference to **`demo/spi/Handler.execute:()Ljava/lang/String;`**. If the runtime interface/hierarchy no longer has a matching method, that reference fails to resolve, so the JVM can throw **`NoSuchMethodError`**.
 
-Điểm dễ nhầm là **LegacyHandler.class cũ vẫn định nghĩa execute()**. Điều ấy không tự cứu được lời gọi **invokeinterface Handler.execute** của old client: JVM phải resolve method declaration ở interface trước rồi mới xét implementation.
+A common misconception is that **old `LegacyHandler.class` still defines `execute()`**. That does not rescue an old client's **`invokeinterface Handler.execute`** call: the JVM must resolve the method declaration on the interface first before dispatching to an implementation.
 
-**Phân biệt hai lỗi:**
+**Distinguish the two errors:**
 
-- **NoSuchMethodError:** symbolic method reference không còn resolve được với tên/descriptor ở API runtime.
-- **AbstractMethodError:** method declaration có thể resolve nhưng không có method implementation cụ thể phù hợp cho receiver object.
+- **`NoSuchMethodError`:** symbolic method reference can no longer be resolved with that name/descriptor in the runtime API.
+- **`AbstractMethodError`:** the method declaration resolves, yet no concrete method implementation exists for the receiver object.
 
-Không xóa một method public chỉ vì source host hiện tại không còn gọi. Old client/plugin JAR ở ngoài repository vẫn có thể tham chiếu binary entry point ấy.
+Do not delete a public method simply because current host source no longer calls it. Old client/plugin JARs outside the repository may still reference that binary entry point.
 
-## 9. Đổi tên, tham số, return type là rủi ro ABI
+## 9. Changing names, parameters, or return types is an ABI risk
 
-### Đổi tên method
+### Renaming a method
 
 ~~~java
 // V1:
@@ -275,7 +275,7 @@ String execute();
 String run();
 ~~~
 
-Nếu xóa execute() mà chỉ để run(), old caller không tự chuyển tên. Cách mở rộng tương thích:
+If `execute()` is deleted and only `run()` remains, old callers do not automatically rename themselves. Compatible expansion:
 
 ~~~java
 interface Handler {
@@ -287,9 +287,9 @@ interface Handler {
 }
 ~~~
 
-Vẫn cần kiểm tra default behavior và xung đột. Nếu hai tên không cùng ngữ nghĩa, nên tạo capability mới thay vì adapter giả.
+Default behavior and conflicts still need checking. If the two names do not share the same semantics, create a new capability instead of a misleading adapter.
 
-### Đổi tham số
+### Changing parameters
 
 ~~~java
 // V1:
@@ -299,7 +299,7 @@ void publish(String text);
 void publish(String text, boolean urgent);
 ~~~
 
-JVM descriptor cũ và mới khác nhau. Nếu muốn giữ old client:
+The old and new JVM descriptors differ. To preserve old clients:
 
 ~~~java
 interface Publisher {
@@ -311,9 +311,9 @@ interface Publisher {
 }
 ~~~
 
-Nhưng default bỏ qua urgent; **nếu urgent mang ý nghĩa bắt buộc**, giải pháp trên có thể sai về nghiệp vụ. Một interface **UrgentPublisher** mới sẽ minh bạch hơn.
+However, the default ignores `urgent`; **if `urgent` has mandatory meaning**, the approach above can be functionally wrong. A new **`UrgentPublisher`** interface is more transparent.
 
-### Đổi kiểu trả về
+### Changing return type
 
 ~~~java
 // V1:
@@ -323,7 +323,7 @@ String execute();
 Object execute();
 ~~~
 
-Dù String là subtype của Object, descriptor thay đổi. Java source không thể khai báo hai method cùng tên và tham số chỉ khác return type. Muốn giữ đường cũ, thêm một **tên khác**:
+Even though `String` is a subtype of `Object`, the descriptor changes. Java source cannot declare two methods with the same name and parameters differing only by return type. To keep the old path, add a **different name**:
 
 ~~~java
 interface Handler {
@@ -335,11 +335,11 @@ interface Handler {
 }
 ~~~
 
-Trong một số trường hợp compiler có thể sinh **bridge method** để duy trì polymorphism do generics hoặc covariant overriding. Không suy diễn rằng mọi interface ABI được đổi return type đều nhận bridge đúng; hãy kiểm tra bằng **javap -v** và thử old client.class. Tương tự, đổi **void refresh()** thành **boolean refresh()** làm descriptor **()V** đổi thành **()Z**.
+In some cases, the compiler may generate a **bridge method** to preserve polymorphism due to generics or covariant overriding. Do not assume that every interface ABI with a changed return type receives a proper bridge; verify with **`javap -v`** and test old `client.class`. Similarly, changing **`void refresh()`** to **`boolean refresh()`** changes the descriptor from **`()V`** to **`()Z`**.
 
-## 10. Những thay đổi không nhất thiết đổi descriptor
+## 10. Changes that do not necessarily alter descriptors
 
-### Generics và type erasure
+### Generics and type erasure
 
 ~~~java
 // V1:
@@ -349,9 +349,9 @@ void accept(java.util.List<String> values);
 void accept(java.util.List<Integer> values);
 ~~~
 
-Thông thường cả hai cùng erased descriptor **(Ljava/util/List;)V**. Tuy vậy source code có thể không tương thích, logic xử lý phần tử khác đi, và runtime có thể gặp ClassCastException. Ngược lại đổi **List<String>** thành **Collection<String>** sẽ làm erasure khác, do đó đổi descriptor.
+Ordinarily both share the erased descriptor **`(Ljava/util/List;)V`**. Even so, source code may become incompatible, element-handling logic changes, and runtime may hit `ClassCastException`. Conversely, changing **`List<String>`** to **`Collection<String>`** changes the erasure and therefore changes the descriptor.
 
-Đổi **first bound** của type variable cũng có thể thay đổi erasure ngay cả khi các tên generic vẫn giống nhau.
+Changing a type variable's **first bound** can also change erasure even when generic names look identical.
 
 ### Throws clause
 
@@ -363,7 +363,7 @@ String read() throws java.io.IOException;
 String read() throws java.sql.SQLException;
 ~~~
 
-Checked throws không nằm trong JVM method descriptor. Đổi throws thường không phá binary linkage nhưng có thể phá source compatibility khi caller recompile do xử lý checked exceptions khác. Semantics của loại lỗi phát sinh trong runtime cũng cần được xét.
+Checked `throws` clauses are not in the JVM method descriptor. Changing `throws` usually does not break binary linkage yet can break source compatibility when callers recompile due to different checked exception handling. Runtime semantics of the thrown error type must also be evaluated.
 
 ### Varargs
 
@@ -375,17 +375,17 @@ void send(String[] values);
 void send(String... values);
 ~~~
 
-Cả hai cùng JVM descriptor **([Ljava/lang/String;)V**. Tuy vậy cú pháp gọi được compiler chấp nhận khi recompile có thể khác, chẳng hạn cho phép truyền nhiều String arguments riêng lẻ.
+Both share the JVM descriptor **`([Ljava/lang/String;)V`**. However, call syntax accepted by the compiler upon recompilation can differ, such as allowing multiple individual `String` arguments.
 
 ### Parameter names
 
-Đổi tên tham số **left, right** thành **a, b** không đổi descriptor. Nhưng một framework dựa vào reflection parameter metadata, annotations hoặc data binding vẫn có thể thấy tác động ở tầng behavior.
+Renaming parameters **`left, right`** to **`a, b`** does not change the descriptor. Yet frameworks relying on reflection parameter metadata, annotations, or data binding can still see behavioral impacts.
 
-## 11. Ví dụ Java 17: một plugin.class cũ với ba API runtime
+## 11. Java 17 example: one old `plugin.class` with three runtime APIs
 
-Mục tiêu bài thực hành là **không biên dịch lại plugin.class cũ**. Ta build các phiên bản Handler.class trong những thư mục riêng, lần lượt chạy với old/new callers. Cả ví dụ dùng Java 17+ và không cần thư viện ngoài.
+The goal of this lab is **not recompiling the old `plugin.class`**. We build versions of `Handler.class` in separate directories and run them sequentially with old/new callers. The entire example uses Java 17+ and requires no external libraries.
 
-### 11.1. Cây thư mục
+### 11.1. Directory tree
 
 ~~~text
 interface-evolution-demo/
@@ -399,10 +399,10 @@ interface-evolution-demo/
 │   │   └── client/demo/client/NewClient.java
 │   ├── v2-default/api/demo/spi/Handler.java
 │   └── v3/api/demo/spi/Handler.java
-└── build/     # tạo bằng các lệnh biên dịch
+└── build/     # created by compile commands
 ~~~
 
-### 11.2. API v1 và plugin v1
+### 11.2. API v1 and plugin v1
 
 **src/v1/api/demo/spi/Handler.java**
 
@@ -449,9 +449,9 @@ public final class OldClient {
 }
 ~~~
 
-OldClient được compile với API v1; nó có method reference cũ đến Handler.execute(). Trong ví dụ chỉ bắt Error để chứng minh failure mode, không phải cách xử lý production được khuyến nghị.
+`OldClient` is compiled against API v1; it holds an old method reference to `Handler.execute()`. Catching `Error` in this example only demonstrates the failure mode and is not recommended production handling.
 
-### 11.3. API v2 abstract và new caller
+### 11.3. Abstract API v2 and new caller
 
 **src/v2/api/demo/spi/Handler.java**
 
@@ -486,7 +486,7 @@ public final class NewClient {
 }
 ~~~
 
-### 11.4. API v2 có default version()
+### 11.4. API v2 with default `version()`
 
 **src/v2-default/api/demo/spi/Handler.java**
 
@@ -502,9 +502,9 @@ public interface Handler {
 }
 ~~~
 
-Đây là interface thay thế cho API v2 abstract, giữ nguyên **version:()Ljava/lang/String;** nhưng có body. Ta sẽ dùng cùng NewClient.class và LegacyHandler.class để so kết quả.
+This is a drop-in replacement for abstract API v2, keeping **`version:()Ljava/lang/String;`** while providing a body. We will reuse the same `NewClient.class` and `LegacyHandler.class` to compare results.
 
-### 11.5. API v3 xóa execute()
+### 11.5. API v3 removing `execute()`
 
 **src/v3/api/demo/spi/Handler.java**
 
@@ -512,15 +512,15 @@ public interface Handler {
 package demo.spi;
 
 public interface Handler {
-    // Không còn execute().
+    // No longer has execute().
 }
 ~~~
 
-Không có superinterface cung cấp declaration execute(), nên method reference của OldClient v1 không còn nơi resolve.
+No superinterface provides an `execute()` declaration, so v1 `OldClient`'s method reference has nowhere to resolve.
 
-### 11.6. Compile trên Linux/macOS
+### 11.6. Compile on Linux/macOS
 
-Chạy từ root **interface-evolution-demo**:
+Run from the **`interface-evolution-demo`** root:
 
 ~~~bash
 mkdir -p build/v1-api build/impl build/old-client
@@ -552,9 +552,9 @@ javac --release 17 -encoding UTF-8 \
   -d build/v3-api src/v3/api/demo/spi/Handler.java
 ~~~
 
-Lưu ý thứ tự: build/impl và build/old-client được tạo từ API v1. Sau đó **không recompile** hai artifact đó. NewClient được compile với API v2 nhưng sử dụng LegacyHandler.class đã biên dịch từ v1.
+Note the order: `build/impl` and `build/old-client` are built against API v1. Afterward, **do not recompile** those two artifacts. `NewClient` is compiled against API v2 while using the `LegacyHandler.class` already compiled from v1.
 
-### 11.7. Compile trên Windows PowerShell
+### 11.7. Compile on Windows PowerShell
 
 ~~~powershell
 New-Item -ItemType Directory -Force build/v1-api, build/impl, build/old-client, build/v2-api, build/new-client, build/v2-default-api, build/v3-api | Out-Null
@@ -574,9 +574,9 @@ javac --release 17 -encoding UTF-8 -d build/v2-default-api src/v2-default/api/de
 javac --release 17 -encoding UTF-8 -d build/v3-api src/v3/api/demo/spi/Handler.java
 ~~~
 
-**Classpath separator** là **:** trên Linux/macOS và **;** trên Windows. Với các lệnh chạy, luôn đưa **đúng một** thư mục có demo/spi/Handler.class vào classpath. Đặt nhiều phiên bản API cùng tên trên classpath có thể dẫn tới nạp bản ngoài dự kiến.
+The **classpath separator** is **:** on Linux/macOS and **;** on Windows. In each run command, always put **exactly one** directory containing `demo/spi/Handler.class` on the classpath. Putting multiple API versions with the same name on the classpath can load an unintended copy.
 
-### 11.8. Case A: thêm abstract method
+### 11.8. Case A: adding an abstract method
 
 Linux/macOS:
 
@@ -597,9 +597,9 @@ execute=legacy
 version=AbstractMethodError
 ~~~
 
-LegacyHandler.class vẫn execute() được. Version declaration ở Handler v2 tồn tại, nhưng old class không implement được version(), dẫn đến AbstractMethodError khi new caller invoke.
+`LegacyHandler.class` still runs `execute()`. The `version` declaration on `Handler` v2 exists, yet the old class does not implement `version()`, leading to `AbstractMethodError` when the new caller invokes it.
 
-### 11.9. Case B: thêm default method
+### 11.9. Case B: adding a default method
 
 Linux/macOS:
 
@@ -620,9 +620,9 @@ execute=legacy
 version=v2-default
 ~~~
 
-NewClient.class và LegacyHandler.class được giữ nguyên. Runtime interface dùng default version() nên Java có implementation thích hợp để dispatch.
+`NewClient.class` and `LegacyHandler.class` are kept unchanged. The runtime interface supplies a default `version()`, so Java has a suitable implementation to dispatch.
 
-### 11.10. Case C: xóa method
+### 11.10. Case C: removing a method
 
 Linux/macOS:
 
@@ -642,9 +642,9 @@ java -cp "build/v3-api;build/impl;build/old-client" demo.client.OldClient
 removed=NoSuchMethodError
 ~~~
 
-OldClient.class được compile khi Handler.execute() còn tồn tại. Handler v3 không còn method declaration phù hợp, nên old invokeinterface reference không thể resolve. Việc LegacyHandler.class có execute() không thay thế declaration đã bị xóa khỏi interface.
+`OldClient.class` was compiled when `Handler.execute()` existed. `Handler` v3 no longer has a matching method declaration, so the old `invokeinterface` reference cannot resolve. Having `execute()` in `LegacyHandler.class` does not replace the declaration removed from the interface.
 
-### 11.11. Kiểm tra class files bằng javap
+### 11.11. Inspecting class files with `javap`
 
 ~~~bash
 javap -classpath build/v1-api -s demo.spi.Handler
@@ -654,27 +654,27 @@ javap -classpath build/v3-api -s demo.spi.Handler
 javap -classpath build/old-client -c demo.client.OldClient
 ~~~
 
-Bạn sẽ thấy execute() trong v1/v2/v2-default, version() trong v2/v2-default và không còn execute() trong v3. OldClient.class vẫn tham chiếu Handler.execute() như khi biên dịch lần đầu.
+You will see `execute()` in v1/v2/v2-default, `version()` in v2/v2-default, and no `execute()` in v3. `OldClient.class` still references `Handler.execute()` exactly as compiled initially.
 
-## 12. Các lỗi JVM cần phân biệt
+## 12. JVM errors to distinguish
 
-| Error | Lý do thường gặp | Cách debug |
+| Error | Common cause | How to debug |
 |---|---|---|
-| **AbstractMethodError** | Method declaration tồn tại nhưng receiver không có implementation cụ thể | Kiểm tra old implementer và method dispatch |
-| **NoSuchMethodError** | Symbolic method reference name/descriptor không được resolve | So javap caller v1 và interface v2 |
-| **IncompatibleClassChangeError** | Invocation kind/hierarchy/default conflict không tương thích | Kiểm tra instance vs static, class/interface hierarchy |
-| **IllegalAccessError** | Visibility/module access của method/type đổi | Kiểm tra public/export/encapsulation |
-| **VerifyError** | Bytecode/hierarchy sau thay đổi không hợp lệ đối với verification | Kiểm tra classfile và quan hệ superinterface |
+| **`AbstractMethodError`** | Method declaration exists, yet receiver lacks a concrete implementation | Inspect old implementer and method dispatch |
+| **`NoSuchMethodError`** | Symbolic method reference name/descriptor cannot be resolved | Compare `javap` of v1 caller and v2 interface |
+| **`IncompatibleClassChangeError`** | Incompatible invocation kind/hierarchy/default conflict | Inspect instance vs static, class/interface hierarchy |
+| **`IllegalAccessError`** | Visibility/module access of method/type changed | Inspect public/export/encapsulation |
+| **`VerifyError`** | Bytecode/hierarchy after change fails verification | Inspect classfile and superinterface relationships |
 
-**AbstractMethodError** và **NoSuchMethodError** là subclass của **IncompatibleClassChangeError**. Chúng là LinkageError, không phải checked business exceptions.
+**`AbstractMethodError`** and **`NoSuchMethodError`** are subclasses of **`IncompatibleClassChangeError`**. They are `LinkageError`s, not checked business exceptions.
 
-**NoSuchMethodException** của reflection là một ngoại lệ khác với **NoSuchMethodError** khi JVM giải quyết lời gọi đã được biên dịch.
+Reflection's **`NoSuchMethodException`** is a different exception from **`NoSuchMethodError`** when the JVM resolves a compiled call.
 
-Lỗi binary evolution có thể phát sinh muộn tại lần đầu JVM resolve/invoke method; ứng dụng khởi động được chưa chứng minh mọi plugin/API đã tương thích.
+Binary evolution errors may surface lazily on the first time the JVM resolves/invokes a method; an application starting up does not prove all plugins/APIs are compatible.
 
-## 13. Phương án tiến hóa an toàn cho thư viện công khai
+## 13. Safe evolution approaches for public libraries
 
-**Giữ method cũ và thêm adapter method:**
+**Keep the old method and add an adapter method:**
 
 ~~~java
 interface Handler {
@@ -686,9 +686,9 @@ interface Handler {
 }
 ~~~
 
-Cách này giúp caller cũ và plugin cũ có entry point cũ, trong khi client mới dùng run() nếu semantics tương đương.
+This gives old callers and old plugins the existing entry point while new clients use `run()` if semantics are equivalent.
 
-**Tách interface cho capability mới:**
+**Split a separate interface for new capabilities:**
 
 ~~~java
 interface Handler {
@@ -703,7 +703,7 @@ interface VersionedHandler extends Handler {
 Host:
 
 ~~~java
-// Mảnh minh họa: handler có sẵn từ plugin host.
+// Illustrative snippet: handler obtained from plugin host.
 if (handler instanceof VersionedHandler versioned) {
     System.out.println(versioned.version());
 } else {
@@ -711,9 +711,9 @@ if (handler instanceof VersionedHandler versioned) {
 }
 ~~~
 
-Old plugin tiếp tục implements Handler; new plugin có thể implements VersionedHandler. Host biết khi nào có capability mà không tự suy đoán.
+Old plugins continue implementing `Handler`; new plugins can implement `VersionedHandler`. The host knows when the capability is present without guessing.
 
-**Deprecate trước khi remove:**
+**Deprecate before removing:**
 
 ~~~java
 interface Handler {
@@ -726,79 +726,79 @@ interface Handler {
 }
 ~~~
 
-Annotation **@Deprecated** là tín hiệu migration, không tự sửa ABI. Giữ entry point cũ nếu cần support old binaries. Chỉ xóa sau một migration policy và release/version boundary rõ.
+The **`@Deprecated`** annotation is a migration signal, not an automatic ABI fix. Keep the old entry point if old binaries must be supported. Remove it only after a clear migration policy and release/version boundary.
 
-**Versioning contract khi thay đổi không thể thích ứng:** Tách interface HandlerV1 và HandlerV2 hoặc xuất bản adapter riêng, thay vì thay đổi descriptor của cùng một method name rồi giả định old plugin vẫn tương thích.
+**Version contracts when changes cannot be adapted:** Split `HandlerV1` and `HandlerV2` interfaces or publish a separate adapter rather than changing the descriptor of the same method name and assuming old plugins stay compatible.
 
-**Đừng dùng fallback sai nghiệp vụ:** Một default **pay(amount, currency)** chỉ gọi **pay(amount)** và bỏ qua currency có thể sai trong giao dịch đa tiền tệ. An toàn kiểu/binary không bù được lỗi nghiệp vụ; dùng capability interface hoặc yêu cầu nâng cấp plugin nếu feature mới bắt buộc.
+**Do not use business-invalid fallbacks:** A default **`pay(amount, currency)`** that merely calls **`pay(amount)`** and ignores `currency` can be wrong in multi-currency transactions. Type/binary safety does not compensate for business logic bugs; use a capability interface or require a plugin upgrade if the new feature is mandatory.
 
-## 14. Ma trận kiểm thử trước khi phát hành
+## 14. Pre-release test matrix
 
-| Build/run | Để xác nhận |
+| Build/run | To verify |
 |---|---|
-| Recompile old plugin source với new API | Source compatibility của implementer |
-| Recompile old client source với new API | Source compatibility của caller, overload ambiguity |
-| Old plugin.class + new API | Binary/link compatibility và method implementation |
-| Old client.class + new API | Old symbolic references còn hợp lệ hay không |
-| New client.class + old plugin.class + new API | Default/capability/AbstractMethodError |
-| Plugin implements nhiều interfaces | Default conflict và dispatch |
-| So method descriptors ở API v1/v2 | ABI thay đổi cụ thể |
+| Recompile old plugin source against new API | Implementer source compatibility |
+| Recompile old client source against new API | Caller source compatibility, overload ambiguity |
+| Old `plugin.class` + new API | Binary/link compatibility and method implementations |
+| Old `client.class` + new API | Whether old symbolic references remain valid |
+| New `client.class` + old `plugin.class` + new API | Default/capability/`AbstractMethodError` |
+| Plugin implementing multiple interfaces | Default conflicts and dispatch |
+| Compare method descriptors in API v1/v2 | Concrete ABI changes |
 | Contract/integration tests | Behavioral compatibility |
 
-Trong runtime extensibility, phải **giữ nguyên artifact old .class/JAR**, không clean rebuild toàn bộ rồi kết luận old binary vẫn tương thích. Chỉ chạy trên runtime có **đúng phiên bản API** mà bạn muốn kiểm thử; hai copy interface cùng tên từ hai classloaders còn có thể gây vấn đề class identity khác với chữ ký method.
+In runtime extensibility, **keep old `.class`/JAR artifacts intact** rather than doing a clean rebuild of everything and concluding old binaries are still compatible. Run only against the **exact API version** you intend to test; two copies of an identically named interface from two class loaders can also cause class identity issues distinct from method signatures.
 
-## 15. Sai lầm và câu hỏi tự kiểm tra
+## 15. Misconceptions and self-check questions
 
-**Sai lầm: “Thêm abstract method là binary-compatible nên chắc chắn an toàn.”** Sai ở mức invocation: old implementer không tự có body mới.
+**Misconception: “Adding an abstract method is binary-compatible, so it is definitely safe.”** False at invocation time: old implementers do not automatically gain the new body.
 
-**Sai lầm: “Thêm default method luôn không gây lỗi.”** Default conflict và thay đổi semantics vẫn có thể xảy ra.
+**Misconception: “Adding a default method never causes errors.”** Default conflicts and semantic changes can still occur.
 
-**Sai lầm: “Đổi return String sang Object chỉ là nới kiểu.”** JVM descriptor thay đổi; old caller vẫn tham chiếu descriptor cũ.
+**Misconception: “Changing return `String` to `Object` is merely widening the type.”** The JVM descriptor changes; old callers still reference the old descriptor.
 
-**Sai lầm: “Đổi int thành long được Java tự widen lúc chạy.”** Compiler source mới có thể widen, nhưng old binary không tự chọn lại method.
+**Misconception: “Changing `int` to `long` is widened by Java at runtime.”** A source compiler on new code can widen, yet old binaries do not re-select methods.
 
-**Sai lầm: “Class cũ vẫn có execute() nên có thể xóa execute() khỏi interface.”** Old invokeinterface reference phải resolve ở interface/hierarchy runtime.
+**Misconception: “The old class still has `execute()`, so `execute()` can be removed from the interface.”** Old `invokeinterface` references must resolve against the runtime interface/hierarchy.
 
-**Sai lầm: “Đổi List<String> thành List<Integer> không có rủi ro do erasure.”** Erasure có thể giữ descriptor nhưng source contract và runtime type safety vẫn thay đổi.
+**Misconception: “Changing `List<String>` to `List<Integer>` has no risk due to erasure.”** Erasure may preserve the descriptor, yet the source contract and runtime type safety still change.
 
-**Câu 1.** Thêm **abstract flush()** vào interface khiến old plugin.class có thể link không? Host v2 gọi flush() sẽ ra sao?
+**Question 1.** Does adding **`abstract flush()`** to an interface allow old `plugin.class` to link? What happens when host v2 calls `flush()`?
 
-**Đáp án:** JLS cho phép old binary tiếp tục link khi thêm abstract interface member, nhưng nếu không có implementation trên old class, lời gọi có thể ném AbstractMethodError.
+**Answer:** The JLS allows old binaries to continue linking when an abstract interface member is added, yet if the old class has no implementation, invoking it can throw `AbstractMethodError`.
 
-**Câu 2.** Vì sao xóa method ở interface gây NoSuchMethodError dù class implementer có method trùng tên?
+**Question 2.** Why does removing a method from an interface cause `NoSuchMethodError` even when the implementing class has a method of the same name?
 
-**Đáp án:** Old binary dùng symbolic reference đến interface method. Nếu method không còn được resolve đúng descriptor trong interface/hierarchy, JVM không thể dùng reference ấy.
+**Answer:** Old binaries use a symbolic reference to the interface method. If the method can no longer be resolved with the exact descriptor in the interface/hierarchy, the JVM cannot use that reference.
 
-**Câu 3.** Thêm overload apply(String) có làm old bytecode gọi apply(Object) đổi sang String không?
+**Question 3.** Does adding an `apply(String)` overload cause old bytecode calling `apply(Object)` to switch to `String`?
 
-**Đáp án:** Không. Overload đã được compiler chọn và ghi descriptor khi biên dịch. Recompile source có thể chọn overload mới.
+**Answer:** No. The overload was already chosen by the compiler and its descriptor recorded at compile time. Recompiling source may select the new overload.
 
-**Câu 4.** Checked throws khác có đổi descriptor không?
+**Question 4.** Do different checked `throws` clauses change the descriptor?
 
-**Đáp án:** Không. Nhưng có thể phá source compatibility và thay đổi contract exception.
+**Answer:** No. Yet they can break source compatibility and change the exception contract.
 
-**Câu 5.** Có thể dùng default method để giả lập mọi capability mới không?
+**Question 5.** Can default methods emulate every new capability?
 
-**Đáp án:** Không. Default phải có semantics hợp lệ và không gây conflict; khi capability bắt buộc và old plugin không có, dùng interface mở rộng/version mới hoặc nâng cấp plugin.
+**Answer:** No. A default must have valid semantics and avoid conflicts; when a capability is mandatory and old plugins lack it, use an extension/new-version interface or upgrade plugins.
 
-## 16. Checklist trước khi sửa một interface công khai
+## 16. Checklist before modifying a public interface
 
-1. Phân loại thay đổi: thêm abstract/default/static/private/overload hay xóa/đổi descriptor.
-2. So JVM descriptors bằng **javap -s**, chú ý return type, erasure và bridge.
-3. Recompile old source để kiểm tra source compatibility.
-4. Chạy old caller.class và old plugin.class **không recompile** với API runtime mới.
-5. Kiểm tra AbstractMethodError khi new caller gọi abstract method trên old plugin.
-6. Kiểm tra NoSuchMethodError khi old caller tham chiếu method đã xóa/đổi.
-7. Kiểm tra xung đột default và semantics của fallback.
-8. Xem checked throws, generics và framework reflection dù descriptor không đổi.
-9. Ưu tiên adapter/default đúng nghĩa, capability interface, deprecation và migration policy.
-10. Lưu JAR cũ làm test fixture và công bố rõ version compatibility của host và plugin.
+1. Classify the change: adding abstract/default/static/private/overload, or removing/changing descriptors.
+2. Compare JVM descriptors with **`javap -s`**, paying attention to return types, erasure, and bridges.
+3. Recompile old source to test source compatibility.
+4. Run old `caller.class` and old `plugin.class` **without recompiling** against the new runtime API.
+5. Check for `AbstractMethodError` when new callers invoke abstract methods on old plugins.
+6. Check for `NoSuchMethodError` when old callers reference removed/changed methods.
+7. Check for default conflicts and fallback semantics.
+8. Review checked `throws`, generics, and framework reflection even if descriptors are unchanged.
+9. Prefer meaningful adapters/defaults, capability interfaces, deprecation, and migration policies.
+10. Keep old JARs as test fixtures and publish clear host and plugin version compatibility matrices.
 
-**Kết luận:** Thêm abstract method vào interface không nhất thiết phá binary link nhưng có thể gây **AbstractMethodError** khi gọi trên implementation cũ. Thêm default method thường hỗ trợ tiến hóa hợp đồng nhưng có rủi ro **IncompatibleClassChangeError** và đổi behavior. Xóa hoặc đổi method name, parameter hay return descriptor có thể dẫn đến **NoSuchMethodError** ở caller.class cũ. Để phát hành API ổn định, hãy kiểm tra **source, binary và behavior** bằng cả old binaries, không chỉ build thành công phiên bản mới.
+**Conclusion:** Adding an abstract method to an interface does not necessarily break binary linking, yet it can throw **`AbstractMethodError`** when invoked on old implementations. Adding a default method often aids contract evolution, yet carries risks of **`IncompatibleClassChangeError`** and behavioral changes. Removing or altering a method's name, parameters, or return descriptor can lead to **`NoSuchMethodError`** in old `caller.class` files. To ship a stable API, test **source, binary, and behavior** using actual old binaries—not just a successful build of the new version.
 
-### Tài liệu chuẩn Java 17
+### Java 17 standard references
 
-- Java Language Specification, Chapter 13, Binary Compatibility, đặc biệt §13.2, §13.5.4 và §13.5.7: https://docs.oracle.com/javase/specs/jls/se17/html/jls-13.html
+- Java Language Specification, Chapter 13, Binary Compatibility, especially §13.2, §13.5.4, and §13.5.7: https://docs.oracle.com/javase/specs/jls/se17/html/jls-13.html
 - JVM Specification, Method Descriptors §4.3.3: https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.3.3
 - JVMS, Interface Method Resolution §5.4.3.4: https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-5.html#jvms-5.4.3.4
 - JVMS, invokeinterface §6.5: https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-6.html#jvms-6.5.invokeinterface

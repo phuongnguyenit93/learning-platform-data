@@ -1,0 +1,1516 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Core Container là gì và nằm ở đâu trong Spring Framework
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vấn đề ghép nối đối tượng khi tự khởi tạo bằng new
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Đảo ngược điều khiển (IoC) và tiêm phụ thuộc (DI)
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Bean, định nghĩa bean và thể hiện đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Đồ thị phụ thuộc và trách nhiệm của container
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: BeanFactory, ApplicationContext và các dịch vụ bổ sung
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phân biệt Spring Framework với Spring Boot
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Ranh giới với AOP, giao dịch và các mô-đun web
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Lộ trình từ mô hình khái niệm đến kiểm chứng cấu hình
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: first-application
+  title: Ứng dụng đầu tiên
+  childs:
+  - slug: first-application-001
+    title: Chuẩn bị thư viện spring-context và phiên bản tương thích
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-application-002
+    title: Tạo lớp nghiệp vụ và hợp đồng cho đối tượng cộng tác
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-application-003
+    title: Khai báo cấu hình tối thiểu bằng @Configuration và @Bean
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-application-004
+    title: Khởi tạo AnnotationConfigApplicationContext
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-application-005
+    title: Lấy bean theo kiểu và thực hiện một luồng xử lý
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-application-006
+    title: Quan sát đối tượng được tạo và phụ thuộc được cung cấp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-application-007
+    title: Đóng context bằng try-with-resources
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-application-008
+    title: So sánh ứng dụng có container với cách lắp ghép thủ công
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bean-definition
+  title: Định nghĩa bean
+  childs:
+  - slug: bean-definition-001
+    title: BeanDefinition mô tả cách tạo và quản lý một bean
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-definition-002
+    title: Kiểu lớp, hàm khởi tạo và phương thức nhà máy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-definition-003
+    title: Tên bean, bí danh và quy ước đặt tên
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-definition-004
+    title: Một lớp được đăng ký thành nhiều bean độc lập
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-definition-005
+    title: Thuộc tính scope, lazy-init, primary và depends-on
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-definition-006
+    title: Giá trị cấu hình và tham chiếu giữa các bean
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-definition-007
+    title: Phân biệt kế thừa định nghĩa bean với kế thừa lớp Java
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-definition-008
+    title: Định nghĩa trừu tượng và hợp nhất cấu hình kế thừa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-definition-009
+    title: Xung đột tên và chính sách ghi đè định nghĩa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-injection
+  title: Tiêm phụ thuộc
+  childs:
+  - slug: dependency-injection-001
+    title: Phụ thuộc bắt buộc, phụ thuộc tùy chọn và bất biến đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-002
+    title: Tiêm qua hàm khởi tạo và bảo đảm trạng thái hợp lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-003
+    title: Tiêm qua setter cho cấu hình có thể tùy chọn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-004
+    title: Tiêm trực tiếp vào trường và ảnh hưởng tới kiểm thử
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-005
+    title: Tiêm qua phương thức cấu hình có nhiều tham số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-006
+    title: Phân biệt tham chiếu bean với giá trị đơn giản
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-007
+    title: Tiêm dựa trên hợp đồng thay vì tự tìm kiếm đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-008
+    title: Nhận diện quá nhiều phụ thuộc và trách nhiệm cần tách
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: autowired
+  title: '@Autowired'
+  childs:
+  - slug: autowired-001
+    title: Cơ chế xử lý @Autowired trong container
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autowired-002
+    title: Lớp có một hàm khởi tạo không cần ghi @Autowired
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autowired-003
+    title: Quy tắc chọn khi có nhiều hàm khởi tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autowired-004
+    title: Tiêm trường, setter và phương thức nhiều tham số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autowired-005
+    title: Ý nghĩa required và thời điểm phụ thuộc được giải quyết
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autowired-006
+    title: Phân biệt @Autowired với jakarta.inject.Inject
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autowired-007
+    title: Chọn theo tên bằng jakarta.annotation.Resource
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autowired-008
+    title: '@Named, @Qualifier và phạm vi hỗ trợ của chuẩn Jakarta'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autowired-009
+    title: Vì sao đối tượng tự tạo ngoài container không được tự động tiêm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: candidate-selection
+  title: Chọn ứng viên
+  childs:
+  - slug: candidate-selection-001
+    title: Tra cứu ứng viên theo kiểu có thể gán
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-selection-002
+    title: Giải quyết một phụ thuộc có nhiều bean cùng kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-selection-003
+    title: Ưu tiên một ứng viên bằng @Primary
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-selection-004
+    title: Lọc tập ứng viên bằng @Qualifier
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-selection-005
+    title: Tạo annotation qualifier theo ý nghĩa nghiệp vụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-selection-006
+    title: Dùng tham số kiểu tổng quát làm điều kiện chọn bean
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-selection-007
+    title: Tên tham số, tên bean và vai trò của tùy chọn biên dịch -parameters
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-selection-008
+    title: '@Fallback và điều kiện phiên bản từ Spring Framework 6.2'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-selection-009
+    title: Giới hạn ứng viên bằng autowire-candidate
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: candidate-selection-010
+    title: Phân biệt ưu tiên lựa chọn với thứ tự khởi tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flexible-dependencies
+  title: Phụ thuộc linh hoạt
+  childs:
+  - slug: flexible-dependencies-001
+    title: Tiêm mảng, List, Set và Map<String, T>
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-dependencies-002
+    title: Thứ tự tập hợp với Ordered, @Order và @Priority
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-dependencies-003
+    title: Lọc tập hợp bằng qualifier và phân biệt với @Primary
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-dependencies-004
+    title: Biểu diễn phụ thuộc tùy chọn bằng Optional
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-dependencies-005
+    title: Tra cứu trì hoãn bằng ObjectFactory và ObjectProvider
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-dependencies-006
+    title: getObject, getIfAvailable và getIfUnique
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-dependencies-007
+    title: Duyệt nhiều ứng viên bằng stream và orderedStream
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-dependencies-008
+    title: Dùng jakarta.inject.Provider và chọn thời điểm lấy bean
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-dependencies-009
+    title: Giới hạn sử dụng provider để tránh che giấu phụ thuộc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: component-scanning
+  title: Quét thành phần
+  childs:
+  - slug: component-scanning-001
+    title: Đăng ký lớp bằng @Component và các stereotype chuyên biệt
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-scanning-002
+    title: Ý nghĩa @Service, @Repository và @Controller trong container
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-scanning-003
+    title: Phạm vi quét của @ComponentScan và vị trí gói
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-scanning-004
+    title: Khai báo basePackages và basePackageClasses
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-scanning-005
+    title: Bộ lọc include, exclude và useDefaultFilters
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-scanning-006
+    title: Quy tắc sinh tên và tùy biến BeanNameGenerator
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-scanning-007
+    title: Tạo stereotype ghép bằng meta-annotation và @AliasFor
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-scanning-008
+    title: Phân biệt component scanning với xử lý annotation trên bean đã có
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-scanning-009
+    title: Xung đột do quét trùng và giới hạn quét theo mô-đun
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-configuration
+  title: Cấu hình Java
+  childs:
+  - slug: java-configuration-001
+    title: Vai trò của @Configuration và phương thức @Bean
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-002
+    title: Đăng ký đối tượng thư viện không có @Component
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-003
+    title: Tham số phương thức @Bean biểu diễn phụ thuộc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-004
+    title: Tên, bí danh và kiểu trả về của phương thức @Bean
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-005
+    title: Phương thức @Bean static và thời điểm container phát hiện kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-006
+    title: Chế độ đầy đủ của @Configuration và lớp tăng cường CGLIB
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-007
+    title: Chế độ lite và @Configuration(proxyBeanMethods = false)
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-008
+    title: Hành vi gọi trực tiếp giữa các phương thức @Bean
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-009
+    title: Giới hạn final, private và static khi chặn lời gọi @Bean
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-010
+    title: Tách việc tạo đối tượng khỏi công việc khởi tạo nghiệp vụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-composition
+  title: Ghép cấu hình
+  childs:
+  - slug: configuration-composition-001
+    title: Chia cấu hình theo ranh giới chức năng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-composition-002
+    title: Nhập lớp cấu hình bằng @Import
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-composition-003
+    title: Kết hợp nhiều nguồn cấu hình trong một context
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-composition-004
+    title: Nhập cấu hình XML bằng @ImportResource
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-composition-005
+    title: Chọn cấu hình bằng ImportSelector
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-composition-006
+    title: Thời điểm xử lý DeferredImportSelector
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-composition-007
+    title: Đăng ký định nghĩa bằng ImportBeanDefinitionRegistrar
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-composition-008
+    title: Thiết kế annotation bật tính năng theo mẫu @Enable
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-composition-009
+    title: Tránh phụ thuộc vòng giữa các lớp cấu hình
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-configuration
+  title: Cấu hình XML
+  childs:
+  - slug: xml-configuration-001
+    title: Cấu trúc beans, namespace và kiểm tra schema
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-002
+    title: Khai báo bean bằng id, class và alias
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-003
+    title: Cấp tham số qua constructor-arg
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-004
+    title: Cấp thuộc tính qua property, value và ref
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-005
+    title: Giá trị null, tập hợp lồng nhau và bean nội bộ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-006
+    title: Nhập tài nguyên cấu hình bằng import
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-007
+    title: Autowiring XML theo tên, theo kiểu và giới hạn của cơ chế
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-008
+    title: Bật annotation-config và component-scan
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-009
+    title: Chuyển đổi cấu hình XML sang Java mà giữ nguyên hành vi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bean-creation-timing
+  title: Thời điểm tạo bean
+  childs:
+  - slug: bean-creation-timing-001
+    title: Singleton khởi tạo sớm và quá trình tiền khởi tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-creation-timing-002
+    title: Trì hoãn tạo bean bằng @Lazy và lazy-init
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-creation-timing-003
+    title: Bean lazy vẫn có thể được tạo bởi phụ thuộc không lazy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-creation-timing-004
+    title: Proxy tại điểm tiêm @Lazy và thời điểm lỗi xuất hiện
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-creation-timing-005
+    title: '@DependsOn cho phụ thuộc khởi tạo không thể hiện bằng DI'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-creation-timing-006
+    title: Thứ tự khởi tạo xuất phát từ đồ thị phụ thuộc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-creation-timing-007
+    title: Phân biệt @Order, @DependsOn và thứ tự định nghĩa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-creation-timing-008
+    title: Quan hệ phụ thuộc và thứ tự hủy singleton
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bean-scopes
+  title: Phạm vi bean
+  childs:
+  - slug: bean-scopes-001
+    title: Scope quyết định quan hệ giữa định nghĩa và thể hiện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-scopes-002
+    title: Singleton theo bean và theo container
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-scopes-003
+    title: Phân biệt singleton Spring với mẫu Singleton GoF
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-scopes-004
+    title: Prototype và mỗi lần container đáp ứng yêu cầu lấy bean
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-scopes-005
+    title: Quản lý khởi tạo nhưng không tự hủy bean prototype
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-scopes-006
+    title: Request, session, application và websocket scope
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-scopes-007
+    title: Điều kiện cần có của context hỗ trợ phạm vi web
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-scopes-008
+    title: Khai báo @Scope và các annotation phạm vi web
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-scopes-009
+    title: Trạng thái dùng chung và an toàn luồng của singleton
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-scopes-010
+    title: SimpleThreadScope và giới hạn đăng ký, giải phóng tài nguyên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cross-scope-dependencies
+  title: Phụ thuộc khác phạm vi
+  childs:
+  - slug: cross-scope-dependencies-001
+    title: Vì sao prototype tiêm trực tiếp vào singleton không đổi mỗi lần gọi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-scope-dependencies-002
+    title: Lấy đối tượng đúng thời điểm bằng ObjectProvider
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-scope-dependencies-003
+    title: Scoped proxy và cách chọn đối tượng đích theo scope
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-scope-dependencies-004
+    title: ScopedProxyMode.INTERFACES và TARGET_CLASS
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-scope-dependencies-005
+    title: Giới hạn proxy dựa trên lớp và phương thức có thể chặn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-scope-dependencies-006
+    title: Lỗi ScopeNotActiveException khi phạm vi chưa hoạt động
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-scope-dependencies-007
+    title: Lookup method injection bằng @Lookup
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-scope-dependencies-008
+    title: Giới hạn @Lookup với lớp final và đối tượng do @Bean tạo
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-scope-dependencies-009
+    title: Thiết kế, đăng ký và kiểm soát vòng đời Scope tùy biến
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bean-lifecycle
+  title: Vòng đời bean
+  childs:
+  - slug: bean-lifecycle-001
+    title: Các bước tạo đối tượng, tiêm phụ thuộc và khởi tạo
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-002
+    title: Callback @PostConstruct sau khi hoàn tất cung cấp phụ thuộc
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-003
+    title: InitializingBean.afterPropertiesSet và @Bean(initMethod)
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-004
+    title: Thứ tự khi kết hợp nhiều cơ chế khởi tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-005
+    title: BeanPostProcessor trước và sau callback khởi tạo
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-006
+    title: SmartInitializingSingleton sau khi tạo các singleton thông thường
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-007
+    title: Giới hạn gọi bean khác hoặc làm việc nặng trong callback khởi tạo
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-008
+    title: Callback @PreDestroy, DisposableBean và destroyMethod
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-009
+    title: Suy luận close, shutdown và tắt suy luận bằng destroyMethod rỗng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-010
+    title: Giải phóng tài nguyên và giới hạn callback hủy với prototype
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-lifecycle
+  title: Vòng đời context
+  childs:
+  - slug: context-lifecycle-001
+    title: ConfigurableApplicationContext và các giai đoạn refresh
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-lifecycle-002
+    title: Nạp định nghĩa, chạy post-processor và tạo singleton
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-lifecycle-003
+    title: Phân biệt refresh, start, stop và close
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-lifecycle-004
+    title: Lifecycle cho thành phần cần khởi động, dừng chủ động
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-lifecycle-005
+    title: SmartLifecycle, autoStartup và thứ tự phase
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-lifecycle-006
+    title: Dừng có callback hoàn tất và giới hạn thời gian
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-lifecycle-007
+    title: registerShutdownHook và kết thúc ứng dụng ngoài môi trường web
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-lifecycle-008
+    title: Thất bại khi refresh và dọn dẹp tài nguyên đã tạo
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aware-callbacks
+  title: Callback Aware
+  childs:
+  - slug: aware-callbacks-001
+    title: Khi nào bean cần nhận thông tin từ container
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aware-callbacks-002
+    title: BeanNameAware, BeanFactoryAware và ApplicationContextAware
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aware-callbacks-003
+    title: EnvironmentAware, ResourceLoaderAware và MessageSourceAware
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aware-callbacks-004
+    title: ApplicationEventPublisherAware và lựa chọn tiêm hợp đồng hẹp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aware-callbacks-005
+    title: Thứ tự callback Aware trong chu trình tạo bean
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aware-callbacks-006
+    title: Đánh đổi giữa tiện ích container và mức độ phụ thuộc vào Spring
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: factory-bean
+  title: FactoryBean
+  childs:
+  - slug: factory-bean-001
+    title: Phân biệt FactoryBean với BeanFactory
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-bean-002
+    title: Tạo sản phẩm qua FactoryBean.getObject
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-bean-003
+    title: Khai báo kiểu sản phẩm bằng getObjectType
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-bean-004
+    title: Ý nghĩa isSingleton đối với sản phẩm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-bean-005
+    title: Lấy sản phẩm theo tên và lấy nhà máy bằng tiền tố &
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-bean-006
+    title: Vòng đời của FactoryBean và trách nhiệm quản lý sản phẩm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-bean-007
+    title: Lựa chọn giữa FactoryBean, @Bean và phương thức nhà máy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-bean-008
+    title: Khả năng xác định kiểu sớm và ảnh hưởng tới autowiring
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: definition-extension
+  title: Mở rộng định nghĩa
+  childs:
+  - slug: definition-extension-001
+    title: Phân biệt thay đổi BeanDefinition với xử lý thể hiện bean
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definition-extension-002
+    title: BeanFactoryPostProcessor và thời điểm can thiệp metadata
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definition-extension-003
+    title: BeanDefinitionRegistryPostProcessor để bổ sung định nghĩa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definition-extension-004
+    title: Đăng ký post-processor tự động và bằng mã
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

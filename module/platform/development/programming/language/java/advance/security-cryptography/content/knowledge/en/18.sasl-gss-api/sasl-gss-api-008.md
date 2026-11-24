@@ -1,115 +1,115 @@
-# 18.8. SPNEGO, ủy quyền credential và ranh giới bảo vệ của từng cơ chế
+# 18.8. SPNEGO, Credential Delegation, and the Protection Boundaries of Each Mechanism
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể giải thích SPNEGO chọn cơ chế xác thực như thế nào; phân biệt xác thực, ủy quyền truy cập và **chuyển giao thông tin xác thực (credential delegation)**; nhận biết mức bảo vệ thật sự của Kerberos/GSS-API, SASL GSSAPI, HTTP Negotiate và TLS; đồng thời cấu hình một luồng Java GSS-API theo nguyên tắc tối thiểu quyền. Trọng tâm là **ranh giới tin cậy của từng bước**, đặc biệt với ứng dụng nhiều tầng (frontend → backend).
+After this lesson, you will be able to explain how SPNEGO selects an authentication mechanism; distinguish authentication, access authorization, and **credential delegation**; identify the real protection guarantees of Kerberos/GSS-API, SASL GSSAPI, HTTP Negotiate, and TLS; and configure a Java GSS-API flow under the principle of least privilege. The central theme is **the trust boundary of each step**, especially in multi-tier applications (frontend → backend).
 
-> Thuật ngữ: `initiator` là phía mở ngữ cảnh bảo mật (thường là client), `acceptor` là phía nhận (thường là service). `Credential` là khả năng chứng minh danh tính trong một cơ chế; nó có thể là ticket/khóa hay đối tượng đại diện cho chúng, **không đồng nghĩa mật khẩu**. `Delegation` cho phép một service dùng credential được ủy quyền để xác thực tiếp với service khác dưới danh tính người dùng, tùy cơ chế và chính sách.
+> Terminology: `initiator` is the party opening the security context (typically the client), and `acceptor` is the receiving party (typically the service). A `Credential` is the ability to prove identity under a mechanism; it may be a ticket, key, or an object representing them, and is **not synonymous with a password**. `Delegation` allows a service to use delegated credentials to authenticate onward to another service under the user's identity, subject to mechanism and policy.
 
-## 1. Đặt SPNEGO đúng tầng
+## 1. Placing SPNEGO at the right layer
 
-| Thành phần | Vai trò chính | Không tự bảo đảm |
+| Component | Primary role | What it does not guarantee on its own |
 | --- | --- | --- |
-| **GSS-API / JGSS** (`org.ietf.jgss`) | API thống nhất để lập security context, xác thực đối tác và tùy cơ chế dùng MIC/wrap bảo vệ bản tin | Không tự vận chuyển token trên mạng, không quyết định quyền nghiệp vụ |
-| **Kerberos V5 GSS mechanism** | Chứng minh danh tính bằng ticket/khóa phiên; có thể hỗ trợ xác thực hai chiều, kiểm tra toàn vẹn, mã hóa từng bản tin | Không tự mã hóa toàn bộ HTTP/TCP; không cấp quyền truy cập dữ liệu |
-| **SPNEGO** | Cơ chế giả (pseudo-mechanism) để hai phía chọn một GSS mechanism chung | Không là thuật toán mật mã ứng dụng; không tự cấp quyền hay delegation |
-| **HTTP Negotiate** | Chở các token GSS/SPNEGO qua header HTTP trong chuỗi challenge/response | Không bảo vệ HTTP headers/body; không tự bật TLS |
-| **SASL GSSAPI** | Cơ chế SASL dùng Kerberos V5 GSS-API cho giao thức như LDAP; có thể thương lượng tầng `auth`/`auth-int`/`auth-conf` | Không phải SPNEGO; không đồng nghĩa mọi luồng dữ liệu đã được bảo vệ |
-| **TLS** | Bảo vệ kết nối vận chuyển: mã hóa, toàn vẹn và xác thực endpoint theo chứng chỉ/cấu hình | Không mặc nhiên biết user Kerberos; không tự chuyển quyền qua reverse proxy |
-| **Application authorization** | Kiểm tra principal đã xác thực được phép làm gì trên tài nguyên nào | Không thể thay bằng thành công của handshake SPNEGO |
+| **GSS-API / JGSS** (`org.ietf.jgss`) | Unified API to establish a security context, authenticate peers, and optionally protect messages via MIC/wrap | Does not transport tokens over the network; does not decide business permissions |
+| **Kerberos V5 GSS mechanism** | Proves identity via tickets/session keys; can support mutual auth, integrity checks, and per-message encryption | Does not automatically encrypt all HTTP/TCP traffic; does not grant data access rights |
+| **SPNEGO** | Pseudo-mechanism enabling two peers to pick a common GSS mechanism | Not an application cryptographic algorithm; does not grant permissions or delegation itself |
+| **HTTP Negotiate** | Carries GSS/SPNEGO tokens in HTTP headers across a challenge/response flow | Does not protect HTTP headers/bodies; does not turn on TLS |
+| **SASL GSSAPI** | SASL mechanism using Kerberos V5 GSS-API for protocols like LDAP; can negotiate `auth`/`auth-int`/`auth-conf` layers | Not SPNEGO; does not mean all data streams are automatically protected |
+| **TLS** | Protects transport connections: encryption, integrity, and endpoint authentication via certificates/config | Does not inherently know the Kerberos user; does not forward user permissions across reverse proxies |
+| **Application authorization** | Checks what an authenticated principal may do on which resources | Cannot be replaced by a successful SPNEGO handshake |
 
-**Ba câu hỏi khác nhau:** (1) “Ai đang kết nối?” là authentication. (2) “Người ấy được làm gì?” là authorization. (3) “Service trung gian có được đại diện người ấy kết nối nơi khác?” là credential delegation. Trả lời “đã SSO” không đủ cho (2) hoặc (3).
+**Three distinct questions:** (1) "Who is connecting?" is authentication. (2) "What may they do?" is authorization. (3) "May an intermediary service represent them when connecting elsewhere?" is credential delegation. Answering "SSO succeeded" covers neither (2) nor (3).
 
-### OID và tên thường gặp
+### Common OIDs and names
 
 - Kerberos V5 GSS mechanism: `1.2.840.113554.1.2.2`.
 - SPNEGO: `1.3.6.1.5.5.2`.
-- GSS host-based service name ví dụ `HTTP@api.example.com`; cơ chế Kerberos thường ánh xạ sang service principal `HTTP/api.example.com@REALM`. Tên service, FQDN, realm và keytab phải thống nhất với KDC.
-- Tên SASL `GSSAPI` theo RFC 4752 chỉ **Kerberos V5**, dù GSS-API nói chung hỗ trợ nhiều cơ chế. Tên HTTP `Negotiate` là tên scheme HTTP, không phải tên một principal hay một cipher.
+- GSS host-based service name, e.g., `HTTP@api.example.com`; the Kerberos mechanism typically maps this to service principal `HTTP/api.example.com@REALM`. Service name, FQDN, realm, and keytab must match the KDC.
+- The SASL name `GSSAPI` per RFC 4752 denotes **Kerberos V5** specifically, even though GSS-API in general supports multiple mechanisms. HTTP `Negotiate` is an HTTP authentication scheme name, not a principal or a cipher.
 
-Không đồng nhất một OID đã *yêu cầu* với cơ chế cuối cùng đã *thiết lập*. Khi chọn SPNEGO, xác thực phải đi tới ngữ cảnh hoàn tất; sau đó mới kiểm tra cơ chế thực, tên đối tác và các trạng thái bảo vệ mà triển khai cung cấp.
+Never equate a *requested* OID with the mechanism ultimately *established*. When choosing SPNEGO, authentication must run until the context completes; only then inspect the actual mechanism, peer name, and protection flags provided by the implementation.
 
-## 2. SPNEGO thương lượng cơ chế như thế nào?
+## 2. How does SPNEGO negotiate a mechanism?
 
-RFC 4178 mô tả SPNEGO như một lớp thương lượng có bảo vệ nằm trên GSS-API:
+RFC 4178 describes SPNEGO as a protected negotiation layer atop GSS-API:
 
-1. Initiator tạo `NegTokenInit` chứa danh sách các cơ chế nó hỗ trợ theo thứ tự ưu tiên; có thể kèm **optimistic token** của cơ chế ưu tiên để giảm số lượt đi-về.
-2. Acceptor chọn một cơ chế nằm trong danh sách mà nó hỗ trợ hoặc từ chối. Phản hồi `NegTokenResp` có trạng thái như `accept-incomplete`, `accept-completed`, `reject` hay `request-mic` cùng token của cơ chế đã chọn nếu cần.
-3. Hai phía trao đổi tiếp token cho cơ chế bên dưới (ví dụ Kerberos AP-REQ/AP-REP) đến khi ngữ cảnh hoàn tất. Không được coi một token khởi đầu hay HTTP 401 đơn lẻ là bằng chứng xác thực xong.
-4. Khi cơ chế đã chọn cung cấp integrity, SPNEGO dùng `mechListMIC` trong các trường hợp RFC yêu cầu để bảo vệ danh sách cơ chế khỏi sửa đổi/downgrade. MIC có thể là tùy chọn khi sự lựa chọn đã là ưu tiên của cả hai phía; nếu cơ chế không có integrity thì lớp MIC này không có sẵn.
+1. The initiator creates `NegTokenInit` containing its supported mechanisms in preference order; it may attach an **optimistic token** for the preferred mechanism to save round-trips.
+2. The acceptor picks a supported mechanism from the list or rejects. Its `NegTokenResp` carries a state such as `accept-incomplete`, `accept-completed`, `reject`, or `request-mic`, along with a token from the selected mechanism if needed.
+3. Both peers exchange further tokens for the underlying mechanism (e.g., Kerberos AP-REQ/AP-REP) until the context completes. Never treat an initial token or a single HTTP 401 as proof that authentication is finished.
+4. When the chosen mechanism provides integrity, SPNEGO uses `mechListMIC` in cases required by the RFC to protect the mechanism list against tampering/downgrade. The MIC may be optional when the chosen mechanism was already both sides' top preference; if the mechanism lacks integrity, this MIC layer is unavailable.
 
-`mechListMIC` bảo vệ **quá trình chọn cơ chế**, không mã hóa payload của ứng dụng. Nếu policy bắt buộc Kerberos thì phải từ chối các kết quả khác, dù SPNEGO thương lượng “thành công”. Đừng tự bật fallback sang cơ chế yếu hơn khi Kerberos thất bại.
+`mechListMIC` protects **mechanism selection**, not application payloads. If policy mandates Kerberos, reject all other outcomes even if SPNEGO negotiation "succeeded." Never enable silent fallback to weaker mechanisms when Kerberos fails.
 
-### Ví dụ luồng HTTP Negotiate
+### Example HTTP Negotiate flow
 
 ```text
-Browser/Java client                 Server HTTP (acceptor)        KDC
+Browser/Java client                 HTTP server (acceptor)        KDC
         | GET /private                     |                       |
         |--------------------------------->|                       |
         | 401 WWW-Authenticate: Negotiate  |                       |
         |<---------------------------------|                       |
-        | lấy ticket cho HTTP/server       |                       |
+        | fetch ticket for HTTP/server     |                       |
         |<------------------------------------------------------->|
         | Authorization: Negotiate <base64 GSS token>              |
         |--------------------------------->|                       |
         |<---- 401/200 + WWW-Authenticate: Negotiate <token>? ----|
-        | tiếp tục initSecContext() cho tới khi established       |
+        | continue initSecContext() until established              |
         |<================================>|                       |
-        |     application authorization sau authentication         |
+        |     application authorization after authentication       |
 ```
 
-Đây là luồng khái quát: có thể có thêm vòng trao đổi; token cuối từ server đôi khi đi cùng phản hồi 200 và **client vẫn phải xử lý**. `Authorization: Negotiate` chứa token nhị phân đã Base64 hóa, **không phải** “Bearer token” tùy ý tái sử dụng. Server phải kiểm tra context, principal, target service và chính sách truy cập trước khi trả dữ liệu riêng tư.
+This is a generalized flow: additional round-trips may occur; the final server token sometimes accompanies a 200 response, and **the client must still process it**. `Authorization: Negotiate` carries a Base64-encoded binary token, **not** an arbitrarily reusable "Bearer token." The server must validate the context, principal, target service, and access policies before returning private data.
 
-Theo RFC 4559, HTTP Negotiate phục vụ authentication; nó không bảo vệ các HTTP header/body. Vì vậy triển khai HTTP thực tế cần **HTTPS/TLS** (và TLS đến từng hop nhạy cảm), giới hạn nơi nhận token, chống ghi log token và bảo vệ phản hồi HTTP theo chính sách.
+Per RFC 4559, HTTP Negotiate handles authentication only; it does not protect HTTP headers or bodies. Production HTTP deployments therefore need **HTTPS/TLS** (and TLS across every sensitive hop), strict scoping of where tokens are sent, no token logging, and policy-driven HTTP response protection.
 
-### SPNEGO có phải Kerberos không?
+### Is SPNEGO the same as Kerberos?
 
-Không. SPNEGO là bộ chọn; Kerberos có thể là cơ chế được chọn. Một số hệ sinh thái SPNEGO/HTTP Negotiate có thể tương tác với NTLM, nhưng tập cơ chế thực tế phụ thuộc provider/nền tảng. Nhà cung cấp SunJGSS trong JDK chủ yếu triển khai Kerberos và SPNEGO trên Kerberos; **không suy ra** Java mặc định sẽ hỗ trợ NTLM qua JGSS. Nếu ứng dụng yêu cầu Kerberos, hãy cấu hình allow-list và kiểm tra kết quả thiết lập; đừng dựa vào chuỗi “Negotiate” ở header làm bằng chứng cơ chế đã chọn.
+No. SPNEGO is a selector; Kerberos may be the selected mechanism. Some SPNEGO/HTTP Negotiate ecosystems can interoperate with NTLM, though the actual mechanism set depends on provider and platform. The JDK's SunJGSS provider primarily implements Kerberos and SPNEGO over Kerberos; **do not assume** Java supports NTLM via JGSS by default. When an application requires Kerberos, configure an allowlist and verify the established mechanism; never treat the string "Negotiate" in a header as proof of the chosen mechanism.
 
-## 3. Credential delegation: cho phép làm gì và không cho phép làm gì?
+## 3. Credential delegation: what does it allow and forbid?
 
-Xét luồng ba tầng:
+Consider a three-tier flow:
 
 ```text
 Alice (initiator)  -- GSS context A -->  Frontend (acceptor)
                                            |
-                                           | GSS context B tới backend
-                                           | dùng delegated credential của Alice
+                                           | GSS context B to backend
+                                           | using Alice's delegated credential
                                            v
                                         Backend
 ```
 
-Ở context A, Alice xác thực với Frontend. Nếu Alice **chủ động yêu cầu**, cơ chế **hỗ trợ**, credentials **có khả năng chuyển giao** và policy **cho phép**, frontend có thể nhận một `GSSCredential` ủy quyền. Sau đó frontend tạo context B tới Backend dưới danh tính Alice. Backend vẫn phải xác thực frontend/ủy quyền, và **tự đánh giá Alice được làm gì**. Frontend nhận được credential có thể trở thành điểm rủi ro lớn: nếu bị chiếm quyền, kẻ tấn công có thể lạm dụng khả năng đại diện người dùng trong thời hạn và phạm vi được cấp.
+In context A, Alice authenticates to the Frontend. If Alice **explicitly requests it**, the mechanism **supports it**, her credentials are **delegatable**, and policy **permits it**, the frontend can receive a delegated `GSSCredential`. The frontend then establishes context B to the Backend under Alice's identity. The Backend must still authenticate the frontend/delegation and **independently evaluate what Alice is permitted to do**. A frontend holding delegated credentials becomes a high-value target: if compromised, an attacker can abuse user impersonation within the granted lifetime and scope.
 
-Điều kiện trong thực tế phụ thuộc Kerberos và môi trường: ticket có khả năng forward (`forwardable`), chính sách client/KDC/service, thuộc tính delegation của service, cross-realm trust, credential cache và provider. Yêu cầu delegation trong API **không bảo đảm** đã được cấp. Trường hợp không có delegation là kết quả bình thường, không nên tự động “sửa” bằng tài khoản service toàn quyền.
+Practical prerequisites depend on Kerberos and the environment: `forwardable` tickets, client/KDC/service policies, service delegation attributes, cross-realm trusts, credential caches, and providers. Requesting delegation in the API **does not guarantee** it was granted. Receiving no delegation is a normal outcome and must never be "fixed" by falling back to a superuser service account.
 
-### Phân biệt các loại quyền
+### Distinguishing types of authority
 
-| Khái niệm | Ví dụ | Điều cần nhớ |
+| Concept | Example | Key point to remember |
 | --- | --- | --- |
-| Authentication | Alice đăng nhập vào Frontend bằng Kerberos | Chứng minh danh tính trong context A |
-| Authorization | Frontend cho Alice đọc báo cáo số 42 | Quy tắc ứng dụng; Kerberos không ra quyết định nghiệp vụ |
-| SASL authorization identity (`authzid`) | Client yêu cầu hành động theo một tên authorization nhất định | Server phải kiểm tra quyền ủy nhiệm; không phải GSS credential delegation |
-| GSS credential delegation | Frontend dùng `getDelegCred()` để gọi Backend với credential được chuyển giao | Cho phép xác thực tiếp; phải giới hạn vòng đời, đích và quyền |
-| Proxy identity/headers | Gateway gửi `X-User` cho microservice | Chỉ đáng tin khi có quan hệ tin cậy, xác thực và bảo vệ hop gateway → service |
-| Kerberos constrained delegation | Cơ chế ví dụ S4U2proxy giới hạn service đích | Là mô hình cấu hình/protocol riêng; không đồng nhất với `requestCredDeleg(true)` trong JGSS |
+| Authentication | Alice logs into Frontend via Kerberos | Proves identity within context A |
+| Authorization | Frontend lets Alice read report #42 | Application rules; Kerberos makes no business decisions |
+| SASL authorization identity (`authzid`) | Client asks to act under a specific authorization name | Server must check delegation rules; not GSS credential delegation |
+| GSS credential delegation | Frontend uses `getDelegCred()` to call Backend with forwarded credentials | Enables downstream authentication; must constrain lifetime, target, and rights |
+| Proxy identity/headers | Gateway sends `X-User` to microservice | Trustworthy only with an explicit trust relationship, auth, and protected gateway → service hop |
+| Kerberos constrained delegation | Mechanism such as S4U2proxy restricted to specific target services | Separate configuration/protocol model; not identical to `requestCredDeleg(true)` in JGSS |
 
-Đừng nhầm delegation với “forward lại header `Authorization: Negotiate`”. Token Kerberos được tạo cho một target/context; gửi nguyên token sang service thứ hai không biến nó thành credential cho service thứ hai. Tương tự, tên `authzid` trong SASL không cho phép client tự lấy quyền của người dùng khác nếu server kiểm tra đúng.
+Do not confuse delegation with "forwarding the `Authorization: Negotiate` header." A Kerberos token is minted for a specific target/context; forwarding that raw token to a second service does not turn it into a valid credential for that second service. Likewise, SASL `authzid` does not allow a client to seize another user's rights when the server enforces policy properly.
 
-### Quy tắc thiết kế delegation an toàn
+### Rules for safe delegation design
 
-1. Mặc định **không yêu cầu** delegation. Chỉ bật cho một luồng nghiệp vụ có nhu cầu rõ và người dùng/administrator cho phép.
-2. Ràng buộc service đích (SPN/FQDN), principal được chấp nhận, phạm vi action và quyền backend. Ưu tiên constrained delegation hoặc cách thức cấp quyền phạm vi hẹp khi nền tảng hỗ trợ.
-3. Sau khi context A hoàn tất, kiểm tra `getCredDelegState()`; acceptor chỉ gọi `getDelegCred()` sau khi established. `null` nghĩa là không có credential đã chuyển giao.
-4. Không log, serialize ra JSON, lưu DB hoặc chuyển qua message queue credential/ticket. Không gộp credential của nhiều người dùng vào pool toàn cục. Đóng context và `dispose()` credential khi hết sử dụng.
-5. Authorization ở Backend phải dùng identity đã xác thực tại Backend, không tin chuỗi tên do Frontend tự khai. Có audit theo principal, service đích và hành động, tránh ghi token hoặc secret.
-6. Cần kế hoạch khi không được delegation: trả lỗi nghiệp vụ rõ ràng hoặc dùng flow cấp quyền khác được thiết kế riêng. Không tự “fallback” sang quyền cao hơn.
+1. By default, **do not request** delegation. Enable it only for business flows with a clear need and user/administrator consent.
+2. Restrict target services (SPN/FQDN), accepted principals, permitted actions, and backend permissions. Prefer constrained delegation or narrowly scoped authorization models where supported by the platform.
+3. After context A completes, inspect `getCredDelegState()`; the acceptor calls `getDelegCred()` only after establishment. `null` means no credential was delegated.
+4. Never log, serialize to JSON, store in a database, or push credentials/tickets onto a message queue. Never pool credentials from multiple users globally. Close contexts and `dispose()` credentials when done.
+5. Backend authorization must use the identity authenticated at the Backend, never an unverified username string asserted by the Frontend. Audit by principal, target service, and action without logging tokens or secrets.
+6. Plan for when delegation is denied: return a clear business error or use an explicitly designed authorization flow. Never silently "fall back" to elevated privileges.
 
-## 4. Java 17+: thiết lập context SPNEGO và kiểm tra điều kiện
+## 4. Java 17+: setting up an SPNEGO context and verifying conditions
 
-API chuẩn: module `java.security.jgss`, package `org.ietf.jgss`. Class `GSSManager` tạo `GSSName`, `GSSCredential`, `GSSContext`. JGSS **không truyền token qua mạng**; ứng dụng hoặc HTTP/SASL library phải đóng gói/gửi/nhận đúng theo giao thức.
+Standard API: module `java.security.jgss`, package `org.ietf.jgss`. `GSSManager` creates `GSSName`, `GSSCredential`, and `GSSContext`. JGSS **does not transmit tokens over the network**; the application or HTTP/SASL library must frame, send, and receive them per protocol.
 
-Ví dụ dưới đây là **chương trình Java 17 độc lập, biên dịch/chạy được** để xác nhận OID và cung cấp hàm tạo context phía client. Hàm tạo context chưa thực hiện handshake; kết nối Kerberos thực cần KDC, principal, credential và kênh trao đổi token.
+The example below is a **standalone, compilable/runnable Java 17 program** that verifies the OIDs and provides a client-side context factory. The factory method does not run a handshake; real Kerberos connections require a KDC, principals, credentials, and a token-exchange channel.
 
 ```java
 // SpnegoContextSetup.java
@@ -133,7 +133,7 @@ public final class SpnegoContextSetup {
         }
     }
 
-    // Gọi trong môi trường đã có Kerberos credentials phù hợp.
+    // Call in an environment with appropriate Kerberos credentials available.
     public static GSSContext createClient(String host, boolean allowDelegation)
             throws GSSException {
         GSSManager manager = GSSManager.getInstance();
@@ -142,7 +142,7 @@ public final class SpnegoContextSetup {
         GSSContext context = manager.createContext(
                 target, SPNEGO, null, GSSContext.DEFAULT_LIFETIME);
 
-        // Chỉ có hiệu lực khi gọi trước initSecContext() lần đầu.
+        // Effective only when called before the first initSecContext().
         context.requestMutualAuth(true);
         context.requestInteg(true);
         context.requestConf(true);
@@ -152,7 +152,7 @@ public final class SpnegoContextSetup {
         return context;
     }
 
-    // Chỉ gọi sau khi token exchange đã hoàn tất.
+    // Call only after the token exchange has completed.
     public static void requireClientPolicy(GSSContext context)
             throws GSSException {
         if (!context.isEstablished()) {
@@ -161,7 +161,7 @@ public final class SpnegoContextSetup {
         if (!context.getMutualAuthState()) {
             throw new SecurityException("Mutual authentication unavailable");
         }
-        // Provider phải báo được cơ chế Kerberos cuối cùng; nếu không, từ chối.
+        // Provider must report Kerberos as the final mechanism; otherwise reject.
         if (!KERBEROS.equals(context.getMech())) {
             throw new SecurityException("Selected GSS mechanism is not Kerberos");
         }
@@ -174,57 +174,57 @@ public final class SpnegoContextSetup {
 }
 ```
 
-Biên dịch và chạy (JDK 17+, không cần KDC vì `main` chỉ in OID):
+Compile and run (JDK 17+, no KDC required because `main` only prints OIDs):
 
 ```bash
 javac SpnegoContextSetup.java
 java SpnegoContextSetup
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 SPNEGO: 1.3.6.1.5.5.2
 Kerberos: 1.2.840.113554.1.2.2
 ```
 
-Đối với hệ thống Kerberos thật, hàm `createClient` được gọi trong một identity/`Subject` đã có credential phù hợp hoặc cơ chế lấy credential của provider đã cấu hình. `null` ở tham số credential nghĩa là để provider dùng credential mặc định phù hợp, **không** tự động tạo danh tính mới. Tên `HTTP@host` phải trỏ đúng SPN của server, không lấy host từ input không tin cậy. Sử dụng `requestCredDeleg(false)` trừ khi có yêu cầu delegation cụ thể.
+In a live Kerberos system, `createClient` runs under an identity/`Subject` holding valid credentials or using a configured provider credential mechanism. Passing `null` for the credential parameter tells the provider to use the appropriate default credential; it does **not** synthesize a new identity. The `HTTP@host` name must point to the server's real SPN, never derived from untrusted input. Keep `requestCredDeleg(false)` unless delegation is specifically required.
 
-### Exchange token: hiểu đúng state machine
+### Token exchange: getting the state machine right
 
-**Đoạn dưới đây là mã minh họa nằm trong phương thức xử lý kênh I/O do bạn tự viết**, không phải chương trình độc lập; `sendToken` và `receiveToken` là hai hàm của giao thức vận chuyển.
+**The snippet below is illustrative code inside an I/O handler method you implement yourself**, not a standalone program; `sendToken` and `receiveToken` represent your transport protocol methods.
 
 ```java
-// Initiator (phần thân phương thức; context đã được tạo):
+// Initiator (method body; context has already been created):
 byte[] incoming = new byte[0];
 while (!context.isEstablished()) {
     byte[] outgoing = context.initSecContext(
             incoming, 0, incoming.length);
     if (outgoing != null) {
-        sendToken(outgoing);             // Có thể vẫn phải gửi token cuối.
+        sendToken(outgoing);             // May still need to send the final token.
     }
     if (!context.isEstablished()) {
-        incoming = receiveToken();       // Token trả về từ đúng acceptor.
+        incoming = receiveToken();       // Token returned from the real acceptor.
     }
 }
 requireClientPolicy(context);
-// Cuối phiên: context.dispose() trong finally.
+// End of session: context.dispose() in finally.
 ```
 
-Ở acceptor, tạo credential `ACCEPT_ONLY` phù hợp với principal/keytab (hoặc credential mặc định theo provider), dùng `manager.createContext(acceptorCredential)`, liên tục gọi `acceptSecContext(incoming, 0, incoming.length)`, trả token đầu ra nếu có, đến khi `isEstablished()`. Sau đó xác minh `getSrcName()`, `getMech()` và chính sách ứng dụng. Không trộn token giữa request, connection, user hoặc context.
+On the acceptor, create an `ACCEPT_ONLY` credential matching the principal/keytab (or the provider's default credential), call `manager.createContext(acceptorCredential)`, loop calling `acceptSecContext(incoming, 0, incoming.length)` and returning any output token until `isEstablished()`. Then verify `getSrcName()`, `getMech()`, and application policy. Never mix tokens across requests, connections, users, or contexts.
 
-Lưu ý: token GSS là **opaque**; đừng phân tích ASN.1 hay Base64 để tự suy ra authentication success hoặc principal. Định dạng truyền token (framing, thứ tự, timeout, kích thước tối đa) do giao thức bên ngoài chịu trách nhiệm. Trong HTTP Negotiate, library HTTP thường điều khiển vòng 401/200 và Base64; trong socket tùy chỉnh, developer phải thiết kế framing an toàn.
+Note: GSS tokens are **opaque**; never parse ASN.1 or Base64 yourself to infer authentication success or principals. Token transport details (framing, ordering, timeouts, max sizes) are the outer protocol's job. In HTTP Negotiate, the HTTP library usually handles the 401/200 cycle and Base64; over raw sockets, the developer must design safe framing.
 
-### Acceptor đọc delegated credential
+### Acceptor reading delegated credentials
 
-**Fragment minh họa sau chỉ được gọi sau khi `acceptSecContext` hoàn tất thành công**, trên context phía acceptor và sau khi server đã quyết định yêu cầu này có được phép dùng delegation hay không:
+**The illustrative fragment below may be called only after `acceptSecContext` finishes successfully**, on the acceptor's context, and after the server verifies this request is permitted to use delegation:
 
 ```java
 if (!acceptorContext.isEstablished()) {
     throw new SecurityException("Incomplete client authentication");
 }
 GSSName authenticatedUser = acceptorContext.getSrcName();
-if (!isAuthorized(authenticatedUser)) { // Hàm policy của ứng dụng.
+if (!isAuthorized(authenticatedUser)) { // Application policy function.
     throw new SecurityException("User is not authorized");
 }
 
@@ -241,9 +241,9 @@ if (acceptorContext.getCredDelegState()) {
                     delegated, GSSContext.DEFAULT_LIFETIME);
             try {
                 downstream.requestMutualAuth(true);
-                downstream.requestCredDeleg(false); // Không tự động chuyển tiếp.
-                // Thực hiện exchange token với backend theo protocol thực tế.
-                // Chỉ truy cập backend sau khi downstream.isEstablished().
+                downstream.requestCredDeleg(false); // Do not forward further automatically.
+                // Perform token exchange with backend per real protocol.
+                // Access backend only after downstream.isEstablished().
             } finally {
                 downstream.dispose();
             }
@@ -254,11 +254,11 @@ if (acceptorContext.getCredDelegState()) {
 }
 ```
 
-`isAuthorized` và token exchange tới backend là thành phần **phải được ứng dụng triển khai**, không có trong JDK. `delegated.dispose()` chỉ nên gọi khi application sở hữu vòng đời credential và không còn context nào cần nó. Trong hệ thống thật, thêm kiểm tra principal đích, policy delegation, account mapping, timeout và exception handling. Không coi `getCredDelegState()==true` là authorization của nghiệp vụ.
+`isAuthorized` and the backend token exchange **must be implemented by the application**; they are not in the JDK. `delegated.dispose()` should be called only when the application owns the credential lifecycle and no context still needs it. In production systems, add target-principal verification, delegation policy checks, account mapping, timeouts, and exception handling. Never treat `getCredDelegState()==true` as business authorization.
 
-### Request flag khác negotiated flag
+### Requested flags differ from negotiated flags
 
-| Lời gọi phía initiator, **trước** `initSecContext` | Đọc kết quả **sau** `isEstablished` |
+| Initiator call, **before** `initSecContext` | Read outcome **after** `isEstablished` |
 | --- | --- |
 | `requestMutualAuth(true)` | `getMutualAuthState()` |
 | `requestCredDeleg(true/false)` | `getCredDelegState()` |
@@ -267,29 +267,29 @@ if (acceptorContext.getCredDelegState()) {
 | `requestReplayDet(true)` | `getReplayDetState()` |
 | `requestSequenceDet(true)` | `getSequenceDetState()` |
 
-Flag được **yêu cầu** không phải bằng chứng cơ chế đã đáp ứng. Nếu policy cần thuộc tính nào thì kiểm tra trạng thái đã thương lượng và fail closed khi thiếu. `getMech()` có thể thay đổi trong lúc thương lượng; kiểm tra sau khi context hoàn tất và xác nhận behavior của provider. `getCredDelegState()` chỉ có câu trả lời dứt khoát sau khi established; `getDelegCred()` được dùng ở acceptor, có thể trả `null`.
+A **requested** flag does not prove the mechanism granted it. If policy requires a property, check the negotiated state and fail closed when missing. `getMech()` can change during negotiation; inspect it after context completion and confirm provider behavior. `getCredDelegState()` is definitive only after establishment; `getDelegCred()` is called on the acceptor and can return `null`.
 
-`requestConf(true)` chỉ yêu cầu khả năng confidentiality cho **GSS `wrap()`**; nó **không mã hóa HTTP body** chỉ vì đã gọi flag đó. Nếu ứng dụng dùng `wrap(..., new MessageProp(0, true))` để bảo vệ bản tin riêng, phải xác nhận context có confidentiality, bên nhận `unwrap()`, và giao thức truyền đúng token. `getMIC()/verifyMIC()` cung cấp integrity, không cung cấp secrecy. Trong HTTP, HTTPS/TLS vẫn cần được cấu hình đúng.
+`requestConf(true)` only requests confidentiality capability for **GSS `wrap()`**; calling that flag **does not encrypt the HTTP body**. If an application uses `wrap(..., new MessageProp(0, true))` to protect custom messages, it must verify the context supports confidentiality, ensure the receiver calls `unwrap()`, and transmit tokens cleanly. `getMIC()/verifyMIC()` provides integrity, not secrecy. Over HTTP, HTTPS/TLS must still be configured properly.
 
-## 5. SASL GSSAPI và SPNEGO: không nhập làm một
+## 5. SASL GSSAPI and SPNEGO: do not conflate them
 
-Một ứng dụng có thể gặp cả hai API:
+An application may encounter both APIs:
 
-- **JGSS trực tiếp hoặc HTTP Negotiate:** chọn OID SPNEGO và trao token cho peer để lập `GSSContext`; cơ chế thực có thể là Kerberos tùy provider/policy.
-- **SASL `GSSAPI` (RFC 4752):** cơ chế SASL **cố định Kerberos V5 GSS-API** và thương lượng tầng bảo vệ dữ liệu sau authentication. Các giao thức như LDAP quy định cách đóng gói/trao challenge-response; `SaslClient`/`SaslServer` chỉ xử lý logic SASL.
-- **GS2 family (RFC 5801):** bridge GSS-API sang SASL khác với SASL `GSSAPI` kiểu RFC 4752. Ví dụ `GS2-KRB5` và `GS2-KRB5-PLUS`; biến thể PLUS dùng channel binding. Không giả định mọi SASL provider/giao thức đều hỗ trợ GS2.
+- **Direct JGSS or HTTP Negotiate:** chooses the SPNEGO OID and exchanges tokens with the peer to establish a `GSSContext`; the actual mechanism can be Kerberos depending on provider/policy.
+- **SASL `GSSAPI` (RFC 4752):** a SASL mechanism **fixed to Kerberos V5 GSS-API** that optionally negotiates a post-authentication data protection layer. Protocols like LDAP define challenge/response framing; `SaslClient`/`SaslServer` handle only SASL logic.
+- **GS2 family (RFC 5801):** bridges GSS-API to SASL differently from RFC 4752's `GSSAPI`, e.g., `GS2-KRB5` and `GS2-KRB5-PLUS`, where PLUS uses channel binding. Never assume every SASL provider or protocol supports GS2.
 
-Trong Java (`javax.security.sasl`), `Sasl.QOP` có các giá trị:
+In Java (`javax.security.sasl`), `Sasl.QOP` accepts these values:
 
-| QOP | Bảo vệ do SASL security layer |
+| QOP | Protection provided by SASL security layer |
 | --- | --- |
-| `auth` | Xác thực; **không** thêm tầng bảo vệ dữ liệu SASL |
-| `auth-int` | Xác thực + toàn vẹn cho message được `wrap()/unwrap()` |
-| `auth-conf` | Xác thực + toàn vẹn + bí mật cho message được `wrap()/unwrap()` |
+| `auth` | Authentication; **adds no** SASL data protection layer |
+| `auth-int` | Authentication + integrity for messages passed through `wrap()/unwrap()` |
+| `auth-conf` | Authentication + integrity + confidentiality for messages passed through `wrap()/unwrap()` |
 
-Nếu không cấu hình `Sasl.QOP`, giá trị mặc định theo Javadoc Java là `auth`. Đặt danh sách ưu tiên không ép server chấp nhận lựa chọn cao nhất; phải đọc **`getNegotiatedProperty(Sasl.QOP)` sau khi `isComplete()`** và từ chối khi kết quả thấp hơn yêu cầu. Với `auth-int`/`auth-conf`, ứng dụng/giao thức phải dùng `SaslClient.wrap()/unwrap()` hoặc `SaslServer.wrap()/unwrap()` cho dữ liệu tiếp theo; chỉ thương lượng xong rồi gửi plaintext là sai ranh giới bảo vệ.
+If `Sasl.QOP` is omitted, the default per Java Javadoc is `auth`. Supplying a preference list does not force the server to pick the strongest value; you must read **`getNegotiatedProperty(Sasl.QOP)` after `isComplete()`** and reject if it falls short of policy. With `auth-int`/`auth-conf`, the application/protocol must pass subsequent data through `SaslClient.wrap()/unwrap()` or `SaslServer.wrap()/unwrap()`; negotiating QOP and then sending plaintext violates the protection boundary.
 
-Fragment minh họa (nằm trong phương thức có xử lý `SaslException` và vòng challenge/response của giao thức):
+Illustrative fragment (placed inside a method handling `SaslException` and the protocol's challenge/response loop):
 
 ```java
 Map<String, String> properties = Map.of(
@@ -297,17 +297,17 @@ Map<String, String> properties = Map.of(
 
 SaslClient client = Sasl.createSaslClient(
         new String[] { "GSSAPI" },
-        null,             // authorizationId: không yêu cầu giả danh ai.
-        "ldap",           // protocol theo SASL profile.
+        null,             // authorizationId: do not request impersonating another identity.
+        "ldap",           // protocol per SASL profile.
         "directory.example.com",
         properties,
-        null);            // CallbackHandler tùy cấu hình provider.
+        null);            // CallbackHandler depending on provider configuration.
 
 if (client == null) {
     throw new SaslException("No GSSAPI SASL provider");
 }
 
-// Chuyển challenge/response đến khi client.isComplete() theo protocol LDAP.
+// Exchange challenge/response until client.isComplete() per the LDAP protocol.
 if (!client.isComplete()) {
     throw new SaslException("SASL exchange incomplete");
 }
@@ -315,102 +315,102 @@ String negotiatedQop = (String) client.getNegotiatedProperty(Sasl.QOP);
 if (!"auth-conf".equals(negotiatedQop)) {
     throw new SaslException("Required SASL confidentiality unavailable");
 }
-// Tiếp theo: truyền dữ liệu qua client.wrap()/unwrap() theo protocol.
-// Cuối phiên: client.dispose().
+// Next: transmit data through client.wrap()/unwrap() per protocol.
+// End of session: client.dispose().
 ```
 
-Fragment cần import `java.util.Map`, `javax.security.sasl.Sasl`, `SaslClient` và `SaslException`. Ở luồng thực, bạn phải **thực hiện** exchange qua LDAP hoặc protocol liên quan trước khi kiểm tra `isComplete()`; snippet không tự tiến hành authentication.
+This fragment requires importing `java.util.Map`, `javax.security.sasl.Sasl`, `SaslClient`, and `SaslException`. In a real flow, you must **execute** the exchange over LDAP or the target protocol before checking `isComplete()`; the snippet does not run authentication by itself.
 
-SASL authorization identity khác với credential delegation: máy chủ SASL phải tự xét client đã xác thực có được hành động dưới authzid yêu cầu không. Không tự động tạo `GSSCredential` chuyển tiếp khi chỉ sử dụng `Sasl.createSaslClient("GSSAPI")`.
+SASL authorization identity differs from credential delegation: the SASL server itself decides whether the authenticated client may act under the requested `authzid`. Using `Sasl.createSaslClient("GSSAPI")` alone does not automatically create a forwardable `GSSCredential`.
 
-## 6. Những ranh giới bảo vệ dễ bị hiểu nhầm
+## 6. Protection boundaries that are easy to misunderstand
 
-### 6.1. Xác thực đối tác không bằng mã hóa toàn bộ kết nối
+### 6.1. Peer authentication does not equal full connection encryption
 
-Kerberos GSS có thể xác thực và tạo khóa cho context; `wrap`/`getMIC` chỉ bảo vệ **những bản tin ứng dụng chủ động đưa qua API tương ứng**. Một request HTTP chứa token SPNEGO nhưng truyền body không qua `wrap` vẫn cần TLS. TLS bảo vệ đường truyền giữa **hai TLS endpoints**, không tự bảo vệ dữ liệu sau khi proxy giải mã hoặc khi lưu vào log/DB.
+Kerberos GSS authenticates and derives context keys; `wrap`/`getMIC` protect **only messages the application explicitly passes through those APIs**. An HTTP request carrying an SPNEGO token whose body is not passed through `wrap` still requires TLS. TLS protects traffic between **two TLS endpoints**, and does not automatically protect data after proxy decryption or once written to logs/databases.
 
-### 6.2. SPNEGO negotiation protection không là chống downgrade toàn hệ thống
+### 6.2. SPNEGO negotiation protection is not system-wide anti-downgrade
 
-`mechListMIC` của RFC 4178 có điều kiện theo integrity của underlying mechanism và tình huống thương lượng. Nó không thay policy “chỉ cho Kerberos”, không bảo vệ việc server ứng dụng quảng cáo các scheme HTTP khác, và không tự bảo vệ HTTP redirect hoặc DNS. Khi Kerberos bắt buộc: chỉ chấp nhận cơ chế thực phù hợp, không retry im lặng sang NTLM/Basic, và xác minh service principal đích.
+RFC 4178's `mechListMIC` depends on the underlying mechanism having integrity and on the negotiation case. It does not replace a "Kerberos-only" policy, does not protect HTTP schemes advertised elsewhere by the application server, and does not automatically protect HTTP redirects or DNS. When Kerberos is mandatory: accept only the matching real mechanism, never silently retry with NTLM/Basic, and verify the target service principal.
 
-### 6.3. Mutual authentication khác với “đã có TLS”
+### 6.3. Mutual authentication is not the same as "having TLS"
 
-Kerberos mutual auth (nếu được negotiated) chứng minh acceptor có thông tin phù hợp để kết thúc cơ chế Kerberos. TLS server authentication kiểm tra certificate của TLS endpoint. Hai thuộc tính gắn với **hai lớp/đối tượng** khác nhau, có thể trỏ tới hai chủ thể khác nhau khi có reverse proxy. Nếu yêu cầu ràng buộc xác thực ứng dụng vào chính TLS channel, cần channel binding được cả hai đầu hỗ trợ và cùng cấu hình; không mặc định JGSS hay HTTP client tự làm việc đó.
+Kerberos mutual auth (when negotiated) proves the acceptor possesses the credentials needed to complete the Kerberos exchange. TLS server authentication verifies the TLS endpoint's certificate. These two properties apply to **different layers and principals**, which can refer to two distinct entities when a reverse proxy sits in front. To bind application authentication to the TLS channel itself, use channel binding supported and identically configured on both ends; never assume JGSS or an HTTP client handles that automatically.
 
-Java GSS cung cấp `GSSContext.setChannelBinding(ChannelBinding)` trước handshake; dữ liệu binding phải được lấy từ kênh đã xác thực và thống nhất ở hai phía. Với các tiêu chuẩn SASL hiện đại, RFC 9266 xác định `tls-exporter` cho TLS 1.3; RFC 5929 mô tả các loại binding trước đó. Chọn đúng loại và dữ liệu theo **protocol/provider thực tế**, không tự chế chuỗi chứng chỉ hoặc gắn cờ “channel bound” khi chưa được peer xác nhận.
+Java GSS offers `GSSContext.setChannelBinding(ChannelBinding)` before the handshake; binding data must come from the verified channel and match on both sides. For modern SASL standards, RFC 9266 defines `tls-exporter` for TLS 1.3, while RFC 5929 describes earlier binding types. Choose the exact binding type and data per **real protocol and provider**, and never invent certificate strings or mark a session "channel bound" without peer verification.
 
-### 6.4. Endpoint/identity scope
+### 6.4. Endpoint and identity scope
 
-Ticket/service name phải khớp service đích. Credential của user cho `HTTP/front.example.com` không có nghĩa backend `ldap/directory.example.com` đã xác thực user. Khi proxy nhận Negotiate, backend chỉ thấy hop do proxy tạo; nếu backend cần danh tính user, phải có delegation đã được policy cho phép hoặc một giao thức ủy quyền/identity propagation được bảo vệ và xác minh riêng. Header `X-User` do bên ngoài tự gửi không đáng tin.
+Tickets and service names must match the target service. A user credential for `HTTP/front.example.com` does not mean backend `ldap/directory.example.com` has authenticated the user. When a proxy accepts Negotiate, the backend sees only the hop opened by the proxy; if the backend needs the user's identity, it requires policy-permitted delegation or a separately authenticated and verified identity-propagation protocol. An externally supplied `X-User` header is untrustworthy.
 
-### 6.5. Replay, lifetime và token handling
+### 6.5. Replay, lifetime, and token handling
 
-Kerberos và GSS context có cơ chế phát hiện replay/sequence tùy cấu hình, nhưng không thay chống replay ở nghiệp vụ (ví dụ chuyển tiền hai lần), idempotency key, authorization từng request hoặc thời hạn session. Token có thể lộ cấu trúc/metadata và phải coi là dữ liệu nhạy cảm; không đưa `Authorization: Negotiate`, vé Kerberos, keytab, dump credential hoặc SASL challenge vào log. Giới hạn kích thước token, số vòng handshake, timeout và số context đồng thời để tránh DoS.
+Kerberos and GSS contexts offer configurable replay/sequence detection, which does not replace business-level replay protection (such as preventing duplicate money transfers), idempotency keys, per-request authorization, or session lifetimes. Tokens can reveal structure/metadata and must be treated as sensitive data; never log `Authorization: Negotiate`, Kerberos tickets, keytabs, credential dumps, or SASL challenges. Cap token sizes, handshake rounds, timeouts, and concurrent contexts to mitigate DoS.
 
-## 7. Ma trận quyết định theo nhu cầu
+## 7. Decision matrix by requirement
 
-| Yêu cầu | Cơ chế/cấu hình cần thiết | Kiểm tra bắt buộc |
+| Requirement | Required mechanism / setup | Mandatory verification |
 | --- | --- | --- |
-| User đăng nhập SSO vào web nội bộ | HTTPS + HTTP Negotiate/SPNEGO với Kerberos được cho phép | Context hoàn tất, principal, SPN và authorization |
-| Giữ bí mật HTTP headers/body | TLS đến các endpoint/hop cần bảo vệ | Certificate, hostname, TLS policy, nơi kết thúc TLS |
-| Bảo vệ message của GSS socket tùy chỉnh | `GSSContext.wrap/unwrap` hoặc MIC thích hợp | `getIntegState/getConfState`, tính đúng framing và token |
-| LDAP dùng SASL GSSAPI | SASL challenge/response với Kerberos | `isComplete`, `authzid`, QOP đã thương lượng; TLS nếu cần |
-| Backend hành động thay user | Credential delegation hoặc giải pháp delegation được kiểm soát | Sự đồng ý/policy, `getCredDelegState`, identity, scope và audit |
-| Chống MITM giữa GSS/SASL với TLS | Channel binding được giao thức/provider hỗ trợ | Hai phía bind cùng TLS channel, thất bại phải dừng |
-| Chỉ cho phép Kerberos, tránh fallback | Allow-list GSS mechanism và HTTP authentication policy | Cơ chế cuối, không downgrade sang NTLM/Basic |
+| User SSO login to internal web app | HTTPS + HTTP Negotiate/SPNEGO allowing Kerberos | Context established, principal, SPN, and authorization |
+| Keep HTTP headers/body confidential | TLS across every sensitive endpoint/hop | Certificate, hostname, TLS policy, TLS termination point |
+| Protect custom GSS socket messages | `GSSContext.wrap/unwrap` or appropriate MIC | `getIntegState/getConfState`, accurate framing and token checks |
+| LDAP using SASL GSSAPI | SASL challenge/response with Kerberos | `isComplete`, `authzid`, negotiated QOP; TLS if needed |
+| Backend acting on behalf of user | Credential delegation or controlled delegation solution | Consent/policy, `getCredDelegState`, identity, scope, and audit |
+| Mitigate MITM between GSS/SASL and TLS | Channel binding supported by protocol/provider | Both peers bind to the same TLS channel; fail on mismatch |
+| Allow Kerberos only, prevent fallback | GSS mechanism allowlist and HTTP auth policy | Final mechanism check; no downgrade to NTLM/Basic |
 
-**Ví dụ lựa chọn:** Công ty có web portal dùng Negotiate. Người dùng Alice xem thông tin của mình từ database. Nếu portal chỉ đọc dữ liệu bằng service account với **authorization của portal theo Alice**, không nhất thiết cần Kerberos delegation. Nếu database bắt buộc xác thực từng user bằng Kerberos, mới xem xét chuyển giao credential/ủy quyền ràng buộc service đích. Hai mô hình đều cần policy ở database hoặc portal; việc delegation làm gia tăng phạm vi quyền nếu sai cấu hình.
+**Choice example:** A company has a web portal using Negotiate. User Alice views her own data from a database. If the portal reads data using a service account while enforcing **portal-side authorization for Alice**, Kerberos delegation is not strictly necessary. Only if the database mandates per-user Kerberos authentication should target-scoped credential delegation be considered. Both models require authorization policies at the database or portal; delegation widens blast radius if misconfigured.
 
-## 8. Triển khai, xử lý lỗi và kiểm thử
+## 8. Implementation, error handling, and testing
 
-### Checklist triển khai Java + Kerberos/SPNEGO
+### Java + Kerberos/SPNEGO implementation checklist
 
-1. **Danh tính:** xác định user principal, FQDN và service principal thực (`HTTP/...`, `ldap/...`), realm và quan hệ trust. Bảo đảm DNS/canonicalization không khiến client tạo ticket cho host khác mong muốn.
-2. **Credential store:** bố trí JAAS/Kerberos login, ticket cache, keytab và quyền đọc file cho đúng process. Chỉ bật debug khi điều tra, xóa log trước khi chia sẻ.
-3. **Negotiate:** quyết định cơ chế được phép. Tạo context đúng OID, thiết lập yêu cầu mutual auth, integrity, delegation trước lần `initSecContext` đầu tiên. Không coi một HTTP 401 là lỗi cuối cùng; xử lý mọi token phản hồi.
-4. **Policy sau handshake:** xác minh context established, negotiated mechanism, expected acceptor/service và authenticated user; kiểm tra quyền tài nguyên riêng.
-5. **Bảo vệ dữ liệu:** xác định chính xác hop TLS, việc dùng GSS/SASL `wrap`, channel binding, proxy và log. Với dữ liệu nhạy cảm, kiểm tra confidentiality tại lớp **thực sự chuyển dữ liệu**.
-6. **Delegation:** khai báo luồng nào cần, người nào được, service nào được nhận, lifetime nào; test “không được delegation”. Không tự động yêu cầu lại hoặc nâng quyền khi `getDelegCred()` bằng `null`.
-7. **Vòng đời:** mỗi context gắn đúng phiên/identity; bảo vệ chống concurrency/race, đặt timeout và giới hạn token; dispose context/credential khi xong. Không dùng chung mutable `GSSContext` giữa các request độc lập.
+1. **Identities:** identify user principals, FQDNs, exact service principals (`HTTP/...`, `ldap/...`), realms, and trust paths. Ensure DNS/canonicalization does not cause clients to request tickets for an unintended host.
+2. **Credential store:** set up JAAS/Kerberos logins, ticket caches, keytabs, and OS file permissions for the exact service process. Enable debug only during investigation and scrub logs before sharing.
+3. **Negotiate:** define permitted mechanisms. Create contexts with the right OID, setting mutual auth, integrity, and delegation flags before the first `initSecContext`. Never treat a single HTTP 401 as terminal; process every response token.
+4. **Post-handshake policy:** verify context establishment, negotiated mechanism, expected acceptor/service, and authenticated user; run independent resource authorization checks.
+5. **Data protection:** trace exact TLS hops, GSS/SASL `wrap` usage, channel binding, proxies, and logging. For sensitive data, verify confidentiality at **the layer actually moving the data**.
+6. **Delegation:** declare which flows need it, who is eligible, which target services may receive it, and what lifetime applies; test "delegation denied." Never silently retry or escalate privileges when `getDelegCred()` is `null`.
+7. **Lifecycle:** tie every context to one session/identity; guard against concurrency/races, enforce timeouts and token caps, and dispose contexts/credentials when finished. Never share a mutable `GSSContext` across independent requests.
 
-### Tình huống lỗi và hướng chẩn đoán
+### Failure modes and diagnostic guide
 
-| Dấu hiệu | Nguyên nhân cần kiểm tra | Cách xử lý |
+| Symptom | Causes to inspect | How to resolve |
 | --- | --- | --- |
-| `GSSException: No valid credentials` | Chưa login Kerberos, credential cache không đúng process/`Subject`, ticket hết hạn | Kiểm tra credential source và principal; không đưa password vào code |
-| `KRB_AP_ERR_MODIFIED`/service ticket không chấp nhận | SPN trỏ nhầm service, keytab/kvno/key không khớp, duplicate SPN | So lại target FQDN, SPN, keytab và KDC |
-| `Clock skew too great` | Client/server/KDC lệch giờ | Đồng bộ thời gian theo chính sách hệ thống |
-| HTTP lặp 401 Negotiate | Không hoàn tất token exchange, server không có acceptor cred, proxy bỏ header, sai SPN | Trace trạng thái/hop ở mức an toàn; không log raw token |
-| Auth thành công nhưng backend từ chối | Chưa delegation, backend kiểm tra role riêng, principal đích sai | Kiểm tra `getCredDelegState`, backend identity/authorization |
-| Có `auth` nhưng cần confidentiality | SASL QOP đã thương lượng thấp hơn yêu cầu | Fail closed hoặc dùng kênh TLS được chấp nhận theo policy |
-| Channel binding mismatch | Hai phía lấy binding từ TLS connection khác nhau, hoặc loại binding không tương thích | Kiểm tra TLS termination và hỗ trợ provider/protocol |
+| `GSSException: No valid credentials` | Not logged into Kerberos, wrong process/`Subject` credential cache, expired ticket | Inspect credential source and principal; never hardcode passwords |
+| `KRB_AP_ERR_MODIFIED` / service ticket rejected | SPN targets wrong service, keytab/kvno/key mismatch, duplicate SPN | Reconcile target FQDN, SPN, keytab, and KDC |
+| `Clock skew too great` | Clock drift among client/server/KDC | Synchronize clocks per system policy |
+| Repeated HTTP 401 Negotiate | Incomplete token exchange, server missing acceptor cred, proxy stripping header, wrong SPN | Trace hops/states safely; never log raw tokens |
+| Auth succeeds but backend denies | Delegation absent, backend enforces separate roles, wrong target principal | Check `getCredDelegState`, backend identity/authorization |
+| Got `auth` when confidentiality was needed | Negotiated SASL QOP is weaker than required | Fail closed or require an approved TLS channel per policy |
+| Channel binding mismatch | Peers bound to different TLS connections, or incompatible binding type | Inspect TLS termination and provider/protocol support |
 
-Lệnh vận hành như `klist`, `kinit` hoặc `setspn` tùy hệ điều hành và môi trường có thể giúp kiểm tra ticket/SPN; kết quả phải xử lý như thông tin bảo mật. Không suy ra cơ chế, quyền hay tính bảo mật từ việc một command trả exit code 0.
+Operational commands such as `klist`, `kinit`, or `setspn` (depending on OS and environment) help inspect tickets/SPNs; treat their output as security-sensitive data. Never conclude a mechanism, permission, or security guarantee holds merely because a command exited 0.
 
-### Bộ tình huống QA tối thiểu
+### Minimum QA test suite
 
-- **Đường tốt:** client/server Kerberos đúng SPN; context hoàn tất; user được authorization đúng tài nguyên.
-- **Không có common mechanism:** từ chối; không fallback sang cơ chế bị cấm.
-- **Sai SPN/keytab/realm hoặc token bị sửa:** không cấp quyền; không tạo session ứng dụng.
-- **Không bật delegation:** acceptor không nhận delegated credential; backend được xử lý theo phương án không delegation.
-- **Có yêu cầu delegation nhưng policy/ticket không cho phép:** không tự nâng quyền hoặc chia sẻ tài khoản service toàn quyền.
-- **Delegation được phép:** chỉ gọi backend đã cho phép; principal và audit khớp; credential không còn được dùng sau kết thúc phiên.
-- **SASL QOP thấp:** ứng dụng cần `auth-conf` phải từ chối `auth`/`auth-int`; kiểm tra rằng dữ liệu hậu xác thực thực sự đi qua bảo vệ đã chọn.
-- **Proxy/TLS:** thử kết thúc TLS tại gateway, đổi channel binding, mất header ở hop sau và HTTP không TLS; xác nhận policy phát hiện sai phạm và bảo vệ đúng phạm vi.
-- **Replay/concurrency:** gửi lại yêu cầu nghiệp vụ và token không hợp lệ, thử quá số vòng/token size; hệ thống không làm lộ credential, không nhầm lẫn danh tính giữa phiên.
+- **Happy path:** Kerberos client/server with valid SPN; context completes; user authorized for the right resource.
+- **No common mechanism:** rejected; no fallback to forbidden mechanisms.
+- **Wrong SPN/keytab/realm or tampered token:** no access granted; no application session created.
+- **Delegation disabled:** acceptor receives no delegated credential; backend follows the non-delegation path.
+- **Delegation requested but disallowed by policy/ticket:** no silent privilege escalation or shared superuser service account.
+- **Delegation permitted:** only authorized backends called; principal and audit match; credential unusable after session ends.
+- **Weak SASL QOP:** an app requiring `auth-conf` must reject `auth`/`auth-int`; verify post-auth data actually traverses the chosen protection.
+- **Proxy/TLS:** test TLS termination at gateway, altered channel binding, header stripping at downstream hops, and non-TLS HTTP; confirm policy catches violations and protects the intended scope.
+- **Replay/concurrency:** replay business requests and invalid tokens, exceed round/token-size caps; confirm no credential leakage and no cross-session identity mix-up.
 
-## 9. Những kết luận cần nhớ
+## 9. Key takeaways to remember
 
-1. **SPNEGO chọn cơ chế GSS**; chất lượng authentication, integrity, confidentiality và delegation phụ thuộc cơ chế được chọn và policy đã được thực thi.
-2. **Delegation khác authorization**: delegated `GSSCredential` có thể cho phép hop B xác thực tới hop C dưới danh tính người dùng, nhưng cả B và C vẫn phải giới hạn quyền. `requestCredDeleg(true)` là yêu cầu, không phải chứng nhận đã cấp.
-3. **Mỗi lớp bảo vệ một phạm vi riêng:** HTTP Negotiate chở token; Kerberos xác thực và có khả năng bảo vệ message GSS; SASL GSSAPI có QOP cho dữ liệu đi qua security layer; TLS bảo vệ các TLS hop; ứng dụng tự quyết định quyền truy cập.
-4. **Kiểm tra sau khi thương lượng, fail closed:** `isEstablished()`/`isComplete()`, cơ chế/QOP/flag thật, principal, TLS/channel binding và application authorization. Không thay bằng giả định “SSO thành công nên an toàn”.
+1. **SPNEGO selects a GSS mechanism**; authentication quality, integrity, confidentiality, and delegation depend on the selected mechanism and enforced policy.
+2. **Delegation is not authorization**: a delegated `GSSCredential` lets hop B authenticate to hop C as the user, yet both B and C must still restrict permissions. `requestCredDeleg(true)` is a request, not a grant guarantee.
+3. **Each layer protects a distinct scope:** HTTP Negotiate transports tokens; Kerberos authenticates and can protect GSS messages; SASL GSSAPI applies QOP to data passing through its security layer; TLS protects TLS hops; the application decides access rights.
+4. **Verify after negotiation and fail closed:** check `isEstablished()`/`isComplete()`, actual mechanism/QOP/flags, principal, TLS/channel binding, and application authorization. Never replace these checks with the assumption "SSO succeeded so it must be safe."
 
-## Tài liệu chuẩn để đọc sâu
+## Standard references for deeper reading
 
-- [RFC 4178 — SPNEGO](https://www.rfc-editor.org/rfc/rfc4178): danh sách cơ chế, token và `mechListMIC`.
-- [RFC 4559 — HTTP Negotiate](https://www.rfc-editor.org/rfc/rfc4559): quy trình 401/Authorization và ranh giới bảo vệ HTTP.
-- [RFC 4121 — Kerberos V5 GSS mechanism](https://www.rfc-editor.org/rfc/rfc4121): MIC, Wrap và bảo vệ theo message.
-- [RFC 4752 — SASL GSSAPI (Kerberos V5)](https://www.rfc-editor.org/rfc/rfc4752): SASL GSSAPI và security layer.
-- [RFC 5801 — SASL GS2 family](https://www.rfc-editor.org/rfc/rfc5801) và [RFC 9266 — TLS 1.3 channel binding](https://www.rfc-editor.org/rfc/rfc9266): biến thể channel binding.
-- [Java 17 `GSSContext`](https://docs.oracle.com/en/java/javase/17/docs/api/java.security.jgss/org/ietf/jgss/GSSContext.html), [`GSSManager`](https://docs.oracle.com/en/java/javase/17/docs/api/java.security.jgss/org/ietf/jgss/GSSManager.html), [`Sasl`](https://docs.oracle.com/en/java/javase/17/docs/api/java.security.sasl/javax/security/sasl/Sasl.html): API và trạng thái negotiated.
+- [RFC 4178 — SPNEGO](https://www.rfc-editor.org/rfc/rfc4178): mechanism lists, tokens, and `mechListMIC`.
+- [RFC 4559 — HTTP Negotiate](https://www.rfc-editor.org/rfc/rfc4559): 401/Authorization flow and HTTP protection boundaries.
+- [RFC 4121 — Kerberos V5 GSS mechanism](https://www.rfc-editor.org/rfc/rfc4121): MIC, Wrap, and per-message protection.
+- [RFC 4752 — SASL GSSAPI (Kerberos V5)](https://www.rfc-editor.org/rfc/rfc4752): SASL GSSAPI and security layers.
+- [RFC 5801 — SASL GS2 family](https://www.rfc-editor.org/rfc/rfc5801) and [RFC 9266 — TLS 1.3 channel binding](https://www.rfc-editor.org/rfc/rfc9266): channel binding variants.
+- [Java 17 `GSSContext`](https://docs.oracle.com/en/java/javase/17/docs/api/java.security.jgss/org/ietf/jgss/GSSContext.html), [`GSSManager`](https://docs.oracle.com/en/java/javase/17/docs/api/java.security.jgss/org/ietf/jgss/GSSManager.html), [`Sasl`](https://docs.oracle.com/en/java/javase/17/docs/api/java.security.sasl/javax/security/sasl/Sasl.html): APIs and negotiated states.

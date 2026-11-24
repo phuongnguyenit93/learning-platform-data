@@ -1,0 +1,3 @@
+menuLevel1: '@CachePut'
+menuLevel2: Luôn thực thi phương thức và cập nhật kết quả vào cache
+status: WRITTEN

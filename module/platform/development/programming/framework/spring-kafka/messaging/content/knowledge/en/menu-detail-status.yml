@@ -1,0 +1,3952 @@
+menu:
+- slug: messaging-foundations
+  title: Nền tảng messaging
+  childs:
+  - slug: messaging-foundations-001
+    title: Spring Kafka giải quyết bài toán gì trong ứng dụng Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-foundations-002
+    title: Vai trò của producer, consumer và broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-foundations-003
+    title: Sự khác nhau giữa event, message và record
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-foundations-004
+    title: Mô hình publish-subscribe trong Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-foundations-005
+    title: Mô hình queue thông qua consumer group
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-foundations-006
+    title: Luồng dữ liệu từ producer đến consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-foundations-007
+    title: Các bảo đảm cốt lõi của Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-foundations-008
+    title: Phạm vi trách nhiệm của Spring Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-foundations-009
+    title: Khi nào nên dùng Kafka và khi nào không nên dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-foundations-010
+    title: Lộ trình học Spring Kafka Messaging
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kafka-model
+  title: Mô hình Kafka
+  childs:
+  - slug: kafka-model-001
+    title: Cluster, broker và controller
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-model-002
+    title: Topic và log bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-model-003
+    title: Partition và đơn vị song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-model-004
+    title: Record key, value và timestamp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-model-005
+    title: Offset và vị trí đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-model-006
+    title: Replication và tính sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-model-007
+    title: Retention và thời gian lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-model-008
+    title: Compaction và tombstone record
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-model-009
+    title: Consumer group như một thuê bao logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-model-010
+    title: Thứ tự bản ghi trong partition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-kafka-architecture
+  title: Kiến trúc Spring Kafka
+  childs:
+  - slug: spring-kafka-architecture-001
+    title: Các thành phần chính của Spring for Apache Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-kafka-architecture-002
+    title: KafkaTemplate và lớp trừu tượng gửi tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-kafka-architecture-003
+    title: ConsumerFactory và producer factory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-kafka-architecture-004
+    title: Message listener container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-kafka-architecture-005
+    title: ConcurrentMessageListenerContainer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-kafka-architecture-006
+    title: KafkaAdmin và quản lý tài nguyên Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-kafka-architecture-007
+    title: Adapter giữa Kafka record và Spring Message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-kafka-architecture-008
+    title: Application event trong vòng đời container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-kafka-architecture-009
+    title: Ranh giới giữa Spring Boot auto-configuration và cấu hình thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: project-bootstrap
+  title: Khởi tạo dự án
+  childs:
+  - slug: project-bootstrap-001
+    title: Chọn starter và phiên bản tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-bootstrap-002
+    title: Khai báo spring-kafka trong Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-bootstrap-003
+    title: Khai báo spring-boot-starter-kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-bootstrap-004
+    title: Khai báo dependency cho kiểm thử Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-bootstrap-005
+    title: Tổ chức package cho producer và consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-bootstrap-006
+    title: Cấu hình broker cục bộ bằng Docker Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-bootstrap-007
+    title: Cấu hình Kafka chạy ở chế độ KRaft
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-bootstrap-008
+    title: Tạo ứng dụng mẫu gửi và nhận bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-configuration
+  title: Cấu hình kết nối
+  childs:
+  - slug: connection-configuration-001
+    title: bootstrap servers và cơ chế khám phá broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-002
+    title: client.id và nhận diện client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-003
+    title: Cấu hình producer cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-004
+    title: Cấu hình consumer cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-005
+    title: group.id và tên consumer group
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-006
+    title: auto.offset.reset và điểm bắt đầu đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-007
+    title: enable.auto.commit và chiến lược commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-008
+    title: session.timeout.ms và heartbeat
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-009
+    title: max.poll.interval.ms và thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-010
+    title: max.poll.records và kích thước lô đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-011
+    title: Cấu hình theo profile và biến môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-012
+    title: Kiểm tra cấu hình đã được áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: topic-management
+  title: Quản lý topic
+  childs:
+  - slug: topic-management-001
+    title: Khai báo NewTopic bằng bean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topic-management-002
+    title: KafkaAdmin và tự động tạo topic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topic-management-003
+    title: Tên topic và quy ước đặt tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topic-management-004
+    title: Số lượng partition khi tạo topic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topic-management-005
+    title: Replication factor và yêu cầu broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topic-management-006
+    title: Cấu hình retention cho topic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topic-management-007
+    title: Cấu hình cleanup.policy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topic-management-008
+    title: Tạo topic bằng công cụ Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topic-management-009
+    title: Kiểm tra metadata của topic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topic-management-010
+    title: Thay đổi partition và các giới hạn liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: producer
+  title: Producer
+  childs:
+  - slug: producer-001
+    title: ProducerRecord và các trường dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: producer-002
+    title: Gửi record không có key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: producer-003
+    title: Gửi record có key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: producer-004
+    title: Chọn partition bằng key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: producer-005
+    title: Gửi theo partition chỉ định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: producer-006
+    title: Gửi với timestamp tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: producer-007
+    title: Gửi đồng bộ và bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: producer-008
+    title: Callback khi send hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: producer-009
+    title: Xử lý RecordMetadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: producer-010
+    title: Lỗi khi gửi và khả năng thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: producer-011
+    title: Batching ở phía producer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: producer-012
+    title: Độ bền và acknowledgement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kafkatemplate
+  title: KafkaTemplate
+  childs:
+  - slug: kafkatemplate-001
+    title: Vai trò của KafkaTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkatemplate-002
+    title: Cấu hình DefaultKafkaProducerFactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkatemplate-003
+    title: send vào topic và key cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkatemplate-004
+    title: sendDefault với default topic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkatemplate-005
+    title: send Message<?> qua KafkaTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkatemplate-006
+    title: send ProducerRecord trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkatemplate-007
+    title: Nhận CompletableFuture từ thao tác gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkatemplate-008
+    title: Xử lý kết quả thành công và thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkatemplate-009
+    title: Tùy biến ProducerListener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkatemplate-010
+    title: Tạo nhiều KafkaTemplate theo kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkatemplate-011
+    title: Định tuyến template bằng qualifier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkatemplate-012
+    title: Kiểm thử KafkaTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consumer
+  title: Consumer
+  childs:
+  - slug: consumer-001
+    title: KafkaConsumer và lifecycle đọc record
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-002
+    title: ConsumerRecord gồm những thông tin gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-003
+    title: Subscribe topic theo tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-004
+    title: Subscribe topic theo regular expression
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-005
+    title: Assign partition thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-006
+    title: Poll loop và chu kỳ lấy dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-007
+    title: Đọc một hoặc nhiều record
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-008
+    title: Phân biệt position, committed offset và end offset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-009
+    title: Khởi động lại consumer từ offset nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-010
+    title: Xử lý consumer không có dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-011
+    title: Đóng consumer an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-012
+    title: Giới hạn của một consumer trong group
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consumer-group
+  title: Consumer group
+  childs:
+  - slug: consumer-group-001
+    title: Cách các consumer chia sẻ partition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-group-002
+    title: Một record đến bao nhiêu consumer group
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-group-003
+    title: Group coordinator và quản lý membership
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-group-004
+    title: Group instance id và static membership
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-group-005
+    title: Consumer group rebalancing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-group-006
+    title: Partition assignment strategy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-group-007
+    title: Group lag và ý nghĩa vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-group-008
+    title: Đặt group.id cho từng use case
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-group-009
+    title: Tách group để phát broadcast
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-group-010
+    title: Cân bằng số consumer với số partition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kafkalistener
+  title: '@KafkaListener'
+  childs:
+  - slug: kafkalistener-001
+    title: Bật @EnableKafka và đăng ký listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkalistener-002
+    title: Listener method dạng record
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkalistener-003
+    title: Listener method dạng payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkalistener-004
+    title: Đọc ConsumerRecord trong listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkalistener-005
+    title: Đọc Message<?> trong listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkalistener-006
+    title: Đọc key, topic, partition và offset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkalistener-007
+    title: Khai báo topics trên annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkalistener-008
+    title: Khai báo topicPattern
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkalistener-009
+    title: Khai báo topicPartitions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkalistener-010
+    title: Thiết lập concurrency trên annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkalistener-011
+    title: Thiết lập autoStartup trên annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkalistener-012
+    title: Dùng property placeholder trong annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkalistener-013
+    title: Dùng SpEL trong annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafkalistener-014
+    title: Đặt clientIdPrefix cho listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: listener-container
+  title: Listener container
+  childs:
+  - slug: listener-container-001
+    title: KafkaMessageListenerContainer và container factory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: listener-container-002
+    title: ConcurrentKafkaListenerContainerFactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: listener-container-003
+    title: ListenerContainerFactory làm template cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: listener-container-004
+    title: ContainerProperties và poll timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: listener-container-005
+    title: Record listener và batch listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: listener-container-006
+    title: AckMode RECORD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: listener-container-007
+    title: AckMode BATCH
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: listener-container-008
+    title: AckMode MANUAL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: listener-container-009
+    title: AckMode MANUAL_IMMEDIATE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: listener-container-010
+    title: autoStartup và lifecycle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: listener-container-011
+    title: start, stop và quản lý container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: listener-container-012
+    title: ContainerCustomizer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: listener-container-013
+    title: ContainerProperties.EOSMode và các lựa chọn hiện đại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: listener-container-014
+    title: Theo dõi trạng thái container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: offsets-commits
+  title: Offset và commit
+  childs:
+  - slug: offsets-commits-001
+    title: Ý nghĩa của offset trong partition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offsets-commits-002
+    title: Auto commit và rủi ro xử lý chưa xong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offsets-commits-003
+    title: Commit đồng bộ và bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offsets-commits-004
+    title: Commit theo record và theo batch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offsets-commits-005
+    title: AckMode ảnh hưởng đến commit thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offsets-commits-006
+    title: Acknowledgment trong listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offsets-commits-007
+    title: Commit thủ công theo use case
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offsets-commits-008
+    title: Seek về offset cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offsets-commits-009
+    title: Seek về đầu hoặc cuối partition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offsets-commits-010
+    title: Đọc lại record sau khi xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offsets-commits-011
+    title: Reset offset của consumer group
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offsets-commits-012
+    title: Đánh đổi giữa at-most-once và at-least-once
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: partitions-ordering
+  title: Partition và ordering
+  childs:
+  - slug: partitions-ordering-001
+    title: Partition là đơn vị ordering của Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: partitions-ordering-002
+    title: Bảo toàn thứ tự bằng record key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: partitions-ordering-003
+    title: Ordering trong một producer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: partitions-ordering-004
+    title: Ordering khi tăng concurrency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: partitions-ordering-005
+    title: Ordering giữa nhiều partition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: partitions-ordering-006
+    title: Thiết kế key cho aggregate hoặc entity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: partitions-ordering-007
+    title: Hot partition và phân phối không đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: partitions-ordering-008
+    title: Partition expansion ảnh hưởng routing ra sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: partitions-ordering-009
+    title: Khi nào cần một partition duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: partitions-ordering-010
+    title: Đánh đổi ordering với throughput
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: serialization
+  title: Serialization
+  childs:
+  - slug: serialization-001
+    title: Serializer và deserializer là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-002
+    title: StringSerializer và StringDeserializer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-003
+    title: JsonSerializer và JsonDeserializer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-004
+    title: ByteArraySerializer cho payload nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-005
+    title: Khai báo key serializer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-006
+    title: Khai báo value serializer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-007
+    title: Type header và thông tin kiểu Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-008
+    title: Trusted packages khi deserialize JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-009
+    title: Cấu hình default type
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-010
+    title: Deserializer cho nhiều kiểu payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-011
+    title: ErrorHandlingDeserializer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-012
+    title: Xử lý dữ liệu không deserialize được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-conversion
+  title: Message conversion
+  childs:
+  - slug: message-conversion-001
+    title: Mapping giữa Kafka record và Spring Message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-conversion-002
+    title: MessagingMessageConverter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-conversion-003
+    title: RecordMessageConverter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-conversion-004
+    title: BatchMessagingMessageConverter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-conversion-005
+    title: Chuyển đổi payload theo chữ ký listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-conversion-006
+    title: MessageConverter cho JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-conversion-007
+    title: HeaderMapper và header mapping
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-conversion-008
+    title: Converter cho ReplyingKafkaTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-conversion-009
+    title: Converter khi gửi Message<?>
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-conversion-010
+    title: Khi nào nên dùng converter thay vì serializer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: headers-metadata
+  title: Headers và metadata
+  childs:
+  - slug: headers-metadata-001
+    title: Kafka headers và Spring MessageHeaders
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-metadata-002
+    title: Đọc header trong listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-metadata-003
+    title: Gửi header bằng KafkaTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-metadata-004
+    title: Mapping header kiểu byte[]
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-metadata-005
+    title: Header chứa correlation id
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-metadata-006
+    title: Header chứa trace context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-metadata-007
+    title: Header chứa type information
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-metadata-008
+    title: Header trong dead-letter record
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-metadata-009
+    title: Giới hạn kích thước và chi phí header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-metadata-010
+    title: Quy ước header dùng chung giữa dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: batches-throughput
+  title: Batch và throughput
+  childs:
+  - slug: batches-throughput-001
+    title: Record listener và batch listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-throughput-002
+    title: Bật batchListener trên container factory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-throughput-003
+    title: Nhận List<ConsumerRecord> trong listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-throughput-004
+    title: BatchMessagingMessageConverter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-throughput-005
+    title: Kích thước batch và thời gian poll
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-throughput-006
+    title: Xử lý từng record trong một batch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-throughput-007
+    title: Tách batch thành công việc nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-throughput-008
+    title: Lỗi một record trong batch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-throughput-009
+    title: AfterRollbackProcessor cho batch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-throughput-010
+    title: BatchToRecordAdapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-throughput-011
+    title: Đánh đổi latency với throughput
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-scaling
+  title: Concurrency và scale
+  childs:
+  - slug: concurrency-scaling-001
+    title: Concurrency của listener container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-scaling-002
+    title: Số consumer thực tế được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-scaling-003
+    title: Giới hạn concurrency theo số partition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-scaling-004
+    title: Scale trong một JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-scaling-005
+    title: Scale nhiều instance ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-scaling-006
+    title: client.id khi dùng concurrency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-scaling-007
+    title: Thread safety của listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-scaling-008
+    title: ProducerFactory và consumer factory theo thread
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-scaling-009
+    title: Tránh dùng state mutable dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-scaling-010
+    title: Chọn concurrency theo tốc độ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-handling
+  title: Xử lý lỗi
+  childs:
+  - slug: error-handling-001
+    title: Phân loại lỗi producer và consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-002
+    title: Lỗi tạm thời và lỗi không thể phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-003
+    title: KafkaListenerErrorHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-004
+    title: CommonErrorHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-005
+    title: DefaultErrorHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-006
+    title: ExceptionClassifier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-007
+    title: BackOff trong error handler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-008
+    title: SeekAfterError và cơ chế đọc lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-009
+    title: AckAfterHandle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-010
+    title: Xử lý lỗi deserialize trước listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-011
+    title: AfterRollbackProcessor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-012
+    title: Không nuốt lỗi một cách mù quáng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-013
+    title: Ghi log lỗi có đủ context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-014
+    title: Thiết kế hành vi khi service khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retry
+  title: Retry
+  childs:
+  - slug: retry-001
+    title: Retry đồng bộ trong listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-002
+    title: FixedBackOff và ExponentialBackOff
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-003
+    title: Số lần thử và khoảng chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-004
+    title: Phân loại exception được retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-005
+    title: Bỏ qua exception không nên retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-006
+    title: Retry ảnh hưởng đến partition ordering
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-007
+    title: Blocking retry làm tăng thời gian poll
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-008
+    title: Retry với manual acknowledgment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-009
+    title: Retry ở producer bằng cấu hình client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-010
+    title: Retry ở consumer bằng error handler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-011
+    title: Đo lường số lần retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-012
+    title: Chọn retry hay dead letter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dead-letter-recovery
+  title: Dead letter và recoverer
+  childs:
+  - slug: dead-letter-recovery-001
+    title: Dead-letter topic là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letter-recovery-002
+    title: DeadLetterPublishingRecoverer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letter-recovery-003
+    title: Xác định tên topic dead letter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letter-recovery-004
+    title: Xác định partition đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letter-recovery-005
+    title: Giữ lại key và payload lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letter-recovery-006
+    title: Dead-letter headers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letter-recovery-007
+    title: ConsumerRecordRecoverer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letter-recovery-008
+    title: Thực hiện recovery sau số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letter-recovery-009
+    title: Đọc và xử lý dead-letter record
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letter-recovery-010
+    title: Tránh vòng lặp dead letter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letter-recovery-011
+    title: Chính sách lưu trữ dead-letter topic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letter-recovery-012
+    title: Quy trình replay record lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: non-blocking-retry
+  title: Non-blocking retry
+  childs:
+  - slug: non-blocking-retry-001
+    title: Mô hình retryable topic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-blocking-retry-002
+    title: '@RetryableTopic và cách khai báo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-blocking-retry-003
+    title: Backoff giữa các retry topic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-blocking-retry-004
+    title: Tên và số lượng retry topic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-blocking-retry-005
+    title: Dead-letter topic của non-blocking retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-blocking-retry-006
+    title: Retry nhiều exception khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-blocking-retry-007
+    title: Ordering bị ảnh hưởng thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-blocking-retry-008
+    title: Không kết hợp non-blocking retry với container transaction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-blocking-retry-009
+    title: Chọn blocking hay non-blocking retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions
+  title: Transactions
+  childs:
+  - slug: transactions-001
+    title: Kafka transaction giải quyết vấn đề gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-002
+    title: transactional.id và transactionIdPrefix
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-003
+    title: KafkaTransactionManager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-004
+    title: KafkaTemplate local transaction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-005
+    title: executeInTransaction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-006
+    title: Transactional listener container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-007
+    title: Consumer-initiated transaction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-008
+    title: Gửi Kafka và cập nhật database
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-009
+    title: Transaction synchronization với DataSource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-010
+    title: Thứ tự commit Kafka và database
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-011
+    title: Rollback khi listener thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-012
+    title: AfterRollbackProcessor trong transaction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-013
+    title: Producer bị fence và cách phòng tránh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-014
+    title: Điều kiện để transaction hoạt động đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exactly-once
+  title: Exactly-once
+  childs:
+  - slug: exactly-once-001
+    title: Exactly-once semantics trong Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exactly-once-002
+    title: Phân biệt at-most-once, at-least-once và exactly-once
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exactly-once-003
+    title: Idempotent producer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exactly-once-004
+    title: Kafka read-process-write
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exactly-once-005
+    title: Transactional producer và consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exactly-once-006
+    title: EOSMode và phiên bản client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exactly-once-007
+    title: Giới hạn của exactly-once ngoài Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exactly-once-008
+    title: Idempotency khi gọi hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exactly-once-009
+    title: Kiểm chứng exactly-once bằng thử nghiệm lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: request-reply
+  title: Request-reply
+  childs:
+  - slug: request-reply-001
+    title: Mô hình request-reply trên Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-reply-002
+    title: ReplyingKafkaTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-reply-003
+    title: Correlation id cho request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-reply-004
+    title: Reply topic và reply container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-reply-005
+    title: Timeout khi chờ reply
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-reply-006
+    title: Khai báo reply template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-reply-007
+    title: Định tuyến reply theo request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-reply-008
+    title: Xử lý reply không đúng kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-reply-009
+    title: Khi nào không nên dùng request-reply
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-reply-010
+    title: So sánh request-reply với event-driven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: filtering-interceptors
+  title: Filtering và interceptors
+  childs:
+  - slug: filtering-interceptors-001
+    title: RecordFilterStrategy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-interceptors-002
+    title: Lọc record trước listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-interceptors-003
+    title: ackDiscarded và offset của record bị lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-interceptors-004
+    title: Producer interceptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-interceptors-005
+    title: Consumer interceptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-interceptors-006
+    title: Bean interceptor trong Spring Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-interceptors-007
+    title: Thêm metadata hoặc trace context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-interceptors-008
+    title: Không thay đổi payload ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-interceptors-009
+    title: Đo lường record bị loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-interceptors-010
+    title: Chọn filter hay routing logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-containers
+  title: Dynamic containers
+  childs:
+  - slug: dynamic-containers-001
+    title: Tạo listener container bằng code
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-containers-002
+    title: KafkaListenerEndpointRegistry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-containers-003
+    title: Đăng ký endpoint động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-containers-004
+    title: Khởi động container động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-containers-005
+    title: Dừng và xóa container động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-containers-006
+    title: Cấu hình nhiều container factory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-containers-007
+    title: Container cho tenant hoặc topic động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-containers-008
+    title: Quản lý lifecycle trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-containers-009
+    title: Rủi ro khi tạo container không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pause-backpressure
+  title: Pause và backpressure
+  childs:
+  - slug: pause-backpressure-001
+    title: Pause toàn bộ listener container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pause-backpressure-002
+    title: Resume listener container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pause-backpressure-003
+    title: Pause partition cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pause-backpressure-004
+    title: Resume partition cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pause-backpressure-005
+    title: Backpressure khi downstream chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pause-backpressure-006
+    title: Pause khi đầy hàng đợi nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pause-backpressure-007
+    title: Khác nhau giữa pause và stop
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pause-backpressure-008
+    title: Theo dõi trạng thái paused
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pause-backpressure-009
+    title: Thiết kế graceful degradation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: TLS giữa ứng dụng và Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: SASL và cơ chế xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: SASL/PLAIN và SASL/SCRAM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: JAAS configuration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Kerberos và GSSAPI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Cấu hình truststore và keystore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Bảo vệ thông tin bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Phân quyền ACL cho producer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Phân quyền ACL cho consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Bảo vệ group và topic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-011
+    title: Kiểm tra kết nối bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-012
+    title: Luân chuyển chứng thư và credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schema-evolution
+  title: Schema và tiến hóa dữ liệu
+  childs:
+  - slug: schema-evolution-001
+    title: Hợp đồng dữ liệu giữa producer và consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-002
+    title: JSON schema và versioning
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-003
+    title: Thêm field tương thích ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-004
+    title: Đổi tên hoặc xóa field
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-005
+    title: Optional field và default value
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-006
+    title: Type header khi tiến hóa class
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-007
+    title: Schema Registry và serializer tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-008
+    title: Avro, Protobuf và JSON Schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-009
+    title: Tách domain event khỏi persistence entity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-010
+    title: Kiểm thử tương thích schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Mục tiêu của kiểm thử messaging
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: spring-kafka-test và starter kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: EmbeddedKafkaKraftBroker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Cấu hình broker nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: KafkaTestUtils.consumerProps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: KafkaTestUtils.producerProps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Gửi và nhận record trong JUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Đợi record bằng Awaitility hoặc polling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Topic riêng cho từng test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử @KafkaListener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử error handler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử retry và dead letter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Kiểm thử transaction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: Kiểm thử nhiều partition và ordering
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Observability
+  childs:
+  - slug: observability-001
+    title: Logging của producer và consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Đo consumer lag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Theo dõi tốc độ gửi và nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Micrometer metrics cho Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Observation và tracing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Trace context qua Kafka headers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Correlation id trong log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Đo thời gian xử lý listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Theo dõi retry và dead letter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-010
+    title: Cảnh báo consumer không tiến triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo throughput và latency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Batch size và linger.ms
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Compression type
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Buffer memory và batch memory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: fetch.min.bytes và fetch.max.wait.ms
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: max.partition.fetch.bytes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Tối ưu số partition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Tối ưu concurrency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Giảm chi phí serialize và deserialize
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Tránh block trong listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Đánh đổi độ bền với hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-012
+    title: Benchmark theo tải thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations
+  title: Vận hành
+  childs:
+  - slug: operations-001
+    title: Kiểm tra broker và bootstrap servers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-002
+    title: Kiểm tra topic và partition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-003
+    title: Theo dõi consumer group
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-004
+    title: Đọc current offset và log end offset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-005
+    title: Tính và diễn giải consumer lag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-006
+    title: Kiểm tra member trong group
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-007
+    title: Xử lý consumer bị stuck
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-008
+    title: Replay record từ offset cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-009
+    title: Quản lý dead-letter topic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-010
+    title: Triển khai nhiều instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-011
+    title: Shutdown và rebalance an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-012
+    title: Runbook cho sự cố messaging
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Không kết nối được broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Topic không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Consumer không nhận record
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Producer gửi nhưng không thấy dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Deserialize thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Listener bị gọi lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Offset commit không như mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Consumer group rebalance liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Lag tăng dù consumer đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Record sai partition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Transaction bị abort hoặc fence
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Dead-letter không được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-compatibility
+  title: Nâng cấp và tương thích
+  childs:
+  - slug: upgrades-compatibility-001
+    title: Theo dõi ma trận phiên bản Spring Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-compatibility-002
+    title: Tương thích Spring Boot và kafka-clients
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-compatibility-003
+    title: Thay đổi API của @KafkaListener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-compatibility-004
+    title: Thay đổi error handler qua các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-compatibility-005
+    title: Migration từ cấu hình cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-compatibility-006
+    title: Migration từ embedded broker cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-compatibility-007
+    title: Kiểm tra deprecation trước nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-compatibility-008
+    title: Chiến lược nâng cấp không gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Xây dựng producer phát hành OrderEvent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Xây dựng consumer xử lý OrderEvent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Thiết kế topic và key cho đơn hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Cấu hình JSON serialization
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Tách consumer group cho billing và notification
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Thêm retry và dead-letter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Thêm transaction cho read-process-write
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Thêm kiểm thử với broker nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Đo lag và thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Mô phỏng lỗi deserialize
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Mô phỏng consumer restart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: Tổng kết kiến trúc và điểm đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: checklist-messaging
+  title: Checklist messaging
+  childs:
+  - slug: checklist-messaging-001
+    title: Checklist thiết kế topic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checklist-messaging-002
+    title: Checklist chọn partition key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checklist-messaging-003
+    title: Checklist cấu hình producer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checklist-messaging-004
+    title: Checklist cấu hình consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checklist-messaging-005
+    title: Checklist commit và retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checklist-messaging-006
+    title: Checklist dead letter và replay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checklist-messaging-007
+    title: Checklist transaction và idempotency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checklist-messaging-008
+    title: Checklist kiểm thử trước triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

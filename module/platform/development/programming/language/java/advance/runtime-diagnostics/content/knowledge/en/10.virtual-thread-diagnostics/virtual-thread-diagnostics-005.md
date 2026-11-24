@@ -1,52 +1,52 @@
-# 10.5 Chẩn đoán pinning trên Java 21 bằng JFR và `jdk.tracePinnedThreads`
+# 10.5 Diagnosing Pinning on Java 21 with JFR and `jdk.tracePinnedThreads`
 
-**Phạm vi:** Java 21 (virtual threads đã là tính năng chính thức theo JEP 444). Bài này tập trung vào cách phát hiện, đọc bằng chứng và xử lý **carrier-thread pinning** khi virtual thread thực hiện thao tác chặn. Các lệnh quan sát và ví dụ được chọn theo hành vi của **JDK 21**, không suy diễn từ JDK mới hơn.
+**Scope:** Java 21 (virtual threads are a permanent feature under JEP 444). This lesson focuses on how to detect, read evidence for, and resolve **carrier-thread pinning** when a virtual thread performs a blocking operation. Observation commands and examples are chosen for **JDK 21** behavior rather than extrapolated from newer JDKs.
 
-## 1. Kết quả cần đạt
+## 1. Target Outcomes
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích được quan hệ giữa **virtual thread**, **carrier/platform thread**, thao tác **mount/unmount**, và vì sao pinning lâu/lặp lại có thể giảm khả năng mở rộng.
-2. Nhận diện hai nguồn pinning chính trong Java 21: giữ monitor của `synchronized` và đang thực thi native/foreign frame khi chặn.
-3. Thu thập bằng chứng bằng sự kiện JFR `jdk.VirtualThreadPinned` và stack trace từ `-Djdk.tracePinnedThreads=short|full`.
-4. Đi từ stack trace đến đoạn mã cần sửa, xác minh trước/sau và tránh kết luận sai khi chỉ thấy `synchronized` hoặc khi không có event.
+1. Explain the relationship between **virtual threads**, **carrier/platform threads**, **mount/unmount** operations, and why prolonged/repeated pinning can hurt scalability.
+2. Identify the two primary sources of pinning in Java 21: holding a `synchronized` monitor and executing inside a native/foreign frame while blocking.
+3. Collect evidence using the `jdk.VirtualThreadPinned` JFR event and stack traces from `-Djdk.tracePinnedThreads=short|full`.
+4. Trace from a stack trace to the code that needs fixing, verify before/after behavior, and avoid false conclusions when seeing `synchronized` or zero events.
 
-## 2. Pinning thực sự là gì?
+## 2. What Is Pinning Really?
 
-Java 21 lập lịch virtual thread trên một tập nhỏ platform threads, gọi là **carrier threads**. Khi virtual thread gặp một thao tác chặn được JVM hỗ trợ (ví dụ `Thread.sleep` hoặc một số I/O), thông thường JVM **unmount** virtual thread: công việc đang đợi được tạm dừng, carrier được trả lại để chạy virtual thread khác. Sau khi có thể tiếp tục, virtual thread sẽ được **mount** lại; carrier lúc đó không nhất thiết là carrier cũ.
+Java 21 schedules virtual threads onto a small pool of platform threads called **carrier threads**. When a virtual thread hits a JVM-supported blocking operation (such as `Thread.sleep` or certain I/O), the JVM normally **unmounts** the virtual thread: the waiting task is suspended, and the carrier is returned to run other virtual threads. Once ready to resume, the virtual thread is **mounted** again; the carrier at that point need not be the previous one.
 
-Trên Java 21, nếu một virtual thread **đang giữ monitor `synchronized`**, hoặc đang nằm trong **native method / foreign-function call**, nó có thể không unmount được khi phải chặn. Virtual thread lúc đó **pinned**: carrier phải chờ cùng nó. Nếu nhiều yêu cầu đồng thời cứ giữ carrier trong thời gian dài, số carrier sẵn sàng để chạy việc khác giảm, làm **throughput** và thời gian chờ của hệ thống xấu đi.
+On Java 21, if a virtual thread **is holding a `synchronized` monitor**, or is inside a **native method / foreign-function call**, it may be unable to unmount when it has to block. The virtual thread is then **pinned**: the carrier must wait alongside it. If many concurrent requests hold carriers for long durations, fewer carriers remain available for other work, degrading system **throughput** and wait times.
 
 ```text
-Không pin:
-virtual thread → bắt đầu chờ → unmount → carrier chạy việc khác → resume
+Unpinned:
+virtual thread → begins waiting → unmounts → carrier runs other work → resumes
 
-Có pin trên Java 21:
-virtual thread → giữ monitor / native frame → bắt đầu chờ
-               → không unmount → carrier cũng phải chờ → giảm carrier rảnh
+Pinned on Java 21:
+virtual thread → holds monitor / native frame → begins waiting
+               → cannot unmount → carrier must also wait → fewer free carriers
 ```
 
-**Phân biệt ba khái niệm:**
+**Distinguish three concepts:**
 
-- **Có `synchronized`** không đồng nghĩa ngay với sự cố: khóa ngắn, chỉ thao tác trong bộ nhớ hoặc rất ít gặp thường không đáng lo.
-- **Pinning** là trạng thái không thể giải phóng carrier khi virtual thread chặn; tác hại phụ thuộc **thời lượng, tần suất, mức đồng thời và tải thực tế**.
-- **Lock contention/deadlock** là vấn đề riêng. Nhiều thread tranh cùng một monitor có thể tuần tự hóa yêu cầu dù có hay không có pinning. Một event pinning không tự chứng minh deadlock.
+- **Having `synchronized`** does not automatically mean an incident: short locks doing only in-memory work or hit rarely are usually harmless.
+- **Pinning** is the state of being unable to release the carrier while the virtual thread blocks; its impact depends on **duration, frequency, concurrency level, and actual load**.
+- **Lock contention/deadlock** is a separate issue. Many threads contending for the same monitor can serialize requests whether or not pinning occurs. A single pinning event does not prove a deadlock.
 
-Điều cốt lõi cần tìm là **blocking operation nằm ở đâu so với monitor/native frame**, không phải chỉ đếm số chỗ có từ khóa `synchronized`.
+The key question is **where the blocking operation sits relative to the monitor or native frame**, not simply counting occurrences of the `synchronized` keyword.
 
-## 3. Hai kênh quan sát bổ sung cho nhau
+## 3. Two Complementary Observation Channels
 
-| Công cụ | Bằng chứng chính | Dùng khi nào | Giới hạn cần nhớ |
+| Tool | Primary Evidence | When to Use | Limitations to Remember |
 | --- | --- | --- | --- |
-| **JDK Flight Recorder (JFR)** | Event `jdk.VirtualThreadPinned`, thời điểm, thời lượng, virtual thread, stack trace | Thu thập theo cửa sổ tải thực tế; so sánh trước/sau | Mặc định chỉ ghi event có thời lượng đạt ngưỡng (thường **20 ms**); không có event không chứng minh tuyệt đối là không pin |
-| **`jdk.tracePinnedThreads`** | Stack trace in khi virtual thread chặn trong trạng thái pinned; `full` tô rõ monitor/native frames | Khoanh vùng ngay đoạn mã trong Java 21 | Log có thể rất nhiều; không thay cho số liệu tần suất, throughput và JFR |
-| **Thread dump / số liệu hệ thống** | Ngữ cảnh trạng thái thread, độ trễ, hàng đợi, CPU | Điều tra tình huống phức tạp | Không thay thế event pinning và dễ nhầm chờ I/O với pinning |
+| **JDK Flight Recorder (JFR)** | `jdk.VirtualThreadPinned` event, timestamp, duration, virtual thread, stack trace | Collect over realistic load windows; compare before/after | By default records only events meeting the threshold (typically **20 ms**); zero events does not strictly prove zero pinning |
+| **`jdk.tracePinnedThreads`** | Stack traces printed when a virtual thread blocks while pinned; `full` highlights monitor/native frames | Quickly isolate the exact code location on Java 21 | Log volume can be huge; does not replace frequency, throughput, and JFR metrics |
+| **Thread dumps / system metrics** | Thread state context, latency, queues, CPU | Investigating complex scenarios | Does not replace pinning events and can easily mistake normal I/O waits for pinning |
 
-Theo cấu hình JFR mặc định của **JDK 21**, `jdk.VirtualThreadPinned` được bật với ngưỡng **20 ms**. Hai event `jdk.VirtualThreadStart` và `jdk.VirtualThreadEnd` mặc định **tắt** để tránh ghi lượng sự kiện rất lớn; `jdk.VirtualThreadSubmitFailed` mặc định bật. Không cần bật Start/End chỉ để điều tra pinning.
+In **JDK 21**'s default JFR configuration, `jdk.VirtualThreadPinned` is enabled with a **20 ms** threshold. `jdk.VirtualThreadStart` and `jdk.VirtualThreadEnd` are **disabled by default** to avoid recording huge event volumes; `jdk.VirtualThreadSubmitFailed` is enabled by default. You do not need to enable Start/End just to investigate pinning.
 
-## 4. Bài thực hành chạy được trên Java 21
+## 4. Runnable Hands-On Lab on Java 21
 
-Tạo tệp **`PinningDemo.java`** với nội dung hoàn chỉnh sau. Hai đoạn đều chờ 250 ms; điểm khác nhau là cách quản lý vùng găng. Đoạn đầu cố tình chặn trong `synchronized`, đoạn sau dùng `ReentrantLock`.
+Create the file **`PinningDemo.java`** with the following complete content. Both sections wait 250 ms; the difference is how the critical section is managed. The first intentionally blocks inside `synchronized`, while the second uses `ReentrantLock`.
 
 ```java
 import java.util.concurrent.locks.ReentrantLock;
@@ -87,7 +87,7 @@ public class PinningDemo {
 }
 ```
 
-Biên dịch và chạy trên **JDK 21**, không cần `--enable-preview`:
+Compile and run on **JDK 21**, without `--enable-preview`:
 
 ```bash
 java -version
@@ -95,107 +95,107 @@ javac PinningDemo.java
 java PinningDemo
 ```
 
-**Hai dòng do chương trình tự in ra stdout** (bỏ qua thông tin phiên bản JVM và các thông báo từ công cụ nếu có):
+**The two lines printed to stdout by the program itself** (ignoring JVM version output and any tool messages):
 
 ```text
 synchronized: done
 ReentrantLock: done
 ```
 
-Vì cả hai virtual thread được `join()` tuần tự, thứ tự hai dòng là cố định khi ví dụ hoàn tất bình thường. `Thread.sleep(250)` chỉ giả lập thao tác chặn dễ tái hiện; trong hệ thống thực tế thường là I/O, truy vấn DB hoặc lời gọi chờ khác. Đoạn `ReentrantLock` vẫn giữ khóa trong lúc ngủ, nhưng cơ chế khóa này cho phép virtual thread nhường carrier ở thời điểm chặn trên Java 21.
+Because both virtual threads are joined sequentially via `join()`, the order of the two lines is fixed when the example completes normally. `Thread.sleep(250)` merely simulates an easily reproducible blocking call; in real systems this is typically I/O, a DB query, or another waiting call. The `ReentrantLock` section still holds its lock while sleeping, yet this lock mechanism allows the virtual thread to yield its carrier at the blocking point on Java 21.
 
-**Không dùng thời gian của chương trình hai tác vụ này để kết luận cải thiện throughput.** Nó là ví dụ để nhận diện event và stack; đo khả năng mở rộng phải dùng nhiều request đồng thời cùng workload thực tế.
+**Do not use the elapsed time of this two-task program to claim throughput improvements.** It is an example for recognizing events and stacks; measuring scalability requires many concurrent requests under realistic workloads.
 
-## 5. Chẩn đoán bằng JFR trên Java 21
+## 5. Diagnosing with JFR on Java 21
 
-### 5.1. Ghi từ lúc khởi động ứng dụng
+### 5.1. Recording from Application Startup
 
-Chạy một bản ghi JFR, sau khi chương trình thoát JVM sẽ ghi tệp `pinning.jfr`:
+Run a JFR recording; once the program exits, the JVM writes `pinning.jfr`:
 
 ```bash
 java -XX:StartFlightRecording:filename=pinning.jfr,settings=default,dumponexit=true PinningDemo
 ```
 
-Đọc nội dung bằng các công cụ đi kèm **cùng bộ JDK**:
+Read the contents using the tools bundled with **the same JDK**:
 
 ```bash
 jfr summary pinning.jfr
 jfr print --events jdk.VirtualThreadPinned pinning.jfr
 ```
 
-Kỳ vọng: ít nhất một `jdk.VirtualThreadPinned` ứng với `pinned-demo` trên bản dựng Java 21 phù hợp, vì virtual thread ngủ khoảng 250 ms trong monitor, vượt ngưỡng mặc định 20 ms. Số event, tên trường, stack frame nội bộ, thời lượng thực tế và thông điệp JFR có thể khác giữa bản dựng và lần chạy; **không gán một log giả lập là output chắc chắn**. Nếu bản ghi không có event, dùng mục 7 để kiểm tra phiên bản, cấu hình và phạm vi capture trước khi kết luận.
+Expectation: at least one `jdk.VirtualThreadPinned` event corresponding to `pinned-demo` on a matching Java 21 build, because the virtual thread sleeps for roughly 250 ms inside a monitor, exceeding the default 20 ms threshold. Event count, field names, internal stack frames, actual duration, and JFR messages can vary across builds and runs; **do not treat a simulated log as guaranteed literal output**. If the recording contains no events, use Section 7 to verify the version, configuration, and capture scope before drawing conclusions.
 
-Khi đọc một event, chú ý:
+When reading an event, pay attention to:
 
-- `duration`: thời gian thao tác chặn xảy ra trong trạng thái pinned, **không phải** tổng thời gian chạy request.
-- `eventThread`: virtual thread của sự kiện; tên thread có thể giúp ghép với request/task.
-- `stackTrace`: lần theo frame từ `Thread.sleep`/thao tác chặn về `PinningDemo.pause`, lambda chạy virtual thread và vị trí `synchronized`. Trong code thực tế, lần đến package của ứng dụng và thư viện liên quan.
-- `startTime`: đối chiếu với khoảng tăng latency, giảm throughput hoặc tải cao.
+- `duration`: how long the blocking operation lasted while pinned, **not** total request runtime.
+- `eventThread`: the virtual thread for the event; the thread name can help match it to a request or task.
+- `stackTrace`: trace upward from `Thread.sleep`/blocking call to `PinningDemo.pause`, the lambda running the virtual thread, and the `synchronized` site. In real code, follow frames into your application packages and relevant libraries.
+- `startTime`: correlate with latency spikes, throughput drops, or high load.
 
-Trong JDK 21, đừng đòi các trường giải thích nguyên nhân nâng cao được giới thiệu ở JDK mới hơn. Việc tìm **monitor giữ khi blocking** thường cần kết hợp stack JFR với `jdk.tracePinnedThreads=full` và mã nguồn.
+In JDK 21, do not expect advanced cause-explanation fields introduced in newer JDKs. Finding the **monitor held during blocking** usually requires combining the JFR stack with `jdk.tracePinnedThreads=full` and source code inspection.
 
-### 5.2. Ghi trên JVM đang chạy
+### 5.2. Recording on a Running JVM
 
-Tìm PID và ghi một cửa sổ tải đại diện (ứng dụng phải còn hoạt động trong thời gian ghi):
+Find the PID and record across a representative load window (the application must remain running throughout the recording):
 
 ```bash
 jcmd -l
 jcmd <PID> JFR.start name=pinning settings=default duration=60s filename=pinning.jfr
 ```
 
-Thay `<PID>` bằng mã tiến trình thực tế. Sau khi ghi hoàn tất, xem event:
+Replace `<PID>` with the actual process ID. Once the recording completes, inspect events:
 
 ```bash
 jfr print --events jdk.VirtualThreadPinned pinning.jfr
 ```
 
-Nếu cần điều tra kéo dài, có thể dùng `JFR.check`, `JFR.dump` theo hướng dẫn `jcmd` để kiểm tra và xuất một bản ghi đang chạy. Trên máy chủ cần giới hạn thời gian, dung lượng và bảo vệ tệp JFR vì stack trace có thể chứa thông tin vận hành nhạy cảm.
+For prolonged investigations, you can use `JFR.check` and `JFR.dump` per `jcmd` documentation to inspect and export an active recording. On servers, cap recording duration and size and protect JFR files because stack traces can contain sensitive operational details.
 
-### 5.3. Phân tích đúng hiện tượng
+### 5.3. Analyzing the Symptom Properly
 
-Một event lâu vài trăm mili giây xuất hiện **một lần** ở thời điểm khởi động có thể không quan trọng. Hàng trăm event trong cùng đường xử lý request, đi kèm latency p95/p99 tăng dưới tải, là dấu hiệu cần ưu tiên. Hãy nhóm theo stack frame ứng dụng, so **số event theo thời gian**, **tổng/độ phân tán `duration`**, mức đồng thời và tác động đến throughput. Đừng cộng mọi `duration` để suy ra tổng thời gian dịch vụ bị nghẽn: nhiều event có thể chồng lấn.
+A single event lasting a few hundred milliseconds **once** during startup may be insignificant. Hundreds of events on the same request path, accompanied by elevated p95/p99 latency under load, are a high-priority signal. Group by application stack frame, compare **events over time**, **total/distribution of `duration`**, concurrency levels, and throughput impact. Never sum every `duration` to claim total time the service was stalled: many events can overlap concurrently.
 
-## 6. Chẩn đoán bằng `jdk.tracePinnedThreads`
+## 6. Diagnosing with `jdk.tracePinnedThreads`
 
-Tùy chọn này thuộc JVM của **Java 21**; hãy truyền **trước tên lớp hoặc `-jar`**, ngay từ lúc khởi động:
+This option belongs to the **Java 21** JVM; pass it **before the class name or `-jar`**, right at startup:
 
 ```bash
 java -Djdk.tracePinnedThreads=short PinningDemo
 java -Djdk.tracePinnedThreads=full PinningDemo
 ```
 
-- `short` ưu tiên các frame có vấn đề, thích hợp để tìm nhanh điểm pinning.
-- `full` in stack đầy đủ hơn, làm nổi bật các frame nắm **monitor** và **native frame**. Trong ví dụ, tìm `PinningDemo.pause` và vị trí lambda có `synchronized`.
-- Phần trace của JVM là **đầu ra chẩn đoán bổ sung**, tách biệt hai dòng stdout nghiệp vụ ở mục 4. Không dựa vào thứ tự, số lượng trace hay số dòng cố định trong kiểm thử.
+- `short` prioritizes problematic frames, useful for quickly spotting pinning sites.
+- `full` prints a more complete stack, highlighting frames holding **monitors** and **native frames**. In the example, look for `PinningDemo.pause` and the lambda containing `synchronized`.
+- The JVM trace output is **supplementary diagnostic output**, separate from the two business stdout lines in Section 4. Do not rely on fixed ordering, trace count, or line count in automated tests.
 
-Để ghép với JFR trong **cùng lần chạy**, có thể dùng cả hai tùy chọn:
+To correlate with JFR in the **same run**, both options can be combined:
 
 ```bash
 java -Djdk.tracePinnedThreads=full -XX:StartFlightRecording:filename=pinning.jfr,settings=default,dumponexit=true PinningDemo
 ```
 
-Đọc trace để biết **đoạn mã/monitor** nào gây pinning; dùng JFR để biết **khi nào và dài bao lâu**. Stack trace in ra một lần không chứng minh rằng lỗi xảy ra thường xuyên; tương tự, thiếu dòng trace không loại trừ mọi dạng nghẽn carrier.
+Read the trace to learn **which code/monitor** causes pinning; use JFR to learn **when and for how long**. A stack trace printed once does not prove the bug happens frequently; conversely, missing trace lines do not rule out every form of carrier saturation.
 
-## 7. Quy trình điều tra một dịch vụ thực tế
+## 7. Investigation Workflow for a Real Service
 
-1. **Khóa đúng phiên bản:** lấy `java -version` từ **JVM chạy service** (không chỉ JDK trên máy build). Xác nhận Java 21, virtual threads thực sự đang được tạo và workload phát sinh thao tác chặn.
-2. **Đặt giả thuyết dựa trên triệu chứng:** khi nhiều request chờ I/O, throughput ngừng tăng hoặc p95/p99 xấu đi; ghi lại tải, CPU, số kết nối, DB pool và số request đang xử lý. Pinning là một giả thuyết, không phải kết luận mặc định.
-3. **Ghi JFR trong khoảng tái hiện:** bật `jdk.VirtualThreadPinned` (mặc định bật ở 20 ms), chạy cửa sổ đủ dài bao trùm thời điểm sự cố; giữ bản baseline để so sánh.
-4. **Nhóm event và xác định code path:** ưu tiên stack có `duration` lớn và xuất hiện nhiều lần. Tìm lời gọi chặn bên trong một `synchronized` method/block hoặc bên dưới native/foreign frame; xác định thư viện đang sở hữu đoạn đó.
-5. **Tái hiện có kiểm soát:** nếu kiểm soát JVM Java 21, khởi chạy môi trường thử nghiệm với `-Djdk.tracePinnedThreads=full` để thấy monitor/native frame tại đúng call site. Chỉ bật mức log chi tiết trong phạm vi cần thiết.
-6. **Sửa nguyên nhân có bằng chứng:** chuyển thao tác I/O ra ngoài phần giữ monitor khi bảo toàn được invariant; hoặc đổi monitor có blocking dài/thường xuyên sang `ReentrantLock` với `finally`; với native library, tìm cách không chặn trong callback/native frame hoặc nâng cấp thư viện.
-7. **Đo lại cùng workload:** xác minh tính đúng đắn và đối chiếu JFR, số event, phân bố duration, throughput, latency và tài nguyên. Chỉ coi sửa chữa thành công khi nguy cơ pinning giảm **và** không làm hỏng đồng bộ/độ ổn định.
+1. **Lock down the exact version:** obtain `java -version` from the **JVM running the service** (not merely the JDK on a build machine). Confirm Java 21, that virtual threads are actually being created, and that the workload triggers blocking operations.
+2. **Form symptom-based hypotheses:** when many requests wait on I/O, throughput plateaus, or p95/p99 degrades, record load, CPU, connection counts, DB pool usage, and in-flight requests. Pinning is a hypothesis, not the default conclusion.
+3. **Record JFR during reproduction:** ensure `jdk.VirtualThreadPinned` is enabled (default 20 ms), run a window long enough to cover the incident, and keep a baseline for comparison.
+4. **Group events and locate code paths:** prioritize stacks with large `duration` and high frequency. Find blocking calls inside a `synchronized` method/block or beneath a native/foreign frame; identify the library owning that code.
+5. **Reproduce under control:** if you control a Java 21 JVM in a test environment, launch it with `-Djdk.tracePinnedThreads=full` to reveal the monitor/native frame at the exact call site. Enable verbose tracing only where needed.
+6. **Fix the verified cause:** move I/O outside the monitor guard whenever invariants allow; or switch frequent/long-blocking monitors to `ReentrantLock` with `finally`; for native libraries, avoid blocking inside callbacks/native frames or upgrade the library.
+7. **Re-measure under the same workload:** verify correctness and compare JFR event counts, duration distributions, throughput, latency, and resources. Treat a fix as successful only when pinning risk drops **and** synchronization/stability remain intact.
 
-Ví dụ code cần kiểm tra là trường hợp sau:
+An example pattern to audit is:
 
 ```java
 synchronized (guard) {
-    // Có thể mất hàng trăm ms vì đợi mạng hoặc DB:
+    // May take hundreds of ms waiting on network or DB:
     callRemoteService();
 }
 ```
 
-Nếu lời gọi không cần nằm trong vùng găng, rút ngắn phạm vi `synchronized` là cách đơn giản nhất. Nếu cần một khóa bao quanh công việc chặn, một hướng thay thế trong Java 21:
+If the call does not need to sit inside the critical section, narrowing the `synchronized` scope is the simplest fix. If an exclusive lock must span the blocking work, an alternative in Java 21 is:
 
 ```java
 lock.lock();
@@ -206,35 +206,35 @@ try {
 }
 ```
 
-Hai đoạn là **minh họa cấu trúc**, không phải chương trình Java độc lập. `guard`, `lock` và `callRemoteService` phải được định nghĩa trong ứng dụng. Phương án thay thế vẫn có thể gây **lock contention** và tuần tự hóa request, dù giảm pinning carrier. Khi đổi loại khóa, rà soát các đường đọc/ghi cùng dữ liệu, thứ tự acquire/release, ngoại lệ, `wait/notify` (nếu có phải thiết kế lại với `Condition`), và hợp đồng thread-safety của thư viện.
+Both snippets are **structural illustrations**, not standalone Java programs. `guard`, `lock`, and `callRemoteService` must be defined by the application. This replacement can still suffer from **lock contention** and serialize requests even though it reduces carrier pinning. When changing lock types, audit all read/write paths for the shared data, lock acquisition/release order, exceptions, `wait/notify` (which must be redesigned using `Condition`), and library thread-safety contracts.
 
-## 8. Khi JFR hoặc trace không cho thấy điều mong đợi
+## 8. When JFR or Traces Do Not Show What You Expected
 
-| Tình huống | Kiểm tra và cách hiểu |
+| Scenario | What to Check and How to Interpret |
 | --- | --- |
-| Không có `jdk.VirtualThreadPinned` | Xác nhận JDK **21**, recording đúng JVM/PID, thời gian ghi trùm workload, event bật và ngưỡng 20 ms. Pin ngắn hơn threshold có thể không xuất hiện. |
-| Có `synchronized` nhưng không có event | Chưa chắc có thao tác chặn trong monitor; đoạn khóa rất ngắn không đáng báo động. Tìm đường thực thi thực tế. |
-| Chỉ nhìn thấy `Thread.sleep` trong stack JFR | Lần ngược lên frame ứng dụng; dùng trace `full` để tìm monitor/native frame. `Thread.sleep` ở ngoài monitor bình thường có thể unmount. |
-| `tracePinnedThreads` in nhiều dòng | Phân nhóm theo call site và tải, không thay log bằng số lượng tác vụ. Ghi trace dày đặc có thể gây nhiễu và ảnh hưởng hiệu năng. |
-| Bản ghi có event nhưng latency vẫn tốt | Pinning không tự động thành sự cố. Ưu tiên theo tần suất, thời lượng và tác động đến carrier/throughput. |
-| Sau khi đổi sang `ReentrantLock` vẫn chậm | Kiểm tra tranh khóa, downstream I/O, giới hạn DB pool, CPU, native frame và tài nguyên hệ thống. Chữa pinning không chữa mọi bottleneck. |
-| Thử trên JDK 24+ không tái hiện ví dụ | **JEP 491** từ Java 24 thay đổi hành vi `synchronized` để tránh pinning dạng monitor; `jdk.tracePinnedThreads` không còn là công cụ áp dụng như trên Java 21. Dùng **JDK 21** đúng phạm vi bài học. |
+| No `jdk.VirtualThreadPinned` events | Confirm JDK **21**, recording attached to the right JVM/PID, recording covers the workload, event enabled, and 20 ms threshold. Pins shorter than the threshold may not appear. |
+| `synchronized` exists but no events appear | There may be no blocking inside the monitor; very short locked sections are not alarming. Trace the actual execution path. |
+| Only `Thread.sleep` appears in the JFR stack | Walk up to application frames; use `full` trace to locate monitor/native frames. `Thread.sleep` outside a monitor normally unmounts. |
+| `tracePinnedThreads` prints many lines | Group by call site and load rather than treating log lines as task counts. Heavy trace logging can add noise and affect performance. |
+| Recording has events yet latency is still good | Pinning is not automatically an incident. Prioritize by frequency, duration, and impact on carriers/throughput. |
+| Still slow after switching to `ReentrantLock` | Check lock contention, downstream I/O, DB pool limits, CPU, native frames, and system resources. Fixing pinning does not fix every bottleneck. |
+| Example does not reproduce on JDK 24+ | **JEP 491** in Java 24 changed `synchronized` behavior to avoid monitor pinning; `jdk.tracePinnedThreads` no longer applies the way it did on Java 21. Use **JDK 21** per this lesson's scope. |
 
-Một lỗi suy luận đặc biệt phổ biến là trộn dữ liệu JFR **Java 24+** với hướng dẫn **Java 21**, rồi kỳ vọng cùng trường event hoặc cùng log pinning. Hãy ghi phiên bản JDK bên cạnh mọi bằng chứng.
+A particularly common reasoning error is mixing **Java 24+** JFR data with **Java 21** guides and expecting identical event fields or pinning logs. Always record the JDK version alongside every piece of evidence.
 
-## 9. Bài tập tự kiểm chứng
+## 9. Self-Verification Exercises
 
-1. Chạy chương trình trên **Java 21** với `-Djdk.tracePinnedThreads=full`. Xác định frame của ứng dụng nắm monitor và thao tác `Thread.sleep` gây chặn. Đối chiếu bằng JFR.
-2. Đổi thứ tự hai đoạn kiểm tra hoặc chạy riêng đoạn `ReentrantLock`, ghi lại event có liên quan; giải thích tại sao **không** có event là điều được kỳ vọng cho tình huống này.
-3. Thử giảm `Thread.sleep(250)` xuống `Thread.sleep(5)`. Dự đoán JFR cấu hình mặc định có thể bỏ qua pin ngắn dưới 20 ms, trong khi trace có thể vẫn cho biết vị trí gây pinning. Giải thích vì sao một lần chạy không đủ làm bằng chứng thống kê.
-4. Trong code của bạn, tìm một đường gọi I/O bên trong `synchronized`. Đề xuất thay đổi nhỏ nhất bảo toàn tính đúng đắn; đo p95/p99, throughput, số event trước/sau khi áp dụng dưới cùng cấu hình tải.
+1. Run the program on **Java 21** with `-Djdk.tracePinnedThreads=full`. Identify the application frame holding the monitor and the blocking `Thread.sleep` call. Cross-check with JFR.
+2. Swap the order of the two test sections or run only the `ReentrantLock` section and record relevant events; explain why **zero** events is the expected outcome here.
+3. Try lowering `Thread.sleep(250)` to `Thread.sleep(5)`. Predict why JFR with default settings may skip short pins under 20 ms while the trace flag may still reveal the pinning site. Explain why a single run is insufficient as statistical proof.
+4. In your own codebase, find an I/O call inside `synchronized`. Propose the minimal change that preserves correctness; measure p95/p99, throughput, and event counts before/after under the same load configuration.
 
-**Checklist hoàn thành:** biết version JVM; đã đọc `jdk.VirtualThreadPinned.duration`/stack; xác định được blocking nằm trong monitor/native frame; có bằng chứng về tần suất và tác động; bản sửa giữ đúng thread-safety; đo lại cùng workload.
+**Completion checklist:** know the JVM version; inspected `jdk.VirtualThreadPinned.duration`/stack; confirmed blocking inside monitor/native frames; gathered evidence of frequency and impact; fix preserves thread-safety; re-measured under the same workload.
 
-## 10. Nguồn đối chiếu
+## 10. Reference Sources
 
-- [Oracle Java 21 — Virtual Threads: scheduling, pinning, JFR và tracePinnedThreads](https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html)
+- [Oracle Java 21 — Virtual Threads: scheduling, pinning, JFR, and tracePinnedThreads](https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html)
 - [JEP 444 — Virtual Threads (Java 21)](https://openjdk.org/jeps/444)
 - [Oracle Java 21 — `jcmd` diagnostics/JFR.start](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
 - [Oracle Java 21 — Flight Recorder Configurations](https://docs.oracle.com/en/java/javase/21/jfapi/flight-recorder-configurations.html)
-- [JEP 491 — khác biệt về monitor pinning từ Java 24](https://openjdk.org/jeps/491)
+- [JEP 491 — monitor pinning differences from Java 24](https://openjdk.org/jeps/491)
