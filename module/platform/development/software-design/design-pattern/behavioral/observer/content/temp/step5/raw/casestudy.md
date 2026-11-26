@@ -1,0 +1,32 @@
+Một ứng dụng theo dõi giá cổ phiếu có bảng giá, biểu đồ và bảng cảnh báo cùng phản ứng khi giá thay đổi; lớp cập nhật giá hiện gọi trực tiếp từng giao diện, khiến thêm một thành phần hiển thị mới phải sửa mã của nguồn dữ liệu.
+Trong hệ thống quản lý tồn kho, một subject thông báo số lượng thay đổi cho màn hình bán hàng và bộ cảnh báo hết hàng; bộ cảnh báo được đăng ký hai lần sau khi người dùng mở lại màn hình nên cùng một biến động tạo hai cảnh báo.
+Một cửa sổ chỉnh sửa hồ sơ đăng ký listener cho đối tượng khách hàng mỗi lần mở; sau khi người dùng đóng cửa sổ, subject vẫn giữ tham chiếu và tiếp tục gọi vào các thành phần giao diện không còn hiển thị.
+Ứng dụng có hàng trăm tab đang xem cùng bảng giá; một số tab đã đóng nhưng listener không được hủy, khiến số callback cho mỗi lần thay giá tiếp tục tăng và bộ nhớ không được giải phóng.
+Một service Java đăng ký observer khi khởi tạo và đăng ký lại sau mỗi lần kết nối dữ liệu hồi phục; sau vài lần ngắt kết nối, một sự kiện chỉ phát một lần lại được xử lý nhiều lần.
+Màn hình trạng thái đơn hàng đọc giá trị hiện tại rồi đăng ký nhận thay đổi; đúng giữa hai thao tác, trạng thái đơn chuyển sang đã giao và màn hình tiếp tục hiển thị đang giao vì không nhận được sự kiện ở khoảng trống đó.
+Một ứng dụng cho phép đăng ký listener mới khi đã có dữ liệu; người dùng mong nhìn thấy trạng thái hiện tại ngay nhưng subject chỉ thông báo những lần thay đổi về sau, khiến giao diện mới mở để trống cho đến sự kiện tiếp theo.
+Trong bộ quản lý đơn hàng, hai observer lần lượt tính tổng tiền và cập nhật nhãn hiển thị; nhãn đọc giá trị tổng trước khi observer tính toán chạy xong nên đôi lúc xuất hiện con số thuộc phiên bản trước.
+Một subject phát sự kiện thay đổi giá chỉ chứa mã sản phẩm; observer tải giá mới sau một khoảng chờ, nhưng sản phẩm đã đổi thêm lần nữa và log của sự kiện đầu tiên lại ghi giá của lần thứ hai.
+Ứng dụng gửi cho observer một đối tượng sự kiện có thể sửa chứa giá cũ và giá mới; listener đầu chỉnh lại trường giá mới để hiển thị, khiến listener phía sau nhận dữ liệu khác với sự kiện nguồn ban đầu.
+Một bộ theo dõi biểu mẫu có observer chỉ nhận tín hiệu đã thay đổi rồi tự đọc toàn bộ các trường; trong khi nó đang đọc, luồng khác sửa thêm một trường, làm kết quả kiểm tra chứa dữ liệu từ hai thời điểm khác nhau.
+Ứng dụng desktop có worker nhận dữ liệu cảm biến từ luồng nền rồi thông báo tới listener cập nhật giao diện; một số callback trực tiếp sửa thành phần UI ngoài luồng giao diện và thỉnh thoảng gây lỗi khó tái hiện.
+Một subject thông báo thay đổi cấu hình cho nhiều listener, trong đó listener ghi log ném ngoại lệ; luồng phát sự kiện dừng trước khi listener cập nhật cache nhận được thông báo quan trọng.
+Trong hệ thống xét duyệt hồ sơ, một listener thực hiện gửi email qua dịch vụ ngoài mỗi khi trạng thái thay đổi; kết nối email chậm làm lệnh cập nhật trạng thái trên giao diện phải chờ nhiều giây mới hoàn tất.
+Một listener giám sát trạng thái đơn tự sửa lại subject khi phát hiện dữ liệu không hợp lệ; sửa đổi đó lập tức phát sự kiện mới và tạo chuỗi callback lặp cho tới khi ứng dụng tràn ngăn xếp.
+Một observer hủy đăng ký chính nó khi nhận được sự kiện đầu tiên, trong lúc subject đang duyệt danh sách listener; lần phát sự kiện gặp lỗi thay đổi collection khi đang lặp và bỏ qua các listener còn lại.
+Trong khi subject gửi thông báo cho các observer, một màn hình khác đăng ký listener mới; ứng dụng dùng cùng danh sách mutable không đồng bộ nên có lúc listener được gọi hai lần, có lúc phát sinh lỗi khi duyệt.
+Hai luồng cập nhật trạng thái của cùng một thiết bị và phát sự kiện gần như cùng lúc; observer hiển thị trạng thái mới hơn trước rồi lại áp dụng sự kiện cũ đến sau, khiến màn hình quay về thông tin lỗi thời.
+Người dùng bỏ theo dõi một bản ghi ngay lúc callback đã được đưa vào hàng đợi thực thi; sau khi hủy đăng ký, listener vẫn nhận thêm thông báo và cập nhật màn hình mà người dùng tưởng đã dừng.
+Một ứng dụng cần bảo đảm listener kiểm toán và listener thông báo cùng biết mọi thay đổi quan trọng; khi số listener tăng, thứ tự gọi ngẫu nhiên khiến một listener đọc trạng thái phụ do listener khác chưa kịp cập nhật.
+Một hệ thống xử lý dữ liệu cảm biến phát thông báo sau từng thay đổi rất nhỏ, làm hàng nghìn observer tính lại biểu đồ cho mỗi giây và khiến giao diện giật dù dữ liệu cuối cùng vẫn chính xác.
+Nhóm tối ưu bằng cách gộp các thông báo liên tiếp thành một sự kiện cuối, nhưng observer cảnh báo nhiệt độ không còn thấy lần vượt ngưỡng ngắn ở giữa các giá trị đầu và cuối.
+Một ứng dụng quản lý đơn hàng có observer chỉ quan tâm trạng thái đã thanh toán, nhưng subject phát tất cả thay đổi địa chỉ, ghi chú và vận chuyển; mỗi observer đều phải tự lọc hàng nghìn sự kiện không liên quan.
+Một bộ kiểm thử xác minh kết quả cập nhật giá nhưng không kiểm tra listener nào được gọi với nội dung gì; sau refactor, subject ngừng phát thông báo và các unit test về số tiền vẫn xanh.
+Trong bài kiểm thử Java, subject sử dụng executor bất đồng bộ để phát sự kiện; test kiểm tra mock listener ngay sau khi thay đổi dữ liệu và thất bại không ổn định vì callback chưa được thực thi.
+Hai bộ test cùng dùng subject tĩnh và đăng ký các listener giả khác nhau; khi chạy cả suite, listener của bài trước vẫn tồn tại nên số lần gọi của bài sau phụ thuộc thứ tự thực thi.
+Một module Java tạo subject và phát thông báo ngay trong constructor, trước khi các observer được ứng dụng đăng ký đầy đủ; một thành phần kiểm toán không bao giờ thấy sự kiện khởi tạo dù các sự kiện sau đều đến đúng.
+Một giao diện theo dõi hàng nghìn đối tượng mở và đóng liên tục; đội muốn dùng tham chiếu yếu cho listener để tránh rò rỉ bộ nhớ nhưng chưa xác định ai chịu trách nhiệm giữ listener sống đủ lâu để nhận thông báo.
+Một subject chứa thông tin khách hàng và phát toàn bộ đối tượng hồ sơ cho mọi observer, kể cả listener chỉ cần mã trạng thái; một thành phần ghi log vô tình lưu địa chỉ và số định danh không cần thiết.
+Ứng dụng xử lý sự kiện bằng một hàng đợi callback không giới hạn để tách observer khỏi luồng cập nhật; khi một listener chậm, hàng đợi phình lớn và các thông báo quan trọng đến sau bị trì hoãn hàng phút.
+Một listener nhận thông báo cập nhật số dư rồi ném ngoại lệ giữa chừng; subject thử phát lại cùng sự kiện nhưng listener đã gửi một thông báo ra bên ngoài, tạo tác dụng phụ trùng lặp.
+Một nhóm dự định dùng Observer trong bộ nhớ để đồng bộ trạng thái đặt hàng giữa các máy chủ khác nhau; khi một tiến trình khởi động lại, mọi thông báo phát trong lúc nó dừng đều mất dù hệ thống nghiệp vụ yêu cầu theo dõi đầy đủ lịch sử.

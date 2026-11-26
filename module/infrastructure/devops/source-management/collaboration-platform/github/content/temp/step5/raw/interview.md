@@ -1,0 +1,12 @@
+Khi nhiều nhóm cùng phát triển các dịch vụ có chu kỳ phát hành khác nhau, bạn sẽ lựa chọn cách tổ chức repository trong GitHub, quy định quyền sở hữu mã nguồn và quản lý phụ thuộc giữa các kho như thế nào?
+Bạn sẽ thiết kế quy trình tạo nhánh, mở pull request và lựa chọn merge commit, squash merge hoặc rebase merge ra sao để vừa giữ lịch sử thay đổi dễ truy vết vừa hạn chế xung đột khi nhiều người cộng tác?
+Khi cộng tác viên bên ngoài gửi pull request từ một fork đã chậm nhiều phiên bản so với repository gốc, bạn sẽ hướng dẫn đồng bộ nhánh, xử lý xung đột và xác minh nội dung thay đổi trước khi hợp nhất như thế nào?
+Bạn sử dụng CODEOWNERS, yêu cầu phê duyệt từ reviewer và quy tắc xử lý review đã lỗi thời như thế nào để bảo đảm những thay đổi liên quan đến mã nhạy cảm được đúng người xem xét?
+Nếu nhóm muốn cấm push trực tiếp lên nhánh chính nhưng vẫn cho phép tự động hợp nhất khi kiểm thử đạt, bạn sẽ cấu hình branch protection hoặc rulesets, required status checks và quyền bypass theo những nguyên tắc nào?
+Bạn tổ chức GitHub Issues, nhãn, milestone và Projects như thế nào để chuyển yêu cầu sản phẩm thành công việc có thể theo dõi, liên kết với pull request và xác minh hoàn thành mà không cập nhật trạng thái thủ công quá nhiều?
+Trong một GitHub organization có nhiều nhóm nội bộ và nhà thầu, bạn sẽ thiết kế quyền theo team, vai trò ở repository, quy trình mời và thu hồi quyền như thế nào để đáp ứng nguyên tắc đặc quyền tối thiểu?
+Khi pull request từ nguồn không tin cậy kích hoạt GitHub Actions, bạn sẽ giới hạn quyền của GITHUB_TOKEN, bảo vệ secrets, kiểm soát workflow và thiết lập các kiểm tra bắt buộc như thế nào để tránh trao quyền phát hành cho mã chưa được duyệt?
+Bạn sẽ phối hợp Dependabot alerts, secret scanning và code scanning trong GitHub như thế nào để phân loại phát hiện bảo mật, xử lý cảnh báo sai và ưu tiên sửa các rủi ro thực sự ảnh hưởng tới repository?
+Nếu một thành viên vô tình đẩy access token vào commit của nhánh công khai, bạn sẽ tổ chức thu hồi bí mật, rà soát nhật ký truy cập, xử lý lịch sử Git và ngăn ngừa tái diễn ra sao khi bản sao của commit có thể đã được tải về?
+Khi phát hành phiên bản ứng dụng từ GitHub, bạn sẽ quản lý tag, GitHub Release, ghi chú thay đổi và artifact đi kèm như thế nào để người sử dụng kiểm chứng được nguồn gốc và tải đúng bản phát hành?
+Bạn xây dựng quy trình tiếp nhận đóng góp mã nguồn mở trên GitHub như thế nào bằng CONTRIBUTING, issue và pull request templates, quy tắc ứng xử, giấy phép và cách phản hồi để vừa bảo vệ chất lượng dự án vừa hỗ trợ cộng tác viên mới?

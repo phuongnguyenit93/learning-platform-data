@@ -1,0 +1,32 @@
+Một sàn thương mại điện tử lưu quy tắc khuyến mại trong nhiều nhánh điều kiện Java, khiến nhân viên kinh doanh phải yêu cầu triển khai phần mềm mỗi khi đổi ngưỡng giảm giá; nhóm cân nhắc xây DSL để diễn đạt quy tắc gần ngôn ngữ nghiệp vụ.
+Đội giao dịch viên quen với bảng điều kiện và thuật ngữ tài chính nhưng không biết lập trình; kiến trúc sư phải lựa chọn giữa một internal DSL gắn trong mã Java và một external DSL có thể chỉnh sửa riêng.
+Một thư viện internal DSL dùng chuỗi phương thức để mô tả luồng phê duyệt, nhưng người dùng có thể kết thúc biểu thức trước khi khai báo người duyệt hoặc điều kiện bắt buộc; nhóm cần xem xét ranh giới giữa khả năng biểu đạt và trạng thái không hợp lệ.
+Một bộ quy tắc vận chuyển được viết bằng tệp văn bản riêng; sau nhiều đợt bổ sung tính năng, các từ khóa chỉ cùng một khái niệm như khu vực, tuyến và địa bàn bị dùng lẫn lộn, khiến người đọc diễn giải khác nhau.
+Hai phòng nghiệp vụ sử dụng từ “khách hàng ưu tiên” với tiêu chí khác nhau; nếu DSL chỉ có một từ khóa tương ứng, những quy tắc của hai phòng có thể âm thầm áp dụng sai đối tượng.
+Một nền tảng có quy tắc bằng tiếng Việt và tiếng Anh; người viết nhập tên thuộc tính có dấu, viết hoa không nhất quán và để khoảng trắng trong định danh, buộc nhóm thiết kế quy ước token dễ hiểu và ổn định.
+Trong DSL tính cước, giá trị phần trăm, tiền tệ và số lượng đều được xử lý như những con số không phân biệt; một quy tắc đã cộng tỷ lệ giảm giá trực tiếp vào số tiền khiến phí tính sai.
+Một ngôn ngữ quy tắc thuế cho phép ghép phép tính và điều kiện trên cùng một dòng; người viết và bộ thông dịch hiểu khác nhau về độ ưu tiên giữa phép toán và so sánh, tạo kết quả không nhất quán.
+Hệ thống duyệt hồ sơ cần diễn đạt các điều kiện lồng nhau với phép và, hoặc, phủ định; một hồ sơ bị từ chối vì DSL chưa có quy tắc ngoặc rõ ràng và hai cách phân tích cú pháp đều có vẻ hợp lý.
+Người dùng biên soạn hàng trăm quy tắc trong một tệp; khi thừa một dấu phân cách ở gần đầu, trình phân tích cú pháp chỉ trả thông báo lỗi ở cuối tệp, gây khó khăn cho việc sửa nội dung.
+Một công cụ kiểm tra DSL báo sai loại dữ liệu nhưng không chỉ được câu quy tắc gốc vì cây cú pháp trừu tượng đã mất thông tin vị trí nguồn; nhóm cần thiết kế thông báo lỗi hỗ trợ người dùng nghiệp vụ.
+Trong DSL chính sách khoản vay, một biểu thức so sánh ngày đáo hạn với hạn mức tiền lại được chấp nhận ở bước phân tích cú pháp; nhóm cần xác định ranh giới kiểm tra cú pháp và kiểm tra ngữ nghĩa.
+Một quy tắc định tuyến tham chiếu tên kho hàng đã bị xóa khỏi danh mục; tệp vẫn hợp lệ về ngữ pháp nhưng chỉ lỗi khi có đơn hàng đi qua tuyến đó, khiến nhóm cần làm rõ cách kiểm tra tham chiếu trước khi phát hành.
+Các quy tắc do nhiều bộ phận viết có thể khai báo tham số cùng tên trong phạm vi khác nhau; một lần gộp tệp làm tham số cục bộ bị thay bởi giá trị toàn cục và thay đổi quyết định phê duyệt.
+DSL phân quyền hỗ trợ cả quy tắc cho phép lẫn từ chối; khi hai quy tắc cùng khớp một hành động, nhóm bảo mật chưa xác định thứ tự ưu tiên hay cách xử lý xung đột.
+Một bộ tính khuyến mại áp dụng nhiều quy tắc cùng lúc, nhưng việc thay thứ tự khai báo làm kết quả giảm giá cuối cùng khác đi; người thiết kế phải quyết định ngữ nghĩa thứ tự và tính kết hợp của các quy tắc.
+Một ngôn ngữ xử lý đơn hàng cho phép thực hiện gửi email ngay trong khi đánh giá điều kiện; khi hệ thống đánh giá lại cùng một quy tắc do lỗi tạm thời, khách hàng nhận nhiều email giống nhau.
+Hệ thống ưu đãi phụ thuộc thời điểm bắt đầu và kết thúc theo múi giờ của từng cửa hàng; hai bộ thông dịch ở các trung tâm dữ liệu cho kết quả khác nhau ngay sát thời điểm chuyển ngày.
+Một DSL lọc dữ liệu có bước tối ưu biến đổi cây biểu thức trước khi thực thi; sau tối ưu, một số điều kiện có tác dụng phụ hoặc giá trị trống được đánh giá theo thứ tự khác, khiến nhóm cần chứng minh tính tương đương ngữ nghĩa.
+Nền tảng báo cáo chuyển DSL truy vấn nghiệp vụ thành truy vấn cơ sở dữ liệu; một trường chuỗi do người dùng nhập chứa ký tự đặc biệt làm thay đổi ý nghĩa truy vấn sinh ra, đặt ra yêu cầu bảo vệ ranh giới dữ liệu và cú pháp.
+Một bộ sinh mã chuyển cấu hình DSL sang lớp Java, nhưng tên trường nghiệp vụ trùng với từ khóa ngôn ngữ đích và tệp sinh ra không biên dịch được; nhóm phải xem xét ánh xạ định danh, kiểm tra và khả năng truy vết lỗi.
+Một hệ thống cho đối tác tự viết biểu thức DSL được phép gọi một tập hàm xử lý, nhưng một hàm thư viện có khả năng đọc tệp hệ thống bị mở ra ngoài ý muốn; nhóm cần phân định quyền của chương trình chạy từ DSL.
+Người dùng tạo quy tắc lặp lại cho đến khi điều kiện thỏa mãn; một biểu thức không bao giờ đạt điều kiện khiến worker chiếm CPU và làm chậm các khách hàng khác.
+Nền tảng nhiều khách hàng dùng chung một bộ thông dịch DSL, trong khi tên biến và dữ liệu tham chiếu được lưu lại giữa hai lượt chạy; một quy tắc có thể đọc nhầm thông tin từ tenant trước.
+Một quyết định chặn giao dịch được DSL trả về đúng theo cấu hình nhưng đội hỗ trợ không biết quy tắc nào kích hoạt và giá trị đầu vào nào được dùng; người vận hành cần khả năng giải thích và kiểm toán kết quả.
+Sau khi bổ sung cú pháp mới, bộ thông dịch phiên bản hiện tại không còn đọc được các tệp quy tắc cũ đã lưu nhiều năm; nhóm phải xác định chính sách tương thích, phiên bản ngôn ngữ và cách chuyển đổi an toàn.
+Hai phiên bản DSL được dùng đồng thời trong một hệ thống phân tán; một quy tắc được chấp nhận trên máy chủ mới nhưng bị từ chối ở máy chủ cũ, gây kết quả khác nhau tùy nơi tiếp nhận.
+Nhóm muốn cho phép mỗi sản phẩm mở rộng DSL bằng hàm và từ khóa riêng, nhưng một phần mở rộng đổi ý nghĩa của từ khóa sẵn có; kiến trúc sư cần đánh giá ranh giới extension và khả năng kiểm soát xung đột.
+Một DSL phân loại cảnh báo có bộ kiểm thử chỉ so sánh tệp đầu ra với một vài ví dụ mẫu; sau khi đổi ngữ pháp, một nhánh điều kiện hiếm không còn được thực thi nhưng không có kiểm thử phát hiện.
+Đội nghiệp vụ duy trì bộ quy tắc bằng bảng tính rồi xuất thành DSL; cùng một ngày và số thập phân được biểu diễn khác nhau theo thiết lập ngôn ngữ của máy người biên soạn, tạo lỗi khi phân tích.
+Một bộ quy tắc gian lận được kích hoạt qua nhiều máy chủ; trong lúc triển khai phiên bản DSL mới, một phần giao dịch được xét theo bộ quy tắc cũ và phần khác theo bộ mới, khiến nhóm cần thiết kế thời điểm áp dụng nhất quán.
+Sau một năm phát triển DSL cho xử lý yêu cầu nội bộ, từ vựng đã phình to thành nhiều cấu trúc điều khiển giống ngôn ngữ lập trình tổng quát; nhóm phải đánh giá liệu lợi ích diễn đạt miền còn tương xứng với chi phí học, kiểm thử và bảo trì.

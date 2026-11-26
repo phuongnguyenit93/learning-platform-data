@@ -1,0 +1,12 @@
+Phân tích thành phần phần mềm (SCA) giúp phát hiện những rủi ro nào trong thư viện bên thứ ba, và phạm vi của nó khác gì so với kiểm tra mã nguồn tự viết hoặc kiểm thử bảo mật khi ứng dụng đang chạy?
+Trong một dự án Java nhiều module, bạn sẽ xác định thư viện trực tiếp và thư viện gián tiếp bằng Maven hoặc Gradle như thế nào để truy ra chuỗi phụ thuộc đã đưa một phiên bản có lỗ hổng vào bản build?
+Khi kết quả quét Maven và Gradle khác nhau dù dùng cùng một thư viện, bạn sẽ kiểm tra dependency scope, configuration, cơ chế giải quyết xung đột phiên bản và classpath thực tế theo cách nào?
+Bạn sẽ đối chiếu một cảnh báo lỗ hổng với package và phiên bản cụ thể bằng CVE, advisory, package URL và dải phiên bản bị ảnh hưởng như thế nào để phát hiện trường hợp khớp nhầm hoặc cảnh báo sai?
+Bạn sẽ tạo và gắn SBOM vào một artifact Java như thế nào để chứng minh danh sách thành phần phản ánh đúng các dependency thực sự có trong bản phát hành, kể cả phụ thuộc gián tiếp?
+Trước một lỗ hổng có điểm CVSS cao, bạn sẽ kết hợp mức độ phơi lộ, đường đi có thể khai thác, chức năng thư viện được sử dụng và bằng chứng khai thác thực tế như thế nào để quyết định mức ưu tiên xử lý?
+Nếu công cụ SCA cảnh báo một lỗ hổng nghiêm trọng chỉ nằm trong dependency dùng cho kiểm thử, bạn sẽ xác minh khả năng nó xuất hiện trong runtime hoặc artifact triển khai và quyết định cách xử lý ra sao?
+Khi phiên bản thư viện gián tiếp chứa lỗ hổng nhưng phiên bản sửa lỗi gây xung đột với các dependency khác, bạn sẽ lựa chọn phương án nâng cấp, ràng buộc hoặc loại trừ dependency và kiểm tra hồi quy như thế nào?
+Bạn sẽ tích hợp quét SCA vào pull request và pipeline phát hành như thế nào để phân biệt lỗ hổng mới với rủi ro tồn đọng, đặt điều kiện chặn build hợp lý và cung cấp bằng chứng cho người sửa?
+Trong trường hợp advisory đã xác nhận nhưng nhà cung cấp chưa phát hành bản vá, bạn sẽ đánh giá các biện pháp giảm thiểu tạm thời và tiêu chí chấp nhận rủi ro như thế nào trước khi cho phép tiếp tục triển khai?
+Bạn sẽ thiết kế quy trình phê duyệt ngoại lệ cho một cảnh báo SCA như thế nào để ghi nhận lý do kỹ thuật, phạm vi ảnh hưởng, người chịu trách nhiệm, thời hạn hết hiệu lực và điều kiện rà soát lại?
+Nếu một CVE mới được công bố sau khi ứng dụng đã lên production, bạn sẽ sử dụng SBOM, lịch sử artifact và dữ liệu triển khai như thế nào để xác định phiên bản bị ảnh hưởng, ưu tiên khắc phục và xác nhận bản vá đã đến đúng môi trường?

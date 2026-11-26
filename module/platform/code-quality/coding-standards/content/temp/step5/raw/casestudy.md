@@ -1,0 +1,32 @@
+Trong một hệ thống quản lý đơn hàng Java, ba nhóm đặt tên biến cho cùng khái niệm theo ba kiểu khác nhau khiến người mới đọc nhầm trạng thái đơn; trưởng nhóm cần thống nhất quy ước đặt tên và cách kiểm tra tuân thủ trước đợt phát hành.
+Một dịch vụ thanh toán có các lớp dài hàng nghìn dòng, trộn xác thực đầu vào, tính phí và gọi cổng thanh toán; nhóm đang chuẩn bị thêm phương thức thanh toán mới và cần đánh giá cách tổ chức lớp, trách nhiệm và thư mục nguồn.
+Kho mã Java nhiều năm tuổi sử dụng lẫn lộn tên package theo sản phẩm, theo tầng kỹ thuật và theo nhóm phát triển; khi tách một chức năng thành thư viện dùng chung, các nhóm tranh luận về ranh giới package và mức độ tương thích.
+Một API tạo tài khoản công khai nhận quá nhiều tham số cùng kiểu và nhiều cờ boolean; hai lần thay đổi gần đây đã khiến bên gọi truyền nhầm giá trị, nên nhóm cần xem lại chuẩn thiết kế chữ ký và hợp đồng API.
+Một thư viện nội bộ đưa ra phương thức có thể trả về null nhưng không ghi rõ điều kiện; ứng dụng gọi thư viện liên tục phát sinh lỗi tại thời điểm chạy, trong khi nhiều nhóm đang sử dụng phiên bản cũ.
+Đội phát triển đặt các hằng số cấu hình và chuỗi trạng thái trực tiếp ở nhiều lớp Java; sau thay đổi chính sách kinh doanh, một số nhánh chạy hành vi khác nhau dù cùng khái niệm nghiệp vụ.
+Một luồng xử lý hồ sơ bắt mọi ngoại lệ rồi trả thông báo chung, khiến bộ phận vận hành không phân biệt được lỗi dữ liệu, lỗi bên thứ ba và lỗi lập trình; nhóm cần thống nhất quy tắc phân loại và truyền lỗi qua các tầng.
+Để giảm cảnh báo, một lập trình viên thêm các khối xử lý ngoại lệ trống vào chức năng nhập dữ liệu; trong lần nhập thất bại tiếp theo, dữ liệu bị thiếu mà hệ thống vẫn báo thành công.
+Một ứng dụng ghi toàn bộ đối tượng yêu cầu HTTP vào log để dễ điều tra lỗi; sau khi tích hợp đăng nhập, log có thể chứa mã truy cập và thông tin khách hàng, tạo mâu thuẫn giữa khả năng quan sát và quy chuẩn bảo mật.
+Một API nội bộ thay đổi tên phương thức và loại bỏ tham số cũ trong bản cập nhật nhỏ; ba dịch vụ phụ thuộc không còn biên dịch được, và nhóm phải làm rõ chuẩn quản trị thay đổi có phá vỡ tương thích.
+Trong dự án Java có nhiều lớp tiện ích dùng chung, một lớp tập hợp xử lý thời gian, tiền tệ, chuỗi và truy vấn cơ sở dữ liệu; mỗi PR thêm tính năng đều gây xung đột khi hợp nhất.
+Một nhóm dùng kế thừa nhiều tầng để tái sử dụng vài dòng hành vi, nhưng thay đổi tại lớp cha làm sai chức năng ở hai phân hệ; buổi review cần đánh giá tiêu chí chọn kế thừa, thành phần và ranh giới hợp đồng.
+Một luồng xử lý yêu cầu dùng biến tĩnh có thể thay đổi để lưu thông tin người dùng hiện tại; hệ thống hoạt động ở môi trường đơn luồng nhưng bị lẫn phiên khi chuyển sang xử lý đồng thời.
+Hai nhóm có quan điểm khác nhau về dùng Optional trong trường dữ liệu, giá trị trả về và tham số phương thức; những API tương tự trong cùng dự án đang biểu diễn trường hợp không có dữ liệu không nhất quán.
+Đội backend đang chuẩn hóa quy tắc về tính bất biến và phạm vi truy cập của trường trong đối tượng miền; một refactor gần đây cho phép lớp bên ngoài sửa trực tiếp danh sách giao dịch dẫn đến thay đổi trạng thái ngoài dự kiến.
+Một lớp Java dùng tên viết tắt chỉ người viết hiểu, trong khi tên dài hơn đã được các nhóm thống nhất ở tài liệu nghiệp vụ; khi bàn giao, người mới mất nhiều giờ đối chiếu ý nghĩa từng phương thức.
+Một truy vấn dữ liệu lặp lại logic xác thực ở controller, service và repository; một quy định mới được cập nhật tại hai chỗ nhưng bỏ sót chỗ còn lại khiến hành vi của các API không đồng nhất.
+Một phương thức tính khuyến mại chứa nhiều nhánh điều kiện lồng nhau và giá trị đặc biệt; quy tắc bổ sung cho khách hàng doanh nghiệp khiến độ phức tạp tiếp tục tăng và việc review khó phát hiện trường hợp biên.
+Trước hạn phát hành, nhóm phát hiện một PR đổi cả tên biến, thứ tự import và logic kiểm tra quyền truy cập; reviewer khó xác định thay đổi chức năng nào cần được kiểm thử kỹ.
+Trong kho mã Java dùng chung, IDE của mỗi thành viên tự tổ chức import và xuống dòng khác nhau; các PR chỉ sửa một dòng thường chứa hàng trăm dòng khác biệt không liên quan.
+Một thư viện được mở cho đối tác thiếu Javadoc về tiền điều kiện, hậu điều kiện và ngoại lệ; khách hàng tích hợp diễn giải sai ý nghĩa của tham số thời gian, gây lỗi chỉ xuất hiện ở múi giờ khác.
+Một lập trình viên để lại bình luận giải thích cách hoạt động cũ nhưng sau refactor luồng xử lý đã khác; người bảo trì dựa vào bình luận để sửa lỗi và vô tình tạo thêm sai lệch.
+Một chức năng chuyển đổi dữ liệu có kiểm thử đơn vị chỉ bao phủ đường đi thành công; khi nhận dữ liệu thiếu trường, lỗi xảy ra ở sản xuất và nhóm tranh luận phạm vi ca kiểm thử tối thiểu theo quy chuẩn.
+Đội dự án viết kiểm thử có tên chung chung và phụ thuộc thứ tự chạy hoặc dữ liệu cơ sở dùng chung; trên CI, bài kiểm thử thất bại ngẫu nhiên và khó truy nguyên yêu cầu nghiệp vụ liên quan.
+Một nhóm áp dụng bộ quy tắc static analysis mới lên toàn bộ kho Java cũ, tạo hàng nghìn cảnh báo; quản lý muốn cải thiện mã mới nhưng không làm nghẽn các bản vá quan trọng cho hệ thống đang vận hành.
+Một PR sửa lỗi khẩn cấp cần đi qua code review và quality gate, nhưng rule mới chặn merge vì một cảnh báo được cho là không phù hợp; nhóm phải xác định quy trình ngoại lệ có lý do, người duyệt và thời hạn rà soát.
+Một dự án có hướng dẫn viết mã trong wiki, quy tắc lint trong CI và cấu hình IDE không đồng nhất; nhân viên mới làm đúng hướng dẫn nhưng PR vẫn bị từ chối bởi kiểm tra tự động.
+Khi nâng phiên bản Java và framework, nhiều API chuẩn cũ được đánh dấu không khuyến nghị; nhóm cần quyết định cách cập nhật quy chuẩn và áp dụng dần cho các module có vòng đời phát hành khác nhau.
+Một nhóm tối ưu hiệu năng bằng cách viết logic khó đọc và bỏ qua quy ước chung, dựa trên kết quả đo ở máy cá nhân; reviewer muốn làm rõ bằng chứng và ngưỡng chấp nhận ngoại lệ cho đoạn mã đặc biệt.
+Một phương thức công khai trả về tập hợp có thể chỉnh sửa chứa trạng thái nội bộ; nhiều chỗ gọi thay đổi phần tử ngoài ý định, nhưng thay đổi API ngay sẽ ảnh hưởng người tiêu dùng thư viện.
+Các nhóm thường tranh luận về độ dài phương thức, số tham số và số lượng lớp cho mỗi tính năng; người phụ trách chuẩn cần xây dựng tiêu chí review áp dụng nhất quán mà vẫn phù hợp với ngữ cảnh mã.
+Sau sáu tháng áp dụng coding standards, số cảnh báo trên CI giảm nhưng lỗi phát hành và thời gian review không cải thiện; lãnh đạo muốn đánh giá hiệu lực bộ quy tắc và tìm điểm cần điều chỉnh bằng dữ liệu.

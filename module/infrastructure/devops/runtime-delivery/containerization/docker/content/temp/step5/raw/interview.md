@@ -1,0 +1,12 @@
+Bạn sẽ giải thích luồng từ Docker CLI qua Docker Engine đến runtime khi khởi tạo container như thế nào, và namespace cùng cgroup đóng vai trò gì trong việc cô lập tiến trình và tài nguyên?
+Docker image và container khác nhau ra sao về lớp dữ liệu và vòng đời, và bạn sẽ dùng tag cùng image digest như thế nào để bảo đảm hai môi trường chạy đúng cùng một bản ứng dụng?
+Khi xây dựng Dockerfile cho ứng dụng Java, bạn sẽ tổ chức thứ tự các lớp, ngữ cảnh build, tệp loại trừ và multi-stage build như thế nào để tối ưu kích thước image mà vẫn tận dụng cache hiệu quả?
+Bạn sẽ sử dụng các khả năng của BuildKit để tăng tốc build và cấp secret tạm thời như thế nào, đồng thời kiểm chứng rằng thông tin nhạy cảm không tồn tại trong image hoặc lịch sử các lớp?
+Một ứng dụng trong container không dừng đúng cách khi nhận yêu cầu kết thúc, bạn sẽ kiểm tra vai trò tiến trình PID 1, ENTRYPOINT, CMD, xử lý tín hiệu và healthcheck như thế nào?
+Khi hai container giao tiếp qua mạng bridge nhưng một dịch vụ không truy cập được dịch vụ còn lại, bạn sẽ phân biệt DNS nội bộ, port publish ra host và ranh giới các Docker network để chẩn đoán ra sao?
+Bạn sẽ lựa chọn volume, bind mount hay lớp ghi của container cho các loại dữ liệu khác nhau như thế nào, và tổ chức quyền truy cập, sao lưu cùng khôi phục để tránh mất dữ liệu khi thay container?
+Với một ứng dụng nhiều dịch vụ chạy bằng Docker Compose, bạn sẽ mô hình hóa network, cấu hình theo môi trường và thứ tự khởi động như thế nào để phân biệt container đã chạy với dịch vụ thực sự sẵn sàng nhận yêu cầu?
+Nếu ứng dụng Java chạy trong container bị OOMKilled hoặc chậm bất thường dù máy chủ còn tài nguyên, bạn sẽ kiểm tra giới hạn CPU, bộ nhớ, hành vi JVM và số liệu runtime như thế nào để tìm nguyên nhân?
+Bạn sẽ đánh giá và áp dụng các biện pháp hardening khi chạy Docker container như thế nào, xét đến người dùng không có quyền root, Linux capabilities, seccomp, filesystem chỉ đọc và đặc quyền của daemon?
+Bạn sẽ thiết kế quy trình build và phát hành Docker image như thế nào để liên kết image digest với mã nguồn, SBOM, kết quả quét lỗ hổng và chữ ký, đồng thời xác minh đúng image trước khi triển khai?
+Một container hoạt động bình thường trên máy lập trình viên nhưng liên tục khởi động lại sau khi triển khai, bạn sẽ thu thập và đối chiếu những bằng chứng nào về log, trạng thái thoát, cấu hình, network, mount và tài nguyên trước khi quyết định rollback?

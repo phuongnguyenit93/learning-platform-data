@@ -1,0 +1,12 @@
+Khi tiếp nhận yêu cầu xây dựng hệ thống đặt hàng cho mùa cao điểm, bạn sẽ khai thác và chuyển các mục tiêu nghiệp vụ thành chỉ tiêu kiến trúc đo được như SLO, độ trễ, lưu lượng đỉnh, RTO/RPO và ngân sách như thế nào?
+Với một ứng dụng web ba tầng, bạn sẽ bố trí mạng ảo, subnet công khai và riêng tư, cân bằng tải, định tuyến và kiểm soát lưu lượng vào/ra thế nào để các dịch vụ nội bộ không bị phơi lộ?
+Một API có lưu lượng thất thường và các tác vụ nền chạy dài cần triển khai trên cloud; bạn chọn máy ảo, container hay serverless theo tiêu chí nào và sẽ kiểm chứng lựa chọn đó bằng phép đo gì?
+Nếu một vùng sẵn sàng (availability zone) bất ngờ ngừng hoạt động, kiến trúc ứng dụng và lớp dữ liệu cần được thiết kế và kiểm thử ra sao để đáp ứng mục tiêu sẵn sàng đã cam kết?
+Một doanh nghiệp yêu cầu tiếp tục phục vụ sau sự cố toàn region nhưng dữ liệu khách hàng phải ở đúng quốc gia; bạn xây dựng phương án sao lưu, sao chép, chuyển vùng và khôi phục thế nào để cân bằng RTO/RPO, tuân thủ và chi phí?
+Một nền tảng thương mại có giao dịch đơn hàng cần tính nhất quán và nhật ký hành vi tăng rất nhanh; bạn quyết định dùng cơ sở dữ liệu quan hệ, NoSQL, bộ nhớ đệm và object storage cho từng phần dữ liệu ra sao, và vì sao?
+Khi lượng yêu cầu tăng gấp mười trong vài phút và hệ thống thanh toán bên thứ ba đáp ứng chậm, bạn sẽ dùng hàng đợi, xử lý bất đồng bộ, tự mở rộng và cơ chế chống xử lý trùng lặp như thế nào để giữ hệ thống ổn định?
+Đối với nhiều nhóm triển khai dịch vụ độc lập trên cùng môi trường cloud, bạn sẽ thiết kế phân quyền IAM, quản lý secret, mã hóa và ranh giới truy cập ra sao để giới hạn ảnh hưởng khi một dịch vụ bị xâm nhập?
+Một lần phát hành làm tỷ lệ lỗi tăng nhưng các chỉ số tài nguyên hạ tầng vẫn bình thường; bạn cần thiết kế metrics, logs, traces, cảnh báo và quy trình ứng phó thế nào để chẩn đoán và khôi phục nhanh?
+Bạn sẽ tổ chức Infrastructure as Code và quy trình triển khai từ môi trường phát triển sang production thế nào để kiểm soát sai lệch cấu hình, kiểm định thay đổi, phát hành dần và rollback an toàn?
+Chi phí cloud tháng vừa rồi tăng 40% trong khi mức phục vụ không đổi; bạn sẽ phân tích hóa đơn, mức sử dụng và cấu trúc kiến trúc ra sao để đề xuất phương án tiết kiệm mà vẫn bảo đảm hiệu năng, độ tin cậy và bảo mật?
+Trước khi đưa một hệ thống lên production, bạn sẽ đánh giá theo các trụ cột Well-Architected như thế nào, định lượng và ưu tiên các rủi ro ra sao, và quyết định chấp nhận rủi ro dựa trên bằng chứng gì?

@@ -1,0 +1,4 @@
+modules:
+  - location: module/platform/development/programming/paradigm/object-oriented
+    status: "BLOCKED"
+    reason: "CURRENT_STEP_FINAL; do not generate Phase 1"

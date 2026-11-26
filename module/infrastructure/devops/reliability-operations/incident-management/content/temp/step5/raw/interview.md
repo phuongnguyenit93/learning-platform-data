@@ -1,0 +1,12 @@
+Khi hệ thống cảnh báo tỷ lệ lỗi API tăng nhưng dashboard hạ tầng vẫn bình thường, bạn sẽ dùng tín hiệu người dùng, SLI và bằng chứng quan sát nào để xác nhận sự cố và quyết định thời điểm kích hoạt quy trình ứng phó?
+Bạn sẽ xây dựng tiêu chí phân cấp mức độ nghiêm trọng dựa trên phạm vi người dùng bị ảnh hưởng, chức năng kinh doanh, thời gian gián đoạn và nguy cơ mất dữ liệu như thế nào, và khi nào cần nâng hoặc hạ cấp sự cố?
+Trong sự cố kéo dài liên quan đến nhiều nhóm, bạn sẽ chỉ định Incident Commander, người phụ trách điều tra kỹ thuật, truyền thông và ghi chép như thế nào để các quyết định có người chịu trách nhiệm rõ ràng?
+Ở những phút đầu của một sự cố production chưa rõ nguyên nhân, bạn sẽ tổ chức kênh phối hợp, ghi nhận mốc thời gian, bảo toàn bằng chứng và phân công hành động ưu tiên như thế nào để tránh thao tác chồng chéo?
+Khi log, metric và trace gợi ý nhiều nguyên nhân khác nhau, bạn sẽ kiểm tra giả thuyết, đối chiếu thời điểm triển khai hoặc thay đổi cấu hình và cập nhật nhận định điều tra như thế nào để tránh kết luận quá sớm?
+Nếu một bản phát hành mới làm tăng lỗi giao dịch trong khi cơ sở dữ liệu vẫn đang xử lý dữ liệu phát sinh, bạn sẽ lựa chọn rollback, tắt feature flag hay giảm tải dịch vụ theo những tiêu chí nào để giảm tác động mà không gây mất dữ liệu?
+Khi lỗi của một dịch vụ phụ thuộc lan sang nhiều hệ thống và từng nhóm đều đề xuất cách khắc phục riêng, Incident Commander sẽ phối hợp ưu tiên, quản lý rủi ro của thay đổi khẩn cấp và quyết định thời điểm leo thang như thế nào?
+Bạn sẽ thiết kế các bản cập nhật tình trạng sự cố cho nhân viên hỗ trợ, lãnh đạo và khách hàng như thế nào về mức ảnh hưởng, biện pháp đang thực hiện, điều chưa chắc chắn và thời điểm cập nhật tiếp theo?
+Nếu hai sự cố nghiêm trọng xảy ra đồng thời và cùng cần một nhóm chuyên gia đang trực, bạn sẽ quyết định ưu tiên nguồn lực, phân quyền chỉ huy và bàn giao thông tin giữa các ca như thế nào?
+Sau khi hệ thống bắt đầu trả kết quả thành công trở lại, bạn sẽ kiểm chứng phục hồi bằng giao dịch thực tế, SLI, hàng đợi tồn đọng và theo dõi tái phát như thế nào trước khi tuyên bố kết thúc sự cố?
+Bạn sẽ thực hiện postmortem không đổ lỗi như thế nào để tái dựng timeline, nhận diện các yếu tố kỹ thuật và tổ chức góp phần gây sự cố, rồi phân công hành động phòng ngừa có thể đo lường và theo dõi đến khi hoàn tất?
+Bạn sẽ thiết kế một buổi diễn tập sự cố giả lập và quy trình cập nhật runbook như thế nào để kiểm chứng khả năng gọi đội trực, điều phối Incident Command, truyền thông và cải thiện thời gian phát hiện lẫn phục hồi?

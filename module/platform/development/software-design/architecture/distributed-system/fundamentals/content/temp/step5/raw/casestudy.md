@@ -1,0 +1,32 @@
+Một ứng dụng thanh toán gửi yêu cầu thu tiền đến dịch vụ ở máy khác rồi mất kết nối trước khi nhận phản hồi; người dùng không biết giao dịch đã hoàn thành hay chưa và hệ thống phải xử lý tình huống kết quả từ xa không xác định.
+Hai máy chủ thường xuyên gửi tín hiệu kiểm tra sức khỏe cho nhau; khi mạng chậm trong vài giây, mỗi máy đều cho rằng máy kia đã chết dù cả hai vẫn đang chạy, khiến cơ chế chuyển vai trò gây xung đột.
+Một hệ thống hồ sơ khách hàng ghi vào nút chính và đọc từ nút bản sao; ngay sau khi sửa địa chỉ, người dùng mở lại trang đôi khi thấy giá trị cũ vì bản sao chưa nhận kịp cập nhật.
+Trong cụm cơ sở dữ liệu có bản sao, nút chính trả xác nhận ghi trước khi dữ liệu được sao chép sang nút khác rồi bất ngờ hỏng; sau khi chuyển nút chính, một số bản ghi đã xác nhận không còn xuất hiện.
+Một dịch vụ đặt phòng đọc và ghi trên nhiều bản sao theo cơ chế quorum; khi một trung tâm dữ liệu gián đoạn, các nhóm tranh luận nên thay đổi số bản sao tham gia đọc và ghi như thế nào để bảo vệ tính nhất quán.
+Ứng dụng trải rộng trên hai khu vực địa lý, mỗi lượt ghi phải đợi xác nhận từ khu vực xa; dữ liệu được đồng bộ chặt chẽ hơn nhưng thời gian phản hồi cho người dùng tăng rõ rệt trong giờ cao điểm.
+Một đợt lỗi mạng chia cụm lưu trữ thành hai nhóm không liên lạc được; cả hai vẫn nhận yêu cầu sửa số lượng tồn kho, khiến sau khi kết nối lại có hai phiên bản dữ liệu mâu thuẫn.
+Hai máy trong hệ thống quản lý đơn đều tự nhận là nút chính sau một lần đứt mạng ngắn; mỗi máy cấp số thứ tự đơn hàng mới, tạo ra các định danh trùng khi cụm được nối lại.
+Một nền tảng theo dõi sự kiện phân vùng dữ liệu theo mã khách hàng, nhưng vài khách hàng lớn phát sinh phần lớn lưu lượng; một số nút quá tải trong khi các nút khác gần như rảnh.
+Đội mở rộng cụm bằng cách thêm nút và phân chia lại dữ liệu; trong thời gian di chuyển partition, nhiều yêu cầu tra cứu rơi vào nút cũ và nhận lỗi không tìm thấy bản ghi tồn tại.
+Một hệ thống chia dữ liệu theo tháng để tăng hiệu năng báo cáo, nhưng truy vấn lịch sử toàn bộ của một khách hàng phải gọi rất nhiều partition và hợp nhất kết quả; nhóm cần đánh giá chi phí truy vấn theo cách phân vùng đã chọn.
+Trong một cụm có cơ chế bầu lãnh đạo, các nút liên tục bầu lại khi mạng không ổn định; dù vẫn còn máy khỏe, tốc độ xử lý ghi giảm mạnh vì nhiều giai đoạn không có leader ổn định.
+Một nhóm thiểu số nút vẫn có thể nhận yêu cầu HTTP khi mất liên lạc với phần lớn cụm, nhưng không thể chốt bản ghi mới theo giao thức đồng thuận; ứng dụng hiện thông báo mọi yêu cầu đều thành công ngay sau khi tiếp nhận.
+Một nút cũ tạm dừng lâu rồi hoạt động lại với thông tin thành viên cụm đã lỗi thời; nó tiếp tục gửi thông điệp như thể đang giữ vai trò điều phối và các nút khác nhận các mệnh lệnh mâu thuẫn.
+Một dịch vụ dùng quyền thuê có thời hạn để giữ vai trò chủ xử lý, nhưng đồng hồ giữa hai máy lệch nhau; trong thời gian chuyển quyền, cả máy cũ và máy mới cùng thực hiện tác vụ gửi hóa đơn.
+Ứng dụng ghi chú hoạt động ngoại tuyến cho phép hai thiết bị sửa cùng một tài liệu rồi đồng bộ khi kết nối trở lại; hệ thống hiện luôn giữ phiên bản gửi cuối cùng và làm mất một phần chỉnh sửa của người dùng.
+Một kho thông tin sản phẩm có hai bản sao cùng cập nhật giá và mô tả độc lập; sau khi nối mạng, quy tắc chọn cả bản ghi mới nhất làm mất thay đổi hợp lệ ở trường không bị xung đột.
+Trong hệ thống đặt hàng, việc giữ tồn kho, thu tiền và tạo phiếu giao vận diễn ra ở ba dịch vụ có cơ sở dữ liệu riêng; lỗi ở bước cuối khiến hai bước trước hoàn thành nhưng đơn không thể giao.
+Một lệnh hoàn tiền được gửi lại sau timeout với định danh mới mỗi lần, khiến dịch vụ thanh toán xử lý cùng ý định nghiệp vụ nhiều lần; nhóm phải xác định cách nhận biết yêu cầu đã thực hiện khi không biết kết quả lần đầu.
+Một consumer nhận thông điệp từ broker, ghi dữ liệu thành công nhưng chết trước khi xác nhận đã xử lý; broker chuyển cùng thông điệp lần nữa và hệ thống báo cáo ghi thêm một doanh thu trùng lặp.
+Các sự kiện cập nhật tồn kho và hủy đơn đi qua hai partition thông điệp khác nhau; consumer đôi lúc nhận sự kiện hủy trước sự kiện tạo, khiến trạng thái đơn hàng bị chuyển theo thứ tự không hợp lệ.
+Một dịch vụ ghi bản ghi giao dịch trong database rồi phát thông điệp cho hệ thống báo cáo; kết nối broker bị mất giữa hai thao tác nên giao dịch đã tồn tại nhưng báo cáo không bao giờ được cập nhật.
+Một thông điệp có cấu trúc không hợp lệ làm consumer liên tục thử lại và không tiến tới các thông điệp hợp lệ phía sau; đội vận hành cần quyết định cách cô lập lỗi mà vẫn giữ khả năng truy vết dữ liệu thất bại.
+Một dịch vụ tiếp nhận sự kiện nhanh hơn tốc độ xử lý của các worker, khiến backlog và độ trễ xử lý tăng liên tục dù API nhận sự kiện luôn phản hồi nhanh; nhóm phải xác định giới hạn tải và điều kiện quá tải.
+Ứng dụng gọi đồng bộ liên tiếp dịch vụ hồ sơ, khuyến mại và thanh toán; khi dịch vụ hồ sơ chậm, hàng nghìn luồng chờ và các chức năng không liên quan cũng bắt đầu hết tài nguyên.
+Một dịch vụ đối tác trả lỗi tạm thời, khiến hàng trăm instance ứng dụng đồng loạt thử lại sau cùng khoảng thời gian; đỉnh lưu lượng sau mỗi lượt retry lại làm đối tác quá tải nặng hơn.
+Một cơ chế ngắt gọi khi dịch vụ ngoài gặp nhiều lỗi giúp ứng dụng tránh treo, nhưng sau khi đối tác hồi phục, toàn bộ yêu cầu vẫn bị chặn và không có cách xác minh an toàn rằng dịch vụ đã hoạt động trở lại.
+Một cụm đọc dữ liệu từ cache phân tán còn lưu giá cũ sau khi database cập nhật; các instance nhận thông báo làm mới vào thời điểm khác nhau nên hai người dùng cùng lúc nhìn thấy mức giá khác nhau.
+Khi một yêu cầu đi qua gateway, service đơn hàng, broker và worker vận chuyển, mỗi thành phần ghi log theo một mã riêng; lúc đơn giao sai trạng thái, nhóm không nối được các sự kiện để phân biệt chậm trễ với mất thông điệp.
+Hai máy chủ ghi sự kiện theo dấu thời gian hệ thống, nhưng đồng hồ lệch nhau nên bản ghi của bước xử lý sau lại có timestamp sớm hơn bước trước; đội cần phân biệt thứ tự nhân quả với thứ tự đồng hồ thực.
+Một trung tâm dữ liệu mất kết nối trong thời gian ngắn rồi khôi phục, nhưng hệ thống phát hiện bản sao có nhiều bản ghi thiếu và thời gian đồng bộ lại vượt mục tiêu phục hồi; đội cần đánh giá cả khả năng mất dữ liệu lẫn thời gian khôi phục.
+Một hệ thống kiểm thử chỉ xác minh chức năng khi mọi nút đều khỏe; lần sự cố thật gồm mất gói, mạng bị chia, khởi động lại leader và thông điệp lặp làm đơn hàng không nhất quán, khiến nhóm phải thiết kế cách kiểm chứng độ tin cậy dưới lỗi từng phần.

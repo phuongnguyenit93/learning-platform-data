@@ -1,0 +1,32 @@
+Một nhóm dùng Spring Boot kiểm thử endpoint tạo đơn bằng cách gọi trực tiếp controller và giả lập service; sau khi đổi cấu hình chuyển đổi JSON, API thật không đọc được dữ liệu đầu vào dù mọi bài kiểm thử vẫn xanh.
+Trong bộ kiểm thử Spring Test, ứng dụng mở cổng HTTP ngẫu nhiên nhưng client kiểm thử vẫn gửi yêu cầu tới cổng cố định ở máy phát triển; CI chạy nhiều job đồng thời khiến test kết nối nhầm ứng dụng hoặc thất bại.
+Ứng dụng yêu cầu xác thực mọi API quản trị, nhưng bài kiểm thử tích hợp chỉ gọi phương thức service nên bỏ qua chuỗi filter và không phát hiện endpoint mới vô tình mở cho người dùng chưa đăng nhập.
+Một repository dùng câu SQL đặc thù PostgreSQL, trong khi kiểm thử Spring chỉ chạy với H2; lần nâng cấp ứng dụng vượt qua CI nhưng truy vấn phân trang thất bại khi kết nối cơ sở dữ liệu thật.
+Đội chuyển sang Testcontainers với PostgreSQL nhưng khởi động test ngay khi cổng được mở, trước lúc các migration hoàn tất; những lần chạy trên runner chậm thất bại ở bước tạo dữ liệu mẫu.
+Một service dùng Testcontainers tạo cơ sở dữ liệu mới cho từng lớp test, nhưng cấu hình Spring vẫn lấy URL từ file profile cũ; bài test đọc và ghi vào cơ sở dữ liệu dùng chung mà không ai nhận ra.
+Trong monorepo Java, hai bộ test tích hợp tạo container cơ sở dữ liệu riêng cho mỗi phương thức, khiến CI mất nhiều phút khởi động dù số trường hợp kiểm thử ít; nhóm cần đánh giá chi phí và mức độ cô lập cần thiết.
+Một pipeline chạy Testcontainers ổn định trên laptop nhưng không tạo được container trong runner CI bị hạn chế quyền truy cập Docker; đội phải phân biệt lỗi hạ tầng kiểm thử với lỗi hành vi ứng dụng.
+Một phiên bản schema mới yêu cầu thực thi nhiều migration tuần tự, nhưng fixture kiểm thử dựng bảng ở trạng thái cuối ngay từ đầu; bài kiểm thử bỏ sót lỗi nâng cấp từ dữ liệu khách hàng đang tồn tại.
+Một lớp kiểm thử chèn khách hàng mẫu bằng câu SQL trực tiếp trong khi service sử dụng quy tắc sinh mã và ràng buộc khác; trường hợp cập nhật trên dữ liệu mẫu đạt nhưng luồng tạo mới thực tế không tạo ra đối tượng tương đương.
+Hai lớp Spring Test tái sử dụng ApplicationContext có bean cấu hình trạng thái có thể thay đổi; lớp đầu sửa giá trị thời hạn rồi không khôi phục, khiến lớp sau chỉ thất bại khi chạy toàn bộ suite.
+Một nhóm dùng annotation làm mới ApplicationContext sau mọi ca kiểm thử để tránh nhiễm trạng thái; pipeline vì thế khởi động hàng chục context và vượt ngân sách thời gian phản hồi cho pull request.
+Trong kiểm thử tích hợp, một bean adapter bên ngoài bị thay bằng mock, vô tình che cả phần ánh xạ dữ liệu và cấu hình HTTP mà nhóm muốn kiểm tra; yêu cầu thật lỗi dù ca kiểm thử xanh.
+Ứng dụng chạy với hai DataSource cho nghiệp vụ và audit, nhưng kiểm thử chỉ mở transaction trên một nguồn dữ liệu; khi phát sinh lỗi giữa hai thao tác, bản ghi audit vẫn được lưu ngoài mong đợi.
+Một bài kiểm thử dùng transaction của framework rồi tự rollback khi kết thúc; endpoint chạy trong luồng HTTP khác đã commit dữ liệu, khiến fixture của ca tiếp theo bị nhiễm dù nhóm tưởng mọi thay đổi đều bị hủy.
+Một đối tượng JPA trong test có đầy đủ thuộc tính sau lời gọi save, nhưng ràng buộc duy nhất trong database chỉ được kiểm tra lúc flush; assertion chạy quá sớm nên không phát hiện lỗi ghi thật.
+Hai worker kiểm thử cùng sử dụng địa chỉ email cố định cho dữ liệu khách hàng; lúc CI phân luồng chạy song song, một bài nhận lỗi trùng khóa và các lần chạy riêng đều không tái hiện được.
+Ứng dụng tính thời hạn ưu đãi từ thời gian hiện tại, còn fixture tạo dữ liệu chỉ còn hiệu lực vài giây; khi khởi chạy container và context lâu hơn thường lệ, ca tích hợp thất bại dù không có thay đổi logic.
+Một API cập nhật tồn kho chấp nhận hai yêu cầu đồng thời dựa trên phiên bản cũ của sản phẩm; kiểm thử hiện chỉ gửi yêu cầu tuần tự nên không phát hiện trạng thái âm khi các giao dịch tranh chấp.
+Một ca kiểm thử gọi endpoint xóa đơn rồi đọc lại bằng repository, nhưng người viết chỉ kiểm tra HTTP 204; quan hệ dữ liệu ở bảng chi tiết vẫn còn và gây lỗi khóa ngoại trong lần tạo đơn mới.
+Ứng dụng ghi đơn hàng trong cơ sở dữ liệu rồi phát sự kiện sang broker; khi kết nối broker mất đúng lúc commit, test hiện chỉ nhìn số dòng đơn hàng và bỏ qua việc dịch vụ nhận sự kiện không được cập nhật.
+Nhóm khởi động broker bằng Testcontainers nhưng không tạo đúng topic và cấu hình serializer như production; consumer thực chạy được trong test với payload khác, rồi thất bại khi đọc sự kiện của phiên bản cũ.
+Một consumer xử lý sự kiện đơn hàng rồi gặp lỗi trước lúc xác nhận offset, khiến broker phát lại thông điệp; bộ test tích hợp chưa xác minh khả năng tránh tạo hai hóa đơn khi sự kiện được xử lý lần thứ hai.
+Trong bài kiểm thử gửi sự kiện Kafka, nhóm dùng thời gian chờ cố định hai giây trước khi kiểm tra database; trên máy CI tải cao, consumer hoàn tất trễ hơn và test thất bại ngẫu nhiên dù nghiệp vụ đúng.
+Hai bài test messaging cùng sử dụng một topic và cùng nhóm consumer, khiến thông điệp do bài trước gửi bị bài sau nhận; số sự kiện quan sát được thay đổi theo thứ tự chạy và tốc độ broker.
+Một consumer có cơ chế thử lại và chuyển thông điệp không hợp lệ sang hàng đợi lỗi; test chỉ gọi hàm xử lý sự kiện mà chưa chứng minh được số lần nhận, thời gian chờ và nội dung thông điệp ở broker.
+Một dịch vụ Java gọi đối tác bằng HTTP; server giả trong test chấp nhận mọi đường dẫn nên không phát hiện ứng dụng gửi sai method, sai header xác thực và thiếu tham số bắt buộc của hợp đồng.
+Đối tác trả lỗi 429 kèm hướng dẫn thử lại, nhưng test chỉ mô phỏng phản hồi thành công; khi chạy thật, service tạo nhiều lượt gọi dồn dập và vượt giới hạn sử dụng của nhà cung cấp.
+Trong luồng upload tài liệu, API trả thành công sau khi lưu metadata vào database nhưng tệp không được ghi tới kho lưu trữ thử nghiệm; kiểm thử chỉ xác nhận bản ghi metadata nên không phát hiện sai lệch giữa hai phụ thuộc.
+Một API nội bộ ghi log đầy đủ token và dữ liệu cá nhân khi kết nối tới hệ thống ngoài thất bại; nhóm muốn thu thập log và trace của ca tích hợp trên CI mà vẫn hạn chế nguy cơ tiết lộ thông tin.
+Khi nâng cấp thư viện Spring, một số bean tạo được ở unit test nhưng ứng dụng thật không khởi động do cấu hình circular dependency; đội muốn có bài tích hợp kiểm tra khởi tạo context với cấu hình triển khai gần thực tế.
+Sau khi thêm nhiều suite dùng PostgreSQL và broker container, thời gian kiểm thử tích hợp tăng gấp bốn; nhóm cần đánh giá phân chia job CI, tái sử dụng tài nguyên và khả năng truy vết lỗi để vừa giữ độ tin cậy vừa có phản hồi sớm.

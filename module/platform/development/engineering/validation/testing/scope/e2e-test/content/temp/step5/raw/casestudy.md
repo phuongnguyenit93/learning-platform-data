@@ -1,0 +1,32 @@
+Một khách hàng đặt vé xem phim qua giao diện web, chọn ghế, thanh toán và nhận mã vé, nhưng bộ E2E hiện chỉ kiểm tra màn hình xác nhận mà không đối chiếu trạng thái ghế và đơn đặt trong hệ thống phía sau.
+Trong hành trình mua hàng, người dùng thêm sản phẩm vào giỏ rồi áp mã giảm giá và chọn giao hàng; một thay đổi ở dịch vụ tính phí khiến tổng tiền hiển thị khác số tiền được ghi trên đơn dù các API riêng lẻ đều trả thành công.
+Người dùng bấm thanh toán hai lần vì trang chờ phản hồi lâu; cổng thanh toán gửi thông báo xác nhận trễ và hệ thống tạo hai đơn hàng, trong khi kịch bản E2E chưa bao phủ thao tác lặp của người dùng.
+Một khách hàng bắt đầu đặt phòng trên điện thoại, đăng nhập qua trang chuyển hướng bên thứ ba rồi quay lại bước thanh toán; phiên làm việc bị mất ở một số trình duyệt và hành trình phải được kiểm tra xuyên qua nhiều miền.
+Ứng dụng cho phép đăng ký, xác nhận email và kích hoạt tài khoản trước khi đặt hàng, nhưng môi trường E2E sử dụng hộp thư giả chưa đồng bộ nên bài kiểm thử đôi khi không nhận được thư xác minh.
+Trong luồng đổi mật khẩu, người dùng đăng nhập trên hai thiết bị rồi thay mật khẩu ở thiết bị đầu; kịch bản hiện chỉ xác nhận thông báo thành công mà chưa quan sát khả năng truy cập của phiên đăng nhập còn lại.
+Một người dùng quyền nhân viên cố truy cập đường dẫn quản trị đã lưu trong bookmark sau khi bị hạ quyền; giao diện che nút quản trị nhưng hệ thống vẫn trả dữ liệu từ API khi truy cập bằng đường dẫn cũ.
+Ứng dụng đặt lịch phải ngăn hai khách chọn cùng khung giờ cuối cùng; hai kịch bản E2E chạy song song đều đặt lịch thành công và làm lộ sự khác biệt giữa thông báo trên giao diện với dữ liệu lịch thực tế.
+Khi người dùng hủy đơn đã thanh toán, giao diện hiển thị trạng thái đã hủy ngay nhưng dịch vụ hoàn tiền xử lý bất đồng bộ; nhóm cần xác định thời điểm và nguồn dữ liệu đáng tin cậy để xác nhận toàn bộ hành trình hoàn tất.
+Một đơn hàng được giao thành công nhưng thông báo trạng thái từ hệ thống vận chuyển đến chậm; bài kiểm thử E2E chờ cố định vài giây rồi thất bại dù quy trình thực tế vẫn hoàn thành trong giới hạn nghiệp vụ.
+Màn hình tìm kiếm sản phẩm tải danh sách bất đồng bộ khi người dùng gõ nhanh nhiều từ khóa; kết quả của yêu cầu cũ đôi khi ghi đè kết quả mới và test tự động chỉ kiểm tra sự tồn tại của bất kỳ danh sách nào.
+Trong ứng dụng một trang, nút Lưu xuất hiện trước khi biểu mẫu hoàn tất kiểm tra hợp lệ; Selenium bấm nút ngay khi thấy phần tử và bài kiểm thử lúc thành công lúc thất bại tùy tốc độ máy CI.
+Đội E2E chọn nút thanh toán bằng vị trí của phần tử trong DOM; một thay đổi giao diện thêm biểu ngữ khuyến mại làm kịch bản bấm nhầm nút dù hành trình của người dùng thực vẫn hoạt động.
+Nhà thiết kế thay tên nhãn và cấu trúc HTML của biểu mẫu nhưng hành vi nghiệp vụ không đổi; bộ Playwright Java dùng bộ chọn phụ thuộc lớp CSS bắt đầu thất bại hàng loạt, làm nhóm khó phân biệt lỗi ứng dụng với lỗi bộ kiểm thử.
+Trang thanh toán mở cửa sổ mới để xác thực ngân hàng rồi quay về tab ban đầu; bộ E2E chỉ quan sát tab đầu và đôi lúc kết luận giao dịch thất bại khi cửa sổ xác thực chưa đóng.
+Người dùng tải lên hồ sơ định dạng PDF, nhìn thấy thông báo nhận tệp và sau đó tải bản đã xử lý; test hiện kiểm tra tên tệp xuất hiện trên trang nhưng không kiểm tra nội dung lưu trữ hoặc khả năng tải về.
+Một báo cáo cuối tháng được tạo dưới dạng tệp tải xuống và có tên chứa ngày theo múi giờ người dùng; bài kiểm thử chạy trên CI ở múi giờ khác không tìm thấy tệp dự kiến dù báo cáo hợp lệ.
+Ứng dụng bán hàng có giao diện tiếng Việt và tiếng Anh, nhưng sau khi đổi ngôn ngữ ở bước giỏ hàng, thông báo lỗi thanh toán vẫn hiện tiếng Việt; luồng E2E hiện chỉ chạy với một cấu hình ngôn ngữ.
+Kịch bản mua hàng hoạt động trên Chrome máy phát triển nhưng phần chọn ngày giao hàng không nhận thao tác trong Firefox; nhóm phải thiết kế phạm vi kiểm tra trình duyệt có thể phát hiện rủi ro tương thích này.
+Trang đăng ký hoạt động ở kích thước desktop, nhưng trên màn hình điện thoại nút Tiếp tục bị che bởi thanh điều hướng cố định; bộ kiểm thử E2E chỉ chạy với viewport lớn nên không thấy lỗi của hành trình di động.
+Trong hành trình điền biểu mẫu nhiều bước, người dùng chỉ dùng bàn phím không thể chuyển đến lựa chọn giao hàng; kiểm thử tự động theo thao tác chuột vẫn hoàn tất mà không phát hiện rào cản truy cập này.
+Ứng dụng hiển thị trạng thái xử lý đơn qua WebSocket; test mở trang khi thông điệp đã gửi trước đó nên không thấy thay đổi dù API trạng thái cuối vẫn đúng, đặt ra vấn đề về nguồn xác nhận kết quả E2E.
+Một dịch vụ tra cứu địa chỉ bên ngoài đôi lúc vượt thời gian phản hồi; test E2E thực hiện thanh toán thật trong mọi lượt chạy và thất bại ngẫu nhiên khi nhà cung cấp bên ngoài gián đoạn.
+Một môi trường E2E dùng chung kho sản phẩm với hoạt động kiểm thử thủ công; nhân viên sửa giá giữa lúc test kiểm tra tổng tiền, khiến kết quả thay đổi dù không có bản phát hành mới.
+Hai job E2E trên CI cùng tạo tài khoản với địa chỉ email cố định; job chạy sau nhận lỗi trùng tài khoản và tạo ra thất bại chỉ xuất hiện khi pipeline thực thi đồng thời.
+Một bài kiểm thử tạo đơn thành công nhưng không xóa dữ liệu sau khi kết thúc; sau hàng trăm lần chạy, các truy vấn tìm đơn mới nhất trả về dữ liệu của lần chạy trước và gây nhiễu cho bài tiếp theo.
+Một bộ E2E phụ thuộc kịch bản đăng nhập phải chạy trước kịch bản đặt hàng; khi CI phân chia test sang nhiều worker, thứ tự thực thi thay đổi và các kịch bản đặt hàng không còn khởi tạo được trạng thái cần thiết.
+Nhóm tăng số lần chạy lại tự động cho các bài E2E thất bại và tỷ lệ pipeline xanh hơn, nhưng lỗi mất dữ liệu thực vẫn xuất hiện không đều; quản lý cần đánh giá bằng chứng từ lần thất bại đầu và nguy cơ che khuất lỗi flaky.
+Pipeline chạy toàn bộ E2E sau mỗi commit và mất hơn một giờ, khiến lập trình viên không nhận được phản hồi trước lúc mở pull request; nhóm cần phân bổ các hành trình thiết yếu và phạm vi chạy phù hợp từng mốc CI/CD.
+Ứng dụng có cơ chế CAPTCHA và xác thực nhiều yếu tố cho tài khoản thật; bài kiểm thử tự động bị chặn khi chạy trên môi trường staging dù mục tiêu là xác minh hành trình đăng nhập hợp lệ.
+Sau một lần triển khai, các bài E2E thất bại tại bước xác nhận thanh toán nhưng log CI chỉ có thông báo timeout; đội cần xác định dấu vết từ trình duyệt, network và dịch vụ để truy nguyên bước nào thực sự sai.
+Một hệ thống chạy E2E thành công ở staging nhưng thất bại sau khi phát hành vì phiên bản frontend và backend được triển khai không đồng bộ; nhóm muốn xác định cách kiểm chứng phiên bản, dữ liệu và môi trường trong hành trình nghiệp vụ thực.

@@ -1,0 +1,12 @@
+Khi một doanh nghiệp có nhiều nhóm sản phẩm và môi trường dev, staging, production trên Google Cloud, bạn sẽ tổ chức organization, folder, project, billing account và chính sách quản trị ra sao để phân quyền và kiểm soát chi phí rõ ràng?
+Bạn sẽ thiết kế IAM role và service account cho ứng dụng cùng quy trình CI/CD như thế nào để tuân thủ quyền tối thiểu, hạn chế khóa bí mật dài hạn và kiểm tra quyền truy cập thực tế?
+Với ứng dụng ba tầng có cơ sở dữ liệu không được lộ ra Internet, bạn sẽ thiết kế VPC, subnet theo region, firewall rule, định tuyến, Cloud NAT và kết nối riêng tới dịch vụ cần thiết như thế nào?
+Khi chuyển một API có lưu lượng biến động và một tác vụ nền cần kiểm soát hệ điều hành lên Google Cloud, bạn sẽ lựa chọn giữa Compute Engine, GKE và Cloud Run dựa trên những yêu cầu kỹ thuật và chi phí nào?
+Đối với ứng dụng chạy trên GKE, bạn sẽ cân nhắc Autopilot hay Standard và thiết kế yêu cầu tài nguyên, tự động mở rộng, cập nhật phiên bản, khả năng chịu lỗi như thế nào?
+Khi phát hành phiên bản mới của dịch vụ Cloud Run, bạn sẽ kết hợp Cloud Build, Artifact Registry, quản lý quyền triển khai và phân chia lưu lượng giữa các revision ra sao để kiểm chứng thay đổi và quay lui an toàn?
+Một hệ thống lưu tệp người dùng trên Cloud Storage với tần suất truy cập giảm theo thời gian; bạn sẽ thiết kế kiểm soát truy cập, mã hóa, versioning, lifecycle và storage class như thế nào để cân bằng an toàn với chi phí?
+Khi chọn giữa Cloud SQL, Firestore và Spanner cho các tính năng có mô hình truy vấn và yêu cầu giao dịch khác nhau, bạn sẽ đánh giá khả năng nhất quán, mở rộng, độ sẵn sàng và công sức vận hành ra sao?
+Trong kiến trúc xử lý sự kiện bất đồng bộ có nhiều dịch vụ tiêu thụ thông điệp qua Pub/Sub, bạn sẽ thiết kế subscription, retry, xử lý thông điệp trùng lặp và dead-letter topic như thế nào để tránh mất hoặc xử lý sai dữ liệu?
+Khi tỷ lệ lỗi và độ trễ của API tăng sau một đợt phát hành, bạn sẽ kết hợp Cloud Monitoring, Cloud Logging, Cloud Trace và các SLI/SLO như thế nào để khoanh vùng sự cố và thiết lập cảnh báo có ý nghĩa?
+Nếu một zone hoặc region gặp sự cố, bạn sẽ xác định RPO/RTO và thiết kế sao lưu, phục hồi dữ liệu, phân bố dịch vụ cùng chuyển hướng lưu lượng trên Google Cloud như thế nào để kiểm chứng khả năng phục hồi?
+Khi hóa đơn Google Cloud tăng nhanh dù số người dùng không thay đổi nhiều, bạn sẽ dùng Cloud Billing, budget alert, nhãn phân bổ chi phí và dữ liệu xuất sang BigQuery ra sao để tìm nguyên nhân và đánh giá rightsizing hoặc cam kết sử dụng?

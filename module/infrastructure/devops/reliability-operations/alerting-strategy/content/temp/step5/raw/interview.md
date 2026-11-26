@@ -1,0 +1,12 @@
+Khi một dịch vụ API có CPU tăng cao nhưng người dùng vẫn truy cập bình thường, bạn sẽ quyết định cảnh báo nào cần đánh thức đội trực và phân biệt tín hiệu triệu chứng với tín hiệu nguyên nhân như thế nào?
+Bạn sẽ lựa chọn SLI về tỷ lệ lỗi, độ trễ và tính sẵn sàng cho một dịch vụ đặt hàng như thế nào, rồi liên kết các SLI đó với SLO và mức ảnh hưởng thực tế tới người dùng ra sao?
+Nếu dịch vụ có SLO về tỷ lệ yêu cầu thành công trong 30 ngày, bạn thiết kế cảnh báo tiêu hao error budget theo nhiều cửa sổ thời gian như thế nào để phát hiện cả sự cố nghiêm trọng lẫn suy giảm kéo dài?
+Khi tải hệ thống thay đổi mạnh theo giờ cao điểm và ngày nghỉ, bạn sẽ lựa chọn ngưỡng tĩnh hoặc ngưỡng động, thời gian đánh giá và điều kiện hồi phục ra sao để tránh cảnh báo chập chờn?
+Nếu hệ thống thu thập metric ngừng gửi dữ liệu trong khi biểu đồ không hiển thị lỗi, bạn sẽ phân biệt trạng thái không có dữ liệu với giá trị bằng không và xây dựng cảnh báo về độ tin cậy giám sát như thế nào?
+Trong một cụm có hàng trăm instance cùng báo lỗi kết nối, bạn sẽ chọn nhãn grouping, khóa deduplication và khoảng thời gian gom cảnh báo như thế nào để giảm số thông báo mà không che mất sự cố độc lập?
+Khi sự cố cơ sở dữ liệu khiến nhiều dịch vụ phụ thuộc đồng loạt phát cảnh báo, bạn sẽ dùng inhibition và thông tin quan hệ phụ thuộc như thế nào để ưu tiên nguyên nhân gốc nhưng vẫn giữ khả năng phát hiện lỗi riêng ở các dịch vụ?
+Bạn sẽ phân loại cảnh báo thành mức cần gọi trực ngay, mức xử lý trong giờ làm việc và mức chỉ theo dõi dựa trên tác động người dùng, mức khẩn cấp và khả năng hành động như thế nào?
+Khi một cảnh báo quan trọng chưa được người trực xác nhận, bạn thiết kế quy tắc định tuyến theo service ownership, lịch on-call, thời hạn xác nhận và tuyến leo thang dự phòng như thế nào?
+Bạn sẽ xây dựng nội dung thông báo và runbook cho cảnh báo tỷ lệ lỗi tăng đột biến như thế nào để người nhận nhanh chóng xác định phạm vi, kiểm tra bằng chứng, giảm tác động và xác nhận phục hồi?
+Trong thời gian bảo trì có kế hoạch, bạn thiết lập khoảng silence và quy tắc suppression như thế nào để giảm nhiễu nhưng tránh che khuất cảnh báo nghiêm trọng không liên quan hoặc quên khôi phục cảnh báo sau bảo trì?
+Bạn sẽ kiểm thử toàn bộ đường truyền từ lúc tạo tín hiệu sự cố giả lập đến lúc thông báo được nhận, xác nhận và leo thang như thế nào, rồi dùng số liệu cảnh báo giả, cảnh báo bỏ sót và thời gian phản hồi để cải tiến cấu hình ra sao?

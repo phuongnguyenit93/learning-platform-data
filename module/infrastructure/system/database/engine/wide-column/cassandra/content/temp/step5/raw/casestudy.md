@@ -1,0 +1,62 @@
+Một hệ thống IoT lưu toàn bộ dữ liệu đo của mỗi thiết bị trong cùng một partition theo device_id; sau hai năm, một số thiết bị có hàng chục triệu mẫu đo và truy vấn lịch sử của riêng chúng thường chậm hơn các thiết bị mới.
+Dịch vụ ghi sự kiện chọn ngày hiện tại làm partition key để dễ lấy dữ liệu trong ngày; trong giờ cao điểm, gần như mọi thao tác ghi đều dồn tới cùng một partition dù cluster còn nhiều node nhàn rỗi.
+Ứng dụng đa thuê bao dùng tenant_id làm partition key và một khách hàng lớn phát sinh 70% lưu lượng; sau khi tăng số node, độ trễ ghi cho khách hàng này vẫn cao hơn đáng kể các tenant khác.
+Hệ thống chat cần hiển thị 50 tin nhắn gần nhất của từng phòng theo thứ tự thời gian giảm dần nhưng bảng hiện tại dùng room_id và message_id ngẫu nhiên làm khóa chính; màn hình phải tải rất nhiều hàng trước khi sắp xếp phía ứng dụng.
+Một hệ thống quan trắc thiết kế partition key kết hợp device_id và ngày, nhưng API lịch sử thường yêu cầu dữ liệu của một thiết bị trong 180 ngày; số partition phải truy vấn cho một màn hình tăng theo khoảng thời gian chọn.
+Dịch vụ đặt hàng có bảng tra cứu theo customer_id và created_at; khi nhóm sản phẩm bổ sung chức năng tìm theo status trên toàn bộ khách hàng, câu CQL đang chạy tốt trước đó không đáp ứng được bộ lọc mới.
+Ứng dụng bán lẻ dùng một bảng Cassandra như cơ sở dữ liệu quan hệ và cố ghép customer, orders và order_items khi đọc; API chi tiết đơn hàng phải thực hiện rất nhiều lượt truy vấn rời rạc dưới tải cao.
+Bảng dòng thời gian của mạng xã hội chứa dữ liệu được sao chép theo từng người theo dõi; khi một tài khoản có hàng triệu người theo dõi đăng bài, số thao tác ghi để cập nhật các bảng phục vụ truy vấn tăng đột biến.
+Một nhóm dùng ALLOW FILTERING để tìm phiếu bảo hành theo email trên bảng lớn không có khóa truy vấn tương ứng; sau khi dữ liệu tăng lên hàng chục triệu hàng, độ trễ p99 tăng dù mỗi request chỉ trả một phiếu.
+Bảng truy vấn theo category dùng secondary index trên trường category chỉ có bốn giá trị; danh mục phổ biến chiếm gần 90% hàng và các yêu cầu tìm kiếm thường xuyên đọc lượng lớn dữ liệu.
+Một bảng có partition key là (tenant_id, region_id) và clustering key là created_at; API bỏ region_id trong điều kiện WHERE khi tìm sự kiện của một tenant, dẫn đến truy vấn không thực thi theo dự kiến.
+Nhóm thiết kế clustering order giảm dần theo event_time nhưng báo cáo lại phải lọc trên một cột clustering đứng sau trong khóa mà bỏ qua cột đứng trước; một số câu CQL trả lỗi dù bảng có đủ dữ liệu.
+Khóa phân vùng của bảng dữ liệu giao hàng dùng mã bưu điện, khiến khu vực trung tâm có nhiều đơn và thời gian trả lời chậm hơn các khu vực khác; biểu đồ phân phối token cho thấy dung lượng lưu trữ không cân bằng.
+Một API phân trang chỉ lưu page number và offset như hệ cơ sở dữ liệu SQL; sau khi bổ sung nhiều sự kiện mới, người dùng thấy bản ghi trùng hoặc bị bỏ sót khi chuyển giữa các trang trên Cassandra.
+Đội phát triển đặt LIMIT 100 cho truy vấn đọc danh sách khách hàng không giới hạn partition; kết quả của hai lần gọi chứa các tập hàng khác nhau và nghiệp vụ nhầm kết quả với 100 khách hàng có hoạt động mới nhất.
+Một danh sách yêu thích của người dùng được lưu trong một collection kiểu set bên trong một hàng; khi người dùng doanh nghiệp lưu hàng trăm nghìn mục, cập nhật và đọc lại danh sách gặp vấn đề về dung lượng và độ trễ.
+Một bảng ghi cấu hình thiết bị dùng map với nhiều nghìn khóa động cho từng thiết bị; sau nhiều tháng cập nhật từng thuộc tính, số lượng dữ liệu cần đọc và khối lượng compaction tăng bất thường.
+Ứng dụng viết sự kiện trùng khóa chính từ nhiều nguồn với timestamp ghi khác nhau; giá trị cuối cùng trong bảng không theo thứ tự request hoàn tất mà phụ thuộc dấu thời gian của từng lần ghi.
+Một công cụ nhập dữ liệu dùng timestamp do máy client tự sinh và một máy bị lệch đồng hồ vài phút; bản cập nhật trạng thái mới hơn theo thời gian nghiệp vụ không thay thế được giá trị đã được ghi trước đó.
+Dịch vụ cập nhật trường ghi chú bằng giá trị null trong lệnh UPDATE CQL khi ý định chỉ là bỏ qua trường chưa gửi; sau triển khai, một số ghi chú đang có bị xóa và dấu xóa tồn tại trong lưu trữ.
+Một bảng có trường static mô tả tài khoản chung cho mọi hàng cùng partition; khi nhóm thêm một bản ghi giao dịch với metadata tài khoản khác, màn hình lịch sử cũ của cùng partition đột nhiên hiện metadata mới.
+Ứng dụng quản lý khuyến mãi cần bảo đảm mỗi mã chỉ được đăng ký một lần nhưng hai request đồng thời cùng kiểm tra mã chưa tồn tại rồi INSERT; sau chiến dịch, hệ thống ghi nhận hai luồng nghiệp vụ cùng tin rằng mình đã sở hữu mã.
+Một dịch vụ quản lý lượt xem video dùng counter và có cơ chế tự retry khi gặp timeout; sau thời gian mạng không ổn định, số lượt xem cao hơn tổng số sự kiện quan sát được ở tầng ứng dụng.
+Job nhập 50.000 hàng dùng một BATCH CQL lớn với các partition khác nhau vì cho rằng nó tăng tốc giống bulk insert; khi chạy, coordinator chịu tải cao và batch thường báo timeout.
+Một quy trình cập nhật nhiều bảng dữ liệu sao chép trong Cassandra cần nhất quán về mặt nghiệp vụ; khi một phần thao tác ghi trả lỗi, API đã hiển thị thành công nhưng một bảng phục vụ truy vấn vẫn thiếu dữ liệu.
+Hệ thống cảm biến lưu giá trị đo với TTL 24 giờ; báo cáo thời gian thực đôi lúc vẫn thấy dấu vết các giá trị đã hết hạn trong tài nguyên đọc, trong khi số lượng tombstone tăng đều.
+Một dịch vụ phiên đăng nhập vừa áp TTL cho hàng vừa thực hiện cập nhật từng cột sau mỗi request; thời điểm hết hạn của các giá trị trong cùng hàng trở nên khó dự đoán khi người dùng hoạt động liên tục.
+Ứng dụng nhật ký giữ sự kiện trong 30 ngày bằng TTL, mỗi partition có hàng triệu hàng; khi đọc một khoảng thời gian chứa chủ yếu sự kiện hết hạn, truy vấn chậm và log cảnh báo số tombstone được quét.
+Một tác vụ xóa lịch sử theo từng khách hàng chạy DELETE thường xuyên trên bảng lớn; sau vài ngày, disk usage chưa giảm nhiều và các truy vấn đọc phải duyệt nhiều tombstone hơn trước.
+Cluster đặt gc_grace_seconds thấp trong khi một replica ngừng hoạt động nhiều ngày, và việc repair chưa được kiểm tra; sau khi node quay lại, nhóm vận hành phát hiện một số giá trị tưởng đã xóa xuất hiện trở lại.
+Bảng time-series chủ yếu ghi dữ liệu theo ngày và được cấu hình TimeWindowCompactionStrategy; các sự kiện đến trễ nhiều tháng được ghi bổ sung liên tục khiến dữ liệu của những cửa sổ cũ được thay đổi thường xuyên.
+Nhóm dùng SizeTieredCompactionStrategy cho bảng đọc rất nhiều phiên bản của các hàng được cập nhật liên tục; độ trễ đọc dao động khi số SSTable cần xem xét tăng trước mỗi đợt compaction.
+Một bảng phục vụ API đọc nhiều được chuyển sang LeveledCompactionStrategy; số SSTable cần tham khảo khi đọc giảm nhưng lượng ghi và I/O compaction tăng, ảnh hưởng tới các batch nhập dữ liệu.
+Hệ thống phát sinh sự kiện liên tục và ghi nhanh hơn tốc độ compaction hoàn tất; số SSTable chờ hợp nhất, dung lượng đĩa và thời gian đọc tăng sau mỗi đợt tải kéo dài.
+Một node Cassandra có đĩa còn dưới 10% dung lượng trống trong lúc compaction đang chạy; job bảo trì thất bại vì không đủ không gian tạm dù tổng dữ liệu nghiệp vụ chưa chạm mức quy hoạch.
+Dịch vụ được triển khai trên hai data center nhưng keyspace sử dụng replication strategy và cấu hình replication không phù hợp với số node mỗi nơi; khi mất một site, các request tại site còn lại không đạt mức consistency yêu cầu.
+Keyspace có replication factor 3 trong một data center và các API đọc với ONE; sau một thao tác ghi thành công, yêu cầu đọc ngay ở luồng khác đôi khi thấy giá trị cũ khi có replica chưa bắt kịp.
+Ứng dụng dùng LOCAL_QUORUM cho cả đọc và ghi với replication factor 3; khi hai replica của cùng phạm vi token ngừng đáp ứng, một số request thất bại dù vẫn còn một replica giữ dữ liệu.
+Hệ thống chạy hai data center và API tại khu vực châu Âu chuyển từ LOCAL_ONE sang EACH_QUORUM cho yêu cầu ghi; khi đường kết nối tới châu Á gặp sự cố, khả năng ghi và độ trễ của API bị ảnh hưởng.
+Trong lúc mạng chập chờn, một request ghi Cassandra timeout nhưng replica đã áp dụng thành công một phần; tầng ứng dụng tự gửi lại toàn bộ yêu cầu tạo hóa đơn và phát sinh sự kiện nghiệp vụ lặp.
+Dịch vụ cần tăng trạng thái đơn hàng theo điều kiện current_status vẫn là PENDING; khi hai worker chuyển trạng thái cùng lúc, bản ghi cuối cùng không phản ánh quy tắc chỉ một worker được nhận đơn.
+Một API dùng lightweight transaction có điều kiện cho mỗi lần cập nhật bộ đếm mức tải cao; thời gian phản hồi tăng rõ rệt khi có hàng trăm client cùng tranh chấp một khóa.
+Cluster vừa bổ sung hai node mới và đang streaming dữ liệu để cân bằng; một số node cũ vẫn giữ nhiều token nóng trong khi độ trễ truy vấn biến động trong suốt giai đoạn bootstrap.
+Sau đợt mất điện của một rack, nhiều node đồng loạt không đáp ứng và coordinator báo unavailable; dashboard ghi nhận số node hoạt động vẫn lớn nhưng không đủ replica cho một số token range tại mức consistency đã chọn.
+Một node bị mất liên lạc vài phút nên các replica khác có thể lưu hint cho ghi bị bỏ lỡ; sau khi node khởi động lại, dữ liệu trên node này chưa đầy đủ ngay và nhóm nhầm quá trình chuyển tiếp hint với việc đảm bảo sửa mọi sai lệch.
+Nhóm vận hành chưa thực hiện repair định kỳ cho bảng dữ liệu có nhiều DELETE và TTL; sau các lần node gián đoạn dài, dữ liệu đọc từ các replica bắt đầu khác nhau và khó xác định phạm vi không nhất quán.
+Một đợt full repair được chạy đồng thời trên nhiều node lúc cao điểm kinh doanh; network throughput và disk I/O tăng mạnh, kéo theo độ trễ API dù số yêu cầu mới không tăng.
+Một node bị mất hoàn toàn ổ đĩa và được thay bằng máy mới; nhóm có snapshot cũ và các replica còn sống nhưng chưa xác định rõ phạm vi dữ liệu, consistency và thời gian phục hồi cần thiết.
+Trong đợt bảo trì mạng giữa các rack, gossip hiển thị trạng thái thành viên thay đổi liên tục và driver Java liên tiếp báo thay đổi topology; một số request thất bại dù không có câu CQL nào mới được triển khai.
+Ứng dụng Java tạo CqlSession mới trên từng HTTP request; khi lưu lượng tăng, số connection và luồng xử lý của driver tăng nhanh, còn thời gian thiết lập phiên chiếm phần lớn độ trễ.
+Một microservice Java khởi tạo session với local datacenter không trùng nơi pod đang chạy; lưu lượng truy vấn đi xa và độ trễ trung bình tăng sau khi hệ thống mở rộng sang vùng địa lý mới.
+API Java liên tục tạo SimpleStatement bằng chuỗi nối dữ liệu người dùng để truy vấn cùng một bảng; sau triển khai, log thể hiện nhiều câu CQL gần giống nhau và người dùng nhập ký tự đặc biệt đôi lúc gây lỗi cú pháp.
+Ứng dụng Java dùng truy vấn prepared với trường tenant_id nhưng bản phát hành mới không truyền đúng biến partition key; số request thất bại hoặc không tìm thấy dữ liệu tăng trong khi schema Cassandra không thay đổi.
+Dịch vụ Java gọi truy vấn bất đồng bộ nhưng chờ kết quả theo cách blocking trong một pool luồng nhỏ; dưới tải cao, số yêu cầu chờ xử lý tăng mặc dù thời gian CQL trên coordinator chưa tăng đáng kể.
+API tải lịch sử sự kiện quên đọc tiếp các trang từ paging state của Java Driver; người dùng chỉ thấy số lượng bản ghi bằng đúng page size dù CQL trả nhiều dữ liệu hơn.
+Một dịch vụ lưu paging state nhận từ client và dùng lại sau khi thay đổi truy vấn hoặc bộ lọc; các trang tiếp theo trả lỗi hoặc dữ liệu không phù hợp với trang đầu khi khách hàng đổi tiêu chí tìm kiếm.
+Request timeout ở Java Driver được đặt ngắn hơn các đợt tăng độ trễ compaction; retry policy thử lại các thao tác ghi có tác dụng phụ không idempotent khiến số lần cập nhật nghiệp vụ đôi khi cao hơn số yêu cầu hợp lệ.
+Đội trực vận hành chỉ xem CPU Cassandra khi API chậm; tracing và metrics cho thấy coordinator phải đợi nhiều replica, tombstone scan tăng và thời gian chọn node của Java Driver cũng biến động theo thời điểm.
+Sau khi bật TLS giữa ứng dụng Java và cluster Cassandra, một số pod báo lỗi bắt tay trong khi pod khác hoạt động; các pod lỗi dùng truststore chứa bộ chứng chỉ khác với cấu hình mới của cluster.
+Tài khoản CQL cho dịch vụ chỉ cần SELECT bảng báo cáo nhưng được cấp quyền sửa schema; sau một lần thay đổi cấu hình sai, ứng dụng có thể ALTER bảng dù lẽ ra chỉ được đọc.
+Trong lúc luân chuyển mật khẩu tài khoản Cassandra, các kết nối Java đang mở vẫn xử lý được truy vấn nhưng phiên kết nối mới bắt đầu bị từ chối; lỗi chỉ xuất hiện rõ khi pod được scale out.
+Sau khi áp dụng thiết kế multi-datacenter, ứng dụng vẫn dùng consistency LOCAL_QUORUM ở nơi có replica nhưng việc failover sang datacenter khác không đổi localDc của driver; lưu lượng chuyển vùng gặp lỗi chọn coordinator và thiếu tính sẵn sàng.

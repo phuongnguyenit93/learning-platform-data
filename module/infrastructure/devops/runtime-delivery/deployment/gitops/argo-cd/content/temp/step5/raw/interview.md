@@ -1,0 +1,12 @@
+Bạn sẽ giải thích cơ chế GitOps của Argo CD trong việc so sánh trạng thái mong muốn từ Git với tài nguyên thực tế trên Kubernetes như thế nào, và những thay đổi nào phải được đưa về Git để duy trì khả năng kiểm toán?
+Trong kiến trúc Argo CD, application controller, repo server và API server phối hợp ra sao để lấy manifest, xác định sai lệch và thực hiện một yêu cầu đồng bộ ứng dụng?
+Khi khai báo một Argo CD Application, bạn sẽ lựa chọn source, revision, destination và AppProject như thế nào để mỗi lần triển khai truy vết được đúng phiên bản cấu hình và image đang chạy?
+Bạn sẽ tổ chức Helm values hoặc Kustomize overlays cho các môi trường staging và production như thế nào để tái sử dụng cấu hình chung, kiểm soát khác biệt và kiểm chứng manifest trước khi đồng bộ?
+Nếu cần quản lý hàng chục ứng dụng trên nhiều cluster, bạn sẽ thiết kế ApplicationSet cùng các generator và template như thế nào để tự động tạo Application mà không vô tình triển khai nhầm môi trường?
+Bạn sẽ cân nhắc bật automated sync, self-heal và prune trong Argo CD như thế nào cho môi trường production, đặc biệt khi một commit xóa nhầm tài nguyên hoặc quản trị viên sửa trực tiếp cấu hình trên cluster?
+Khi triển khai ứng dụng phụ thuộc vào CRD, controller và tài nguyên nghiệp vụ, bạn sẽ sử dụng sync phase, sync wave và hook của Argo CD như thế nào để xử lý thứ tự áp dụng và kiểm tra kết quả triển khai?
+Nếu một Application hiển thị trạng thái Synced nhưng sức khỏe Degraded, bạn sẽ phân biệt sync status với health status và điều tra các tài nguyên Kubernetes liên quan theo cách nào?
+Khi Argo CD liên tục báo OutOfSync vì một admission webhook tự bổ sung trường vào tài nguyên, bạn sẽ kiểm chứng nguyên nhân và quyết định cấu hình ignoreDifferences như thế nào để không che khuất drift thực sự nguy hiểm?
+Bạn sẽ thiết kế AppProject, RBAC và quyền truy cập repository hoặc cluster như thế nào để các nhóm phát triển tự quản lý Application trong phạm vi được cấp mà không thể thay đổi tài nguyên của nhóm khác?
+Nếu một bản nâng cấp qua Git khiến ứng dụng production lỗi và automated sync vẫn đang bật, bạn sẽ tổ chức rollback bằng việc khôi phục trạng thái mong muốn như thế nào để tránh Argo CD tiếp tục áp dụng cấu hình gây lỗi?
+Một Application không thể đồng bộ dù manifest đã hợp lệ; bạn sẽ phân biệt lỗi xác thực Git, kết nối cluster, quyền Kubernetes và lỗi áp dụng tài nguyên bằng những trạng thái, sự kiện hoặc log nào của Argo CD?

@@ -1,0 +1,1705 @@
+modules:
+  - location: module/integration/rpc/grpc
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/messaging/message-broker/rabbitmq
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/api/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/api/graphql
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/api/rest
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/api/soap
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/contracts
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/data-integration
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/http/request-response/client
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/http/request-response/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/http/server-sent-events
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/http/webhook
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/messaging/event-streaming/kafka
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/messaging/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/messaging/message-broker/activemq
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/messaging/patterns
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/messaging/reliability
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/realtime/rsocket
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/integration/realtime/websocket
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/project-reactor/core
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/project-reactor/netty
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/project-reactor/testing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-ai/core
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-ai/embeddings-vector-store
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-ai/evaluation-observability
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-ai/mcp
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-ai/memory-advisors
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-ai/rag
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-ai/tool-calling
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-amqp
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-batch/core-processing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-batch/scaling-operations
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-boot/actuator
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-boot/application-runtime
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-boot/auto-configuration
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-boot/build-tooling-packaging
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-boot/externalized-configuration
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-boot/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-boot/integration
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-boot/native-image
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-boot/observability
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-boot/web-runtime
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-cloud/circuit-breaker
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-cloud/contract
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-boot/testing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-cloud/configuration
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-cloud/core
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-cloud/function
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-cloud/gateway
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-cloud/kubernetes
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-cloud/provider-integration
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-cloud/service-broker
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-cloud/service-communication/load-balancing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-cloud/service-discovery
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-cloud/stream
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-cloud/task
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-data/cassandra
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-data/commons
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-data/couchbase
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-data/elasticsearch
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-data/jpa
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-data/key-value
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-data/mongodb
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-data/neo4j
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-data/relational/jdbc
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-data/relational/r2dbc
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/application-events
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/aspect
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/concurrency
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-data/ldap
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-data/redis
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-data/rest
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/cache
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/core-container
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/data-access
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/expression-language
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/jms
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/jmx
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/mail
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/messaging
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/testing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/transaction-management
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/web
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-graphql
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-hateoas
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-integration/adapters
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-integration/pattern
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-integration/runtime
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/reactive
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-framework/validation-data-binding
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-grpc
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-integration/core
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-kafka/messaging
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-kafka/reliability-operations
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-ldap
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-modulith/documentation-observability
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-modulith/module-model
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-rest-docs
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-security/authentication
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-security/federation
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-security/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-security/oauth2-oidc/oauth2-client
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-security/oauth2-oidc/resource-server
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-security/reactive
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-security/servlet
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-session
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-shell
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-modulith/application-events
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-modulith/verification-testing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-security/authorization
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-security/oauth2-oidc/authorization-server
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-security/protection
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-web-flow
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-web-services
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/advance/compilation
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/advance/instrumentation
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-security/testing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/spring-vault
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/framework/springdoc/openapi
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/advance/compatibility-migration
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/advance/crac
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/advance/dynamic-runtime
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/advance/jvm
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/advance/native-interoperability
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/advance/networking
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/advance/runtime-diagnostics
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/advance/runtime-extensibility
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/advance/security-cryptography
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/abstract-interface
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/annotation
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/class-object
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/classloader
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/collection
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/concurrency
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/exception
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/functional-programming
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/io
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/date-time
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/generics
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/jdk-tooling
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/language-basics
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/localization
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/logging
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/module-system
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/numbers
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/object-contract
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/pattern-matching
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/reflection
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/stream-api
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/core/string
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java10
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java11
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java14
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java15
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java16
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java17
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java18
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java21
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java22
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java23
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java24
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java25
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java26
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java5
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java6
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java8
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java9
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/paradigm/concurrent
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/paradigm/constraint
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/paradigm/declarative
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/paradigm/imperative
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java27
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/language/java/version/java7
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/paradigm/aop
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/paradigm/data-oriented
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/paradigm/dataflow
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/paradigm/event-driven
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/paradigm/functional
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/paradigm/logic
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/paradigm/metaprogramming
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/programming/paradigm/reactive
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/code-quality/coding-standards
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/code-quality/continuous-inspection/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/code-quality/continuous-inspection/sonarqube
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/code-quality/formatting/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/code-quality/formatting/spotless
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/code-quality/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/code-quality/static-analysis/architecture-rules
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/code-quality/static-analysis/bug-patterns
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/code-quality/static-analysis/dependency-analysis
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/code-quality/static-analysis/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/code-quality/static-analysis/tool/checkstyle
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/code-quality/static-analysis/tool/error-prone
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/code-quality/static-analysis/tool/pmd
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/code-quality/static-analysis/tool/spotbugs
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/computer-science/algorithm-analysis
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/computer-science/algorithms
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/computer-science/concurrency-fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/computer-science/data-structures
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/computer-science/domain-specific-language
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/computer-science/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/computer-science/mathematical-foundations
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/computer-science/programming-language-concepts
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/computer-science/system-foundations
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/computer-science/theory-of-computation
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/caching
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/contracts-and-validation
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/data-quality
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/data-semantics
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/import-export
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/mapping/object-mapping
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/persistence/file-persistence
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/persistence/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/persistence/non-relational-access
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/persistence/relational-access/jdbc
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/persistence/relational-access/mybatis
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/persistence/relational-access/orm/hibernate
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/persistence/relational-access/orm/jpa
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/processing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/serialization/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/data/serialization/jackson
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/build-tool/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/build-tool/tool/ant
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/build-tool/tool/gradle
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/build-tool/tool/maven
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/developer-tooling
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/benchmark
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/execution-and-maintenance
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/scope/e2e-test
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/scope/integration-test
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/scope/unit-test
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/strategy
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/test-design
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/testing-type/compatibility-test
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/testing-type/contract-test
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/testing-type/functional-test
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/testing-type/performance-test
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/testing-type/reliability-test
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/testing-type/security-test
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/testing-type/usability-test
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/tool/assertion
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/tool/code-coverage
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/tool/contract-testing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/tool/http-testing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/tool/integration-testing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/tool/mocking
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/tool/mutation-testing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/tool/performance-testing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/tool/service-stubbing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/tool/test-environment
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/engineering/validation/testing/tool/test-framework
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/architectural-pattern/clean-architecture
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/architectural-pattern/client-server
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/architectural-pattern/cqrs
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/architectural-pattern/event-driven
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/architectural-pattern/event-sourcing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/architectural-pattern/hexagonal
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/architectural-pattern/layered
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/architectural-pattern/microkernel
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/architectural-pattern/mvc
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/architectural-pattern/onion-architecture
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/architectural-pattern/pipes-and-filters
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/architectural-pattern/service-oriented-architecture
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/distributed-system/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/distributed-system/saga
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/distributed-system/transactional-outbox
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/documentation-decisions
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/domain-modeling/domain-driven-design
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/domain-modeling/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/system-architecture/microservices
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/architecture/system-architecture/monolithic/modular-monolith
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/behavioral/chain-of-responsibility
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/behavioral/command
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/behavioral/interpreter
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/behavioral/iterator
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/behavioral/mediator
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/behavioral/memento
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/behavioral/observer
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/behavioral/state
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/behavioral/strategy
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/behavioral/template-method
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/behavioral/visitor
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/creational/abstract-factory
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/creational/builder
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/creational/factory-method
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/creational/prototype
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/creational/singleton
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/structural/adapter
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/structural/bridge
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/structural/composite
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/structural/decorator
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/structural/facade
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/structural/flyweight
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-pattern/structural/proxy
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-principle/composition-over-inheritance
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-principle/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-principle/high-cohesion
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-principle/loose-coupling
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-principle/separation-of-concerns
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-principle/solid-principles
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-problem/anti-pattern
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-problem/code-smell
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-problem/technical-debt
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-technique/api-contract-design
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-technique/dependency-injection
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-technique/modularity
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-process/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-process/maintenance-evolution
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-process/methodology/agile-development
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-process/methodology/lifecycle-models
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-process/work-management
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/document/diagram/mermaid
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/document/excel
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/document/markdown/flexmark
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/document/translate/libre
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/notification/telegram
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-design/design-technique/refactoring
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-process/development-practices/acceptance-test-driven-development
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-process/development-practices/behavior-driven-development
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-process/development-practices/test-driven-development
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-process/methodology/model-driven-development
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-process/process-improvement
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-process/quality-management
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/development/software-process/requirements-engineering
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/document/pdf
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/document/reporting
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/document/translate/argos
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/document/translate/azure
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/document/xml
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/notification/email
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/notification/kakao
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/notification/microsoft-team
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/notification/mobile-push
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/notification/slack
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/notification/sms
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/architecture
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/core-services/networking
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/core-services/storage
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/cost-management
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/operations
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/providers/alibaba
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/providers/aws
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/providers/azure
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/providers/gcp
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/providers/ibm
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/providers/oracle
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/security-governance
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/serverless
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/delivery-automation/artifact-management/container-registry
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/delivery-automation/artifact-management/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/delivery-automation/artifact-management/maven-central
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/delivery-automation/artifact-management/nexus
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/delivery-automation/ci-cd/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/delivery-automation/ci-cd/github-actions
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/delivery-automation/ci-cd/gitlab-ci
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/delivery-automation/ci-cd/jenkins
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/delivery-automation/delivery-performance
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/delivery-automation/release-management
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/delivery-automation/versioning
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/devsecops/container-security
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/devsecops/dependency-scanning
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/devsecops/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/devsecops/infrastructure-security
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/devsecops/pipeline-security
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/devsecops/sast-dast
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/devsecops/secret-scanning
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/devsecops/software-supply-chain
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/infrastructure-management/configuration-management/ansible
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/infrastructure-management/configuration-management/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/infrastructure-management/environment-management
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/infrastructure-management/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/infrastructure-management/infrastructure-as-code/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/infrastructure-management/infrastructure-as-code/terraform
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/platform-engineering/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/platform-engineering/internal-developer-platform
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/platform-engineering/tool/backstage
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/reliability-operations/alerting-strategy
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/reliability-operations/capacity-planning
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/reliability-operations/disaster-recovery
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/reliability-operations/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/reliability-operations/incident-management
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/reliability-operations/operational-readiness
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/reliability-operations/sli-slo-sla
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/runtime-delivery/containerization/docker
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/runtime-delivery/containerization/docker-compose
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/runtime-delivery/containerization/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/runtime-delivery/deployment/deployment-strategy
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/runtime-delivery/deployment/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/runtime-delivery/deployment/gitops/argo-cd
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/runtime-delivery/deployment/gitops/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/runtime-delivery/orchestration/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/runtime-delivery/orchestration/helm
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/runtime-delivery/orchestration/kubernetes
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/source-management/collaboration-platform/azure-devops
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/source-management/collaboration-platform/bitbucket
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/source-management/collaboration-platform/github
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/source-management/collaboration-platform/gitlab
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/source-management/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/source-management/repository-strategy/branching-strategy
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/source-management/repository-strategy/monorepo-polyrepo
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/devops/source-management/source-control/git
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/connection-management/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/connection-management/hikari-cp
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/data-modeling
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/engine/analytical/clickhouse
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/engine/document/mongodb
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/engine/graph/neo4j
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/engine/key-value/redis
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/engine/relational/mysql
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/engine/relational/oracle
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/engine/relational/postgresql
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/engine/search/elasticsearch
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/engine/time-series/influxdb
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/engine/wide-column/cassandra
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/no-sql
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/operations
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/performance
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/replication-distribution
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/schema-migration/flyway
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/schema-migration/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/schema-migration/liquibase
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/sql
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/database/transaction-concurrency
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/api-gateway/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/api-gateway/kong
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/connectivity
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/protocol/dns
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/protocol/http
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/protocol/tcp-udp
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/protocol/tls
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/proxy/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/proxy/haproxy
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/proxy/nginx
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/service-discovery
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/service-mesh/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/service-mesh/istio
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/service-mesh/linkerd
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/traffic-management
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/network/troubleshooting
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/alerting/alertmanager
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/alerting/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/alerting/prometheus-rules
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/diagnostic
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/instrumentation/context-propagation
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/instrumentation/micrometer
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/instrumentation/opentelemetry
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/logging/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/logging/log-types
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/logging/storage-analysis/elk-stack
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/logging/storage-analysis/loki-stack
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/management-console/hawtio
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/metrics/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/metrics/prometheus
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/platforms/datadog
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/telemetry-governance/access-control
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/telemetry-governance/compliance
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/telemetry-governance/data-classification
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/telemetry-governance/data-minimization
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/telemetry-governance/retention
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/telemetry-governance/sanitization/filtering
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/telemetry-governance/sanitization/masking
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/telemetry-governance/sanitization/redaction
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/telemetry-pipeline/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/telemetry-pipeline/tool/fluentd
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/telemetry-pipeline/tool/grafana-alloy
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/telemetry-pipeline/tool/logstash
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/telemetry-pipeline/tool/opentelemetry-collector
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/tracing/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/tracing/tooling/jaeger
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/tracing/tooling/tempo
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/tracing/tooling/zipkin
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/observability/visualization/grafana
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/operating-system/file-system
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/operating-system/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/operating-system/memory-and-io
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/operating-system/process-and-thread
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/operating-system/service-management
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/operating-system/shell-and-environment
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/operating-system/troubleshooting
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/operating-system/users-and-permissions
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/runtime/application-server
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/runtime/jvm-runtime
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/runtime/native-image
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/runtime/network-engine/netty
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/runtime/network-engine/reactor-netty
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/runtime/packaging-and-lauching
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/runtime/resource-management
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/runtime/servlet-container/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/runtime/servlet-container/jetty
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/runtime/servlet-container/tomcat
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/api-security
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/application-security/browser-security
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/application-security/business-logic-security
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/application-security/file-parser-security
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/application-security/injection-prevention
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/application-security/input-output-security
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/application-security/outbound-request-security
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authentication/account-recovery
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authentication/api-key-authentication
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authentication/authentication-abuse-prevention
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authentication/certificate-authentication
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authentication/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authentication/hmac-request-authentication
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authentication/multi-factor-authentication
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authentication/passkeys-webauthn
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authentication/password-authentication
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authentication/session-security
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authentication/token-based-authentication
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authorization/abac
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authorization/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authorization/object-level-authorization
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authorization/policy-based-access-control
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/authorization/rbac
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/cryptography/encryption
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/cryptography/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/cryptography/hashing-mac-signatures
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/cryptography/password-hashing
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/cryptography/secure-randomness
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/data-protection/classification-minimization
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/data-protection/encryption-at-rest
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/data-protection/masking-redaction
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/data-protection/privacy
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/data-protection/retention-deletion
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/governance-risk
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/identity-access-management/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/identity-access-management/identity-lifecycle
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/identity-access-management/keycloak
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/identity-access-management/oauth2-oidc
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/identity-access-management/privileged-access-management
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/identity-access-management/scim-provisioning
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/identity-access-management/service-account
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/identity-access-management/spiffe-spire
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/identity-access-management/sso-saml
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/identity-access-management/workload-identity-federation
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/key-management/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/key-management/key-lifecycle
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/key-management/kms-hsm
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/key-management/pki-certificate-lifecycle
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/network-security
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/platform-security
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/secrets-management/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/secrets-management/hashicorp-vault
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/secrets-management/secret-lifecycle
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/secrets-management/windows-dpapi
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/security-assurance
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/security-design/attack-surface
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/security-design/secure-design-principles
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/security-design/security-requirements
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/security-design/threat-modeling
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/security-operations
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/token-security/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/token-security/jwt
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/token-security/opaque-token
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/zero-trust
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/cloud/core-services/compute
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/runtime/fundamentals
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/infrastructure/system/security/token-security/token-lifecycle
+    status: PHASE_1_COMPLETED
+    reason: ""
+  - location: module/platform/support/document/word
+    status: PHASE_1_COMPLETED
+    reason: ""

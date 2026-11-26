@@ -1,0 +1,12 @@
+Khi khảo sát một ứng dụng đang chạy tại trung tâm dữ liệu riêng để chuyển lên cloud, bạn sẽ chuyển các yêu cầu về số người dùng, độ trễ, thời gian gián đoạn cho phép và ngân sách thành tiêu chí chọn tài nguyên như thế nào?
+Bạn sẽ giải thích sự khác nhau giữa IaaS, PaaS và SaaS về mức độ kiểm soát, công việc vận hành và tình huống sử dụng phù hợp cho từng mô hình ra sao?
+Một doanh nghiệp muốn giữ dữ liệu nhạy cảm tại hạ tầng riêng nhưng mở rộng năng lực xử lý lên đám mây khi cao điểm; bạn sẽ cân nhắc public cloud, private cloud và hybrid cloud theo các yếu tố nào?
+Khi chọn region và availability zone cho ứng dụng phục vụ chủ yếu người dùng Việt Nam, bạn sẽ đánh giá độ trễ, nơi lưu trú dữ liệu, dịch vụ sẵn có và khả năng chịu sự cố như thế nào?
+Một cửa hàng trực tuyến có máy chủ web hoạt động liên tục và tác vụ xử lý ảnh chỉ chạy khi có tệp mới; bạn sẽ so sánh máy ảo, container và serverless theo thời gian chạy, khả năng quản trị, mở rộng và chi phí ra sao?
+Với ảnh sản phẩm, ổ đĩa của máy ảo và thư mục tài liệu dùng chung, bạn sẽ lựa chọn object storage, block storage và file storage dựa trên cách truy cập, khả năng chia sẻ và hiệu năng như thế nào?
+Một ứng dụng cần cho khách hàng truy cập website từ Internet nhưng chỉ máy chủ ứng dụng được kết nối tới cơ sở dữ liệu; bạn sẽ tổ chức mạng ảo, subnet, định tuyến và quy tắc tường lửa như thế nào?
+Khi doanh nghiệp chuyển cùng một hệ thống lần lượt từ IaaS sang PaaS rồi SaaS, bạn sẽ phân định trách nhiệm bảo mật giữa nhà cung cấp và khách hàng đối với vá hệ điều hành, cấu hình truy cập và bảo vệ dữ liệu ra sao?
+Một nhóm phát triển cần cấp quyền cho lập trình viên, dịch vụ ứng dụng và nhân viên hỗ trợ trên tài nguyên cloud; bạn sẽ thiết kế quyền truy cập tối thiểu, quản lý thông tin xác thực và theo dõi hoạt động như thế nào?
+Trong đợt khuyến mãi, lượng truy cập tăng gấp nhiều lần so với ngày thường; bạn sẽ quyết định khi nào tăng cấu hình một máy, khi nào mở rộng thêm máy và cách dùng cân bằng tải, tự động mở rộng để giữ hiệu năng như thế nào?
+Nếu một availability zone gặp sự cố và một nhân viên đồng thời xóa nhầm dữ liệu, bạn sẽ phân biệt giải pháp dự phòng, sao lưu và khôi phục, rồi xác định mục tiêu RTO và RPO cho hệ thống như thế nào?
+Sau tháng đầu triển khai cloud, hóa đơn vượt ngân sách dù lượng người dùng thấp hơn dự kiến; bạn sẽ điều tra chi phí compute, storage, lưu lượng mạng, tài nguyên nhàn rỗi và thiết lập cảnh báo, tối ưu chi phí ra sao?

@@ -1,0 +1,50 @@
+Một nền tảng SaaS phục vụ nhiều doanh nghiệp cho phép trưởng phòng nhân sự xem hồ sơ nhân viên; một yêu cầu truy cập mang đúng vai trò quản lý nhưng mã tenant trong hồ sơ và phiên đăng nhập không trùng nhau, trong khi dữ liệu chứa lương và thông tin định danh.
+Nhân viên phân tích dữ liệu cần tải báo cáo doanh thu của khu vực khác để chuẩn bị cuộc họp; quyền đọc báo cáo được cấp theo đơn vị phụ trách, phạm vi địa lý, mức phân loại tài liệu và mục đích sử dụng khai báo trong yêu cầu.
+Một giao dịch thanh toán vượt ngưỡng giá trị yêu cầu người phê duyệt không phải là người khởi tạo; hệ thống nhận hai yêu cầu từ cùng một tài khoản có quyền tài chính nhưng thuộc hai bước khác nhau của quy trình.
+Nhóm vận hành cần quyền truy cập khẩn cấp vào hệ thống điều khiển sau sự cố ngoài giờ; yêu cầu có lý do khẩn cấp và thời hạn ngắn nhưng thuộc tính phê duyệt thứ hai chưa được cập nhật từ hệ thống trực ca.
+Một nhà thầu được thuê cho dự án hạ tầng trong sáu tuần; tài khoản vẫn hoạt động sau ngày kết thúc hợp đồng và các tài liệu dự án đã chuyển sang mức phân loại cao hơn kể từ lần cấp quyền gần nhất.
+Nhân viên làm việc từ xa truy cập hồ sơ khách hàng chỉ được phép xem từ quốc gia đã đăng ký; địa chỉ IP định vị tại quốc gia hợp lệ nhưng tín hiệu thiết bị cho thấy kết nối đang đi qua một điểm trung chuyển bất thường.
+Một thiết bị di động được đánh dấu không tuân thủ vì thiếu bản vá bảo mật; hệ thống quản lý thiết bị đã cập nhật trạng thái tuân thủ nhưng nguồn thuộc tính mà bộ quyết định truy cập đang đọc vẫn trả về dữ liệu cũ.
+Hồ sơ nhân viên mới chưa có thuộc tính đơn vị chi phí do quy trình đồng bộ nhân sự bị trễ; yêu cầu truy cập tài liệu nội bộ đến từ một người dùng đã xác thực và có các thuộc tính chủ thể khác đầy đủ.
+Hệ thống định danh và hệ thống nhân sự cung cấp hai giá trị chức danh khác nhau cho cùng một người sau khi điều chuyển; một chính sách cho phép truy cập theo chức danh cũ trong khi chính sách khác dựa trên đơn vị mới.
+Một nhân viên vừa bị chấm dứt hợp đồng nhưng access token phát hành trước đó vẫn còn hiệu lực; thuộc tính trạng thái lao động tại nguồn nhân sự đã đổi nhưng bản sao trong phiên chưa được làm mới.
+API công khai nhận trường X-User-Department từ client và dùng nó làm thuộc tính chủ thể khi đánh giá quyền; người dùng có thể tự sửa giá trị trường này trước khi gửi yêu cầu.
+Dịch vụ cung cấp thuộc tính vị trí và trạng thái thiết bị tạm thời không khả dụng; bộ quyết định vẫn nhận được thuộc tính danh tính từ nguồn khác trong lúc một thao tác nhạy cảm đang chờ xử lý.
+Nhân viên có chứng nhận bảo mật đã hết hạn từ sáng nay nhưng bộ nhớ đệm thuộc tính vẫn giữ trạng thái còn hiệu lực; yêu cầu mới nhằm tải xuống tập dữ liệu nhạy cảm với số lượng lớn.
+Một tài liệu được nâng mức phân loại từ nội bộ lên mật nhưng các quyết định cho phép đã được lưu cache theo mã tài nguyên; người dùng tiếp tục truy cập bằng cùng một phiên sau khi nhãn phân loại thay đổi.
+Chính sách chỉ cho phép tải dữ liệu trong giờ làm việc địa phương của chi nhánh; yêu cầu được xử lý qua nhiều vùng thời gian và một số máy chủ sử dụng thời gian hệ thống lệch nhau vài phút.
+Kho lưu trữ tài liệu cho phép xem bản nháp trong thời gian dự án hoạt động; dự án đã chuyển sang trạng thái đóng nhưng thuộc tính vòng đời tài nguyên ở dịch vụ lưu trữ chưa đồng bộ.
+Hệ thống quản lý tài liệu có các hành động view, download, print và share; một endpoint mới gộp download và share thành thao tác export khiến chính sách hiện tại đánh giá hai hành động có rủi ro khác nhau như nhau.
+Hai chính sách cùng áp dụng cho một yêu cầu: chính sách theo phân loại tài nguyên cho phép truy cập, còn chính sách theo trạng thái điều tra nội bộ từ chối; cấu hình kết hợp quyết định chưa được thống nhất giữa các nhóm quản trị.
+Một nhóm chính sách dùng cơ chế first-applicable và thứ tự các quy tắc vừa được thay đổi; các yêu cầu trước đây khớp quy tắc từ chối cuối danh sách nay khớp quy tắc cho phép ở đầu danh sách.
+Quyền truy cập một hồ sơ y tế phụ thuộc đồng thời vào quan hệ chăm sóc, mục đích điều trị và trạng thái đồng ý của bệnh nhân; ba chính sách riêng được đánh giá độc lập rồi kết quả bị ghép thành một quyết định cho phép.
+Người dùng bị từ chối truy cập dữ liệu điều tra nhưng giao diện hiển thị chi tiết thuộc tính còn thiếu và tên chính sách nội bộ; thông tin giải thích giúp hỗ trợ người dùng nhưng có thể tiết lộ cấu trúc kiểm soát.
+Một cụm bộ quyết định truy cập được cập nhật chính sách theo từng nút; trong thời gian triển khai, cùng một yêu cầu được chuyển ngẫu nhiên đến các nút và nhận kết quả khác nhau.
+Ứng dụng truy cập tài liệu qua cổng API đã áp dụng kiểm tra chính sách, nhưng một dịch vụ nội bộ khác vẫn có thể gọi trực tiếp kho dữ liệu bằng địa chỉ mạng riêng mà không đi qua điểm thực thi chính sách.
+Bộ quyết định truy cập gặp sự cố trong lúc hệ thống cần xác nhận quyền xem hồ sơ tài chính; nhóm vận hành đang cân nhắc duy trì hoạt động tạm thời dù chưa thể lấy đủ thuộc tính ngữ cảnh.
+Quyết định cho phép được cache theo mã người dùng và mã tài nguyên; cùng người dùng sau đó gửi hành động xóa trong khi quyết định cũ chỉ được đánh giá cho hành động xem.
+Một hệ thống xử lý hàng triệu yêu cầu mỗi phút gọi bộ quyết định cho từng bản ghi; thời gian phản hồi tăng mạnh khi cache hết hạn đồng loạt và dịch vụ cung cấp thuộc tính bị quá tải.
+Thuộc tính trạng thái hợp đồng được thay đổi tại nguồn nhưng thông báo vô hiệu hóa cache bị mất trên một vùng triển khai; người dùng đã hết hợp đồng vẫn nhận quyết định cho phép tại vùng đó.
+Hai trung tâm dữ liệu đồng bộ thuộc tính chủ thể theo cơ chế eventual consistency; sau khi một nhân viên bị đình chỉ quyền, yêu cầu đến vùng phụ vẫn được đánh giá dựa trên trạng thái cũ.
+Cổng API nhận các header chứa nhóm, cấp độ tin cậy và đơn vị của người gọi từ một dịch vụ trung gian; một số request nội bộ có thể đến từ đường mạng không thuộc dịch vụ trung gian được tin cậy.
+Một thao tác cập nhật hàng loạt tác động đến hàng trăm tài nguyên thuộc nhiều chủ sở hữu; một số tài nguyên thỏa chính sách nhưng số còn lại bị từ chối và ứng dụng chưa xác định cách phản hồi kết quả từng phần.
+Nhân viên được phép xem từng hồ sơ khách hàng theo khu vực nhưng không được phép tải danh sách tổng hợp; endpoint export truy vấn nhiều hồ sơ cùng lúc và chỉ kiểm tra quyền trên tài nguyên đầu tiên.
+Trang tìm kiếm lọc kết quả theo quyền xem sau khi truy vấn cơ sở dữ liệu; số lượng kết quả tổng, gợi ý tên và bộ lọc thống kê vẫn phản ánh các tài liệu người dùng không được phép xem.
+Chủ sở hữu một tài liệu được thay đổi sau khi tái cơ cấu tổ chức; thuộc tính owner trong kho tài liệu đã cập nhật nhưng chỉ mục tìm kiếm và nguồn thuộc tính phục vụ PDP vẫn giữ chủ sở hữu cũ.
+Một tác vụ tự động cần đọc dữ liệu từ nhiều hệ thống để tạo báo cáo; danh tính workload được xác thực nhưng thuộc tính môi trường, mục đích xử lý và phạm vi dữ liệu được phép chưa được xác định thống nhất.
+Người quản lý ủy quyền cho trợ lý truy cập hồ sơ trong thời gian nghỉ phép; yêu cầu mang danh tính trợ lý nhưng cần giữ được thông tin người ủy quyền, phạm vi được ủy quyền và thời hạn hiệu lực.
+Một người dùng đồng thời thuộc hai tổ chức và có hai phiên làm việc mở; thuộc tính tổ chức đang hoạt động chỉ có trong ngữ cảnh phiên nhưng bộ quyết định lấy tổ chức mặc định từ hồ sơ danh tính.
+Một thiết bị công nghiệp được phép thực hiện lệnh bảo trì khi dây chuyền ở trạng thái dừng; trạng thái máy thay đổi giữa lúc PDP đánh giá và lúc PEP chuyển lệnh đến bộ điều khiển.
+Điểm rủi ro đăng nhập được cung cấp bởi dịch vụ bên ngoài với giá trị cao bất thường; nguồn dữ liệu không công bố thời điểm tính toán và hệ thống không xác định được liệu điểm số còn phù hợp với phiên hiện tại.
+Nhóm kiểm toán cần tái dựng lý do một yêu cầu nhạy cảm được cho phép; log hiện chỉ lưu kết quả cuối cùng mà không ghi phiên bản chính sách, nguồn thuộc tính hoặc thời điểm lấy thuộc tính.
+Nhân viên hỗ trợ cần hiểu vì sao khách hàng không truy cập được một tài nguyên; thông tin chẩn đoán phải đủ hữu ích nhưng không tiết lộ thuộc tính nhạy cảm của chủ thể khác hoặc quy tắc bảo vệ nội bộ.
+Nhóm bảo mật thay đổi chính sách để chặn truy cập từ thiết bị không đạt chuẩn; bộ kiểm thử chỉ có các trường hợp thành công phổ biến và chưa bao gồm thuộc tính bị thiếu, lỗi nguồn dữ liệu hoặc giá trị biên.
+Một thay đổi chính sách kết hợp nhiều điều kiện AND/OR làm tăng số trường hợp được cho phép; nhóm triển khai không có bộ dữ liệu quyết định chuẩn để so sánh hành vi trước và sau thay đổi.
+Một yêu cầu được PDP cho phép dựa trên trạng thái tài liệu đang công khai; trước khi PEP thực hiện tải xuống, chủ sở hữu chuyển tài liệu sang trạng thái hạn chế và bản ghi tài nguyên được cập nhật.
+Người dùng thay đổi mã tài nguyên trong request để truy cập hồ sơ của tenant khác; PEP kiểm tra quyền trên mã tài nguyên được gửi nhưng nguồn thuộc tính tài nguyên tra cứu theo một định danh khác.
+Một đối tác bên ngoài được phép xem dữ liệu giao hàng trong thời gian hợp đồng; hợp đồng cho phép một số trường vận hành nhưng không cho phép thông tin khách hàng, trong khi API trả về toàn bộ bản ghi.
+Quy định lưu trú dữ liệu yêu cầu hồ sơ của một số khách hàng chỉ được truy cập và xử lý trong khu vực nhất định; request được điều phối qua gateway toàn cầu và thuộc tính vị trí xử lý không được chuyển đến PDP.
+Một dịch vụ thuộc tính trả về danh sách nhóm rất lớn do quan hệ lồng nhau; chính sách mở rộng toàn bộ nhóm trong mỗi quyết định làm tăng độ trễ và đôi khi vượt giới hạn thời gian của PEP.
+Quyền truy cập tài liệu được cấp khi nhãn phân loại và mức clearance tương thích; một quy trình nhập dữ liệu gắn nhãn mặc định quá thấp cho tài liệu mới khiến các quyết định ban đầu rộng hơn dự kiến.
+Một tổ chức muốn thu thập đủ thuộc tính để ra quyết định ABAC nhưng không muốn lưu vị trí chính xác, dữ liệu sức khỏe hoặc thông tin thiết bị vượt quá mục đích; các nguồn thuộc tính hiện trả về nhiều dữ liệu hơn chính sách cần.
+Một cuộc diễn tập kiểm thử truy cập cần bao phủ nhiều tổ hợp chủ thể, tài nguyên, hành động và ngữ cảnh; nhóm kiểm thử phát hiện các trường hợp quyền bị từ chối nhầm chỉ xuất hiện khi hai thuộc tính thay đổi đồng thời.

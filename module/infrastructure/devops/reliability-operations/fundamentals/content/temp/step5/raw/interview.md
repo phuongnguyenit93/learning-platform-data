@@ -1,0 +1,12 @@
+Khi xây dựng mục tiêu độ tin cậy cho một dịch vụ trực tuyến, bạn sẽ xác định hành trình người dùng quan trọng và phân biệt trải nghiệm thực tế với trạng thái khỏe mạnh của từng thành phần hạ tầng như thế nào?
+Với một API xử lý cả yêu cầu đọc và ghi, bạn sẽ định nghĩa và thu thập SLI về tỷ lệ yêu cầu thành công và độ trễ ra sao để tránh số liệu bị sai lệch bởi loại yêu cầu, lưu lượng hoặc lỗi từ phía khách hàng?
+Bạn sẽ lựa chọn mức SLO, khoảng thời gian đánh giá và phạm vi người dùng cho một dịch vụ mới như thế nào, đồng thời giải thích sự khác biệt giữa SLO và cam kết SLA với các bên liên quan ra sao?
+Nếu dịch vụ liên tục tiêu thụ error budget nhanh hơn dự kiến dù tỷ lệ sẵn sàng trung bình tháng vẫn cao, bạn sẽ đánh giá rủi ro và điều chỉnh nhịp phát hành hoặc công việc cải thiện độ tin cậy như thế nào?
+Bạn sẽ xây dựng cảnh báo dựa trên tốc độ tiêu thụ error budget và nhiều cửa sổ thời gian như thế nào để phát hiện sự cố có ảnh hưởng thực sự tới người dùng mà không làm đội trực bị ngập cảnh báo?
+Khi độ trễ p95 của API tăng mạnh nhưng CPU và bộ nhớ máy chủ vẫn bình thường, bạn sẽ kết hợp metrics, log và distributed tracing như thế nào để khoanh vùng nguyên nhân trong chuỗi dịch vụ phụ thuộc?
+Trong ca trực on-call, một dịch vụ bất ngờ tăng lỗi 5xx và nhiều nhóm cùng nhận cảnh báo; bạn sẽ phân loại mức độ sự cố, tổ chức phối hợp, cập nhật thông tin và lựa chọn bước giảm thiểu đầu tiên như thế nào?
+Sau một lần triển khai khiến tỷ lệ lỗi tăng, bạn sẽ đối chiếu dấu hiệu thay đổi với SLI và quyết định khi nào nên rollback, tắt feature flag hoặc tiếp tục điều tra như thế nào để giảm thời gian ảnh hưởng tới người dùng?
+Khi một dịch vụ phụ thuộc bắt đầu timeout theo từng đợt, bạn sẽ thiết kế timeout, retry với backoff, giới hạn tải và circuit breaker như thế nào để tăng khả năng phục hồi mà không tạo ra bão yêu cầu?
+Bạn sẽ đánh giá điểm lỗi đơn, thiết kế failover giữa các vùng sẵn sàng và kiểm thử khả năng phục hồi của dịch vụ như thế nào để bảo đảm cơ chế dự phòng hoạt động khi xảy ra sự cố thật?
+Sau một sự cố nghiêm trọng, bạn sẽ tổ chức postmortem không đổ lỗi như thế nào để xây dựng dòng thời gian, nhận diện nguyên nhân hệ thống và theo dõi hiệu quả của các hành động khắc phục?
+Bạn sẽ nhận diện toil trong vận hành hằng ngày, lựa chọn công việc để tự động hóa và đo hiệu quả cải tiến như thế nào để giảm gánh nặng trực hệ thống mà vẫn duy trì khả năng kiểm soát sự cố?

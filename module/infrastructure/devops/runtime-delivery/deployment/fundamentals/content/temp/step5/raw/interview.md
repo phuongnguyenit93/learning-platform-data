@@ -1,0 +1,12 @@
+Bạn phân biệt các bước build, triển khai và phát hành tính năng trong vòng đời delivery như thế nào, và sẽ tổ chức luồng đưa một phiên bản từ môi trường kiểm thử đến production mà không cần build lại ra sao?
+Khi nhiều nhóm cùng triển khai một ứng dụng, bạn sẽ quản lý artifact bất biến, định danh phiên bản, nguồn gốc bản dựng và thông tin phát hành như thế nào để xác định chính xác mã nào đang chạy ở từng môi trường?
+Bạn thiết kế cách tách cấu hình theo môi trường, cấp phát secrets và kiểm soát sự khác biệt giữa staging với production như thế nào để tránh lỗi do cấu hình hoặc thông tin xác thực bị dùng nhầm?
+Nếu ứng dụng phụ thuộc cơ sở dữ liệu, hàng đợi và dịch vụ xác thực, bạn sẽ kiểm tra điều kiện sẵn sàng, thứ tự khởi động và khả năng thử lại kết nối như thế nào trước khi nhận lưu lượng người dùng?
+Bạn phân biệt startup probe, liveness check và readiness check theo mục đích vận hành như thế nào, và sẽ điều chỉnh các kiểm tra này ra sao để không chuyển lưu lượng vào instance chưa sẵn sàng hoặc khởi động lại ứng dụng vô ích?
+Khi lựa chọn giữa rolling update, blue-green và canary cho một dịch vụ quan trọng, bạn sẽ đánh giá yêu cầu không gián đoạn, dung lượng dự phòng, độ phức tạp vận hành và khả năng hoàn tác theo những tiêu chí nào?
+Nếu chuyển lưu lượng từ phiên bản cũ sang phiên bản mới ở tầng cân bằng tải, bạn sẽ xử lý kết nối đang tồn tại, yêu cầu kéo dài, session và khả năng thoát tải của instance cũ như thế nào để tránh mất giao dịch?
+Bạn sẽ thiết kế rollout canary theo từng tỷ lệ lưu lượng và sử dụng những chỉ số lỗi, độ trễ, trải nghiệm người dùng cùng ngưỡng dừng nào để quyết định mở rộng, giữ nguyên hay quay lui bản triển khai?
+Khi bản phát hành cần thay đổi schema cơ sở dữ liệu mà phiên bản cũ và mới phải cùng hoạt động trong một khoảng thời gian, bạn sẽ lập kế hoạch thay đổi tương thích, di chuyển dữ liệu và loại bỏ cấu trúc cũ như thế nào?
+Trong một hệ thống có nhiều dịch vụ triển khai độc lập nhưng thay đổi hợp đồng API liên quan đến nhau, bạn sẽ sắp xếp thứ tự phát hành, kiểm thử tương thích và kiểm soát lỗi triển khai một phần ra sao?
+Bạn sẽ thiết kế pipeline triển khai từ phê duyệt thay đổi đến kiểm tra tự động, phát hành theo giai đoạn và ghi nhận lịch sử như thế nào để bảo đảm artifact đã kiểm thử chính là artifact được triển khai và mọi thao tác có thể truy vết?
+Nếu tỷ lệ lỗi tăng sau khi triển khai production và bản phát hành có cả thay đổi dữ liệu, bạn sẽ quyết định rollback, roll-forward hoặc tắt tính năng theo tiêu chí nào, rồi xác minh phục hồi và phòng ngừa tái diễn ra sao?

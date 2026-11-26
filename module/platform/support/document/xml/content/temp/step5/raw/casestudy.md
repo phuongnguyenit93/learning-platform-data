@@ -1,0 +1,32 @@
+Một hệ thống nhập hóa đơn điện tử nhận XML từ đối tác có các phần tử mã số thuế, tiền hàng và tổng tiền; ứng dụng Java chỉ tìm phần tử theo tên cục bộ nên khi đối tác thêm namespace khác, dữ liệu của một phần tử không liên quan bị đọc nhầm.
+Hai nhà cung cấp gửi tài liệu XML dùng tiền tố ns1 và inv cho cùng một namespace URI; chương trình so khớp theo tên tiền tố cố định nên một tài liệu hợp lệ bị từ chối dù ý nghĩa phần tử không thay đổi.
+Một hồ sơ khám bệnh có namespace mặc định, nhưng câu XPath trong ứng dụng chỉ dùng tên phần tử không tiền tố và luôn trả tập rỗng dù nội dung hồ sơ vẫn hiển thị đúng khi mở bằng trình xem XML.
+Một bộ lọc XPath chọn thông tin khách hàng dựa trên mã do người dùng nhập; nhóm ghép thẳng chuỗi đầu vào vào biểu thức khiến ký tự đặc biệt làm truy vấn sai hoặc chọn nhiều nút ngoài dự kiến.
+Đơn đặt hàng có nhiều mặt hàng nhưng parser đang lấy phần tử quantity đầu tiên trong toàn document thay vì phần tử con thuộc mỗi line item; khi có nhiều dòng hàng, toàn bộ số lượng bị gán giống nhau.
+Một tài liệu XML biểu diễn trạng thái hoàn tiền bằng thuộc tính status, còn kết quả giao dịch nằm trong phần tử cùng tên ở nhánh khác; bộ chuyển đổi dùng một hàm đọc chung và phân biệt sai vị trí dữ liệu.
+Một API nhận XML có các trường ngày theo chuẩn XSD nhưng người gửi truyền ngày 31 tháng Hai dưới dạng chuỗi; hệ thống chỉ kiểm tra XML well-formed rồi ghi dữ liệu không hợp lệ vào cơ sở dữ liệu.
+Đối tác phát hành XSD mới quy định thứ tự các phần tử tên, địa chỉ và số điện thoại; trình tạo XML của ứng dụng xuất các phần tử theo thứ tự tùy ý và bị từ chối dù các giá trị đều có mặt.
+Một schema dùng minOccurs và maxOccurs để quy định ít nhất một dòng hàng; hệ thống kiểm thử chỉ dùng đơn có một dòng và không phát hiện trường hợp tài liệu rỗng hoặc nhiều dòng vượt giới hạn.
+Một ứng dụng nhận giá trị tiền trong XML nhưng ánh xạ thẳng thành số thực nhị phân; khi tổng hợp nhiều khoản nhỏ, số tiền kết quả chênh lệch với giá trị decimal mà hợp đồng XSD yêu cầu.
+Một đơn hàng có trường email tùy chọn theo XSD nhưng chương trình coi việc thiếu phần tử giống như phần tử có nội dung rỗng; hai trường hợp nghiệp vụ khác nhau bị ghi nhận thành cùng một trạng thái.
+Một đối tác bổ sung phiên bản XML mới có thêm phần tử không bắt buộc; ứng dụng Java kiểm tra schema cũ và từ chối mọi tài liệu có phần tử mới, trong khi nhiều hệ thống gửi phiên bản cũ vẫn cần được duy trì.
+Một nhóm dùng DOM để tải và sửa tệp cấu hình XML vài kilobyte, nhưng sau khi tái sử dụng cách này cho dữ liệu giao dịch hàng gigabyte, bộ nhớ heap bị cạn trong lúc đọc toàn bộ cây tài liệu.
+Một chương trình SAX xử lý file XML theo từng sự kiện để tiết kiệm bộ nhớ; khi văn bản của một phần tử đến qua nhiều callback characters, ứng dụng chỉ giữ callback cuối và làm mất phần đầu của nội dung.
+Trong bộ đọc SAX, các phần tử item được lồng nhiều cấp nhưng handler chỉ giữ một biến tên hiện tại; khi phần tử kết thúc, dữ liệu từ mặt hàng con bị gán nhầm sang mặt hàng cha.
+Một job dùng StAX để đọc hàng triệu bản ghi XML theo luồng và ghi từng bản ghi vào database; lúc parser gặp XML lỗi giữa tệp, một số bản ghi đã được lưu nhưng hệ thống không biết điểm dừng để xử lý lại.
+Một ứng dụng xử lý XML bằng StAX giữ tham chiếu tới dữ liệu nằm trong buffer của parser sau khi chuyển sang sự kiện tiếp theo; nội dung được ghi trễ có thể khác với nội dung đã đọc tại thời điểm ban đầu.
+Một chương trình dựng tài liệu XML bằng DOM rồi ghi ra tệp nhưng không khai báo đúng bảng mã; người dùng mở tài liệu có tên tiếng Việt và thấy ký tự bị biến dạng trên hệ thống khác.
+Một đối tác gửi XML có BOM và khai báo encoding không thống nhất với byte thực tế; ứng dụng Java lúc giải mã được lúc báo lỗi tùy cách dữ liệu được truyền qua HTTP và đọc thành String.
+Một hệ thống dùng JAXB ánh xạ phần tử order vào lớp Java, nhưng tên phần tử, namespace và kiểu danh sách trong annotation không khớp XSD; kết quả unmarshalling có các trường null mà không báo lỗi rõ ràng.
+Trong mô hình JAXB, một lớp hóa đơn lưu tổng tiền dưới dạng trường được tính lại trong getter; khi marshal sang XML, tổng tiền khác kết quả đã được xác nhận vì quá trình xuất tài liệu kích hoạt tính toán lại.
+Một lớp JAXB sử dụng chung để đọc phiên bản XML cũ và mới, nhưng phiên bản mới đổi cách biểu diễn trạng thái từ thuộc tính sang phần tử; chương trình âm thầm nhận giá trị mặc định sai cho tài liệu mới.
+Một ứng dụng dùng XPath để trích số tiền từ tài liệu chứa cả phần tử tổng tiền và tổng tiền điều chỉnh; biểu thức chọn nút theo tên ở mọi cấp nên kết quả phụ thuộc thứ tự xuất hiện trong file.
+Một đội dùng XSLT biến đổi XML đơn hàng sang HTML báo cáo; khi dữ liệu có ký tự nhỏ hơn, dấu và hoặc thẻ do khách nhập, trang đầu ra hiển thị sai hay chứa nội dung không được escape đúng ngữ cảnh.
+Một quy trình chuyển đổi tài liệu bằng XSLT tải thêm mẫu hoặc dữ liệu tham chiếu từ đường dẫn bên ngoài; khi người dùng tải stylesheet không tin cậy, máy chủ có nguy cơ đọc tài nguyên ngoài phạm vi cho phép.
+Một cổng nhận tệp XML từ khách hàng bật xử lý DTD và external entity theo cấu hình mặc định; tài liệu độc hại tham chiếu đến tệp cục bộ và parser có thể cố đọc nội dung ngoài dữ liệu được gửi.
+Một bộ parser XML được bảo vệ khỏi external entity trong một đường đọc DOM nhưng đường xử lý SAX dùng cấu hình khác; cùng tệp không tin cậy đi qua hai endpoint tạo ra kết quả và mức độ rủi ro khác nhau.
+Một tệp XML nhỏ chứa chuỗi entity được khai báo lồng nhau nhiều cấp; parser mở rộng nội dung làm tài nguyên CPU và bộ nhớ tăng đột biến trước khi ứng dụng kịp kiểm tra giới hạn kích thước.
+Một ứng dụng tải XSD do người dùng cung cấp để xác thực tài liệu, nhưng schema tham chiếu các schema khác qua đường mạng; hệ thống trong mạng nội bộ bắt đầu truy cập endpoint ngoài ý muốn khi validation chạy.
+Một tài liệu XML chứa văn bản trộn cùng các thẻ nhấn mạnh và liên kết; bộ chuyển đổi đơn giản lấy textContent rồi ghi lại thành phần tử phẳng, làm mất vị trí và ý nghĩa của cấu trúc mixed content.
+Một chương trình đối chiếu hai tài liệu XML bằng cách so sánh chuỗi văn bản nguyên gốc; khác biệt về khoảng trắng thụt dòng, thứ tự thuộc tính hoặc tiền tố namespace bị tính là sửa đổi nghiệp vụ dù cấu trúc dữ liệu tương đương.
+Một hệ thống lưu tài liệu XML đã kiểm tra XSD rồi chuyển qua nhiều bước biến đổi và bổ sung dữ liệu; bản xuất cuối không còn thỏa schema nhưng không có bước xác thực lại trước khi gửi cho đối tác, khiến lỗi chỉ xuất hiện sau khi bàn giao.

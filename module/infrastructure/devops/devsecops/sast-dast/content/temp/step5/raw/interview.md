@@ -1,0 +1,12 @@
+Khi đánh giá bảo mật một ứng dụng web có mã nguồn và môi trường staging, bạn sẽ phân biệt mục tiêu, thời điểm thực hiện, bằng chứng và giới hạn phát hiện của SAST so với DAST như thế nào?
+Với API Python nhận đầu vào người dùng rồi tạo truy vấn SQL, bạn sẽ dùng Semgrep để phát hiện đường đi dữ liệu nguy hiểm và điều chỉnh quy tắc ra sao nhằm phân biệt nối chuỗi trực tiếp với truy vấn có tham số?
+Khi CodeQL báo một đường truyền dữ liệu từ tham số HTTP tới hàm thực thi lệnh hệ điều hành, bạn sẽ đọc kết quả phân tích nguồn, đích và các bước xử lý trung gian như thế nào để xác minh khả năng bị khai thác?
+Nếu Semgrep phát hiện chuỗi giống khóa bí mật trong mã kiểm thử, bạn sẽ xác định đó là thông tin nhạy cảm thực sự hay dữ liệu giả ra sao, đồng thời xử lý và ghi nhận phát hiện thế nào để không làm lộ giá trị bí mật?
+Khi lựa chọn giữa ZAP Baseline Scan thiên về kiểm tra thụ động và quét chủ động bằng ZAP, bạn sẽ cân nhắc mục tiêu kiểm thử, quyền tác động lên dữ liệu và độ an toàn của môi trường chạy như thế nào?
+Đối với ứng dụng có nhiều vai trò người dùng và phiên đăng nhập hết hạn nhanh, bạn sẽ cấu hình quét DAST đã xác thực và kiểm chứng phạm vi endpoint, quyền truy cập cùng trạng thái phiên như thế nào?
+Một cảnh báo DAST nghi ngờ reflected XSS xuất hiện trên trang tìm kiếm nhưng SAST không báo lỗi; bạn sẽ thu thập bằng chứng, xác minh ngữ cảnh đầu ra và kiểm tra khả năng cảnh báo sai ra sao?
+Khi SAST cảnh báo SQL injection tại đoạn mã đã sử dụng prepared statement, bạn sẽ đọc luồng dữ liệu và cơ chế truyền tham số như thế nào trước khi quyết định sửa mã, điều chỉnh quy tắc hay ghi nhận ngoại lệ?
+Bạn sẽ phối hợp kiểm tra mã nguồn bằng SAST với kiểm thử hành vi ứng dụng bằng DAST như thế nào để phát hiện cả luồng mã nguy hiểm chưa được thực thi lẫn lỗi cấu hình chỉ bộc lộ khi chạy?
+Nếu cần tích hợp Semgrep, CodeQL và ZAP vào CI/CD của nhóm phát hành nhiều lần mỗi ngày, bạn sẽ bố trí bước kiểm tra theo pull request, bản build trên staging và lịch quét định kỳ ra sao để cân bằng thời gian phản hồi với độ bao phủ?
+Khi pipeline phát hiện lỗ hổng nghiêm trọng ngay trước giờ phát hành nhưng mức độ khai thác còn chưa rõ, bạn sẽ xác minh, ưu tiên xử lý và thiết kế quy tắc chặn phát hành cùng ngoại lệ có thời hạn như thế nào?
+Sau ba tháng vận hành SAST và DAST, bạn sẽ đo lường độ bao phủ mã và endpoint, tỷ lệ cảnh báo sai, thời gian khắc phục và các lỗ hổng lọt qua kiểm tra ra sao để cải thiện quy tắc quét và quy trình phản hồi?

@@ -1,0 +1,40 @@
+API đặt hàng mở kết nối JDBC mới cho mỗi request; khi tỷ lệ lỗi HTTP tăng từ 0,2% lên 3%, số phiên trên PostgreSQL tăng đều dù số request hoàn tất không tăng tương ứng, và sau khoảng một giờ ứng dụng bắt đầu báo hết kết nối.
+Ứng dụng Java cũ đóng ResultSet và Statement sau truy vấn nhưng chỉ đóng Connection ở nhánh xử lý thành công; dưới bài kiểm thử có nhiều SQLException, bộ đếm kết nối đang dùng tăng dần theo thời gian.
+Một dịch vụ báo cáo giữ một đối tượng Connection dùng chung cho 25 luồng; khi có truy vấn đọc và cập nhật đồng thời, kết quả đôi lúc sai và xuất hiện lỗi giao dịch không ổn định dù truy vấn đơn lẻ vẫn chạy đúng.
+Đội phát triển khởi tạo DataSource cùng pool bên trong mỗi lần xử lý thông điệp Kafka; lượng thông điệp không cao nhưng số kết nối vật lý và số luồng quản lý pool tăng sau mỗi đợt tiêu thụ.
+Sau khi chuyển từ mở kết nối JDBC trực tiếp sang DataSource có pool, ứng dụng xử lý 2.000 request bằng khoảng 20 phiên cơ sở dữ liệu; một lỗi chỉ xuất hiện ở request đến sau khi một request khác thay đổi trạng thái phiên.
+Pool chỉ cho tối đa 10 kết nối trong khi 120 request mỗi giây cùng chạy truy vấn mất trung bình 400 ms; biểu đồ cho thấy nhiều luồng chờ lấy Connection và lỗi timeout xảy ra trước khi cơ sở dữ liệu đạt 100% CPU.
+Một hệ thống gồm tám dịch vụ đặt minimumIdle bằng 20 cho từng pool; ngay khi triển khai đồng loạt, cơ sở dữ liệu vượt giới hạn phiên dù lưu lượng người dùng lúc đó gần như bằng không.
+Khi Kubernetes tự tăng từ 3 lên 12 replica, mỗi replica có pool tối đa 30 kết nối và PostgreSQL chỉ nhận 240 phiên; lỗi từ chối kết nối bắt đầu xuất hiện đúng thời điểm hệ thống mở rộng để chịu tải.
+Nhóm tăng maximumPoolSize từ 30 lên 150 để giảm thời gian chờ; sau thay đổi, throughput gần như không tăng nhưng CPU cơ sở dữ liệu, thời gian tranh chấp khóa và độ trễ p99 đều xấu hơn.
+Pool có connectionTimeout là 700 ms; phần lớn truy vấn hoàn tất trong 80 ms nhưng vài đợt tải tăng đột ngột khiến thời gian chờ lấy kết nối vượt ngưỡng, trong khi timeout truy vấn SQL được cấu hình dài hơn nhiều.
+Thiết bị mạng cắt các phiên TCP nhàn rỗi sau 10 phút còn pool giữ kết nối rỗi tới 30 phút; request đầu tiên sau giờ nghỉ trưa thường nhận lỗi kết nối đã đóng, các request kế tiếp lại thành công.
+Một proxy cơ sở dữ liệu chủ động đóng kết nối sau 15 phút nhưng cấu hình maxLifetime của pool là 45 phút; lỗi reset xảy ra rải rác khi ứng dụng tái sử dụng các kết nối tồn tại lâu.
+Dịch vụ có lưu lượng theo đợt đặt idleTimeout rất ngắn; giữa hai đợt, phần lớn kết nối bị thu hồi và đợt tiếp theo phải thiết lập lại TLS cùng phiên đăng nhập, khiến độ trễ đầu đợt cao hơn bình thường.
+Pool kiểm tra tính hợp lệ bằng truy vấn tới cơ sở dữ liệu mỗi lần mượn Connection; khi lưu lượng tăng tới hàng nghìn thao tác nhỏ mỗi giây, số truy vấn kiểm tra tăng mạnh dù số truy vấn nghiệp vụ không đổi.
+Sau khi chuyển vai trò primary sang máy dự phòng, cơ sở dữ liệu mới đã sẵn sàng nhưng các request đầu tiên từ mỗi pod gặp lỗi trên kết nối cũ trong pool; những request được thử lại vài giây sau lại thành công.
+Sau sự cố mất kết nối 40 giây với cơ sở dữ liệu, hàng trăm luồng đang chờ đồng loạt yêu cầu tạo kết nối mới khi mạng hồi phục; thời gian khôi phục dịch vụ dài hơn đáng kể so với thời gian mạng gián đoạn.
+Một chức năng chuyển tiền tắt autoCommit để cập nhật hai bảng; nếu thao tác thứ hai ném ngoại lệ, luồng xử lý thoát sớm và kết nối được trả về pool trong khi trạng thái giao dịch chưa được kiểm tra.
+Trang thương mại điện tử mở transaction, cập nhật đơn hàng rồi gọi dịch vụ vận chuyển bên ngoài mất 8 giây trước khi commit; vào giờ cao điểm, số kết nối active chạm mức tối đa dù truy vấn SQL chỉ chiếm vài chục mili giây.
+Một tác vụ kiểm tra tồn kho chuyển Connection sang chế độ read-only; sau đó một luồng khác mượn lại kết nối và phát hiện lệnh cập nhật bị từ chối trên một số lần chạy, trong khi các lần chạy khác vẫn bình thường.
+Một API thay mức cách ly giao dịch sang SERIALIZABLE cho một nghiệp vụ đặc biệt; các API còn lại thỉnh thoảng gặp nhiều lỗi xung đột giao dịch hơn sau khi pool bắt đầu tái sử dụng kết nối.
+Ứng dụng đa thuê bao đổi schema tìm kiếm của phiên JDBC theo tenant trước khi chạy truy vấn; khi hai tenant gửi request liên tiếp trên cùng pool, có request đọc dữ liệu ở schema không mong đợi.
+Một phần hệ thống đặt múi giờ của phiên SQL theo người dùng rồi trả Connection vào pool; các báo cáo chạy sau đó có lúc lệch giờ dù đầu vào và câu truy vấn không đổi.
+Trong ứng dụng dùng transaction do framework quản lý, một thư viện DAO bên dưới tự xin Connection mới từ DataSource cho mỗi thao tác; log cho thấy hai kết nối tham gia một request và dữ liệu ghi dở khi phần cuối bị rollback.
+Một job xuất báo cáo dùng cursor để đọc 600.000 dòng rồi ghi trực tiếp ra HTTP response; khi người dùng tải tệp qua mạng chậm, Connection bị giữ suốt thời gian truyền dữ liệu và request khác phải chờ pool.
+Cảnh báo nghi rò rỉ kết nối xuất hiện sau 2 giây ở một endpoint báo cáo thường chạy 7 giây; tất cả Connection cuối cùng đều được trả lại, nhưng đội trực vận hành chưa phân biệt được tác vụ dài với rò rỉ thực sự.
+Pool liên tục báo active bằng mức tối đa và pending tăng; trên cơ sở dữ liệu, nhiều giao dịch đang chờ khóa cùng một bản ghi do một transaction cập nhật đơn hàng chưa kết thúc.
+HTTP gateway ngắt request sau 3 giây nhưng truy vấn JDBC phía sau vẫn tiếp tục thêm 45 giây; số lượng request phía ngoài đã giảm mà pool vẫn ghi nhận các kết nối bận.
+Một gián đoạn mạng ngắn khiến lệnh đọc JDBC bị treo trên socket lâu hơn thời gian xử lý HTTP cho phép; log ứng dụng có timeout ở tầng web nhưng không có thông tin rõ về trạng thái kết nối đang giữ.
+Một công việc bất đồng bộ được chuyển sang luồng khác giữa hai bước ghi dữ liệu; ứng dụng giả định hai bước dùng cùng transaction, nhưng audit log cho thấy các lần commit và rollback không nhất quán.
+Job đồng bộ dữ liệu chạy lúc nửa đêm sử dụng chung pool với API người dùng và giữ nhiều kết nối cho các batch lớn; trong thời gian chạy job, các request đọc đơn giản cũng bị timeout khi mượn kết nối.
+Sau khi gặp deadlock, mã xử lý tự thử lại ngay nhiều lần và mỗi lần mở thêm kết nối; khi có tranh chấp cập nhật đồng thời, số lần retry, số kết nối active và độ trễ tăng cùng lúc.
+Một bản phát hành làm số truy vấn SQL của mỗi request tăng từ 4 lên 65 do truy cập dữ liệu theo vòng lặp; không có thay đổi về số người dùng nhưng thời gian mượn Connection và hàng đợi pool đều tăng.
+Dashboard chỉ hiển thị số Connection active và idle trung bình theo phút; người dùng vẫn báo lỗi timeout trong các đợt tăng tải kéo dài 5 giây, trong khi dữ liệu hiện có không thể hiện số luồng pending hay thời gian chờ mượn kết nối.
+Trong sự cố chậm toàn hệ thống, pool báo 38/40 kết nối active và 70 luồng pending, còn PostgreSQL báo phần lớn phiên đang đợi I/O; nhóm phải phân biệt giới hạn pool, truy vấn chậm và khả năng xử lý của cơ sở dữ liệu.
+Secret dùng đăng nhập cơ sở dữ liệu được luân chuyển trong giờ làm việc; các kết nối sẵn có vẫn thực hiện được truy vấn, nhưng những kết nối mới do pool tạo bắt đầu nhận lỗi xác thực.
+Sau khi chứng chỉ TLS của máy chủ cơ sở dữ liệu được thay mới, một số kết nối hiện hữu tiếp tục chạy trong khi các kết nối mới thất bại lúc bắt tay TLS; ứng dụng thiếu log phân biệt lỗi mạng và lỗi xác thực chứng chỉ.
+Để chẩn đoán lỗi kết nối, chế độ log DEBUG ghi nguyên JDBC URL có tên đăng nhập và mật khẩu vào hệ thống tập trung mà nhiều nhóm cùng xem; báo cáo sự cố cần xem xét rủi ro phát sinh từ thông tin đã ghi.
+Dịch vụ sử dụng token IAM có thời hạn 15 phút để xác thực với cơ sở dữ liệu; sau vài giờ hoạt động, những lần pool mở thêm kết nối thất bại dù các kết nối cũ vẫn xử lý truy vấn bình thường.
+Nền tảng SaaS tạo một pool riêng cho mỗi tenant và đặt minimumIdle bằng 2; sau khi tăng từ 40 lên 300 tenant, số kết nối nhàn rỗi đã vượt ngân sách phiên của cơ sở dữ liệu dù tải thực tế thấp.
+Mỗi pod thực hiện health check bằng cách tự mở kết nối JDBC mới mỗi giây thay vì dùng DataSource hiện có; khi triển khai 150 pod, biểu đồ cho thấy số lần xác thực và thiết lập kết nối tăng đột biến dù lượng truy vấn nghiệp vụ ổn định.

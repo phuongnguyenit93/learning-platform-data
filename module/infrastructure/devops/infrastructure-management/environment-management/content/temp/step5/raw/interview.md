@@ -1,0 +1,12 @@
+Khi nhiều nhóm cùng sử dụng các môi trường development, testing, staging và production, bạn sẽ thiết kế ranh giới tài khoản cloud, mạng, namespace, quyền truy cập và quota như thế nào để hạn chế ảnh hưởng chéo khi xảy ra lỗi?
+Bạn sẽ quyết định những thành phần nào của staging phải tương đồng với production và những thành phần nào có thể thu nhỏ để tiết kiệm chi phí, đồng thời kiểm chứng rằng khác biệt đó không làm sai lệch kết quả kiểm thử ra sao?
+Đối với hạ tầng được quản lý bằng Terraform, bạn sẽ tổ chức module, biến cấu hình, state và quy trình review plan như thế nào để tái tạo nhất quán từng môi trường và phát hiện configuration drift?
+Khi một ứng dụng cần cấu hình kết nối và secrets khác nhau giữa các môi trường, bạn sẽ thiết kế nguồn cấu hình, quyền đọc, luân chuyển bí mật và kiểm tra rò rỉ ra sao mà vẫn triển khai cùng một artifact?
+Nếu cần dùng dữ liệu có đặc điểm gần giống production để kiểm thử, bạn sẽ lựa chọn dữ liệu tổng hợp hay dữ liệu đã khử định danh và xác minh chất lượng, quyền riêng tư cùng cơ chế làm mới dữ liệu như thế nào?
+Trong môi trường testing phải gọi dịch vụ thanh toán và email bên ngoài, bạn sẽ quyết định khi nào dùng sandbox, mock hoặc contract test và kiểm soát tác động phụ của các lời gọi thử nghiệm ra sao?
+Bạn sẽ tạo môi trường preview tạm thời cho mỗi pull request như thế nào để cô lập tài nguyên, cấp quyền và dữ liệu phù hợp, tự động dọn dẹp sau khi đóng PR và tránh chi phí tích lũy?
+Khi một bản build vượt qua testing và staging, bạn sẽ thiết kế quy trình chuyển cùng một artifact bất biến sang production, quản lý cấu hình theo môi trường và đặt quality gate như thế nào để bảo đảm khả năng truy vết?
+Nếu bản phát hành yêu cầu thay đổi schema cơ sở dữ liệu trong lúc các phiên bản ứng dụng cũ và mới cùng hoạt động, bạn sẽ lập kế hoạch migration, kiểm thử tương thích và phương án rollback xuyên các môi trường ra sao?
+Khi một pipeline có nguy cơ triển khai nhầm vào production thay vì staging, bạn sẽ thiết kế nhận diện đích triển khai, protected environment, phân quyền phê duyệt và nhật ký thay đổi như thế nào để giảm rủi ro?
+Nếu môi trường staging bị hỏng cấu hình và mất dữ liệu sau một thử nghiệm, bạn sẽ khôi phục hạ tầng, dữ liệu và trạng thái ứng dụng bằng những nguồn có thể kiểm chứng nào, đồng thời đo lường thời gian khôi phục ra sao?
+Bạn sẽ thiết lập lịch tắt mở, thời hạn tồn tại, giới hạn tài nguyên, gắn nhãn chi phí và cảnh báo ngân sách cho môi trường không phải production như thế nào để tiết kiệm mà vẫn đáp ứng lịch kiểm thử và nhu cầu điều tra sự cố?

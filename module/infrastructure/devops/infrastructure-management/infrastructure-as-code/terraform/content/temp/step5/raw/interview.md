@@ -1,0 +1,12 @@
+Khi chuyển một hệ thống đang được tạo thủ công sang Terraform, bạn sẽ mô hình hóa provider, resource, data source, variable và local value trong HCL như thế nào để quản lý trạng thái hạ tầng mong muốn?
+Bạn sẽ thiết lập ràng buộc phiên bản Terraform, provider và dependency lock file ra sao để hai kỹ sư chạy cùng cấu hình nhận được kết quả dự đoán được khi nhà cung cấp phát hành phiên bản mới?
+Trong cấu hình tạo mạng, máy chủ và bộ cân bằng tải, Terraform xây dựng đồ thị phụ thuộc dựa trên tham chiếu giữa các resource như thế nào, và khi nào bạn cần khai báo depends_on hoặc xử lý phụ thuộc vòng?
+Khi quản lý một tập máy chủ bằng count hoặc for_each, bạn sẽ so sánh cách định danh resource và phân tích tác động của việc thêm, xóa hay sắp xếp lại phần tử tới kế hoạch thay đổi như thế nào?
+Bạn sẽ thiết kế module Terraform tái sử dụng cho nhiều nhóm và môi trường như thế nào về cấu trúc đầu vào, output, phiên bản module, kiểm tra biến và ranh giới trách nhiệm để tránh phụ thuộc ngầm?
+Nếu terraform plan cho thấy một cơ sở dữ liệu đang chạy sẽ bị thay thế thay vì cập nhật tại chỗ, bạn sẽ xác định thuộc tính gây thay thế, đánh giá mất dữ liệu hoặc gián đoạn và xem xét các quy tắc lifecycle như thế nào trước khi cho phép apply?
+Khi nhiều pipeline và kỹ sư cùng quản lý một môi trường, bạn sẽ chọn và bảo vệ remote backend, sử dụng state locking, xử lý lock bị kẹt và chuẩn bị khôi phục state như thế nào để tránh ghi đè thay đổi?
+Nếu thông tin kết nối nhạy cảm xuất hiện trong thuộc tính resource được Terraform lưu vào state, bạn sẽ đánh giá giới hạn của sensitive variable và tổ chức lưu trữ, mã hóa, phân quyền, xuất log cùng luân chuyển secrets ra sao?
+Bạn sẽ lựa chọn Terraform workspace hay cấu hình root module và state tách biệt cho development, staging và production dựa trên yêu cầu cô lập quyền truy cập, quy trình triển khai và nguy cơ thao tác nhầm như thế nào?
+Khi đưa tài nguyên đã tồn tại vào Terraform hoặc chuyển resource sang một module mới, bạn sẽ dùng cơ chế import và moved block cùng việc kiểm tra plan ra sao để giữ đúng quan hệ giữa cấu hình, state và hạ tầng thực?
+Nếu một quản trị viên sửa cấu hình mạng trực tiếp trên cloud console khiến hạ tầng lệch khỏi Terraform, bạn sẽ phát hiện drift, phân biệt thay đổi ngoài ý muốn với thay đổi có chủ đích và quyết định hướng đồng bộ an toàn như thế nào?
+Bạn sẽ xây dựng pipeline CI/CD cho Terraform với các bước định dạng, kiểm tra cấu hình, kiểm thử module, rà soát bảo mật, đánh giá plan và phê duyệt apply như thế nào để bảo đảm bản thay đổi được duyệt chính là bản được triển khai?

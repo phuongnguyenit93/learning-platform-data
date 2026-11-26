@@ -1,0 +1,32 @@
+Một API Java tạo đơn hàng trả mã đơn và trạng thái thành công, nhưng kiểm thử hiện chỉ giả lập repository nên không phát hiện cột bắt buộc mới trong cơ sở dữ liệu khiến lệnh INSERT thực tế thất bại.
+Nhóm kiểm thử Spring Boot dùng cơ sở dữ liệu nhúng để chạy nhanh, trong khi môi trường sản xuất dùng PostgreSQL; câu truy vấn có cú pháp và cách xử lý kiểu thời gian khác nhau làm bài test xanh nhưng tính năng tìm kiếm lỗi khi triển khai.
+Sau khi thêm migration thay tên cột khách hàng, một mapper vẫn đọc cột cũ; bộ kiểm thử tích hợp tạo bảng bằng cơ chế sinh schema tự động nên không chạy chuỗi migration giống lúc nâng cấp sản phẩm.
+Một bài kiểm thử đăng ký người dùng gọi controller thật nhưng thay service bằng mock, vì vậy không kiểm tra được việc tạo hồ sơ, lưu mật khẩu đã xử lý và phát sinh bản ghi xác minh trong cùng luồng nghiệp vụ.
+Đội Java kiểm tra luồng nhập sản phẩm bằng JUnit và Spring TestContext, nhưng profile kiểm thử bật một bean giả mà không ai chú ý; trường hợp lỗi do bean chuyển đổi dữ liệu thật không bao giờ xuất hiện trong kết quả CI.
+Một đợt refactor cấu hình Spring thay đổi điều kiện tạo bean cho hai adapter dữ liệu; unit test của từng adapter đều đạt nhưng khi khởi động context tích hợp lại thiếu một bean bắt buộc.
+Hai bài kiểm thử cùng dùng một Spring ApplicationContext được lưu cache, trong đó bài đầu thay đổi một bean cấu hình có thể sửa; bài chạy sau chỉ thất bại khi thực thi cùng bộ test đầy đủ.
+Một bộ kiểm thử dùng Testcontainers để chạy PostgreSQL trong CI nhưng job bắt đầu truy vấn ngay khi cổng mạng mở; cơ sở dữ liệu vẫn đang khởi tạo schema và bài test lúc đạt lúc không tùy tốc độ máy.
+Nhóm dùng container cơ sở dữ liệu dùng chung cho toàn bộ bộ kiểm thử để giảm thời gian khởi động, nhưng hai lớp test chạy song song cùng xóa bảng đơn hàng, khiến kết quả phụ thuộc vào thứ tự chạy.
+Trong bài kiểm thử API cập nhật tồn kho, JUnit mở transaction bao quanh cả bài và tự rollback; hành vi nghiệp vụ gọi sau đó thực tế dùng transaction riêng nên lỗi commit bị che khuất trên môi trường kiểm thử.
+Một bài kiểm thử tích hợp tưởng rằng dữ liệu đã được ghi vì repository trả về entity có khóa, nhưng ràng buộc duy nhất chỉ bị phát hiện khi flush và transaction chưa kết thúc ở thời điểm assertion chạy.
+Một endpoint thanh toán cần ghi hóa đơn và nhật ký giao dịch trong cùng transaction; khi chèn nhật ký gặp lỗi, API trả thất bại nhưng một bản ghi hóa đơn vẫn tồn tại trong cơ sở dữ liệu kiểm thử.
+Hai yêu cầu cập nhật cùng sản phẩm được gửi đồng thời đến một service và gây ghi đè giá không mong muốn; bộ kiểm thử hiện gọi hai yêu cầu tuần tự nên không phát hiện lỗi về phiên bản dữ liệu và mức cô lập.
+Một API phân trang lịch sử trả đúng số phần tử với dữ liệu mẫu năm dòng, nhưng khi dữ liệu có nhiều bản ghi trùng thời điểm và trang cuối không đủ kích thước, kết quả bị lặp hoặc bỏ sót.
+Đội dùng fixture tài khoản cố định với mã email giống nhau cho tất cả ca kiểm thử; khi CI chạy song song, trường hợp tạo tài khoản nhận lỗi trùng khóa và không thể tái hiện khi chạy riêng.
+Bài kiểm thử sau khi hoàn tất chỉ xóa bảng cha của dữ liệu mẫu nhưng giữ lại các dòng con theo cơ chế cascade khác môi trường thật; lần chạy kế tiếp không khởi tạo lại được quan hệ mong muốn.
+Một bộ kiểm thử sử dụng mốc thời gian hiện tại để tạo phiếu giảm giá vừa hết hạn; khi job chạy gần nửa đêm hoặc ở múi giờ khác, kết quả kiểm tra API thay đổi dù mã nguồn không đổi.
+Dịch vụ đặt hàng sau khi commit dữ liệu sẽ phát sự kiện vào broker; kiểm thử hiện chỉ đối chiếu đơn hàng trong database nên không phát hiện cấu hình sai tên topic làm ứng dụng nhận sự kiện không hoạt động.
+Một consumer Kafka nhận lại thông điệp sau khi xử lý thành công nhưng chưa kịp xác nhận offset; cơ sở dữ liệu xuất hiện hai bản ghi nghiệp vụ giống nhau và nhóm cần xác minh hành vi xử lý lặp qua tích hợp thật.
+Ứng dụng nhận sự kiện tạo đơn rồi nhận sự kiện hủy qua hai luồng xử lý khác nhau; trong test tích hợp, thông điệp có lúc đến đảo thứ tự và trạng thái cuối của đơn không còn hợp lệ.
+Một consumer gửi thông điệp lỗi đến hàng đợi chết sau số lần xử lý lại quy định; bài kiểm thử chỉ giả lập lời gọi hàm xử lý và chưa đối chiếu được retry, thời hạn chờ và nội dung thông điệp thực tế.
+Đội dùng broker nhúng trong test nhưng cấu hình xác nhận nhận tin và serialization của môi trường chạy thật khác; lỗi giải mã payload có phiên bản cũ chỉ xuất hiện khi consumer kết nối broker production.
+Một service ghi giao dịch vào database rồi phát sự kiện sang broker; mô phỏng mất kết nối giữa hai bước cho thấy dữ liệu đã commit nhưng dịch vụ nhận sự kiện không bao giờ được cập nhật.
+Hệ thống tra cứu điểm tín dụng gọi API đối tác với token và timeout, nhưng bài tích hợp chỉ dùng phản hồi thành công cố định nên không phát hiện việc xử lý sai mã lỗi 429 và giới hạn số lần thử lại.
+Một nhà cung cấp API thay tên một trường trong phản hồi JSON; lớp giải mã nội bộ bỏ qua trường không nhận diện và tạo đối tượng thiếu dữ liệu, dù kiểm thử dùng mock thủ công vẫn đạt.
+Trong test tích hợp, nhóm thay toàn bộ dịch vụ ngoài bằng server giả nhưng không kiểm tra HTTP method, header xác thực và đường dẫn yêu cầu; ứng dụng gửi sai hợp đồng mà test vẫn nhận phản hồi mong đợi.
+Một API nội bộ nhận tệp CSV rồi ghi dữ liệu xuống bảng quan hệ; trường hợp nội dung có dòng sai ở giữa lô tạo ra một phần bản ghi, nhưng test chỉ kiểm tra status HTTP và thông báo lỗi trả về.
+Một hệ thống phân quyền giới hạn quyền xem hồ sơ theo phòng ban, song bài tích hợp luôn gọi service trực tiếp với người dùng có quyền cao; khi đi qua HTTP filter thật, một token hết hạn lại vẫn được chấp nhận.
+Một bài kiểm thử gửi yêu cầu đến cổng HTTP động của Spring Boot rồi đọc dữ liệu từ repository, nhưng cấu hình test dùng DataSource khác ứng dụng đang chạy khiến phép đối chiếu kiểm tra nhầm cơ sở dữ liệu.
+Sau khi bật pool kết nối trong ứng dụng, một ca tích hợp liên tục gọi endpoint tạo báo cáo và thấy số kết nối tăng không giảm; các bài test độc lập không phát hiện nhánh exception giữ connection quá lâu.
+Trong CI, bộ tích hợp tạo nhiều container PostgreSQL và Kafka cùng lúc, vượt giới hạn bộ nhớ runner; một số bài bị timeout chỉ khi chạy toàn bộ và nhóm cần phân biệt lỗi sản phẩm với vấn đề tài nguyên môi trường.
+Một bài kiểm thử cập nhật hồ sơ thất bại ngẫu nhiên trong CI nhưng không lưu log request, SQL, thông điệp hoặc trạng thái container; nhóm phải xác định dữ liệu chẩn đoán tối thiểu để truy nguyên lỗi tích hợp mà không làm lộ thông tin nhạy cảm.

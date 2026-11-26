@@ -1,0 +1,55 @@
+Một API tìm kiếm đơn hàng dùng prepared statement cho giá trị filter nhưng ghép trực tiếp tên cột do client gửi vào ORDER BY, khiến người gọi thay đổi cấu trúc truy vấn; hãy phân tích ranh giới giữa bind value và SQL identifier.
+Một báo cáo cho phép chọn cột sắp xếp bằng query parameter, và một số giá trị bất thường làm phát sinh lỗi SQL chỉ trên production; hãy xác định cách kiểm tra dynamic identifier và khác biệt SQL dialect.
+Một ứng dụng dùng ORM an toàn cho truy vấn CRUD thông thường nhưng một endpoint báo cáo gọi native SQL bằng cách nối chuỗi bộ lọc do người dùng nhập; hãy đánh giá đường đi dữ liệu chưa được tham số hóa.
+Một stored procedure nhận tên bảng và điều kiện lọc từ ứng dụng rồi ghép thành dynamic SQL, khiến dữ liệu được lưu hợp lệ trước đó có thể thay đổi câu lệnh ở lần chạy sau; hãy phân tích second-order injection.
+Một endpoint đăng nhập trả cùng thông báo lỗi cho mọi trường hợp nhưng thời gian phản hồi thay đổi theo điều kiện truy vấn, và đội vận hành nghi ngờ blind SQL injection; hãy xác định bằng chứng cần thu.
+Một chức năng tìm kiếm dùng LIKE với chuỗi do người dùng nhập và cho phép ký tự wildcard làm truy vấn quét gần như toàn bộ bảng; hãy đánh giá nguy cơ injection kết hợp lạm dụng tài nguyên.
+Một API MongoDB chuyển trực tiếp JSON filter từ request thành query object, khiến client có thể gửi toán tử thay vì giá trị tìm kiếm dự kiến; hãy phân tích NoSQL injection.
+Một hệ thống phân quyền dùng document database và xây dựng điều kiện truy vấn từ object lồng nhau do client gửi, dẫn đến bộ lọc quyền bị thay đổi; hãy xác định điểm thiếu schema validation và allowlist toán tử.
+Một endpoint tìm kiếm cho phép trường $where hoặc biểu thức JavaScript trong query, làm truy vấn thực thi logic ngoài dự kiến và tăng CPU; hãy đánh giá cấu hình scripting và giới hạn truy vấn.
+Một ứng dụng chuyển dữ liệu lưu trong database sang câu SQL động ở tác vụ export, và payload chỉ phát tác dụng nhiều ngày sau khi được lưu; hãy phân tích second-order injection xuyên nhiều luồng xử lý.
+Một chức năng chuyển đổi file gọi lệnh hệ điều hành bằng shell wrapper với tên file do người dùng cung cấp, khiến file có dấu phân cách lệnh làm thay đổi đối số thực thi; hãy phân tích command injection.
+Một dịch vụ tạo thumbnail ghép đường dẫn đầu vào vào chuỗi lệnh gọi công cụ xử lý ảnh, và ký tự khoảng trắng hoặc dấu nháy làm lệnh bị tách sai; hãy xác định rủi ro shell parsing.
+Một API gọi chương trình hệ thống bằng danh sách argument nhưng cho phép tên file bắt đầu bằng dấu gạch ngang, khiến chương trình đích hiểu nó là option; hãy đánh giá option injection.
+Một worker chạy executable bằng tên lệnh không có đường dẫn tuyệt đối, và một tiến trình khác có thể thay đổi PATH hoặc working directory; hãy phân tích nguy cơ gọi nhầm binary.
+Một chức năng backup cho phép chọn thư mục đầu vào, và đường dẫn có ký tự traversal làm tiến trình chạy dưới tài khoản dịch vụ đọc được file ngoài vùng cho phép; hãy xác định ranh giới filesystem và quyền hệ điều hành.
+Một API quản trị chạy lệnh chẩn đoán với quyền root để phục vụ người dùng hỗ trợ, trong khi input chỉ được kiểm tra ở frontend; hãy đánh giá tác động của command injection và quyền tiến trình.
+Một tác vụ chuyển đổi tài liệu nhận file hợp lệ nhưng nội dung metadata của file được đưa vào command argument và làm thay đổi hành vi công cụ; hãy phân tích nguồn input gián tiếp và kiểm soát argument.
+Một trang đăng nhập LDAP ghép username trực tiếp vào filter, và một input đặc biệt khiến filter trả về nhiều entry thay vì đúng một người dùng; hãy phân tích LDAP filter injection.
+Một API tìm kiếm LDAP escape giá trị filter theo quy tắc DN, khiến một số ký tự vẫn có thể thay đổi cấu trúc filter; hãy xác định sự khác nhau giữa escaping filter và distinguished name.
+Một dịch vụ tra cứu nhóm LDAP dùng chuỗi DN do người dùng gửi để xác định phạm vi truy vấn, dẫn đến truy cập nhầm nhánh directory; hãy đánh giá canonicalization và allowlist base DN.
+Một endpoint xác thực XML dùng XPath được ghép từ username và password, và điều kiện truy vấn có thể bị thay đổi bởi dữ liệu đầu vào; hãy phân tích XPath injection.
+Một hệ thống tra cứu hồ sơ dùng XPath expression do client chọn để tìm node, khiến người gọi có thể đọc các node ngoài phạm vi dự kiến; hãy xác định ranh giới giữa giá trị và cú pháp XPath.
+Một chức năng email template cho phép nhân viên nhập nội dung mẫu, nhưng engine đánh giá biểu thức và cho phép truy cập object runtime; hãy đánh giá nguy cơ server-side template injection.
+Một trang CMS chỉ định template bằng tên do người dùng cung cấp, và tên này được nối vào đường dẫn template loader; hãy phân tích khả năng chọn template ngoài vùng cho phép hoặc kích hoạt cú pháp thực thi.
+Một hệ thống render báo cáo sử dụng template engine có quyền gọi method trên object được truyền vào, khiến template do đối tác tải lên truy cập dữ liệu ngoài mục đích; hãy xác định ranh giới sandbox.
+Một ứng dụng dùng autoescape trong template nhưng một trường được đánh dấu safe để giữ HTML từ người dùng, dẫn đến script được lưu và thực thi với người xem khác; hãy phân tích stored XSS và trust sai chỗ.
+Một trang hiển thị tên người dùng an toàn trong HTML body nhưng đưa cùng dữ liệu vào thuộc tính HTML có chứa URL, khiến trình duyệt diễn giải sai ngữ cảnh; hãy đánh giá context-specific output encoding.
+Một frontend chèn dữ liệu từ query string vào inline JavaScript bằng nối chuỗi, và payload chỉ kích hoạt khi giá trị chứa dấu nháy; hãy phân tích JavaScript context XSS.
+Một ứng dụng dùng JSON.stringify cho dữ liệu rồi nhúng trực tiếp kết quả vào script block HTML, nhưng không xử lý ranh giới HTML parser; hãy xác định nguy cơ khi JSON nằm trong HTML context.
+Một trang hồ sơ cập nhật nội dung bằng innerHTML từ API response, trong khi API trả về trường mô tả do người dùng kiểm soát; hãy phân tích DOM-based XSS và sink nguy hiểm.
+Một ứng dụng dùng URL do người dùng cung cấp trong href sau khi chỉ HTML-encode giá trị, khiến scheme không an toàn vẫn được trình duyệt xử lý; hãy đánh giá URL validation và attribute encoding.
+Một trình soạn thảo rich text cho phép người dùng tạo nội dung HTML, và sanitizer chỉ lọc tag nhưng bỏ sót event handler hoặc URL scheme nguy hiểm; hãy xác định phạm vi allowlist cần kiểm chứng.
+Một trang tìm kiếm có reflected XSS trong thông báo không tìm thấy kết quả, nhưng kiểm thử chỉ xem HTML body và bỏ qua thuộc tính data-* được JavaScript đọc lại; hãy phân tích đường đi dữ liệu sang DOM sink.
+Một ứng dụng lưu bình luận đã sanitize khi ghi database, sau đó dùng cùng nội dung trong email HTML và trang web với các ngữ cảnh khác nhau; hãy đánh giá vì sao sanitization một lần không thay thế output encoding theo ngữ cảnh.
+Một hệ thống dùng CSP nhưng cho phép unsafe-inline để tương thích thư viện cũ, và XSS vẫn thực thi dù policy đã bật; hãy phân tích hiệu lực thực tế của CSP.
+Một API trả nội dung HTML đã encode sẵn, frontend tiếp tục encode lần nữa rồi một thành phần khác decode trước khi render; hãy đánh giá double encoding và nguy cơ bypass giữa các tầng.
+Một trang quản trị nhận postMessage từ iframe bên ngoài rồi đưa dữ liệu vào DOM mà không kiểm tra origin; hãy phân tích DOM XSS qua thông điệp liên cửa sổ.
+Một ứng dụng AI tóm tắt email và có quyền gọi công cụ tìm kiếm nội bộ; một email bên ngoài chứa chỉ dẫn yêu cầu mô hình truy xuất và tiết lộ tài liệu không liên quan đến yêu cầu tóm tắt; hãy phân tích indirect prompt injection.
+Một chatbot nhận câu hỏi trực tiếp từ người dùng và được cấp tool có thể gửi email; người dùng đưa chỉ dẫn trong nội dung yêu cầu để khiến agent gửi dữ liệu nội bộ tới địa chỉ bên ngoài; hãy đánh giá direct prompt injection và ranh giới quyền tool.
+Một hệ thống RAG đưa nội dung từ trang web bên ngoài vào cùng context với chỉ dẫn hệ thống, và trang web chứa câu lệnh giả mạo yêu cầu bỏ qua quy tắc trước đó; hãy phân tích việc trộn lẫn instruction với dữ liệu không tin cậy.
+Một agent AI đọc file đính kèm và được phép chạy truy vấn database theo yêu cầu người dùng; nội dung file chứa chỉ dẫn ẩn để truy vấn bảng bí mật; hãy xác định rủi ro indirect prompt injection qua tài liệu.
+Một trợ lý AI có quyền thực hiện hoàn tiền và xóa hồ sơ, nhưng mọi quyết định được dựa trên nội dung mô hình sinh ra mà không có kiểm tra chính sách phía server; hãy đánh giá ranh giới giữa suy luận của mô hình và authorization thực thi.
+Một agent nhận kết quả từ công cụ browser có chứa chỉ dẫn yêu cầu gọi một tool khác với tham số do trang web kiểm soát; hãy phân tích nguy cơ dữ liệu tool output trở thành chỉ dẫn điều khiển.
+Một chatbot được phép truy cập kho secrets để hỗ trợ vận hành, và prompt injection khiến mô hình đưa secret vào câu trả lời hoặc log hội thoại; hãy xác định cách phân tách dữ liệu nhạy cảm khỏi context.
+Một hệ thống đánh giá tài liệu tự động thực thi các hành động tiếp theo dựa trên văn bản được trích xuất từ PDF, trong khi tài liệu có chỉ dẫn nhằm thay đổi tiêu chí đánh giá; hãy phân tích indirect prompt injection và kiểm soát output.
+Một ứng dụng AI tuyên bố system prompt yêu cầu bỏ qua chỉ dẫn độc hại nhưng không giới hạn quyền công cụ, không xác minh tham số và không yêu cầu phê duyệt hành động nhạy cảm; hãy đánh giá defense in depth còn thiếu.
+Một endpoint nhận nhiều lớp percent encoding và Unicode normalization khác nhau ở gateway và ứng dụng, khiến bộ lọc phát hiện injection ở gateway nhưng parser backend vẫn diễn giải thành cú pháp; hãy phân tích canonicalization mismatch.
+Một WAF chặn một số chuỗi SQL phổ biến nhưng bỏ qua truy vấn được tạo qua ORM native query hoặc payload mã hóa nhiều lớp; hãy đánh giá giới hạn của signature-based filtering.
+Một lỗi injection chỉ xuất hiện khi dữ liệu đi qua message queue, được giải mã rồi dùng trong truy vấn nền; hãy xác định cách truy vết nguồn dữ liệu từ ingress đến sink.
+Một nhóm phát triển sửa lỗi SQL injection bằng escaping thủ công nhưng regression test chỉ kiểm tra một dialect, và production dùng database khác; hãy đánh giá tính phụ thuộc dialect và bằng chứng kiểm thử.
+Một cuộc kiểm thử bảo mật xác nhận không có SQL injection trực tiếp nhưng không kiểm tra stored payload được lưu rồi dùng trong báo cáo, email template và job nền; hãy thiết kế phạm vi kiểm tra second-order injection.
+Một ứng dụng có nhiều sink gồm SQL, shell, LDAP, XPath, template và DOM, nhưng SAST chỉ cảnh báo SQL concatenation; hãy đánh giá cách xây dựng inventory source-to-sink và code review theo ngữ cảnh.
+Một đội vận hành phát hiện nhiều lỗi parser và truy vấn bất thường sau một đợt scan từ Internet, nhưng log đang ghi toàn bộ payload chứa dữ liệu nhạy cảm; hãy phân tích cách giám sát và bảo toàn bằng chứng an toàn.
+Một bản vá injection làm tăng lỗi đầu vào hợp lệ do sanitizer xóa ký tự nghiệp vụ, trong khi nhóm phát triển chưa có test phân biệt validation, sanitization và encoding; hãy thiết kế kiểm chứng không phá hỏng dữ liệu hợp lệ.
+Một ứng dụng web tích hợp AI vừa nhận dữ liệu từ người dùng, vừa truy vấn database, render HTML và cho agent gọi tool; hãy thiết kế cách phân vùng trust boundary và kiểm tra từng interpreter để hạn chế injection xuyên tầng.

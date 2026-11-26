@@ -1,0 +1,32 @@
+Ứng dụng đặt lịch dùng Spring Boot và PostgreSQL có maximumPoolSize bằng 10; khi mở bán vé, số request đồng thời tăng từ 20 lên 400, HikariCP báo active luôn bằng 10, idle bằng 0 và pending tăng liên tục dù CPU ứng dụng còn thấp.
+Một dịch vụ thanh toán tăng maximumPoolSize từ 20 lên 100 để xử lý chậm, nhưng thời gian phản hồi lại dài hơn và cơ sở dữ liệu thường xuyên đạt mức sử dụng CPU cao trong giờ cao điểm.
+Hệ thống chạy 12 replica, mỗi replica cấu hình pool tối đa 40 kết nối; sau khi autoscale, PostgreSQL xuất hiện lỗi quá giới hạn kết nối mặc dù từng replica đều hoạt động bình thường khi chạy riêng lẻ.
+Đội vận hành nâng minimumIdle lên 30 cho từng pod nhằm giảm độ trễ khởi động request; lúc triển khai đồng loạt 20 pod, ứng dụng bắt đầu bị từ chối tạo kết nối mới từ cơ sở dữ liệu.
+Trong một ứng dụng Spring Boot, nhóm đặt cấu hình dung lượng pool trong application.yml nhưng sau khi phát hành vẫn thấy số kết nối HikariCP tối đa là giá trị mặc định; các môi trường dev và production còn dùng profile khác nhau.
+Một dịch vụ có hai DataSource cho cơ sở dữ liệu giao dịch và báo cáo; thuộc tính HikariCP đã thay đổi nhưng chỉ pool báo cáo có số kết nối mới, còn các repository JPA phục vụ giao dịch tiếp tục dùng pool cũ.
+Khi nhóm thay DataSource tự cấu hình bằng DataSource mặc định của Spring Boot, số lượng kết nối vật lý được tạo mỗi phút thay đổi rõ rệt dù lưu lượng request không tăng; cần xác định đường đi từ repository/JPA tới DataSource đang sử dụng.
+API đặt hàng gọi dịch vụ vận chuyển bên ngoài trong cùng một giao dịch @Transactional; vào lúc phía vận chuyển phản hồi chậm, chỉ số active của HikariCP tăng hết cỡ và request khác hết thời gian chờ lấy kết nối.
+Endpoint đọc dữ liệu sử dụng Spring Data JPA có thời gian truy vấn SQL ngắn, nhưng khi tải hàng nghìn quan hệ lazy trong bước dựng response, số kết nối đang mượn tăng và thời gian request kéo dài bất thường.
+Một batch xuất báo cáo qua JDBC xử lý ResultSet theo luồng trong nhiều phút; khi có ba batch chạy song song, tác vụ giao dịch thời gian thực bắt đầu chờ connection dù mỗi batch phát ra rất ít truy vấn.
+Một nhánh xử lý dùng DataSource.getConnection trực tiếp rồi có thể ném ngoại lệ trước khi đóng tài nguyên; sau mỗi đợt lỗi, HikariCP ghi cảnh báo nghi rò rỉ và active không trở về mức ban đầu.
+HikariCP ghi log leakDetectionThreshold cho một thao tác cập nhật dữ liệu mất 80 giây, nhưng sau khi thao tác kết thúc thì kết nối được trả về pool; đội phát triển cần đánh giá ý nghĩa cảnh báo và triệu chứng nghẽn.
+Dịch vụ có connectionTimeout bằng 30 giây; khi hàng đợi pending tăng, request nhận lỗi chờ lấy kết nối trong khoảng thời gian đó, trong khi một số câu SQL đã lấy được kết nối vẫn chạy hơn hai phút.
+Nhóm giảm idleTimeout với kỳ vọng pool thu nhỏ vào ban đêm, nhưng số lượng idle vẫn gần như không đổi và bằng maximumPoolSize khi hệ thống không có request.
+Ứng dụng qua một proxy cơ sở dữ liệu bị ngắt các phiên tồn tại quá 30 phút, trong khi HikariCP đặt maxLifetime dài hơn; một số request sau thời gian chạy ổn định gặp lỗi kết nối đã đóng ngay khi sử dụng.
+Sau một đêm không có lưu lượng, request đầu tiên thường gặp lỗi broken pipe, còn các request tiếp theo thành công; hệ thống đi qua firewall có chính sách hủy kết nối TCP không hoạt động trong thời gian dài.
+Một pool có keepaliveTime được đặt gần bằng maxLifetime nhưng các kết nối idle vẫn bị thiết bị mạng hủy trước khi tái sử dụng; nhóm cần kiểm tra vòng đời idle, keepalive và thời điểm kết nối hết hạn.
+Khi cơ sở dữ liệu phản hồi chập chờn, HikariCP mất nhiều thời gian kiểm tra tính hợp lệ của kết nối, request thỉnh thoảng vượt SLA dù active chưa đầy; các ngưỡng validationTimeout và connectionTimeout đang được cấu hình khác nhau.
+PostgreSQL được khởi động lại trong thời gian bảo trì; các request đang chạy gặp lỗi, pool chứa kết nối cũ và quá trình phục hồi sau khi máy chủ trở lại diễn ra không đồng đều giữa các pod.
+Sau một lần failover sang nút cơ sở dữ liệu mới, DNS của endpoint đã thay đổi nhưng các request từ ứng dụng đôi lúc vẫn gặp lỗi trên các kết nối đang tồn tại trong pool.
+Tài khoản truy cập cơ sở dữ liệu được xoay mật khẩu định kỳ; các kết nối đã mở vẫn có thể hoạt động trong một khoảng thời gian, nhưng HikariCP bắt đầu báo lỗi xác thực khi phải tạo kết nối thay thế.
+Trong đợt phát hành, cơ sở dữ liệu chưa sẵn sàng khi ứng dụng Spring Boot khởi động; một số instance dừng ngay ở bước khởi tạo DataSource, instance khác lên trạng thái sẵn sàng muộn hơn dự kiến.
+Khi bật Spring Boot Actuator và Micrometer, dashboard không hiển thị các số liệu hikaricp.connections.active, idle và pending của pool tự khai báo, dù các truy vấn JPA vẫn thành công.
+Dashboard cho thấy active luôn gần maximumPoolSize và pending nhiều trong giờ cao điểm, nhưng báo cáo database ghi nhận các câu truy vấn chờ khóa giao dịch lâu hơn bình thường, còn CPU của database vẫn thấp.
+Ứng dụng nhận cảnh báo pool gần cạn khi PostgreSQL có nhiều phiên ở trạng thái idle in transaction; các endpoint tương ứng không tạo ra lưu lượng SQL mới trong khoảng thời gian chờ.
+Một hệ thống chạy 80 tác vụ @Async cùng lúc, trong khi maximumPoolSize chỉ có 12; các tác vụ đồng loạt gọi repository JPA và xuất hiện lỗi chờ kết nối mặc dù executor vẫn còn luồng để xử lý.
+Chương trình nhập dữ liệu Spring Data JPA mở một giao dịch cho toàn bộ tệp lớn và flush nhiều đợt; khi chạy đồng thời với API chính, HikariCP ghi nhận active cao liên tục dù mỗi lần ghi vào bảng có độ trễ thấp.
+Trong ứng dụng có pool đọc và pool ghi riêng, dashboard tổng hợp chỉ báo tổng số kết nối vẫn thấp nhưng API đọc bị timeout; tên pool và thẻ metric giữa các môi trường chưa thống nhất.
+Một endpoint mất 10 giây để phản hồi nhưng metrics cho thấy HikariCP active thấp, idle dồi dào và pending bằng 0; nhóm trực ca cần kiểm tra xem độ trễ có thực sự xuất phát từ việc mượn kết nối.
+Mỗi khi máy ảo chịu một đợt dừng dài do garbage collection, log HikariCP xuất hiện cảnh báo housekeeper delay và một số request timeout khi lấy kết nối dù database không tăng thời gian xử lý truy vấn.
+Kết nối tới PostgreSQL bị gián đoạn ở tầng mạng trong lúc truy vấn đang thực thi; active của pool giữ ở mức tối đa, pending tăng, nhưng connectionTimeout không làm các JDBC call đang treo kết thúc.
+Trong quá trình tắt ứng dụng để rolling deployment, một tác vụ chạy nền vẫn truy cập repository JPA sau khi pool HikariCP đã bắt đầu đóng; log ghi nhận lỗi DataSource đã đóng trên instance đang rút khỏi tải.

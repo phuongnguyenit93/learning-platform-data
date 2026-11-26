@@ -1,0 +1,32 @@
+Một nhóm vừa bật công cụ đánh giá chất lượng liên tục cho kho mã Java mười năm tuổi và nhận hàng nghìn cảnh báo trong lần quét đầu; trưởng nhóm cần xác định cách đo hiện trạng, ưu tiên cải thiện và tránh làm tắc luồng phát hành.
+Một pull request chỉ thay đổi ba phương thức nhưng quality gate thất bại vì độ bao phủ kiểm thử của toàn dự án thấp từ nhiều năm trước; nhóm cần làm rõ phạm vi đánh giá mã mới trong quy trình review.
+Hai dự án dùng chung bộ rule mặc định dù một dự án là thư viện Java và dự án kia có cả frontend; cảnh báo không phù hợp xuất hiện dày đặc khiến lập trình viên dần bỏ qua kết quả phân tích.
+Sau một tháng, nhóm tăng ngưỡng coverage trên quality gate nhưng nhiều PR bị chặn vì thiếu báo cáo kiểm thử dù bài test chạy thành công; người phụ trách CI cần xác minh luồng sinh và chuyển dữ liệu đo lường.
+Một dịch vụ đạt độ bao phủ dòng cao nhưng lỗi ở nhánh xử lý giao dịch thất bại vẫn lọt sang production; quản lý muốn hiểu hạn chế của chỉ số line coverage khi đánh giá chất lượng kiểm thử.
+Trong hệ thống đa module, báo cáo coverage của module thư viện không được gộp vào kết quả phân tích tổng thể; dashboard cho thấy một module gần như không được kiểm thử dù nhóm có bài test chạy đều.
+Một trình tạo mã nguồn sinh hàng nghìn dòng tương tự nhau làm chỉ số duplication tăng mạnh; nhóm cần xác định phạm vi đo, loại trừ có kiểm soát và cách giữ cho kết quả phân tích vẫn phản ánh mã do con người bảo trì.
+Một lớp điều phối đơn hàng có điểm complexity tăng qua từng sprint nhưng chưa từng xuất hiện lỗi nghiêm trọng; nhóm phân vân cách dùng cảnh báo độ phức tạp để ưu tiên refactor so với các vấn đề có tác động trực tiếp.
+Trong quá trình thêm chiết khấu, một phương thức được tách thành nhiều hàm nhỏ khiến cyclomatic complexity giảm nhưng người đọc vẫn khó theo dõi chuỗi điều kiện; nhóm cần chọn bằng chứng thích hợp để đánh giá tính dễ hiểu.
+Một rule phân tích báo lỗi tiềm ẩn ở đoạn xử lý ngày tháng nhưng người phụ trách cho rằng chỉ có thể xảy ra với dữ liệu không hợp lệ; buổi phân loại cần cân nhắc khả năng xuất hiện, tác động và bằng chứng.
+Báo cáo chất lượng gộp lỗi lập trình, lỗ hổng bảo mật và điểm cần người kiểm tra bảo mật vào một danh sách; nhóm review liên tục hiểu nhầm mọi cảnh báo là lỗ hổng đã được xác nhận.
+Một cảnh báo về tài nguyên chưa đóng được lặp lại ở lớp dùng framework quản lý vòng đời tự động; người phát triển đề xuất đánh dấu false positive nhưng nhóm chưa có tiêu chí ghi nhận bằng chứng và người phê duyệt.
+Hai nhóm xử lý cùng một rule khác nhau: nhóm A sửa ngay, nhóm B đánh dấu chấp nhận rủi ro không có thời hạn; khi tổng hợp dashboard, lãnh đạo không thể so sánh mức nợ kỹ thuật còn tồn tại.
+Một dự án đổi nhánh mặc định trong Git nhưng công cụ phân tích vẫn so sánh mã mới với nhánh cũ; PR sửa lỗi nhỏ bất ngờ mang theo hàng trăm issues không thuộc phần thay đổi.
+Sau khi đổi tên tệp Java và chuyển package, dashboard ghi nhận lượng mã mới rất lớn dù logic hầu như không đổi; nhóm cần xác minh cách công cụ xác định phạm vi New Code trước khi xử lý cảnh báo hàng loạt.
+Phân tích chạy khi push lên nhánh tính năng và chạy lại lúc mở pull request, nhưng hai báo cáo có số issues khác nhau; người quản lý pipeline cần giải thích sự khác biệt về nhánh, thời điểm và ngữ cảnh phân tích.
+Một contributor từ fork mở pull request nhưng job phân tích cần token bí mật nên không chạy; nhóm phải thiết kế cách kiểm tra thay đổi từ cộng tác viên bên ngoài mà vẫn bảo vệ thông tin xác thực.
+Quality gate liên tục thất bại do máy chủ phân tích không phản hồi vào giờ cao điểm, dù bản thân mã nguồn không thay đổi; nhóm cần phân biệt sự cố hạ tầng với vi phạm quy tắc chất lượng trong quy trình merge.
+Một pipeline tái sử dụng thư mục build cũ để tiết kiệm thời gian khiến lần quét sau ghi nhận issues đã được sửa; nhóm cần điều tra tính nhất quán giữa commit được quét, artifact và bộ nhớ đệm.
+Trong kho mã Java có thư mục mã sản xuất, kiểm thử, migration và tệp sinh tự động; cấu hình phạm vi quét đưa nhầm tệp test vào mã sản xuất, làm sai coverage và tỷ lệ duplication.
+Một dự án ngừng hiển thị cảnh báo vì lập trình viên thêm quy tắc loại trừ quá rộng cho thư mục dịch vụ; trong lần kiểm tra kế tiếp, lỗi nghiêm trọng ở chính thư mục đó không xuất hiện trên dashboard.
+Một thư viện Java có nhiều bài kiểm thử tích hợp chạy trên pipeline riêng, nhưng chất lượng chỉ được quét trước khi pipeline ấy hoàn tất; chỉ số coverage thay đổi theo thời điểm chạy khiến các lần review thiếu tin cậy.
+Khi thay đổi quality gate để yêu cầu mã mới không có lỗi mức cao, một PR sửa lỗi bảo mật khẩn cấp bị chặn bởi cảnh báo định dạng ít liên quan; nhóm cần xác định thứ tự ưu tiên và quy trình xử lý ngoại lệ.
+Nhân viên mới không hiểu ý nghĩa severity, rule key và vị trí issue trên dashboard nên sửa theo gợi ý một cách máy móc; một chỉnh sửa làm mất xử lý trường hợp biên và buộc đội phải bổ sung hướng dẫn triage.
+Sau nhiều sprint, tổng số issues giảm nhưng lượng mã mới có duplication tăng và coverage giảm; trưởng nhóm cần xác định nên nhìn chỉ số xu hướng nào để phát hiện chất lượng đang xấu đi.
+Một quản lý đánh giá hiệu suất cá nhân dựa trên số lượng cảnh báo bị đóng, khiến lập trình viên ưu tiên các lỗi dễ xử lý và bỏ qua vấn đề rủi ro cao; nhóm cần thiết kế cách đọc chỉ số phù hợp với mục tiêu cải tiến.
+Một dịch vụ có nhiều findings nghi ngờ về xác thực và phân quyền, nhưng dashboard chỉ được trưởng nhóm xem mỗi cuối tháng; cảnh báo nguy cơ cao không có chủ sở hữu rõ ràng hoặc thời hạn xử lý.
+Trong một monorepo, các dịch vụ có chu kỳ phát hành và độ trưởng thành khác nhau dùng cùng ngưỡng quality gate; thay đổi ngưỡng để phù hợp dịch vụ mới lại làm dịch vụ cũ mất khả năng merge.
+Nhóm đã cấu hình profile riêng cho Java nhưng sau khi nâng phiên bản plugin, một số rule đổi hành vi và tạo hàng loạt vấn đề mới; đội cần xác minh phiên bản, chính sách cập nhật và tác động lên đường chuẩn đo lường.
+Một pull request liên quan sửa lỗi sản xuất được đánh giá xanh, dù công cụ phân tích không nhận báo cáo coverage do đường dẫn thay đổi; reviewer cần đánh giá độ tin cậy của kết luận pass khi dữ liệu đầu vào bị thiếu.
+Đội phát triển áp dụng nhiều công cụ chất lượng độc lập trong IDE, pre-commit, CI và máy chủ phân tích, mỗi công cụ trả kết quả khác nhau; thành viên mất thời gian sửa cùng vấn đề theo các chuẩn xung đột.
+Sau một quý vận hành continuous inspection, số lần gate pass tăng nhưng lỗi bảo trì và thời gian khắc phục sự cố không giảm; lãnh đạo muốn kết hợp số liệu review, defects và chỉ số mã mới để điều chỉnh chính sách chất lượng.

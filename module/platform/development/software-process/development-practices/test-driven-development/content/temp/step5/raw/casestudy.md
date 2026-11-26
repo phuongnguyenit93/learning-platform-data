@@ -1,0 +1,32 @@
+Một nhóm Java nhận yêu cầu miễn phí vận chuyển từ ngưỡng 500.000 đồng; lập trình viên bắt đầu sửa logic trước rồi mới thêm test, khiến trường hợp đơn đúng bằng ngưỡng tiếp tục bị bỏ sót.
+Trong chu trình Red–Green–Refactor, một lập trình viên viết bài test tính điểm thưởng nhưng test đã xanh trước khi triển khai hành vi mới; nhóm không có bằng chứng bài test có thể phát hiện lỗi cần sửa.
+Đội phát triển viết một bài JUnit thất bại mô tả đăng ký khách hàng hợp lệ, sau đó lập trình ngay cả quản lý email, cache và lịch sử thay đổi; khi test chuyển xanh, không rõ phần mã bổ sung nào thực sự cần thiết.
+Một hàm tính chiết khấu được làm cho test đầu tiên đạt bằng cách trả về kết quả cố định của một ví dụ; đến khi thêm dữ liệu đơn hàng khác, thiết kế lộ ra nhiều giả định không được bài kiểm tra đầu phát hiện.
+Lập trình viên sửa thuật toán rồi đồng thời cập nhật nhiều test đang đỏ mà chưa xác định lỗi nào tương ứng hành vi nào; khi toàn bộ test xanh, không thể phân biệt sửa lỗi đúng với thay đổi kỳ vọng để hợp thức hóa mã.
+Trong dịch vụ tính thuế, test sử dụng các số tiền nguyên và không đụng đến cách làm tròn; một thay đổi nhỏ về phép tính khiến hóa đơn lệch một đơn vị ở các giá trị thập phân nhưng suite vẫn xanh.
+Một phương thức phân loại độ tuổi chạy đúng với các giá trị 18 và 60, nhưng test không có trường hợp ngay dưới hoặc trên ngưỡng; sau refactor, phép so sánh ở biên bị đảo mà không bài nào thất bại.
+Nhóm cần bổ sung kiểm tra chuỗi tên người dùng rỗng, có khoảng trắng và chứa ký tự Unicode; test đầu tiên chỉ kiểm tra tên thông thường nên API chấp nhận những giá trị không hợp lệ ngoài dự kiến.
+Một bộ xử lý thanh toán phải thông báo loại lỗi khác nhau khi tài khoản không tồn tại, thiếu tiền và hệ thống đối tác tạm ngừng; bài test hiện chỉ xác nhận có một ngoại lệ bất kỳ được ném ra.
+Một class Java cần gọi cổng gửi email sau khi tạo tài khoản, nhưng unit test chỉ kiểm tra đối tượng trả về; khi mã mới quên gửi email, test vẫn xanh dù hành vi bên ngoài không được thực hiện.
+Một service từ chối đơn hàng sai dữ liệu nhưng đã gọi thao tác trừ tồn kho trước khi trả lỗi; test dùng trong TDD chỉ xác nhận thông báo từ chối mà không kiểm tra trạng thái hệ thống sau lời gọi.
+Nhóm đang viết test trước cho use case tính giá nhưng phải dựng database, web server và cấu hình Spring đầy đủ mới chạy được; mỗi chu trình Red–Green mất vài phút nên lập trình viên bắt đầu bỏ qua việc chạy test sau bước nhỏ.
+Một lớp Java tạo trực tiếp client HTTP trong constructor và gọi dịch vụ ngoài khi tính phí; nhóm không thể viết test thất bại cho nhánh timeout mà không phụ thuộc vào mạng và dữ liệu đối tác.
+Trong bộ test Mockito, repository giả trả cùng một giá sản phẩm cho mọi mã; mã triển khai hỏi nhầm mã vẫn đáp ứng bài test TDD vì dữ liệu stub không phân biệt tình huống nghiệp vụ.
+Một đội viết test xác minh chính xác từng phương thức hỗ trợ nội bộ của service được gọi bao nhiêu lần; khi refactor để gom truy vấn, test đỏ dù tổng tiền và tác dụng phụ vẫn đúng như yêu cầu.
+Một lớp trả CompletableFuture sau khi xử lý giao dịch, nhưng bài test đánh dấu Green ngay khi future được tạo; lỗi xảy ra sau đó trong tác vụ nền không được bộ test quan sát.
+Trong chức năng tự thử lại khi kết nối mạng lỗi tạm thời, các bài test dùng thời gian chờ thật; khi thêm một tình huống mới, mỗi vòng Red–Green phải đợi hàng chục giây và kết quả trên CI thiếu ổn định.
+Một hệ thống tính thời điểm hết hạn dựa vào đồng hồ thực của máy, khiến test viết hôm nay thành công nhưng thất bại sau nửa đêm hoặc trên máy CI ở múi giờ khác.
+Một chức năng sinh mã mời dùng số ngẫu nhiên không thể kiểm soát trong unit test; lập trình viên phải lặp lại bài test nhiều lần mới quan sát được tình huống trùng mã để bắt đầu sửa logic.
+Trong một bộ JUnit, các test dùng chung danh sách dữ liệu mutable được khởi tạo một lần; sau khi test đầu thêm phần tử, bài test sau có thể đỏ dù hành vi của lớp đang kiểm tra không thay đổi.
+Nhóm chạy test song song để có phản hồi nhanh nhưng một số ca dùng biến tĩnh làm kho dữ liệu thử; kết quả chuyển từ Green sang Red tùy thứ tự thực thi, làm mất độ tin cậy của nhịp phát triển.
+Một lập trình viên đưa hàng chục điều kiện giá và khuyến mại vào một test lớn, trong đó nhiều assertion được gọi sau một bước thiết lập dài; khi một assertion hỏng, các hành vi còn lại không được kiểm tra đến nơi đến chốn.
+Một phương thức tìm kiếm phải giữ nguyên thứ tự kết quả do nghiệp vụ quy định, nhưng unit test chỉ so sánh tập phần tử không xét thứ tự; lần refactor sang cấu trúc dữ liệu khác làm màn hình hiển thị sai mà test vẫn đạt.
+Trong bài toán phân trang, một test mô tả trang đầu luôn xanh, còn yêu cầu mới là xử lý trang cuối chưa đủ bản ghi; lập trình viên sửa trực tiếp hàm phân trang mà chưa tạo ví dụ lỗi cho hành vi mới.
+Một nhóm thêm chức năng cập nhật hồ sơ có xác thực quyền, nhưng mọi test dùng tài khoản quản trị; khi viết nhánh từ chối người dùng thường, không có ca Red riêng để chứng minh việc ngăn truy cập hoạt động.
+Một hệ thống Java cũ chưa có test cho hàm chuyển tiền dài hàng trăm dòng; lập trình viên muốn thiết kế lại hàm theo TDD nhưng hiện không thể phân biệt quy tắc cần giữ với hành vi ngoài ý muốn đã tồn tại.
+Sau khi có Green cho việc tính tổng tiền, nhóm đổi tên lớp, tách phương thức và thay cách gom dữ liệu, nhưng không chạy lại suite trước khi tiếp tục thêm tính năng; lỗi làm tròn xuất hiện từ bước refactor trước đó bị phát hiện quá muộn.
+Một bộ test cho chức năng cấp mã giảm giá đạt gần 100% line coverage nhưng không kiểm tra kết quả ở ranh giới; khi thay một dấu so sánh trong mã, toàn bộ test vẫn xanh khiến nhóm phải đánh giá chất lượng phản hồi thực tế.
+Một người mới học TDD nghĩ rằng phải dùng mock cho mọi phụ thuộc, kể cả đối tượng giá trị và các phép tính thuần túy; test trở nên dài và ràng buộc với cấu trúc lớp hơn là mô tả kết quả có ý nghĩa nghiệp vụ.
+Đội muốn tích hợp thêm cổng thanh toán mới và viết test cho giao diện chung, nhưng một số hành vi phụ thuộc vào mã lỗi, timeout và hợp đồng thật của nhà cung cấp mà bộ mock đơn giản không thể xác minh.
+Trong một pull request, lập trình viên thay đổi nhiều nhánh nghiệp vụ và refactor cấu trúc trước khi chạy test; khi phát hiện Red, nhóm mất nhiều thời gian tìm lại bước nhỏ đầu tiên làm hỏng hành vi đã có.
+Một đội tuyên bố áp dụng TDD vì có nhiều unit test và độ bao phủ cao, nhưng test thường được viết sau code và các thành viên bỏ bước refactor khi vừa đạt Green; mã tiếp tục tích lũy phụ thuộc khó thay thế và thiết kế ngày càng khó kiểm thử.

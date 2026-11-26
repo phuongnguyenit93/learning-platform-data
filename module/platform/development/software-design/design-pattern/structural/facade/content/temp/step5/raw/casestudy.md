@@ -1,0 +1,32 @@
+Một ứng dụng bán hàng yêu cầu controller tự gọi các lớp kiểm tra tồn kho, tính giảm giá, giữ hàng và tạo hóa đơn theo đúng thứ tự; khi một bước được thay đổi, cả giao diện web lẫn ứng dụng di động đều phải sửa cách điều phối.
+Một công cụ chuyển đổi video phải khởi tạo bộ giải mã, chọn định dạng đầu ra, tạo luồng âm thanh, xử lý hình ảnh và giải phóng tài nguyên; các nhóm sử dụng thư viện liên tục bỏ sót một bước cấu hình khiến tệp xuất ra không phát được.
+Một dịch vụ tạo báo cáo PDF cần tải mẫu, đăng ký font tiếng Việt, đưa dữ liệu vào trang, chèn chữ ký và ghi tệp; mỗi endpoint tự thực hiện các bước theo thứ tự khác nhau, khiến báo cáo của một số chức năng bị lỗi dấu.
+Trong hệ thống đặt phòng, hành động xác nhận đặt chỗ phải giữ phòng, thanh toán và gửi thông báo qua ba phân hệ; một lỗi thanh toán xảy ra sau khi giữ phòng khiến người dùng nhìn thấy phòng đã hết chỗ dù giao dịch chưa hoàn tất.
+Một nền tảng IoT có quá trình khởi động thiết bị gồm thiết lập kết nối, kiểm tra firmware và đăng ký cảm biến; lập trình viên mới gọi trực tiếp một API đọc dữ liệu mà chưa hoàn tất khởi tạo nên nhận giá trị không hợp lệ.
+Một ứng dụng bệnh viện phải tạo hồ sơ bệnh nhân, lịch hẹn, chỉ định khám và số thứ tự tại quầy; từng màn hình đang điều khiển các phân hệ riêng nên người dùng có thể nhận số thứ tự dù lịch hẹn chưa được lưu.
+Một API tải tài liệu cần kiểm tra dung lượng, quét mã độc, lưu tệp và ghi metadata; các client gọi thẳng kho lưu trữ nên một số đường upload bỏ qua bước kiểm tra bắt buộc.
+Một bộ thư viện Java dùng nhiều lớp để xác thực, ký số và gửi hóa đơn điện tử; mỗi dự án tích hợp tự chọn cách gọi, khiến cùng loại hóa đơn có kết quả khác nhau giữa các đơn vị triển khai.
+Một nhóm muốn đưa giao diện đơn giản trước SDK của đối tác có hàng chục đối tượng cấu hình; sau lần nâng cấp SDK, các ứng dụng khách phải sửa hàng loạt lời gọi dù nhu cầu nghiệp vụ không đổi.
+Một facade trả trực tiếp entity lưu trữ của phân hệ kho, trong đó có nhiều trường nội bộ và quan hệ tải lười; client ngoài facade bắt đầu phụ thuộc vào cấu trúc database và nhận lỗi sau khi kết nối đóng.
+Một lớp facade chuyển nguyên ngoại lệ SQL và mã lỗi của bộ xử lý thanh toán đến tầng giao diện; màn hình khách hàng phải hiểu từng thư viện hạ tầng để phân biệt lỗi nghiệp vụ và lỗi hệ thống.
+Trong luồng cấp phiếu xuất kho, facade gọi lưu phiếu và trừ tồn ở hai giao dịch riêng nhưng trả kết quả thành công ngay sau lệnh đầu; khi lệnh thứ hai thất bại, hai phân hệ không còn nhất quán.
+Một chức năng tạo hồ sơ tín dụng được xử lý bất đồng bộ, nhưng facade trả về trạng thái hoàn tất ngay khi đưa tác vụ vào hàng đợi; khách hàng tưởng hồ sơ đã được phê duyệt dù bước đánh giá chưa chạy.
+Một facade đặt hàng phát email xác nhận trước khi cơ sở dữ liệu commit; khi ràng buộc dữ liệu làm transaction rollback, người dùng vẫn nhận được thư báo đơn đã đặt thành công.
+Một facade xem giỏ hàng gọi hệ thống giá và kho, nhưng lớp cache nội bộ giữ số lượng tồn quá lâu; khách hàng thấy sản phẩm còn hàng trong khi bước thanh toán lại bị từ chối.
+Một nhóm tạo facade để giúp client không phải khởi tạo nhiều thành phần, nhưng constructor của facade lập tức tạo kết nối đến mọi dịch vụ ngoài; ứng dụng khởi động chậm ngay cả khi chỉ dùng một chức năng nhỏ.
+Một facade dùng chung cho mọi yêu cầu HTTP lưu mã khách hàng đang xử lý trong biến instance; khi nhiều luồng gọi đồng thời, thông tin khách hàng của yêu cầu này bị sử dụng trong bước xác thực của yêu cầu khác.
+Trong công cụ đọc dữ liệu từ tệp nén, facade tự mở luồng, giải nén và phân tích nội dung nhưng khi gặp ngoại lệ parsing thì không đóng luồng; sau nhiều lần nhập lỗi ứng dụng không còn đủ file handle.
+Một ứng dụng nhiều tenant dùng facade truy vấn dữ liệu có lựa chọn nguồn kết nối theo khách hàng; facade giữ lại kết nối của lần gọi trước nên một số yêu cầu đọc nhầm dữ liệu của tenant khác.
+Hai client cần cùng chức năng xuất bảng kê nhưng một bên chỉ cần dữ liệu tóm tắt và bên còn lại cần chi tiết; facade luôn tải toàn bộ báo cáo từ mọi phân hệ, làm những yêu cầu đơn giản chậm bất thường.
+Một facade quản lý người dùng gọi service phân quyền và service hồ sơ; khi thay đổi quyền truy cập, facade chỉ kiểm tra quyền của người dùng ở giao diện nhưng không xem xét quyền của người thực hiện yêu cầu từ job nền.
+Ứng dụng desktop và hệ thống đối tác cùng dùng một facade điều phối quy trình tạo hợp đồng; facade đưa thông báo và mã lỗi gắn chặt với bố cục desktop, khiến ứng dụng đối tác khó sử dụng cùng hợp đồng.
+Một bộ xử lý ảnh bổ sung định dạng đầu vào mới vào phân hệ giải mã; facade cũ vẫn giới hạn vào danh sách định dạng đã được viết cố định, làm client không tiếp cận được khả năng mới dù thư viện lõi đã hỗ trợ.
+Một lớp facade tập trung mọi thao tác từ đăng nhập, lập hóa đơn, quản lý kho đến xuất báo cáo; khi các nhóm cùng sửa lớp này, xung đột thay đổi và thời gian kiểm thử hồi quy tăng nhanh.
+Một facade cho phép client thay trực tiếp danh sách các bước xử lý nội bộ rồi gọi thực thi; cùng một yêu cầu có thể bỏ qua bước bắt buộc và tạo ra trạng thái sai, dù facade được kỳ vọng che giấu độ phức tạp của phân hệ.
+Một thư viện tính giá có một hàm facade trả tổng tiền nhưng các client còn phải tự gọi bộ kiểm tra tính hợp lệ của mã giảm giá; một màn hình quên bước kiểm tra và chấp nhận ưu đãi đã hết hạn.
+Một facade kết nối cổng thanh toán tự thử lại mọi lỗi mạng; khi phía ngoài đã thu tiền nhưng phản hồi bị mất, lời gọi thử lại tạo giao dịch trùng vì quy trình không phân biệt kết quả không xác định.
+Nhóm kiểm thử chỉ mock facade để xác nhận controller trả HTTP thành công, nhưng không có bài nào kiểm tra thứ tự thực tế của các lời gọi vào kho, tính giá và thanh toán; lỗi điều phối lọt qua đợt phát hành.
+Một yêu cầu tạo hợp đồng đi qua facade rồi đến nhiều thư viện phụ trợ, mỗi thư viện ghi log theo mã khác nhau; khi có lỗi hiếm, nhóm không xác định được bước nào thực sự thất bại hoặc đã hoàn tất.
+Một chức năng phân tích dữ liệu phải gọi tuần tự bốn API nội bộ qua facade để tạo một phản hồi tổng hợp; khi một API chậm, facade giữ toàn bộ tài nguyên và thời gian chờ tăng dù client chỉ cần một phần kết quả.
+Sau khi phân hệ tính thuế thay đổi quy tắc và định dạng dữ liệu, facade vẫn trả về đối tượng kết quả cũ nhưng không chuyển đổi một trường mới; các client tiếp tục chạy mà không biết số thuế của trường hợp mới đã bị bỏ qua.
+Một ứng dụng chỉ cần gọi một phép toán thuần túy của thư viện nhưng đội đề xuất tạo facade với nhiều lớp cấu hình, điều phối và xử lý ngoại lệ; kiến trúc sư cần cân nhắc liệu giao diện bổ sung có thật sự giảm độ phức tạp cho bên sử dụng.

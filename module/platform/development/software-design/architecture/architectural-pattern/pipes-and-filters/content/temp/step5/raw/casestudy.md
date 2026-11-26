@@ -1,0 +1,32 @@
+Một hệ thống nhập bảng giá từ CSV qua các bước đọc tệp, phân tích dòng, chuẩn hóa tiền tệ và lưu dữ liệu; bộ lọc chuẩn hóa nhận chuỗi giá theo định dạng khác với đầu ra của bước phân tích khiến hàng nghìn sản phẩm bị tính sai giá.
+Một dịch vụ xử lý ảnh hóa đơn nối các bước làm sạch ảnh, nhận dạng ký tự và trích xuất thông tin; khi thay thư viện OCR, bước nhận dạng bắt đầu trả tọa độ khác quy ước và bộ lọc trích xuất gán nhầm số tiền.
+Pipeline nhận sự kiện cảm biến có bộ lọc đổi đơn vị nhiệt độ và bộ lọc cảnh báo vượt ngưỡng; một lần đổi thứ tự hai bước làm cảnh báo kích hoạt sai dù mỗi filter vẫn vượt qua unit test riêng.
+Một hệ thống xác thực dữ liệu khách hàng có bước loại trường thừa rồi mới kiểm tra chữ ký số; sau khi thay đổi pipeline, hồ sơ hợp lệ bị từ chối vì dữ liệu dùng để xác minh không còn giống dữ liệu gốc.
+Bộ lọc kiểm tra dữ liệu đầu vào loại bỏ bản ghi thiếu mã khách hàng, nhưng nhóm vận hành muốn thống kê và giải thích từng bản ghi lỗi; thiết kế hiện tại chỉ bỏ qua im lặng nên không có dấu vết nguyên nhân thất bại.
+Một bước phân tích nhật ký trả tập kết quả rỗng khi không có dòng hợp lệ, nhưng bước sau hiểu tập rỗng là lỗi và ngừng cả lô; nhóm cần xác định rõ ý nghĩa của đầu ra rỗng trong hợp đồng giữa các filter.
+Đội xây chuỗi lọc thông báo bằng đối tượng Java có thể sửa; một filter thay trực tiếp trường người nhận trên đối tượng rồi chuyển tiếp, khiến các bước ghi log trước đó cũng quan sát thấy dữ liệu đã bị thay đổi.
+Ứng dụng xử lý dữ liệu giao dịch chạy nhiều luồng và tái sử dụng cùng một filter có bộ đếm trạng thái bên trong; khi tải cao, kết quả lọc của khách hàng này bị ảnh hưởng bởi dữ liệu khách hàng khác.
+Một filter kiểm tra trùng sự kiện giữ tập mã đã xử lý trong bộ nhớ qua nhiều lượt chạy; sau khi chuyển sang xử lý song song, kết quả phụ thuộc vào thứ tự sự kiện đi qua từng instance.
+Hệ thống tổng hợp báo cáo đọc tệp đầu vào theo luồng nhưng bộ lọc sắp xếp lại giữ toàn bộ bản ghi trong List trước khi phát tiếp; dữ liệu tăng từ vài MB lên nhiều GB khiến bộ nhớ ứng dụng cạn kiệt.
+Một pipeline nhận sự kiện qua HTTP nhanh hơn nhiều so với tốc độ ghi vào database; hàng đợi giữa bước kiểm tra và bước lưu không có giới hạn, nên số phần tử chờ tăng không ngừng trong giờ cao điểm.
+Đội tăng số worker ở filter giải mã dữ liệu nhưng filter ghi tệp đích chỉ có một luồng; độ trễ toàn pipeline không giảm và bộ nhớ các hàng đợi trung gian tăng rõ rệt.
+Một filter gọi dịch vụ xác minh địa chỉ bên ngoài có thời gian phản hồi thất thường, khiến những sự kiện phía sau phải chờ dù các bước phân tích nội bộ rất nhanh; nhóm cần đánh giá cách cô lập điểm chậm trong chuỗi xử lý.
+Một hệ thống chuyển đổi đơn hàng chạy lại một filter sau lỗi mạng, nhưng filter đó đã trừ tồn kho trước khi báo thành công; lần xử lý lại làm số lượng trong kho bị giảm hai lần.
+Một bản ghi CSV sai định dạng luôn làm bộ lọc phân tích ném ngoại lệ; cơ chế thử lại đặt ở toàn pipeline khiến cùng bản ghi bị xử lý lặp vô hạn và những bản ghi hợp lệ phía sau không được tiếp nhận.
+Khi bộ lọc cuối ghi dữ liệu thất bại, pipeline đã phát thông báo thành công ở một bước trước đó; nhóm phải xác định ranh giới hoàn thành và mức độ nhất quán cần có giữa các tác động bên ngoài.
+Trong quy trình làm sạch dữ liệu, một filter lỗi giữa lô hàng nghìn bản ghi và pipeline chỉ trả trạng thái thất bại chung; đội vận hành không biết bản ghi nào đã được xử lý và có thể tiếp tục từ điểm nào.
+Một hệ thống xử lý luồng sự kiện có yêu cầu giữ đúng thứ tự cập nhật trạng thái từng tài khoản; sau khi thêm nhiều worker ở filter tính toán, sự kiện đến sau lại được ghi trước sự kiện đến trước.
+Pipeline phân tích clickstream cho phép xử lý các phiên độc lập song song, nhưng tất cả sự kiện đang đi qua một hàng đợi tuần tự; nhóm cần cân nhắc ranh giới song song mà không làm sai thứ tự trong từng phiên.
+Ứng dụng định tuyến sự kiện qua hai nhánh lọc độc lập để kiểm tra gian lận và tính phí; một nhánh hoàn tất còn nhánh kia bị timeout, khiến bước hợp nhất không biết nên đợi, trả kết quả một phần hay coi cả sự kiện thất bại.
+Một hệ thống kết hợp kết quả nhận diện sản phẩm từ hai nguồn ảnh, nhưng một nguồn gửi kết quả trễ hoặc không gửi; bước hợp nhất giữ bộ nhớ chờ mãi những cặp không bao giờ đầy đủ.
+Trong pipeline xuất báo cáo, bộ lọc tạo tài liệu và bộ lọc nén chạy theo lô lớn để tăng throughput, nhưng người dùng phải chờ rất lâu mới nhận được trang kết quả đầu tiên.
+Một dịch vụ nhận dữ liệu từ thiết bị theo gói nhỏ, nhưng mỗi filter lại chuyển đổi đối tượng sang JSON rồi phân tích trở lại; CPU và cấp phát bộ nhớ tăng dù biến đổi nghiệp vụ trong từng bước rất nhẹ.
+Một filter chuẩn hóa văn bản thay đổi bộ mã ký tự trước khi bước phân tích thông tin khách hàng thực hiện; những tên có dấu tiếng Việt bị mất ký tự trong khi các ca kiểm thử chỉ sử dụng dữ liệu ASCII.
+Pipeline xử lý giá trị tiền tệ lần lượt đổi tiền, làm tròn và áp mức phí; kết quả cuối thay đổi theo thứ tự bước làm tròn, khiến nhóm cần xác định chính xác hợp đồng dữ liệu và ràng buộc giữa các bộ lọc.
+Một filter ẩn dữ liệu cá nhân xóa mã khách hàng khỏi bản ghi trước khi chuyển sang bước ghi log; việc mất khóa truy vết khiến đội vận hành không thể liên kết thông báo lỗi với yêu cầu ban đầu.
+Một nhóm phát triển kiểm thử mỗi filter bằng đối tượng đầu vào tự dựng nhưng chưa kiểm tra việc ghép nối thật; khi filter phía trước đổi từ số nguyên sang chuỗi có đơn vị, filter phía sau vẫn biên dịch nhưng không xử lý đúng.
+Trong pipeline nhập dữ liệu đối tác, bước kiểm tra schema thường được thay theo phiên bản nguồn; đội khó xác định filter nào không còn tương thích khi đồng thời nhận cả định dạng cũ và định dạng mới.
+Ứng dụng phân tích nhật ký lưu trạng thái tiến độ trong từng filter để tiếp tục sau restart; sau khi tiến trình ngừng đột ngột, một phần dữ liệu được phát lại còn trạng thái tổng hợp không được phục hồi tương ứng.
+Một pipeline có tám filter, nhưng dashboard chỉ đo thời gian toàn chuỗi; khi latency tăng, đội không biết bước nào gây nghẽn hoặc tỷ lệ bản ghi bị loại ở đâu mà không ghi lộ dữ liệu nhạy cảm.
+Nhóm thay đổi cấu hình quy tắc lọc trong khi pipeline đang xử lý một lô sự kiện; nửa đầu lô dùng phiên bản quy tắc cũ và nửa sau dùng phiên bản mới, khiến báo cáo cuối thiếu tính nhất quán.
+Một chức năng chỉ cần kiểm tra và chuẩn hóa ba trường từ một biểu mẫu nhỏ nhưng được thiết kế thành chuỗi hàng chục filter chạy qua broker; thời gian xử lý, số thành phần triển khai và chi phí theo dõi lỗi tăng, buộc kiến trúc sư đánh giá mức độ phù hợp của mẫu kiến trúc.

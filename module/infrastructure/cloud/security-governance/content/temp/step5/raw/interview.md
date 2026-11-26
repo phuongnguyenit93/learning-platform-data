@@ -1,0 +1,12 @@
+Khi một doanh nghiệp sử dụng máy ảo, cơ sở dữ liệu được quản lý và ứng dụng SaaS từ nhiều nhà cung cấp cloud, bạn sẽ xác định và kiểm chứng trách nhiệm bảo mật của doanh nghiệp với từng nhà cung cấp theo mô hình trách nhiệm chia sẻ như thế nào?
+Bạn sẽ xây dựng cấu trúc tài khoản hoặc project, phân công chủ sở hữu tài nguyên và thiết lập chính sách bảo mật chung ra sao để các nhóm sản phẩm có thể tự triển khai mà vẫn chịu trách nhiệm về rủi ro?
+Khi nhân viên chuyển nhóm hoặc rời công ty, bạn sẽ kết hợp định danh tập trung, MFA, phân quyền tối thiểu và rà soát quyền đặc quyền như thế nào để ngăn quyền truy cập tồn dư trên nhiều nền tảng cloud?
+Đối với pipeline CI/CD cần triển khai hạ tầng lên hai nhà cung cấp cloud, bạn sẽ thiết kế danh tính workload, liên kết định danh và cấp quyền ngắn hạn như thế nào để giảm phụ thuộc vào khóa truy cập lưu lâu dài?
+Với dữ liệu khách hàng có mức độ nhạy cảm và yêu cầu lưu trú khác nhau, bạn sẽ xây dựng quy tắc phân loại, mã hóa khi lưu và truyền, quản lý khóa cùng kiểm soát vị trí lưu trữ như thế nào?
+Một dịch vụ nội bộ vô tình được công bố ra Internet sau khi thay đổi cấu hình mạng; bạn sẽ đánh giá các đường truy cập, kiểm soát phân đoạn mạng và xây dựng cơ chế ngăn tái diễn trên nhiều môi trường cloud ra sao?
+Bạn sẽ áp dụng policy as code vào quy trình hạ tầng dưới dạng mã như thế nào để phát hiện tài nguyên cấu hình sai, xử lý ngoại lệ hợp lệ và kiểm soát sai lệch cấu hình sau triển khai?
+Khi phát hiện lỗ hổng nghiêm trọng trong image container đang chạy trên nhiều dịch vụ cloud, bạn sẽ đánh giá phạm vi ảnh hưởng, mức độ phơi lộ và ưu tiên vá lỗi cùng kiểm chứng kết quả như thế nào?
+Bạn sẽ thiết kế việc thu thập, đồng bộ thời gian, lưu giữ và bảo vệ log truy cập cùng log thay đổi cấu hình ra sao để tạo bằng chứng kiểm toán đáng tin cậy từ nhiều nhà cung cấp cloud?
+Nếu hệ thống cảnh báo phát hiện một danh tính đặc quyền đang gọi API bất thường ở nhiều tài khoản cloud, bạn sẽ điều tra, cô lập quyền, bảo toàn bằng chứng và phối hợp với các bên liên quan như thế nào?
+Khi xây dựng kế hoạch phục hồi trước ransomware cho dữ liệu đặt trên nhiều nền tảng cloud, bạn sẽ thiết kế bản sao lưu tách biệt, khả năng chống sửa xóa và kiểm thử khôi phục như thế nào để đáp ứng RPO/RTO?
+Khi một nhóm kinh doanh đề nghị ngoại lệ cho chính sách bảo mật để kịp ra mắt sản phẩm, bạn sẽ đánh giá rủi ro còn lại, xác định người có thẩm quyền chấp thuận, biện pháp bù đắp và thời điểm rà soát ngoại lệ như thế nào?

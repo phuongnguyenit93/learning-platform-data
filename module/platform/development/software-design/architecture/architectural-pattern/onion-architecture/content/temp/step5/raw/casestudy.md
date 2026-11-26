@@ -1,0 +1,32 @@
+Một hệ thống đặt hàng đưa annotation của Hibernate và mã truy vấn SQL trực tiếp vào lớp Order thuộc domain; khi nhóm chuyển từ cơ sở dữ liệu quan hệ sang kho document, cả quy tắc tính tổng tiền cũng phải sửa theo.
+Trong ứng dụng bảo hiểm, quy tắc tính mức bồi thường nằm trong controller Spring và được sao chép sang tác vụ chạy theo lịch; hai đường gọi bắt đầu trả kết quả khác nhau khi chính sách thay đổi.
+Một đối tượng tài khoản ngân hàng tự gọi repository để kiểm tra số dư trước khi chuyển tiền; nhóm muốn kiểm thử quy tắc không cho số dư âm nhưng phải khởi tạo cả kết nối cơ sở dữ liệu.
+Nhóm thiết kế domain model cho địa chỉ giao hàng nhưng lại sử dụng trực tiếp DTO từ thư viện REST; khi API đổi tên trường, nhiều phép kiểm tra địa chỉ trong lõi nghiệp vụ không còn biên dịch được.
+Một quy tắc tạo hợp đồng cần loại bỏ ngày kết thúc sớm hơn ngày bắt đầu; lớp domain đang ném ngoại lệ mang mã HTTP 400, khiến cùng quy tắc không thể dùng thuận tiện trong job chạy nền.
+Ứng dụng tính lãi vay sử dụng đồng hồ hệ thống bên trong entity để xác định ngày quá hạn; unit test chạy gần thời điểm chuyển ngày cho kết quả khác nhau tùy múi giờ của máy CI.
+Một giá trị tiền tệ được biểu diễn như số thực và nhiều màn hình tự làm tròn theo cách khác nhau; nhóm cần thiết kế bất biến của domain mà không phụ thuộc vào kiểu dữ liệu của framework trình bày.
+Trong dịch vụ đặt vé, một đơn đặt chỗ chứa nhiều ghế và không được phép có hai vé trùng cùng ghế; controller và repository đều kiểm tra riêng nhưng entity lại cho phép thêm dữ liệu vi phạm quy tắc.
+Một use case phê duyệt khoản vay phải lấy thông tin người vay, đánh giá điều kiện, lưu quyết định và phát thông báo; nhóm chưa phân định phần nào là quy tắc domain và phần nào thuộc điều phối ứng dụng.
+Nhóm khai báo interface lưu đơn hàng ở package infrastructure rồi cho application service nhập trực tiếp interface đó; khi module adapter được tách thành thư viện riêng, module nghiệp vụ không thể biên dịch độc lập.
+Một ứng dụng cần chuyển từ gửi email sang gửi thông báo đẩy cho khách hàng; lớp application gọi trực tiếp SDK của nhà cung cấp email nên thay đổi kênh thông báo kéo theo sửa nhiều use case.
+Hai adapter thanh toán cung cấp phản hồi lỗi khác nhau, một bên trả mã chuỗi và bên kia ném ngoại lệ thư viện; use case hiện chứa nhiều nhánh xử lý đặc thù từng nhà cung cấp thay vì làm việc với một hợp đồng thống nhất.
+Trong hệ thống quản lý kho, repository trả ra entity chứa proxy tải lười của Hibernate; khi application kiểm tra số lượng sau khi Session đóng, truy cập tới các mục hàng phát sinh lỗi ở tầng nghiệp vụ.
+Ứng dụng phải hỗ trợ PostgreSQL tại trung tâm dữ liệu và kho lưu trữ trong bộ nhớ khi chạy ngoại tuyến; nhóm đã cho domain gọi trực tiếp API của PostgreSQL và gặp khó khăn khi thêm đường lưu trữ thứ hai.
+Một controller REST xử lý cả phân quyền, tính giá, trừ tồn kho và ghi log nghiệp vụ trong một phương thức dài; khi thêm API gọi từ ứng dụng di động, nhóm phải sao chép phần lớn logic.
+Một use case tạo đơn nhận trực tiếp kiểu HttpServletRequest và trả về ResponseEntity; nhóm muốn sử dụng cùng chức năng từ consumer thông điệp nhưng không có ngữ cảnh HTTP trong luồng này.
+Đội xây application service dựa trên DTO do công cụ sinh mã OpenAPI tạo ra; sau khi thay đổi hợp đồng API dành cho đối tác, chữ ký các chức năng nghiệp vụ nội bộ cũng bị thay đổi hàng loạt.
+Một quy trình chuyển tiền cần cập nhật hai tài khoản trong cùng giao dịch, nhưng domain model đang giữ đối tượng Transaction của framework; những bài test quy tắc chuyển tiền bị buộc tải Spring Context đầy đủ.
+Một dự án đặt annotation giao dịch trên từng phương thức domain, trong khi use case cần phối hợp nhiều thao tác ghi; khi tác vụ thứ hai thất bại, phần đầu vẫn được lưu và nhóm phải xem lại ranh giới điều phối.
+Một domain event báo đơn hàng được xác nhận đang được biểu diễn bằng lớp Message của Kafka; sau khi chuyển broker, code domain phải đổi dù ý nghĩa sự kiện nghiệp vụ không thay đổi.
+Trong bài kiểm thử use case cấp mã giảm giá, nhóm muốn thay cổng lưu dữ liệu và cổng gửi thông báo bằng fake, nhưng code khởi tạo trực tiếp adapter thật trong constructor nên không thể thay thế phụ thuộc.
+Một unit test quy tắc từ chối đơn hàng cần khởi chạy web server, container database và broker chỉ để kiểm tra điều kiện số lượng âm; đội nghi ngờ ranh giới giữa lõi và lớp hạ tầng đang bị đảo ngược.
+Nhóm thêm cache vào truy vấn giá sản phẩm rồi đặt logic hết hạn và SDK Redis trong domain service; khi chạy kiểm thử với cache tắt, kết quả nghiệp vụ thay đổi theo trạng thái cache bên ngoài.
+Trong hệ thống thương mại điện tử, quy tắc giảm giá cho khách VIP được đặt trong adapter truy vấn SQL để tối ưu hiệu năng; một lệnh nhập đơn từ tệp CSV bỏ qua adapter đó nên không nhận được ưu đãi tương ứng.
+Một nền tảng nhiều tenant có quy tắc tính phí giống nhau nhưng cách chọn nguồn dữ liệu thay đổi theo khách hàng; entity đang giữ tên schema của database và tự tạo kết nối dựa trên mã tenant.
+Một tác vụ chạy nền xử lý hoàn tiền trực tiếp gọi hàm private của controller nhằm tái sử dụng logic, khiến thay đổi xác thực web làm job chạy ngoài giờ không thể thực thi.
+Hai module application và infrastructure nhập lớp của nhau theo vòng tròn: use case dùng adapter cụ thể, còn adapter lại gọi ngược một service nội bộ; quá trình build từng module riêng gặp lỗi phụ thuộc chu kỳ.
+Đội phát triển muốn bổ sung một cơ chế phân quyền mới, nhưng các annotation bảo mật framework đã được gắn trên entity và domain service; khi chạy domain trong môi trường không có Spring, nhiều quy tắc không hoạt động.
+Trong ứng dụng quản lý tồn kho, việc hủy đơn cần hoàn lại số lượng hàng, nhưng cách cập nhật đang trải qua nhiều aggregate và bị phân tán giữa entity, repository và listener; khi một bước lỗi, bất biến nghiệp vụ không còn được duy trì.
+Một lớp tiện ích chung chứa cả thuật toán tính thuế lẫn thao tác đọc tệp cấu hình và truy cập môi trường; vì domain phụ thuộc vào toàn bộ thư viện này, thay đổi cơ chế cấu hình khiến nhiều lớp lõi phải biên dịch lại.
+Một hệ thống Java cũ gom controller, business logic và JDBC trong cùng package; nhóm cần bổ sung cách lưu mới theo từng giai đoạn mà không dừng phát hành, đồng thời tránh viết lại toàn bộ quy tắc đã ổn định.
+Sau khi áp dụng Onion Architecture, đội tạo nhiều interface cho cả các phép tính thuần túy không có phụ thuộc ngoài, làm đường đi của một chức năng đơn giản khó theo dõi; kiến trúc sư phải đánh giá ranh giới abstraction thực sự giúp giảm phụ thuộc và chi phí duy trì.

@@ -1,0 +1,12 @@
+Bạn phân biệt chart, release, revision, chart version và appVersion trong Helm như thế nào, và sẽ dựa vào thông tin nào để truy vết chính xác phiên bản ứng dụng đang chạy trên Kubernetes?
+Khi đóng gói một dịch vụ web có Deployment, Service và Ingress thành chart dùng chung, bạn sẽ tổ chức Chart.yaml, values.yaml, thư mục templates và quy ước tên tài nguyên như thế nào để nhiều release không xung đột?
+Bạn thiết kế values mặc định, tệp cấu hình theo môi trường và giá trị ghi đè khi cài đặt hoặc nâng cấp như thế nào, đồng thời dùng schema để phát hiện cấu hình sai kiểu hoặc thiếu trường bắt buộc ra sao?
+Khi template Helm sinh manifest Kubernetes không hợp lệ do điều kiện, vòng lặp hoặc thụt lề YAML, bạn sẽ vận dụng Go template, helper template và các bước kiểm tra kết quả render như thế nào để cô lập lỗi?
+Nếu chart ứng dụng phụ thuộc chart PostgreSQL và Redis, bạn sẽ quản lý dependency, phiên bản tương thích, Chart.lock và nguồn phân phối chart như thế nào để các lần triển khai có thể tái tạo?
+Trước khi cài chart vào production, bạn sẽ kết hợp helm lint, kết xuất template, kiểm tra schema Kubernetes và chạy thử thay đổi như thế nào để phân biệt lỗi chart với lỗi chỉ xuất hiện khi tương tác với cluster thực tế?
+Trong lần nâng cấp một release có nhiều Pod, bạn sẽ theo dõi revision, tình trạng readiness, thời gian chờ và kết quả rollout như thế nào để quyết định khi nào bản phát hành thật sự sẵn sàng nhận lưu lượng?
+Khi thay đổi ConfigMap hoặc Secret qua values nhưng Pod vẫn sử dụng cấu hình cũ, bạn sẽ phân tích cách Kubernetes cập nhật tài nguyên và thiết kế cơ chế kích hoạt rollout phù hợp như thế nào, đồng thời bảo vệ dữ liệu bí mật trong values và lịch sử release ra sao?
+Nếu cần chạy tác vụ migration cơ sở dữ liệu trước khi phiên bản ứng dụng mới hoạt động, bạn sẽ đánh giá việc dùng Helm hooks, thứ tự thực thi, chính sách dọn Job và khả năng phục hồi khi migration thất bại như thế nào?
+Khi chart cài đặt cả CustomResourceDefinition và các custom resource phụ thuộc, bạn sẽ xử lý trình tự cài đặt, giới hạn nâng cấp hoặc xóa CRD của Helm và tương thích giữa các phiên bản như thế nào?
+Nếu helm upgrade làm ứng dụng lỗi trên production, bạn sẽ sử dụng lịch sử release để lựa chọn rollback hay sửa tiến lên, rồi xác minh tài nguyên, cấu hình và thay đổi dữ liệu nào không tự quay về trạng thái cũ như thế nào?
+Bạn sẽ tích hợp phát hành Helm vào CI/CD hoặc GitOps như thế nào để kiểm chứng chart và image, phân quyền triển khai, phê duyệt thay đổi và xử lý sự khác biệt giữa trạng thái khai báo với release đang chạy?

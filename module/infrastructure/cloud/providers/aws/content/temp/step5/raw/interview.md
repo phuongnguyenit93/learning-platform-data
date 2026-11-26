@@ -1,0 +1,12 @@
+Khi triển khai ứng dụng cho khách hàng ở nhiều quốc gia, bạn sẽ lựa chọn AWS Region và phân bố tài nguyên qua các Availability Zone dựa trên độ trễ, yêu cầu lưu trú dữ liệu, khả năng sẵn sàng và chi phí như thế nào?
+Bạn sẽ thiết kế IAM role và policy cho nhóm vận hành, quy trình CI/CD và ứng dụng chạy trên AWS ra sao để tuân thủ quyền tối thiểu, tránh dùng khóa truy cập dài hạn và kiểm tra quyền được cấp?
+Một ứng dụng ba tầng cần nhận truy cập từ Internet nhưng cơ sở dữ liệu chỉ được kết nối nội bộ; bạn sẽ bố trí VPC, public/private subnet, route table, security group, NAT Gateway và load balancer như thế nào?
+Khi đưa một dịch vụ có lưu lượng biến động lên AWS, bạn sẽ so sánh EC2 Auto Scaling, Amazon ECS trên Fargate và AWS Lambda dựa trên đặc điểm tải, thời gian thực thi, yêu cầu quản trị và chi phí ra sao?
+Với dữ liệu người dùng lưu trên Amazon S3 có tần suất truy cập giảm dần và nguy cơ xóa nhầm, bạn sẽ thiết kế quyền truy cập, mã hóa, versioning, lifecycle và lựa chọn storage class như thế nào?
+Một sản phẩm cần xử lý giao dịch quan hệ trong khi tính năng khác chủ yếu truy vấn theo khóa với lưu lượng lớn; bạn sẽ đánh giá Amazon RDS/Aurora và DynamoDB dựa trên mô hình dữ liệu, truy vấn, khả năng mở rộng và tính nhất quán ra sao?
+Khi cơ sở dữ liệu RDS phải chịu tải đọc tăng mạnh và vẫn hoạt động nếu một Availability Zone gặp sự cố, bạn sẽ phân biệt vai trò của Multi-AZ, read replica và backup trong thiết kế như thế nào?
+Trong hệ thống đặt hàng bất đồng bộ, bạn sẽ lựa chọn Amazon SQS, SNS hoặc EventBridge để kết nối các dịch vụ ra sao, đồng thời thiết kế retry, xử lý trùng lặp và dead-letter queue như thế nào?
+Khi xây dựng API tải ảnh lên S3 và xử lý ảnh bằng API Gateway cùng Lambda, bạn sẽ thiết kế xác thực, cơ chế kích hoạt, giới hạn đồng thời, timeout và xử lý lỗi như thế nào?
+Sau một lần phát hành, tỷ lệ lỗi HTTP 5xx tăng đột ngột; bạn sẽ dùng Amazon CloudWatch, dấu vết truy cập phân tán và AWS CloudTrail như thế nào để phân biệt lỗi ứng dụng, sự cố hạ tầng và thay đổi cấu hình?
+Nếu một AWS Region ngừng hoạt động, bạn sẽ xác định RTO/RPO, tổ chức sao lưu hoặc sao chép dữ liệu, thiết kế chuyển hướng lưu lượng và diễn tập khôi phục dịch vụ như thế nào?
+Khi chi phí AWS tăng nhanh sau khi mở rộng hệ thống, bạn sẽ kết hợp Cost Explorer, AWS Budgets, cost allocation tags và các mô hình giá như Savings Plans hoặc Spot để tìm phương án tối ưu mà vẫn đáp ứng yêu cầu độ tin cậy ra sao?

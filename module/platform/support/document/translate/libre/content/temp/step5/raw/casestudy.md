@@ -1,0 +1,32 @@
+Một cổng hỗ trợ khách hàng gửi đoạn chat tiếng Việt đến LibreTranslate qua REST API để dịch sang tiếng Anh, nhưng bộ phận tích hợp không phân biệt ngôn ngữ nguồn và ngôn ngữ đích nên một số yêu cầu bị từ chối khi người dùng đổi ngôn ngữ.
+Một ứng dụng Java nhận câu hỏi của khách viết xen tiếng Việt và tiếng Anh rồi gọi chức năng phát hiện ngôn ngữ trước khi dịch; kết quả nhận diện thay đổi với các câu quá ngắn khiến cùng một mẫu yêu cầu được xử lý không nhất quán.
+Một hệ thống quản lý tài liệu cần dịch hợp đồng dài gồm nhiều đoạn, bảng và tiêu đề, nhưng nhóm đang gửi toàn bộ nội dung trong một yêu cầu REST và gặp giới hạn kích thước hoặc timeout ở môi trường thực tế.
+Một bộ phận chăm sóc khách hàng phải dịch hàng nghìn mô tả sản phẩm mỗi đêm; khi tất cả bản ghi được gửi đồng thời, máy chủ LibreTranslate tự quản bị quá tải và một số tài liệu không nhận được kết quả.
+Trong ứng dụng Spring, mỗi lần dịch một đoạn văn đều tạo HTTP client mới và thiết lập lại kết nối; khi lượng yêu cầu tăng, số kết nối chờ và thời gian phản hồi cao hơn thời gian xử lý bản dịch.
+Một quy trình nhập tài liệu nhận mã ngôn ngữ nguồn do người dùng chọn nhưng nhiều người để chế độ tự phát hiện; trường hợp văn bản chỉ chứa mã sản phẩm và tên riêng làm bước nhận diện ngôn ngữ trả kết quả không đáng tin cậy.
+Một hệ thống hướng dẫn kỹ thuật chứa nhiều thuật ngữ chuyên ngành và tên thương hiệu; bản dịch máy thay đổi cả các tên riêng lẫn tên tính năng, khiến nhân viên không tìm được mục tương ứng trong phần mềm gốc.
+Một đội xây trang thông tin song ngữ yêu cầu giữ cấu trúc HTML, liên kết và văn bản trong thẻ; bản dịch trả về bị đưa vào trang như văn bản thuần nên người dùng nhìn thấy thẻ HTML thay vì bố cục ban đầu.
+Một ứng dụng dịch nội dung HTML cho nhân viên nội bộ cho phép nhập markup từ nguồn bên ngoài; khi kết quả dịch được hiển thị trở lại không qua kiểm tra an toàn, một đoạn mã độc trong thuộc tính HTML có thể được kích hoạt.
+Một tài liệu Markdown gồm tiêu đề, danh sách, liên kết và hàng rào mã nguồn được gửi đi dịch như văn bản thường; sau xử lý, cú pháp của khối code và địa chỉ liên kết bị thay đổi khiến tài liệu không còn render đúng.
+Một nhóm dịch hướng dẫn cài đặt Java và Spring chứa đường dẫn tệp, khóa cấu hình và tên API; công cụ dịch máy tự thay đổi các chuỗi cần giữ nguyên nên người học sao chép lệnh từ bản dịch không thể chạy được.
+Một hệ thống xử lý tài liệu cần dịch cả tệp đính kèm thay vì chỉ đoạn chữ, nhưng đường tích hợp đang giả định mọi định dạng tệp đều được máy chủ hỗ trợ và không có cách phân biệt định dạng được hỗ trợ với tệp không hợp lệ.
+Một tài liệu có bảng nhiều cột và các ô gộp được chuyển sang văn bản trước khi gửi LibreTranslate; bản dịch giữ đúng từ ngữ nhưng không còn biết câu nào thuộc ô nào khi xây dựng lại tài liệu.
+Một bộ xử lý tải tệp PDF chứa nội dung trích xuất không theo thứ tự đọc; bản dịch máy cho ra các câu sai mạch vì phần mềm đã ghép văn bản của hai cột xen kẽ trước khi gửi yêu cầu.
+Một trung tâm tài liệu dịch nhiều tệp cùng tên từ các thư mục khác nhau; hệ thống đặt tên bản dịch dựa duy nhất vào tên tệp khiến kết quả mới ghi đè bản dịch của tài liệu khác.
+Một hệ thống dịch hàng loạt gửi các đoạn văn theo danh sách nhưng ghép kết quả theo thứ tự phản hồi bất đồng bộ; khi một yêu cầu chậm hơn, bản dịch đoạn cuối bị chèn vào vị trí của đoạn đầu.
+Một ứng dụng tạo bản dịch cho cùng một văn bản sang ba ngôn ngữ, nhưng chỉ lưu một trường kết quả chung; khi các job hoàn tất gần nhau, bản dịch sau ghi đè nội dung của ngôn ngữ trước.
+Một chương trình dịch tài liệu phát hiện một số cặp ngôn ngữ không có sẵn trên máy chủ LibreTranslate được cài đặt; giao diện vẫn cho người dùng chọn mọi ngôn ngữ và chỉ báo lỗi chung sau khi tải xong tệp.
+Một nhóm vận hành máy chủ dịch tự quản cài thêm các mô hình ngôn ngữ mới; bộ nhớ và thời gian khởi động tăng mạnh, khiến dịch vụ không sẵn sàng trong thời gian triển khai dù các chức năng ứng dụng khác vẫn hoạt động.
+Trong môi trường tự quản, nhiều container LibreTranslate được khởi động với bộ mô hình ngôn ngữ khác nhau; một tài liệu dịch thành công ở lần thử đầu nhưng thất bại ở lần kế khi yêu cầu được cân bằng tới instance thiếu cặp ngôn ngữ.
+Một công ty muốn xử lý hồ sơ nhân sự có dữ liệu nhạy cảm bằng dịch vụ dịch máy; bộ phận bảo mật lo nội dung bị gửi tới endpoint công cộng thay vì máy chủ tự quản đã được phê duyệt.
+Một ứng dụng ghi đầy đủ văn bản đầu vào và bản dịch vào log khi REST API trả lỗi; trong hồ sơ có số định danh và địa chỉ khách hàng, khiến đội vận hành tiếp cận dữ liệu mà họ không được phép xem.
+Một cổng dịch dùng khóa truy cập cho máy chủ LibreTranslate nhưng lưu khóa cố định trong mã frontend; người dùng có thể xem khóa và gửi yêu cầu trực tiếp làm vượt hạn mức dịch của hệ thống.
+Khi LibreTranslate trả lỗi giới hạn tần suất, chương trình Java thử lại ngay hàng trăm yêu cầu đồng thời; đợt retry làm tải máy chủ tăng thêm và các tài liệu vốn không lỗi cũng bắt đầu bị trễ.
+Một job dịch đã gửi yêu cầu thành công nhưng mất kết nối trước khi nhận kết quả; lần chạy lại tạo thêm một bản dịch và tính lại thời gian xử lý dù văn bản nguồn, phiên bản và ngôn ngữ đích không thay đổi.
+Một quy trình tự động dịch thông báo pháp lý rồi xuất bản ngay mà không có bước đánh giá; một câu phủ định bị dịch sai làm ý nghĩa nghĩa vụ của người dùng khác với bản tiếng Việt gốc.
+Một tài liệu hướng dẫn có các placeholder như tên khách hàng, số tiền và mã đơn; sau khi dịch, một vài placeholder bị thêm khoảng trắng hoặc thay dấu ngoặc làm hệ thống không thể chèn dữ liệu động.
+Một ứng dụng đã lưu bản dịch của mẫu email theo chuỗi nguồn, nhưng khi thay đổi mẫu hoặc nâng mô hình ngôn ngữ, bản dịch cũ vẫn được dùng mà không có thông tin phiên bản để đối chiếu chất lượng.
+Một hệ thống dịch đoạn văn tiếng Việt có emoji, ký tự Unicode kết hợp và dấu xuống dòng; sau khi ứng dụng Java mã hóa rồi giải mã phản hồi, một số ký tự bị biến dạng và ranh giới đoạn văn không còn như ban đầu.
+Một nhóm dùng LibreTranslate cho phần xem trước văn bản ngay khi người dùng gõ; mỗi ký tự tạo một REST request khiến kết quả trả về theo thứ tự khác nhau và nội dung cũ ghi đè bản dịch mới hơn.
+Trong quy trình dịch tài liệu nhiều ngôn ngữ, đội đo tỷ lệ HTTP thành công nhưng không đo tỷ lệ đoạn bị thiếu, lỗi định dạng hoặc những chỗ thuật ngữ quan trọng bị dịch lệch; dashboard luôn báo khỏe dù người dùng phản ánh chất lượng kém.
+Một công ty thay đổi tài liệu nguồn sau khi một job dịch hàng loạt đã chạy được một nửa; các tệp kết quả chứa bản dịch của hai phiên bản tài liệu khác nhau mà hệ thống không biết cần xuất bản bộ nào.
