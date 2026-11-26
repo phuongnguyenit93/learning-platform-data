@@ -9,6 +9,12 @@ Knowledge, xuất vào `content/{quiz,interview,casestudy}/vi/` và dọn stagin
 STEP 5 không import, không publish, không cleanup. Phần QA Knowledge
 chuyên sâu của workflow cũ hiện thuộc STEP 6 NEW.
 
+**STEP 5 NEW có thể bắt đầu ngay sau khi STEP 3 NEW hoàn thành**, kể cả khi
+STEP 4 NEW chưa viết xong Knowledge hoặc đang chạy song song. Hai STEP dùng
+phạm vi ghi riêng; STEP 5 chỉ cần Menu cấp 1 và metadata của module, không
+đọc nội dung bài học hay phụ thuộc trạng thái `WRITTEN` của STEP 4.
+**STEP 6 NEW chỉ được bắt đầu khi cả STEP 4 NEW và STEP 5 NEW đã QA PASS.**
+
 - **Prime**: preflight module, chạy một script khởi tạo, lấy nguyên nội dung
   metadata, điều phối từng Phase/loại, QA/readback, checkpoint khi hợp lệ.
 - **Worker**: ghi nội dung của **một loại trong một Phase** và cập nhật
@@ -23,20 +29,41 @@ chuyên sâu của workflow cũ hiện thuộc STEP 6 NEW.
 1. Đọc `GENERAL_AGENT_RULES.md`, toàn bộ `rules/`, tài liệu này và các file
    trong `worker/STEP_5_WORKER_NEW/` trước khi giao. Đối chiếu quyền ghi và
    trạng thái đang chạy; **không mở giao diện IDE để thao tác file**.
-2. Xác định chính xác một `<MODULE_ROOT>` bên trong `java-learning/learning-platform-data/module/`;
+2. **Bắt buộc đồng bộ danh sách Phase 1 trước khi bắt đầu điều phối/giao Worker**
+   (kể cả khi Prime khởi động lại). Từ root `learning-platform-data`, chạy:
+
+   ```powershell
+   python module-generate-agent/scripts/sync_step5_phase1.py
+   python module-generate-agent/scripts/sync_step5_phase1.py --apply
+   ```
+
+   Lệnh đầu là dry-run; lệnh thứ hai áp dụng đồng bộ. Cả hai phải thành công;
+   Prime đọc lại sáu file `module-generate-agent/temp/step5/phase1/`
+   `{quiz,interview,casestudy}/{pending,completed}.yml` rồi mới chọn job.
+   Script chỉ phân loại theo việc `content/temp/step5/raw/<type>.md` có nội
+   dung không rỗng: có thì `completed.yml`, chưa có thì `pending.yml`.
+   **`PHASE_1_COMPLETED` trong danh sách chỉ nghĩa là đã có file nội dung,
+   không đồng nghĩa Worker đã hoàn tất readback hoặc Prime QA PASS.** Prime
+   vẫn phải kiểm tra status Phase và QA thực tế trước khi công nhận kết quả
+   hoặc giao Phase tiếp theo. Nếu script lỗi, danh sách xung đột hoặc có
+   Worker đang ghi dở thì đối chiếu ownership/output, không giao trùng,
+   không tự cập nhật `status/<type>.yml` thay Worker.
+3. Xác định chính xác một `<MODULE_ROOT>` bên trong `java-learning/learning-platform-data/module/`;
    `module_activate.json.isModule = true`, có `module-info.json`,
-   `MODULE_LANGUAGE.VALUE` chứa `vi`. STEP 4 phải đã viết đủ Knowledge;
+   `MODULE_LANGUAGE.VALUE` chứa `vi`. STEP 3 NEW phải hoàn thành và
+   `content/knowledge/vi/menu-level-1-slug.yml` phải tồn tại, hợp lệ.
+   **Không yêu cầu STEP 4 đã viết đủ Knowledge hay có `status: WRITTEN`.**
    QA/refactor Knowledge chuyên sâu và metadata sẽ tiến hành tại STEP 6 NEW.
-3. Prime đọc các giá trị `SERVICE_NAME.VALUE`,
+4. Prime đọc các giá trị `SERVICE_NAME.VALUE`,
    `SERVICE_NAME_DESCRIBE.VALUE`, `SPECIAL_NOTE.VALUE` từ `module-info.json`.
    **Gửi nguyên nội dung của cả ba cho Worker**; `SPECIAL_NOTE` có thể rỗng
    hoặc nhiều dòng. Không chuyển file metadata cho Worker; Worker không được
    tự đọc `module-info.json`, `master.json` hoặc Sheets.
-4. **Prime thiết lập working directory/scope của từng Worker là đúng
+5. **Prime thiết lập working directory/scope của từng Worker là đúng
    `<MODULE_ROOT>` trước khi giao**. Đây là ràng buộc của môi trường agent,
    không phải một trường tự đoán. Nếu không thể bảo đảm Worker được gắn đúng
    module thì BLOCKER; không để Worker tự tìm module theo SERVICE_NAME.
-5. Kiểm tra `content/temp/step5/` hiện tại nếu có, không xóa/reset bất cứ
+6. Kiểm tra `content/temp/step5/` hiện tại nếu có, không xóa/reset bất cứ
    file nào đã được Worker viết. Không chạy workflow trực tiếp trong repo khác.
 
 ## 1. Prime khởi tạo bằng đúng một Python script
@@ -271,9 +298,12 @@ Prime kiểm chứng:
 Prime báo `MODULE_LOCATION`, `TOTAL_GROUPS`/`TOTAL_ITEMS` theo loại,
 `RAW_QA`, `FORMAT_QA`, `QUIZ_ANSWER_LEAK_QA`, `PHASE_STATUS`,
 `SEMANTIC_DIFF_QA`, `READBACK`, `WORKER_OWNERSHIP`, `BLOCKERS`.
-Chỉ sau toàn bộ gate PASS, checkpoint
-`module-info.json.CURRENT_STEP.VALUE = "5"` nếu quy trình NEW cho phép;
-không ghi `master.json`/Sheet J3 theo workflow khác, không ghi lùi.
+Sau toàn bộ gate STEP 5 PASS, nếu STEP 4 NEW cũng đã hoàn thành thì
+checkpoint `module-info.json.CURRENT_STEP.VALUE = "5"` khi quy trình NEW
+cho phép. Nếu STEP 4 còn đang chạy, **giữ nguyên status Phase và staging
+STEP 5, báo STEP 5 đã PASS nhưng hoãn checkpoint**; sau khi STEP 4 PASS,
+Prime xác minh lại các gate STEP 5 rồi mới checkpoint `"5"`.
+Không ghi `master.json`/Sheet J3 theo workflow khác, không ghi lùi.
 
 **Không xuất assessment chính thức, không điền Knowledge IDs, không xóa
 `content/temp/step5`, không chạy STEP 6/8, không commit/push hoặc ghi DB.**
