@@ -1,3 +1,3 @@
 menuLevel1: Sự kiện aggregate
 menuLevel2: Ranh giới giữa phát sự kiện cục bộ với outbox hoặc broker bên ngoài
-status: ''
+status: WRITTEN

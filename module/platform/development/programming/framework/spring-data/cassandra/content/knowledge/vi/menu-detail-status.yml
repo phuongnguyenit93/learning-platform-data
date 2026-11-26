@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-001
     title: Spring Data Cassandra là gì và giải quyết bài toán truy cập dữ liệu nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-002
     title: Vị trí của Spring Data, Spring Boot và Java Driver trong ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-003
     title: Cơ sở dữ liệu cột rộng và cách nhìn dữ liệu qua bảng CQL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-004
     title: 'Các thuật ngữ nền tảng: keyspace, partition, clustering và replica'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-005
     title: Thiết kế dữ liệu theo truy vấn và tác động đến API ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-006
     title: 'Repository, CassandraTemplate và CqlTemplate: vai trò và quan hệ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-007
     title: Mô hình đồng bộ, bất đồng bộ và phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: overview-008
     title: Khác biệt với JPA về ánh xạ, quan hệ, vòng đời entity và giao dịch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -76,7 +76,7 @@ menu:
     summary: ''
   - slug: overview-009
     title: 'Ví dụ xuyên suốt: lưu sự kiện thiết bị theo thời gian'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -85,7 +85,7 @@ menu:
     summary: ''
   - slug: overview-010
     title: Phạm vi kiến thức, điều kiện đầu vào và thứ tự học
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
   childs:
   - slug: cassandra-architecture-001
     title: Cluster, node, datacenter và rack
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: cassandra-architecture-002
     title: Token, partitioner và cách phân phối dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: cassandra-architecture-003
     title: Coordinator và đường đi của yêu cầu đọc hoặc ghi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: cassandra-architecture-004
     title: Replication factor và chiến lược sao chép theo datacenter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: cassandra-architecture-005
     title: Commit log, memtable, SSTable và các giai đoạn ghi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: cassandra-architecture-006
     title: Bloom filter, bộ nhớ đệm và các thành phần đường đọc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -151,7 +151,7 @@ menu:
     summary: ''
   - slug: cassandra-architecture-007
     title: Gossip, phát hiện node lỗi và thay đổi topology
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -160,7 +160,7 @@ menu:
     summary: ''
   - slug: cassandra-architecture-008
     title: Hint, read repair và anti-entropy repair
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -169,7 +169,7 @@ menu:
     summary: ''
   - slug: cassandra-architecture-009
     title: Compaction, tombstone và vòng đời dữ liệu đã xóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -178,7 +178,7 @@ menu:
     summary: ''
   - slug: cassandra-architecture-010
     title: Ranh giới kiến thức ứng dụng cần nắm và quản trị cụm chuyên sâu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
   childs:
   - slug: query-driven-design-001
     title: Liệt kê mẫu đọc, điều kiện lọc và yêu cầu sắp xếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: query-driven-design-002
     title: Thiết kế một hoặc nhiều bảng phục vụ từng mẫu truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: query-driven-design-003
     title: Phi chuẩn hóa dữ liệu và lưu lặp có chủ đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: query-driven-design-004
     title: Chọn dữ liệu cần ghi cùng nhau và đọc cùng nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -226,7 +226,7 @@ menu:
     summary: ''
   - slug: query-driven-design-005
     title: Ước lượng kích thước, tốc độ tăng và số hàng của partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -235,7 +235,7 @@ menu:
     summary: ''
   - slug: query-driven-design-006
     title: Đánh đổi giữa số partition cần đọc và lượng dữ liệu trong mỗi partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -244,7 +244,7 @@ menu:
     summary: ''
   - slug: query-driven-design-007
     title: Xác định ràng buộc truy vấn trước khi tạo repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -253,7 +253,7 @@ menu:
     summary: ''
   - slug: query-driven-design-008
     title: Truy vấn không phù hợp và thời điểm cần bảng truy cập khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -262,7 +262,7 @@ menu:
     summary: ''
   - slug: query-driven-design-009
     title: Đồng bộ các bản sao dữ liệu ở nhiều bảng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -271,7 +271,7 @@ menu:
     summary: ''
   - slug: query-driven-design-010
     title: Đánh giá thay đổi nghiệp vụ khi thêm một mẫu truy vấn mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
   childs:
   - slug: partition-keys-001
     title: Primary key gồm partition key và clustering columns
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: partition-keys-002
     title: Partition key đơn và partition key ghép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -301,7 +301,7 @@ menu:
     summary: ''
   - slug: partition-keys-003
     title: Thứ tự clustering và phạm vi sắp xếp trong partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -310,7 +310,7 @@ menu:
     summary: ''
   - slug: partition-keys-004
     title: Ràng buộc tiền tố clustering khi lọc theo khoảng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -319,7 +319,7 @@ menu:
     summary: ''
   - slug: partition-keys-005
     title: Static column và dữ liệu dùng chung trong một partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -328,7 +328,7 @@ menu:
     summary: ''
   - slug: partition-keys-006
     title: Khóa có độ phân biệt thấp và nguy cơ partition nóng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -337,7 +337,7 @@ menu:
     summary: ''
   - slug: partition-keys-007
     title: Chia nhóm theo thời gian để giới hạn kích thước partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -346,7 +346,7 @@ menu:
     summary: ''
   - slug: partition-keys-008
     title: Thêm shard vào khóa và chi phí đọc nhiều partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -355,7 +355,7 @@ menu:
     summary: ''
   - slug: partition-keys-009
     title: Khóa nghiệp vụ, UUID và timeuuid theo nhu cầu định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -364,7 +364,7 @@ menu:
     summary: ''
   - slug: partition-keys-010
     title: Khóa bất biến, đổi khóa và chuyển dữ liệu sang partition khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -373,7 +373,7 @@ menu:
     summary: ''
   - slug: partition-keys-011
     title: Đánh giá phân bố dữ liệu với tải và dữ liệu mẫu đại diện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -385,7 +385,7 @@ menu:
   childs:
   - slug: environment-001
     title: Chọn bộ phiên bản Java, Spring Boot, Spring Data, Driver và Cassandra tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -394,7 +394,7 @@ menu:
     summary: ''
   - slug: environment-002
     title: Quản lý phụ thuộc qua Spring Boot và Gradle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -403,7 +403,7 @@ menu:
     summary: ''
   - slug: environment-003
     title: Khởi tạo Cassandra bằng Docker cho môi trường học tập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -412,7 +412,7 @@ menu:
     summary: ''
   - slug: environment-004
     title: Tạo keyspace với chiến lược sao chép phù hợp môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -421,7 +421,7 @@ menu:
     summary: ''
   - slug: environment-005
     title: Tạo bảng và nạp dữ liệu thử bằng cqlsh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -430,7 +430,7 @@ menu:
     summary: ''
   - slug: environment-006
     title: Địa chỉ kết nối, cổng và local datacenter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -439,7 +439,7 @@ menu:
     summary: ''
   - slug: environment-007
     title: Tài khoản ứng dụng, quyền truy cập và thông tin xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -448,7 +448,7 @@ menu:
     summary: ''
   - slug: environment-008
     title: Kiểm tra node sẵn sàng trước khi ứng dụng bắt đầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -457,7 +457,7 @@ menu:
     summary: ''
   - slug: environment-009
     title: Phân biệt cấu hình một node với cụm nhiều node
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -466,7 +466,7 @@ menu:
     summary: ''
   - slug: environment-010
     title: Tổ chức cấu hình phát triển, kiểm thử và triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -478,7 +478,7 @@ menu:
   childs:
   - slug: connection-configuration-001
     title: Spring Boot starter cho truy cập Cassandra đồng bộ và phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -487,7 +487,7 @@ menu:
     summary: ''
   - slug: connection-configuration-002
     title: Cấu hình nhóm thuộc tính spring.cassandra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -496,7 +496,7 @@ menu:
     summary: ''
   - slug: connection-configuration-003
     title: Contact points, local datacenter, keyspace và thông tin xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -505,7 +505,7 @@ menu:
     summary: ''
   - slug: connection-configuration-004
     title: CqlSession và vòng đời tài nguyên kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -514,7 +514,7 @@ menu:
     summary: ''
   - slug: connection-configuration-005
     title: Cấu hình Java với AbstractCassandraConfiguration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -523,7 +523,7 @@ menu:
     summary: ''
   - slug: connection-configuration-006
     title: SessionFactory, CassandraMappingContext và MappingCassandraConverter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -532,7 +532,7 @@ menu:
     summary: ''
   - slug: connection-configuration-007
     title: Phạm vi quét entity và kích hoạt repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -541,7 +541,7 @@ menu:
     summary: ''
   - slug: connection-configuration-008
     title: Tùy chỉnh DriverConfigLoader và cấu hình Java Driver
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -550,7 +550,7 @@ menu:
     summary: ''
   - slug: connection-configuration-009
     title: Execution profile, thời gian chờ và tùy chọn truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -559,7 +559,7 @@ menu:
     summary: ''
   - slug: connection-configuration-010
     title: TLS, truststore và xác minh chứng chỉ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -568,7 +568,7 @@ menu:
     summary: ''
   - slug: connection-configuration-011
     title: Nhiều keyspace, nhiều session và phân biệt các bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -577,7 +577,7 @@ menu:
     summary: ''
   - slug: connection-configuration-012
     title: Đóng session theo vòng đời Spring ApplicationContext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -589,7 +589,7 @@ menu:
   childs:
   - slug: schema-management-001
     title: Keyspace, bảng, cột và các ràng buộc primary key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -598,7 +598,7 @@ menu:
     summary: ''
   - slug: schema-management-002
     title: Tạo bảng từ metadata ánh xạ của entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -607,7 +607,7 @@ menu:
     summary: ''
   - slug: schema-management-003
     title: SchemaAction.NONE, CREATE và CREATE_IF_NOT_EXISTS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -616,7 +616,7 @@ menu:
     summary: ''
   - slug: schema-management-004
     title: RECREATE, RECREATE_DROP_UNUSED và phạm vi dữ liệu bị xóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -625,7 +625,7 @@ menu:
     summary: ''
   - slug: schema-management-005
     title: Giới hạn của tạo lược đồ tự động khi bảng đã tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -634,7 +634,7 @@ menu:
     summary: ''
   - slug: schema-management-006
     title: Khởi tạo keyspace và chạy tập lệnh CQL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -643,7 +643,7 @@ menu:
     summary: ''
   - slug: schema-management-007
     title: Thứ tự tạo UDT, bảng và chỉ mục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -652,7 +652,7 @@ menu:
     summary: ''
   - slug: schema-management-008
     title: Schema agreement và thời điểm ứng dụng có thể dùng lược đồ mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -661,7 +661,7 @@ menu:
     summary: ''
   - slug: schema-management-009
     title: Quản lý thay đổi lược đồ riêng cho môi trường production
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -670,7 +670,7 @@ menu:
     summary: ''
   - slug: schema-management-010
     title: Kiểm tra lược đồ thực tế so với mô hình ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -682,7 +682,7 @@ menu:
   childs:
   - slug: entity-mapping-001
     title: '@Table và ánh xạ tên bảng'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -691,7 +691,7 @@ menu:
     summary: ''
   - slug: entity-mapping-002
     title: '@PrimaryKey cho định danh đơn hoặc đối tượng khóa'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -700,7 +700,7 @@ menu:
     summary: ''
   - slug: entity-mapping-003
     title: '@PrimaryKeyClass và lớp khóa ghép'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -709,7 +709,7 @@ menu:
     summary: ''
   - slug: entity-mapping-004
     title: '@PrimaryKeyColumn: loại khóa, thứ tự và hướng sắp xếp'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -718,7 +718,7 @@ menu:
     summary: ''
   - slug: entity-mapping-005
     title: equals, hashCode và tính bất biến của đối tượng khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -727,7 +727,7 @@ menu:
     summary: ''
   - slug: entity-mapping-006
     title: '@Column, tên có phân biệt hoa thường và CqlIdentifier'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -736,7 +736,7 @@ menu:
     summary: ''
   - slug: entity-mapping-007
     title: '@Transient và @ReadOnlyProperty'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -745,7 +745,7 @@ menu:
     summary: ''
   - slug: entity-mapping-008
     title: '@Embedded và làm phẳng đối tượng thành các cột'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -754,7 +754,7 @@ menu:
     summary: ''
   - slug: entity-mapping-009
     title: Constructor, @PersistenceCreator và entity bất biến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -763,7 +763,7 @@ menu:
     summary: ''
   - slug: entity-mapping-010
     title: Java record và điều kiện ánh xạ trong bộ phiên bản sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -772,7 +772,7 @@ menu:
     summary: ''
   - slug: entity-mapping-011
     title: MapId và truy cập entity có nhiều thành phần khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -781,7 +781,7 @@ menu:
     summary: ''
   - slug: entity-mapping-012
     title: Dữ liệu chưa có, giá trị null và giới hạn của thuộc tính nguyên thủy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -793,7 +793,7 @@ menu:
   childs:
   - slug: data-types-001
     title: Ánh xạ kiểu số, boolean, văn bản và dữ liệu nhị phân
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -802,7 +802,7 @@ menu:
     summary: ''
   - slug: data-types-002
     title: UUID, timeuuid và các kiểu định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -811,7 +811,7 @@ menu:
     summary: ''
   - slug: data-types-003
     title: date, time, timestamp, duration và kiểu thời gian Java
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -820,7 +820,7 @@ menu:
     summary: ''
   - slug: data-types-004
     title: list, set, map và lựa chọn cấu trúc phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -829,7 +829,7 @@ menu:
     summary: ''
   - slug: data-types-005
     title: Giới hạn kích thước và chi phí cập nhật collection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -838,7 +838,7 @@ menu:
     summary: ''
   - slug: data-types-006
     title: User-defined type với @UserDefinedType
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -847,7 +847,7 @@ menu:
     summary: ''
   - slug: data-types-007
     title: Tuple với @Tuple và @Element
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -856,7 +856,7 @@ menu:
     summary: ''
   - slug: data-types-008
     title: Frozen và non-frozen trong UDT hoặc collection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -865,7 +865,7 @@ menu:
     summary: ''
   - slug: data-types-009
     title: '@CassandraType và điều khiển kiểu CQL tường minh'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -874,7 +874,7 @@ menu:
     summary: ''
   - slug: data-types-010
     title: Enum, kiểu giá trị nghiệp vụ và biểu diễn lưu trữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -883,7 +883,7 @@ menu:
     summary: ''
   - slug: data-types-011
     title: Kiểu vector và điều kiện hỗ trợ theo phiên bản Server, Driver và Spring Data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -892,7 +892,7 @@ menu:
     summary: ''
   - slug: data-types-012
     title: Độ chính xác số, múi giờ và tương thích dữ liệu khi chuyển đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -904,7 +904,7 @@ menu:
   childs:
   - slug: type-conversion-001
     title: Cơ chế ánh xạ của MappingCassandraConverter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -913,7 +913,7 @@ menu:
     summary: ''
   - slug: type-conversion-002
     title: Phân biệt Spring Converter với TypeCodec của Java Driver
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -922,7 +922,7 @@ menu:
     summary: ''
   - slug: type-conversion-003
     title: CassandraCustomConversions và đăng ký bộ chuyển đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -931,7 +931,7 @@ menu:
     summary: ''
   - slug: type-conversion-004
     title: '@ReadingConverter và @WritingConverter'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -940,7 +940,7 @@ menu:
     summary: ''
   - slug: type-conversion-005
     title: Chuyển đổi kiểu giá trị nghiệp vụ sang kiểu CQL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -949,7 +949,7 @@ menu:
     summary: ''
   - slug: type-conversion-006
     title: Chuyển đổi Row, UdtValue và TupleValue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -958,7 +958,7 @@ menu:
     summary: ''
   - slug: type-conversion-007
     title: CodecRegistry và ánh xạ kiểu tại lớp Driver
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -967,7 +967,7 @@ menu:
     summary: ''
   - slug: type-conversion-008
     title: Ảnh hưởng của chuyển đổi đến điều kiện truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -976,7 +976,7 @@ menu:
     summary: ''
   - slug: type-conversion-009
     title: Giá trị null, lỗi chuyển đổi và dữ liệu phiên bản cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -985,7 +985,7 @@ menu:
     summary: ''
   - slug: type-conversion-010
     title: Kiểm chứng ánh xạ hai chiều mà không mất thông tin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -997,7 +997,7 @@ menu:
   childs:
   - slug: repository-001
     title: Định nghĩa CassandraRepository với entity và kiểu khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1006,7 +1006,7 @@ menu:
     summary: ''
   - slug: repository-002
     title: Repository proxy, dependency injection và ranh giới trách nhiệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1015,7 +1015,7 @@ menu:
     summary: ''
   - slug: repository-003
     title: save, insert và ngữ nghĩa upsert của Cassandra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1024,7 +1024,7 @@ menu:
     summary: ''
   - slug: repository-004
     title: findById, existsById và truy cập bằng đủ thành phần khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1033,7 +1033,7 @@ menu:
     summary: ''
   - slug: repository-005
     title: findAll, count và nguy cơ quét dữ liệu rộng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1042,7 +1042,7 @@ menu:
     summary: ''
   - slug: repository-006
     title: 'Đọc và ghi nhiều entity: vòng đời thao tác và phạm vi bảo đảm'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1051,7 +1051,7 @@ menu:
     summary: ''
   - slug: repository-007
     title: deleteById, delete và điều kiện khóa cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1060,7 +1060,7 @@ menu:
     summary: ''
   - slug: repository-008
     title: Optional, danh sách và kết quả không tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1069,7 +1069,7 @@ menu:
     summary: ''
   - slug: repository-009
     title: Nhận biết entity mới bằng khóa, @Version hoặc Persistable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1078,7 +1078,7 @@ menu:
     summary: ''
   - slug: repository-010
     title: Repository fragment và cài đặt hành vi riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1087,7 +1087,7 @@ menu:
     summary: ''
   - slug: repository-011
     title: Giới hạn của Repository và tiêu chí sử dụng Template
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1099,7 +1099,7 @@ menu:
   childs:
   - slug: cassandra-template-001
     title: CassandraTemplate và giao diện CassandraOperations
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1108,7 +1108,7 @@ menu:
     summary: ''
   - slug: cassandra-template-002
     title: insert, update, delete và select theo entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1117,7 +1117,7 @@ menu:
     summary: ''
   - slug: cassandra-template-003
     title: selectOneById và truy cập bằng khóa ghép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1126,7 +1126,7 @@ menu:
     summary: ''
   - slug: cassandra-template-004
     title: Query, Criteria và dựng điều kiện theo khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1135,7 +1135,7 @@ menu:
     summary: ''
   - slug: cassandra-template-005
     title: Update và các phép gán, tăng, giảm hoặc sửa collection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1144,7 +1144,7 @@ menu:
     summary: ''
   - slug: cassandra-template-006
     title: InsertOptions, UpdateOptions, DeleteOptions và QueryOptions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1153,7 +1153,7 @@ menu:
     summary: ''
   - slug: cassandra-template-007
     title: Ghi giá trị null, bỏ qua giá trị và cập nhật một phần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1162,7 +1162,7 @@ menu:
     summary: ''
   - slug: cassandra-template-008
     title: FluentCassandraOperations và chọn thao tác theo kiểu entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1171,7 +1171,7 @@ menu:
     summary: ''
   - slug: cassandra-template-009
     title: Chỉ định bảng đích và kiểu kết quả ánh xạ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1180,7 +1180,7 @@ menu:
     summary: ''
   - slug: cassandra-template-010
     title: Lấy WriteResult và kiểm tra thao tác có được áp dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1189,7 +1189,7 @@ menu:
     summary: ''
   - slug: cassandra-template-011
     title: slice, stream và xử lý tập kết quả theo từng phần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1198,7 +1198,7 @@ menu:
     summary: ''
   - slug: cassandra-template-012
     title: Kết hợp Template với CqlTemplate hoặc Java Driver khi cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1210,7 +1210,7 @@ menu:
   childs:
   - slug: cql-template-001
     title: CQL và khác biệt với ngôn ngữ truy vấn quan hệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1219,7 +1219,7 @@ menu:
     summary: ''
   - slug: cql-template-002
     title: SELECT, INSERT, UPDATE và DELETE theo khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1228,7 +1228,7 @@ menu:
     summary: ''
   - slug: cql-template-003
     title: Điều kiện partition key và khoảng clustering hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1237,7 +1237,7 @@ menu:
     summary: ''
   - slug: cql-template-004
     title: ORDER BY, LIMIT và PER PARTITION LIMIT
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1246,7 +1246,7 @@ menu:
     summary: ''
   - slug: cql-template-005
     title: IN, CONTAINS và các ràng buộc theo kiểu dữ liệu hoặc chỉ mục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1255,7 +1255,7 @@ menu:
     summary: ''
   - slug: cql-template-006
     title: CqlTemplate và giao diện CqlOperations
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1264,7 +1264,7 @@ menu:
     summary: ''
   - slug: cql-template-007
     title: Truy vấn bằng CQL tường minh hoặc Statement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1273,7 +1273,7 @@ menu:
     summary: ''
   - slug: cql-template-008
     title: RowMapper, ResultSetExtractor và trích xuất kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1282,7 +1282,7 @@ menu:
     summary: ''
   - slug: cql-template-009
     title: Thực hiện câu lệnh cập nhật và đọc kết quả điều kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1291,7 +1291,7 @@ menu:
     summary: ''
   - slug: cql-template-010
     title: Dùng chung CqlSession do Spring quản lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1300,7 +1300,7 @@ menu:
     summary: ''
   - slug: cql-template-011
     title: Giới hạn JOIN, lọc tùy ý và tổng hợp trên tập dữ liệu rộng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1312,7 +1312,7 @@ menu:
   childs:
   - slug: prepared-statements-001
     title: SimpleStatement, PreparedStatement và BoundStatement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1321,7 +1321,7 @@ menu:
     summary: ''
   - slug: prepared-statements-002
     title: Gắn tham số thay vì ghép dữ liệu trực tiếp vào CQL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1330,7 +1330,7 @@ menu:
     summary: ''
   - slug: prepared-statements-003
     title: Tái sử dụng prepared statement theo vòng đời session
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1339,7 +1339,7 @@ menu:
     summary: ''
   - slug: prepared-statements-004
     title: Chuẩn bị câu lệnh qua CqlTemplate, CassandraTemplate và Repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1348,7 +1348,7 @@ menu:
     summary: ''
   - slug: prepared-statements-005
     title: Phân biệt giá trị null với tham số UNSET
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1357,7 +1357,7 @@ menu:
     summary: ''
   - slug: prepared-statements-006
     title: Tên bảng, tên cột và giới hạn của tham số truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1366,7 +1366,7 @@ menu:
     summary: ''
   - slug: prepared-statements-007
     title: Execution profile cho từng nhóm truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1375,7 +1375,7 @@ menu:
     summary: ''
   - slug: prepared-statements-008
     title: Fetch size, consistency, timeout và tính lũy đẳng của statement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1384,7 +1384,7 @@ menu:
     summary: ''
   - slug: prepared-statements-009
     title: Định tuyến theo token và điều kiện Driver có đủ thông tin khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1393,7 +1393,7 @@ menu:
     summary: ''
   - slug: prepared-statements-010
     title: Giới hạn số dạng câu lệnh và chi phí chuẩn bị quá nhiều truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1405,7 +1405,7 @@ menu:
   childs:
   - slug: derived-queries-001
     title: Tạo điều kiện CQL từ tên phương thức repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1414,7 +1414,7 @@ menu:
     summary: ''
   - slug: derived-queries-002
     title: Tra cứu bằng partition key đơn và ghép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1423,7 +1423,7 @@ menu:
     summary: ''
   - slug: derived-queries-003
     title: Điều kiện clustering theo thứ tự khóa đã thiết kế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1432,7 +1432,7 @@ menu:
     summary: ''
   - slug: derived-queries-004
     title: So sánh khoảng bằng GreaterThan, LessThan và Between
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1441,7 +1441,7 @@ menu:
     summary: ''
   - slug: derived-queries-005
     title: IN, CONTAINS và phạm vi từ khóa được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1450,7 +1450,7 @@ menu:
     summary: ''
   - slug: derived-queries-006
     title: Sắp xếp bằng OrderBy hoặc Sort trong giới hạn Cassandra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1459,7 +1459,7 @@ menu:
     summary: ''
   - slug: derived-queries-007
     title: First, Top và giới hạn số kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1468,7 +1468,7 @@ menu:
     summary: ''
   - slug: derived-queries-008
     title: Kiểu trả về một entity, Optional, List, Stream và Slice
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1477,7 +1477,7 @@ menu:
     summary: ''
   - slug: derived-queries-009
     title: QueryOptions trong phương thức truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1486,7 +1486,7 @@ menu:
     summary: ''
   - slug: derived-queries-010
     title: '@Consistency cho mức nhất quán của phương thức'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1495,7 +1495,7 @@ menu:
     summary: ''
   - slug: derived-queries-011
     title: '@AllowFiltering và chi phí cần đánh giá trước khi sử dụng'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1504,7 +1504,7 @@ menu:
     summary: ''
   - slug: derived-queries-012
     title: Kiểm tra CQL thực tế và xử lý truy vấn không hợp lệ theo mô hình khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1516,7 +1516,7 @@ menu:
   childs:
   - slug: annotation-queries-001
     title: Khai báo CQL tường minh trên phương thức repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1525,7 +1525,7 @@ menu:
     summary: ''
   - slug: annotation-queries-002
     title: Gắn tham số theo vị trí và tên theo cú pháp được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1534,7 +1534,7 @@ menu:
     summary: ''
   - slug: annotation-queries-003
     title: Sử dụng SpEL trong phạm vi phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1543,7 +1543,7 @@ menu:
     summary: ''
   - slug: annotation-queries-004
     title: Chọn cột, đặt bí danh và ánh xạ kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1552,7 +1552,7 @@ menu:
     summary: ''
   - slug: annotation-queries-005
     title: Truy vấn INSERT, UPDATE và DELETE theo ngữ nghĩa Cassandra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1561,7 +1561,7 @@ menu:
     summary: ''
   - slug: annotation-queries-006
     title: Truyền QueryOptions cùng truy vấn khai báo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1570,7 +1570,7 @@ menu:
     summary: ''
   - slug: annotation-queries-007
     title: USING TTL và USING TIMESTAMP trong câu lệnh ghi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1579,7 +1579,7 @@ menu:
     summary: ''
   - slug: annotation-queries-008
     title: IF EXISTS, IF NOT EXISTS và kết quả điều kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1588,7 +1588,7 @@ menu:
     summary: ''
   - slug: annotation-queries-009
     title: Tham số collection, IN và giới hạn kích thước đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1597,7 +1597,7 @@ menu:
     summary: ''
   - slug: annotation-queries-010
     title: Kiểm soát tên bảng hoặc cột động bằng danh sách cho phép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1606,7 +1606,7 @@ menu:
     summary: ''
   - slug: annotation-queries-011
     title: Kiểm thử truy vấn với khóa ghép, dữ liệu thiếu và tập kết quả rỗng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1618,7 +1618,7 @@ menu:
   childs:
   - slug: projections-pagination-001
     title: Projection theo interface, DTO và chọn cột cần đọc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1627,7 +1627,7 @@ menu:
     summary: ''
   - slug: projections-pagination-002
     title: Ánh xạ kết quả truy vấn về kiểu khác entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1636,7 +1636,7 @@ menu:
     summary: ''
   - slug: projections-pagination-003
     title: Giá trị mặc định khi một số cột không được chọn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1645,7 +1645,7 @@ menu:
     summary: ''
   - slug: projections-pagination-004
     title: Fetch size và lượng dữ liệu được lấy trong một lần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1654,7 +1654,7 @@ menu:
     summary: ''
   - slug: projections-pagination-005
     title: PagingState và cơ chế đọc tiếp về phía trước
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1663,7 +1663,7 @@ menu:
     summary: ''
   - slug: projections-pagination-006
     title: Slice và CassandraPageRequest
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1672,7 +1672,7 @@ menu:
     summary: ''
   - slug: projections-pagination-007
     title: Lấy trang đầu rồi tiếp tục qua nextPageable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1681,7 +1681,7 @@ menu:
     summary: ''
   - slug: projections-pagination-008
     title: Giới hạn của Page, tổng số trang và truy cập trang ngẫu nhiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1690,7 +1690,7 @@ menu:
     summary: ''
   - slug: projections-pagination-009
     title: Paging state gắn với câu lệnh, tham số và điều kiện truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1699,7 +1699,7 @@ menu:
     summary: ''
   - slug: projections-pagination-010
     title: Thiết kế API cursor và bảo vệ token phân trang
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1708,7 +1708,7 @@ menu:
     summary: ''
   - slug: projections-pagination-011
     title: Đọc theo khoảng clustering và giữ vị trí bằng khóa nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1717,7 +1717,7 @@ menu:
     summary: ''
   - slug: projections-pagination-012
     title: CassandraScrollPosition và điều kiện phiên bản hỗ trợ scrolling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1726,7 +1726,7 @@ menu:
     summary: ''
   - slug: projections-pagination-013
     title: Giải phóng tài nguyên khi sử dụng Stream hoặc dừng đọc sớm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1738,7 +1738,7 @@ menu:
   childs:
   - slug: indexes-extensions-001
     title: Truy vấn theo khóa và vai trò của chỉ mục bổ sung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1747,7 +1747,7 @@ menu:
     summary: ''
   - slug: indexes-extensions-002
     title: Chỉ mục thứ cấp truyền thống và mẫu truy cập phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1756,7 +1756,7 @@ menu:
     summary: ''
   - slug: indexes-extensions-003
     title: '@Indexed và quản lý chỉ mục từ metadata ánh xạ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1765,7 +1765,7 @@ menu:
     summary: ''
   - slug: indexes-extensions-004
     title: Độ phân biệt giá trị, kích thước kết quả và chi phí truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1774,7 +1774,7 @@ menu:
     summary: ''
   - slug: indexes-extensions-005
     title: SASI và phạm vi hỗ trợ theo phiên bản sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1783,7 +1783,7 @@ menu:
     summary: ''
   - slug: indexes-extensions-006
     title: Storage-Attached Indexing và điều kiện tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1792,7 +1792,7 @@ menu:
     summary: ''
   - slug: indexes-extensions-007
     title: Materialized view và so sánh với bảng truy cập do ứng dụng duy trì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1801,7 +1801,7 @@ menu:
     summary: ''
   - slug: indexes-extensions-008
     title: Tìm kiếm vector, truy vấn ANN và yêu cầu phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1810,7 +1810,7 @@ menu:
     summary: ''
   - slug: indexes-extensions-009
     title: Phạm vi annotation và API tìm kiếm nâng cao của Spring Data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1819,7 +1819,7 @@ menu:
     summary: ''
   - slug: indexes-extensions-010
     title: Triển khai chỉ mục, chờ sẵn sàng và quan sát ảnh hưởng lên tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1828,7 +1828,7 @@ menu:
     summary: ''
   - slug: indexes-extensions-011
     title: Tiêu chí tạo bảng mới thay vì dựa vào chỉ mục hoặc ALLOW FILTERING
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1840,7 +1840,7 @@ menu:
   childs:
   - slug: consistency-001
     title: Replication factor và consistency level của thao tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1849,7 +1849,7 @@ menu:
     summary: ''
   - slug: consistency-002
     title: ONE, QUORUM, ALL và các mức nhất quán theo datacenter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1858,7 +1858,7 @@ menu:
     summary: ''
   - slug: consistency-003
     title: LOCAL_ONE, LOCAL_QUORUM và vai trò local datacenter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1867,7 +1867,7 @@ menu:
     summary: ''
   - slug: consistency-004
     title: Kết hợp mức đọc và ghi theo yêu cầu quan sát dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1876,7 +1876,7 @@ menu:
     summary: ''
   - slug: consistency-005
     title: Nhất quán cuối cùng và các điều kiện của việc đọc sau ghi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1885,7 +1885,7 @@ menu:
     summary: ''
   - slug: consistency-006
     title: Cấu hình consistency qua annotation, QueryOptions và Driver profile
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1894,7 +1894,7 @@ menu:
     summary: ''
   - slug: consistency-007
     title: Serial consistency và phân biệt với mức nhất quán thông thường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1903,7 +1903,7 @@ menu:
     summary: ''
   - slug: consistency-008
     title: Đánh đổi giữa độ mới, độ trễ và khả năng đáp ứng khi node lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1912,7 +1912,7 @@ menu:
     summary: ''
   - slug: consistency-009
     title: Đọc từ replica, sửa khác biệt và ảnh hưởng của repair
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1921,7 +1921,7 @@ menu:
     summary: ''
   - slug: consistency-010
     title: Kiểm thử mức nhất quán trên cụm nhiều node
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1930,7 +1930,7 @@ menu:
     summary: ''
   - slug: consistency-011
     title: Giới hạn của việc suy ra tính tuần tự chỉ từ phép tính quorum
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1942,7 +1942,7 @@ menu:
   childs:
   - slug: timestamps-conflicts-001
     title: Write timestamp và cơ chế chọn giá trị khi có cập nhật cạnh tranh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1951,7 +1951,7 @@ menu:
     summary: ''
   - slug: timestamps-conflicts-002
     title: Phân biệt cột kiểu timestamp với timestamp của thao tác ghi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1960,7 +1960,7 @@ menu:
     summary: ''
   - slug: timestamps-conflicts-003
     title: Nguồn tạo timestamp từ Driver hoặc coordinator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1969,7 +1969,7 @@ menu:
     summary: ''
   - slug: timestamps-conflicts-004
     title: Đơn vị thời gian và nguy cơ nhầm mili giây với micro giây
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1978,7 +1978,7 @@ menu:
     summary: ''
   - slug: timestamps-conflicts-005
     title: Ảnh hưởng của lệch đồng hồ giữa các nơi ghi dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1987,7 +1987,7 @@ menu:
     summary: ''
   - slug: timestamps-conflicts-006
     title: Last-write-wins và giới hạn khi diễn giải thứ tự nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1996,7 +1996,7 @@ menu:
     summary: ''
   - slug: timestamps-conflicts-007
     title: USING TIMESTAMP và các tùy chọn ghi của Spring Data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2005,7 +2005,7 @@ menu:
     summary: ''
   - slug: timestamps-conflicts-008
     title: Thử lại cùng một thao tác và giữ ngữ nghĩa cập nhật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2014,7 +2014,7 @@ menu:
     summary: ''
   - slug: timestamps-conflicts-009
     title: Ghi cùng timestamp, xóa dữ liệu và trường hợp xung đột
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2023,7 +2023,7 @@ menu:
     summary: ''
   - slug: timestamps-conflicts-010
     title: Khi nào cần LWT hoặc mô hình sự kiện thay vì dựa vào timestamp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2035,7 +2035,7 @@ menu:
   childs:
   - slug: ttl-tombstones-001
     title: TTL của giá trị cột và default_time_to_live của bảng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2044,7 +2044,7 @@ menu:
     summary: ''
   - slug: ttl-tombstones-002
     title: Cấu hình thời hạn bằng InsertOptions, UpdateOptions hoặc CQL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2053,7 +2053,7 @@ menu:
     summary: ''
   - slug: ttl-tombstones-003
     title: Thay đổi TTL khi ghi lại một phần dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2062,7 +2062,7 @@ menu:
     summary: ''
   - slug: ttl-tombstones-004
     title: Đọc TTL và WRITETIME để kiểm tra metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2071,7 +2071,7 @@ menu:
     summary: ''
   - slug: ttl-tombstones-005
     title: Xóa cột, xóa hàng, giá trị null và sự hình thành tombstone
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2080,7 +2080,7 @@ menu:
     summary: ''
   - slug: ttl-tombstones-006
     title: Giá trị UNSET và ý nghĩa giữ nguyên dữ liệu hiện có
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2089,7 +2089,7 @@ menu:
     summary: ''
   - slug: ttl-tombstones-007
     title: Dữ liệu hết hạn, compaction và thời điểm thu hồi dung lượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2098,7 +2098,7 @@ menu:
     summary: ''
   - slug: ttl-tombstones-008
     title: gc_grace_seconds, repair và nguy cơ dữ liệu bị xóa xuất hiện trở lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2107,7 +2107,7 @@ menu:
     summary: ''
   - slug: ttl-tombstones-009
     title: Truy vấn qua nhiều tombstone và dấu hiệu suy giảm hiệu năng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2116,7 +2116,7 @@ menu:
     summary: ''
   - slug: ttl-tombstones-010
     title: Thiết kế lưu giữ dữ liệu theo cửa sổ thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2125,7 +2125,7 @@ menu:
     summary: ''
   - slug: ttl-tombstones-011
     title: Kiểm thử TTL và xóa dữ liệu theo phạm vi cột hoặc partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2137,7 +2137,7 @@ menu:
   childs:
   - slug: lwt-optimistic-locking-001
     title: Lightweight transaction và cập nhật có điều kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2146,7 +2146,7 @@ menu:
     summary: ''
   - slug: lwt-optimistic-locking-002
     title: IF NOT EXISTS, IF EXISTS và điều kiện trên giá trị hiện tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2155,7 +2155,7 @@ menu:
     summary: ''
   - slug: lwt-optimistic-locking-003
     title: Kết quả applied và dữ liệu hiện có khi điều kiện không khớp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2164,7 +2164,7 @@ menu:
     summary: ''
   - slug: lwt-optimistic-locking-004
     title: Lựa chọn consistency và serial consistency cho LWT
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2173,7 +2173,7 @@ menu:
     summary: ''
   - slug: lwt-optimistic-locking-005
     title: Ánh xạ @Version và cơ chế tăng phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2182,7 +2182,7 @@ menu:
     summary: ''
   - slug: lwt-optimistic-locking-006
     title: Nhận biết entity mới với phiên bản và Persistable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2191,7 +2191,7 @@ menu:
     summary: ''
   - slug: lwt-optimistic-locking-007
     title: OptimisticLockingFailureException khi ghi từ phiên bản cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2200,7 +2200,7 @@ menu:
     summary: ''
   - slug: lwt-optimistic-locking-008
     title: Đọc lại, tính lại và thử lại khi có xung đột
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2209,7 +2209,7 @@ menu:
     summary: ''
   - slug: lwt-optimistic-locking-009
     title: Phạm vi @Version cho thao tác một entity và giới hạn với batch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2218,7 +2218,7 @@ menu:
     summary: ''
   - slug: lwt-optimistic-locking-010
     title: Chi phí đồng thuận và mức tranh chấp trên cùng partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2227,7 +2227,7 @@ menu:
     summary: ''
   - slug: lwt-optimistic-locking-011
     title: Thiết kế giữ chỗ hoặc đăng ký duy nhất theo khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2236,7 +2236,7 @@ menu:
     summary: ''
   - slug: lwt-optimistic-locking-012
     title: Phân biệt LWT, batch và giao dịch quan hệ nhiều thao tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2248,7 +2248,7 @@ menu:
   childs:
   - slug: batch-001
     title: Mục đích của CQL BATCH và ranh giới bảo đảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2257,7 +2257,7 @@ menu:
     summary: ''
   - slug: batch-002
     title: Logged batch, unlogged batch và counter batch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2266,7 +2266,7 @@ menu:
     summary: ''
   - slug: batch-003
     title: Thay đổi trong một partition và thay đổi qua nhiều partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2275,7 +2275,7 @@ menu:
     summary: ''
   - slug: batch-004
     title: Tính nguyên tử của việc ghi và phạm vi cô lập quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2284,7 +2284,7 @@ menu:
     summary: ''
   - slug: batch-005
     title: CassandraBatchOperations và batchOps của Template
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2293,7 +2293,7 @@ menu:
     summary: ''
   - slug: batch-006
     title: Thêm insert, update, delete rồi thực hiện batch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2302,7 +2302,7 @@ menu:
     summary: ''
   - slug: batch-007
     title: Timestamp của batch và thứ tự quan sát các thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2311,7 +2311,7 @@ menu:
     summary: ''
   - slug: batch-008
     title: Giới hạn kích thước, số statement và thời gian chờ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2320,7 +2320,7 @@ menu:
     summary: ''
   - slug: batch-009
     title: Batch lỗi, kết quả chưa xác định và khả năng thử lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2329,7 +2329,7 @@ menu:
     summary: ''
   - slug: batch-010
     title: So sánh batch với nhiều yêu cầu bất đồng bộ có giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2338,7 +2338,7 @@ menu:
     summary: ''
   - slug: batch-011
     title: Cập nhật bảng phi chuẩn hóa và các ràng buộc cần kiểm chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2350,7 +2350,7 @@ menu:
   childs:
   - slug: counters-001
     title: Kiểu counter và mục đích lưu số đếm phân tán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2359,7 +2359,7 @@ menu:
     summary: ''
   - slug: counters-002
     title: Thiết kế bảng counter và giới hạn kiểu cột
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2368,7 +2368,7 @@ menu:
     summary: ''
   - slug: counters-003
     title: Tăng, giảm counter bằng CQL hoặc Update
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2377,7 +2377,7 @@ menu:
     summary: ''
   - slug: counters-004
     title: Ngữ nghĩa của thao tác tăng so với gán một giá trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2386,7 +2386,7 @@ menu:
     summary: ''
   - slug: counters-005
     title: Tính không lũy đẳng khi thử lại cập nhật counter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2395,7 +2395,7 @@ menu:
     summary: ''
   - slug: counters-006
     title: Counter batch và giới hạn phối hợp với thao tác thông thường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2404,7 +2404,7 @@ menu:
     summary: ''
   - slug: counters-007
     title: Giới hạn về TTL, timestamp và cập nhật có điều kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2413,7 +2413,7 @@ menu:
     summary: ''
   - slug: counters-008
     title: Xóa, tạo lại và vòng đời của dữ liệu counter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2422,7 +2422,7 @@ menu:
     summary: ''
   - slug: counters-009
     title: Chọn mô hình sự kiện để tổng hợp khi cần kiểm soát trùng lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2431,7 +2431,7 @@ menu:
     summary: ''
   - slug: counters-010
     title: Kiểm thử yêu cầu lặp, lỗi mạng và số đếm sau phục hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2443,7 +2443,7 @@ menu:
   childs:
   - slug: asynchronous-access-001
     title: AsyncCassandraTemplate và AsyncCqlTemplate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2452,7 +2452,7 @@ menu:
     summary: ''
   - slug: asynchronous-access-002
     title: CompletableFuture trong các thao tác ánh xạ entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2461,7 +2461,7 @@ menu:
     summary: ''
   - slug: asynchronous-access-003
     title: CompletionStage và AsyncResultSet tại lớp Java Driver
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2470,7 +2470,7 @@ menu:
     summary: ''
   - slug: asynchronous-access-004
     title: Phối hợp tác vụ bằng thenCompose và thenCombine
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2479,7 +2479,7 @@ menu:
     summary: ''
   - slug: asynchronous-access-005
     title: Đọc tiếp các trang kết quả bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2488,7 +2488,7 @@ menu:
     summary: ''
   - slug: asynchronous-access-006
     title: Giới hạn số yêu cầu đang thực hiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2497,7 +2497,7 @@ menu:
     summary: ''
   - slug: asynchronous-access-007
     title: Luồng chạy callback và cô lập công việc chặn hoặc tốn CPU
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2506,7 +2506,7 @@ menu:
     summary: ''
   - slug: asynchronous-access-008
     title: Lỗi, thời gian chờ và hủy tác vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2515,7 +2515,7 @@ menu:
     summary: ''
   - slug: asynchronous-access-009
     title: Phân biệt truy cập bất đồng bộ thực với bọc lời gọi chặn bằng @Async
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2524,7 +2524,7 @@ menu:
     summary: ''
   - slug: asynchronous-access-010
     title: Chuyển giữa CompletableFuture và Reactor tại ranh giới rõ ràng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2536,7 +2536,7 @@ menu:
   childs:
   - slug: reactive-access-001
     title: ReactiveCassandraRepository và ReactiveCassandraTemplate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2545,7 +2545,7 @@ menu:
     summary: ''
   - slug: reactive-access-002
     title: ReactiveCqlTemplate cho CQL cấp thấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2554,7 +2554,7 @@ menu:
     summary: ''
   - slug: reactive-access-003
     title: Mono, Flux và thời điểm thao tác được thực hiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2563,7 +2563,7 @@ menu:
     summary: ''
   - slug: reactive-access-004
     title: CRUD, truy vấn dẫn xuất và @Query với kiểu trả về phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2572,7 +2572,7 @@ menu:
     summary: ''
   - slug: reactive-access-005
     title: Phối hợp ghi bằng flatMap hoặc concatMap theo yêu cầu thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2581,7 +2581,7 @@ menu:
     summary: ''
   - slug: reactive-access-006
     title: Giới hạn đồng thời, prefetch và nhu cầu nhận dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2590,7 +2590,7 @@ menu:
     summary: ''
   - slug: reactive-access-007
     title: Đọc theo trang và tránh gom toàn bộ kết quả vào bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2599,7 +2599,7 @@ menu:
     summary: ''
   - slug: reactive-access-008
     title: Truyền lỗi, phục hồi và chính sách thử lại có điều kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2608,7 +2608,7 @@ menu:
     summary: ''
   - slug: reactive-access-009
     title: Hủy đăng ký và giới hạn khả năng hủy tác vụ đang gửi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2617,7 +2617,7 @@ menu:
     summary: ''
   - slug: reactive-access-010
     title: LWT, batch và phạm vi nguyên tử trong chuỗi phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2626,7 +2626,7 @@ menu:
     summary: ''
   - slug: reactive-access-011
     title: Giữ ngữ cảnh auditing và mã theo dõi yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2635,7 +2635,7 @@ menu:
     summary: ''
   - slug: reactive-access-012
     title: Tích hợp WebFlux và kiểm tra đường đi không chặn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2647,7 +2647,7 @@ menu:
   childs:
   - slug: time-series-data-001
     title: Mẫu truy vấn sự kiện theo thiết bị, người dùng hoặc tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2656,7 +2656,7 @@ menu:
     summary: ''
   - slug: time-series-data-002
     title: Chọn timestamp và timeuuid theo thứ tự đọc cần bảo đảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2665,7 +2665,7 @@ menu:
     summary: ''
   - slug: time-series-data-003
     title: Partition theo khoảng thời gian và shard
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2674,7 +2674,7 @@ menu:
     summary: ''
   - slug: time-series-data-004
     title: Ước lượng kích thước nhóm dữ liệu theo tốc độ ghi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2683,7 +2683,7 @@ menu:
     summary: ''
   - slug: time-series-data-005
     title: Đọc nhiều nhóm thời gian và hợp nhất kết quả có giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2692,7 +2692,7 @@ menu:
     summary: ''
   - slug: time-series-data-006
     title: Sự kiện đến muộn, dữ liệu gửi lại và phát hiện trùng lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2701,7 +2701,7 @@ menu:
     summary: ''
   - slug: time-series-data-007
     title: TTL theo chính sách lưu giữ và dữ liệu có tuổi khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2710,7 +2710,7 @@ menu:
     summary: ''
   - slug: time-series-data-008
     title: Tổng hợp trước theo cửa sổ phục vụ truy vấn thống kê
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2719,7 +2719,7 @@ menu:
     summary: ''
   - slug: time-series-data-009
     title: Quan hệ giữa mẫu ghi, TTL và chiến lược compaction theo thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2728,7 +2728,7 @@ menu:
     summary: ''
   - slug: time-series-data-010
     title: Thiết kế lịch sử trạng thái và góc nhìn hiện tại ở bảng riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2737,7 +2737,7 @@ menu:
     summary: ''
   - slug: time-series-data-011
     title: Kiểm thử phân bố tải, thay đổi múi giờ và ranh giới ngày
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2749,7 +2749,7 @@ menu:
   childs:
   - slug: entity-lifecycle-auditing-001
     title: Các giai đoạn đọc, chuyển đổi entity và tạo statement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2758,7 +2758,7 @@ menu:
     summary: ''
   - slug: entity-lifecycle-auditing-002
     title: ApplicationEvent và EntityCallback trong vòng đời lưu trữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2767,7 +2767,7 @@ menu:
     summary: ''
   - slug: entity-lifecycle-auditing-003
     title: BeforeConvertCallback và BeforeSaveCallback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2776,7 +2776,7 @@ menu:
     summary: ''
   - slug: entity-lifecycle-auditing-004
     title: Thay đổi entity trước chuyển đổi và điều chỉnh statement trước ghi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2785,7 +2785,7 @@ menu:
     summary: ''
   - slug: entity-lifecycle-auditing-005
     title: Thứ tự callback và giữ logic dễ kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2794,7 +2794,7 @@ menu:
     summary: ''
   - slug: entity-lifecycle-auditing-006
     title: '@CreatedDate, @LastModifiedDate, @CreatedBy và @LastModifiedBy'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2803,7 +2803,7 @@ menu:
     summary: ''
   - slug: entity-lifecycle-auditing-007
     title: '@EnableCassandraAuditing và AuditorAware'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2812,7 +2812,7 @@ menu:
     summary: ''
   - slug: entity-lifecycle-auditing-008
     title: Nhận biết tạo mới bằng @Version hoặc Persistable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2821,7 +2821,7 @@ menu:
     summary: ''
   - slug: entity-lifecycle-auditing-009
     title: '@EnableReactiveCassandraAuditing và ReactiveAuditorAware'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2830,7 +2830,7 @@ menu:
     summary: ''
   - slug: entity-lifecycle-auditing-010
     title: Kiểm soát nguồn thời gian và người thao tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2839,7 +2839,7 @@ menu:
     summary: ''
   - slug: entity-lifecycle-auditing-011
     title: Các đường ghi CQL trực tiếp cần kiểm tra phạm vi auditing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2848,7 +2848,7 @@ menu:
     summary: ''
   - slug: entity-lifecycle-auditing-012
     title: Tách sự kiện nghiệp vụ khỏi sự kiện ánh xạ dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2860,7 +2860,7 @@ menu:
   childs:
   - slug: application-design-001
     title: Phân chia Controller, Service, Repository và lớp chuyển đổi DTO
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2869,7 +2869,7 @@ menu:
     summary: ''
   - slug: application-design-002
     title: Thiết kế API phù hợp các mẫu truy vấn và cursor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2878,7 +2878,7 @@ menu:
     summary: ''
   - slug: application-design-003
     title: Ranh giới aggregate và ràng buộc trong một partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2887,7 +2887,7 @@ menu:
     summary: ''
   - slug: application-design-004
     title: Cập nhật nhiều bảng phi chuẩn hóa và xử lý sai lệch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2896,7 +2896,7 @@ menu:
     summary: ''
   - slug: application-design-005
     title: Tính lũy đẳng, khóa chống trùng và xử lý yêu cầu gửi lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2905,7 +2905,7 @@ menu:
     summary: ''
   - slug: application-design-006
     title: Xóa mềm, TTL và điều kiện dữ liệu còn hiệu lực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2914,7 +2914,7 @@ menu:
     summary: ''
   - slug: application-design-007
     title: Tenant trong partition key và kiểm tra quyền truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2923,7 +2923,7 @@ menu:
     summary: ''
   - slug: application-design-008
     title: Repository fragment sử dụng Template hoặc Driver
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2932,7 +2932,7 @@ menu:
     summary: ''
   - slug: application-design-009
     title: Phối hợp Cassandra với hàng đợi hoặc hệ lưu trữ khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2941,7 +2941,7 @@ menu:
     summary: ''
   - slug: application-design-010
     title: Ranh giới của @Transactional và lựa chọn cơ chế bảo đảm dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2950,7 +2950,7 @@ menu:
     summary: ''
   - slug: application-design-011
     title: Tách phép tính nghiệp vụ khỏi tác dụng phụ lưu trữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2962,7 +2962,7 @@ menu:
   childs:
   - slug: error-handling-001
     title: Hệ thống ngoại lệ Spring Data và ngoại lệ gốc từ Driver
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2971,7 +2971,7 @@ menu:
     summary: ''
   - slug: error-handling-002
     title: Truy vấn không hợp lệ theo khóa, chỉ mục hoặc kiểu dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2980,7 +2980,7 @@ menu:
     summary: ''
   - slug: error-handling-003
     title: Lỗi ánh xạ, chuyển đổi và lược đồ không khớp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2989,7 +2989,7 @@ menu:
     summary: ''
   - slug: error-handling-004
     title: Lỗi xác thực, phân quyền, DNS và TLS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2998,7 +2998,7 @@ menu:
     summary: ''
   - slug: error-handling-005
     title: Unavailable, read timeout, write timeout và lỗi quá tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3007,7 +3007,7 @@ menu:
     summary: ''
   - slug: error-handling-006
     title: Node lỗi, kết nối gián đoạn và kết quả ghi chưa xác định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3016,7 +3016,7 @@ menu:
     summary: ''
   - slug: error-handling-007
     title: Phân loại thao tác có thể thử lại theo tính lũy đẳng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3025,7 +3025,7 @@ menu:
     summary: ''
   - slug: error-handling-008
     title: Retry policy của Driver và retry tại lớp ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3034,7 +3034,7 @@ menu:
     summary: ''
   - slug: error-handling-009
     title: Speculative execution và nguy cơ lặp thao tác ghi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3043,7 +3043,7 @@ menu:
     summary: ''
   - slug: error-handling-010
     title: Giới hạn số lần thử, thời gian chờ tăng dần và ngân sách yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3052,7 +3052,7 @@ menu:
     summary: ''
   - slug: error-handling-011
     title: Xử lý xung đột LWT hoặc @Version theo nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3061,7 +3061,7 @@ menu:
     summary: ''
   - slug: error-handling-012
     title: Thu thập ngữ cảnh lỗi và chuyển thành phản hồi API phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3073,7 +3073,7 @@ menu:
   childs:
   - slug: testing-001
     title: Phân lớp kiểm thử nghiệp vụ, ánh xạ và tích hợp Cassandra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3082,7 +3082,7 @@ menu:
     summary: ''
   - slug: testing-002
     title: Giới hạn của mock khi kiểm tra CQL và mô hình partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3091,7 +3091,7 @@ menu:
     summary: ''
   - slug: testing-003
     title: '@DataCassandraTest và phạm vi cấu hình được nạp'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3100,7 +3100,7 @@ menu:
     summary: ''
   - slug: testing-004
     title: CassandraContainer với Testcontainers
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3109,7 +3109,7 @@ menu:
     summary: ''
   - slug: testing-005
     title: Cung cấp cấu hình kết nối động và chờ node sẵn sàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3118,7 +3118,7 @@ menu:
     summary: ''
   - slug: testing-006
     title: Khởi tạo keyspace, bảng, UDT và chỉ mục cho bài kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3127,7 +3127,7 @@ menu:
     summary: ''
   - slug: testing-007
     title: Kiểm thử khóa ghép, static column và kiểu dữ liệu lồng nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3136,7 +3136,7 @@ menu:
     summary: ''
   - slug: testing-008
     title: Kiểm thử truy vấn dẫn xuất, @Query và điều kiện không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3145,7 +3145,7 @@ menu:
     summary: ''
   - slug: testing-009
     title: Kiểm thử paging state qua nhiều trang và dữ liệu rỗng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3154,7 +3154,7 @@ menu:
     summary: ''
   - slug: testing-010
     title: Kiểm thử TTL, timestamp, null và UNSET
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3163,7 +3163,7 @@ menu:
     summary: ''
   - slug: testing-011
     title: Kiểm thử xung đột LWT, @Version và kết quả applied
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3172,7 +3172,7 @@ menu:
     summary: ''
   - slug: testing-012
     title: Kiểm thử CompletableFuture và chuỗi phản ứng bằng StepVerifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3181,7 +3181,7 @@ menu:
     summary: ''
   - slug: testing-013
     title: Phân biệt bằng chứng một node với kiểm thử nhất quán trên cụm nhiều node
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3190,7 +3190,7 @@ menu:
     summary: ''
   - slug: testing-014
     title: Cô lập dữ liệu, khả năng chạy lại và dọn dẹp đúng phạm vi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3202,7 +3202,7 @@ menu:
   childs:
   - slug: performance-001
     title: Xác định mục tiêu độ trễ, thông lượng và mức sử dụng tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3211,7 +3211,7 @@ menu:
     summary: ''
   - slug: performance-002
     title: Đo riêng thao tác theo partition key và truy vấn qua chỉ mục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3220,7 +3220,7 @@ menu:
     summary: ''
   - slug: performance-003
     title: Phát hiện partition lớn, khóa nóng và phân bố lệch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3229,7 +3229,7 @@ menu:
     summary: ''
   - slug: performance-004
     title: Giảm số cột đọc, lượng dữ liệu truyền và số partition truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3238,7 +3238,7 @@ menu:
     summary: ''
   - slug: performance-005
     title: Điều chỉnh fetch size, giới hạn kết quả và đọc tiếp có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3247,7 +3247,7 @@ menu:
     summary: ''
   - slug: performance-006
     title: Tái sử dụng prepared statement và kiểm tra thông tin định tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3256,7 +3256,7 @@ menu:
     summary: ''
   - slug: performance-007
     title: Giới hạn đồng thời bằng cơ chế điều tiết yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3265,7 +3265,7 @@ menu:
     summary: ''
   - slug: performance-008
     title: Đánh giá chi phí LWT, batch qua nhiều partition và mức nhất quán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3274,7 +3274,7 @@ menu:
     summary: ''
   - slug: performance-009
     title: Ảnh hưởng của tombstone, collection lớn và dữ liệu hết hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3283,7 +3283,7 @@ menu:
     summary: ''
   - slug: performance-010
     title: Đo với mô hình dữ liệu, topology và phân bố tải đại diện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3292,7 +3292,7 @@ menu:
     summary: ''
   - slug: performance-011
     title: Đối chiếu tối ưu bằng số đo và kiểm tra tính đúng đắn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3304,7 +3304,7 @@ menu:
   childs:
   - slug: observability-operations-001
     title: Trạng thái session, node và mức sẵn sàng của ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3313,7 +3313,7 @@ menu:
     summary: ''
   - slug: observability-operations-002
     title: Đo độ trễ, lỗi, số yêu cầu đang chờ và mức sử dụng kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3322,7 +3322,7 @@ menu:
     summary: ''
   - slug: observability-operations-003
     title: Request tracking, truy vết truy vấn và log chẩn đoán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3331,7 +3331,7 @@ menu:
     summary: ''
   - slug: observability-operations-004
     title: Cảnh báo truy vấn rộng, tombstone và partition lớn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3340,7 +3340,7 @@ menu:
     summary: ''
   - slug: observability-operations-005
     title: Quan sát heap, GC, compaction và áp lực lưu trữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3349,7 +3349,7 @@ menu:
     summary: ''
   - slug: observability-operations-006
     title: Hành vi ứng dụng khi node rời cụm hoặc mất datacenter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3358,7 +3358,7 @@ menu:
     summary: ''
   - slug: observability-operations-007
     title: Khôi phục kết nối, thay đổi topology và làm mới metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3367,7 +3367,7 @@ menu:
     summary: ''
   - slug: observability-operations-008
     title: Ảnh hưởng của repair, backup và khôi phục tới ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3376,7 +3376,7 @@ menu:
     summary: ''
   - slug: observability-operations-009
     title: Quản lý schema agreement trong triển khai nhiều instance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3385,7 +3385,7 @@ menu:
     summary: ''
   - slug: observability-operations-010
     title: Dừng ứng dụng có kiểm soát và đóng session
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3394,7 +3394,7 @@ menu:
     summary: ''
   - slug: observability-operations-011
     title: Giới hạn chi phí tracing và dữ liệu nhạy cảm trong log
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3406,7 +3406,7 @@ menu:
   childs:
   - slug: security-001
     title: Xác thực kết nối và quản lý vai trò Cassandra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3415,7 +3415,7 @@ menu:
     summary: ''
   - slug: security-002
     title: Phân quyền theo keyspace, bảng và thao tác cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3424,7 +3424,7 @@ menu:
     summary: ''
   - slug: security-003
     title: Tách tài khoản ứng dụng, kiểm thử và di trú lược đồ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3433,7 +3433,7 @@ menu:
     summary: ''
   - slug: security-004
     title: Lưu thông tin xác thực và chứng chỉ trong cấu hình bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3442,7 +3442,7 @@ menu:
     summary: ''
   - slug: security-005
     title: TLS cho kết nối ứng dụng và xác minh chứng chỉ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3451,7 +3451,7 @@ menu:
     summary: ''
   - slug: security-006
     title: Gắn tham số CQL và kiểm soát định danh động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3460,7 +3460,7 @@ menu:
     summary: ''
   - slug: security-007
     title: Tenant trong khóa và phòng tránh truy cập chéo dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3469,7 +3469,7 @@ menu:
     summary: ''
   - slug: security-008
     title: Bảo vệ paging token và ràng buộc với truy vấn gốc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3478,7 +3478,7 @@ menu:
     summary: ''
   - slug: security-009
     title: Giới hạn dữ liệu cá nhân trong kết quả, sự kiện và log
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3487,7 +3487,7 @@ menu:
     summary: ''
   - slug: security-010
     title: Chính sách xóa, TTL và dữ liệu còn trong bản sao lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3499,7 +3499,7 @@ menu:
   childs:
   - slug: evolution-migration-001
     title: Thêm, bỏ hoặc đổi ý nghĩa cột và tác động tới mã ánh xạ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3508,7 +3508,7 @@ menu:
     summary: ''
   - slug: evolution-migration-002
     title: Tiến hóa UDT, collection và bộ chuyển đổi dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3517,7 +3517,7 @@ menu:
     summary: ''
   - slug: evolution-migration-003
     title: Đổi primary key bằng bảng mới và quy trình di chuyển dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3526,7 +3526,7 @@ menu:
     summary: ''
   - slug: evolution-migration-004
     title: Thay đổi mẫu truy vấn và tạo bảng truy cập mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3535,7 +3535,7 @@ menu:
     summary: ''
   - slug: evolution-migration-005
     title: Ghi nhiều biểu diễn và xử lý cập nhật trong giai đoạn chuyển đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3544,7 +3544,7 @@ menu:
     summary: ''
   - slug: evolution-migration-006
     title: Backfill theo token range hoặc partition với giới hạn tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3553,7 +3553,7 @@ menu:
     summary: ''
   - slug: evolution-migration-007
     title: Tiến độ, khả năng chạy lại và kiểm tra dữ liệu đã chuyển
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3562,7 +3562,7 @@ menu:
     summary: ''
   - slug: evolution-migration-008
     title: Triển khai lược đồ tương thích với nhiều phiên bản ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3571,7 +3571,7 @@ menu:
     summary: ''
   - slug: evolution-migration-009
     title: Nâng Spring Boot, Spring Data, Java Driver và Cassandra theo ma trận tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3580,7 +3580,7 @@ menu:
     summary: ''
   - slug: evolution-migration-010
     title: Nhận diện ví dụ Driver hoặc API bất đồng bộ thuộc thế hệ cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3589,7 +3589,7 @@ menu:
     summary: ''
   - slug: evolution-migration-011
     title: Sao lưu, xác minh kết quả và phương án khôi phục khi chuyển đổi lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3601,7 +3601,7 @@ menu:
   childs:
   - slug: practice-001
     title: Thiết kế bảng sự kiện theo thiết bị và nhóm thời gian từ mẫu truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3610,7 +3610,7 @@ menu:
     summary: ''
   - slug: practice-002
     title: Ánh xạ khóa ghép, static column, UDT và collection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3619,7 +3619,7 @@ menu:
     summary: ''
   - slug: practice-003
     title: Xây dựng CRUD bằng Repository và CassandraTemplate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3628,7 +3628,7 @@ menu:
     summary: ''
   - slug: practice-004
     title: Triển khai truy vấn CQL tham số hóa qua @Query hoặc CqlTemplate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3637,7 +3637,7 @@ menu:
     summary: ''
   - slug: practice-005
     title: Thiết kế API cursor bằng Slice và paging state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3646,7 +3646,7 @@ menu:
     summary: ''
   - slug: practice-006
     title: Quan sát TTL, WRITETIME và cập nhật null hoặc UNSET
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3655,7 +3655,7 @@ menu:
     summary: ''
   - slug: practice-007
     title: Mô phỏng hai yêu cầu giữ chỗ cạnh tranh bằng LWT
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3664,7 +3664,7 @@ menu:
     summary: ''
   - slug: practice-008
     title: Kiểm thử @Version với dữ liệu đã bị cập nhật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3673,7 +3673,7 @@ menu:
     summary: ''
   - slug: practice-009
     title: So sánh batch một partition với ghi bất đồng bộ có giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3682,7 +3682,7 @@ menu:
     summary: ''
   - slug: practice-010
     title: Xây dựng luồng WebFlux đọc và ghi sự kiện Cassandra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3691,7 +3691,7 @@ menu:
     summary: ''
   - slug: practice-011
     title: Chạy bộ kiểm thử Testcontainers và đo tải theo mẫu truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3700,7 +3700,7 @@ menu:
     summary: ''
   - slug: practice-012
     title: Di trú dữ liệu sang bảng khóa mới và kiểm tra tính đầy đủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

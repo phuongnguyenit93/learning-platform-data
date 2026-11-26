@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-001
     title: Spring AMQP là gì và bài toán tích hợp ứng dụng bằng thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-002
     title: Vai trò của producer, broker, consumer và ứng dụng nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-003
     title: Hàng đợi công việc, phát–đăng ký và yêu cầu–phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-004
     title: Quan hệ giữa AMQP, RabbitMQ và Spring AMQP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-005
     title: Phân biệt gửi thông điệp với gọi HTTP đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-006
     title: Phân biệt Spring AMQP, Spring JMS, Spring Integration và Spring Cloud Stream
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-007
     title: Luồng tổng thể từ tạo thông điệp đến xử lý và xác nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: overview-008
     title: Lợi ích, chi phí và trường hợp không nên thêm hệ thống hàng đợi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -79,7 +79,7 @@ menu:
   childs:
   - slug: amqp-model-001
     title: Exchange, queue, binding và routing key trong AMQP 0.9.1
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
     summary: ''
   - slug: amqp-model-002
     title: Connection, channel và vòng đời kết nối đến broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: amqp-model-003
     title: Message body, properties và application headers
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: amqp-model-004
     title: Virtual host và phạm vi cô lập tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: amqp-model-005
     title: Phân biệt lưu thông điệp trong queue với sao chép tới nhiều queue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: amqp-model-006
     title: Competing consumers và phân phối công việc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: amqp-model-007
     title: Consumer acknowledgement và publisher confirm là hai cơ chế độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: amqp-model-008
     title: Ý nghĩa giao nhận at-most-once, at-least-once và giới hạn exactly-once
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -151,7 +151,7 @@ menu:
     summary: ''
   - slug: amqp-model-009
     title: Phân biệt AMQP 0.9.1, AMQP 1.0 và RabbitMQ Stream protocol
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -163,7 +163,7 @@ menu:
   childs:
   - slug: versions-libraries-001
     title: Vai trò của spring-amqp và spring-rabbit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
     summary: ''
   - slug: versions-libraries-002
     title: Chọn Java, Spring Framework, Spring Boot và Spring AMQP tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: versions-libraries-003
     title: Quản lý dependency qua Spring Boot và tránh trộn phiên bản RabbitMQ client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: versions-libraries-004
     title: Phạm vi tích hợp RabbitMQ bằng AMQP 0.9.1
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: versions-libraries-005
     title: spring-rabbit-stream và phạm vi hỗ trợ RabbitMQ Streams
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: versions-libraries-006
     title: spring-rabbitmq-client cho RabbitMQ AMQP 1.0 từ Spring AMQP 4.0
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: versions-libraries-007
     title: spring-amqp-client cho AMQP 1.0 tổng quát từ Spring AMQP 4.1
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -226,7 +226,7 @@ menu:
     summary: ''
   - slug: versions-libraries-008
     title: Phân biệt cấu hình và API giữa các protocol
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -235,7 +235,7 @@ menu:
     summary: ''
   - slug: versions-libraries-009
     title: Đọc tài liệu đúng phiên bản và theo dõi tính năng bị ngừng hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -247,7 +247,7 @@ menu:
   childs:
   - slug: setup-001
     title: Dựng RabbitMQ cục bộ bằng Docker Compose cho thực hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
     summary: ''
   - slug: setup-002
     title: Thêm starter RabbitMQ phù hợp phiên bản Spring Boot bằng Maven hoặc Gradle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -265,7 +265,7 @@ menu:
     summary: ''
   - slug: setup-003
     title: Cấu hình host, port, virtual host và tài khoản kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
     summary: ''
   - slug: setup-004
     title: Vai trò tự cấu hình của RabbitTemplate, RabbitAdmin và listener container factory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
     summary: ''
   - slug: setup-005
     title: Tạo exchange, queue và binding tối thiểu bằng Spring bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: setup-006
     title: Gửi thông điệp đầu tiên và nhận bằng @RabbitListener
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -301,7 +301,7 @@ menu:
     summary: ''
   - slug: setup-007
     title: Quan sát luồng thông điệp qua RabbitMQ Management
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -310,7 +310,7 @@ menu:
     summary: ''
   - slug: setup-008
     title: Tách cấu hình môi trường và kiểm chứng kết nối ban đầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -322,7 +322,7 @@ menu:
   childs:
   - slug: resource-declarations-001
     title: Queue, Exchange, Binding và các builder của Spring AMQP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -331,7 +331,7 @@ menu:
     summary: ''
   - slug: resource-declarations-002
     title: QueueBuilder, ExchangeBuilder và BindingBuilder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -340,7 +340,7 @@ menu:
     summary: ''
   - slug: resource-declarations-003
     title: 'Durable, exclusive và auto-delete: ba thuộc tính khác nhau'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -349,7 +349,7 @@ menu:
     summary: ''
   - slug: resource-declarations-004
     title: AnonymousQueue, tên queue do broker sinh và vòng đời kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -358,7 +358,7 @@ menu:
     summary: ''
   - slug: resource-declarations-005
     title: RabbitAdmin và tự động khai báo tài nguyên khi có kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -367,7 +367,7 @@ menu:
     summary: ''
   - slug: resource-declarations-006
     title: Declarables và tổ chức tập tài nguyên liên quan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -376,7 +376,7 @@ menu:
     summary: ''
   - slug: resource-declarations-007
     title: '@QueueBinding, @Queue và @Exchange trên listener'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -385,7 +385,7 @@ menu:
     summary: ''
   - slug: resource-declarations-008
     title: Kiểm soát auto-declare, shouldDeclare và admin chịu trách nhiệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -394,7 +394,7 @@ menu:
     summary: ''
   - slug: resource-declarations-009
     title: Khai báo thụ động, tài nguyên chưa tồn tại và lỗi không khớp thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -403,7 +403,7 @@ menu:
     summary: ''
   - slug: resource-declarations-010
     title: Quyền sở hữu topology giữa ứng dụng và đội vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -412,7 +412,7 @@ menu:
     summary: ''
   - slug: resource-declarations-011
     title: Khai báo tài nguyên khi có nhiều connection factory hoặc RabbitAdmin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -424,7 +424,7 @@ menu:
   childs:
   - slug: message-routing-001
     title: DirectExchange và khớp chính xác routing key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -433,7 +433,7 @@ menu:
     summary: ''
   - slug: message-routing-002
     title: 'TopicExchange với wildcard * và #'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -442,7 +442,7 @@ menu:
     summary: ''
   - slug: message-routing-003
     title: FanoutExchange và phát thông điệp đến nhiều queue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -451,7 +451,7 @@ menu:
     summary: ''
   - slug: message-routing-004
     title: HeadersExchange và điều kiện x-match
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -460,7 +460,7 @@ menu:
     summary: ''
   - slug: message-routing-005
     title: Default exchange và định tuyến theo tên queue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -469,7 +469,7 @@ menu:
     summary: ''
   - slug: message-routing-006
     title: Nhiều binding trên một queue và nhiều queue cho một sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -478,7 +478,7 @@ menu:
     summary: ''
   - slug: message-routing-007
     title: Exchange-to-exchange binding trong RabbitMQ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -487,7 +487,7 @@ menu:
     summary: ''
   - slug: message-routing-008
     title: Alternate exchange cho thông điệp không có queue phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -496,7 +496,7 @@ menu:
     summary: ''
   - slug: message-routing-009
     title: Chọn exchange, routing key và quy tắc đặt tên theo miền nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -505,7 +505,7 @@ menu:
     summary: ''
   - slug: message-routing-010
     title: Đối chiếu định tuyến đúng, không định tuyến được và exchange không tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -517,7 +517,7 @@ menu:
   childs:
   - slug: queue-types-001
     title: Classic queue và đặc điểm sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -526,7 +526,7 @@ menu:
     summary: ''
   - slug: queue-types-002
     title: Quorum queue, sao chép và điều kiện đủ số bản sao
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -535,7 +535,7 @@ menu:
     summary: ''
   - slug: queue-types-003
     title: Stream queue và mô hình log có thể đọc lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -544,7 +544,7 @@ menu:
     summary: ''
   - slug: queue-types-004
     title: Chọn queue type theo độ tin cậy, thời gian lưu và cách tiêu thụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -553,7 +553,7 @@ menu:
     summary: ''
   - slug: queue-types-005
     title: Khai báo queue type bằng QueueBuilder hoặc đối số phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -562,7 +562,7 @@ menu:
     summary: ''
   - slug: queue-types-006
     title: Single Active Consumer và điều kiện sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -571,7 +571,7 @@ menu:
     summary: ''
   - slug: queue-types-007
     title: Consumer priority và khác biệt với message priority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -580,7 +580,7 @@ menu:
     summary: ''
   - slug: queue-types-008
     title: Exclusive consumer và giới hạn theo queue type
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -589,7 +589,7 @@ menu:
     summary: ''
   - slug: queue-types-009
     title: Không đồng nhất classic durable queue với queue được sao chép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -598,7 +598,7 @@ menu:
     summary: ''
   - slug: queue-types-010
     title: Thay đổi queue type và kế hoạch chuyển dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -610,7 +610,7 @@ menu:
   childs:
   - slug: queue-policies-001
     title: Message TTL theo queue và theo từng thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -619,7 +619,7 @@ menu:
     summary: ''
   - slug: queue-policies-002
     title: Queue TTL và phân biệt hết hạn queue với hết hạn thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -628,7 +628,7 @@ menu:
     summary: ''
   - slug: queue-policies-003
     title: Giới hạn số lượng thông điệp và tổng kích thước queue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -637,7 +637,7 @@ menu:
     summary: ''
   - slug: queue-policies-004
     title: 'Overflow: loại bỏ đầu hàng đợi hoặc từ chối publish theo khả năng queue'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -646,7 +646,7 @@ menu:
     summary: ''
   - slug: queue-policies-005
     title: Priority queue và giới hạn ưu tiên theo loại queue, phiên bản RabbitMQ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -655,7 +655,7 @@ menu:
     summary: ''
   - slug: queue-policies-006
     title: Delivery limit của quorum queue và xử lý thông điệp gây lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -664,7 +664,7 @@ menu:
     summary: ''
   - slug: queue-policies-007
     title: Policy, operator policy và đối số x-arguments do ứng dụng khai báo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -673,7 +673,7 @@ menu:
     summary: ''
   - slug: queue-policies-008
     title: Ưu tiên cấu hình có thể thay đổi và giới hạn của thuộc tính cố định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -682,7 +682,7 @@ menu:
     summary: ''
   - slug: queue-policies-009
     title: Đánh giá tác động của TTL, giới hạn và chính sách lên dữ liệu đang lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -694,7 +694,7 @@ menu:
   childs:
   - slug: connections-channels-001
     title: Spring ConnectionFactory và RabbitMQ Java Client ConnectionFactory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -703,7 +703,7 @@ menu:
     summary: ''
   - slug: connections-channels-002
     title: CachingConnectionFactory và tái sử dụng connection/channel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -712,7 +712,7 @@ menu:
     summary: ''
   - slug: connections-channels-003
     title: CacheMode.CHANNEL so với CacheMode.CONNECTION
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -721,7 +721,7 @@ menu:
     summary: ''
   - slug: connections-channels-004
     title: channelCacheSize là kích thước cache hay giới hạn đang dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -730,7 +730,7 @@ menu:
     summary: ''
   - slug: connections-channels-005
     title: channelCheckoutTimeout, connectionLimit và thời gian chờ tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -739,7 +739,7 @@ menu:
     summary: ''
   - slug: connections-channels-006
     title: PooledChannelConnectionFactory và giới hạn publisher confirm tương quan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -748,7 +748,7 @@ menu:
     summary: ''
   - slug: connections-channels-007
     title: ThreadChannelConnectionFactory và vòng đời channel gắn với luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -757,7 +757,7 @@ menu:
     summary: ''
   - slug: connections-channels-008
     title: Tách kết nối publisher khỏi consumer bằng cấu hình phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -766,7 +766,7 @@ menu:
     summary: ''
   - slug: connections-channels-009
     title: Executor, heartbeat, timeout và tên kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -775,7 +775,7 @@ menu:
     summary: ''
   - slug: connections-channels-010
     title: ConnectionListener, ChannelListener và sự kiện đóng tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -784,7 +784,7 @@ menu:
     summary: ''
   - slug: connections-channels-011
     title: RabbitTemplate.execute(), invoke() và phạm vi dùng chung channel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -793,7 +793,7 @@ menu:
     summary: ''
   - slug: connections-channels-012
     title: An toàn đa luồng và trách nhiệm đóng channel được truy cập trực tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -805,7 +805,7 @@ menu:
   childs:
   - slug: message-structure-001
     title: org.springframework.amqp.core.Message và MessageProperties
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -814,7 +814,7 @@ menu:
     summary: ''
   - slug: message-structure-002
     title: MessageBuilder và MessagePropertiesBuilder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -823,7 +823,7 @@ menu:
     summary: ''
   - slug: message-structure-003
     title: Content type, content encoding và định dạng dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -832,7 +832,7 @@ menu:
     summary: ''
   - slug: message-structure-004
     title: Delivery mode và ý nghĩa thông điệp persistent
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -841,7 +841,7 @@ menu:
     summary: ''
   - slug: message-structure-005
     title: messageId, correlationId, timestamp, type và appId
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -850,7 +850,7 @@ menu:
     summary: ''
   - slug: message-structure-006
     title: replyTo, expiration và priority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -859,7 +859,7 @@ menu:
     summary: ''
   - slug: message-structure-007
     title: Header nghiệp vụ, metadata định tuyến và thông tin nhận từ broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -868,7 +868,7 @@ menu:
     summary: ''
   - slug: message-structure-008
     title: Delivery tag, redelivered và consumer tag ở phía nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -877,7 +877,7 @@ menu:
     summary: ''
   - slug: message-structure-009
     title: Phân biệt Spring AMQP Message với Spring Messaging Message<?>
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -886,7 +886,7 @@ menu:
     summary: ''
   - slug: message-structure-010
     title: Thiết kế envelope sự kiện và định danh ổn định cho từng thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -898,7 +898,7 @@ menu:
   childs:
   - slug: data-conversion-001
     title: MessageConverter và ranh giới chuyển đổi payload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -907,7 +907,7 @@ menu:
     summary: ''
   - slug: data-conversion-002
     title: send() với Message so với convertAndSend() với đối tượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -916,7 +916,7 @@ menu:
     summary: ''
   - slug: data-conversion-003
     title: SimpleMessageConverter cho byte[], String và đối tượng được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -925,7 +925,7 @@ menu:
     summary: ''
   - slug: data-conversion-004
     title: Rủi ro Java serialization và giới hạn đối tượng được phép giải tuần tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -934,7 +934,7 @@ menu:
     summary: ''
   - slug: data-conversion-005
     title: 'JSON converter theo phiên bản: Jackson2JsonMessageConverter hoặc JacksonJsonMessageConverter'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -943,7 +943,7 @@ menu:
     summary: ''
   - slug: data-conversion-006
     title: Chuyển đổi Jackson 2 sang Jackson 3 khi nâng cấp Spring AMQP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -952,7 +952,7 @@ menu:
     summary: ''
   - slug: data-conversion-007
     title: Type headers, DefaultClassMapper và trusted packages
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -961,7 +961,7 @@ menu:
     summary: ''
   - slug: data-conversion-008
     title: Kiểu suy luận từ tham số listener so với kiểu do producer cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -970,7 +970,7 @@ menu:
     summary: ''
   - slug: data-conversion-009
     title: ParameterizedTypeReference và payload có kiểu generic
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -979,7 +979,7 @@ menu:
     summary: ''
   - slug: data-conversion-010
     title: ContentTypeDelegatingMessageConverter và nhiều định dạng nội dung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -988,7 +988,7 @@ menu:
     summary: ''
   - slug: data-conversion-011
     title: Jackson XML, marshalling và converter tùy biến khi cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -997,7 +997,7 @@ menu:
     summary: ''
   - slug: data-conversion-012
     title: Tương thích JSON với producer hoặc consumer không dùng Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1006,7 +1006,7 @@ menu:
     summary: ''
   - slug: data-conversion-013
     title: Phiên bản schema, trường tùy chọn và thay đổi cấu trúc sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1018,7 +1018,7 @@ menu:
   childs:
   - slug: message-publishing-001
     title: AmqpTemplate, RabbitOperations và RabbitTemplate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1027,7 +1027,7 @@ menu:
     summary: ''
   - slug: message-publishing-002
     title: Gửi theo exchange và routing key hoặc dùng giá trị mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1036,7 +1036,7 @@ menu:
     summary: ''
   - slug: message-publishing-003
     title: MessagePostProcessor và bổ sung properties trước khi gửi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1045,7 +1045,7 @@ menu:
     summary: ''
   - slug: message-publishing-004
     title: Before-publish và after-receive post processor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1054,7 +1054,7 @@ menu:
     summary: ''
   - slug: message-publishing-005
     title: GzipPostProcessor và giải nén theo content encoding khi phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1063,7 +1063,7 @@ menu:
     summary: ''
   - slug: message-publishing-006
     title: Đặt messageId, thời hạn và metadata nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1072,7 +1072,7 @@ menu:
     summary: ''
   - slug: message-publishing-007
     title: Gửi nhiều thông điệp trong cùng phạm vi channel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1081,7 +1081,7 @@ menu:
     summary: ''
   - slug: message-publishing-008
     title: Gửi thất bại trước khi kết nối, khi channel đóng hoặc khi broker từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1090,7 +1090,7 @@ menu:
     summary: ''
   - slug: message-publishing-009
     title: Retry phía publisher và khả năng tạo thông điệp trùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1099,7 +1099,7 @@ menu:
     summary: ''
   - slug: message-publishing-010
     title: Chọn điểm kết thúc nghiệp vụ gửi dựa trên confirm thay vì chỉ gọi hàm thành công
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1111,7 +1111,7 @@ menu:
   childs:
   - slug: publisher-confirms-returns-001
     title: Phân biệt broker nhận publish với consumer hoàn thành xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1120,7 +1120,7 @@ menu:
     summary: ''
   - slug: publisher-confirms-returns-002
     title: Publisher confirm kiểu SIMPLE và CORRELATED
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1129,7 +1129,7 @@ menu:
     summary: ''
   - slug: publisher-confirms-returns-003
     title: Cấu hình publisher confirm trên connection factory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1138,7 +1138,7 @@ menu:
     summary: ''
   - slug: publisher-confirms-returns-004
     title: ConfirmCallback và CorrelationData cho từng lần gửi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1147,7 +1147,7 @@ menu:
     summary: ''
   - slug: publisher-confirms-returns-005
     title: CompletableFuture từ CorrelationData và xử lý confirm bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1156,7 +1156,7 @@ menu:
     summary: ''
   - slug: publisher-confirms-returns-006
     title: Publisher returns, mandatory và ReturnsCallback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1165,7 +1165,7 @@ menu:
     summary: ''
   - slug: publisher-confirms-returns-007
     title: Thông điệp không định tuyến được vẫn có thể nhận confirm ack
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1174,7 +1174,7 @@ menu:
     summary: ''
   - slug: publisher-confirms-returns-008
     title: Thứ tự xử lý return và confirm cho cùng thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1183,7 +1183,7 @@ menu:
     summary: ''
   - slug: publisher-confirms-returns-009
     title: Publish vào exchange không tồn tại và lỗi đóng channel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1192,7 +1192,7 @@ menu:
     summary: ''
   - slug: publisher-confirms-returns-010
     title: Timeout hoặc mất kết nối khi chưa biết kết quả publish
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1201,7 +1201,7 @@ menu:
     summary: ''
   - slug: publisher-confirms-returns-011
     title: Giới hạn số publish chưa được xác nhận và lưu trạng thái chờ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1210,7 +1210,7 @@ menu:
     summary: ''
   - slug: publisher-confirms-returns-012
     title: Thiết kế gửi lại khi kết quả không rõ và chống xử lý trùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1222,7 +1222,7 @@ menu:
   childs:
   - slug: message-consumption-001
     title: Nhận đồng bộ bằng RabbitTemplate.receive()
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1231,7 +1231,7 @@ menu:
     summary: ''
   - slug: message-consumption-002
     title: receiveAndConvert() và chuyển kiểu dữ liệu phía nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1240,7 +1240,7 @@ menu:
     summary: ''
   - slug: message-consumption-003
     title: Nhận ngay, chờ có thời hạn và chi phí polling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1249,7 +1249,7 @@ menu:
     summary: ''
   - slug: message-consumption-004
     title: MessageListener và ChannelAwareMessageListener
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1258,7 +1258,7 @@ menu:
     summary: ''
   - slug: message-consumption-005
     title: MessageListenerAdapter và ánh xạ thông điệp vào phương thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1267,7 +1267,7 @@ menu:
     summary: ''
   - slug: message-consumption-006
     title: Nhận theo sự kiện bằng listener container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1276,7 +1276,7 @@ menu:
     summary: ''
   - slug: message-consumption-007
     title: Header nhận, routing key gốc và thông tin queue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1285,7 +1285,7 @@ menu:
     summary: ''
   - slug: message-consumption-008
     title: Lựa chọn polling, listener hoặc request–reply theo bài toán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1297,7 +1297,7 @@ menu:
   childs:
   - slug: listener-configuration-001
     title: '@EnableRabbit trong Spring thuần và tự cấu hình trong Spring Boot'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1306,7 +1306,7 @@ menu:
     summary: ''
   - slug: listener-configuration-002
     title: '@RabbitListener tại phương thức và lớp'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1315,7 +1315,7 @@ menu:
     summary: ''
   - slug: listener-configuration-003
     title: Khai báo queues, queuesToDeclare và bindings
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1324,7 +1324,7 @@ menu:
     summary: ''
   - slug: listener-configuration-004
     title: Tham số payload, Message, Channel, @Header và @Headers
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1333,7 +1333,7 @@ menu:
     summary: ''
   - slug: listener-configuration-005
     title: '@Payload, kiểm tra dữ liệu và lỗi trước khi gọi phương thức'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1342,7 +1342,7 @@ menu:
     summary: ''
   - slug: listener-configuration-006
     title: '@RabbitHandler và phân phối theo kiểu payload'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1351,7 +1351,7 @@ menu:
     summary: ''
   - slug: listener-configuration-007
     title: containerFactory, concurrency, ackMode và messageConverter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1360,7 +1360,7 @@ menu:
     summary: ''
   - slug: listener-configuration-008
     title: SpEL, property placeholder và định danh endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
     summary: ''
   - slug: listener-configuration-009
     title: '@SendTo, giá trị trả về và thông điệp phản hồi'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: listener-configuration-010
     title: RabbitListenerConfigurer và đăng ký endpoint bằng mã
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1387,7 +1387,7 @@ menu:
     summary: ''
   - slug: listener-configuration-011
     title: RabbitListenerEndpointRegistry và quản lý start/stop theo id
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1396,7 +1396,7 @@ menu:
     summary: ''
   - slug: listener-configuration-012
     title: Giới hạn proxy, phương thức generic và các trường hợp chọn handler không rõ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1408,7 +1408,7 @@ menu:
   childs:
   - slug: listener-containers-001
     title: Vai trò listener container trong luồng nhận, xử lý và xác nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1417,7 +1417,7 @@ menu:
     summary: ''
   - slug: listener-containers-002
     title: SimpleMessageListenerContainer và luồng xử lý riêng cho consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1426,7 +1426,7 @@ menu:
     summary: ''
   - slug: listener-containers-003
     title: DirectMessageListenerContainer và thực thi trên luồng RabbitMQ client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
     summary: ''
   - slug: listener-containers-004
     title: SimpleRabbitListenerContainerFactory và DirectRabbitListenerContainerFactory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: listener-containers-005
     title: concurrentConsumers, maxConcurrentConsumers và consumersPerQueue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1453,7 +1453,7 @@ menu:
     summary: ''
   - slug: listener-containers-006
     title: Prefetch và số thông điệp chưa được xác nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1462,7 +1462,7 @@ menu:
     summary: ''
   - slug: listener-containers-007
     title: TaskExecutor, thread pool và giới hạn xử lý đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1471,7 +1471,7 @@ menu:
     summary: ''
   - slug: listener-containers-008
     title: Nhận từ nhiều queue và phân bổ consumer giữa các queue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1480,7 +1480,7 @@ menu:
     summary: ''
   - slug: listener-containers-009
     title: Thêm hoặc xóa queue trong lúc chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1489,7 +1489,7 @@ menu:
     summary: ''
   - slug: listener-containers-010
     title: autoStartup, SmartLifecycle và thứ tự khởi động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1498,7 +1498,7 @@ menu:
     summary: ''
   - slug: listener-containers-011
     title: Missing queue, sai thuộc tính queue và chính sách dừng container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1507,7 +1507,7 @@ menu:
     summary: ''
   - slug: listener-containers-012
     title: Sự kiện idle, consumer thất bại và thay đổi trạng thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1516,7 +1516,7 @@ menu:
     summary: ''
   - slug: listener-containers-013
     title: Dừng an toàn, forceStop và thông điệp đã được prefetch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1528,7 +1528,7 @@ menu:
   childs:
   - slug: consumer-acknowledgments-001
     title: AcknowledgeMode.NONE, AUTO và MANUAL của Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1537,7 +1537,7 @@ menu:
     summary: ''
   - slug: consumer-acknowledgments-002
     title: Phân biệt AUTO của Spring với auto-ack tại broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1546,7 +1546,7 @@ menu:
     summary: ''
   - slug: consumer-acknowledgments-003
     title: Thời điểm ack khi listener trả về thành công
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1555,7 +1555,7 @@ menu:
     summary: ''
   - slug: consumer-acknowledgments-004
     title: basicAck, basicNack và basicReject
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1564,7 +1564,7 @@ menu:
     summary: ''
   - slug: consumer-acknowledgments-005
     title: Delivery tag chỉ có ý nghĩa trong channel nhận tương ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1573,7 +1573,7 @@ menu:
     summary: ''
   - slug: consumer-acknowledgments-006
     title: Tham số multiple, requeue và ảnh hưởng tới các delivery khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1582,7 +1582,7 @@ menu:
     summary: ''
   - slug: consumer-acknowledgments-007
     title: Exception trong listener và defaultRequeueRejected
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1591,7 +1591,7 @@ menu:
     summary: ''
   - slug: consumer-acknowledgments-008
     title: Thông điệp unacked khi consumer mất kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1600,7 +1600,7 @@ menu:
     summary: ''
   - slug: consumer-acknowledgments-009
     title: Lỗi unknown delivery tag do ack sai channel hoặc ack hai lần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1609,7 +1609,7 @@ menu:
     summary: ''
   - slug: consumer-acknowledgments-010
     title: Manual ack khi xử lý bất đồng bộ và tránh xác nhận quá sớm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1618,7 +1618,7 @@ menu:
     summary: ''
   - slug: consumer-acknowledgments-011
     title: Thời hạn xác nhận của consumer và thời gian xử lý kéo dài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1627,7 +1627,7 @@ menu:
     summary: ''
   - slug: consumer-acknowledgments-012
     title: Chọn chiến lược ack theo ranh giới hoàn tất nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1639,7 +1639,7 @@ menu:
   childs:
   - slug: error-handling-001
     title: Lỗi kết nối, lỗi chuyển đổi thông điệp và lỗi nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1648,7 +1648,7 @@ menu:
     summary: ''
   - slug: error-handling-002
     title: AmqpException và cơ chế chuyển đổi exception
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1657,7 +1657,7 @@ menu:
     summary: ''
   - slug: error-handling-003
     title: ListenerExecutionFailedException và thông điệp gây lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1666,7 +1666,7 @@ menu:
     summary: ''
   - slug: error-handling-004
     title: ErrorHandler của container và RabbitListenerErrorHandler
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1675,7 +1675,7 @@ menu:
     summary: ''
   - slug: error-handling-005
     title: ConditionalRejectingErrorHandler và FatalExceptionStrategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1684,7 +1684,7 @@ menu:
     summary: ''
   - slug: error-handling-006
     title: AmqpRejectAndDontRequeueException để từ chối không xếp lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1693,7 +1693,7 @@ menu:
     summary: ''
   - slug: error-handling-007
     title: ImmediateRequeueAmqpException và yêu cầu xếp lại có chủ đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1702,7 +1702,7 @@ menu:
     summary: ''
   - slug: error-handling-008
     title: Lỗi fatal trước khi gọi listener và tác động đến MANUAL ack
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1711,7 +1711,7 @@ menu:
     summary: ''
   - slug: error-handling-009
     title: Thông điệp poison, x-death và phòng tránh vòng lặp vô hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1720,7 +1720,7 @@ menu:
     summary: ''
   - slug: error-handling-010
     title: Phản hồi exception qua request–reply và giới hạn converter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1729,7 +1729,7 @@ menu:
     summary: ''
   - slug: error-handling-011
     title: Chính sách dừng listener khi lỗi fatal theo phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1741,7 +1741,7 @@ menu:
   childs:
   - slug: message-retries-001
     title: Phân biệt thử kết nối lại, thử gửi lại và thử xử lý lại thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1750,7 +1750,7 @@ menu:
     summary: ''
   - slug: message-retries-002
     title: Phân loại lỗi tạm thời với lỗi không thể phục hồi bằng retry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1759,7 +1759,7 @@ menu:
     summary: ''
   - slug: message-retries-003
     title: RetryTemplate và retry interceptor theo dòng phiên bản sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1768,7 +1768,7 @@ menu:
     summary: ''
   - slug: message-retries-004
     title: Stateless retry và stateful retry cho listener
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1777,7 +1777,7 @@ menu:
     summary: ''
   - slug: message-retries-005
     title: messageId và khóa nhận diện khi dùng stateful retry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1786,7 +1786,7 @@ menu:
     summary: ''
   - slug: message-retries-006
     title: Số lần thử, khoảng chờ tăng dần và giới hạn tổng thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1795,7 +1795,7 @@ menu:
     summary: ''
   - slug: message-retries-007
     title: adviceChain và thứ tự retry so với giao dịch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1804,7 +1804,7 @@ menu:
     summary: ''
   - slug: message-retries-008
     title: MessageRecoverer sau khi hết số lần thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1813,7 +1813,7 @@ menu:
     summary: ''
   - slug: message-retries-009
     title: RejectAndDontRequeueRecoverer và RepublishMessageRecoverer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1822,7 +1822,7 @@ menu:
     summary: ''
   - slug: message-retries-010
     title: RepublishMessageRecovererWithConfirms và độ tin cậy khi chuyển lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1831,7 +1831,7 @@ menu:
     summary: ''
   - slug: message-retries-011
     title: Ảnh hưởng của retry chặn luồng đến consumer và prefetch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1840,7 +1840,7 @@ menu:
     summary: ''
   - slug: message-retries-012
     title: Khi nào dùng retry tại chỗ và khi nào chuyển sang queue trì hoãn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1852,7 +1852,7 @@ menu:
   childs:
   - slug: dead-letter-delayed-messages-001
     title: Dead-letter exchange, dead-letter queue và routing key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1861,7 +1861,7 @@ menu:
     summary: ''
   - slug: dead-letter-delayed-messages-002
     title: 'Các nguyên nhân dead-letter: reject, hết hạn, giới hạn và delivery limit'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1870,7 +1870,7 @@ menu:
     summary: ''
   - slug: dead-letter-delayed-messages-003
     title: Khai báo DLX bằng policy hoặc đối số queue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1879,7 +1879,7 @@ menu:
     summary: ''
   - slug: dead-letter-delayed-messages-004
     title: x-death, lịch sử chuyển queue và đếm số lần xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1888,7 +1888,7 @@ menu:
     summary: ''
   - slug: dead-letter-delayed-messages-005
     title: Retry queue dùng TTL và DLX để trì hoãn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1897,7 +1897,7 @@ menu:
     summary: ''
   - slug: dead-letter-delayed-messages-006
     title: Giới hạn TTL theo từng thông điệp và hiện tượng chặn ở đầu queue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1906,7 +1906,7 @@ menu:
     summary: ''
   - slug: dead-letter-delayed-messages-007
     title: Giới hạn số lần quay lại và queue cách ly cuối cùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1915,7 +1915,7 @@ menu:
     summary: ''
   - slug: dead-letter-delayed-messages-008
     title: Phân biệt republish từ ứng dụng với dead-letter do broker thực hiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1924,7 +1924,7 @@ menu:
     summary: ''
   - slug: dead-letter-delayed-messages-009
     title: Độ tin cậy của dead-letter theo loại queue và chính sách
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1933,7 +1933,7 @@ menu:
     summary: ''
   - slug: dead-letter-delayed-messages-010
     title: Delayed-message exchange plugin khi được hỗ trợ và cài đặt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1942,7 +1942,7 @@ menu:
     summary: ''
   - slug: dead-letter-delayed-messages-011
     title: Delayed retry tích hợp của broker theo loại queue và phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1951,7 +1951,7 @@ menu:
     summary: ''
   - slug: dead-letter-delayed-messages-012
     title: Kiểm tra, sửa và phát lại thông điệp lỗi có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1960,7 +1960,7 @@ menu:
     summary: ''
   - slug: dead-letter-delayed-messages-013
     title: Ngăn chu trình DLX, mất routing key và tăng kích thước header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1972,7 +1972,7 @@ menu:
   childs:
   - slug: request-reply-001
     title: Mô hình request–reply qua RabbitMQ và chi phí so với gọi HTTP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1981,7 +1981,7 @@ menu:
     summary: ''
   - slug: request-reply-002
     title: sendAndReceive() và convertSendAndReceive()
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1990,7 +1990,7 @@ menu:
     summary: ''
   - slug: request-reply-003
     title: replyTo, correlationId và đối chiếu phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1999,7 +1999,7 @@ menu:
     summary: ''
   - slug: request-reply-004
     title: RabbitMQ Direct Reply-To và điều kiện sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2008,7 +2008,7 @@ menu:
     summary: ''
   - slug: request-reply-005
     title: Queue phản hồi cố định hoặc tạm thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2017,7 +2017,7 @@ menu:
     summary: ''
   - slug: request-reply-006
     title: Cấu hình reply listener và phân biệt với listener nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2026,7 +2026,7 @@ menu:
     summary: ''
   - slug: request-reply-007
     title: '@SendTo, ReplyPostProcessor và chọn đích phản hồi'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2035,7 +2035,7 @@ menu:
     summary: ''
   - slug: request-reply-008
     title: replyTimeout, phản hồi đến muộn và yêu cầu không có phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2044,7 +2044,7 @@ menu:
     summary: ''
   - slug: request-reply-009
     title: Publisher confirm/return trong luồng request–reply
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2053,7 +2053,7 @@ menu:
     summary: ''
   - slug: request-reply-010
     title: AsyncRabbitTemplate với CompletableFuture
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2062,7 +2062,7 @@ menu:
     summary: ''
   - slug: request-reply-011
     title: convertSendAndReceiveAsType() cho kiểu phản hồi phức tạp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2071,7 +2071,7 @@ menu:
     summary: ''
   - slug: request-reply-012
     title: Giới hạn độ tin cậy của Direct Reply-To và khả năng xử lý lại request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2083,7 +2083,7 @@ menu:
   childs:
   - slug: async-processing-001
     title: '@RabbitListener trả về CompletableFuture hoặc Mono'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2092,7 +2092,7 @@ menu:
     summary: ''
   - slug: async-processing-002
     title: Hoàn tất bất đồng bộ và thời điểm ack hoặc nack
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2101,7 +2101,7 @@ menu:
     summary: ''
   - slug: async-processing-003
     title: Tự chọn MANUAL ack theo loại trả về và phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2110,7 +2110,7 @@ menu:
     summary: ''
   - slug: async-processing-004
     title: Lỗi trước khi tạo Future hoặc Mono và lỗi khi hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2119,7 +2119,7 @@ menu:
     summary: ''
   - slug: async-processing-005
     title: RabbitListenerErrorHandler cho kết quả trả về bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2128,7 +2128,7 @@ menu:
     summary: ''
   - slug: async-processing-006
     title: Quản lý executor, số công việc đang chạy và giới hạn tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2137,7 +2137,7 @@ menu:
     summary: ''
   - slug: async-processing-007
     title: Kotlin suspend listener khi dự án sử dụng Kotlin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2146,7 +2146,7 @@ menu:
     summary: ''
   - slug: async-processing-008
     title: Phân biệt listener trả Mono với toàn bộ RabbitMQ client không chặn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2155,7 +2155,7 @@ menu:
     summary: ''
   - slug: async-processing-009
     title: Hủy tác vụ, dừng ứng dụng và xử lý delivery chưa hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2167,7 +2167,7 @@ menu:
   childs:
   - slug: batch-processing-001
     title: Phân biệt lô do producer tạo với lô gom từ các delivery riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2176,7 +2176,7 @@ menu:
     summary: ''
   - slug: batch-processing-002
     title: BatchingRabbitTemplate và BatchingStrategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2185,7 +2185,7 @@ menu:
     summary: ''
   - slug: batch-processing-003
     title: Giới hạn số lượng, kích thước và thời gian chờ gom lô
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2194,7 +2194,7 @@ menu:
     summary: ''
   - slug: batch-processing-004
     title: Giải lô tự động và thuộc tính deBatchingEnabled
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2203,7 +2203,7 @@ menu:
     summary: ''
   - slug: batch-processing-005
     title: consumerBatchEnabled, batchListener và kiểu tham số listener
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2212,7 +2212,7 @@ menu:
     summary: ''
   - slug: batch-processing-006
     title: batchSize, receiveTimeout và các tùy chọn gom lô theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2221,7 +2221,7 @@ menu:
     summary: ''
   - slug: batch-processing-007
     title: Giới hạn khác nhau giữa SMLC và DMLC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2230,7 +2230,7 @@ menu:
     summary: ''
   - slug: batch-processing-008
     title: Ack theo lô, lỗi một phần và nguy cơ phát lại nhiều thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2239,7 +2239,7 @@ menu:
     summary: ''
   - slug: batch-processing-009
     title: Retry, recoverer và thông điệp lỗi trong một lô
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2248,7 +2248,7 @@ menu:
     summary: ''
   - slug: batch-processing-010
     title: Đo thông lượng so với độ trễ và bộ nhớ khi dùng batching
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2260,7 +2260,7 @@ menu:
   childs:
   - slug: transactions-001
     title: channelTransacted và giao dịch AMQP cục bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2269,7 +2269,7 @@ menu:
     summary: ''
   - slug: transactions-002
     title: RabbitTransactionManager và phạm vi tài nguyên quản lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2278,7 +2278,7 @@ menu:
     summary: ''
   - slug: transactions-003
     title: '@Transactional kết hợp listener với giao dịch cơ sở dữ liệu'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2287,7 +2287,7 @@ menu:
     summary: ''
   - slug: transactions-004
     title: Đồng bộ giao dịch cơ sở dữ liệu và AMQP theo best-efforts one-phase commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2296,7 +2296,7 @@ menu:
     summary: ''
   - slug: transactions-005
     title: Giới hạn tính nguyên tử khi commit hai hệ thống khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2305,7 +2305,7 @@ menu:
     summary: ''
   - slug: transactions-006
     title: Rollback, acknowledgement và xếp lại thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2314,7 +2314,7 @@ menu:
     summary: ''
   - slug: transactions-007
     title: alwaysRequeueWithTxManagerRollback theo cấu hình và phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2323,7 +2323,7 @@ menu:
     summary: ''
   - slug: transactions-008
     title: Tương tác giữa giao dịch, retry và lỗi nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2332,7 +2332,7 @@ menu:
     summary: ''
   - slug: transactions-009
     title: Giới hạn kết hợp channel transaction với publisher confirm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2341,7 +2341,7 @@ menu:
     summary: ''
   - slug: transactions-010
     title: Chi phí hiệu năng và lựa chọn thay thế bằng outbox
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2353,7 +2353,7 @@ menu:
   childs:
   - slug: end-to-end-reliability-001
     title: Vì sao queue durable và message persistent chưa đủ bảo đảm hoàn tất nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2362,7 +2362,7 @@ menu:
     summary: ''
   - slug: end-to-end-reliability-002
     title: Xác định các cửa sổ mất thông điệp và xử lý trùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2371,7 +2371,7 @@ menu:
     summary: ''
   - slug: end-to-end-reliability-003
     title: Publisher confirm, consumer ack và trách nhiệm của mỗi bên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2380,7 +2380,7 @@ menu:
     summary: ''
   - slug: end-to-end-reliability-004
     title: Message ID, khóa nghiệp vụ và consumer có tính lặp an toàn (idempotency)
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2389,7 +2389,7 @@ menu:
     summary: ''
   - slug: end-to-end-reliability-005
     title: Lưu dấu xử lý bằng ràng buộc duy nhất hoặc inbox
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2398,7 +2398,7 @@ menu:
     summary: ''
   - slug: end-to-end-reliability-006
     title: Transactional outbox để đồng bộ thay đổi dữ liệu và ý định gửi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2407,7 +2407,7 @@ menu:
     summary: ''
   - slug: end-to-end-reliability-007
     title: Outbox relay với confirm và trạng thái publish chưa rõ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2416,7 +2416,7 @@ menu:
     summary: ''
   - slug: end-to-end-reliability-008
     title: Xử lý sự kiện trùng, đến muộn hoặc không còn phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2425,7 +2425,7 @@ menu:
     summary: ''
   - slug: end-to-end-reliability-009
     title: Exactly-once ở cấp tác động nghiệp vụ và giới hạn bảo đảm của broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2434,7 +2434,7 @@ menu:
     summary: ''
   - slug: end-to-end-reliability-010
     title: Đối soát thông điệp, dữ liệu nghiệp vụ và tác vụ bị bỏ dở
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2443,7 +2443,7 @@ menu:
     summary: ''
   - slug: end-to-end-reliability-011
     title: Phát lại sự kiện và kiểm soát tác động lặp lên hệ thống ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2455,7 +2455,7 @@ menu:
   childs:
   - slug: ordering-concurrency-001
     title: Phạm vi bảo đảm thứ tự của queue và channel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2464,7 +2464,7 @@ menu:
     summary: ''
   - slug: ordering-concurrency-002
     title: Nhiều producer, nhiều channel và thứ tự quan sát thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2473,7 +2473,7 @@ menu:
     summary: ''
   - slug: ordering-concurrency-003
     title: Nhiều consumer, prefetch và hoàn tất xử lý không cùng thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2482,7 +2482,7 @@ menu:
     summary: ''
   - slug: ordering-concurrency-004
     title: Requeue, redelivery, priority và retry làm thay đổi thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2491,7 +2491,7 @@ menu:
     summary: ''
   - slug: ordering-concurrency-005
     title: Single Active Consumer cho yêu cầu tiêu thụ tuần tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2500,7 +2500,7 @@ menu:
     summary: ''
   - slug: ordering-concurrency-006
     title: Phân vùng theo khóa nghiệp vụ qua nhiều queue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2509,7 +2509,7 @@ menu:
     summary: ''
   - slug: ordering-concurrency-007
     title: Định tuyến nhất quán theo aggregate hoặc khách hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2518,7 +2518,7 @@ menu:
     summary: ''
   - slug: ordering-concurrency-008
     title: Tăng concurrency của SMLC và DMLC đúng cơ chế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2527,7 +2527,7 @@ menu:
     summary: ''
   - slug: ordering-concurrency-009
     title: Giới hạn đồng thời theo tài nguyên cơ sở dữ liệu hoặc API phía sau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2536,7 +2536,7 @@ menu:
     summary: ''
   - slug: ordering-concurrency-010
     title: Version sự kiện và phát hiện sự kiện đến sai thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2548,7 +2548,7 @@ menu:
   childs:
   - slug: connection-recovery-001
     title: Spring AMQP recovery và automatic recovery của RabbitMQ Java Client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2557,7 +2557,7 @@ menu:
     summary: ''
   - slug: connection-recovery-002
     title: Mất connection so với lỗi chỉ đóng một channel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2566,7 +2566,7 @@ menu:
     summary: ''
   - slug: connection-recovery-003
     title: Heartbeat, phát hiện mất kết nối và thời gian phục hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2575,7 +2575,7 @@ menu:
     summary: ''
   - slug: connection-recovery-004
     title: Recovery interval, BackOff và giới hạn kết nối lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2584,7 +2584,7 @@ menu:
     summary: ''
   - slug: connection-recovery-005
     title: Phục hồi consumer sau khi broker hoặc node khởi động lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2593,7 +2593,7 @@ menu:
     summary: ''
   - slug: connection-recovery-006
     title: Khai báo lại exchange, queue và binding khi cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2602,7 +2602,7 @@ menu:
     summary: ''
   - slug: connection-recovery-007
     title: Exclusive queue, AnonymousQueue và thay đổi tên sau phục hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2611,7 +2611,7 @@ menu:
     summary: ''
   - slug: connection-recovery-008
     title: Publish chưa có confirm và delivery chưa ack khi mất kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2620,7 +2620,7 @@ menu:
     summary: ''
   - slug: connection-recovery-009
     title: Consumer bị broker hủy và xử lý queue biến mất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2629,7 +2629,7 @@ menu:
     summary: ''
   - slug: connection-recovery-010
     title: Blocked connection do giới hạn bộ nhớ hoặc dung lượng đĩa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2638,7 +2638,7 @@ menu:
     summary: ''
   - slug: connection-recovery-011
     title: Điều phối retry để tránh đồng loạt kết nối lại quá mức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2647,7 +2647,7 @@ menu:
     summary: ''
   - slug: connection-recovery-012
     title: Kiểm chứng trạng thái ứng dụng sau khi phục hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2659,7 +2659,7 @@ menu:
   childs:
   - slug: multiple-brokers-clients-001
     title: Phân biệt cluster RabbitMQ với nhiều broker độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2668,7 +2668,7 @@ menu:
     summary: ''
   - slug: multiple-brokers-clients-002
     title: Cấu hình nhiều địa chỉ kết nối và lựa chọn node
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2677,7 +2677,7 @@ menu:
     summary: ''
   - slug: multiple-brokers-clients-003
     title: Nhiều ConnectionFactory, RabbitTemplate và container factory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2686,7 +2686,7 @@ menu:
     summary: ''
   - slug: multiple-brokers-clients-004
     title: AbstractRoutingConnectionFactory và chọn đích kết nối theo ngữ cảnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2695,7 +2695,7 @@ menu:
     summary: ''
   - slug: multiple-brokers-clients-005
     title: Định tuyến gửi/nhận và tài nguyên tương ứng trên từng broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2704,7 +2704,7 @@ menu:
     summary: ''
   - slug: multiple-brokers-clients-006
     title: Cô lập khách hàng bằng virtual host, tài khoản hoặc broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2713,7 +2713,7 @@ menu:
     summary: ''
   - slug: multiple-brokers-clients-007
     title: RabbitAdmin phụ trách khai báo đúng tập tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2722,7 +2722,7 @@ menu:
     summary: ''
   - slug: multiple-brokers-clients-008
     title: Connection name, metric và log cho từng broker hoặc khách hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2731,7 +2731,7 @@ menu:
     summary: ''
   - slug: multiple-brokers-clients-009
     title: Giới hạn số connection, channel và tài nguyên theo khách hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2740,7 +2740,7 @@ menu:
     summary: ''
   - slug: multiple-brokers-clients-010
     title: Đánh giá Shovel/Federation như cơ chế broker ngoài phạm vi RabbitTemplate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2752,7 +2752,7 @@ menu:
   childs:
   - slug: rabbitmq-streams-001
     title: Khi nào dùng stream thay cho queue tiêu thụ thông thường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2761,7 +2761,7 @@ menu:
     summary: ''
   - slug: rabbitmq-streams-002
     title: Phân biệt truy cập stream qua AMQP với native Stream protocol
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2770,7 +2770,7 @@ menu:
     summary: ''
   - slug: rabbitmq-streams-003
     title: spring-rabbit-stream và cấu hình Environment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2779,7 +2779,7 @@ menu:
     summary: ''
   - slug: rabbitmq-streams-004
     title: Khai báo stream bằng QueueBuilder hoặc StreamAdmin theo cách kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2788,7 +2788,7 @@ menu:
     summary: ''
   - slug: rabbitmq-streams-005
     title: RabbitStreamTemplate và gửi thông điệp bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2797,7 +2797,7 @@ menu:
     summary: ''
   - slug: rabbitmq-streams-006
     title: StreamListenerContainer và StreamRabbitListenerContainerFactory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2806,7 +2806,7 @@ menu:
     summary: ''
   - slug: rabbitmq-streams-007
     title: Đọc Spring Message hoặc thông điệp stream nguyên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2815,7 +2815,7 @@ menu:
     summary: ''
   - slug: rabbitmq-streams-008
     title: Offset bắt đầu, theo dõi offset và đọc lại dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2824,7 +2824,7 @@ menu:
     summary: ''
   - slug: rabbitmq-streams-009
     title: Retention theo thời gian hoặc dung lượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2833,7 +2833,7 @@ menu:
     summary: ''
   - slug: rabbitmq-streams-010
     title: SuperStream, phân vùng và chọn khóa định tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2842,7 +2842,7 @@ menu:
     summary: ''
   - slug: rabbitmq-streams-011
     title: Single Active Consumer trong super stream
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2851,7 +2851,7 @@ menu:
     summary: ''
   - slug: rabbitmq-streams-012
     title: Giới hạn annotation, retry và tính năng so với container AMQP 0.9.1
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2863,7 +2863,7 @@ menu:
   childs:
   - slug: amqp-1-0-001
     title: Khác biệt mô hình connection, session, link và settlement với AMQP 0.9.1
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2872,7 +2872,7 @@ menu:
     summary: ''
   - slug: amqp-1-0-002
     title: RabbitMQ AMQP 1.0 qua spring-rabbitmq-client từ phiên bản 4.0
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2881,7 +2881,7 @@ menu:
     summary: ''
   - slug: amqp-1-0-003
     title: Cấu hình môi trường, kết nối và template của RabbitMQ AMQP 1.0
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2890,7 +2890,7 @@ menu:
     summary: ''
   - slug: amqp-1-0-004
     title: Listener RabbitMQ AMQP 1.0 và phạm vi tái sử dụng @RabbitListener
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2899,7 +2899,7 @@ menu:
     summary: ''
   - slug: amqp-1-0-005
     title: AMQP 1.0 tổng quát qua spring-amqp-client từ phiên bản 4.1
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2908,7 +2908,7 @@ menu:
     summary: ''
   - slug: amqp-1-0-006
     title: Qpid ProtonJ2, AmqpConnectionFactory và SingleAmqpConnectionFactory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2917,7 +2917,7 @@ menu:
     summary: ''
   - slug: amqp-1-0-007
     title: AmqpClient và thao tác gửi/nhận dựa trên CompletableFuture
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2926,7 +2926,7 @@ menu:
     summary: ''
   - slug: amqp-1-0-008
     title: AmqpMessageListenerContainer, link credit và settlement thủ công
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2935,7 +2935,7 @@ menu:
     summary: ''
   - slug: amqp-1-0-009
     title: '@EnableAmqp, @AmqpListener và registry riêng của generic client'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2944,7 +2944,7 @@ menu:
     summary: ''
   - slug: amqp-1-0-010
     title: Chuyển đổi thông điệp và tương thích với broker AMQP 1.0 mục tiêu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2953,7 +2953,7 @@ menu:
     summary: ''
   - slug: amqp-1-0-011
     title: Phân biệt API, thuộc tính và mức hỗ trợ giữa hai module AMQP 1.0
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2962,7 +2962,7 @@ menu:
     summary: ''
   - slug: amqp-1-0-012
     title: Kế hoạch chuyển protocol và kiểm thử tương thích nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2974,7 +2974,7 @@ menu:
   childs:
   - slug: security-001
     title: Tài khoản RabbitMQ và quyền configure, write, read trên virtual host
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2983,7 +2983,7 @@ menu:
     summary: ''
   - slug: security-002
     title: Phân tách quyền producer, consumer và quản trị topology
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2992,7 +2992,7 @@ menu:
     summary: ''
   - slug: security-003
     title: TLS, trust store và xác minh danh tính broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3001,7 +3001,7 @@ menu:
     summary: ''
   - slug: security-004
     title: mTLS hoặc cơ chế xác thực khác theo khả năng client/broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3010,7 +3010,7 @@ menu:
     summary: ''
   - slug: security-005
     title: Quản lý mật khẩu, chứng chỉ và bí mật theo môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3019,7 +3019,7 @@ menu:
     summary: ''
   - slug: security-006
     title: Luân chuyển thông tin kết nối và khôi phục ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3028,7 +3028,7 @@ menu:
     summary: ''
   - slug: security-007
     title: Trusted packages, type headers và phòng tránh giải tuần tự không an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3037,7 +3037,7 @@ menu:
     summary: ''
   - slug: security-008
     title: Giới hạn nội dung, header và dữ liệu đầu vào không tin cậy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3046,7 +3046,7 @@ menu:
     summary: ''
   - slug: security-009
     title: Mã hóa dữ liệu nghiệp vụ nhạy cảm khi yêu cầu bảo vệ đầu cuối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3055,7 +3055,7 @@ menu:
     summary: ''
   - slug: security-010
     title: Che payload, token và thông tin nhận diện khỏi log
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3064,7 +3064,7 @@ menu:
     summary: ''
   - slug: security-011
     title: Cô lập management endpoint và cập nhật bản vá thư viện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3076,7 +3076,7 @@ menu:
   childs:
   - slug: observability-001
     title: RabbitMQ Management, Prometheus và số liệu của broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3085,7 +3085,7 @@ menu:
     summary: ''
   - slug: observability-002
     title: Queue depth, ready, unacked và tốc độ publish/deliver/ack
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3094,7 +3094,7 @@ menu:
     summary: ''
   - slug: observability-003
     title: Micrometer timer cho RabbitTemplate và listener
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3103,7 +3103,7 @@ menu:
     summary: ''
   - slug: observability-004
     title: Micrometer Observation và tracing theo phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3112,7 +3112,7 @@ menu:
     summary: ''
   - slug: observability-005
     title: Truyền trace context, correlationId và messageId
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3121,7 +3121,7 @@ menu:
     summary: ''
   - slug: observability-006
     title: Phân biệt độ trễ chờ trong queue với thời gian xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3130,7 +3130,7 @@ menu:
     summary: ''
   - slug: observability-007
     title: Theo dõi confirm nack, return, retry và dead-letter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3139,7 +3139,7 @@ menu:
     summary: ''
   - slug: observability-008
     title: Giám sát connection, channel, consumer và mức sử dụng executor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3148,7 +3148,7 @@ menu:
     summary: ''
   - slug: observability-009
     title: Listener idle events và sự kiện consumer thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3157,7 +3157,7 @@ menu:
     summary: ''
   - slug: observability-010
     title: Giới hạn cardinality khi gắn nhãn theo queue hoặc khách hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3166,7 +3166,7 @@ menu:
     summary: ''
   - slug: observability-011
     title: Cảnh báo backlog, mất consumer, resource alarm và thông điệp poison
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3178,7 +3178,7 @@ menu:
   childs:
   - slug: testing-001
     title: Chọn kiểm thử đơn vị, tích hợp và toàn trình cho luồng thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3187,7 +3187,7 @@ menu:
     summary: ''
   - slug: testing-002
     title: Mock RabbitTemplate và kiểm thử quy tắc định tuyến nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3196,7 +3196,7 @@ menu:
     summary: ''
   - slug: testing-003
     title: TestRabbitTemplate và giới hạn mô phỏng không có broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3205,7 +3205,7 @@ menu:
     summary: ''
   - slug: testing-004
     title: spring-rabbit-test, @SpringRabbitTest và @RabbitListenerTest
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3214,7 +3214,7 @@ menu:
     summary: ''
   - slug: testing-005
     title: RabbitListenerTestHarness để quan sát listener được gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3223,7 +3223,7 @@ menu:
     summary: ''
   - slug: testing-006
     title: LatchCountDownAndCallRealMethodAnswer và chờ kết quả không đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3232,7 +3232,7 @@ menu:
     summary: ''
   - slug: testing-007
     title: RabbitMQContainer, Testcontainers và cấu hình kết nối cho Spring Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3241,7 +3241,7 @@ menu:
     summary: ''
   - slug: testing-008
     title: Kiểm thử topology, converter và producer/consumer khác ngôn ngữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3250,7 +3250,7 @@ menu:
     summary: ''
   - slug: testing-009
     title: Kiểm thử confirm, mandatory return và exchange không tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3259,7 +3259,7 @@ menu:
     summary: ''
   - slug: testing-010
     title: Kiểm thử ack, requeue, retry và DLQ bằng broker thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3268,7 +3268,7 @@ menu:
     summary: ''
   - slug: testing-011
     title: Mô phỏng trùng lặp, mất kết nối và khởi động lại consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3277,7 +3277,7 @@ menu:
     summary: ''
   - slug: testing-012
     title: Kiểm thử giao dịch, outbox và tác động nghiệp vụ có tính lặp an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3286,7 +3286,7 @@ menu:
     summary: ''
   - slug: testing-013
     title: Kiểm thử batch, RPC, stream và protocol theo phạm vi sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3295,7 +3295,7 @@ menu:
     summary: ''
   - slug: testing-014
     title: Đồng bộ chờ bằng điều kiện thay vì sleep cố định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3304,7 +3304,7 @@ menu:
     summary: ''
   - slug: testing-015
     title: Cô lập queue, dữ liệu và tài nguyên giữa các lượt kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3316,7 +3316,7 @@ menu:
   childs:
   - slug: performance-001
     title: Đo thông lượng, độ trễ và kích thước thông điệp thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3325,7 +3325,7 @@ menu:
     summary: ''
   - slug: performance-002
     title: Chọn prefetch theo thời gian xử lý và dung lượng bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3334,7 +3334,7 @@ menu:
     summary: ''
   - slug: performance-003
     title: Tăng consumer concurrency theo năng lực hệ thống phía sau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3343,7 +3343,7 @@ menu:
     summary: ''
   - slug: performance-004
     title: Tối ưu channel cache, connection và executor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3352,7 +3352,7 @@ menu:
     summary: ''
   - slug: performance-005
     title: Publisher confirm bất đồng bộ và số publish đang chờ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3361,7 +3361,7 @@ menu:
     summary: ''
   - slug: performance-006
     title: Đánh giá batching, nén payload và chi phí chuyển đổi JSON
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3370,7 +3370,7 @@ menu:
     summary: ''
   - slug: performance-007
     title: Giảm kích thước thông điệp bằng tham chiếu tới dữ liệu ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3379,7 +3379,7 @@ menu:
     summary: ''
   - slug: performance-008
     title: Chi phí persistence, quorum replication và transaction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3388,7 +3388,7 @@ menu:
     summary: ''
   - slug: performance-009
     title: Đánh giá queue backlog, thông điệp ưu tiên và tải không đồng đều
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3397,7 +3397,7 @@ menu:
     summary: ''
   - slug: performance-010
     title: Điều tiết producer, flow control và giới hạn tài nguyên broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3406,7 +3406,7 @@ menu:
     summary: ''
   - slug: performance-011
     title: Kiểm thử tải kéo dài, tải đột biến và hành vi khi quá tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3418,7 +3418,7 @@ menu:
   childs:
   - slug: deployment-operations-001
     title: Đóng gói ứng dụng và quản lý cấu hình RabbitMQ theo môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3427,7 +3427,7 @@ menu:
     summary: ''
   - slug: deployment-operations-002
     title: Readiness, liveness và quyết định khi broker chưa sẵn sàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3436,7 +3436,7 @@ menu:
     summary: ''
   - slug: deployment-operations-003
     title: Khởi động topology và listener đúng thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3445,7 +3445,7 @@ menu:
     summary: ''
   - slug: deployment-operations-004
     title: Triển khai nhiều bản sao producer/consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3454,7 +3454,7 @@ menu:
     summary: ''
   - slug: deployment-operations-005
     title: Dừng an toàn, xử lý delivery đang chạy và rút consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3463,7 +3463,7 @@ menu:
     summary: ''
   - slug: deployment-operations-006
     title: Tự động mở rộng theo queue backlog và thời gian xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3472,7 +3472,7 @@ menu:
     summary: ''
   - slug: deployment-operations-007
     title: Giới hạn CPU, bộ nhớ, connection và channel của ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3481,7 +3481,7 @@ menu:
     summary: ''
   - slug: deployment-operations-008
     title: RabbitMQ cluster, quorum và tác động khi node mất kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3490,7 +3490,7 @@ menu:
     summary: ''
   - slug: deployment-operations-009
     title: Sao lưu definitions, dữ liệu và ranh giới trách nhiệm vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3499,7 +3499,7 @@ menu:
     summary: ''
   - slug: deployment-operations-010
     title: Nâng cấp broker/ứng dụng theo từng đợt và kiểm tra tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3508,7 +3508,7 @@ menu:
     summary: ''
   - slug: deployment-operations-011
     title: Thay đổi topology không phá hủy thông điệp còn chờ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3517,7 +3517,7 @@ menu:
     summary: ''
   - slug: deployment-operations-012
     title: Runbook phục hồi và đối soát sau sự cố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3529,7 +3529,7 @@ menu:
   childs:
   - slug: integration-patterns-001
     title: Work queue cho tác vụ nền và phân phối việc giữa consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3538,7 +3538,7 @@ menu:
     summary: ''
   - slug: integration-patterns-002
     title: Pub/sub cho sự kiện miền với queue riêng từng nhóm sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3547,7 +3547,7 @@ menu:
     summary: ''
   - slug: integration-patterns-003
     title: Routing key theo loại sự kiện, phiên bản hoặc khách hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3556,7 +3556,7 @@ menu:
     summary: ''
   - slug: integration-patterns-004
     title: Request–reply cho yêu cầu cần phản hồi có thời hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3565,7 +3565,7 @@ menu:
     summary: ''
   - slug: integration-patterns-005
     title: Outbox/inbox trong kiến trúc giao dịch phân tán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3574,7 +3574,7 @@ menu:
     summary: ''
   - slug: integration-patterns-006
     title: Saga và ranh giới điều phối nghiệp vụ qua thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3583,7 +3583,7 @@ menu:
     summary: ''
   - slug: integration-patterns-007
     title: Retry queue, DLQ và khu vực xử lý thông điệp lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3592,7 +3592,7 @@ menu:
     summary: ''
   - slug: integration-patterns-008
     title: Spring Integration AMQP adapter và gateway khi cần luồng tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3601,7 +3601,7 @@ menu:
     summary: ''
   - slug: integration-patterns-009
     title: Spring Cloud Stream Rabbit binder và ranh giới so với Spring AMQP trực tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3610,7 +3610,7 @@ menu:
     summary: ''
   - slug: integration-patterns-010
     title: Chọn queue, stream hoặc broker khác theo đặc điểm bài toán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3622,7 +3622,7 @@ menu:
   childs:
   - slug: troubleshooting-001
     title: Không kết nối được do địa chỉ, virtual host, TLS hoặc quyền truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3631,7 +3631,7 @@ menu:
     summary: ''
   - slug: troubleshooting-002
     title: PRECONDITION_FAILED khi khai báo queue/exchange không khớp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3640,7 +3640,7 @@ menu:
     summary: ''
   - slug: troubleshooting-003
     title: Thông điệp mất do không có binding hoặc gửi sai exchange/routing key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3649,7 +3649,7 @@ menu:
     summary: ''
   - slug: troubleshooting-004
     title: Confirm ack nhưng không có consumer nhận thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3658,7 +3658,7 @@ menu:
     summary: ''
   - slug: troubleshooting-005
     title: Thông điệp nằm ở ready vì listener chưa chạy hoặc bị hủy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3667,7 +3667,7 @@ menu:
     summary: ''
   - slug: troubleshooting-006
     title: Unacked tăng liên tục do xử lý chậm, kẹt luồng hoặc thiếu ack
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3676,7 +3676,7 @@ menu:
     summary: ''
   - slug: troubleshooting-007
     title: Lỗi unknown delivery tag và channel bị đóng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3685,7 +3685,7 @@ menu:
     summary: ''
   - slug: troubleshooting-008
     title: MessageConversionException, sai content type hoặc kiểu JSON
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3694,7 +3694,7 @@ menu:
     summary: ''
   - slug: troubleshooting-009
     title: Retry/requeue vô hạn và DLQ không nhận được thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3703,7 +3703,7 @@ menu:
     summary: ''
   - slug: troubleshooting-010
     title: RPC timeout, correlation sai và phản hồi đến muộn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3712,7 +3712,7 @@ menu:
     summary: ''
   - slug: troubleshooting-011
     title: Hết channel, cạn executor hoặc publisher bị broker chặn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3721,7 +3721,7 @@ menu:
     summary: ''
   - slug: troubleshooting-012
     title: Phát lại nhiều thông điệp sau khi consumer khởi động lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3730,7 +3730,7 @@ menu:
     summary: ''
   - slug: troubleshooting-013
     title: Quorum queue không khả dụng hoặc chạm delivery limit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3739,7 +3739,7 @@ menu:
     summary: ''
   - slug: troubleshooting-014
     title: Lệch thứ tự khi tăng consumer, dùng retry hoặc ưu tiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3748,7 +3748,7 @@ menu:
     summary: ''
   - slug: troubleshooting-015
     title: Thu thập bằng chứng từ log ứng dụng, broker, metrics và tracing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3760,7 +3760,7 @@ menu:
   childs:
   - slug: upgrades-compatibility-001
     title: Đối chiếu Spring Boot, Spring AMQP, Java client và RabbitMQ broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3769,7 +3769,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-002
     title: Chuyển đổi API Future, callback và loại trả về bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3778,7 +3778,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-003
     title: Di chuyển converter Jackson 2 sang Jackson 3 theo dòng phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3787,7 +3787,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-004
     title: Đối chiếu thay đổi mặc định của container, prefetch và xử lý lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3796,7 +3796,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-005
     title: Đối chiếu delivery limit, priority và dead-letter của từng queue type
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3805,7 +3805,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-006
     title: Di chuyển khỏi cấu hình classic queue mirroring cũ khi broker không còn hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3814,7 +3814,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-007
     title: Giữ tên exchange, queue, routing key và schema sự kiện tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3823,7 +3823,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-008
     title: Chuyển từ XML namespace sang Java/annotation khi có nhu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3832,7 +3832,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-009
     title: Đánh giá module AMQP 1.0 mà không trộn cấu hình AMQP 0.9.1
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3841,7 +3841,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-010
     title: Kiểm thử hồi quy, phát hành từng phần và kế hoạch khôi phục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3853,7 +3853,7 @@ menu:
   childs:
   - slug: hands-on-practice-001
     title: Dựng producer/consumer với topology khai báo bằng Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3862,7 +3862,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-002
     title: So sánh direct, topic, fanout và headers exchange
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3871,7 +3871,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-003
     title: Gửi JSON có phiên bản schema và nhận từ ứng dụng khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3880,7 +3880,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-004
     title: Kiểm chứng confirm, return và publish có kết quả chưa rõ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3889,7 +3889,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-005
     title: Thiết kế manual ack theo thời điểm hoàn tất giao dịch nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3898,7 +3898,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-006
     title: Xây dựng retry giới hạn, DLQ và quy trình phát lại có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3907,7 +3907,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-007
     title: Triển khai consumer có tính lặp an toàn với inbox hoặc khóa duy nhất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3916,7 +3916,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-008
     title: Đồng bộ cơ sở dữ liệu và RabbitMQ bằng transactional outbox
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3925,7 +3925,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-009
     title: Xây dựng request–reply và quan sát timeout hoặc phản hồi đến muộn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3934,7 +3934,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-010
     title: Đo tác động của prefetch, concurrency và batching
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3943,7 +3943,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-011
     title: Mô phỏng broker/consumer gián đoạn và kiểm chứng phục hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3952,7 +3952,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-012
     title: Thực hành đọc lại stream hoặc client AMQP 1.0 khi phiên bản phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3961,7 +3961,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-013
     title: Hoàn thiện kiểm thử tích hợp, tracing và bảng theo dõi vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
