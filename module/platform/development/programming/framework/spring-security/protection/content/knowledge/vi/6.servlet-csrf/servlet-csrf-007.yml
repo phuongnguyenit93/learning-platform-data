@@ -1,3 +1,3 @@
 menuLevel1: CSRF trên Servlet
 menuLevel2: XorCsrfTokenRequestAttributeHandler và cơ chế giảm nguy cơ BREACH
-status: ''
+status: WRITTEN

@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-001
     title: Spring Data Commons là gì và vì sao các mô-đun Spring Data cần nó?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-002
     title: Vai trò của Commons trong hệ sinh thái Spring Data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-003
     title: 'Bản đồ khái niệm: entity, aggregate, repository, query method và mapping'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-004
     title: Luồng xử lý từ giao diện repository đến triển khai truy cập dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-005
     title: Phân biệt hợp đồng dùng chung với hành vi do từng store triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-006
     title: Quan hệ giữa Commons, Spring Framework, Spring Boot và các store module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-007
     title: Lựa chọn API dùng chung mà vẫn giữ đúng ranh giới nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: overview-008
     title: Lộ trình học và ví dụ khách hàng–sản phẩm–đơn hàng xuyên suốt tài liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -79,7 +79,7 @@ menu:
   childs:
   - slug: dependencies-versions-001
     title: Artifact spring-data-commons và cách được kéo vào qua starter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
     summary: ''
   - slug: dependencies-versions-002
     title: Release train, Spring Data BOM và dependency management của Spring Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: dependencies-versions-003
     title: Chọn Java, Spring Framework, Commons và store module tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: dependencies-versions-004
     title: Kiểm tra dependency tree và phát hiện lệch phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: dependencies-versions-005
     title: Phạm vi sử dụng Commons trực tiếp trong thư viện hoặc ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: dependencies-versions-006
     title: Phân biệt tài liệu, API hiện hành và API của phiên bản đang dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: dependencies-versions-007
     title: Quản lý dependency tùy chọn cho reactive, Querydsl, web và Kotlin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -145,7 +145,7 @@ menu:
   childs:
   - slug: setup-practice-001
     title: Chọn một store hỗ trợ để thực thi ví dụ API dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -154,7 +154,7 @@ menu:
     summary: ''
   - slug: setup-practice-002
     title: Chuẩn bị mô hình miền, dữ liệu và cấu hình tối thiểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -163,7 +163,7 @@ menu:
     summary: ''
   - slug: setup-practice-003
     title: Khai báo repository đầu tiên và lấy bean từ Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
     summary: ''
   - slug: setup-practice-004
     title: Thực hiện vòng lưu–đọc–sửa–xóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: setup-practice-005
     title: Quan sát phần hành vi chung và phần truy vấn do store tạo ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: setup-practice-006
     title: Thiết kế ví dụ độc lập với chi tiết cấu hình cơ sở dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: setup-practice-007
     title: Tổ chức project mẫu và kiểm thử tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -211,7 +211,7 @@ menu:
   childs:
   - slug: repository-interfaces-001
     title: Repository<T, ID> và vai trò marker interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -220,7 +220,7 @@ menu:
     summary: ''
   - slug: repository-interfaces-002
     title: Chọn kiểu miền và kiểu ID chính xác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -229,7 +229,7 @@ menu:
     summary: ''
   - slug: repository-interfaces-003
     title: Khai báo bằng @RepositoryDefinition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -238,7 +238,7 @@ menu:
     summary: ''
   - slug: repository-interfaces-004
     title: Chỉ công khai các phương thức cần cho nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -247,7 +247,7 @@ menu:
     summary: ''
   - slug: repository-interfaces-005
     title: Giao diện cơ sở generic và @NoRepositoryBean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
     summary: ''
   - slug: repository-interfaces-006
     title: CrudRepository và ListCrudRepository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -265,7 +265,7 @@ menu:
     summary: ''
   - slug: repository-interfaces-007
     title: PagingAndSortingRepository và ListPagingAndSortingRepository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
     summary: ''
   - slug: repository-interfaces-008
     title: Kết hợp CRUD với sorting sau thay đổi hệ phân cấp từ Spring Data 3.0
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
     summary: ''
   - slug: repository-interfaces-009
     title: Giao diện đặc thù store như JpaRepository hoặc MongoRepository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: repository-interfaces-010
     title: Phân biệt mở rộng hợp đồng repository với kế thừa lớp triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -304,7 +304,7 @@ menu:
   childs:
   - slug: crud-contract-001
     title: save và ý nghĩa kiểu trả về <S extends T>
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -313,7 +313,7 @@ menu:
     summary: ''
   - slug: crud-contract-002
     title: saveAll, collection đầu vào và đối tượng được trả về
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -322,7 +322,7 @@ menu:
     summary: ''
   - slug: crud-contract-003
     title: findById, Optional và kết quả không tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -331,7 +331,7 @@ menu:
     summary: ''
   - slug: crud-contract-004
     title: findAll, findAllById và giới hạn bảo đảm thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -340,7 +340,7 @@ menu:
     summary: ''
   - slug: crud-contract-005
     title: existsById, count và chi phí kiểm tra trước khi ghi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -349,7 +349,7 @@ menu:
     summary: ''
   - slug: crud-contract-006
     title: delete, deleteById, deleteAllById và deleteAll
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -358,7 +358,7 @@ menu:
     summary: ''
   - slug: crud-contract-007
     title: Null đầu vào, dữ liệu thiếu và exception theo hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -367,7 +367,7 @@ menu:
     summary: ''
   - slug: crud-contract-008
     title: Phát hiện entity mới, version và khả năng optimistic locking
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -376,7 +376,7 @@ menu:
     summary: ''
   - slug: crud-contract-009
     title: Phân biệt hợp đồng CRUD với cơ chế insert/update/merge của từng store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -385,7 +385,7 @@ menu:
     summary: ''
   - slug: crud-contract-010
     title: Thao tác hàng loạt, giao dịch và hiệu năng cần kiểm chứng theo store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -397,7 +397,7 @@ menu:
   childs:
   - slug: repository-activation-001
     title: Quét package và nhận diện giao diện repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -406,7 +406,7 @@ menu:
     summary: ''
   - slug: repository-activation-002
     title: Annotation @Enable...Repositories của từng store module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -415,7 +415,7 @@ menu:
     summary: ''
   - slug: repository-activation-003
     title: Auto-configuration trong Spring Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -424,7 +424,7 @@ menu:
     summary: ''
   - slug: repository-activation-004
     title: basePackages, basePackageClasses và bộ lọc quét
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -433,7 +433,7 @@ menu:
     summary: ''
   - slug: repository-activation-005
     title: Bean name, repository trùng tên và phạm vi cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -442,7 +442,7 @@ menu:
     summary: ''
   - slug: repository-activation-006
     title: XML namespace khi duy trì hệ thống cấu hình cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -451,7 +451,7 @@ menu:
     summary: ''
   - slug: repository-activation-007
     title: Tạo repository ngoài ApplicationContext bằng factory phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -460,7 +460,7 @@ menu:
     summary: ''
   - slug: repository-activation-008
     title: Kiểm chứng repository bean đã được đăng ký đúng store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -472,7 +472,7 @@ menu:
   childs:
   - slug: multiple-stores-001
     title: Chế độ cấu hình repository nghiêm ngặt khi có nhiều mô-đun Spring Data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -481,7 +481,7 @@ menu:
     summary: ''
   - slug: multiple-stores-002
     title: Phân loại repository theo giao diện cơ sở đặc thù store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -490,7 +490,7 @@ menu:
     summary: ''
   - slug: multiple-stores-003
     title: Phân loại theo annotation của kiểu miền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -499,7 +499,7 @@ menu:
     summary: ''
   - slug: multiple-stores-004
     title: Tách package để giới hạn quét repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -508,7 +508,7 @@ menu:
     summary: ''
   - slug: multiple-stores-005
     title: Mô hình miền có annotation của nhiều store và sự mơ hồ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -517,7 +517,7 @@ menu:
     summary: ''
   - slug: multiple-stores-006
     title: Chọn template, factory và transaction manager đúng mô-đun
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -526,7 +526,7 @@ menu:
     summary: ''
   - slug: multiple-stores-007
     title: Đánh giá tính di động của API khi chuyển store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -535,7 +535,7 @@ menu:
     summary: ''
   - slug: multiple-stores-008
     title: Kiểm thử cùng một ca sử dụng trên các store được chọn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -547,7 +547,7 @@ menu:
   childs:
   - slug: proxies-components-001
     title: Repository proxy được tạo như thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -556,7 +556,7 @@ menu:
     summary: ''
   - slug: proxies-components-002
     title: Vai trò của RepositoryFactorySupport và factory đặc thù store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -565,7 +565,7 @@ menu:
     summary: ''
   - slug: proxies-components-003
     title: Phân biệt phương thức cơ sở, query method, default method và fragment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -574,7 +574,7 @@ menu:
     summary: ''
   - slug: proxies-components-004
     title: RepositoryComposition và tập RepositoryFragment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -583,7 +583,7 @@ menu:
     summary: ''
   - slug: proxies-components-005
     title: Thứ tự điều phối khi nhiều thành phần cùng có một phương thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -592,7 +592,7 @@ menu:
     summary: ''
   - slug: proxies-components-006
     title: Metadata của repository, entity và kiểu kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -601,7 +601,7 @@ menu:
     summary: ''
   - slug: proxies-components-007
     title: Interceptor, exception translation và các lớp tích hợp Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -610,7 +610,7 @@ menu:
     summary: ''
   - slug: proxies-components-008
     title: Đọc stack trace để nhận diện bước đang xử lý lời gọi repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -619,7 +619,7 @@ menu:
     summary: ''
   - slug: proxies-components-009
     title: Ranh giới giữa API mở rộng được hỗ trợ và chi tiết triển khai nội bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -631,7 +631,7 @@ menu:
   childs:
   - slug: query-strategies-001
     title: Query method và cách repository quyết định triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -640,7 +640,7 @@ menu:
     summary: ''
   - slug: query-strategies-002
     title: CREATE, USE_DECLARED_QUERY và CREATE_IF_NOT_FOUND
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -649,7 +649,7 @@ menu:
     summary: ''
   - slug: query-strategies-003
     title: Truy vấn suy diễn, truy vấn có annotation và named query
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -658,7 +658,7 @@ menu:
     summary: ''
   - slug: query-strategies-004
     title: Phạm vi @Query, ngôn ngữ truy vấn và cú pháp bind theo store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -667,7 +667,7 @@ menu:
     summary: ''
   - slug: query-strategies-005
     title: QueryMethod, RepositoryQuery và vai trò của QueryLookupStrategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -676,7 +676,7 @@ menu:
     summary: ''
   - slug: query-strategies-006
     title: Tham số nghiệp vụ và tham số đặc biệt như Pageable hoặc Sort
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -685,7 +685,7 @@ menu:
     summary: ''
   - slug: query-strategies-007
     title: Bind theo tên, theo vị trí và annotation @Param
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -694,7 +694,7 @@ menu:
     summary: ''
   - slug: query-strategies-008
     title: Thời điểm phát hiện phương thức không hợp lệ hoặc thiếu truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -703,7 +703,7 @@ menu:
     summary: ''
   - slug: query-strategies-009
     title: Chọn truy vấn khai báo hay fragment khi yêu cầu vượt khả năng suy diễn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -715,7 +715,7 @@ menu:
   childs:
   - slug: method-name-derivation-001
     title: Tách phần chủ thể và điều kiện tại từ khóa By
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -724,7 +724,7 @@ menu:
     summary: ''
   - slug: method-name-derivation-002
     title: find, read, get, query, search và stream theo hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -733,7 +733,7 @@ menu:
     summary: ''
   - slug: method-name-derivation-003
     title: count, exists, delete và remove
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -742,7 +742,7 @@ menu:
     summary: ''
   - slug: method-name-derivation-004
     title: PropertyPath và truy cập thuộc tính lồng nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -751,7 +751,7 @@ menu:
     summary: ''
   - slug: method-name-derivation-005
     title: Quy tắc tách camel case, dấu gạch dưới và tên thuộc tính mơ hồ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -760,7 +760,7 @@ menu:
     summary: ''
   - slug: method-name-derivation-006
     title: And, Or và giới hạn diễn đạt nhóm điều kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -769,7 +769,7 @@ menu:
     summary: ''
   - slug: method-name-derivation-007
     title: So sánh, khoảng giá trị, chuỗi, tập hợp và null theo store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -778,7 +778,7 @@ menu:
     summary: ''
   - slug: method-name-derivation-008
     title: Distinct, IgnoreCase và AllIgnoreCase
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -787,7 +787,7 @@ menu:
     summary: ''
   - slug: method-name-derivation-009
     title: OrderBy, First, Top và giới hạn kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -796,7 +796,7 @@ menu:
     summary: ''
   - slug: method-name-derivation-010
     title: Phương thức dành riêng như findById luôn nhắm tới định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -805,7 +805,7 @@ menu:
     summary: ''
   - slug: method-name-derivation-011
     title: PartTree và cách kiểm tra tên phương thức trước khi quy lỗi cho cơ sở dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -814,7 +814,7 @@ menu:
     summary: ''
   - slug: method-name-derivation-012
     title: Đối chiếu từ khóa Commons với danh sách được store thực sự triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -826,7 +826,7 @@ menu:
   childs:
   - slug: query-result-types-001
     title: Kết quả đơn, Optional và trường hợp nhiều kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -835,7 +835,7 @@ menu:
     summary: ''
   - slug: query-result-types-002
     title: Collection, List, Iterable và Iterator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -844,7 +844,7 @@ menu:
     summary: ''
   - slug: query-result-types-003
     title: Page, Slice và Window theo khả năng của store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -853,7 +853,7 @@ menu:
     summary: ''
   - slug: query-result-types-004
     title: Stream và Streamable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -862,7 +862,7 @@ menu:
     summary: ''
   - slug: query-result-types-005
     title: Kiểu wrapper tùy chỉnh và thư viện collection được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -871,7 +871,7 @@ menu:
     summary: ''
   - slug: query-result-types-006
     title: Giá trị scalar, projection và kết quả không có entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -880,7 +880,7 @@ menu:
     summary: ''
   - slug: query-result-types-007
     title: CompletableFuture với @Async trong phạm vi được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -889,7 +889,7 @@ menu:
     summary: ''
   - slug: query-result-types-008
     title: Mono, Flux và các kiểu reactive tương ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -898,7 +898,7 @@ menu:
     summary: ''
   - slug: query-result-types-009
     title: Xây hợp đồng kết quả rõ ràng cho trường hợp rỗng hoặc lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -910,7 +910,7 @@ menu:
   childs:
   - slug: nullability-001
     title: Phân biệt không có kết quả, giá trị null và collection rỗng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -919,7 +919,7 @@ menu:
     summary: ''
   - slug: nullability-002
     title: Optional cho kết quả đơn và thiết kế API sử dụng Optional
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -928,7 +928,7 @@ menu:
     summary: ''
   - slug: nullability-003
     title: Ràng buộc null của tham số và kiểu trả về
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -937,7 +937,7 @@ menu:
     summary: ''
   - slug: nullability-004
     title: '@NonNullApi, @NonNull và @Nullable ở các phiên bản Spring Data 3.x'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -946,7 +946,7 @@ menu:
     summary: ''
   - slug: nullability-005
     title: JSpecify với @NullMarked, @Nullable và @NullUnmarked từ dòng phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -955,7 +955,7 @@ menu:
     summary: ''
   - slug: nullability-006
     title: Phạm vi package, type use và kế thừa annotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -964,7 +964,7 @@ menu:
     summary: ''
   - slug: nullability-007
     title: Kiểm tra lúc biên dịch, hỗ trợ IDE và kiểm tra runtime
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -973,7 +973,7 @@ menu:
     summary: ''
   - slug: nullability-008
     title: Nullability của phần tử collection hoặc array
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -982,7 +982,7 @@ menu:
     summary: ''
   - slug: nullability-009
     title: Tương tác với Kotlin và kiểm thử dữ liệu thiếu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -994,7 +994,7 @@ menu:
   childs:
   - slug: sorting-001
     title: Sort, Sort.Order và Sort.Direction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1003,7 +1003,7 @@ menu:
     summary: ''
   - slug: sorting-002
     title: Thứ tự nhiều thuộc tính và cách kết hợp Sort
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1012,7 +1012,7 @@ menu:
     summary: ''
   - slug: sorting-003
     title: ignoreCase, nullHandling và mức hỗ trợ của store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1021,7 +1021,7 @@ menu:
     summary: ''
   - slug: sorting-004
     title: Sort.unsorted và lựa chọn giá trị mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1030,7 +1030,7 @@ menu:
     summary: ''
   - slug: sorting-005
     title: Sắp xếp có kiểu với TypedSort hoặc TypedPropertyPath theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1039,7 +1039,7 @@ menu:
     summary: ''
   - slug: sorting-006
     title: Sắp xếp tĩnh trong tên phương thức và sắp xếp động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1048,7 +1048,7 @@ menu:
     summary: ''
   - slug: sorting-007
     title: Thứ tự ổn định khi nhiều bản ghi cùng giá trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1057,7 +1057,7 @@ menu:
     summary: ''
   - slug: sorting-008
     title: Kiểm soát tên trường sắp xếp từ đầu vào ngoài ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1066,7 +1066,7 @@ menu:
     summary: ''
   - slug: sorting-009
     title: Đánh giá index và chi phí sắp xếp trên store thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1078,7 +1078,7 @@ menu:
   childs:
   - slug: pagination-001
     title: Pageable và PageRequest với chỉ số trang bắt đầu từ 0
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1087,7 +1087,7 @@ menu:
     summary: ''
   - slug: pagination-002
     title: page size, offset và thứ tự sắp xếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1096,7 +1096,7 @@ menu:
     summary: ''
   - slug: pagination-003
     title: Page, Slice và chi phí biết tổng số kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1105,7 +1105,7 @@ menu:
     summary: ''
   - slug: pagination-004
     title: totalElements, totalPages, hasNext và thông tin điều hướng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1114,7 +1114,7 @@ menu:
     summary: ''
   - slug: pagination-005
     title: PageImpl, SliceImpl và trường hợp tự tạo kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1123,7 +1123,7 @@ menu:
     summary: ''
   - slug: pagination-006
     title: map để đổi nội dung mà giữ metadata phân trang
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1132,7 +1132,7 @@ menu:
     summary: ''
   - slug: pagination-007
     title: Page.empty, trang cuối, trang vượt phạm vi và dữ liệu thay đổi giữa các lần đọc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1141,7 +1141,7 @@ menu:
     summary: ''
   - slug: pagination-008
     title: Pageable.unpaged và biến thể có Sort theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1150,7 +1150,7 @@ menu:
     summary: ''
   - slug: pagination-009
     title: Giới hạn và sự kết hợp hợp lệ của Pageable, Sort và Limit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1159,7 +1159,7 @@ menu:
     summary: ''
   - slug: pagination-010
     title: Tính count từ cùng bộ lọc và các tối ưu phụ thuộc triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1168,7 +1168,7 @@ menu:
     summary: ''
   - slug: pagination-011
     title: Thiết kế hợp đồng phân trang cho ứng dụng mà không che chi phí truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1180,7 +1180,7 @@ menu:
   childs:
   - slug: scrolling-001
     title: Window và ScrollPosition để duyệt dữ liệu theo từng phần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1189,7 +1189,7 @@ menu:
     summary: ''
   - slug: scrolling-002
     title: OffsetScrollPosition và ý nghĩa vị trí bắt đầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1198,7 +1198,7 @@ menu:
     summary: ''
   - slug: scrolling-003
     title: Sự khác nhau giữa ScrollPosition.offset() và offset(0)
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1207,7 +1207,7 @@ menu:
     summary: ''
   - slug: scrolling-004
     title: KeysetScrollPosition và bộ khóa tiếp tục truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1216,7 +1216,7 @@ menu:
     summary: ''
   - slug: scrolling-005
     title: Thứ tự ổn định, khóa phân biệt và chiều duyệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1225,7 +1225,7 @@ menu:
     summary: ''
   - slug: scrolling-006
     title: Thuộc tính sắp xếp, giá trị null và dữ liệu cần trong projection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1234,7 +1234,7 @@ menu:
     summary: ''
   - slug: scrolling-007
     title: Lấy vị trí tiếp theo bằng Window.positionAt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1243,7 +1243,7 @@ menu:
     summary: ''
   - slug: scrolling-008
     title: WindowIterator và vòng lặp qua nhiều cửa sổ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1252,7 +1252,7 @@ menu:
     summary: ''
   - slug: scrolling-009
     title: Limit động hoặc giới hạn First/Top trong phạm vi hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1261,7 +1261,7 @@ menu:
     summary: ''
   - slug: scrolling-010
     title: Giới hạn từng store, từng loại query và từng phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1270,7 +1270,7 @@ menu:
     summary: ''
   - slug: scrolling-011
     title: Đánh giá scrolling so với phân trang offset trên tập dữ liệu lớn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1282,7 +1282,7 @@ menu:
   childs:
   - slug: streams-wrappers-001
     title: Stream<T>, xử lý lười và tài nguyên cơ sở dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1291,7 +1291,7 @@ menu:
     summary: ''
   - slug: streams-wrappers-002
     title: Đóng Stream bằng try-with-resources
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1300,7 +1300,7 @@ menu:
     summary: ''
   - slug: streams-wrappers-003
     title: Ranh giới giao dịch khi tiêu thụ stream
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1309,7 +1309,7 @@ menu:
     summary: ''
   - slug: streams-wrappers-004
     title: Streamable để kết hợp, lọc và chuyển đổi tập kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1318,7 +1318,7 @@ menu:
     summary: ''
   - slug: streams-wrappers-005
     title: Wrapper miền nhận Streamable và quy tắc được framework nhận diện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1327,7 +1327,7 @@ menu:
     summary: ''
   - slug: streams-wrappers-006
     title: Vavr hoặc các collection khác theo khả năng hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1336,7 +1336,7 @@ menu:
     summary: ''
   - slug: streams-wrappers-007
     title: Phân biệt Java Stream, bất đồng bộ với @Async và Reactive Streams
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1345,7 +1345,7 @@ menu:
     summary: ''
   - slug: streams-wrappers-008
     title: Giới hạn bộ nhớ khi biến kết quả dạng luồng thành collection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1357,7 +1357,7 @@ menu:
   childs:
   - slug: interface-projection-001
     title: Khi nào trả projection thay cho entity đầy đủ?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1366,7 +1366,7 @@ menu:
     summary: ''
   - slug: interface-projection-002
     title: Projection đóng và các accessor khớp thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1375,7 +1375,7 @@ menu:
     summary: ''
   - slug: interface-projection-003
     title: Projection mở bằng @Value và SpEL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1384,7 +1384,7 @@ menu:
     summary: ''
   - slug: interface-projection-004
     title: Default method cho giá trị dẫn xuất đơn giản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1393,7 +1393,7 @@ menu:
     summary: ''
   - slug: interface-projection-005
     title: Projection lồng nhau và phạm vi dữ liệu liên quan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1402,7 +1402,7 @@ menu:
     summary: ''
   - slug: interface-projection-006
     title: Optional và các wrapper null trong accessor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1411,7 +1411,7 @@ menu:
     summary: ''
   - slug: interface-projection-007
     title: Proxy projection và quá trình ánh xạ giá trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1420,7 +1420,7 @@ menu:
     summary: ''
   - slug: interface-projection-008
     title: Giới hạn tối ưu truy vấn của projection mở
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1429,7 +1429,7 @@ menu:
     summary: ''
   - slug: interface-projection-009
     title: Vì sao đổi kiểu trả về của phương thức CRUD cơ sở không tự tạo projection?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1438,7 +1438,7 @@ menu:
     summary: ''
   - slug: interface-projection-010
     title: Kiểm chứng dữ liệu thực sự được tải ở store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1450,7 +1450,7 @@ menu:
   childs:
   - slug: dto-and-dynamic-projections-001
     title: DTO dựa trên constructor và tên tham số
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1459,7 +1459,7 @@ menu:
     summary: ''
   - slug: dto-and-dynamic-projections-002
     title: Java record cho mô hình đọc bất biến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1468,7 +1468,7 @@ menu:
     summary: ''
   - slug: dto-and-dynamic-projections-003
     title: Chọn constructor bằng @PersistenceCreator khi cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1477,7 +1477,7 @@ menu:
     summary: ''
   - slug: dto-and-dynamic-projections-004
     title: Projection động qua tham số Class<T>
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1486,7 +1486,7 @@ menu:
     summary: ''
   - slug: dto-and-dynamic-projections-005
     title: Phân biệt kiểu kết quả projection với kiểu trong hệ kế thừa của entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1495,7 +1495,7 @@ menu:
     summary: ''
   - slug: dto-and-dynamic-projections-006
     title: Tên thuộc tính, alias và mapping kết quả theo store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1504,7 +1504,7 @@ menu:
     summary: ''
   - slug: dto-and-dynamic-projections-007
     title: Collection và Page của projection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1513,7 +1513,7 @@ menu:
     summary: ''
   - slug: dto-and-dynamic-projections-008
     title: Tách dữ liệu đọc khỏi đầu vào ghi để tránh lưu entity thiếu dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1522,7 +1522,7 @@ menu:
     summary: ''
   - slug: dto-and-dynamic-projections-009
     title: Lựa chọn entity, interface projection hoặc DTO theo ca sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1534,7 +1534,7 @@ menu:
   childs:
   - slug: query-by-example-001
     title: Đối tượng mẫu, Example và ExampleMatcher
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1543,7 +1543,7 @@ menu:
     summary: ''
   - slug: query-by-example-002
     title: matchingAll, matchingAny và cách kết hợp điều kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1552,7 +1552,7 @@ menu:
     summary: ''
   - slug: query-by-example-003
     title: withIncludeNullValues, withIgnoreNullValues và trường cần bỏ qua
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1561,7 +1561,7 @@ menu:
     summary: ''
   - slug: query-by-example-004
     title: Ảnh hưởng của kiểu nguyên thủy lên điều kiện mẫu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1570,7 +1570,7 @@ menu:
     summary: ''
   - slug: query-by-example-005
     title: Khớp chuỗi, ignoreCase và tùy chỉnh từng thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1579,7 +1579,7 @@ menu:
     summary: ''
   - slug: query-by-example-006
     title: Biến đổi giá trị trước khi đối sánh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1588,7 +1588,7 @@ menu:
     summary: ''
   - slug: query-by-example-007
     title: QueryByExampleExecutor với tìm, đếm và kiểm tra tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1597,7 +1597,7 @@ menu:
     summary: ''
   - slug: query-by-example-008
     title: Sắp xếp, phân trang và projection trong phạm vi hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1606,7 +1606,7 @@ menu:
     summary: ''
   - slug: query-by-example-009
     title: Giới hạn nhóm điều kiện, quan hệ, collection và thuộc tính lồng nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1615,7 +1615,7 @@ menu:
     summary: ''
   - slug: query-by-example-010
     title: Phân biệt đối tượng mẫu của truy vấn với entity được phép ghi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1624,7 +1624,7 @@ menu:
     summary: ''
   - slug: query-by-example-011
     title: Đối chiếu ý nghĩa ExampleMatcher với hành vi của store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1636,7 +1636,7 @@ menu:
   childs:
   - slug: fluent-query-001
     title: FluentQuery và cách điều khiển truy vấn qua hàm callback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1645,7 +1645,7 @@ menu:
     summary: ''
   - slug: fluent-query-002
     title: FetchableFluentQuery cho API đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1654,7 +1654,7 @@ menu:
     summary: ''
   - slug: fluent-query-003
     title: sortBy, limit, as và project
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1663,7 +1663,7 @@ menu:
     summary: ''
   - slug: fluent-query-004
     title: first, one, all, count và exists
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1672,7 +1672,7 @@ menu:
     summary: ''
   - slug: fluent-query-005
     title: page, slice, scroll và stream theo phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1681,7 +1681,7 @@ menu:
     summary: ''
   - slug: fluent-query-006
     title: Kiểu kết quả Optional so với biến thể trả giá trị trực tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1690,7 +1690,7 @@ menu:
     summary: ''
   - slug: fluent-query-007
     title: ReactiveFluentQuery và các phép kết thúc tương ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1699,7 +1699,7 @@ menu:
     summary: ''
   - slug: fluent-query-008
     title: Thời điểm thực thi trong callback và giới hạn tái sử dụng đối tượng truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1708,7 +1708,7 @@ menu:
     summary: ''
   - slug: fluent-query-009
     title: Tái sử dụng mô hình lọc mà giữ rõ phạm vi store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1720,7 +1720,7 @@ menu:
   childs:
   - slug: querydsl-integration-001
     title: Predicate có kiểu và các lớp Q-type
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1729,7 +1729,7 @@ menu:
     summary: ''
   - slug: querydsl-integration-002
     title: QuerydslPredicateExecutor và mô-đun triển khai tương ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1738,7 +1738,7 @@ menu:
     summary: ''
   - slug: querydsl-integration-003
     title: Tìm một hoặc nhiều kết quả, đếm và kiểm tra tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1747,7 +1747,7 @@ menu:
     summary: ''
   - slug: querydsl-integration-004
     title: Kết hợp Predicate với Sort và Pageable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1756,7 +1756,7 @@ menu:
     summary: ''
   - slug: querydsl-integration-005
     title: QSort và biểu thức sắp xếp Querydsl trong phạm vi hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1765,7 +1765,7 @@ menu:
     summary: ''
   - slug: querydsl-integration-006
     title: Quản lý dependency, annotation processor và Q-type sinh tự động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1774,7 +1774,7 @@ menu:
     summary: ''
   - slug: querydsl-integration-007
     title: Đối chiếu phiên bản Querydsl cùng nhánh thư viện tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1783,7 +1783,7 @@ menu:
     summary: ''
   - slug: querydsl-integration-008
     title: Giới hạn Querydsl extension so với API truy vấn đầy đủ của store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1792,7 +1792,7 @@ menu:
     summary: ''
   - slug: querydsl-integration-009
     title: So sánh Querydsl, QBE và query method theo nhu cầu bộ lọc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1804,7 +1804,7 @@ menu:
   childs:
   - slug: repository-fragments-001
     title: Khai báo giao diện fragment và lớp triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1813,7 +1813,7 @@ menu:
     summary: ''
   - slug: repository-fragments-002
     title: Quy ước hậu tố Impl và phạm vi phát hiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1822,7 +1822,7 @@ menu:
     summary: ''
   - slug: repository-fragments-003
     title: Ghép nhiều fragment vào một repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1831,7 +1831,7 @@ menu:
     summary: ''
   - slug: repository-fragments-004
     title: Tái sử dụng fragment generic cho nhiều kiểu miền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1840,7 +1840,7 @@ menu:
     summary: ''
   - slug: repository-fragments-005
     title: Thứ tự ưu tiên và xử lý phương thức trùng chữ ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1849,7 +1849,7 @@ menu:
     summary: ''
   - slug: repository-fragments-006
     title: Ghi đè hành vi phương thức cơ sở có chủ đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1858,7 +1858,7 @@ menu:
     summary: ''
   - slug: repository-fragments-007
     title: Tiêm phụ thuộc (dependency injection) và vòng đời bean fragment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1867,7 +1867,7 @@ menu:
     summary: ''
   - slug: repository-fragments-008
     title: Triển khai thủ công và xử lý trường hợp tên bean mơ hồ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1876,7 +1876,7 @@ menu:
     summary: ''
   - slug: repository-fragments-009
     title: Đóng gói fragment dùng chung ngoài package quét theo phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1885,7 +1885,7 @@ menu:
     summary: ''
   - slug: repository-fragments-010
     title: RepositoryMethodContext và RepositoryMetadataAccess trong phiên bản có tính năng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1894,7 +1894,7 @@ menu:
     summary: ''
   - slug: repository-fragments-011
     title: Phân biệt mô hình fragment với kiểu triển khai duy nhất theo tên repository cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1906,7 +1906,7 @@ menu:
   childs:
   - slug: factory-metadata-001
     title: Khi nào cần tùy chỉnh factory thay vì thêm fragment?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1915,7 +1915,7 @@ menu:
     summary: ''
   - slug: factory-metadata-002
     title: RepositoryMetadata và RepositoryInformation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1924,7 +1924,7 @@ menu:
     summary: ''
   - slug: factory-metadata-003
     title: EntityInformation và thông tin kiểu miền, ID, trạng thái mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1933,7 +1933,7 @@ menu:
     summary: ''
   - slug: factory-metadata-004
     title: RepositoryFactoryBeanSupport và tích hợp FactoryBean của Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1942,7 +1942,7 @@ menu:
     summary: ''
   - slug: factory-metadata-005
     title: RepositoryFactorySupport và lớp triển khai do store cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1951,7 +1951,7 @@ menu:
     summary: ''
   - slug: factory-metadata-006
     title: Thay lớp repository cơ sở qua cấu hình của store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1960,7 +1960,7 @@ menu:
     summary: ''
   - slug: factory-metadata-007
     title: RepositoryFactoryCustomizer và hook mở rộng theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1969,7 +1969,7 @@ menu:
     summary: ''
   - slug: factory-metadata-008
     title: Repositories để tra repository theo kiểu miền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1978,7 +1978,7 @@ menu:
     summary: ''
   - slug: factory-metadata-009
     title: RepositoryInvoker và điều phối lời gọi từ hạ tầng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1987,7 +1987,7 @@ menu:
     summary: ''
   - slug: factory-metadata-010
     title: Chi phí exposeMetadata và giới hạn sử dụng metadata trong lời gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1999,7 +1999,7 @@ menu:
   childs:
   - slug: metadata-mapping-001
     title: MappingContext và tập kiểu miền được quản lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2008,7 +2008,7 @@ menu:
     summary: ''
   - slug: metadata-mapping-002
     title: PersistentEntity và metadata của một kiểu miền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2017,7 +2017,7 @@ menu:
     summary: ''
   - slug: metadata-mapping-003
     title: PersistentProperty, Association và mối quan hệ thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2026,7 +2026,7 @@ menu:
     summary: ''
   - slug: metadata-mapping-004
     title: IdentifierAccessor và cách đọc định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2035,7 +2035,7 @@ menu:
     summary: ''
   - slug: metadata-mapping-005
     title: PersistentPropertyAccessor cho truy cập thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2044,7 +2044,7 @@ menu:
     summary: ''
   - slug: metadata-mapping-006
     title: PropertyPath so với PersistentPropertyPath
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2053,7 +2053,7 @@ menu:
     summary: ''
   - slug: metadata-mapping-007
     title: TypeInformation, generic, collection và map
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2062,7 +2062,7 @@ menu:
     summary: ''
   - slug: metadata-mapping-008
     title: '@Id, @Version, @Transient, @Persistent và annotation chung'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2071,7 +2071,7 @@ menu:
     summary: ''
   - slug: metadata-mapping-009
     title: '@AccessType, @ReadOnlyProperty và ý nghĩa được store áp dụng'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2080,7 +2080,7 @@ menu:
     summary: ''
   - slug: metadata-mapping-010
     title: Ranh giới giữa mapping của Commons với mapping do ORM bên ngoài quản lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2092,7 +2092,7 @@ menu:
   childs:
   - slug: object-instantiation-and-properties-001
     title: Hai giai đoạn dựng đối tượng và gán giá trị từ dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2101,7 +2101,7 @@ menu:
     summary: ''
   - slug: object-instantiation-and-properties-002
     title: Quy tắc chọn constructor hoặc static factory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2110,7 +2110,7 @@ menu:
     summary: ''
   - slug: object-instantiation-and-properties-003
     title: '@PersistenceCreator và xử lý nhiều constructor'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2119,7 +2119,7 @@ menu:
     summary: ''
   - slug: object-instantiation-and-properties-004
     title: Tên tham số, @ConstructorProperties và tùy chọn -parameters
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2128,7 +2128,7 @@ menu:
     summary: ''
   - slug: object-instantiation-and-properties-005
     title: Java record và canonical constructor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2137,7 +2137,7 @@ menu:
     summary: ''
   - slug: object-instantiation-and-properties-006
     title: Entity bất biến, phương thức wither và bản sao có ID
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2146,7 +2146,7 @@ menu:
     summary: ''
   - slug: object-instantiation-and-properties-007
     title: Truy cập field, accessor và thuộc tính dẫn xuất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2155,7 +2155,7 @@ menu:
     summary: ''
   - slug: object-instantiation-and-properties-008
     title: Kế thừa, thuộc tính bị che khuất và xung đột kiểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2164,7 +2164,7 @@ menu:
     summary: ''
   - slug: object-instantiation-and-properties-009
     title: Điều kiện dùng bộ khởi tạo/accessor sinh tự động và fallback reflection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2173,7 +2173,7 @@ menu:
     summary: ''
   - slug: object-instantiation-and-properties-010
     title: Nullability, giá trị mặc định và dữ liệu không đủ để dựng entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2182,7 +2182,7 @@ menu:
     summary: ''
   - slug: object-instantiation-and-properties-011
     title: Kiểm thử mô hình miền trước khi tối ưu cơ chế ánh xạ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2194,7 +2194,7 @@ menu:
   childs:
   - slug: state-detection-001
     title: Phân biệt entity mới với entity đã được lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2203,7 +2203,7 @@ menu:
     summary: ''
   - slug: state-detection-002
     title: Chiến lược kiểm tra thuộc tính @Id
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2212,7 +2212,7 @@ menu:
     summary: ''
   - slug: state-detection-003
     title: Vai trò của @Version trong nhận diện trạng thái mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2221,7 +2221,7 @@ menu:
     summary: ''
   - slug: state-detection-004
     title: Kiểu nguyên thủy, kiểu bao và giá trị null hoặc 0
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2230,7 +2230,7 @@ menu:
     summary: ''
   - slug: state-detection-005
     title: Persistable<T> và isNew
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2239,7 +2239,7 @@ menu:
     summary: ''
   - slug: state-detection-006
     title: ID tự gán, ID do cơ sở dữ liệu sinh và thứ tự gán giá trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2248,7 +2248,7 @@ menu:
     summary: ''
   - slug: state-detection-007
     title: Đánh dấu thuộc tính hỗ trợ isNew bằng @Transient khi cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2257,7 +2257,7 @@ menu:
     summary: ''
   - slug: state-detection-008
     title: PersistentEntity, IsNewStrategy và triển khai đặc thù store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2266,7 +2266,7 @@ menu:
     summary: ''
   - slug: state-detection-009
     title: Ảnh hưởng đến save, auditing và optimistic locking
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2275,7 +2275,7 @@ menu:
     summary: ''
   - slug: state-detection-010
     title: Kiểm chứng hành vi insert/update/merge ở mô-đun đang dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2287,7 +2287,7 @@ menu:
   childs:
   - slug: data-conversion-001
     title: ConversionService, Converter và vai trò của CustomConversions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2296,7 +2296,7 @@ menu:
     summary: ''
   - slug: data-conversion-002
     title: '@ReadingConverter và @WritingConverter'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2305,7 +2305,7 @@ menu:
     summary: ''
   - slug: data-conversion-003
     title: Phân biệt chiều chuyển đổi khi cả hai kiểu đều là kiểu đơn giản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2314,7 +2314,7 @@ menu:
     summary: ''
   - slug: data-conversion-004
     title: SimpleTypeHolder và kiểu dữ liệu bản địa của store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2323,7 +2323,7 @@ menu:
     summary: ''
   - slug: data-conversion-005
     title: Đăng ký converter qua cơ chế cấu hình của store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2332,7 +2332,7 @@ menu:
     summary: ''
   - slug: data-conversion-006
     title: Chuyển đổi value object, enum, tiền tệ và kiểu ID riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2341,7 +2341,7 @@ menu:
     summary: ''
   - slug: data-conversion-007
     title: Ngày giờ, múi giờ và converter JSR-310
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2350,7 +2350,7 @@ menu:
     summary: ''
   - slug: data-conversion-008
     title: Chuyển đổi theo kiểu hoặc theo thuộc tính trong phạm vi hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2359,7 +2359,7 @@ menu:
     summary: ''
   - slug: data-conversion-009
     title: PropertyValueConverter và ngữ cảnh chuyển đổi theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2368,7 +2368,7 @@ menu:
     summary: ''
   - slug: data-conversion-010
     title: Kiểm thử đối xứng đọc–ghi và tương thích dữ liệu cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2380,7 +2380,7 @@ menu:
   childs:
   - slug: value-expressions-001
     title: Value expression, SpEL và property placeholder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2389,7 +2389,7 @@ menu:
     summary: ''
   - slug: value-expressions-002
     title: Biểu thức đơn hoặc kết hợp literal, placeholder và SpEL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2398,7 +2398,7 @@ menu:
     summary: ''
   - slug: value-expressions-003
     title: Environment, bean và ngữ cảnh đánh giá
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2407,7 +2407,7 @@ menu:
     summary: ''
   - slug: value-expressions-004
     title: Biểu thức trong annotation mapping và phạm vi store hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2416,7 +2416,7 @@ menu:
     summary: ''
   - slug: value-expressions-005
     title: Biểu thức trong truy vấn khai báo và cú pháp bind riêng từng store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2425,7 +2425,7 @@ menu:
     summary: ''
   - slug: value-expressions-006
     title: EvaluationContextExtension và dữ liệu mở rộng cho biểu thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2434,7 +2434,7 @@ menu:
     summary: ''
   - slug: value-expressions-007
     title: Phân biệt biểu thức cấu hình tin cậy với giá trị do người dùng nhập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2443,7 +2443,7 @@ menu:
     summary: ''
   - slug: value-expressions-008
     title: Cache, thời điểm đánh giá và chi phí thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2452,7 +2452,7 @@ menu:
     summary: ''
   - slug: value-expressions-009
     title: Kiểm thử expression khi thiếu property, bean hoặc tham số
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2461,7 +2461,7 @@ menu:
     summary: ''
   - slug: value-expressions-010
     title: Thay đổi API đánh giá biểu thức giữa các phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2473,7 +2473,7 @@ menu:
   childs:
   - slug: lifecycle-callbacks-001
     title: EntityCallback và các điểm can thiệp vào vòng đời entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2482,7 +2482,7 @@ menu:
     summary: ''
   - slug: lifecycle-callbacks-002
     title: EntityCallbacks và ReactiveEntityCallbacks
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2491,7 +2491,7 @@ menu:
     summary: ''
   - slug: lifecycle-callbacks-003
     title: Chọn callback trước/sau chuyển đổi hoặc lưu theo store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2500,7 +2500,7 @@ menu:
     summary: ''
   - slug: lifecycle-callbacks-004
     title: Kiểu generic xác định loại entity được xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2509,7 +2509,7 @@ menu:
     summary: ''
   - slug: lifecycle-callbacks-005
     title: Ordered, @Order và thứ tự callback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2518,7 +2518,7 @@ menu:
     summary: ''
   - slug: lifecycle-callbacks-006
     title: Callback với đối tượng bất biến và giá trị trả về
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2527,7 +2527,7 @@ menu:
     summary: ''
   - slug: lifecycle-callbacks-007
     title: Phân biệt callback đồng bộ với reactive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2536,7 +2536,7 @@ menu:
     summary: ''
   - slug: lifecycle-callbacks-008
     title: Phân biệt EntityCallback với lifecycle ApplicationEvent
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2545,7 +2545,7 @@ menu:
     summary: ''
   - slug: lifecycle-callbacks-009
     title: Phạm vi thao tác repository/template có kích hoạt callback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2554,7 +2554,7 @@ menu:
     summary: ''
   - slug: lifecycle-callbacks-010
     title: Giới hạn khi ghi trực tiếp, cập nhật hàng loạt hoặc dùng driver
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2566,7 +2566,7 @@ menu:
   childs:
   - slug: auditing-001
     title: Thông tin ai tạo/sửa và thời điểm tạo/sửa entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2575,7 +2575,7 @@ menu:
     summary: ''
   - slug: auditing-002
     title: '@CreatedBy, @LastModifiedBy, @CreatedDate và @LastModifiedDate'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2584,7 +2584,7 @@ menu:
     summary: ''
   - slug: auditing-003
     title: Auditable và lựa chọn annotation hoặc interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2593,7 +2593,7 @@ menu:
     summary: ''
   - slug: auditing-004
     title: AuditorAware và giá trị người thao tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2602,7 +2602,7 @@ menu:
     summary: ''
   - slug: auditing-005
     title: DateTimeProvider và thời gian kiểm thử xác định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2611,7 +2611,7 @@ menu:
     summary: ''
   - slug: auditing-006
     title: ReactiveAuditorAware và dữ liệu trong Reactor Context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2620,7 +2620,7 @@ menu:
     summary: ''
   - slug: auditing-007
     title: Liên hệ giữa isNew, ID, version và thông tin tạo mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2629,7 +2629,7 @@ menu:
     summary: ''
   - slug: auditing-008
     title: Kích hoạt auditing bằng cơ chế riêng của từng store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2638,7 +2638,7 @@ menu:
     summary: ''
   - slug: auditing-009
     title: Đối tượng nhúng, entity bất biến và giới hạn ánh xạ metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2647,7 +2647,7 @@ menu:
     summary: ''
   - slug: auditing-010
     title: Giới hạn auditing khi bỏ qua quy trình lưu entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2656,7 +2656,7 @@ menu:
     summary: ''
   - slug: auditing-011
     title: Phân biệt dấu vết lần sửa gần nhất với lịch sử thay đổi đầy đủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2668,7 +2668,7 @@ menu:
   childs:
   - slug: aggregate-events-001
     title: Vai trò của sự kiện miền trong mô hình aggregate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2677,7 +2677,7 @@ menu:
     summary: ''
   - slug: aggregate-events-002
     title: '@DomainEvents và phương thức cung cấp sự kiện'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2686,7 +2686,7 @@ menu:
     summary: ''
   - slug: aggregate-events-003
     title: '@AfterDomainEventPublication và dọn danh sách sau phát hành'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2695,7 +2695,7 @@ menu:
     summary: ''
   - slug: aggregate-events-004
     title: AbstractAggregateRoot và đăng ký sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2704,7 +2704,7 @@ menu:
     summary: ''
   - slug: aggregate-events-005
     title: Phương thức repository có truyền aggregate để phát sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2713,7 +2713,7 @@ menu:
     summary: ''
   - slug: aggregate-events-006
     title: Vì sao deleteById không có cùng điều kiện phát sự kiện?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2722,7 +2722,7 @@ menu:
     summary: ''
   - slug: aggregate-events-007
     title: Phân biệt sự kiện miền, lifecycle event và callback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2731,7 +2731,7 @@ menu:
     summary: ''
   - slug: aggregate-events-008
     title: ApplicationListener, @EventListener và xử lý sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2740,7 +2740,7 @@ menu:
     summary: ''
   - slug: aggregate-events-009
     title: '@TransactionalEventListener và thời điểm sau commit'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2749,7 +2749,7 @@ menu:
     summary: ''
   - slug: aggregate-events-010
     title: Sự kiện lặp, rollback và giới hạn độ tin cậy của bộ nhớ ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2758,7 +2758,7 @@ menu:
     summary: ''
   - slug: aggregate-events-011
     title: Ranh giới giữa phát sự kiện cục bộ với outbox hoặc broker bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2770,7 +2770,7 @@ menu:
   childs:
   - slug: reactive-repositories-001
     title: Reactive Streams, Publisher, Mono và Flux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2779,7 +2779,7 @@ menu:
     summary: ''
   - slug: reactive-repositories-002
     title: ReactiveCrudRepository và ReactiveSortingRepository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2788,7 +2788,7 @@ menu:
     summary: ''
   - slug: reactive-repositories-003
     title: RxJava3CrudRepository và RxJava3SortingRepository theo mô-đun hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2797,7 +2797,7 @@ menu:
     summary: ''
   - slug: reactive-repositories-004
     title: Tách hợp đồng reactive khỏi khả năng I/O không chặn của driver
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2806,7 +2806,7 @@ menu:
     summary: ''
   - slug: reactive-repositories-005
     title: Thời điểm thực thi khi subscription bắt đầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2815,7 +2815,7 @@ menu:
     summary: ''
   - slug: reactive-repositories-006
     title: Tham số Publisher và kiểu kết quả rỗng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2824,7 +2824,7 @@ menu:
     summary: ''
   - slug: reactive-repositories-007
     title: Giới hạn Page, count, Sort và Pageable theo triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2833,7 +2833,7 @@ menu:
     summary: ''
   - slug: reactive-repositories-008
     title: Backpressure, hủy đăng ký và quản lý tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2842,7 +2842,7 @@ menu:
     summary: ''
   - slug: reactive-repositories-009
     title: Kết hợp callback và auditing reactive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2851,7 +2851,7 @@ menu:
     summary: ''
   - slug: reactive-repositories-010
     title: Ranh giới Reactor Context, bảo mật và giao dịch do store cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2860,7 +2860,7 @@ menu:
     summary: ''
   - slug: reactive-repositories-011
     title: Tránh block hoặc subscribe thủ công làm mất phạm vi điều phối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2872,7 +2872,7 @@ menu:
   childs:
   - slug: kotlin-and-coroutines-001
     title: Phạm vi dùng Kotlin bên cạnh mô hình Java trong Spring Data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2881,7 +2881,7 @@ menu:
     summary: ''
   - slug: kotlin-and-coroutines-002
     title: Nullability Kotlin và metadata phản chiếu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2890,7 +2890,7 @@ menu:
     summary: ''
   - slug: kotlin-and-coroutines-003
     title: Data class, constructor mặc định và giá trị tham số thiếu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2899,7 +2899,7 @@ menu:
     summary: ''
   - slug: kotlin-and-coroutines-004
     title: Extension function và ánh xạ generic có kiểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2908,7 +2908,7 @@ menu:
     summary: ''
   - slug: kotlin-and-coroutines-005
     title: CoroutineCrudRepository và CoroutineSortingRepository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2917,7 +2917,7 @@ menu:
     summary: ''
   - slug: kotlin-and-coroutines-006
     title: suspend, Flow và chuyển đổi từ Mono hoặc Flux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2926,7 +2926,7 @@ menu:
     summary: ''
   - slug: kotlin-and-coroutines-007
     title: Ngữ cảnh coroutine, hủy tác vụ và tích hợp với reactive store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2935,7 +2935,7 @@ menu:
     summary: ''
   - slug: kotlin-and-coroutines-008
     title: Dependency tùy chọn và giới hạn tính năng theo mô-đun
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2944,7 +2944,7 @@ menu:
     summary: ''
   - slug: kotlin-and-coroutines-009
     title: Kiểm thử tương thích khi cùng dùng entity Java và Kotlin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2956,7 +2956,7 @@ menu:
   childs:
   - slug: web-parameters-001
     title: Kích hoạt @EnableSpringDataWebSupport
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2965,7 +2965,7 @@ menu:
     summary: ''
   - slug: web-parameters-002
     title: PageableHandlerMethodArgumentResolver và SortHandlerMethodArgumentResolver
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2974,7 +2974,7 @@ menu:
     summary: ''
   - slug: web-parameters-003
     title: page, size, sort và quy ước tham số HTTP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2983,7 +2983,7 @@ menu:
     summary: ''
   - slug: web-parameters-004
     title: '@PageableDefault, @SortDefault và giá trị dự phòng'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2992,7 +2992,7 @@ menu:
     summary: ''
   - slug: web-parameters-005
     title: Giới hạn page size, quy ước chỉ số trang và tham số không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3001,7 +3001,7 @@ menu:
     summary: ''
   - slug: web-parameters-006
     title: Nhiều Pageable hoặc Sort với @Qualifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3010,7 +3010,7 @@ menu:
     summary: ''
   - slug: web-parameters-007
     title: Tùy chỉnh argument resolver và chính sách của ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3019,7 +3019,7 @@ menu:
     summary: ''
   - slug: web-parameters-008
     title: DomainClassConverter để chuyển ID thành entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3028,7 +3028,7 @@ menu:
     summary: ''
   - slug: web-parameters-009
     title: Điều kiện repository hỗ trợ và xử lý ID không tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3037,7 +3037,7 @@ menu:
     summary: ''
   - slug: web-parameters-010
     title: Kiểm soát quyền truy cập và chi phí tải entity trong bước bind
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3046,7 +3046,7 @@ menu:
     summary: ''
   - slug: web-parameters-011
     title: Phân biệt web support với việc xuất repository thành REST API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3058,7 +3058,7 @@ menu:
   childs:
   - slug: web-result-representation-001
     title: Thiết kế JSON phân trang ổn định cho client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3067,7 +3067,7 @@ menu:
     summary: ''
   - slug: web-result-representation-002
     title: Giới hạn tương thích khi tuần tự hóa trực tiếp PageImpl
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3076,7 +3076,7 @@ menu:
     summary: ''
   - slug: web-result-representation-003
     title: org.springframework.data.web.PagedModel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3085,7 +3085,7 @@ menu:
     summary: ''
   - slug: web-result-representation-004
     title: pageSerializationMode = VIA_DTO theo phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3094,7 +3094,7 @@ menu:
     summary: ''
   - slug: web-result-representation-005
     title: Phân biệt PagedModel của Spring Data với PagedModel của Spring HATEOAS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3103,7 +3103,7 @@ menu:
     summary: ''
   - slug: web-result-representation-006
     title: PagedResourcesAssembler cho Page
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3112,7 +3112,7 @@ menu:
     summary: ''
   - slug: web-result-representation-007
     title: SlicedResourcesAssembler và SlicedModel cho Slice theo hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3121,7 +3121,7 @@ menu:
     summary: ''
   - slug: web-result-representation-008
     title: Liên kết điều hướng, URI hiện tại và tham số phân trang
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3130,7 +3130,7 @@ menu:
     summary: ''
   - slug: web-result-representation-009
     title: DTO đầu ra để kiểm soát trường dữ liệu và hợp đồng API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3139,7 +3139,7 @@ menu:
     summary: ''
   - slug: web-result-representation-010
     title: Kiểm thử serialization với phiên bản Jackson tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3151,7 +3151,7 @@ menu:
   childs:
   - slug: web-filters-payloads-001
     title: QuerydslPredicateArgumentResolver và @QuerydslPredicate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3160,7 +3160,7 @@ menu:
     summary: ''
   - slug: web-filters-payloads-002
     title: QuerydslBindings và điều kiện bind mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3169,7 +3169,7 @@ menu:
     summary: ''
   - slug: web-filters-payloads-003
     title: QuerydslBinderCustomizer cho quy tắc theo repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3178,7 +3178,7 @@ menu:
     summary: ''
   - slug: web-filters-payloads-004
     title: Giới hạn thuộc tính được lọc và loại trường nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3187,7 +3187,7 @@ menu:
     summary: ''
   - slug: web-filters-payloads-005
     title: Chuyển đổi kiểu, nhiều giá trị và điều kiện không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3196,7 +3196,7 @@ menu:
     summary: ''
   - slug: web-filters-payloads-006
     title: Projection đầu vào với @ProjectedPayload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3205,7 +3205,7 @@ menu:
     summary: ''
   - slug: web-filters-payloads-007
     title: JSONPath, XPath và dependency tùy chọn cho binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3214,7 +3214,7 @@ menu:
     summary: ''
   - slug: web-filters-payloads-008
     title: Xác thực payload và tách đối tượng đầu vào khỏi entity lưu trữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3223,7 +3223,7 @@ menu:
     summary: ''
   - slug: web-filters-payloads-009
     title: Kiểm thử giới hạn bộ lọc, phạm vi trường và hợp đồng dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3235,7 +3235,7 @@ menu:
   childs:
   - slug: shared-data-types-001
     title: Range, cận đóng/mở và khoảng không giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3244,7 +3244,7 @@ menu:
     summary: ''
   - slug: shared-data-types-002
     title: Kết hợp Range với giá trị thời gian, số hoặc điều kiện truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3253,7 +3253,7 @@ menu:
     summary: ''
   - slug: shared-data-types-003
     title: Point, Box, Circle và Polygon trong mô hình không gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3262,7 +3262,7 @@ menu:
     summary: ''
   - slug: shared-data-types-004
     title: Distance, Metric và quy ước đơn vị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3271,7 +3271,7 @@ menu:
     summary: ''
   - slug: shared-data-types-005
     title: GeoResult, GeoResults và kiểu kết quả do store hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3280,7 +3280,7 @@ menu:
     summary: ''
   - slug: shared-data-types-006
     title: Vector và biểu diễn embedding trong phiên bản có tính năng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3289,7 +3289,7 @@ menu:
     summary: ''
   - slug: shared-data-types-007
     title: SearchResult, SearchResults và kết quả gắn điểm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3298,7 +3298,7 @@ menu:
     summary: ''
   - slug: shared-data-types-008
     title: Score, Similarity và ScoringFunction theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3307,7 +3307,7 @@ menu:
     summary: ''
   - slug: shared-data-types-009
     title: Ý nghĩa điểm cao/thấp và sự chuẩn hóa phụ thuộc hàm chấm điểm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3316,7 +3316,7 @@ menu:
     summary: ''
   - slug: shared-data-types-010
     title: Ranh giới giữa kiểu giá trị dùng chung và engine tìm kiếm của store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3325,7 +3325,7 @@ menu:
     summary: ''
   - slug: shared-data-types-011
     title: Serialization, chuyển đổi đơn vị và tương thích dữ liệu đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3337,7 +3337,7 @@ menu:
   childs:
   - slug: data-initialization-001
     title: Repository populator và mục đích nạp dữ liệu mẫu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3346,7 +3346,7 @@ menu:
     summary: ''
   - slug: data-initialization-002
     title: Nạp JSON qua Jackson hoặc XML qua Spring OXM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3355,7 +3355,7 @@ menu:
     summary: ''
   - slug: data-initialization-003
     title: Kiểu miền trong dữ liệu mẫu và lựa chọn repository tương ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3364,7 +3364,7 @@ menu:
     summary: ''
   - slug: data-initialization-004
     title: Dependency tùy chọn, cấu hình resource và vòng đời khởi tạo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3373,7 +3373,7 @@ menu:
     summary: ''
   - slug: data-initialization-005
     title: Giới hạn dùng populator cho migration hoặc dữ liệu production
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3382,7 +3382,7 @@ menu:
     summary: ''
   - slug: data-initialization-006
     title: Thiết kế fixture có thể nạp lại và tránh trùng ID
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3391,7 +3391,7 @@ menu:
     summary: ''
   - slug: data-initialization-007
     title: Quản lý thứ tự dữ liệu liên quan theo yêu cầu store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3400,7 +3400,7 @@ menu:
     summary: ''
   - slug: data-initialization-008
     title: Đánh giá lựa chọn populator, tác vụ ứng dụng hoặc công cụ migration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3412,7 +3412,7 @@ menu:
   childs:
   - slug: transaction-boundaries-001
     title: Hợp đồng repository và cấu hình giao dịch do từng store cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3421,7 +3421,7 @@ menu:
     summary: ''
   - slug: transaction-boundaries-002
     title: Chọn đơn vị công việc ở tầng dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3430,7 +3430,7 @@ menu:
     summary: ''
   - slug: transaction-boundaries-003
     title: Phối hợp repository, fragment và template trong cùng giao dịch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3439,7 +3439,7 @@ menu:
     summary: ''
   - slug: transaction-boundaries-004
     title: CRUD, query method và phương thức tùy chỉnh có thể khác cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3448,7 +3448,7 @@ menu:
     summary: ''
   - slug: transaction-boundaries-005
     title: Proxy, self-invocation và phạm vi interceptor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3457,7 +3457,7 @@ menu:
     summary: ''
   - slug: transaction-boundaries-006
     title: Stream, callback, auditing và thời điểm truy cập tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3466,7 +3466,7 @@ menu:
     summary: ''
   - slug: transaction-boundaries-007
     title: Giao dịch reactive dựa vào ngữ cảnh thay vì giả định gắn với luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3475,7 +3475,7 @@ menu:
     summary: ''
   - slug: transaction-boundaries-008
     title: Optimistic locking, retry và yêu cầu idempotency theo store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3484,7 +3484,7 @@ menu:
     summary: ''
   - slug: transaction-boundaries-009
     title: Giới hạn của API Commons khi thao tác nhiều hệ thống dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3496,7 +3496,7 @@ menu:
   childs:
   - slug: testing-001
     title: Chọn unit test cho logic ứng dụng và integration test cho hành vi repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3505,7 +3505,7 @@ menu:
     summary: ''
   - slug: testing-002
     title: Vì sao mock repository không xác minh query derivation hoặc mapping?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3514,7 +3514,7 @@ menu:
     summary: ''
   - slug: testing-003
     title: Chọn test slice và Testcontainers phù hợp với store mẫu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3523,7 +3523,7 @@ menu:
     summary: ''
   - slug: testing-004
     title: Kiểm thử hợp đồng CRUD, ID và kiểu trả về
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3532,7 +3532,7 @@ menu:
     summary: ''
   - slug: testing-005
     title: Kiểm thử tên phương thức, từ khóa và đường dẫn thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3541,7 +3541,7 @@ menu:
     summary: ''
   - slug: testing-006
     title: Kiểm thử Page, Slice, Sort, Limit và trường hợp kết quả rỗng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3550,7 +3550,7 @@ menu:
     summary: ''
   - slug: testing-007
     title: Kiểm thử offset/keyset scrolling với giá trị trùng hoặc null
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3559,7 +3559,7 @@ menu:
     summary: ''
   - slug: testing-008
     title: Kiểm thử projection, constructor và dữ liệu không được tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3568,7 +3568,7 @@ menu:
     summary: ''
   - slug: testing-009
     title: Kiểm thử QBE, Querydsl và bộ lọc nhiều điều kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3577,7 +3577,7 @@ menu:
     summary: ''
   - slug: testing-010
     title: Kiểm thử fragment, xung đột phương thức và repository đa store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3586,7 +3586,7 @@ menu:
     summary: ''
   - slug: testing-011
     title: Kiểm thử converter, callback, auditing và sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3595,7 +3595,7 @@ menu:
     summary: ''
   - slug: testing-012
     title: Kiểm thử reactive/coroutine với điều kiện hoàn thành hoặc hủy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3604,7 +3604,7 @@ menu:
     summary: ''
   - slug: testing-013
     title: Kiểm thử tham số web, JSON phân trang và giới hạn đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3613,7 +3613,7 @@ menu:
     summary: ''
   - slug: testing-014
     title: Kiểm thử hồi quy cùng bộ ca sử dụng trên các phiên bản hoặc store mục tiêu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3622,7 +3622,7 @@ menu:
     summary: ''
   - slug: testing-015
     title: Cô lập fixture, làm sạch dữ liệu và kiểm chứng trạng thái sau commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3634,7 +3634,7 @@ menu:
   childs:
   - slug: performance-001
     title: Phân biệt chi phí abstraction với chi phí truy vấn của store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3643,7 +3643,7 @@ menu:
     summary: ''
   - slug: performance-002
     title: Số lượt truy cập, số bản ghi và dung lượng dữ liệu thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3652,7 +3652,7 @@ menu:
     summary: ''
   - slug: performance-003
     title: Page với count, Slice và Window theo nhu cầu client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3661,7 +3661,7 @@ menu:
     summary: ''
   - slug: performance-004
     title: Projection đóng, projection mở và giới hạn tối ưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3670,7 +3670,7 @@ menu:
     summary: ''
   - slug: performance-005
     title: Tránh findAll hoặc chuyển toàn bộ stream thành collection ngoài nhu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3679,7 +3679,7 @@ menu:
     summary: ''
   - slug: performance-006
     title: Chi phí mapping, converter và callback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3688,7 +3688,7 @@ menu:
     summary: ''
   - slug: performance-007
     title: Chi phí metadata của lời gọi repository và phạm vi bật exposeMetadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3697,7 +3697,7 @@ menu:
     summary: ''
   - slug: performance-008
     title: Giới hạn truy vấn lặp do quan hệ hoặc projection theo store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3706,7 +3706,7 @@ menu:
     summary: ''
   - slug: performance-009
     title: Đo thời gian khởi tạo repository, parser và metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3715,7 +3715,7 @@ menu:
     summary: ''
   - slug: performance-010
     title: Chọn index hoặc tối ưu câu truy vấn tại đúng mô-đun lưu trữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3724,7 +3724,7 @@ menu:
     summary: ''
   - slug: performance-011
     title: Đánh giá hiệu năng bằng phép đo tái lập và dữ liệu đại diện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3736,7 +3736,7 @@ menu:
   childs:
   - slug: errors-diagnostics-001
     title: Repository bean không được tạo hoặc bị quét sai package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3745,7 +3745,7 @@ menu:
     summary: ''
   - slug: errors-diagnostics-002
     title: Không xác định được store trong chế độ nhiều mô-đun
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3754,7 +3754,7 @@ menu:
     summary: ''
   - slug: errors-diagnostics-003
     title: Repository cơ sở thiếu @NoRepositoryBean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3763,7 +3763,7 @@ menu:
     summary: ''
   - slug: errors-diagnostics-004
     title: Không xác định được kiểu miền hoặc kiểu ID của generic
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3772,7 +3772,7 @@ menu:
     summary: ''
   - slug: errors-diagnostics-005
     title: PropertyReferenceException và tên phương thức bị phân tích sai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3781,7 +3781,7 @@ menu:
     summary: ''
   - slug: errors-diagnostics-006
     title: QueryCreationException hoặc query lookup không tìm thấy triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3790,7 +3790,7 @@ menu:
     summary: ''
   - slug: errors-diagnostics-007
     title: Kiểu trả về, tham số đặc biệt hoặc từ khóa không được store hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3799,7 +3799,7 @@ menu:
     summary: ''
   - slug: errors-diagnostics-008
     title: Constructor, accessor, nullability hoặc converter không khớp dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3808,7 +3808,7 @@ menu:
     summary: ''
   - slug: errors-diagnostics-009
     title: Fragment không được nạp, tên Impl sai hoặc phương thức trùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3817,7 +3817,7 @@ menu:
     summary: ''
   - slug: errors-diagnostics-010
     title: Callback, auditing hoặc sự kiện không chạy ở thao tác đang dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3826,7 +3826,7 @@ menu:
     summary: ''
   - slug: errors-diagnostics-011
     title: Stream bị đóng sớm hoặc reactive mất phạm vi ngữ cảnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3835,7 +3835,7 @@ menu:
     summary: ''
   - slug: errors-diagnostics-012
     title: Page, count, Sort hoặc ScrollPosition trả dữ liệu sai kỳ vọng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3844,7 +3844,7 @@ menu:
     summary: ''
   - slug: errors-diagnostics-013
     title: Khác biệt JSON phân trang hoặc binding HTTP sau nâng phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3853,7 +3853,7 @@ menu:
     summary: ''
   - slug: errors-diagnostics-014
     title: Quy trình tái hiện tối thiểu và đọc stack trace qua các lớp hạ tầng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3865,7 +3865,7 @@ menu:
   childs:
   - slug: versions-and-aot-001
     title: Theo dõi release train và thay đổi hợp đồng Commons
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3874,7 +3874,7 @@ menu:
     summary: ''
   - slug: versions-and-aot-002
     title: Chuyển giao diện CRUD/sorting cũ sang hệ phân cấp hiện hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3883,7 +3883,7 @@ menu:
     summary: ''
   - slug: versions-and-aot-003
     title: Đối chiếu nullability 3.x với JSpecify ở dòng 4.x
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3892,7 +3892,7 @@ menu:
     summary: ''
   - slug: versions-and-aot-004
     title: Chuyển API sắp xếp có kiểu khi TypedSort bị thay thế ở phiên bản mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3901,7 +3901,7 @@ menu:
     summary: ''
   - slug: versions-and-aot-005
     title: Thay đổi API query, fragment metadata và value expression
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3910,7 +3910,7 @@ menu:
     summary: ''
   - slug: versions-and-aot-006
     title: Thay đổi Jackson, PagedModel và định dạng web
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3919,7 +3919,7 @@ menu:
     summary: ''
   - slug: versions-and-aot-007
     title: Managed types, reflection hint và các yêu cầu khi dùng native image
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3928,7 +3928,7 @@ menu:
     summary: ''
   - slug: versions-and-aot-008
     title: AOT repository, generated accessor và phạm vi store hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3937,7 +3937,7 @@ menu:
     summary: ''
   - slug: versions-and-aot-009
     title: Giới hạn của dynamic projection, proxy, Querydsl hoặc Kotlin trong môi trường AOT
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3946,7 +3946,7 @@ menu:
     summary: ''
   - slug: versions-and-aot-010
     title: Kiểm thử nâng cấp dependency cùng với dữ liệu và truy vấn thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3955,7 +3955,7 @@ menu:
     summary: ''
   - slug: versions-and-aot-011
     title: Tài liệu hóa ma trận tính năng theo phiên bản và store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3967,7 +3967,7 @@ menu:
   childs:
   - slug: capstone-practice-001
     title: Thiết kế mô hình khách hàng–sản phẩm–đơn hàng và hợp đồng repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3976,7 +3976,7 @@ menu:
     summary: ''
   - slug: capstone-practice-002
     title: Chọn một store thực thi để xác minh các abstraction dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3985,7 +3985,7 @@ menu:
     summary: ''
   - slug: capstone-practice-003
     title: Triển khai CRUD chọn lọc và giao diện cơ sở
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3994,7 +3994,7 @@ menu:
     summary: ''
   - slug: capstone-practice-004
     title: Xây query method cùng bộ lọc QBE hoặc Querydsl
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4003,7 +4003,7 @@ menu:
     summary: ''
   - slug: capstone-practice-005
     title: Thêm Sort, Page, Slice và scrolling theo hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4012,7 +4012,7 @@ menu:
     summary: ''
   - slug: capstone-practice-006
     title: Tạo projection đóng, DTO và projection động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4021,7 +4021,7 @@ menu:
     summary: ''
   - slug: capstone-practice-007
     title: Viết fragment dùng chung và kiểm tra thứ tự điều phối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4030,7 +4030,7 @@ menu:
     summary: ''
   - slug: capstone-practice-008
     title: Thiết kế entity bất biến, converter và phát hiện trạng thái mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4039,7 +4039,7 @@ menu:
     summary: ''
   - slug: capstone-practice-009
     title: Bổ sung callback, auditing và sự kiện sau commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4048,7 +4048,7 @@ menu:
     summary: ''
   - slug: capstone-practice-010
     title: Cung cấp tham số web và JSON phân trang ổn định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4057,7 +4057,7 @@ menu:
     summary: ''
   - slug: capstone-practice-011
     title: Kiểm thử hợp đồng, dữ liệu biên, reactive và hiệu năng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4066,7 +4066,7 @@ menu:
     summary: ''
   - slug: capstone-practice-012
     title: Đối chiếu một ca sử dụng tương đương trên store khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4075,7 +4075,7 @@ menu:
     summary: ''
   - slug: capstone-practice-013
     title: Rà soát ranh giới Commons/store và kế hoạch nâng phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

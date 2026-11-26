@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: verification-overview-001
     title: Spring Modulith Verification Testing giải quyết bài toán nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: verification-overview-002
     title: Kiểm chứng kiến trúc module khác gì với chạy kiểm thử hành vi?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: verification-overview-003
     title: Ranh giới module, dependency và event là những hợp đồng nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: verification-overview-004
     title: Vì sao kiểm thử đơn vị không đủ để phát hiện vi phạm module?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: verification-overview-005
     title: Mối liên hệ giữa mô hình module và ApplicationContext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: verification-overview-006
     title: Kiểm thử cấu trúc, kiểm thử module và kiểm thử hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: verification-overview-007
     title: Bằng chứng cần có để nói một module được kiểm chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: verification-overview-008
     title: Vai trò của Spring Modulith trong kiến trúc ứng dụng Spring Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -76,7 +76,7 @@ menu:
     summary: ''
   - slug: verification-overview-009
     title: Các lớp API và annotation sẽ gặp trong module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -85,7 +85,7 @@ menu:
     summary: ''
   - slug: verification-overview-010
     title: Lộ trình từ phát hiện module đến kiểm thử hồi quy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
   childs:
   - slug: module-model-001
     title: ApplicationModules biểu diễn cấu trúc module như thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: module-model-002
     title: ApplicationModule đại diện cho một vùng package ra sao?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: module-model-003
     title: JavaPackage và cách suy ra gốc module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: module-model-004
     title: Module base package và package con
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: module-model-005
     title: Named interface và public API của module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: module-model-006
     title: Package nội bộ và package được phép truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -151,7 +151,7 @@ menu:
     summary: ''
   - slug: module-model-007
     title: Module dependency và hướng phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -160,7 +160,7 @@ menu:
     summary: ''
   - slug: module-model-008
     title: ApplicationModuleSource xác định nguồn cấu trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -169,7 +169,7 @@ menu:
     summary: ''
   - slug: module-model-009
     title: Quét package trong một project nhiều module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -178,7 +178,7 @@ menu:
     summary: ''
   - slug: module-model-010
     title: Mô hình suy ra từ code khác với mô hình mong muốn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -187,7 +187,7 @@ menu:
     summary: ''
   - slug: module-model-011
     title: Giữ mô hình module đồng bộ với tổ chức package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
   childs:
   - slug: module-design-001
     title: Xác định ranh giới nghiệp vụ trước khi đặt package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: module-design-002
     title: Module kiểu closed và quy tắc truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: module-design-003
     title: Open module và trường hợp cần công khai package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -226,7 +226,7 @@ menu:
     summary: ''
   - slug: module-design-004
     title: API package và package nội bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -235,7 +235,7 @@ menu:
     summary: ''
   - slug: module-design-005
     title: Đặt lớp facade ở ranh giới module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -244,7 +244,7 @@ menu:
     summary: ''
   - slug: module-design-006
     title: Đưa implementation detail ra khỏi public API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -253,7 +253,7 @@ menu:
     summary: ''
   - slug: module-design-007
     title: Tránh module chỉ là nhóm thư mục kỹ thuật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -262,7 +262,7 @@ menu:
     summary: ''
   - slug: module-design-008
     title: Phân chia module theo khả năng thay đổi và trách nhiệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -271,7 +271,7 @@ menu:
     summary: ''
   - slug: module-design-009
     title: Định danh dependency hợp lệ giữa các module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -280,7 +280,7 @@ menu:
     summary: ''
   - slug: module-design-010
     title: Quan hệ module và bounded context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -289,7 +289,7 @@ menu:
     summary: ''
   - slug: module-design-011
     title: Giữ module có lý do tồn tại và đường giao tiếp rõ ràng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -301,7 +301,7 @@ menu:
   childs:
   - slug: application-modules-001
     title: Tạo ApplicationModules từ package gốc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -310,7 +310,7 @@ menu:
     summary: ''
   - slug: application-modules-002
     title: Khám phá module bằng ApplicationModules.of
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -319,7 +319,7 @@ menu:
     summary: ''
   - slug: application-modules-003
     title: Liệt kê module được phát hiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -328,7 +328,7 @@ menu:
     summary: ''
   - slug: application-modules-004
     title: Đọc tên và base package của module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -337,7 +337,7 @@ menu:
     summary: ''
   - slug: application-modules-005
     title: Đọc dependency giữa các ApplicationModule
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -346,7 +346,7 @@ menu:
     summary: ''
   - slug: application-modules-006
     title: Kiểm tra named interface trong mô hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -355,7 +355,7 @@ menu:
     summary: ''
   - slug: application-modules-007
     title: In mô hình để quan sát cấu trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -364,7 +364,7 @@ menu:
     summary: ''
   - slug: application-modules-008
     title: Xác định package không thuộc module nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -373,7 +373,7 @@ menu:
     summary: ''
   - slug: application-modules-009
     title: Mô hình khi có package lồng nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -382,7 +382,7 @@ menu:
     summary: ''
   - slug: application-modules-010
     title: Tùy chỉnh cách khởi tạo ApplicationModules
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -391,7 +391,7 @@ menu:
     summary: ''
   - slug: application-modules-011
     title: Giới hạn suy luận khi package chứa nhiều vai trò
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -400,7 +400,7 @@ menu:
     summary: ''
   - slug: application-modules-012
     title: Dùng mô hình làm đầu vào cho các công cụ khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -412,7 +412,7 @@ menu:
   childs:
   - slug: application-modules-verify-001
     title: Mục đích của ApplicationModules.verify
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -421,7 +421,7 @@ menu:
     summary: ''
   - slug: application-modules-verify-002
     title: Luật dependency giữa các module được kiểm tra thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -430,7 +430,7 @@ menu:
     summary: ''
   - slug: application-modules-verify-003
     title: Phát hiện dependency trực tiếp qua package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -439,7 +439,7 @@ menu:
     summary: ''
   - slug: application-modules-verify-004
     title: Phát hiện dependency xuyên qua implementation detail
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -448,7 +448,7 @@ menu:
     summary: ''
   - slug: application-modules-verify-005
     title: Vi phạm khi truy cập package nội bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -457,7 +457,7 @@ menu:
     summary: ''
   - slug: application-modules-verify-006
     title: Vi phạm chu kỳ giữa các module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -466,7 +466,7 @@ menu:
     summary: ''
   - slug: application-modules-verify-007
     title: Kiểm tra named interface và allowed dependencies
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -475,7 +475,7 @@ menu:
     summary: ''
   - slug: application-modules-verify-008
     title: verify trả về hay ném lỗi khi có vi phạm?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -484,7 +484,7 @@ menu:
     summary: ''
   - slug: application-modules-verify-009
     title: Đọc thông tin vị trí và đường đi dependency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -493,7 +493,7 @@ menu:
     summary: ''
   - slug: application-modules-verify-010
     title: Chạy verify trong test hoặc build
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -502,7 +502,7 @@ menu:
     summary: ''
   - slug: application-modules-verify-011
     title: Bảo vệ verify khỏi việc bị bỏ qua
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -511,7 +511,7 @@ menu:
     summary: ''
   - slug: application-modules-verify-012
     title: Giới hạn của kiểm chứng tĩnh dựa trên bytecode và package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -523,7 +523,7 @@ menu:
   childs:
   - slug: dependency-rules-001
     title: Dependency từ module A sang module B có nghĩa gì?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -532,7 +532,7 @@ menu:
     summary: ''
   - slug: dependency-rules-002
     title: Phụ thuộc qua kiểu tham số, trường và kiểu trả về
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -541,7 +541,7 @@ menu:
     summary: ''
   - slug: dependency-rules-003
     title: Phụ thuộc qua annotation và metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -550,7 +550,7 @@ menu:
     summary: ''
   - slug: dependency-rules-004
     title: Phụ thuộc do kế thừa hoặc triển khai interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -559,7 +559,7 @@ menu:
     summary: ''
   - slug: dependency-rules-005
     title: Phụ thuộc do gọi phương thức tĩnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -568,7 +568,7 @@ menu:
     summary: ''
   - slug: dependency-rules-006
     title: Phụ thuộc ẩn qua reflection và cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -577,7 +577,7 @@ menu:
     summary: ''
   - slug: dependency-rules-007
     title: Phụ thuộc qua resource hoặc tên bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -586,7 +586,7 @@ menu:
     summary: ''
   - slug: dependency-rules-008
     title: Dependency cycle và tác động đến thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -595,7 +595,7 @@ menu:
     summary: ''
   - slug: dependency-rules-009
     title: Cycle trực tiếp và cycle thông qua nhiều module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -604,7 +604,7 @@ menu:
     summary: ''
   - slug: dependency-rules-010
     title: Phân biệt dependency thật với liên kết dữ liệu đơn thuần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -613,7 +613,7 @@ menu:
     summary: ''
   - slug: dependency-rules-011
     title: Cách làm rõ dependency bằng facade hoặc event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -622,7 +622,7 @@ menu:
     summary: ''
   - slug: dependency-rules-012
     title: Ghi nhận dependency được phép ở mô hình module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -634,7 +634,7 @@ menu:
   childs:
   - slug: named-interfaces-001
     title: Named interface biểu diễn API module như thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -643,7 +643,7 @@ menu:
     summary: ''
   - slug: named-interfaces-002
     title: Đặt tên và mô tả named interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -652,7 +652,7 @@ menu:
     summary: ''
   - slug: named-interfaces-003
     title: Đánh dấu package công khai cho module khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -661,7 +661,7 @@ menu:
     summary: ''
   - slug: named-interfaces-004
     title: Giới hạn kiểu được phép xuất qua API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -670,7 +670,7 @@ menu:
     summary: ''
   - slug: named-interfaces-005
     title: Kiểm tra module khác chỉ dùng named interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -679,7 +679,7 @@ menu:
     summary: ''
   - slug: named-interfaces-006
     title: Mở package mà không biến toàn bộ module thành public
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -688,7 +688,7 @@ menu:
     summary: ''
   - slug: named-interfaces-007
     title: Nhiều named interface trong một module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -697,7 +697,7 @@ menu:
     summary: ''
   - slug: named-interfaces-008
     title: Quan hệ giữa named interface và facade
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -706,7 +706,7 @@ menu:
     summary: ''
   - slug: named-interfaces-009
     title: Thay đổi API và ảnh hưởng kiểm thử cấu trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -715,7 +715,7 @@ menu:
     summary: ''
   - slug: named-interfaces-010
     title: Lỗi khi kiểu nội bộ lọt vào public API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -724,7 +724,7 @@ menu:
     summary: ''
   - slug: named-interfaces-011
     title: Kiểm thử contract của named interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -733,7 +733,7 @@ menu:
     summary: ''
   - slug: named-interfaces-012
     title: Dùng named interface để hướng dẫn người phát triển
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -745,7 +745,7 @@ menu:
   childs:
   - slug: build-verification-001
     title: Chạy verify như một architectural test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -754,7 +754,7 @@ menu:
     summary: ''
   - slug: build-verification-002
     title: Đưa verify vào JUnit Platform
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -763,7 +763,7 @@ menu:
     summary: ''
   - slug: build-verification-003
     title: Chạy verify trong Gradle hoặc Maven
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -772,7 +772,7 @@ menu:
     summary: ''
   - slug: build-verification-004
     title: Cổng build khi cấu trúc module vi phạm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -781,7 +781,7 @@ menu:
     summary: ''
   - slug: build-verification-005
     title: Phân biệt lỗi compile với lỗi architectural verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -790,7 +790,7 @@ menu:
     summary: ''
   - slug: build-verification-006
     title: Thứ tự chạy structural test và behavioral test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -799,7 +799,7 @@ menu:
     summary: ''
   - slug: build-verification-007
     title: Chạy verification trên CI
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -808,7 +808,7 @@ menu:
     summary: ''
   - slug: build-verification-008
     title: Bảo đảm test cấu trúc được phát hiện tự động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -817,7 +817,7 @@ menu:
     summary: ''
   - slug: build-verification-009
     title: Xử lý module demo, fixture và package thử nghiệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -826,7 +826,7 @@ menu:
     summary: ''
   - slug: build-verification-010
     title: Đọc output trong log build
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -835,7 +835,7 @@ menu:
     summary: ''
   - slug: build-verification-011
     title: Không biến cảnh báo kiến trúc thành suppress tùy tiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -844,7 +844,7 @@ menu:
     summary: ''
   - slug: build-verification-012
     title: Giữ kết quả verification tái lập giữa môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -856,7 +856,7 @@ menu:
   childs:
   - slug: application-module-test-001
     title: Mục đích của @ApplicationModuleTest
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -865,7 +865,7 @@ menu:
     summary: ''
   - slug: application-module-test-002
     title: Bootstrapper cho kiểm thử một module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -874,7 +874,7 @@ menu:
     summary: ''
   - slug: application-module-test-003
     title: Chọn module được bootstrap
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -883,7 +883,7 @@ menu:
     summary: ''
   - slug: application-module-test-004
     title: Giới hạn ApplicationContext trong module đang kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -892,7 +892,7 @@ menu:
     summary: ''
   - slug: application-module-test-005
     title: Các kiểu bootstrap của module test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -901,7 +901,7 @@ menu:
     summary: ''
   - slug: application-module-test-006
     title: DirectBootstrap và lựa chọn cấu hình trực tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -910,7 +910,7 @@ menu:
     summary: ''
   - slug: application-module-test-007
     title: WebBootstrap cho module có web adapter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -919,7 +919,7 @@ menu:
     summary: ''
   - slug: application-module-test-008
     title: UseMainMethod và ảnh hưởng đến cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -928,7 +928,7 @@ menu:
     summary: ''
   - slug: application-module-test-009
     title: ReplaceWithMocks và cô lập dependency module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -937,7 +937,7 @@ menu:
     summary: ''
   - slug: application-module-test-010
     title: ScenarioTestBootstrapper và kiểm thử event flow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -946,7 +946,7 @@ menu:
     summary: ''
   - slug: application-module-test-011
     title: Khi nào dùng module test thay vì @SpringBootTest
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -955,7 +955,7 @@ menu:
     summary: ''
   - slug: application-module-test-012
     title: Giới hạn auto-configuration trong module test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -967,7 +967,7 @@ menu:
   childs:
   - slug: bootstrap-context-001
     title: ApplicationContext nào được tạo trong module test?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -976,7 +976,7 @@ menu:
     summary: ''
   - slug: bootstrap-context-002
     title: Bean trong module mục tiêu và bean bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -985,7 +985,7 @@ menu:
     summary: ''
   - slug: bootstrap-context-003
     title: Bean test configuration và vị trí khai báo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -994,7 +994,7 @@ menu:
     summary: ''
   - slug: bootstrap-context-004
     title: '@Import trong module test'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1003,7 +1003,7 @@ menu:
     summary: ''
   - slug: bootstrap-context-005
     title: '@MockBean hoặc cơ chế thay thế collaborator'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1012,7 +1012,7 @@ menu:
     summary: ''
   - slug: bootstrap-context-006
     title: Profile, property source và test configuration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1021,7 +1021,7 @@ menu:
     summary: ''
   - slug: bootstrap-context-007
     title: Component scan và phạm vi package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1030,7 +1030,7 @@ menu:
     summary: ''
   - slug: bootstrap-context-008
     title: Auto-configuration bị bật hoặc loại trừ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1039,7 +1039,7 @@ menu:
     summary: ''
   - slug: bootstrap-context-009
     title: Web layer, database và messaging adapter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1048,7 +1048,7 @@ menu:
     summary: ''
   - slug: bootstrap-context-010
     title: Xử lý bean không thuộc module mục tiêu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1057,7 +1057,7 @@ menu:
     summary: ''
   - slug: bootstrap-context-011
     title: Context cache giữa các module test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1066,7 +1066,7 @@ menu:
     summary: ''
   - slug: bootstrap-context-012
     title: Lỗi thiếu bean do module boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1075,7 +1075,7 @@ menu:
     summary: ''
   - slug: bootstrap-context-013
     title: Làm context nhỏ nhưng vẫn giữ hành vi cần kiểm chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1087,7 +1087,7 @@ menu:
   childs:
   - slug: test-types-001
     title: Unit test cho logic không phụ thuộc Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1096,7 +1096,7 @@ menu:
     summary: ''
   - slug: test-types-002
     title: Slice test cho lớp adapter trong module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1105,7 +1105,7 @@ menu:
     summary: ''
   - slug: test-types-003
     title: Application module test cho một module hoàn chỉnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1114,7 +1114,7 @@ menu:
     summary: ''
   - slug: test-types-004
     title: Integration test giữa nhiều module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1123,7 +1123,7 @@ menu:
     summary: ''
   - slug: test-types-005
     title: End-to-end test qua entry point ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1132,7 +1132,7 @@ menu:
     summary: ''
   - slug: test-types-006
     title: Architectural test cho dependency và package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1141,7 +1141,7 @@ menu:
     summary: ''
   - slug: test-types-007
     title: Contract test cho public API của module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1150,7 +1150,7 @@ menu:
     summary: ''
   - slug: test-types-008
     title: Event-driven test cho giao tiếp bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1159,7 +1159,7 @@ menu:
     summary: ''
   - slug: test-types-009
     title: Chọn test type theo bằng chứng cần thu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1168,7 +1168,7 @@ menu:
     summary: ''
   - slug: test-types-010
     title: Chi phí khởi động context ở từng loại test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1177,7 +1177,7 @@ menu:
     summary: ''
   - slug: test-types-011
     title: Tránh dùng một test type cho mọi rủi ro
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1189,7 +1189,7 @@ menu:
   childs:
   - slug: test-scenarios-001
     title: Scenario biểu diễn một luồng kiểm thử module như thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1198,7 +1198,7 @@ menu:
     summary: ''
   - slug: test-scenarios-002
     title: Given trong Scenario để chuẩn bị dữ liệu hoặc trạng thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1207,7 +1207,7 @@ menu:
     summary: ''
   - slug: test-scenarios-003
     title: Stimulate để kích hoạt hành vi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1216,7 +1216,7 @@ menu:
     summary: ''
   - slug: test-scenarios-004
     title: AndWaitForEvent để chờ event được phát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1225,7 +1225,7 @@ menu:
     summary: ''
   - slug: test-scenarios-005
     title: AndWaitForStateChange để chờ trạng thái đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1234,7 +1234,7 @@ menu:
     summary: ''
   - slug: test-scenarios-006
     title: Synchronous event publication trong scenario
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1243,7 +1243,7 @@ menu:
     summary: ''
   - slug: test-scenarios-007
     title: Asynchronous event publication và thời điểm quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1252,7 +1252,7 @@ menu:
     summary: ''
   - slug: test-scenarios-008
     title: Xác định event type cần chờ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1261,7 +1261,7 @@ menu:
     summary: ''
   - slug: test-scenarios-009
     title: Chờ nhiều event trong cùng một luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1270,7 +1270,7 @@ menu:
     summary: ''
   - slug: test-scenarios-010
     title: Timeout và nguyên nhân scenario thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1279,7 +1279,7 @@ menu:
     summary: ''
   - slug: test-scenarios-011
     title: Scenario state và phạm vi giữa các test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1288,7 +1288,7 @@ menu:
     summary: ''
   - slug: test-scenarios-012
     title: Đọc kết quả scenario để viết assertion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1297,7 +1297,7 @@ menu:
     summary: ''
   - slug: test-scenarios-013
     title: Thiết kế scenario không phụ thuộc delay tùy ý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1309,7 +1309,7 @@ menu:
   childs:
   - slug: event-publication-001
     title: ApplicationEvent được phát từ module nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1318,7 +1318,7 @@ menu:
     summary: ''
   - slug: event-publication-002
     title: Event payload và module boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1327,7 +1327,7 @@ menu:
     summary: ''
   - slug: event-publication-003
     title: Transactional event listener trong module test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1336,7 +1336,7 @@ menu:
     summary: ''
   - slug: event-publication-004
     title: Event được phát trước, trong hoặc sau transaction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1345,7 +1345,7 @@ menu:
     summary: ''
   - slug: event-publication-005
     title: EventPublicationRegistry theo dõi publication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1354,7 +1354,7 @@ menu:
     summary: ''
   - slug: event-publication-006
     title: Publication target và trạng thái hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1363,7 +1363,7 @@ menu:
     summary: ''
   - slug: event-publication-007
     title: Kiểm tra event được publish đúng một lần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1372,7 +1372,7 @@ menu:
     summary: ''
   - slug: event-publication-008
     title: Kiểm tra event không được publish khi transaction rollback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1381,7 +1381,7 @@ menu:
     summary: ''
   - slug: event-publication-009
     title: Lỗi khi publication listener thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1390,7 +1390,7 @@ menu:
     summary: ''
   - slug: event-publication-010
     title: Retry event publication và khả năng quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1399,7 +1399,7 @@ menu:
     summary: ''
   - slug: event-publication-011
     title: Event externalization và hợp đồng message
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1408,7 +1408,7 @@ menu:
     summary: ''
   - slug: event-publication-012
     title: Phân biệt event nội bộ với integration event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1420,7 +1420,7 @@ menu:
   childs:
   - slug: event-assertions-001
     title: PublishedEvents ghi nhận event đã phát như thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1429,7 +1429,7 @@ menu:
     summary: ''
   - slug: event-assertions-002
     title: Lấy event theo kiểu hoặc predicate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1438,7 +1438,7 @@ menu:
     summary: ''
   - slug: event-assertions-003
     title: Xác minh số lần publication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1447,7 +1447,7 @@ menu:
     summary: ''
   - slug: event-assertions-004
     title: Xác minh thứ tự event khi hợp đồng yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1456,7 +1456,7 @@ menu:
     summary: ''
   - slug: event-assertions-005
     title: Kiểm tra payload và dữ liệu nguồn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1465,7 +1465,7 @@ menu:
     summary: ''
   - slug: event-assertions-006
     title: Kiểm tra event không chứa implementation detail
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1474,7 +1474,7 @@ menu:
     summary: ''
   - slug: event-assertions-007
     title: Chờ event bất đồng bộ trước khi assertion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1483,7 +1483,7 @@ menu:
     summary: ''
   - slug: event-assertions-008
     title: Kiểm tra event được phát sau commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1492,7 +1492,7 @@ menu:
     summary: ''
   - slug: event-assertions-009
     title: Kiểm tra listener xử lý event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1501,7 +1501,7 @@ menu:
     summary: ''
   - slug: event-assertions-010
     title: Kiểm tra nhiều listener cho cùng event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1510,7 +1510,7 @@ menu:
     summary: ''
   - slug: event-assertions-011
     title: Phân biệt event đã publish với listener đã hoàn thành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1519,7 +1519,7 @@ menu:
     summary: ''
   - slug: event-assertions-012
     title: Xử lý duplicate event trong assertion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1528,7 +1528,7 @@ menu:
     summary: ''
   - slug: event-assertions-013
     title: Viết assertion ổn định không phụ thuộc thời gian hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1540,7 +1540,7 @@ menu:
   childs:
   - slug: state-changes-001
     title: AndWaitForStateChange theo dõi thay đổi trạng thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1549,7 +1549,7 @@ menu:
     summary: ''
   - slug: state-changes-002
     title: Chọn repository hoặc aggregate làm nguồn state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1558,7 +1558,7 @@ menu:
     summary: ''
   - slug: state-changes-003
     title: Predicate xác định trạng thái mong đợi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1567,7 +1567,7 @@ menu:
     summary: ''
   - slug: state-changes-004
     title: Tránh kiểm tra state ngay sau khi kích hoạt bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1576,7 +1576,7 @@ menu:
     summary: ''
   - slug: state-changes-005
     title: Timeout khi state không thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1585,7 +1585,7 @@ menu:
     summary: ''
   - slug: state-changes-006
     title: State change do event listener gây ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1594,7 +1594,7 @@ menu:
     summary: ''
   - slug: state-changes-007
     title: Transaction visibility khi chờ state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1603,7 +1603,7 @@ menu:
     summary: ''
   - slug: state-changes-008
     title: Đọc state qua public API của module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1612,7 +1612,7 @@ menu:
     summary: ''
   - slug: state-changes-009
     title: Không truy cập trực tiếp trường nội bộ để assertion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1621,7 +1621,7 @@ menu:
     summary: ''
   - slug: state-changes-010
     title: Kiểm tra state cuối cùng và invariant liên quan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1630,7 +1630,7 @@ menu:
     summary: ''
   - slug: state-changes-011
     title: Phân biệt state change với event publication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1639,7 +1639,7 @@ menu:
     summary: ''
   - slug: state-changes-012
     title: Tái lập state trong mỗi scenario
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1651,7 +1651,7 @@ menu:
   childs:
   - slug: module-boundaries-001
     title: Test module có được truy cập module khác không?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1660,7 +1660,7 @@ menu:
     summary: ''
   - slug: module-boundaries-002
     title: Dependency hợp lệ và dependency bị cấm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1669,7 +1669,7 @@ menu:
     summary: ''
   - slug: module-boundaries-003
     title: Mock collaborator ngoài module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1678,7 +1678,7 @@ menu:
     summary: ''
   - slug: module-boundaries-004
     title: Chọn module test khi module có nhiều dependency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1687,7 +1687,7 @@ menu:
     summary: ''
   - slug: module-boundaries-005
     title: Kiểm tra public API thay vì implementation package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1696,7 +1696,7 @@ menu:
     summary: ''
   - slug: module-boundaries-006
     title: Dùng event để thay giao tiếp gọi trực tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1705,7 +1705,7 @@ menu:
     summary: ''
   - slug: module-boundaries-007
     title: Kiểm tra cycle bằng verify trước test hành vi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1714,7 +1714,7 @@ menu:
     summary: ''
   - slug: module-boundaries-008
     title: Ranh giới test fixture và production package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1723,7 +1723,7 @@ menu:
     summary: ''
   - slug: module-boundaries-009
     title: Test utility dùng chung có làm mờ boundary không?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1732,7 +1732,7 @@ menu:
     summary: ''
   - slug: module-boundaries-010
     title: Package test và package main
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1741,7 +1741,7 @@ menu:
     summary: ''
   - slug: module-boundaries-011
     title: Sự khác biệt giữa module dependency và bean dependency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1750,7 +1750,7 @@ menu:
     summary: ''
   - slug: module-boundaries-012
     title: Giữ test không tạo đường tắt kiến trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1762,7 +1762,7 @@ menu:
   childs:
   - slug: test-configuration-001
     title: '@TestConfiguration trong module test'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1771,7 +1771,7 @@ menu:
     summary: ''
   - slug: test-configuration-002
     title: Bean test chỉ tồn tại trong ApplicationContext kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1780,7 +1780,7 @@ menu:
     summary: ''
   - slug: test-configuration-003
     title: '@Import và cấu hình thay thế'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1789,7 +1789,7 @@ menu:
     summary: ''
   - slug: test-configuration-004
     title: '@ActiveProfiles và dữ liệu cấu hình'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1798,7 +1798,7 @@ menu:
     summary: ''
   - slug: test-configuration-005
     title: '@TestPropertySource và thuộc tính test'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1807,7 +1807,7 @@ menu:
     summary: ''
   - slug: test-configuration-006
     title: DynamicPropertySource cho dependency chạy động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1816,7 +1816,7 @@ menu:
     summary: ''
   - slug: test-configuration-007
     title: Thay thế clock, ID generator và external client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1825,7 +1825,7 @@ menu:
     summary: ''
   - slug: test-configuration-008
     title: MockBean và giới hạn của mock trong module test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1834,7 +1834,7 @@ menu:
     summary: ''
   - slug: test-configuration-009
     title: Cấu hình database test và transaction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1843,7 +1843,7 @@ menu:
     summary: ''
   - slug: test-configuration-010
     title: Cấu hình message broker hoặc event infrastructure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1852,7 +1852,7 @@ menu:
     summary: ''
   - slug: test-configuration-011
     title: Cấu hình web client và server giả lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1861,7 +1861,7 @@ menu:
     summary: ''
   - slug: test-configuration-012
     title: Dọn tài nguyên từ test configuration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1873,7 +1873,7 @@ menu:
   childs:
   - slug: database-testing-001
     title: Module test với database thật hoặc database giả lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1882,7 +1882,7 @@ menu:
     summary: ''
   - slug: database-testing-002
     title: Tạo schema và dữ liệu đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1891,7 +1891,7 @@ menu:
     summary: ''
   - slug: database-testing-003
     title: Transaction rollback giữa các test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1900,7 +1900,7 @@ menu:
     summary: ''
   - slug: database-testing-004
     title: Ràng buộc module khi truy cập repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1909,7 +1909,7 @@ menu:
     summary: ''
   - slug: database-testing-005
     title: Kiểm tra event sau khi lưu aggregate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1918,7 +1918,7 @@ menu:
     summary: ''
   - slug: database-testing-006
     title: Phân biệt transaction test với transaction production
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1927,7 +1927,7 @@ menu:
     summary: ''
   - slug: database-testing-007
     title: Test migration và version schema
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1936,7 +1936,7 @@ menu:
     summary: ''
   - slug: database-testing-008
     title: Database isolation khi chạy song song
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1945,7 +1945,7 @@ menu:
     summary: ''
   - slug: database-testing-009
     title: Tạo dữ liệu test không phụ thuộc thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1954,7 +1954,7 @@ menu:
     summary: ''
   - slug: database-testing-010
     title: Kiểm tra optimistic locking hoặc constraint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1963,7 +1963,7 @@ menu:
     summary: ''
   - slug: database-testing-011
     title: Chờ transaction commit trước khi quan sát event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1972,7 +1972,7 @@ menu:
     summary: ''
   - slug: database-testing-012
     title: Dọn database sau scenario
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1984,7 +1984,7 @@ menu:
   childs:
   - slug: web-module-testing-001
     title: Kiểm thử module có web adapter bằng bootstrap phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1993,7 +1993,7 @@ menu:
     summary: ''
   - slug: web-module-testing-002
     title: Gọi controller qua MockMvc hoặc WebTestClient
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2002,7 +2002,7 @@ menu:
     summary: ''
   - slug: web-module-testing-003
     title: Kiểm tra endpoint thuộc module mục tiêu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2011,7 +2011,7 @@ menu:
     summary: ''
   - slug: web-module-testing-004
     title: Kiểm tra response và lỗi đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2020,7 +2020,7 @@ menu:
     summary: ''
   - slug: web-module-testing-005
     title: Xác minh controller chỉ gọi public application API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2029,7 +2029,7 @@ menu:
     summary: ''
   - slug: web-module-testing-006
     title: Mock dependency ngoài module trong web test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2038,7 +2038,7 @@ menu:
     summary: ''
   - slug: web-module-testing-007
     title: Kiểm tra transaction boundary qua request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2047,7 +2047,7 @@ menu:
     summary: ''
   - slug: web-module-testing-008
     title: Authentication và security context trong test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2056,7 +2056,7 @@ menu:
     summary: ''
   - slug: web-module-testing-009
     title: Event phát ra sau HTTP request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2065,7 +2065,7 @@ menu:
     summary: ''
   - slug: web-module-testing-010
     title: Không dùng web test để bỏ qua module rule
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2074,7 +2074,7 @@ menu:
     summary: ''
   - slug: web-module-testing-011
     title: Phân biệt web slice với module integration test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2086,7 +2086,7 @@ menu:
   childs:
   - slug: messaging-testing-001
     title: Kích hoạt hành vi bằng application event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2095,7 +2095,7 @@ menu:
     summary: ''
   - slug: messaging-testing-002
     title: Kiểm tra listener nội bộ module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2104,7 +2104,7 @@ menu:
     summary: ''
   - slug: messaging-testing-003
     title: Kiểm tra event qua message broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2113,7 +2113,7 @@ menu:
     summary: ''
   - slug: messaging-testing-004
     title: Test consumer và producer theo boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2122,7 +2122,7 @@ menu:
     summary: ''
   - slug: messaging-testing-005
     title: Awaitility hoặc cơ chế chờ điều kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2131,7 +2131,7 @@ menu:
     summary: ''
   - slug: messaging-testing-006
     title: Không dùng sleep cố định làm đồng bộ test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2140,7 +2140,7 @@ menu:
     summary: ''
   - slug: messaging-testing-007
     title: Kiểm tra retry, error channel và dead letter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2149,7 +2149,7 @@ menu:
     summary: ''
   - slug: messaging-testing-008
     title: Kiểm tra thứ tự và duplicate message
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2158,7 +2158,7 @@ menu:
     summary: ''
   - slug: messaging-testing-009
     title: Kiểm tra serialization của event payload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2167,7 +2167,7 @@ menu:
     summary: ''
   - slug: messaging-testing-010
     title: Cô lập broker giữa các test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2176,7 +2176,7 @@ menu:
     summary: ''
   - slug: messaging-testing-011
     title: Xác minh ack hoặc transaction của message
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2185,7 +2185,7 @@ menu:
     summary: ''
   - slug: messaging-testing-012
     title: Phân biệt event test với contract test của broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2197,7 +2197,7 @@ menu:
   childs:
   - slug: event-externalization-001
     title: Event externalization trong Spring Modulith
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2206,7 +2206,7 @@ menu:
     summary: ''
   - slug: event-externalization-002
     title: Chọn event được gửi ra ngoài module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2215,7 +2215,7 @@ menu:
     summary: ''
   - slug: event-externalization-003
     title: Mapping event nội bộ thành integration event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2224,7 +2224,7 @@ menu:
     summary: ''
   - slug: event-externalization-004
     title: Định dạng và version của external event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2233,7 +2233,7 @@ menu:
     summary: ''
   - slug: event-externalization-005
     title: Publication registry và trạng thái externalization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2242,7 +2242,7 @@ menu:
     summary: ''
   - slug: event-externalization-006
     title: Kiểm tra event được externalize sau commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2251,7 +2251,7 @@ menu:
     summary: ''
   - slug: event-externalization-007
     title: Gateway hoặc channel gửi event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2260,7 +2260,7 @@ menu:
     summary: ''
   - slug: event-externalization-008
     title: Lỗi externalization và retry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2269,7 +2269,7 @@ menu:
     summary: ''
   - slug: event-externalization-009
     title: Idempotency khi consumer nhận lại event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2278,7 +2278,7 @@ menu:
     summary: ''
   - slug: event-externalization-010
     title: Không để dữ liệu nội bộ lọt ra event công khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2287,7 +2287,7 @@ menu:
     summary: ''
   - slug: event-externalization-011
     title: Test producer với external event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2296,7 +2296,7 @@ menu:
     summary: ''
   - slug: event-externalization-012
     title: Test consumer bằng contract fixture
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2305,7 +2305,7 @@ menu:
     summary: ''
   - slug: event-externalization-013
     title: Theo dõi publication chưa hoàn thành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2317,7 +2317,7 @@ menu:
   childs:
   - slug: observability-testing-001
     title: ApplicationModules.toString và mô tả cấu trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2326,7 +2326,7 @@ menu:
     summary: ''
   - slug: observability-testing-002
     title: Sinh tài liệu module để kiểm tra kiến trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2335,7 +2335,7 @@ menu:
     summary: ''
   - slug: observability-testing-003
     title: Kiểm tra mô hình trong CI
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2344,7 +2344,7 @@ menu:
     summary: ''
   - slug: observability-testing-004
     title: Log module test context và bean bootstrap
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2353,7 +2353,7 @@ menu:
     summary: ''
   - slug: observability-testing-005
     title: Theo dõi event publication trong test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2362,7 +2362,7 @@ menu:
     summary: ''
   - slug: observability-testing-006
     title: Correlation ID giữa stimulus và listener
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2371,7 +2371,7 @@ menu:
     summary: ''
   - slug: observability-testing-007
     title: Ghi nhận thời gian scenario
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2380,7 +2380,7 @@ menu:
     summary: ''
   - slug: observability-testing-008
     title: Chẩn đoán timeout bằng thread dump và log
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2389,7 +2389,7 @@ menu:
     summary: ''
   - slug: observability-testing-009
     title: Phân biệt test chậm với production behavior chậm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2398,7 +2398,7 @@ menu:
     summary: ''
   - slug: observability-testing-010
     title: Không làm assertion phụ thuộc log không ổn định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2407,7 +2407,7 @@ menu:
     summary: ''
   - slug: observability-testing-011
     title: Bằng chứng cấu trúc, hành vi và vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2419,7 +2419,7 @@ menu:
   childs:
   - slug: test-data-001
     title: Fixture đại diện đúng trạng thái module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2428,7 +2428,7 @@ menu:
     summary: ''
   - slug: test-data-002
     title: Builder cho aggregate và command
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2437,7 +2437,7 @@ menu:
     summary: ''
   - slug: test-data-003
     title: Dữ liệu tối thiểu cho một scenario
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2446,7 +2446,7 @@ menu:
     summary: ''
   - slug: test-data-004
     title: Dữ liệu biên và dữ liệu không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2455,7 +2455,7 @@ menu:
     summary: ''
   - slug: test-data-005
     title: Định danh ổn định cho event và entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2464,7 +2464,7 @@ menu:
     summary: ''
   - slug: test-data-006
     title: Không dùng fixture chia sẻ có thể bị sửa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2473,7 +2473,7 @@ menu:
     summary: ''
   - slug: test-data-007
     title: Tạo dữ liệu cô lập giữa các scenario
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2482,7 +2482,7 @@ menu:
     summary: ''
   - slug: test-data-008
     title: Test data cho rollback và retry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2491,7 +2491,7 @@ menu:
     summary: ''
   - slug: test-data-009
     title: Test data cho duplicate event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2500,7 +2500,7 @@ menu:
     summary: ''
   - slug: test-data-010
     title: Ẩn thông tin nhạy cảm trong fixture
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2509,7 +2509,7 @@ menu:
     summary: ''
   - slug: test-data-011
     title: Đồng bộ fixture với schema và public API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2518,7 +2518,7 @@ menu:
     summary: ''
   - slug: test-data-012
     title: Giảm fixture dư thừa làm test khó đọc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2530,7 +2530,7 @@ menu:
   childs:
   - slug: junit-integration-001
     title: JUnit 5 extension và Spring TestContext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2539,7 +2539,7 @@ menu:
     summary: ''
   - slug: junit-integration-002
     title: Cấu hình lớp test cho module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2548,7 +2548,7 @@ menu:
     summary: ''
   - slug: junit-integration-003
     title: Tên test mô tả hành vi hoặc luật kiến trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2557,7 +2557,7 @@ menu:
     summary: ''
   - slug: junit-integration-004
     title: Nested test cho nhóm scenario
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2566,7 +2566,7 @@ menu:
     summary: ''
   - slug: junit-integration-005
     title: Parameterised test cho nhiều module hoặc dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2575,7 +2575,7 @@ menu:
     summary: ''
   - slug: junit-integration-006
     title: Test order và vì sao nên tránh phụ thuộc thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2584,7 +2584,7 @@ menu:
     summary: ''
   - slug: junit-integration-007
     title: Context caching và thay đổi cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2593,7 +2593,7 @@ menu:
     summary: ''
   - slug: junit-integration-008
     title: Tags cho architectural, module và integration test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2602,7 +2602,7 @@ menu:
     summary: ''
   - slug: junit-integration-009
     title: Timeout của JUnit và timeout của Scenario
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2611,7 +2611,7 @@ menu:
     summary: ''
   - slug: junit-integration-010
     title: Assertions nhiều lớp trong một test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2620,7 +2620,7 @@ menu:
     summary: ''
   - slug: junit-integration-011
     title: Tách setup, stimulus và verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2629,7 +2629,7 @@ menu:
     summary: ''
   - slug: junit-integration-012
     title: Bảo đảm test fail khi verification không xảy ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2641,7 +2641,7 @@ menu:
   childs:
   - slug: architectural-contracts-001
     title: Hợp đồng nào cần kiểm tra ở cấp module?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2650,7 +2650,7 @@ menu:
     summary: ''
   - slug: architectural-contracts-002
     title: Hợp đồng package public và package internal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2659,7 +2659,7 @@ menu:
     summary: ''
   - slug: architectural-contracts-003
     title: Hợp đồng dependency được phép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2668,7 +2668,7 @@ menu:
     summary: ''
   - slug: architectural-contracts-004
     title: Hợp đồng event name, payload và version
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2677,7 +2677,7 @@ menu:
     summary: ''
   - slug: architectural-contracts-005
     title: Hợp đồng API giữa module gọi và module được gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2686,7 +2686,7 @@ menu:
     summary: ''
   - slug: architectural-contracts-006
     title: Hợp đồng transaction và thời điểm publication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2695,7 +2695,7 @@ menu:
     summary: ''
   - slug: architectural-contracts-007
     title: Hợp đồng error và khả năng retry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2704,7 +2704,7 @@ menu:
     summary: ''
   - slug: architectural-contracts-008
     title: Hợp đồng externalized event với consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2713,7 +2713,7 @@ menu:
     summary: ''
   - slug: architectural-contracts-009
     title: Hợp đồng cấu hình cần có để bootstrap module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2722,7 +2722,7 @@ menu:
     summary: ''
   - slug: architectural-contracts-010
     title: Hợp đồng tương thích khi module thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2731,7 +2731,7 @@ menu:
     summary: ''
   - slug: architectural-contracts-011
     title: Chuyển hợp đồng thành test có thể chạy tự động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2740,7 +2740,7 @@ menu:
     summary: ''
   - slug: architectural-contracts-012
     title: Phân biệt contract test với implementation test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2752,7 +2752,7 @@ menu:
   childs:
   - slug: asynchronous-verification-001
     title: Xác định điểm hoàn thành của luồng bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2761,7 +2761,7 @@ menu:
     summary: ''
   - slug: asynchronous-verification-002
     title: Event publication và listener execution khác nhau thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2770,7 +2770,7 @@ menu:
     summary: ''
   - slug: asynchronous-verification-003
     title: Chờ điều kiện thay vì chờ một khoảng thời gian cố định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2779,7 +2779,7 @@ menu:
     summary: ''
   - slug: asynchronous-verification-004
     title: Chọn timeout theo môi trường kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2788,7 +2788,7 @@ menu:
     summary: ''
   - slug: asynchronous-verification-005
     title: Xử lý eventual consistency trong assertion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2797,7 +2797,7 @@ menu:
     summary: ''
   - slug: asynchronous-verification-006
     title: Không để test kết thúc trước tác vụ nền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2806,7 +2806,7 @@ menu:
     summary: ''
   - slug: asynchronous-verification-007
     title: Hủy hoặc dọn tác vụ khi test thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2815,7 +2815,7 @@ menu:
     summary: ''
   - slug: asynchronous-verification-008
     title: Đảm bảo executor được làm sạch sau test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2824,7 +2824,7 @@ menu:
     summary: ''
   - slug: asynchronous-verification-009
     title: Kiểm tra race giữa event và transaction commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2833,7 +2833,7 @@ menu:
     summary: ''
   - slug: asynchronous-verification-010
     title: Kiểm tra retry mà không kéo dài toàn bộ test suite
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2842,7 +2842,7 @@ menu:
     summary: ''
   - slug: asynchronous-verification-011
     title: Ghi lại nguyên nhân timeout có thể chẩn đoán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2851,7 +2851,7 @@ menu:
     summary: ''
   - slug: asynchronous-verification-012
     title: Phân biệt lỗi test flaky với lỗi production thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2863,7 +2863,7 @@ menu:
   childs:
   - slug: testcontainers-001
     title: Khi dùng Testcontainers cho module test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2872,7 +2872,7 @@ menu:
     summary: ''
   - slug: testcontainers-002
     title: Khởi tạo database container cho module mục tiêu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2881,7 +2881,7 @@ menu:
     summary: ''
   - slug: testcontainers-003
     title: Container message broker cho event flow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2890,7 +2890,7 @@ menu:
     summary: ''
   - slug: testcontainers-004
     title: Reuse container và nguy cơ chia sẻ trạng thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2899,7 +2899,7 @@ menu:
     summary: ''
   - slug: testcontainers-005
     title: DynamicPropertySource với container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2908,7 +2908,7 @@ menu:
     summary: ''
   - slug: testcontainers-006
     title: Wait strategy và thời điểm dependency sẵn sàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2917,7 +2917,7 @@ menu:
     summary: ''
   - slug: testcontainers-007
     title: Dọn container khi test hoặc suite kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2926,7 +2926,7 @@ menu:
     summary: ''
   - slug: testcontainers-008
     title: Cô lập network và dữ liệu giữa test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2935,7 +2935,7 @@ menu:
     summary: ''
   - slug: testcontainers-009
     title: Chi phí khởi động container trong CI
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2944,7 +2944,7 @@ menu:
     summary: ''
   - slug: testcontainers-010
     title: Chạy test khi Docker không sẵn sàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2953,7 +2953,7 @@ menu:
     summary: ''
   - slug: testcontainers-011
     title: Phân biệt container test với mock test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2962,7 +2962,7 @@ menu:
     summary: ''
   - slug: testcontainers-012
     title: Chọn dependency thật theo bằng chứng cần thu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2974,7 +2974,7 @@ menu:
   childs:
   - slug: mocks-spies-001
     title: Khi mock collaborator ngoài module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2983,7 +2983,7 @@ menu:
     summary: ''
   - slug: mocks-spies-002
     title: Mock boundary hay mock implementation detail?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2992,7 +2992,7 @@ menu:
     summary: ''
   - slug: mocks-spies-003
     title: Stub kết quả lỗi và kết quả thành công
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3001,7 +3001,7 @@ menu:
     summary: ''
   - slug: mocks-spies-004
     title: Verify lời gọi khi đó là một phần hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3010,7 +3010,7 @@ menu:
     summary: ''
   - slug: mocks-spies-005
     title: Tránh verify thứ tự gọi không được đặc tả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3019,7 +3019,7 @@ menu:
     summary: ''
   - slug: mocks-spies-006
     title: Spy bean và nguy cơ chạy logic thật ngoài ý muốn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3028,7 +3028,7 @@ menu:
     summary: ''
   - slug: mocks-spies-007
     title: Mock event publisher và giới hạn bằng chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3037,7 +3037,7 @@ menu:
     summary: ''
   - slug: mocks-spies-008
     title: Mock repository làm mất bằng chứng persistence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3046,7 +3046,7 @@ menu:
     summary: ''
   - slug: mocks-spies-009
     title: Mock clock và dữ liệu thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3055,7 +3055,7 @@ menu:
     summary: ''
   - slug: mocks-spies-010
     title: Mock external gateway theo contract
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3064,7 +3064,7 @@ menu:
     summary: ''
   - slug: mocks-spies-011
     title: Reset mock giữa các scenario
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3073,7 +3073,7 @@ menu:
     summary: ''
   - slug: mocks-spies-012
     title: Không dùng mock để che lỗi bootstrap
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3085,7 +3085,7 @@ menu:
   childs:
   - slug: test-failures-001
     title: Đọc stack trace của lỗi ApplicationContext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3094,7 +3094,7 @@ menu:
     summary: ''
   - slug: test-failures-002
     title: BeanDefinitionException trong module test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3103,7 +3103,7 @@ menu:
     summary: ''
   - slug: test-failures-003
     title: NoSuchBeanDefinitionException do bootstrap quá hẹp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3112,7 +3112,7 @@ menu:
     summary: ''
   - slug: test-failures-004
     title: Lỗi dependency module trong ApplicationModules.verify
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3121,7 +3121,7 @@ menu:
     summary: ''
   - slug: test-failures-005
     title: Lỗi named interface không khớp package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3130,7 +3130,7 @@ menu:
     summary: ''
   - slug: test-failures-006
     title: Lỗi scenario không nhận event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3139,7 +3139,7 @@ menu:
     summary: ''
   - slug: test-failures-007
     title: Lỗi state change không đạt predicate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3148,7 +3148,7 @@ menu:
     summary: ''
   - slug: test-failures-008
     title: Timeout do transaction chưa commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3157,7 +3157,7 @@ menu:
     summary: ''
   - slug: test-failures-009
     title: Timeout do listener không được tạo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3166,7 +3166,7 @@ menu:
     summary: ''
   - slug: test-failures-010
     title: Lỗi duplicate event hoặc event bị phát thiếu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3175,7 +3175,7 @@ menu:
     summary: ''
   - slug: test-failures-011
     title: Lỗi fixture không tạo được trạng thái hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3184,7 +3184,7 @@ menu:
     summary: ''
   - slug: test-failures-012
     title: Phân biệt lỗi cấu hình test với lỗi production code
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3193,7 +3193,7 @@ menu:
     summary: ''
   - slug: test-failures-013
     title: Ghi lại điều kiện tái hiện tối thiểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3205,7 +3205,7 @@ menu:
   childs:
   - slug: test-isolation-001
     title: Cô lập ApplicationContext giữa module test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3214,7 +3214,7 @@ menu:
     summary: ''
   - slug: test-isolation-002
     title: Cô lập database và transaction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3223,7 +3223,7 @@ menu:
     summary: ''
   - slug: test-isolation-003
     title: Cô lập event publication registry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3232,7 +3232,7 @@ menu:
     summary: ''
   - slug: test-isolation-004
     title: Cô lập executor và message broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3241,7 +3241,7 @@ menu:
     summary: ''
   - slug: test-isolation-005
     title: Cô lập clock, random và identifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3250,7 +3250,7 @@ menu:
     summary: ''
   - slug: test-isolation-006
     title: Cô lập biến môi trường và system property
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3259,7 +3259,7 @@ menu:
     summary: ''
   - slug: test-isolation-007
     title: Không để static state rò giữa các test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3268,7 +3268,7 @@ menu:
     summary: ''
   - slug: test-isolation-008
     title: Dọn listener, subscription và resource
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3277,7 +3277,7 @@ menu:
     summary: ''
   - slug: test-isolation-009
     title: Chạy test song song an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3286,7 +3286,7 @@ menu:
     summary: ''
   - slug: test-isolation-010
     title: Phát hiện test phụ thuộc thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3295,7 +3295,7 @@ menu:
     summary: ''
   - slug: test-isolation-011
     title: Xóa dữ liệu sau test thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3304,7 +3304,7 @@ menu:
     summary: ''
   - slug: test-isolation-012
     title: Thiết kế test có thể chạy lại nhiều lần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3316,7 +3316,7 @@ menu:
   childs:
   - slug: module-test-coverage-001
     title: Đo module nào đã có module test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3325,7 +3325,7 @@ menu:
     summary: ''
   - slug: module-test-coverage-002
     title: Đo public API nào được kiểm tra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3334,7 +3334,7 @@ menu:
     summary: ''
   - slug: module-test-coverage-003
     title: Đo event nào có scenario tương ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3343,7 +3343,7 @@ menu:
     summary: ''
   - slug: module-test-coverage-004
     title: Đo luật kiến trúc nào có test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3352,7 +3352,7 @@ menu:
     summary: ''
   - slug: module-test-coverage-005
     title: Độ bao phủ code và giới hạn đối với module boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3361,7 +3361,7 @@ menu:
     summary: ''
   - slug: module-test-coverage-006
     title: Độ bao phủ trạng thái và đường đi nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3370,7 +3370,7 @@ menu:
     summary: ''
   - slug: module-test-coverage-007
     title: Độ bao phủ lỗi, retry và rollback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3379,7 +3379,7 @@ menu:
     summary: ''
   - slug: module-test-coverage-008
     title: Độ bao phủ contract external event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3388,7 +3388,7 @@ menu:
     summary: ''
   - slug: module-test-coverage-009
     title: Nhận diện module có nhiều code nhưng ít bằng chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3397,7 +3397,7 @@ menu:
     summary: ''
   - slug: module-test-coverage-010
     title: Tránh tối ưu coverage bằng test ít ý nghĩa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3406,7 +3406,7 @@ menu:
     summary: ''
   - slug: module-test-coverage-011
     title: Theo dõi khoảng trống kiểm thử theo rủi ro
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3418,7 +3418,7 @@ menu:
   childs:
   - slug: ci-quality-gates-001
     title: Chạy ApplicationModules.verify ở mọi pull request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3427,7 +3427,7 @@ menu:
     summary: ''
   - slug: ci-quality-gates-002
     title: Chọn nhóm module test trong pipeline
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3436,7 +3436,7 @@ menu:
     summary: ''
   - slug: ci-quality-gates-003
     title: Phân tầng test nhanh và test hạ tầng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3445,7 +3445,7 @@ menu:
     summary: ''
   - slug: ci-quality-gates-004
     title: Cache dependency và container image
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3454,7 +3454,7 @@ menu:
     summary: ''
   - slug: ci-quality-gates-005
     title: Thu thập report khi test thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3463,7 +3463,7 @@ menu:
     summary: ''
   - slug: ci-quality-gates-006
     title: Lưu log scenario và thông tin bootstrap
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3472,7 +3472,7 @@ menu:
     summary: ''
   - slug: ci-quality-gates-007
     title: Chạy lại flaky test có giới hạn và có cảnh báo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3481,7 +3481,7 @@ menu:
     summary: ''
   - slug: ci-quality-gates-008
     title: Không bỏ qua test kiến trúc vì build chậm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3490,7 +3490,7 @@ menu:
     summary: ''
   - slug: ci-quality-gates-009
     title: Quality gate cho dependency cycle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3499,7 +3499,7 @@ menu:
     summary: ''
   - slug: ci-quality-gates-010
     title: Quality gate cho test module và event contract
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3508,7 +3508,7 @@ menu:
     summary: ''
   - slug: ci-quality-gates-011
     title: So sánh thời gian test giữa các commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3517,7 +3517,7 @@ menu:
     summary: ''
   - slug: ci-quality-gates-012
     title: Bảo đảm CI và máy phát triển dùng cấu hình tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3529,7 +3529,7 @@ menu:
   childs:
   - slug: legacy-app-refactoring-001
     title: Khảo sát package và dependency trước khi thêm module test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3538,7 +3538,7 @@ menu:
     summary: ''
   - slug: legacy-app-refactoring-002
     title: Tạo ApplicationModules cho code hiện hữu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3547,7 +3547,7 @@ menu:
     summary: ''
   - slug: legacy-app-refactoring-003
     title: Xử lý package chưa có boundary rõ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3556,7 +3556,7 @@ menu:
     summary: ''
   - slug: legacy-app-refactoring-004
     title: Đưa dependency cycle ra ánh sáng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3565,7 +3565,7 @@ menu:
     summary: ''
   - slug: legacy-app-refactoring-005
     title: Chọn một module có ranh giới dễ kiểm chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3574,7 +3574,7 @@ menu:
     summary: ''
   - slug: legacy-app-refactoring-006
     title: Viết test public API trước khi tái cấu trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3583,7 +3583,7 @@ menu:
     summary: ''
   - slug: legacy-app-refactoring-007
     title: Chuyển gọi trực tiếp thành event khi có lý do
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3592,7 +3592,7 @@ menu:
     summary: ''
   - slug: legacy-app-refactoring-008
     title: Tách test fixture khỏi implementation package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3601,7 +3601,7 @@ menu:
     summary: ''
   - slug: legacy-app-refactoring-009
     title: Thiết lập baseline và xử lý vi phạm từng phần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3610,7 +3610,7 @@ menu:
     summary: ''
   - slug: legacy-app-refactoring-010
     title: Giữ hành vi khi di chuyển lớp giữa module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3619,7 +3619,7 @@ menu:
     summary: ''
   - slug: legacy-app-refactoring-011
     title: Đưa verify vào build sau khi module model ổn định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3628,7 +3628,7 @@ menu:
     summary: ''
   - slug: legacy-app-refactoring-012
     title: Đo lợi ích của verification sau refactor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3640,7 +3640,7 @@ menu:
   childs:
   - slug: performance-testing-001
     title: Chi phí tạo ApplicationContext cho từng module test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3649,7 +3649,7 @@ menu:
     summary: ''
   - slug: performance-testing-002
     title: Context caching và cấu hình làm cache bị tách
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3658,7 +3658,7 @@ menu:
     summary: ''
   - slug: performance-testing-003
     title: Giảm bean ngoài phạm vi module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3667,7 +3667,7 @@ menu:
     summary: ''
   - slug: performance-testing-004
     title: Giảm thời gian chuẩn bị database
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3676,7 +3676,7 @@ menu:
     summary: ''
   - slug: performance-testing-005
     title: Tái sử dụng container an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3685,7 +3685,7 @@ menu:
     summary: ''
   - slug: performance-testing-006
     title: Giới hạn số scenario trong một test class
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3694,7 +3694,7 @@ menu:
     summary: ''
   - slug: performance-testing-007
     title: Tách test structural nhanh khỏi integration test chậm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3703,7 +3703,7 @@ menu:
     summary: ''
   - slug: performance-testing-008
     title: Chạy event flow với dữ liệu tối thiểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3712,7 +3712,7 @@ menu:
     summary: ''
   - slug: performance-testing-009
     title: Đo thời gian chờ event và state change
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3721,7 +3721,7 @@ menu:
     summary: ''
   - slug: performance-testing-010
     title: Phát hiện test rò tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3730,7 +3730,7 @@ menu:
     summary: ''
   - slug: performance-testing-011
     title: Tối ưu test mà vẫn giữ bằng chứng cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3742,7 +3742,7 @@ menu:
   childs:
   - slug: security-testing-001
     title: Không đưa secret thật vào module test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3751,7 +3751,7 @@ menu:
     summary: ''
   - slug: security-testing-002
     title: Kiểm tra authorization khi gọi public module API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3760,7 +3760,7 @@ menu:
     summary: ''
   - slug: security-testing-003
     title: Security context trong web hoặc event test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3769,7 +3769,7 @@ menu:
     summary: ''
   - slug: security-testing-004
     title: Kiểm tra event không làm lộ dữ liệu nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3778,7 +3778,7 @@ menu:
     summary: ''
   - slug: security-testing-005
     title: Kiểm tra tenant boundary giữa module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3787,7 +3787,7 @@ menu:
     summary: ''
   - slug: security-testing-006
     title: Mock external identity provider theo contract
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3796,7 +3796,7 @@ menu:
     summary: ''
   - slug: security-testing-007
     title: Test lỗi khi thiếu quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3805,7 +3805,7 @@ menu:
     summary: ''
   - slug: security-testing-008
     title: Test cấu hình mặc định không mở quyền ngoài ý muốn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3814,7 +3814,7 @@ menu:
     summary: ''
   - slug: security-testing-009
     title: Dọn token và credential sau test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3823,7 +3823,7 @@ menu:
     summary: ''
   - slug: security-testing-010
     title: Phân biệt security test với architectural verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3832,7 +3832,7 @@ menu:
     summary: ''
   - slug: security-testing-011
     title: Lưu report không chứa dữ liệu nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3844,7 +3844,7 @@ menu:
   childs:
   - slug: common-mistakes-001
     title: Chỉ chạy verify một lần rồi bỏ qua trong CI
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3853,7 +3853,7 @@ menu:
     summary: ''
   - slug: common-mistakes-002
     title: Coi module test là unit test có Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3862,7 +3862,7 @@ menu:
     summary: ''
   - slug: common-mistakes-003
     title: Bootstrap toàn ứng dụng cho mọi scenario
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3871,7 +3871,7 @@ menu:
     summary: ''
   - slug: common-mistakes-004
     title: Mock toàn bộ dependency làm mất giá trị tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3880,7 +3880,7 @@ menu:
     summary: ''
   - slug: common-mistakes-005
     title: Dùng sleep để chờ event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3889,7 +3889,7 @@ menu:
     summary: ''
   - slug: common-mistakes-006
     title: Không kiểm tra event sau transaction commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3898,7 +3898,7 @@ menu:
     summary: ''
   - slug: common-mistakes-007
     title: Không dọn executor và container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3907,7 +3907,7 @@ menu:
     summary: ''
   - slug: common-mistakes-008
     title: Dùng fixture dùng chung có thể thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3916,7 +3916,7 @@ menu:
     summary: ''
   - slug: common-mistakes-009
     title: Assertion trực tiếp vào package nội bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3925,7 +3925,7 @@ menu:
     summary: ''
   - slug: common-mistakes-010
     title: Suppress dependency cycle không có lý do
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3934,7 +3934,7 @@ menu:
     summary: ''
   - slug: common-mistakes-011
     title: Đo coverage mà không xem chất lượng assertion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3943,7 +3943,7 @@ menu:
     summary: ''
   - slug: common-mistakes-012
     title: Gọi event publisher nhưng không xác minh listener
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3952,7 +3952,7 @@ menu:
     summary: ''
   - slug: common-mistakes-013
     title: Chạy test green nhưng không có assertion thực sự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3964,7 +3964,7 @@ menu:
   childs:
   - slug: testing-strategy-001
     title: Xác định mục tiêu là structural hay behavioral verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3973,7 +3973,7 @@ menu:
     summary: ''
   - slug: testing-strategy-002
     title: Chọn ApplicationModules.verify cho luật kiến trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3982,7 +3982,7 @@ menu:
     summary: ''
   - slug: testing-strategy-003
     title: Chọn @ApplicationModuleTest cho một module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3991,7 +3991,7 @@ menu:
     summary: ''
   - slug: testing-strategy-004
     title: Chọn @SpringBootTest cho cross-module flow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4000,7 +4000,7 @@ menu:
     summary: ''
   - slug: testing-strategy-005
     title: Chọn Scenario cho event-driven behavior
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4009,7 +4009,7 @@ menu:
     summary: ''
   - slug: testing-strategy-006
     title: Chọn contract test cho public module API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4018,7 +4018,7 @@ menu:
     summary: ''
   - slug: testing-strategy-007
     title: Chọn Testcontainers khi cần dependency thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4027,7 +4027,7 @@ menu:
     summary: ''
   - slug: testing-strategy-008
     title: Chọn mock khi boundary đã đủ rõ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4036,7 +4036,7 @@ menu:
     summary: ''
   - slug: testing-strategy-009
     title: Cân bằng độ cô lập với bằng chứng tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4045,7 +4045,7 @@ menu:
     summary: ''
   - slug: testing-strategy-010
     title: Xác định timeout, retry và mức observability
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4054,7 +4054,7 @@ menu:
     summary: ''
   - slug: testing-strategy-011
     title: Ghi lại phạm vi những gì test không chứng minh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4066,7 +4066,7 @@ menu:
   childs:
   - slug: practice-project-001
     title: Khởi tạo ứng dụng Spring Modulith nhỏ có ba module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4075,7 +4075,7 @@ menu:
     summary: ''
   - slug: practice-project-002
     title: Khám phá mô hình bằng ApplicationModules
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4084,7 +4084,7 @@ menu:
     summary: ''
   - slug: practice-project-003
     title: Viết test kiểm tra dependency và cycle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4093,7 +4093,7 @@ menu:
     summary: ''
   - slug: practice-project-004
     title: Khai báo named interface cho public API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4102,7 +4102,7 @@ menu:
     summary: ''
   - slug: practice-project-005
     title: Tạo ApplicationModuleTest cho module nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4111,7 +4111,7 @@ menu:
     summary: ''
   - slug: practice-project-006
     title: Bootstrap module với collaborator được thay thế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4120,7 +4120,7 @@ menu:
     summary: ''
   - slug: practice-project-007
     title: Viết scenario kích hoạt command và chờ event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4129,7 +4129,7 @@ menu:
     summary: ''
   - slug: practice-project-008
     title: Kiểm tra event chỉ phát sau transaction commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4138,7 +4138,7 @@ menu:
     summary: ''
   - slug: practice-project-009
     title: Kiểm tra state change sau listener bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4147,7 +4147,7 @@ menu:
     summary: ''
   - slug: practice-project-010
     title: Kiểm tra contract của externalized event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4156,7 +4156,7 @@ menu:
     summary: ''
   - slug: practice-project-011
     title: Chạy database test bằng Testcontainers
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4165,7 +4165,7 @@ menu:
     summary: ''
   - slug: practice-project-012
     title: Đưa verify và module test vào CI
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4174,7 +4174,7 @@ menu:
     summary: ''
   - slug: practice-project-013
     title: Ghi report và chẩn đoán một test thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4183,7 +4183,7 @@ menu:
     summary: ''
   - slug: practice-project-014
     title: Đánh giá giới hạn còn lại của bộ verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

@@ -1,3 +1,3 @@
 menuLevel1: Transaction boundary
 menuLevel2: Rollback và retry cùng partition
-status: ''
+status: WRITTEN

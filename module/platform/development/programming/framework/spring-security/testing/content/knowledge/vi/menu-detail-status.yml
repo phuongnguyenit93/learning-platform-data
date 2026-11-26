@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: testing-overview-001
     title: Spring Security Test là gì và giải quyết vấn đề nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: testing-overview-002
     title: Phân biệt kiểm thử xác thực, phân quyền và các cơ chế bảo vệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: testing-overview-003
     title: Authentication, principal, authorities và SecurityContext trong một ca kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: testing-overview-004
     title: Đối chiếu tầng HTTP, tầng phương thức và thành phần bảo mật riêng lẻ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: testing-overview-005
     title: Giả lập người dùng khác với chạy quy trình đăng nhập thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: testing-overview-006
     title: Giả lập token khác với kiểm tra chữ ký hoặc introspection thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: testing-overview-007
     title: Kiểm thử Servlet và Reactive dùng mô hình ngữ cảnh khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: testing-overview-008
     title: Hợp đồng cho phép, từ chối và tác dụng phụ cần quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -76,7 +76,7 @@ menu:
     summary: ''
   - slug: testing-overview-009
     title: Vì sao mã HTTP thành công chưa đủ chứng minh cấu hình bảo mật đúng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -85,7 +85,7 @@ menu:
     summary: ''
   - slug: testing-overview-010
     title: Lộ trình học từ người dùng giả lập đến kiểm thử tích hợp đầu cuối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
   childs:
   - slug: testing-strategies-001
     title: Xác định chính sách bảo mật cần chứng minh trước khi chọn công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: testing-strategies-002
     title: Phân biệt kiểm thử đơn vị, kiểm thử theo lát cắt, tích hợp và đầu cuối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: testing-strategies-003
     title: Lập ma trận tài nguyên, hành động, danh tính và quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: testing-strategies-004
     title: Ca chưa đăng nhập, đủ quyền, thiếu quyền và thông tin xác thực sai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: testing-strategies-005
     title: Chọn giả lập ở lớp phụ thuộc mà không bỏ qua lớp đang kiểm tra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: testing-strategies-006
     title: Phân biệt kiểm thử chính sách phân quyền với kiểm thử cơ chế xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -151,7 +151,7 @@ menu:
     summary: ''
   - slug: testing-strategies-007
     title: Kết hợp khẳng định trạng thái, nội dung, header và trạng thái bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -160,7 +160,7 @@ menu:
     summary: ''
   - slug: testing-strategies-008
     title: Kiểm tra tác dụng phụ không xảy ra khi truy cập bị từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -169,7 +169,7 @@ menu:
     summary: ''
   - slug: testing-strategies-009
     title: Ca biên theo chủ sở hữu, tenant và trạng thái tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -178,7 +178,7 @@ menu:
     summary: ''
   - slug: testing-strategies-010
     title: Bằng chứng cần có để tránh kết quả đạt do cấu hình bị vô hiệu hóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -187,7 +187,7 @@ menu:
     summary: ''
   - slug: testing-strategies-011
     title: Giới hạn của kiểm thử ứng dụng so với đánh giá bảo mật tổng thể
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
   childs:
   - slug: dependencies-and-versions-001
     title: Vai trò của spring-security-test, spring-test và bộ chạy kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: dependencies-and-versions-002
     title: Khai báo phụ thuộc kiểm thử bằng Maven hoặc Gradle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: dependencies-and-versions-003
     title: Giữ phiên bản Spring Security Test phù hợp với runtime
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -226,7 +226,7 @@ menu:
     summary: ''
   - slug: dependencies-and-versions-004
     title: Chọn tài liệu theo Spring Boot, Spring Framework và Spring Security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -235,7 +235,7 @@ menu:
     summary: ''
   - slug: dependencies-and-versions-005
     title: JUnit Jupiter, SpringExtension và TestContext Framework
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -244,7 +244,7 @@ menu:
     summary: ''
   - slug: dependencies-and-versions-006
     title: Phân biệt static import của Servlet với Reactive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -253,7 +253,7 @@ menu:
     summary: ''
   - slug: dependencies-and-versions-007
     title: '@MockBean, @SpyBean và các API thay thế theo thế hệ Spring'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -262,7 +262,7 @@ menu:
     summary: ''
   - slug: dependencies-and-versions-008
     title: '@MockitoBean và @MockitoSpyBean khi phiên bản hỗ trợ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -271,7 +271,7 @@ menu:
     summary: ''
   - slug: dependencies-and-versions-009
     title: Phụ thuộc bổ sung cho Reactor Test và kiểm thử WebFlux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -280,7 +280,7 @@ menu:
     summary: ''
   - slug: dependencies-and-versions-010
     title: Nhận diện cấu hình hoặc annotation cũ trước khi sao chép ví dụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -289,7 +289,7 @@ menu:
     summary: ''
   - slug: dependencies-and-versions-011
     title: Không trộn mô hình SecurityFilterChain với cấu hình legacy không tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -301,7 +301,7 @@ menu:
   childs:
   - slug: context-and-lifecycle-001
     title: SecurityContextHolder và phạm vi ngữ cảnh trên luồng kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -310,7 +310,7 @@ menu:
     summary: ''
   - slug: context-and-lifecycle-002
     title: TestSecurityContextHolder và vai trò trong kiểm thử web giả lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -319,7 +319,7 @@ menu:
     summary: ''
   - slug: context-and-lifecycle-003
     title: WithSecurityContextTestExecutionListener thiết lập và dọn ngữ cảnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -328,7 +328,7 @@ menu:
     summary: ''
   - slug: context-and-lifecycle-004
     title: Thời điểm TEST_METHOD so với TEST_EXECUTION
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -337,7 +337,7 @@ menu:
     summary: ''
   - slug: context-and-lifecycle-005
     title: Quan hệ giữa khởi tạo danh tính với @BeforeEach
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -346,7 +346,7 @@ menu:
     summary: ''
   - slug: context-and-lifecycle-006
     title: '@SecurityTestExecutionListeners trong phạm vi phù hợp'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -355,7 +355,7 @@ menu:
     summary: ''
   - slug: context-and-lifecycle-007
     title: Ngữ cảnh trống khác với AnonymousAuthenticationToken
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -364,7 +364,7 @@ menu:
     summary: ''
   - slug: context-and-lifecycle-008
     title: Authentication.isAuthenticated khác với quyền thực hiện một hành động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -373,7 +373,7 @@ menu:
     summary: ''
   - slug: context-and-lifecycle-009
     title: Dọn ngữ cảnh sau test để tránh rò rỉ danh tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -382,7 +382,7 @@ menu:
     summary: ''
   - slug: context-and-lifecycle-010
     title: Ngữ cảnh luồng test không tự đi qua HTTP đến máy chủ chạy thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -391,7 +391,7 @@ menu:
     summary: ''
   - slug: context-and-lifecycle-011
     title: Phân biệt ngữ cảnh giả lập với dữ liệu được lưu qua nhiều request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -400,7 +400,7 @@ menu:
     summary: ''
   - slug: context-and-lifecycle-012
     title: Giữ vòng đời SecurityContext độc lập với dữ liệu nghiệp vụ của test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -412,7 +412,7 @@ menu:
   childs:
   - slug: user-annotations-001
     title: '@WithMockUser ở phương thức và ở lớp kiểm thử'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -421,7 +421,7 @@ menu:
     summary: ''
   - slug: user-annotations-002
     title: Tên người dùng, mật khẩu giả lập và kiểu principal mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -430,7 +430,7 @@ menu:
     summary: ''
   - slug: user-annotations-003
     title: roles và tiền tố ROLE_ được bổ sung theo quy ước
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -439,7 +439,7 @@ menu:
     summary: ''
   - slug: user-annotations-004
     title: authorities và tên quyền tường minh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -448,7 +448,7 @@ menu:
     summary: ''
   - slug: user-annotations-005
     title: Phân biệt ROLE_* với SCOPE_* trong điều kiện phân quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -457,7 +457,7 @@ menu:
     summary: ''
   - slug: user-annotations-006
     title: '@WithAnonymousUser để thay thế mặc định của lớp'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -466,7 +466,7 @@ menu:
     summary: ''
   - slug: user-annotations-007
     title: '@WithUserDetails và UserDetailsService thật trong context kiểm thử'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -475,7 +475,7 @@ menu:
     summary: ''
   - slug: user-annotations-008
     title: Chọn UserDetailsService theo tên bean khi có nhiều bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -484,7 +484,7 @@ menu:
     summary: ''
   - slug: user-annotations-009
     title: Điều kiện tồn tại người dùng trước khi annotation được xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -493,7 +493,7 @@ menu:
     summary: ''
   - slug: user-annotations-010
     title: Principal tùy chỉnh và giới hạn của @WithMockUser
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -502,7 +502,7 @@ menu:
     summary: ''
   - slug: user-annotations-011
     title: setupBefore khi dữ liệu người dùng được tạo trong bước chuẩn bị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -511,7 +511,7 @@ menu:
     summary: ''
   - slug: user-annotations-012
     title: Annotation tổng hợp để dùng lại một danh tính kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -520,7 +520,7 @@ menu:
     summary: ''
   - slug: user-annotations-013
     title: Giới hạn của annotation người dùng đối với đăng nhập, mật khẩu và token thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -532,7 +532,7 @@ menu:
   childs:
   - slug: custom-security-context-001
     title: '@WithSecurityContext và hợp đồng của WithSecurityContextFactory'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -541,7 +541,7 @@ menu:
     summary: ''
   - slug: custom-security-context-002
     title: Tạo principal có trường miền như userId hoặc tenantId
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -550,7 +550,7 @@ menu:
     summary: ''
   - slug: custom-security-context-003
     title: Tạo Authentication đúng loại mà ứng dụng mong đợi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -559,7 +559,7 @@ menu:
     summary: ''
   - slug: custom-security-context-004
     title: Gán authorities rõ ràng theo chính sách kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -568,7 +568,7 @@ menu:
     summary: ''
   - slug: custom-security-context-005
     title: Tạo SecurityContext mới cho từng ca thay vì sửa đối tượng dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -577,7 +577,7 @@ menu:
     summary: ''
   - slug: custom-security-context-006
     title: Tiêm bean cần thiết vào factory thông qua Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -586,7 +586,7 @@ menu:
     summary: ''
   - slug: custom-security-context-007
     title: Tham số hóa annotation cho nhiều vai trò hoặc tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -595,7 +595,7 @@ menu:
     summary: ''
   - slug: custom-security-context-008
     title: Chọn thời điểm thiết lập context phù hợp dữ liệu kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -604,7 +604,7 @@ menu:
     summary: ''
   - slug: custom-security-context-009
     title: Giữ factory đơn giản và tránh truy cập hệ thống bên ngoài ngoài ý muốn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -613,7 +613,7 @@ menu:
     summary: ''
   - slug: custom-security-context-010
     title: Kiểm thử chính factory để tránh danh tính giả lập không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -622,7 +622,7 @@ menu:
     summary: ''
   - slug: custom-security-context-011
     title: Phân biệt danh tính được giả lập với bước chuyển đổi danh tính ở runtime
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -634,7 +634,7 @@ menu:
   childs:
   - slug: method-security-001
     title: Bật method security bằng cơ chế của phiên bản mục tiêu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -643,7 +643,7 @@ menu:
     summary: ''
   - slug: method-security-002
     title: Gọi Spring bean có proxy để đi qua lớp kiểm tra quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -652,7 +652,7 @@ menu:
     summary: ''
   - slug: method-security-003
     title: Kiểm tra @PreAuthorize với vai trò, authority và tham số phương thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -661,7 +661,7 @@ menu:
     summary: ''
   - slug: method-security-004
     title: Kiểm tra @PostAuthorize theo đối tượng trả về
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -670,7 +670,7 @@ menu:
     summary: ''
   - slug: method-security-005
     title: '@PreFilter, @PostFilter và dữ liệu được giữ hoặc loại bỏ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -679,7 +679,7 @@ menu:
     summary: ''
   - slug: method-security-006
     title: '@Secured và @RolesAllowed khi được cấu hình hỗ trợ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -688,7 +688,7 @@ menu:
     summary: ''
   - slug: method-security-007
     title: Biểu thức SpEL, tên tham số và tùy chọn biên dịch -parameters
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -697,7 +697,7 @@ menu:
     summary: ''
   - slug: method-security-008
     title: Quyền theo chủ sở hữu, bean hỗ trợ hoặc PermissionEvaluator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -706,7 +706,7 @@ menu:
     summary: ''
   - slug: method-security-009
     title: Ngoại lệ khi thiếu Authentication hoặc không đủ quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -715,7 +715,7 @@ menu:
     summary: ''
   - slug: method-security-010
     title: Tự gọi phương thức trong cùng đối tượng và giới hạn của proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -724,7 +724,7 @@ menu:
     summary: ''
   - slug: method-security-011
     title: Không mock chính phương thức đang cần kiểm tra phân quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -733,7 +733,7 @@ menu:
     summary: ''
   - slug: method-security-012
     title: Xác minh nghiệp vụ chưa được thực hiện khi kiểm tra trước bị từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -742,7 +742,7 @@ menu:
     summary: ''
   - slug: method-security-013
     title: Kiểm tra tác dụng phụ có thể đã xảy ra trước khi @PostAuthorize từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -754,7 +754,7 @@ menu:
   childs:
   - slug: component-testing-001
     title: AuthenticationProvider với thông tin xác thực hợp lệ và không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -763,7 +763,7 @@ menu:
     summary: ''
   - slug: component-testing-002
     title: AuthenticationManager và cơ chế chọn provider phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -772,7 +772,7 @@ menu:
     summary: ''
   - slug: component-testing-003
     title: UserDetailsService với tài khoản tồn tại, thiếu hoặc bị vô hiệu hóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -781,7 +781,7 @@ menu:
     summary: ''
   - slug: component-testing-004
     title: PasswordEncoder và kiểm tra mật khẩu mà không so khớp chuỗi hash cố định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -790,7 +790,7 @@ menu:
     summary: ''
   - slug: component-testing-005
     title: AuthorizationManager với yêu cầu được phép và bị từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -799,7 +799,7 @@ menu:
     summary: ''
   - slug: component-testing-006
     title: Bộ chuyển đổi Authentication hoặc authorities từ dữ liệu đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -808,7 +808,7 @@ menu:
     summary: ''
   - slug: component-testing-007
     title: AuthenticationEntryPoint và phản hồi chưa xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -817,7 +817,7 @@ menu:
     summary: ''
   - slug: component-testing-008
     title: AccessDeniedHandler và phản hồi không đủ quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -826,7 +826,7 @@ menu:
     summary: ''
   - slug: component-testing-009
     title: AuthenticationSuccessHandler và AuthenticationFailureHandler
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -835,7 +835,7 @@ menu:
     summary: ''
   - slug: component-testing-010
     title: Bộ xử lý đăng xuất và dữ liệu cần dọn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -844,7 +844,7 @@ menu:
     summary: ''
   - slug: component-testing-011
     title: JwtAuthenticationConverter hoặc bộ chuyển đổi quyền tùy chỉnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -853,7 +853,7 @@ menu:
     summary: ''
   - slug: component-testing-012
     title: Đối chiếu unit test với ít nhất một ca đi qua cấu hình tích hợp thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -865,7 +865,7 @@ menu:
   childs:
   - slug: mockmvc-setup-001
     title: MockMvc và giới hạn của việc không chạy máy chủ HTTP thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -874,7 +874,7 @@ menu:
     summary: ''
   - slug: mockmvc-setup-002
     title: webAppContextSetup và standaloneSetup khác nhau về phạm vi cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -883,7 +883,7 @@ menu:
     summary: ''
   - slug: mockmvc-setup-003
     title: Nạp SecurityFilterChain cùng FilterChainProxy vào context kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -892,7 +892,7 @@ menu:
     summary: ''
   - slug: mockmvc-setup-004
     title: SecurityMockMvcConfigurers.springSecurity để kết nối hạ tầng kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -901,7 +901,7 @@ menu:
     summary: ''
   - slug: mockmvc-setup-005
     title: Vai trò của bộ xử lý TestSecurityContextHolder trong request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -910,7 +910,7 @@ menu:
     summary: ''
   - slug: mockmvc-setup-006
     title: '@WebMvcTest và những bean bảo mật cần đưa vào lát cắt'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -919,7 +919,7 @@ menu:
     summary: ''
   - slug: mockmvc-setup-007
     title: '@SpringBootTest kết hợp @AutoConfigureMockMvc'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -928,7 +928,7 @@ menu:
     summary: ''
   - slug: mockmvc-setup-008
     title: '@Import cấu hình kiểm thử mà không thay chính sách cần xác minh'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -937,7 +937,7 @@ menu:
     summary: ''
   - slug: mockmvc-setup-009
     title: defaultRequest và nguy cơ đặt sẵn danh tính cho mọi request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -946,7 +946,7 @@ menu:
     summary: ''
   - slug: mockmvc-setup-010
     title: addFilters=false và lý do có thể làm kiểm thử phân quyền đạt sai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -955,7 +955,7 @@ menu:
     summary: ''
   - slug: mockmvc-setup-011
     title: Phát hiện filter được gắn hai lần hoặc cấu hình thiếu filter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -964,7 +964,7 @@ menu:
     summary: ''
   - slug: mockmvc-setup-012
     title: Xác minh một request thực sự đi qua chuỗi bảo mật mong đợi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -976,7 +976,7 @@ menu:
   childs:
   - slug: request-identity-001
     title: SecurityMockMvcRequestPostProcessors và phạm vi tác động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -985,7 +985,7 @@ menu:
     summary: ''
   - slug: request-identity-002
     title: user với tên người dùng, mật khẩu giả lập và vai trò
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -994,7 +994,7 @@ menu:
     summary: ''
   - slug: request-identity-003
     title: user với UserDetails tùy chỉnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1003,7 +1003,7 @@ menu:
     summary: ''
   - slug: request-identity-004
     title: anonymous để biểu diễn request chưa đăng nhập theo cơ chế anonymous
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1012,7 +1012,7 @@ menu:
     summary: ''
   - slug: request-identity-005
     title: authentication với một Authentication cụ thể
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1021,7 +1021,7 @@ menu:
     summary: ''
   - slug: request-identity-006
     title: securityContext với toàn bộ ngữ cảnh đã chuẩn bị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1030,7 +1030,7 @@ menu:
     summary: ''
   - slug: request-identity-007
     title: Kết hợp annotation người dùng và request post-processor có chủ ý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1039,7 +1039,7 @@ menu:
     summary: ''
   - slug: request-identity-008
     title: Danh tính mặc định khác với danh tính riêng của một request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1048,7 +1048,7 @@ menu:
     summary: ''
   - slug: request-identity-009
     title: Giữ đúng kiểu principal cho @AuthenticationPrincipal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1057,7 +1057,7 @@ menu:
     summary: ''
   - slug: request-identity-010
     title: Danh tính của request hiện tại khác với phiên đăng nhập đã được lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1066,7 +1066,7 @@ menu:
     summary: ''
   - slug: request-identity-011
     title: Tạo post-processor riêng cho quy ước kiểm thử ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1075,7 +1075,7 @@ menu:
     summary: ''
   - slug: request-identity-012
     title: Không suy ra cơ chế xác thực đã hoạt động chỉ vì controller nhận được principal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1087,7 +1087,7 @@ menu:
   childs:
   - slug: result-assertions-001
     title: SecurityMockMvcResultMatchers và kết quả bảo mật sau request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1096,7 +1096,7 @@ menu:
     summary: ''
   - slug: result-assertions-002
     title: authenticated để kiểm tra sự hiện diện của người dùng đã xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1105,7 +1105,7 @@ menu:
     summary: ''
   - slug: result-assertions-003
     title: withUsername, withRoles và kiểm tra authorities theo API phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1114,7 +1114,7 @@ menu:
     summary: ''
   - slug: result-assertions-004
     title: withAuthentication để kiểm tra loại token hoặc principal cụ thể
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1123,7 +1123,7 @@ menu:
     summary: ''
   - slug: result-assertions-005
     title: unauthenticated sau đăng nhập sai hoặc đăng xuất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1132,7 +1132,7 @@ menu:
     summary: ''
   - slug: result-assertions-006
     title: HTTP 401, 403 và chuyển hướng đăng nhập theo cấu hình ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1141,7 +1141,7 @@ menu:
     summary: ''
   - slug: result-assertions-007
     title: Khẳng định Location, WWW-Authenticate và nội dung lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1150,7 +1150,7 @@ menu:
     summary: ''
   - slug: result-assertions-008
     title: Phân biệt người dùng vẫn xác thực nhưng bị cấm truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1159,7 +1159,7 @@ menu:
     summary: ''
   - slug: result-assertions-009
     title: Kiểm tra phản hồi không lộ dữ liệu tài nguyên bị bảo vệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1168,7 +1168,7 @@ menu:
     summary: ''
   - slug: result-assertions-010
     title: Xác minh trạng thái phiên, cookie hoặc repository khi cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1177,7 +1177,7 @@ menu:
     summary: ''
   - slug: result-assertions-011
     title: Tránh chỉ kiểm tra status mà bỏ qua nhánh nghiệp vụ thực sự chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1189,7 +1189,7 @@ menu:
   childs:
   - slug: http-login-001
     title: httpBasic tạo header xác thực cho request MockMvc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1198,7 +1198,7 @@ menu:
     summary: ''
   - slug: http-login-002
     title: Thông tin đúng, sai và không có thông tin xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1207,7 +1207,7 @@ menu:
     summary: ''
   - slug: http-login-003
     title: formLogin và đường dẫn xử lý đăng nhập của ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1216,7 +1216,7 @@ menu:
     summary: ''
   - slug: http-login-004
     title: Tên trường người dùng, mật khẩu và cấu hình form tùy chỉnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1225,7 +1225,7 @@ menu:
     summary: ''
   - slug: http-login-005
     title: Mã trạng thái, chuyển hướng và kết quả Authentication sau đăng nhập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1234,7 +1234,7 @@ menu:
     summary: ''
   - slug: http-login-006
     title: Tài khoản bị khóa, hết hạn hoặc bị vô hiệu hóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1243,7 +1243,7 @@ menu:
     summary: ''
   - slug: http-login-007
     title: Đăng nhập thành công khác với đăng nhập thất bại nhưng vẫn có phiên cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1252,7 +1252,7 @@ menu:
     summary: ''
   - slug: http-login-008
     title: Request cache và quay lại tài nguyên ban đầu theo cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1261,7 +1261,7 @@ menu:
     summary: ''
   - slug: http-login-009
     title: Remember-me và phạm vi cần kiểm tra bằng cookie thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1270,7 +1270,7 @@ menu:
     summary: ''
   - slug: http-login-010
     title: Kiểm tra bằng header hoặc form thực thay vì đưa sẵn người dùng vào context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1279,7 +1279,7 @@ menu:
     summary: ''
   - slug: http-login-011
     title: Giữ bảo mật filter chain khi mock kho người dùng hoặc dịch vụ bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1288,7 +1288,7 @@ menu:
     summary: ''
   - slug: http-login-012
     title: Không dùng dữ liệu xác thực thật của môi trường triển khai trong bộ kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1300,7 +1300,7 @@ menu:
   childs:
   - slug: http-authorization-001
     title: Ma trận endpoint, HTTP method và danh tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1309,7 +1309,7 @@ menu:
     summary: ''
   - slug: http-authorization-002
     title: Tài nguyên công khai, tài nguyên cần đăng nhập và tài nguyên theo quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1318,7 +1318,7 @@ menu:
     summary: ''
   - slug: http-authorization-003
     title: hasRole, hasAuthority và quy ước tiền tố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1327,7 +1327,7 @@ menu:
     summary: ''
   - slug: http-authorization-004
     title: Quyền theo chủ sở hữu hoặc tenant trong tầng HTTP và nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1336,7 +1336,7 @@ menu:
     summary: ''
   - slug: http-authorization-005
     title: Cùng đường dẫn nhưng khác HTTP method có thể có chính sách khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1345,7 +1345,7 @@ menu:
     summary: ''
   - slug: http-authorization-006
     title: RequestMatcher, context path và servlet path trong ca kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1354,7 +1354,7 @@ menu:
     summary: ''
   - slug: http-authorization-007
     title: Thứ tự rule và chính sách mặc định cho request không khớp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1363,7 +1363,7 @@ menu:
     summary: ''
   - slug: http-authorization-008
     title: Nhiều SecurityFilterChain và lựa chọn chuỗi theo securityMatcher
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1372,7 +1372,7 @@ menu:
     summary: ''
   - slug: http-authorization-009
     title: Phát hiện endpoint lọt ra ngoài mọi chuỗi bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1381,7 +1381,7 @@ menu:
     summary: ''
   - slug: http-authorization-010
     title: Ca đổi định danh tài nguyên để kiểm tra truy cập ngang quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1390,7 +1390,7 @@ menu:
     summary: ''
   - slug: http-authorization-011
     title: Dispatch thông thường, lỗi hoặc bất đồng bộ khi ứng dụng có chính sách riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1399,7 +1399,7 @@ menu:
     summary: ''
   - slug: http-authorization-012
     title: Phân biệt lỗi phân quyền với lỗi routing, binding hoặc validation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1408,7 +1408,7 @@ menu:
     summary: ''
   - slug: http-authorization-013
     title: Xác minh không đọc hoặc ghi tài nguyên trái phép dù status đã đúng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1420,7 +1420,7 @@ menu:
   childs:
   - slug: csrf-testing-001
     title: Xác định request cần được bảo vệ theo cấu hình thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1429,7 +1429,7 @@ menu:
     summary: ''
   - slug: csrf-testing-002
     title: Ca không có token, token hợp lệ và token không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1438,7 +1438,7 @@ menu:
     summary: ''
   - slug: csrf-testing-003
     title: csrf làm RequestPostProcessor cho MockMvc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1447,7 +1447,7 @@ menu:
     summary: ''
   - slug: csrf-testing-004
     title: Truyền CSRF token qua tham số hoặc header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1456,7 +1456,7 @@ menu:
     summary: ''
   - slug: csrf-testing-005
     title: useInvalidToken để kiểm tra nhánh từ chối trong MockMvc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1465,7 +1465,7 @@ menu:
     summary: ''
   - slug: csrf-testing-006
     title: Kết hợp CSRF với người dùng có và không có quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1474,7 +1474,7 @@ menu:
     summary: ''
   - slug: csrf-testing-007
     title: Phân biệt lỗi CSRF với lỗi xác thực hoặc phân quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1483,7 +1483,7 @@ menu:
     summary: ''
   - slug: csrf-testing-008
     title: Các endpoint được miễn CSRF và giới hạn của ngoại lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1492,7 +1492,7 @@ menu:
     summary: ''
   - slug: csrf-testing-009
     title: Token repository, cookie và phiên cần kiểm tra khi dùng cơ chế thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1501,7 +1501,7 @@ menu:
     summary: ''
   - slug: csrf-testing-010
     title: Lấy token qua request thật để kiểm tra vòng đời phát và gửi lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1510,7 +1510,7 @@ menu:
     summary: ''
   - slug: csrf-testing-011
     title: CSRF trì hoãn hoặc mã hóa token theo phiên bản và cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1519,7 +1519,7 @@ menu:
     summary: ''
   - slug: csrf-testing-012
     title: Không tắt CSRF chỉ để làm một bài kiểm thử đi qua
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1531,7 +1531,7 @@ menu:
   childs:
   - slug: cors-and-security-headers-001
     title: Yêu cầu Origin và chính sách nguồn được phép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1540,7 +1540,7 @@ menu:
     summary: ''
   - slug: cors-and-security-headers-002
     title: Preflight với OPTIONS, Access-Control-Request-Method và header yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1549,7 +1549,7 @@ menu:
     summary: ''
   - slug: cors-and-security-headers-003
     title: Nguồn, phương thức hoặc header không được phép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1558,7 +1558,7 @@ menu:
     summary: ''
   - slug: cors-and-security-headers-004
     title: Access-Control-Allow-Origin và các header phản hồi cần đối chiếu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1567,7 +1567,7 @@ menu:
     summary: ''
   - slug: cors-and-security-headers-005
     title: Credentials và điều kiện cấu hình khi dùng cookie
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1576,7 +1576,7 @@ menu:
     summary: ''
   - slug: cors-and-security-headers-006
     title: CORS cần được kiểm tra cùng thứ tự filter thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1585,7 +1585,7 @@ menu:
     summary: ''
   - slug: cors-and-security-headers-007
     title: Giới hạn của MockMvc hoặc WebTestClient so với thực thi chính sách trong trình duyệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1594,7 +1594,7 @@ menu:
     summary: ''
   - slug: cors-and-security-headers-008
     title: Kiểm tra header bảo vệ theo chính sách đã cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1603,7 +1603,7 @@ menu:
     summary: ''
   - slug: cors-and-security-headers-009
     title: HSTS trong ngữ cảnh request bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1612,7 +1612,7 @@ menu:
     summary: ''
   - slug: cors-and-security-headers-010
     title: CSP, chống nhúng khung và các tùy biến của ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1621,7 +1621,7 @@ menu:
     summary: ''
   - slug: cors-and-security-headers-011
     title: Đối chiếu header trên phản hồi thành công, lỗi và chuyển hướng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1630,7 +1630,7 @@ menu:
     summary: ''
   - slug: cors-and-security-headers-012
     title: Phân biệt quyền đọc phản hồi từ trình duyệt với quyền gọi API trên máy chủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1642,7 +1642,7 @@ menu:
   childs:
   - slug: sessions-and-logout-001
     title: SecurityContextRepository và việc lưu ngữ cảnh giữa các request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1651,7 +1651,7 @@ menu:
     summary: ''
   - slug: sessions-and-logout-002
     title: Dùng MockHttpSession để kiểm tra tiếp nối phiên Servlet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1660,7 +1660,7 @@ menu:
     summary: ''
   - slug: sessions-and-logout-003
     title: Đăng nhập rồi truy cập tài nguyên bằng cùng phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1669,7 +1669,7 @@ menu:
     summary: ''
   - slug: sessions-and-logout-004
     title: Tách hai phiên hoặc hai người dùng trong cùng ca kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1678,7 +1678,7 @@ menu:
     summary: ''
   - slug: sessions-and-logout-005
     title: Session fixation và thay đổi mã phiên theo chiến lược đã chọn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1687,7 +1687,7 @@ menu:
     summary: ''
   - slug: sessions-and-logout-006
     title: Chính sách tạo phiên trong ứng dụng stateful hoặc stateless
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1696,7 +1696,7 @@ menu:
     summary: ''
   - slug: sessions-and-logout-007
     title: logout với URL, HTTP method và CSRF đúng cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1705,7 +1705,7 @@ menu:
     summary: ''
   - slug: sessions-and-logout-008
     title: Kiểm tra xóa Authentication, vô hiệu phiên và xử lý cookie
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1714,7 +1714,7 @@ menu:
     summary: ''
   - slug: sessions-and-logout-009
     title: Gọi lại tài nguyên sau đăng xuất để xác minh bị từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1723,7 +1723,7 @@ menu:
     summary: ''
   - slug: sessions-and-logout-010
     title: Remember-me sau đăng xuất hoặc sau khi phiên hết hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1732,7 +1732,7 @@ menu:
     summary: ''
   - slug: sessions-and-logout-011
     title: Số phiên đồng thời và phiên bị hết hiệu lực khi ứng dụng dùng chức năng này
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1741,7 +1741,7 @@ menu:
     summary: ''
   - slug: sessions-and-logout-012
     title: Giới hạn của gắn sẵn SecurityContext khi cần chứng minh trạng thái đã được lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1753,7 +1753,7 @@ menu:
   childs:
   - slug: jwt-with-mockmvc-001
     title: jwt tạo Authentication cho kiểm thử phân quyền resource server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1762,7 +1762,7 @@ menu:
     summary: ''
   - slug: jwt-with-mockmvc-002
     title: Tùy chỉnh subject, header và claims trong Jwt giả lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1771,7 +1771,7 @@ menu:
     summary: ''
   - slug: jwt-with-mockmvc-003
     title: scope, scp và ánh xạ mặc định thành authorities
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1780,7 +1780,7 @@ menu:
     summary: ''
   - slug: jwt-with-mockmvc-004
     title: Gán authorities tường minh cho từng ca kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1789,7 +1789,7 @@ menu:
     summary: ''
   - slug: jwt-with-mockmvc-005
     title: Giả lập JwtAuthenticationToken và principal đúng kiểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1798,7 +1798,7 @@ menu:
     summary: ''
   - slug: jwt-with-mockmvc-006
     title: Controller đọc Jwt qua @AuthenticationPrincipal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1807,7 +1807,7 @@ menu:
     summary: ''
   - slug: jwt-with-mockmvc-007
     title: Kiểm tra claim nghiệp vụ như tenantId hoặc userId
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1816,7 +1816,7 @@ menu:
     summary: ''
   - slug: jwt-with-mockmvc-008
     title: Khi gán quyền trực tiếp làm bỏ qua bộ chuyển đổi quyền của ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1825,7 +1825,7 @@ menu:
     summary: ''
   - slug: jwt-with-mockmvc-009
     title: Gọi bộ chuyển đổi quyền thật để kiểm tra quy tắc ánh xạ riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1834,7 +1834,7 @@ menu:
     summary: ''
   - slug: jwt-with-mockmvc-010
     title: Mock JwtDecoder để đi qua bước lấy bearer token nhưng kiểm soát kết quả giải mã
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1843,7 +1843,7 @@ menu:
     summary: ''
   - slug: jwt-with-mockmvc-011
     title: Kiểm tra token bị từ chối khi decoder trả lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1852,7 +1852,7 @@ menu:
     summary: ''
   - slug: jwt-with-mockmvc-012
     title: Phân biệt jwt helper, decoder giả lập và token được xác minh mật mã
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1861,7 +1861,7 @@ menu:
     summary: ''
   - slug: jwt-with-mockmvc-013
     title: Không dùng một Jwt giả lập để kết luận chữ ký hoặc hạn token đã được kiểm tra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1873,7 +1873,7 @@ menu:
   childs:
   - slug: jwt-and-real-tokens-001
     title: Gửi Authorization Bearer thật qua chuỗi filter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1882,7 +1882,7 @@ menu:
     summary: ''
   - slug: jwt-and-real-tokens-002
     title: Dùng khóa kiểm thử độc lập để ký và kiểm tra token
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1891,7 +1891,7 @@ menu:
     summary: ''
   - slug: jwt-and-real-tokens-003
     title: Chữ ký sai, khóa không phù hợp và thuật toán không được chấp nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1900,7 +1900,7 @@ menu:
     summary: ''
   - slug: jwt-and-real-tokens-004
     title: Issuer hợp lệ hoặc không khớp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1909,7 +1909,7 @@ menu:
     summary: ''
   - slug: jwt-and-real-tokens-005
     title: Audience theo validator mà ứng dụng thực sự cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1918,7 +1918,7 @@ menu:
     summary: ''
   - slug: jwt-and-real-tokens-006
     title: exp, nbf và khoảng lệch thời gian cho phép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1927,7 +1927,7 @@ menu:
     summary: ''
   - slug: jwt-and-real-tokens-007
     title: Thay thế nguồn thời gian hoặc dữ liệu thời gian để kiểm thử ổn định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1936,7 +1936,7 @@ menu:
     summary: ''
   - slug: jwt-and-real-tokens-008
     title: Claim thiếu, kiểu claim sai và token không đúng cấu trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1945,7 +1945,7 @@ menu:
     summary: ''
   - slug: jwt-and-real-tokens-009
     title: JWK Set, lựa chọn kid và thay khóa trong hạ tầng kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1954,7 +1954,7 @@ menu:
     summary: ''
   - slug: jwt-and-real-tokens-010
     title: Tách lỗi tải khóa từ xa với lỗi giá trị token
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1963,7 +1963,7 @@ menu:
     summary: ''
   - slug: jwt-and-real-tokens-011
     title: Giữ bộ chuyển đổi authorities và validator thật trong kiểm thử tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1972,7 +1972,7 @@ menu:
     summary: ''
   - slug: jwt-and-real-tokens-012
     title: Giới hạn cache khóa và phụ thuộc mạng trong ca xoay khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1981,7 +1981,7 @@ menu:
     summary: ''
   - slug: jwt-and-real-tokens-013
     title: Xác minh cả phản hồi từ chối và việc nghiệp vụ không được gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1993,7 +1993,7 @@ menu:
   childs:
   - slug: opaque-tokens-001
     title: opaqueToken tạo BearerTokenAuthentication cho MockMvc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2002,7 +2002,7 @@ menu:
     summary: ''
   - slug: opaque-tokens-002
     title: Tùy chỉnh principal, attributes và authorities
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2011,7 +2011,7 @@ menu:
     summary: ''
   - slug: opaque-tokens-003
     title: Kiểm tra quyền và truy cập token attributes ở controller
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2020,7 +2020,7 @@ menu:
     summary: ''
   - slug: opaque-tokens-004
     title: Giới hạn của helper không gọi introspection endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2029,7 +2029,7 @@ menu:
     summary: ''
   - slug: opaque-tokens-005
     title: Mock OpaqueTokenIntrospector để kiểm soát kết quả và lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2038,7 +2038,7 @@ menu:
     summary: ''
   - slug: opaque-tokens-006
     title: Gửi bearer token thật khi cần kiểm tra đường đi qua introspector
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2047,7 +2047,7 @@ menu:
     summary: ''
   - slug: opaque-tokens-007
     title: Phản hồi active=false, thiếu scope hoặc thiếu dữ liệu cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2056,7 +2056,7 @@ menu:
     summary: ''
   - slug: opaque-tokens-008
     title: Timeout, lỗi HTTP và phản hồi introspection không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2065,7 +2065,7 @@ menu:
     summary: ''
   - slug: opaque-tokens-009
     title: Ánh xạ attributes thành quyền theo cấu hình ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2074,7 +2074,7 @@ menu:
     summary: ''
   - slug: opaque-tokens-010
     title: Không suy ra introspection thật đã hoạt động từ một principal giả lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2086,7 +2086,7 @@ menu:
   childs:
   - slug: oauth2-and-oidc-login-001
     title: oauth2Login trong MockMvc và principal OAuth2User
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2095,7 +2095,7 @@ menu:
     summary: ''
   - slug: oauth2-and-oidc-login-002
     title: oidcLogin trong MockMvc và principal OidcUser
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2104,7 +2104,7 @@ menu:
     summary: ''
   - slug: oauth2-and-oidc-login-003
     title: Tùy chỉnh attributes, authorities và thuộc tính định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2113,7 +2113,7 @@ menu:
     summary: ''
   - slug: oauth2-and-oidc-login-004
     title: OidcIdToken, OidcUserInfo và nguồn lấy từng claim
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2122,7 +2122,7 @@ menu:
     summary: ''
   - slug: oauth2-and-oidc-login-005
     title: Tùy chỉnh ClientRegistration cho ngữ cảnh đăng nhập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2131,7 +2131,7 @@ menu:
     summary: ''
   - slug: oauth2-and-oidc-login-006
     title: Đối tượng OAuth2AuthenticationToken và tên registration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2140,7 +2140,7 @@ menu:
     summary: ''
   - slug: oauth2-and-oidc-login-007
     title: Principal tùy chỉnh trong ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2149,7 +2149,7 @@ menu:
     summary: ''
   - slug: oauth2-and-oidc-login-008
     title: Kiểm tra @AuthenticationPrincipal với đúng kiểu người dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2158,7 +2158,7 @@ menu:
     summary: ''
   - slug: oauth2-and-oidc-login-009
     title: Vai trò của OAuth2AuthorizedClient được chuẩn bị trong kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2167,7 +2167,7 @@ menu:
     summary: ''
   - slug: oauth2-and-oidc-login-010
     title: Giới hạn của helper không chạy redirect, đổi code hoặc xác minh ID token thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2176,7 +2176,7 @@ menu:
     summary: ''
   - slug: oauth2-and-oidc-login-011
     title: Tách kiểm thử phân quyền sau đăng nhập khỏi kiểm thử giao thức đăng nhập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2185,7 +2185,7 @@ menu:
     summary: ''
   - slug: oauth2-and-oidc-login-012
     title: Không dùng @WithMockUser thay cho OidcUser khi mã ứng dụng cần claim OIDC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2197,7 +2197,7 @@ menu:
   childs:
   - slug: oauth2-clients-001
     title: oauth2Client trong MockMvc và OAuth2AuthorizedClient
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2206,7 +2206,7 @@ menu:
     summary: ''
   - slug: oauth2-clients-002
     title: registrationId, principalName và client registration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2215,7 +2215,7 @@ menu:
     summary: ''
   - slug: oauth2-clients-003
     title: Access token, scope và thời điểm hết hạn trong dữ liệu giả lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2224,7 +2224,7 @@ menu:
     summary: ''
   - slug: oauth2-clients-004
     title: '@RegisteredOAuth2AuthorizedClient trong controller'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2233,7 +2233,7 @@ menu:
     summary: ''
   - slug: oauth2-clients-005
     title: Repository hoặc service lưu authorized client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2242,7 +2242,7 @@ menu:
     summary: ''
   - slug: oauth2-clients-006
     title: Mock OAuth2AuthorizedClientManager khi cần cô lập việc cấp token
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2251,7 +2251,7 @@ menu:
     summary: ''
   - slug: oauth2-clients-007
     title: Kiểm thử lớp gọi dịch vụ ngoài sử dụng authorized client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2260,7 +2260,7 @@ menu:
     summary: ''
   - slug: oauth2-clients-008
     title: Xác minh Authorization header trên yêu cầu gửi đi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2269,7 +2269,7 @@ menu:
     summary: ''
   - slug: oauth2-clients-009
     title: Gia hạn, hết hạn và lỗi lấy token theo cơ chế đang dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2278,7 +2278,7 @@ menu:
     summary: ''
   - slug: oauth2-clients-010
     title: Không coi client giả lập là bằng chứng token endpoint đã được gọi đúng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2287,7 +2287,7 @@ menu:
     summary: ''
   - slug: oauth2-clients-011
     title: Tách biệt dữ liệu authorized client giữa người dùng hoặc phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2299,7 +2299,7 @@ menu:
   childs:
   - slug: real-oauth2-flows-001
     title: Xác định ranh giới kiểm thử giữa client, authorization server và resource server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2308,7 +2308,7 @@ menu:
     summary: ''
   - slug: real-oauth2-flows-002
     title: Dùng endpoint giao thức trong hạ tầng kiểm thử do bộ test kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2317,7 +2317,7 @@ menu:
     summary: ''
   - slug: real-oauth2-flows-003
     title: Kiểm tra yêu cầu chuyển hướng với client_id, redirect_uri, scope và state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2326,7 +2326,7 @@ menu:
     summary: ''
   - slug: real-oauth2-flows-004
     title: Liên kết state với phiên và từ chối callback không khớp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2335,7 +2335,7 @@ menu:
     summary: ''
   - slug: real-oauth2-flows-005
     title: Đổi authorization code lấy token và kiểm tra yêu cầu gửi đến token endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2344,7 +2344,7 @@ menu:
     summary: ''
   - slug: real-oauth2-flows-006
     title: PKCE khi luồng của ứng dụng yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2353,7 +2353,7 @@ menu:
     summary: ''
   - slug: real-oauth2-flows-007
     title: OIDC nonce, issuer và kiểm tra ID token theo cấu hình thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2362,7 +2362,7 @@ menu:
     summary: ''
   - slug: real-oauth2-flows-008
     title: Lỗi consent, code không hợp lệ, callback lặp hoặc token endpoint thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2371,7 +2371,7 @@ menu:
     summary: ''
   - slug: real-oauth2-flows-009
     title: Không thay cấu hình production chỉ để thuận tiện cho test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2380,7 +2380,7 @@ menu:
     summary: ''
   - slug: real-oauth2-flows-010
     title: Phân biệt kiểm thử ứng dụng OAuth2 với chứng nhận tuân thủ toàn bộ giao thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2389,7 +2389,7 @@ menu:
     summary: ''
   - slug: real-oauth2-flows-011
     title: Giới hạn và dữ liệu độc lập khi kiểm thử một authorization server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2401,7 +2401,7 @@ menu:
   childs:
   - slug: webtestclient-setup-001
     title: WebTestClient với máy chủ giả lập khác với kết nối HTTP thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2410,7 +2410,7 @@ menu:
     summary: ''
   - slug: webtestclient-setup-002
     title: bindToApplicationContext và cấu hình WebFlux kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2419,7 +2419,7 @@ menu:
     summary: ''
   - slug: webtestclient-setup-003
     title: SecurityWebFilterChain và hạ tầng bảo mật Reactive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2428,7 +2428,7 @@ menu:
     summary: ''
   - slug: webtestclient-setup-004
     title: SecurityMockServerConfigurers.springSecurity để gắn hỗ trợ kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2437,7 +2437,7 @@ menu:
     summary: ''
   - slug: webtestclient-setup-005
     title: '@WebFluxTest và các bean bảo mật cần đưa vào lát cắt'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2446,7 +2446,7 @@ menu:
     summary: ''
   - slug: webtestclient-setup-006
     title: '@SpringBootTest kết hợp WebTestClient theo phạm vi mục tiêu'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2455,7 +2455,7 @@ menu:
     summary: ''
   - slug: webtestclient-setup-007
     title: mutateWith và cấu hình danh tính cho từng ca
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2464,7 +2464,7 @@ menu:
     summary: ''
   - slug: webtestclient-setup-008
     title: Không dùng post-processor Servlet cho request WebFlux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2473,7 +2473,7 @@ menu:
     summary: ''
   - slug: webtestclient-setup-009
     title: Phân biệt client tùy biến cho một test với client dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2482,7 +2482,7 @@ menu:
     summary: ''
   - slug: webtestclient-setup-010
     title: Kiểm tra WebFilter bảo mật thật sự nằm trong đường xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2491,7 +2491,7 @@ menu:
     summary: ''
   - slug: webtestclient-setup-011
     title: Giới hạn mutator giả lập đối với máy chủ chạy ngoài tiến trình test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2500,7 +2500,7 @@ menu:
     summary: ''
   - slug: webtestclient-setup-012
     title: Gửi header hoặc cookie thực khi cần kiểm thử HTTP qua mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2512,7 +2512,7 @@ menu:
   childs:
   - slug: reactive-identity-001
     title: mockUser với tên, vai trò hoặc UserDetails
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2521,7 +2521,7 @@ menu:
     summary: ''
   - slug: reactive-identity-002
     title: mockAuthentication với loại Authentication riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2530,7 +2530,7 @@ menu:
     summary: ''
   - slug: reactive-identity-003
     title: '@WithMockUser trong bộ test có hạ tầng Reactive phù hợp'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2539,7 +2539,7 @@ menu:
     summary: ''
   - slug: reactive-identity-004
     title: ReactiveSecurityContextHolder và Reactor Context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2548,7 +2548,7 @@ menu:
     summary: ''
   - slug: reactive-identity-005
     title: Phân biệt ngữ cảnh phản ứng với SecurityContextHolder của luồng test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2557,7 +2557,7 @@ menu:
     summary: ''
   - slug: reactive-identity-006
     title: Các ca anonymous, không có danh tính và thiếu quyền theo chính sách ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2566,7 +2566,7 @@ menu:
     summary: ''
   - slug: reactive-identity-007
     title: Phân quyền theo path, method và thông tin chủ sở hữu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2575,7 +2575,7 @@ menu:
     summary: ''
   - slug: reactive-identity-008
     title: Kiểm tra phản hồi 401, 403 hoặc chuyển hướng phù hợp cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2584,7 +2584,7 @@ menu:
     summary: ''
   - slug: reactive-identity-009
     title: Giữ danh tính độc lập giữa các request được tạo từ client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2593,7 +2593,7 @@ menu:
     summary: ''
   - slug: reactive-identity-010
     title: Kiểm tra principal và authorities mà handler Reactive quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2602,7 +2602,7 @@ menu:
     summary: ''
   - slug: reactive-identity-011
     title: Giới hạn của danh tính giả lập đối với cơ chế xác thực thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2614,7 +2614,7 @@ menu:
   childs:
   - slug: reactive-oauth2-001
     title: mockJwt để kiểm tra phân quyền bằng JWT giả lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2623,7 +2623,7 @@ menu:
     summary: ''
   - slug: reactive-oauth2-002
     title: Tùy chỉnh claims và authorities trong mockJwt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2632,7 +2632,7 @@ menu:
     summary: ''
   - slug: reactive-oauth2-003
     title: ReactiveJwtDecoder giả lập so với decoder thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2641,7 +2641,7 @@ menu:
     summary: ''
   - slug: reactive-oauth2-004
     title: mockOpaqueToken và attributes của principal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2650,7 +2650,7 @@ menu:
     summary: ''
   - slug: reactive-oauth2-005
     title: ReactiveOpaqueTokenIntrospector với kết quả hoặc lỗi kiểm soát được
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2659,7 +2659,7 @@ menu:
     summary: ''
   - slug: reactive-oauth2-006
     title: mockOAuth2Login và OAuth2User
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2668,7 +2668,7 @@ menu:
     summary: ''
   - slug: reactive-oauth2-007
     title: mockOidcLogin và OidcUser với ID token hoặc user info
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2677,7 +2677,7 @@ menu:
     summary: ''
   - slug: reactive-oauth2-008
     title: mockOAuth2Client với authorized client theo registrationId
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2686,7 +2686,7 @@ menu:
     summary: ''
   - slug: reactive-oauth2-009
     title: Kiểm tra người dùng hoặc authorized client được phương thức xử lý nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2695,7 +2695,7 @@ menu:
     summary: ''
   - slug: reactive-oauth2-010
     title: SecurityMockServerConfigurers.csrf cho request WebFlux được bảo vệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2704,7 +2704,7 @@ menu:
     summary: ''
   - slug: reactive-oauth2-011
     title: Kiểm tra token thiếu hoặc sai bằng request thực theo cấu hình ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2713,7 +2713,7 @@ menu:
     summary: ''
   - slug: reactive-oauth2-012
     title: Tách các helper Reactive khỏi API có tên gần giống của MockMvc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2722,7 +2722,7 @@ menu:
     summary: ''
   - slug: reactive-oauth2-013
     title: Bổ sung ca xác thực thật để kiểm tra bước mà mutator đã giả lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2734,7 +2734,7 @@ menu:
   childs:
   - slug: reactive-methods-001
     title: Bật reactive method security đúng cấu hình mục tiêu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2743,7 +2743,7 @@ menu:
     summary: ''
   - slug: reactive-methods-002
     title: Gọi bean có proxy trả về Mono hoặc Flux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2752,7 +2752,7 @@ menu:
     summary: ''
   - slug: reactive-methods-003
     title: ReactorContextTestExecutionListener và ngữ cảnh bảo mật cho phương thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2761,7 +2761,7 @@ menu:
     summary: ''
   - slug: reactive-methods-004
     title: Kiểm tra với @WithMockUser và authorities cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2770,7 +2770,7 @@ menu:
     summary: ''
   - slug: reactive-methods-005
     title: StepVerifier cho kết quả được phép và lỗi từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2779,7 +2779,7 @@ menu:
     summary: ''
   - slug: reactive-methods-006
     title: Quyền theo dữ liệu trả về hoặc tham số khi cơ chế đó được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2788,7 +2788,7 @@ menu:
     summary: ''
   - slug: reactive-methods-007
     title: Kiểm tra sau subscribe thay vì chỉ tạo một Publisher
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2797,7 +2797,7 @@ menu:
     summary: ''
   - slug: reactive-methods-008
     title: Giữ Reactor Context khi chuyển scheduler
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2806,7 +2806,7 @@ menu:
     summary: ''
   - slug: reactive-methods-009
     title: Ngữ cảnh danh tính được đặt tường minh trong pipeline kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2815,7 +2815,7 @@ menu:
     summary: ''
   - slug: reactive-methods-010
     title: Phân biệt bảo mật phương thức Reactive với filter của WebFlux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2824,7 +2824,7 @@ menu:
     summary: ''
   - slug: reactive-methods-011
     title: Không giả định mọi annotation Servlet đều áp dụng giống hệt trong Reactive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2836,7 +2836,7 @@ menu:
   childs:
   - slug: custom-filters-and-mechanisms-001
     title: Unit test một filter với request, response và chuỗi xử lý được kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2845,7 +2845,7 @@ menu:
     summary: ''
   - slug: custom-filters-and-mechanisms-002
     title: Kiểm thử tích hợp để xác nhận vị trí filter trong SecurityFilterChain
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2854,7 +2854,7 @@ menu:
     summary: ''
   - slug: custom-filters-and-mechanisms-003
     title: Bộ lọc lấy token từ header, cookie hoặc nguồn tùy chỉnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2863,7 +2863,7 @@ menu:
     summary: ''
   - slug: custom-filters-and-mechanisms-004
     title: Converter, AuthenticationManager và provider được filter sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2872,7 +2872,7 @@ menu:
     summary: ''
   - slug: custom-filters-and-mechanisms-005
     title: Kiểm tra gọi tiếp chuỗi đúng một lần hoặc dừng đúng điều kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2881,7 +2881,7 @@ menu:
     summary: ''
   - slug: custom-filters-and-mechanisms-006
     title: Dọn SecurityContext khi xác thực thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2890,7 +2890,7 @@ menu:
     summary: ''
   - slug: custom-filters-and-mechanisms-007
     title: ExceptionTranslationFilter và phạm vi chuyển lỗi sang phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2899,7 +2899,7 @@ menu:
     summary: ''
   - slug: custom-filters-and-mechanisms-008
     title: Filter chạy theo dispatcher hoặc nhiều lần trên một request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2908,7 +2908,7 @@ menu:
     summary: ''
   - slug: custom-filters-and-mechanisms-009
     title: WebFilter và cơ chế xác thực tùy biến trong Reactive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2917,7 +2917,7 @@ menu:
     summary: ''
   - slug: custom-filters-and-mechanisms-010
     title: Không gắn filter hai lần khi dùng cấu hình tự động và đăng ký thủ công
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2926,7 +2926,7 @@ menu:
     summary: ''
   - slug: custom-filters-and-mechanisms-011
     title: Kiểm tra thứ tự chuỗi bảo mật cùng @Order và matcher
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2935,7 +2935,7 @@ menu:
     summary: ''
   - slug: custom-filters-and-mechanisms-012
     title: Tách lỗi trong filter khỏi lỗi controller hoặc dịch vụ được bảo vệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2947,7 +2947,7 @@ menu:
   childs:
   - slug: async-and-context-001
     title: ThreadLocal không tự truyền danh tính sang mọi luồng khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2956,7 +2956,7 @@ menu:
     summary: ''
   - slug: async-and-context-002
     title: Executor, CompletableFuture và phạm vi cần kiểm tra riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2965,7 +2965,7 @@ menu:
     summary: ''
   - slug: async-and-context-003
     title: DelegatingSecurityContextRunnable hoặc Callable theo cơ chế đang dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2974,7 +2974,7 @@ menu:
     summary: ''
   - slug: async-and-context-004
     title: DelegatingSecurityContextExecutor và bộ thực thi được bảo vệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2983,7 +2983,7 @@ menu:
     summary: ''
   - slug: async-and-context-005
     title: Không rò rỉ người dùng giữa các tác vụ dùng lại cùng worker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2992,7 +2992,7 @@ menu:
     summary: ''
   - slug: async-and-context-006
     title: Kiểm tra ngữ cảnh được khôi phục sau tác vụ thành công hoặc thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3001,7 +3001,7 @@ menu:
     summary: ''
   - slug: async-and-context-007
     title: MockMvc async dispatch và các lần xử lý tiếp theo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3010,7 +3010,7 @@ menu:
     summary: ''
   - slug: async-and-context-008
     title: Reactor Context khác với cơ chế kế thừa ThreadLocal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3019,7 +3019,7 @@ menu:
     summary: ''
   - slug: async-and-context-009
     title: Chờ kết quả có điều kiện và giới hạn thời gian của ca kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3028,7 +3028,7 @@ menu:
     summary: ''
   - slug: async-and-context-010
     title: Virtual time cho timer Reactor khác với Clock dùng để xác minh hạn token
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3037,7 +3037,7 @@ menu:
     summary: ''
   - slug: async-and-context-011
     title: Tránh một test đạt chỉ vì nhánh bất đồng bộ chưa được thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3049,7 +3049,7 @@ menu:
   childs:
   - slug: data-and-isolation-001
     title: Người dùng, vai trò, tenant và tài nguyên kiểm thử có định danh rõ ràng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3058,7 +3058,7 @@ menu:
     summary: ''
   - slug: data-and-isolation-002
     title: Tạo dữ liệu trước đúng thời điểm @WithUserDetails được xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3067,7 +3067,7 @@ menu:
     summary: ''
   - slug: data-and-isolation-003
     title: Khóa, token, phiên và cookie riêng cho từng ca cần độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3076,7 +3076,7 @@ menu:
     summary: ''
   - slug: data-and-isolation-004
     title: Test factory cho UserDetails, Jwt, OidcUser và dữ liệu miền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3085,7 +3085,7 @@ menu:
     summary: ''
   - slug: data-and-isolation-005
     title: Giữ dữ liệu giả lập giống hợp đồng mà runtime thực sự sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3094,7 +3094,7 @@ menu:
     summary: ''
   - slug: data-and-isolation-006
     title: Dọn dữ liệu lưu phiên, authorized client và remember-me
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3103,7 +3103,7 @@ menu:
     summary: ''
   - slug: data-and-isolation-007
     title: Không chia sẻ Authentication hoặc đối tượng principal khả biến giữa các test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3112,7 +3112,7 @@ menu:
     summary: ''
   - slug: data-and-isolation-008
     title: Kiểm tra truy cập tài nguyên của người dùng hoặc tenant khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3121,7 +3121,7 @@ menu:
     summary: ''
   - slug: data-and-isolation-009
     title: Transaction của luồng test khác với transaction của request HTTP thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3130,7 +3130,7 @@ menu:
     summary: ''
   - slug: data-and-isolation-010
     title: Kho dữ liệu thật trong môi trường kiểm thử khi hành vi truy vấn ảnh hưởng quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3139,7 +3139,7 @@ menu:
     summary: ''
   - slug: data-and-isolation-011
     title: Lựa chọn reset dữ liệu hoặc tạo context mới theo ranh giới cần cô lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3148,7 +3148,7 @@ menu:
     summary: ''
   - slug: data-and-isolation-012
     title: Tránh phụ thuộc thứ tự chạy và trạng thái còn lại từ ca trước
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3160,7 +3160,7 @@ menu:
   childs:
   - slug: end-to-end-integration-001
     title: '@SpringBootTest với máy chủ chạy trên cổng ngẫu nhiên'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3169,7 +3169,7 @@ menu:
     summary: ''
   - slug: end-to-end-integration-002
     title: Gửi thông tin xác thực thật qua HTTP thay vì chỉ đặt SecurityContext của test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3178,7 +3178,7 @@ menu:
     summary: ''
   - slug: end-to-end-integration-003
     title: Đăng nhập, nhận phiên hoặc token rồi truy cập tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3187,7 +3187,7 @@ menu:
     summary: ''
   - slug: end-to-end-integration-004
     title: Kết hợp kiểm tra tầng HTTP với tác dụng phụ trong kho dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3196,7 +3196,7 @@ menu:
     summary: ''
   - slug: end-to-end-integration-005
     title: Ứng dụng resource server xác minh token bằng thành phần thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3205,7 +3205,7 @@ menu:
     summary: ''
   - slug: end-to-end-integration-006
     title: Client OAuth2 dùng endpoint kiểm thử cục bộ có hợp đồng kiểm soát được
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3214,7 +3214,7 @@ menu:
     summary: ''
   - slug: end-to-end-integration-007
     title: Proxy, HTTPS, cookie và chuyển hướng trong môi trường gần triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3223,7 +3223,7 @@ menu:
     summary: ''
   - slug: end-to-end-integration-008
     title: Đối chiếu phản hồi phía máy khách với sự kiện hoặc trạng thái phía máy chủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3232,7 +3232,7 @@ menu:
     summary: ''
   - slug: end-to-end-integration-009
     title: Giữ một tập ca đại diện để kiểm tra kết nối giữa các tầng đã được unit test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3241,7 +3241,7 @@ menu:
     summary: ''
   - slug: end-to-end-integration-010
     title: Phân biệt lỗi ứng dụng với lỗi hạ tầng ngoài phạm vi bộ kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3253,7 +3253,7 @@ menu:
   childs:
   - slug: specialized-mechanisms-001
     title: Xác thực LDAP với dữ liệu và máy chủ kiểm thử độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3262,7 +3262,7 @@ menu:
     summary: ''
   - slug: specialized-mechanisms-002
     title: X.509 với thuộc tính chứng thư trong request và giới hạn giả lập đó
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3271,7 +3271,7 @@ menu:
     summary: ''
   - slug: specialized-mechanisms-003
     title: SAML2 với Authentication tùy chỉnh cho ca phân quyền sau đăng nhập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3280,7 +3280,7 @@ menu:
     summary: ''
   - slug: specialized-mechanisms-004
     title: Kiểm tra luồng SAML2, chữ ký và điều kiện assertion bằng thành phần thật khi cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3289,7 +3289,7 @@ menu:
     summary: ''
   - slug: specialized-mechanisms-005
     title: Remember-me với phát hành, gửi lại và vô hiệu token
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3298,7 +3298,7 @@ menu:
     summary: ''
   - slug: specialized-mechanisms-006
     title: API key hoặc cơ chế tùy chỉnh qua filter thật của ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3307,7 +3307,7 @@ menu:
     summary: ''
   - slug: specialized-mechanisms-007
     title: Nhiều yếu tố xác thực khi phiên bản và cấu hình cung cấp khả năng tương ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3316,7 +3316,7 @@ menu:
     summary: ''
   - slug: specialized-mechanisms-008
     title: Chọn principal đúng kiểu mà cơ chế xác thực thực tế tạo ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3325,7 +3325,7 @@ menu:
     summary: ''
   - slug: specialized-mechanisms-009
     title: Đối chiếu helper sẵn có trước khi mô phỏng một cơ chế chuyên biệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3334,7 +3334,7 @@ menu:
     summary: ''
   - slug: specialized-mechanisms-010
     title: Ghi rõ phần được giả lập và phần giao thức cần kiểm tra riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3346,7 +3346,7 @@ menu:
   childs:
   - slug: test-suites-and-ci-001
     title: Tổ chức test theo chính sách bảo mật và ranh giới hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3355,7 +3355,7 @@ menu:
     summary: ''
   - slug: test-suites-and-ci-002
     title: Parameterized test cho ma trận vai trò, endpoint và HTTP method
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3364,7 +3364,7 @@ menu:
     summary: ''
   - slug: test-suites-and-ci-003
     title: Tên test mô tả danh tính, hành động và quyết định mong đợi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3373,7 +3373,7 @@ menu:
     summary: ''
   - slug: test-suites-and-ci-004
     title: Ưu tiên ca phủ định bên cạnh ca truy cập thành công
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3382,7 +3382,7 @@ menu:
     summary: ''
   - slug: test-suites-and-ci-005
     title: Phát hiện cấu hình permitAll hoặc thiếu filter làm kết quả đạt sai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3391,7 +3391,7 @@ menu:
     summary: ''
   - slug: test-suites-and-ci-006
     title: Tách bộ test nhanh khỏi kiểm thử tích hợp có phụ thuộc hạ tầng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3400,7 +3400,7 @@ menu:
     summary: ''
   - slug: test-suites-and-ci-007
     title: Context cache và tác động của cấu hình mock khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3409,7 +3409,7 @@ menu:
     summary: ''
   - slug: test-suites-and-ci-008
     title: Chỉ dùng @DirtiesContext khi cần cô lập thay đổi context thực sự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3418,7 +3418,7 @@ menu:
     summary: ''
   - slug: test-suites-and-ci-009
     title: Dữ liệu ngẫu nhiên có thể tái hiện và kiểm soát thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3427,7 +3427,7 @@ menu:
     summary: ''
   - slug: test-suites-and-ci-010
     title: Chạy song song mà không dùng chung phiên, cổng hoặc dữ liệu khả biến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3436,7 +3436,7 @@ menu:
     summary: ''
   - slug: test-suites-and-ci-011
     title: Thu thập log chẩn đoán có che token, cookie và thông tin xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3445,7 +3445,7 @@ menu:
     summary: ''
   - slug: test-suites-and-ci-012
     title: Độ bao phủ mã không tự chứng minh đủ độ bao phủ chính sách
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3454,7 +3454,7 @@ menu:
     summary: ''
   - slug: test-suites-and-ci-013
     title: Phát hiện test không có khẳng định hoặc chỉ kiểm tra dữ liệu tự giả lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3463,7 +3463,7 @@ menu:
     summary: ''
   - slug: test-suites-and-ci-014
     title: Giữ môi trường CI độc lập với tài khoản và dịch vụ production
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3475,7 +3475,7 @@ menu:
   childs:
   - slug: migration-and-upgrades-001
     title: Lập danh sách chính sách và hành vi bảo mật cần bảo toàn khi nâng phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3484,7 +3484,7 @@ menu:
     summary: ''
   - slug: migration-and-upgrades-002
     title: Đồng bộ phiên bản Spring Boot, Spring Framework và Spring Security Test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3493,7 +3493,7 @@ menu:
     summary: ''
   - slug: migration-and-upgrades-003
     title: Đổi namespace javax sang jakarta theo thế hệ ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3502,7 +3502,7 @@ menu:
     summary: ''
   - slug: migration-and-upgrades-004
     title: Chuyển cấu hình bảo mật legacy sang bean SecurityFilterChain khi phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3511,7 +3511,7 @@ menu:
     summary: ''
   - slug: migration-and-upgrades-005
     title: Đối chiếu matcher và cách xử lý đường dẫn sau nâng cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3520,7 +3520,7 @@ menu:
     summary: ''
   - slug: migration-and-upgrades-006
     title: Kiểm tra thay đổi mặc định về lưu SecurityContext, CSRF hoặc phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3529,7 +3529,7 @@ menu:
     summary: ''
   - slug: migration-and-upgrades-007
     title: Chuyển @MockBean, @SpyBean sang API mới khi nhánh mục tiêu yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3538,7 +3538,7 @@ menu:
     summary: ''
   - slug: migration-and-upgrades-008
     title: Kiểm tra package và cấu hình test slice theo phiên bản Spring Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3547,7 +3547,7 @@ menu:
     summary: ''
   - slug: migration-and-upgrades-009
     title: Đối chiếu helper Servlet và Reactive với Javadoc đúng nhánh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3556,7 +3556,7 @@ menu:
     summary: ''
   - slug: migration-and-upgrades-010
     title: Chạy lại ca xác thực thật cùng ma trận phân quyền sau chuyển đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3565,7 +3565,7 @@ menu:
     summary: ''
   - slug: migration-and-upgrades-011
     title: Không cập nhật kết quả mong đợi chỉ để che một thay đổi chính sách ngoài ý muốn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3577,7 +3577,7 @@ menu:
   childs:
   - slug: troubleshooting-001
     title: '@WithMockUser không có tác dụng vì test listener hoặc context chưa được nạp'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3586,7 +3586,7 @@ menu:
     summary: ''
   - slug: troubleshooting-002
     title: Principal sai kiểu khi dùng người dùng thông thường cho controller OAuth2
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3595,7 +3595,7 @@ menu:
     summary: ''
   - slug: troubleshooting-003
     title: UserDetails không tồn tại ở thời điểm annotation được xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3604,7 +3604,7 @@ menu:
     summary: ''
   - slug: troubleshooting-004
     title: Nhầm roles với authorities hoặc lặp tiền tố ROLE_
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3613,7 +3613,7 @@ menu:
     summary: ''
   - slug: troubleshooting-005
     title: 403 do CSRF nhưng bị hiểu là lỗi phân quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3622,7 +3622,7 @@ menu:
     summary: ''
   - slug: troubleshooting-006
     title: 302 đến trang đăng nhập nhưng test lại mặc định chờ 401
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3631,7 +3631,7 @@ menu:
     summary: ''
   - slug: troubleshooting-007
     title: Endpoint trả 200 vì filter bị tắt, matcher bỏ sót hoặc cấu hình permitAll
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3640,7 +3640,7 @@ menu:
     summary: ''
   - slug: troubleshooting-008
     title: Method security không chạy do gọi đối tượng không qua proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3649,7 +3649,7 @@ menu:
     summary: ''
   - slug: troubleshooting-009
     title: MockMvc standalone thiếu hạ tầng bảo mật cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3658,7 +3658,7 @@ menu:
     summary: ''
   - slug: troubleshooting-010
     title: jwt helper làm test đạt dù decoder hoặc converter thật vẫn sai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3667,7 +3667,7 @@ menu:
     summary: ''
   - slug: troubleshooting-011
     title: Mutator WebTestClient không áp dụng cho request HTTP thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3676,7 +3676,7 @@ menu:
     summary: ''
   - slug: troubleshooting-012
     title: Reactive test chưa subscribe hoặc thiếu Reactor Context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3685,7 +3685,7 @@ menu:
     summary: ''
   - slug: troubleshooting-013
     title: SecurityContext bị rò rỉ giữa test, luồng hoặc tác vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3694,7 +3694,7 @@ menu:
     summary: ''
   - slug: troubleshooting-014
     title: Token hết hạn, clock skew hoặc cache khóa làm test không ổn định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3703,7 +3703,7 @@ menu:
     summary: ''
   - slug: troubleshooting-015
     title: Thu hẹp lỗi bằng chuỗi filter được chọn, danh tính thực và lớp phát sinh quyết định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3715,7 +3715,7 @@ menu:
   childs:
   - slug: integrated-security-testing-001
     title: Lập ma trận quyền cho API có người dùng thường, quản trị và truy cập ẩn danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3724,7 +3724,7 @@ menu:
     summary: ''
   - slug: integrated-security-testing-002
     title: Kiểm thử một service có @PreAuthorize theo chủ sở hữu tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3733,7 +3733,7 @@ menu:
     summary: ''
   - slug: integrated-security-testing-003
     title: Tạo annotation người dùng miền bằng @WithSecurityContext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3742,7 +3742,7 @@ menu:
     summary: ''
   - slug: integrated-security-testing-004
     title: Kiểm thử form login, giữ phiên rồi logout và gọi lại tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3751,7 +3751,7 @@ menu:
     summary: ''
   - slug: integrated-security-testing-005
     title: Xây bộ ca CSRF đủ token hợp lệ, thiếu và không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3760,7 +3760,7 @@ menu:
     summary: ''
   - slug: integrated-security-testing-006
     title: Kiểm tra CORS preflight cùng các header bảo vệ của ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3769,7 +3769,7 @@ menu:
     summary: ''
   - slug: integrated-security-testing-007
     title: Kiểm thử JWT bằng helper rồi bổ sung ca token ký thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3778,7 +3778,7 @@ menu:
     summary: ''
   - slug: integrated-security-testing-008
     title: Kiểm thử introspection thành công, token không active và lỗi dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3787,7 +3787,7 @@ menu:
     summary: ''
   - slug: integrated-security-testing-009
     title: Kiểm thử principal OIDC có claim phục vụ quy tắc nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3796,7 +3796,7 @@ menu:
     summary: ''
   - slug: integrated-security-testing-010
     title: Chuyển ma trận kiểm thử từ MockMvc sang WebTestClient đúng API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3805,7 +3805,7 @@ menu:
     summary: ''
   - slug: integrated-security-testing-011
     title: Kiểm tra danh tính trong một tác vụ bất đồng bộ hoặc pipeline Reactive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3814,7 +3814,7 @@ menu:
     summary: ''
   - slug: integrated-security-testing-012
     title: Đưa vào một cấu hình sai có chủ ý để xác nhận bộ test phát hiện được
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3823,7 +3823,7 @@ menu:
     summary: ''
   - slug: integrated-security-testing-013
     title: Bài tập tổng hợp từ chính sách bảo mật đến bằng chứng tự động có giới hạn rõ ràng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
