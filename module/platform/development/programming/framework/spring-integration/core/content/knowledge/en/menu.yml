@@ -1,0 +1,555 @@
+menu:
+- level1: Nền tảng Spring Integration
+  level2:
+  - Spring Integration là gì
+  - Bài toán tích hợp hướng message
+  - Enterprise Integration Patterns trong Spring
+  - Producer, channel và consumer
+  - Message flow từ đầu vào đến đầu ra
+  - Tách kết nối khỏi xử lý nghiệp vụ
+  - Loose coupling giữa các component
+  - Khi dùng Spring Integration thay cho gọi trực tiếp
+  - Giới hạn của in-process message flow
+- level1: Mô hình message flow
+  level2:
+  - Pipes and filters
+  - Message endpoint trong một flow
+  - Input channel và output channel
+  - Request-reply flow
+  - One-way flow
+  - Fan-out và fan-in
+  - Synchronous và asynchronous flow
+  - Event-driven và polling consumer
+  - Sơ đồ hóa một integration flow
+  - Đặt tên các bước trong flow
+- level1: Message
+  level2:
+  - Message và GenericMessage
+  - Payload trong Message
+  - MessageHeaders
+  - MessageBuilder
+  - Message không có payload
+  - Payload null và NullPayload
+  - Message immutable
+  - Message và Java object
+  - Message với byte array
+  - Message type và content type
+- level1: MessageBuilder
+  level2:
+  - MessageBuilder.withPayload
+  - MessageBuilder.fromMessage
+  - Copy payload và header
+  - setHeader
+  - setHeaderIfAbsent
+  - removeHeader
+  - copyHeaders
+  - readOnlyHeaders
+  - MessageBuilder và header bất biến
+  - Xây message reply
+  - Xây error message
+- level1: Message headers
+  level2:
+  - id và timestamp
+  - replyChannel
+  - errorChannel
+  - contentType
+  - returnAddress
+  - priority
+  - sequenceNumber và sequenceSize
+  - correlationId
+  - history header
+  - routingSlip
+  - Header mapper
+  - Header propagation qua channel
+  - Không đưa dữ liệu nhạy cảm vào header
+- level1: Message channel
+  level2:
+  - MessageChannel
+  - SubscribableChannel
+  - PollableChannel
+  - MessageDispatcher
+  - MessageHandler đăng ký vào channel
+  - Send timeout
+  - Receive timeout
+  - Channel interceptors
+  - Channel capacity
+  - Channel và thread boundary
+  - Channel là điểm tách các component
+- level1: Kiểu channel
+  level2:
+  - DirectChannel
+  - PublishSubscribeChannel
+  - QueueChannel
+  - PriorityChannel
+  - RendezvousChannel
+  - ExecutorChannel
+  - PartitionedChannel
+  - FluxMessageChannel
+  - Scoped channel
+  - Point-to-point semantics
+  - Publish-subscribe semantics
+  - Chọn channel theo message flow
+- level1: DirectChannel
+  level2:
+  - Handler được gọi trên sender thread
+  - Load balancing giữa subscribers
+  - Failover giữa handlers
+  - RoundRobinLoadBalancingStrategy
+  - UnicastingDispatcher
+  - Exception truyền về sender
+  - DirectChannel và transaction context
+  - DirectChannel làm channel mặc định
+  - Khi không nên dùng DirectChannel
+- level1: PublishSubscribeChannel
+  level2:
+  - Broadcast message cho nhiều subscriber
+  - Tất cả subscriber nhận cùng message
+  - TaskExecutor cho publish-subscribe
+  - Synchronous broadcast
+  - Asynchronous broadcast
+  - apply-sequence
+  - sequence header cho aggregator
+  - Exception từ subscriber
+  - Publish-subscribe và notification event
+  - Khác biệt với QueueChannel
+- level1: Queue và pollable channel
+  level2:
+  - QueueChannel và internal queue
+  - Queue capacity
+  - send timeout
+  - receive timeout
+  - PollingConsumer đọc QueueChannel
+  - PriorityChannel và Comparator
+  - RendezvousChannel handoff
+  - Queue không có consumer
+  - Queue đầy và backpressure
+  - Độ bền của queue in-memory
+  - Khi cần MessageStore-backed channel
+- level1: Message endpoint
+  level2:
+  - Message endpoint là gì
+  - MessageConsumer
+  - EventDrivenConsumer
+  - PollingConsumer
+  - MessageProducer
+  - Consumer endpoint và producer endpoint
+  - Handler endpoint
+  - Endpoint lifecycle
+  - Endpoint input-channel
+  - Endpoint output-channel
+  - Endpoint với reply
+  - Endpoint và MessageHandler
+- level1: Poller
+  level2:
+  - Poller và PollingConsumer
+  - fixed-delay
+  - fixed-rate
+  - cron trigger
+  - initial-delay
+  - max-messages-per-poll
+  - receive-timeout
+  - TaskScheduler
+  - TaskExecutor trong poller
+  - Global default poller
+  - PollerMetadata
+  - Poller và asynchronous processing
+  - Poller không phù hợp với SubscribableChannel
+- level1: Poller transaction
+  level2:
+  - Transactional poller
+  - Advice chain trên poller
+  - TransactionInterceptor
+  - Receive và forward trong một transaction
+  - Rollback khi handler lỗi
+  - Retry quanh poller
+  - Thứ tự retry advice và transaction advice
+  - Poller transaction với database
+  - Poller transaction với message store
+  - Giới hạn của transaction trong in-memory flow
+- level1: Channel adapter
+  level2:
+  - Inbound channel adapter
+  - Outbound channel adapter
+  - Message source
+  - Message producer
+  - Polling inbound adapter
+  - Event-driven inbound adapter
+  - Outbound adapter không có reply
+  - Adapter và lifecycle
+  - Adapter error channel
+  - Adapter với poller
+  - Tách adapter khỏi core handler
+- level1: Messaging gateway
+  level2:
+  - Messaging gateway là gì
+  - Inbound gateway
+  - Outbound gateway
+  - Gateway request-reply
+  - Gateway one-way
+  - Request channel
+  - Reply channel
+  - Reply timeout
+  - errorOnTimeout
+  - Gateway method argument mapping
+  - Gateway return value
+  - Gateway và caller thread
+  - Gateway với asynchronous flow
+- level1: MessagingTemplate
+  level2:
+  - MessagingTemplate
+  - send
+  - sendAndReceive
+  - sendAndReceiveMessage
+  - DefaultDestination
+  - Receive timeout
+  - Reply channel header
+  - Error channel trong template
+  - MessagingTemplate và DirectChannel
+  - MessagingTemplate với QueueChannel
+  - Xử lý MessageTimeoutException
+- level1: Service activator
+  level2:
+  - Service activator là gì
+  - Gọi POJO method từ message
+  - Input channel của service activator
+  - Output channel của service activator
+  - Method trả về void
+  - Method trả về payload
+  - Method trả về Message
+  - Method argument resolution
+  - Method return value handling
+  - Service activator với poller
+  - Service activator với advice chain
+  - Service activator và transaction
+- level1: Transformer
+  level2:
+  - Transformer là gì
+  - Payload transformer
+  - Message transformer
+  - GenericTransformer
+  - Header enricher transformer
+  - Object to string
+  - XML hoặc JSON transformation
+  - Transformer method mapping
+  - Transformer không tạo output
+  - Transformer với output channel
+  - Transformer và type conversion
+  - Transformer exception
+- level1: Filter
+  level2:
+  - Message filter là gì
+  - MessageSelector
+  - Filter theo payload
+  - Filter theo header
+  - filter endpoint
+  - discard channel
+  - discard flow
+  - throw-exception-on-rejection
+  - Filter trong request-reply flow
+  - Filter và null output
+  - Filter với SpEL
+  - Filter và business validation
+- level1: Router
+  level2:
+  - Message router là gì
+  - Router theo payload
+  - Router theo header
+  - Router theo type
+  - Router theo SpEL
+  - HeaderValueRouter
+  - PayloadTypeRouter
+  - RecipientListRouter
+  - XPathRouter
+  - Router expression
+  - Default output channel
+  - Resolution required
+  - Router nhiều output
+  - Router và dynamic destination
+- level1: Splitter
+  level2:
+  - Message splitter là gì
+  - Tách collection payload
+  - Tách iterator
+  - Tách array
+  - Tách composite message
+  - Splitter output channel
+  - sequenceSize và sequenceNumber
+  - correlationId do splitter tạo
+  - Splitter trong request-reply
+  - Splitter và downstream aggregator
+  - Splitter exception
+  - Xử lý phần tử không hợp lệ
+- level1: Aggregator
+  level2:
+  - Message aggregator là gì
+  - CorrelationStrategy
+  - ReleaseStrategy
+  - Correlation key
+  - MessageGroup
+  - MessageGroupStore
+  - Timeout của group
+  - Send partial result on expiry
+  - Discard channel khi timeout
+  - Expire groups upon completion
+  - Aggregator stateful
+  - Aggregator và transaction
+  - Aggregator và duplicate message
+  - Aggregator sau splitter
+- level1: Resequencer
+  level2:
+  - Message resequencer là gì
+  - Sắp xếp message theo sequence
+  - Correlation key của resequencer
+  - ReleaseStrategy của resequencer
+  - Timeout khi thiếu sequence
+  - MessageGroupStore cho resequencer
+  - Resequencer và sequence header
+  - Resequencer trong flow bất đồng bộ
+  - Xử lý message đến trễ
+  - So sánh resequencer và aggregator
+- level1: Messaging bridge
+  level2:
+  - Bridge giữa hai channel
+  - Inbound channel và outbound channel
+  - Bridge one-way
+  - Bridge request-reply
+  - Bridge với poller
+  - Bridge với channel interceptor
+  - Bridge giữa flow khác context
+  - Bridge và transaction boundary
+  - Đổi channel type bằng bridge
+  - Khi dùng bridge thay cho handler
+- level1: Java DSL
+  level2:
+  - IntegrationFlow
+  - IntegrationFlows và Java DSL
+  - from message channel
+  - from MessageSource
+  - from PollableChannel
+  - from Supplier
+  - channel trong DSL
+  - transform trong DSL
+  - filter trong DSL
+  - route trong DSL
+  - split trong DSL
+  - aggregate trong DSL
+  - handle trong DSL
+  - bridge trong DSL
+- level1: DSL nâng cao
+  level2:
+  - Subflow trong Java DSL
+  - routeToRecipients
+  - publishSubscribe trong DSL
+  - gateway trong DSL
+  - enrichHeaders trong DSL
+  - wireTap trong DSL
+  - log trong DSL
+  - intercept trong DSL
+  - EndpointSpec
+  - ConsumerEndpointSpec
+  - Pollers.fixedDelay
+  - Pollers.fixedRate
+  - DSL và bean registration
+  - Đọc flow DSL như một pipeline
+- level1: Annotation và XML
+  level2:
+  - '@ServiceActivator'
+  - '@Transformer'
+  - '@Filter'
+  - '@Router'
+  - '@Splitter'
+  - '@Aggregator'
+  - '@BridgeFrom'
+  - '@BridgeTo'
+  - '@InboundChannelAdapter'
+  - '@MessagingGateway'
+  - '@IntegrationComponentScan'
+  - input-channel và output-channel
+  - XML namespace configuration
+  - Java config và XML config
+- level1: Error handling
+  level2:
+  - ErrorMessage
+  - errorChannel header
+  - Global errorChannel
+  - PublishSubscribeChannel mặc định
+  - Default error flow
+  - Exception payload
+  - MessagingException
+  - MessageHandlingException
+  - MessageTimeoutException
+  - ErrorMessageStrategy
+  - Error channel của endpoint
+  - Error channel của gateway
+  - Lỗi đồng bộ và bất đồng bộ
+  - Error flow và compensation
+- level1: Advice và retry
+  level2:
+  - RequestHandlerRetryAdvice
+  - RetryTemplate
+  - RetryCallback
+  - RecoveryCallback
+  - ErrorMessageSendingRecoverer
+  - ExpressionEvaluatingRequestHandlerAdvice
+  - RequestHandlerCircuitBreakerAdvice
+  - TransactionInterceptor advice
+  - RateLimiterRequestHandlerAdvice
+  - CacheRequestHandlerAdvice
+  - Advice chain trên endpoint
+  - Thứ tự các advice
+  - Retry từng lần xử lý hay toàn flow
+- level1: Transaction support
+  level2:
+  - TransactionInterceptor trong Spring Integration
+  - Transaction advice
+  - Transaction boundary của flow
+  - Transaction trên poller
+  - Transaction trên handler
+  - Transaction với DirectChannel
+  - Transaction với QueueChannel
+  - Transaction với MessageStore
+  - Rollback và error channel
+  - Commit trước khi gửi reply
+  - Transaction propagation
+  - Transaction timeout
+  - Không để async channel phá vỡ transaction context
+- level1: Message store
+  level2:
+  - MessageStore là gì
+  - SimpleMessageStore
+  - JdbcMessageStore
+  - RedisMessageStore
+  - MongoDbChannelMessageStore
+  - MessageGroupStore
+  - PersistentQueueChannel
+  - Aggregator persistence
+  - Resequencer persistence
+  - Claim check pattern
+  - Message expiration
+  - Message store cleanup
+  - Serialization của message
+  - Chọn message store theo failure model
+- level1: Correlation và state
+  level2:
+  - CorrelationStrategy
+  - Correlation ID
+  - Correlation key expression
+  - MessageGroupProcessor
+  - ReleaseStrategy
+  - Stateful endpoint
+  - State recovery sau restart
+  - Duplicate correlation key
+  - Group timeout
+  - Incomplete group
+  - Discard expired message
+  - Idempotent receiver
+  - Correlation trong splitter-aggregator
+- level1: System management
+  level2:
+  - IntegrationManagement
+  - IntegrationGraph
+  - Control Bus
+  - Message history
+  - MessageHistoryConfigurer
+  - IntegrationMBeanExporter
+  - JMX metrics
+  - Endpoint lifecycle control
+  - Start và stop endpoint
+  - Pause flow bằng control bus
+  - Xem cấu trúc integration graph
+  - Theo dõi message history
+  - Quản trị flow khi runtime
+- level1: Metrics và observability
+  level2:
+  - Micrometer integration metrics
+  - Counter cho message
+  - Timer cho handler
+  - Send rate và receive rate
+  - Error rate của endpoint
+  - Queue depth
+  - Handler duration
+  - Micrometer tags
+  - Observation trong message flow
+  - Trace context qua channel
+  - Log message flow
+  - Không ghi payload nhạy cảm vào log
+  - Alert theo error channel
+  - Dashboard cho integration flow
+- level1: Reactive support
+  level2:
+  - ReactiveMessageHandler
+  - FluxMessageChannel
+  - ReactiveStreamsConsumer
+  - ReactiveStreamsProducer
+  - Reactive channel flow
+  - Backpressure trong reactive flow
+  - Flux và Message
+  - Reactive gateway
+  - Reactive transformer
+  - Reactive error handling
+  - Reactive transaction boundary
+  - Khi dùng reactive thay poller
+  - Giới hạn khi trộn imperative và reactive
+- level1: Testing support
+  level2:
+  - Spring Integration Test
+  - MessageCollector
+  - QueueChannel trong test
+  - TestUtils
+  - MockIntegration
+  - MockMessageHandler
+  - MockIntegrationContext
+  - Kiểm thử message payload
+  - Kiểm thử message headers
+  - Kiểm thử routing
+  - Kiểm thử splitter-aggregator
+  - Kiểm thử error channel
+  - Kiểm thử retry advice
+  - Kiểm thử transaction flow
+  - Kiểm thử asynchronous flow
+- level1: Cấu hình và lifecycle
+  level2:
+  - IntegrationConfigurationBeanFactoryPostProcessor
+  - IntegrationMBeanExporter
+  - EnableIntegration
+  - IntegrationComponentScan
+  - Bean name của endpoint
+  - Endpoint auto startup
+  - Phase và lifecycle
+  - SmartLifecycle
+  - TaskScheduler
+  - TaskExecutor
+  - Global channel interceptor
+  - Global poller
+  - Global error channel
+  - Cấu hình theo profile
+- level1: Thiết kế flow
+  level2:
+  - Chọn channel trước khi chọn endpoint
+  - Chọn event-driven hay polling
+  - Tách transport và business logic
+  - Đặt flow theo use case
+  - Tránh flow quá dài
+  - Tách flow bằng subflow
+  - Đặt tên channel và endpoint
+  - Bảo toàn message contract
+  - Kiểm soát header propagation
+  - Thiết kế retry và error flow
+  - Thiết kế timeout và compensation
+  - Thiết kế idempotent handler
+  - Thiết kế flow có thể quan sát
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây flow từ gateway đến service activator
+  - Tạo DirectChannel và QueueChannel
+  - Tạo filter và discard flow
+  - Định tuyến bằng payload và header
+  - Tách collection bằng splitter
+  - Gom message bằng aggregator
+  - Thêm retry và recovery
+  - Thêm transaction cho poller
+  - Lưu state bằng MessageStore
+  - Thêm metrics và message history
+  - Kiểm thử toàn bộ flow
+  - Xử lý một flow lỗi trong production
+  - Checklist review Spring Integration Core

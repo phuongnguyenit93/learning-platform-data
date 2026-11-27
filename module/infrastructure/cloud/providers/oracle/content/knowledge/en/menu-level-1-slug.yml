@@ -1,0 +1,118 @@
+menu:
+  - title: "Tổng quan Oracle Cloud Infrastructure"
+    slug: oci-overview
+    index: 0
+  - title: "Tài khoản và môi trường thực hành"
+    slug: account-and-lab-setup
+    index: 1
+  - title: "Danh tính và phân quyền IAM"
+    slug: identity-and-access-management
+    index: 2
+  - title: "Tổ chức tài nguyên và landing zone"
+    slug: resource-governance-and-landing-zones
+    index: 3
+  - title: "Mạng Virtual Cloud Network"
+    slug: virtual-cloud-networks
+    index: 4
+  - title: "Kết nối lai và liên vùng"
+    slug: hybrid-and-interregion-connectivity
+    index: 5
+  - title: "DNS và điều phối truy cập"
+    slug: dns-and-traffic-management
+    index: 6
+  - title: "Compute và máy chủ ảo"
+    slug: compute-and-virtual-machines
+    index: 7
+  - title: "Block Volume và Boot Volume"
+    slug: block-and-boot-volumes
+    index: 8
+  - title: "File Storage"
+    slug: file-storage
+    index: 9
+  - title: "Object Storage và Archive Storage"
+    slug: object-and-archive-storage
+    index: 10
+  - title: "Cân bằng tải ứng dụng"
+    slug: load-balancing
+    index: 11
+  - title: "Oracle Database trên OCI"
+    slug: oracle-database-services
+    index: 12
+  - title: "Autonomous Database"
+    slug: autonomous-database
+    index: 13
+  - title: "Exadata và Cloud@Customer"
+    slug: exadata-and-cloud-at-customer
+    index: 14
+  - title: "MySQL HeatWave và NoSQL"
+    slug: mysql-heatwave-and-nosql
+    index: 15
+  - title: "Kubernetes với OKE"
+    slug: kubernetes-with-oke
+    index: 16
+  - title: "Containers và Functions"
+    slug: containers-and-functions
+    index: 17
+  - title: "API, sự kiện và tích hợp"
+    slug: apis-events-and-integration
+    index: 18
+  - title: "Streaming và Queue"
+    slug: streaming-and-queues
+    index: 19
+  - title: "OCI SDK và REST API với Java"
+    slug: java-sdk-and-rest-api
+    index: 20
+  - title: "Triển khai Java và Spring Boot"
+    slug: java-and-spring-boot-deployment
+    index: 21
+  - title: "Hạ tầng dưới dạng mã"
+    slug: infrastructure-as-code
+    index: 22
+  - title: "DevOps và CI/CD trên OCI"
+    slug: devops-and-cicd
+    index: 23
+  - title: "Logs, metrics và tracing"
+    slug: logging-metrics-and-tracing
+    index: 24
+  - title: "Quản lý và tối ưu cơ sở dữ liệu"
+    slug: database-management-and-optimization
+    index: 25
+  - title: "Mã hóa, secrets và chứng chỉ"
+    slug: encryption-secrets-and-certificates
+    index: 26
+  - title: "Bảo vệ mạng và máy chủ"
+    slug: network-and-host-security
+    index: 27
+  - title: "An toàn thông tin và kiểm toán"
+    slug: security-governance-and-auditing
+    index: 28
+  - title: "Dữ liệu và phân tích"
+    slug: data-and-analytics
+    index: 29
+  - title: "AI và học máy trên OCI"
+    slug: ai-and-machine-learning
+    index: 30
+  - title: "Kiến trúc sẵn sàng cao"
+    slug: high-availability-architecture
+    index: 31
+  - title: "Sao lưu và khôi phục thảm họa"
+    slug: backup-and-disaster-recovery
+    index: 32
+  - title: "Di trú và đa đám mây"
+    slug: migration-and-multicloud
+    index: 33
+  - title: "Workload và triển khai chuyên biệt"
+    slug: specialized-workloads-and-deployments
+    index: 34
+  - title: "Chi phí và quản lý năng lực"
+    slug: cost-and-capacity-management
+    index: 35
+  - title: "Vận hành và xử lý sự cố"
+    slug: operations-and-troubleshooting
+    index: 36
+  - title: "Thực hành nền tảng OCI"
+    slug: oci-fundamentals-labs
+    index: 37
+  - title: "Dự án tích hợp và đánh giá"
+    slug: capstone-projects-and-assessment
+    index: 38

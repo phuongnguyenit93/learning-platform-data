@@ -1,0 +1,689 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - PostgreSQL là gì và vai trò của hệ quản trị cơ sở dữ liệu quan hệ
+  - Mô hình quan hệ, SQL và đặc trưng quan hệ đối tượng của PostgreSQL
+  - Bài toán phù hợp, giới hạn và tiêu chí lựa chọn PostgreSQL
+  - Phân biệt máy chủ, cụm cơ sở dữ liệu, database, schema, bảng và hàng
+  - Quan hệ giữa lưu trữ, truy vấn, giao dịch, chỉ mục và sao chép
+  - ACID, tính toàn vẹn và trách nhiệm của ứng dụng
+  - Phân biệt xử lý giao dịch và phân tích dữ liệu
+  - Ranh giới giữa PostgreSQL, công cụ quản trị và dịch vụ được quản lý
+  - Phiên bản chính, phiên bản phụ và cách đọc tài liệu đúng phiên bản
+  - Lộ trình từ cơ sở dữ liệu đầu tiên đến vận hành an toàn
+- level1: Cài đặt
+  level2:
+  - Chuẩn bị hệ điều hành, dung lượng, cổng kết nối và tài khoản dịch vụ
+  - Cài đặt PostgreSQL trên Linux, Windows và macOS
+  - Khởi tạo cụm dữ liệu bằng initdb và lựa chọn mã hóa, locale
+  - Khởi động, dừng, khởi động lại và kiểm tra bằng pg_ctl
+  - Tạo môi trường thực hành với Docker Compose và volume bền vững
+  - Kết nối cục bộ qua Unix-domain socket hoặc TCP
+  - Tạo role, database và bảng đầu tiên
+  - Nạp bộ dữ liệu mẫu có thể tái tạo
+  - Kiểm tra phiên bản, đường dẫn cấu hình và nhật ký khởi động
+  - Phân biệt môi trường học tập, kiểm thử và sản xuất
+- level1: Công cụ
+  level2:
+  - Kết nối bằng psql và cấu trúc chuỗi kết nối
+  - Lệnh trợ giúp, liệt kê đối tượng và mô tả cấu trúc trong psql
+  - Thực thi tệp SQL, biến psql và xử lý lỗi trong script
+  - Định dạng kết quả, bộ đệm truy vấn, lịch sử và đo thời gian
+  - Thao tác nhập xuất phía máy khách bằng lệnh \copy
+  - Sử dụng pgAdmin hoặc công cụ SQL để khám phá dữ liệu
+  - Quản lý thông tin kết nối bằng service file và .pgpass
+  - Đọc SQLSTATE và thông báo lỗi từ máy chủ
+  - Tự động hóa tác vụ quản trị bằng công cụ dòng lệnh
+  - Tổ chức tệp SQL và nhật ký thí nghiệm để tái lập kết quả
+- level1: Kiến trúc
+  level2:
+  - Mô hình máy khách và máy chủ trong một phiên làm việc
+  - Tiến trình điều phối, tiến trình phục vụ kết nối và tiến trình nền
+  - Vòng đời truy vấn qua phân tích, viết lại, lập kế hoạch và thực thi
+  - Shared buffers, bộ nhớ riêng của phiên và bộ nhớ hệ điều hành
+  - Database cluster, PGDATA, tablespace và các tệp quan hệ
+  - Cấu trúc trang dữ liệu, hàng và tham chiếu vị trí vật lý
+  - System catalog, OID và quan hệ giữa các đối tượng
+  - WAL, checkpoint và khôi phục sau sự cố trong bức tranh tổng thể
+  - MVCC, phiên bản hàng và snapshot trong bức tranh tổng thể
+  - Tiến trình nền mở rộng (background worker), autovacuum và tiến trình phục vụ sao chép
+  - Phân biệt dữ liệu bền vững, trạng thái phiên và dữ liệu tạm
+- level1: Cấu hình
+  level2:
+  - Vai trò của postgresql.conf, pg_hba.conf và pg_ident.conf
+  - Tra cứu giá trị, nguồn cấu hình và đơn vị qua pg_settings
+  - Thứ tự ưu tiên giữa cấu hình máy chủ, database, role và phiên
+  - SET, SET LOCAL, RESET và phạm vi tác dụng
+  - ALTER SYSTEM và quản lý postgresql.auto.conf
+  - Phân biệt tham số cần reload và cần restart
+  - Địa chỉ lắng nghe, cổng kết nối và giới hạn phiên
+  - Thiết lập múi giờ, mã hóa phía máy khách và thông báo
+  - Cấu hình ghi nhật ký và thời gian chờ cơ bản
+  - Kiểm tra lỗi cấu hình và thay đổi an toàn có phương án hoàn tác
+- level1: Tổ chức dữ liệu
+  level2:
+  - CREATE DATABASE, template database và lựa chọn thuộc tính khởi tạo
+  - Schema như không gian tên và ranh giới tổ chức đối tượng
+  - search_path, phân giải tên và tên đối tượng đầy đủ
+  - Tạo, đổi tên, đổi chủ sở hữu và xóa đối tượng
+  - Phụ thuộc đối tượng, RESTRICT và CASCADE
+  - Bảng thường, bảng tạm và bảng UNLOGGED
+  - Sequence, GENERATED AS IDENTITY và giới hạn của số tăng tự động
+  - Tablespace và tổ chức vị trí lưu trữ
+  - COMMENT và tài liệu hóa đối tượng ngay trong cơ sở dữ liệu
+  - Tra cứu cấu trúc bằng information_schema và pg_catalog
+- level1: Thiết kế lược đồ
+  level2:
+  - Chuyển yêu cầu nghiệp vụ thành thực thể và quan hệ
+  - Lựa chọn khóa tự nhiên, khóa thay thế và UUID
+  - Quan hệ một một, một nhiều và nhiều nhiều
+  - Chuẩn hóa dữ liệu và nhận diện phụ thuộc hàm
+  - Phi chuẩn hóa có chủ đích và đánh đổi tính nhất quán
+  - Thiết kế dữ liệu thời gian, lịch sử và nhật ký thay đổi
+  - Mô hình đa khách hàng theo database, schema hoặc cột định danh
+  - Quy ước tên và thiết kế lược đồ dễ bảo trì
+  - Xóa mềm, vòng đời dữ liệu và chính sách lưu giữ
+  - Đánh giá lược đồ theo truy vấn, ràng buộc và tốc độ tăng dữ liệu
+- level1: Kiểu dữ liệu
+  level2:
+  - Số nguyên, numeric và số dấu phẩy động
+  - Lựa chọn độ chính xác và biểu diễn giá trị tiền tệ
+  - char, varchar, text và chiều dài chuỗi
+  - Boolean, NULL và trạng thái thiếu dữ liệu
+  - date, time, timestamp và timestamp with time zone
+  - interval, phép tính thời gian và múi giờ
+  - UUID và lựa chọn cách sinh định danh theo phiên bản
+  - Dữ liệu nhị phân bytea và đối tượng lớn
+  - Mảng, kiểu phần tử và kích thước mảng
+  - json, jsonb và tiêu chí lựa chọn
+  - Enum, domain và kiểu tổng hợp
+  - Range, multirange và biểu diễn khoảng giá trị
+  - Kiểu địa chỉ mạng, bit và kiểu hình học tích hợp
+  - Ép kiểu tường minh, suy luận kiểu và chuyển đổi ngầm
+  - Mã hóa ký tự, collation và ảnh hưởng đến so sánh
+- level1: Ràng buộc
+  level2:
+  - NOT NULL, DEFAULT và phân biệt giá trị mặc định với ràng buộc
+  - CHECK và giới hạn kiểm tra tính hợp lệ
+  - PRIMARY KEY, UNIQUE và chỉ mục hỗ trợ
+  - NULL trong ràng buộc duy nhất và lựa chọn NULLS NOT DISTINCT
+  - FOREIGN KEY và bảo toàn quan hệ tham chiếu
+  - ON DELETE, ON UPDATE và lựa chọn hành vi lan truyền
+  - Khóa ghép và ràng buộc nhiều cột
+  - EXCLUDE và ngăn khoảng dữ liệu chồng lấn
+  - Ràng buộc trì hoãn được và SET CONSTRAINTS
+  - Thêm ràng buộc với NOT VALID rồi VALIDATE CONSTRAINT
+  - Phân chia kiểm tra dữ liệu giữa cơ sở dữ liệu và ứng dụng
+- level1: Truy vấn cơ bản
+  level2:
+  - SELECT, danh sách cột, bí danh và biểu thức
+  - FROM, bảng nguồn và phạm vi tên cột
+  - WHERE, toán tử so sánh và toán tử logic
+  - Logic ba giá trị với NULL và IS DISTINCT FROM
+  - IN, BETWEEN, LIKE, ILIKE và điều kiện kết hợp
+  - ORDER BY, nhiều khóa sắp xếp và NULLS FIRST hoặc LAST
+  - LIMIT, OFFSET, FETCH và yêu cầu thứ tự xác định
+  - DISTINCT, DISTINCT ON và lựa chọn hàng đại diện
+  - CASE, COALESCE và NULLIF trong truy vấn
+  - VALUES và tập dữ liệu nhỏ không cần bảng
+  - Thứ tự xử lý logic của truy vấn và các lỗi hiểu nhầm
+- level1: Kết hợp dữ liệu
+  level2:
+  - INNER JOIN và điều kiện kết nối
+  - LEFT JOIN, RIGHT JOIN và FULL JOIN
+  - CROSS JOIN và tích Descartes
+  - ON, USING và rủi ro của NATURAL JOIN
+  - Tự kết nối bảng và quan hệ phân cấp đơn giản
+  - Đặt điều kiện trong ON hoặc WHERE với outer join
+  - EXISTS, NOT EXISTS và kiểm tra sự tồn tại
+  - NOT IN, NULL và truy vấn tìm phần thiếu
+  - UNION, UNION ALL, INTERSECT và EXCEPT
+  - Kiểm soát nhân bản hàng khi nối nhiều quan hệ
+  - Kiểm chứng kết quả join bằng dữ liệu có NULL và quan hệ thiếu
+- level1: Tổng hợp dữ liệu
+  level2:
+  - COUNT, SUM, AVG, MIN, MAX và giá trị NULL
+  - GROUP BY và lựa chọn mức tổng hợp
+  - HAVING và phân biệt lọc nhóm với lọc hàng
+  - FILTER trên hàm tổng hợp và thống kê có điều kiện
+  - string_agg, array_agg, json_agg và thứ tự phần tử
+  - GROUPING SETS, ROLLUP và CUBE
+  - GROUPING và nhận diện hàng tổng cộng
+  - Tổng hợp sau JOIN và tránh đếm trùng
+  - Tính tỷ lệ, trung bình có trọng số và chia cho không
+  - Xây dựng báo cáo thời gian với các khoảng không có dữ liệu
+- level1: Truy vấn nâng cao
+  level2:
+  - Truy vấn con vô hướng, dạng bảng và truy vấn tương quan
+  - WITH và tổ chức truy vấn bằng CTE
+  - CTE đệ quy cho cây và đồ thị
+  - Phát hiện chu trình và điều khiển thứ tự duyệt
+  - LATERAL và truy vấn phụ phụ thuộc từng hàng
+  - Hàm trả tập và sử dụng trong FROM
+  - generate_series để dựng lịch và dữ liệu mẫu
+  - MATERIALIZED, NOT MATERIALIZED và kế hoạch thực thi CTE
+  - CTE thay đổi dữ liệu và luồng dữ liệu qua RETURNING
+  - TABLESAMPLE và giới hạn của lấy mẫu
+  - Phân trang theo khóa và so sánh với OFFSET
+- level1: Hàm và biểu thức
+  level2:
+  - Toán tử, độ ưu tiên và đánh giá biểu thức
+  - Hàm chuỗi, nối chuỗi và xử lý khoảng trắng
+  - Biểu thức chính quy và trích xuất mẫu
+  - Hàm số học, làm tròn và xử lý sai số
+  - Hàm thời gian, date_trunc, extract và chuyển múi giờ
+  - Thời điểm giao dịch, câu lệnh và đồng hồ thực
+  - So sánh hàng, mảng và toán tử ANY hoặc ALL
+  - Toán tử và hàm trên khoảng giá trị
+  - Hàm định dạng, chuyển đổi kiểu và phân tích dữ liệu
+  - Hàm hệ thống, thông tin phiên và kiểm tra quyền
+  - IMMUTABLE, STABLE, VOLATILE và ý nghĩa với tối ưu hóa
+  - Collation, Unicode và tính nhất quán của phép so sánh
+- level1: Hàm cửa sổ
+  level2:
+  - OVER, PARTITION BY và ORDER BY trong cửa sổ
+  - Phân biệt tổng hợp theo nhóm với hàm cửa sổ
+  - row_number, rank, dense_rank và xử lý đồng hạng
+  - lag, lead và so sánh các hàng liền kề
+  - first_value, last_value, nth_value và ảnh hưởng của khung
+  - ROWS, RANGE, GROUPS và ranh giới khung cửa sổ
+  - Tổng lũy kế, trung bình trượt và phần trăm theo nhóm
+  - ntile, percent_rank, cume_dist và phân bố dữ liệu
+  - WINDOW và tái sử dụng định nghĩa cửa sổ
+  - Bài toán nhóm liên tiếp, top N mỗi nhóm và khử trùng lặp
+- level1: Thay đổi dữ liệu
+  level2:
+  - INSERT một hàng, nhiều hàng và từ kết quả SELECT
+  - Giá trị mặc định, cột identity và cột sinh tự động
+  - UPDATE, biểu thức gán và điều kiện chọn hàng
+  - UPDATE FROM và nguy cơ nhiều hàng nguồn khớp một hàng đích
+  - DELETE USING và kiểm soát phạm vi xóa
+  - RETURNING và nhận kết quả thay đổi trong một câu lệnh
+  - INSERT ON CONFLICT và lựa chọn khóa xử lý xung đột
+  - MERGE và xử lý dữ liệu theo điều kiện khớp
+  - TRUNCATE, DELETE và khác biệt về khóa, trigger, dung lượng
+  - Thay đổi dữ liệu theo lô và giới hạn kích thước giao dịch
+  - Tính lặp an toàn, khóa duy nhất và tránh ghi trùng khi thử lại
+  - Đánh giá ảnh hưởng của ghi dữ liệu đến chỉ mục, WAL và sao chép
+- level1: Giao dịch
+  level2:
+  - BEGIN, COMMIT, ROLLBACK và vòng đời giao dịch
+  - Autocommit và ranh giới giao dịch trong công cụ, ứng dụng
+  - Tính nguyên tử, nhất quán, cô lập và bền vững
+  - SAVEPOINT, ROLLBACK TO và xử lý lỗi từng phần
+  - Trạng thái giao dịch lỗi và yêu cầu rollback
+  - Mức cô lập Read Committed, Repeatable Read và Serializable
+  - Dirty read, nonrepeatable read, phantom và các bất thường cần phân biệt
+  - Write skew và kiểm chứng bất biến nghiệp vụ
+  - Giao dịch chỉ đọc và chế độ DEFERRABLE
+  - Serialization failure và thử lại toàn bộ giao dịch
+  - Thời gian chờ, giao dịch dài và trạng thái idle in transaction
+  - Giao dịch chuẩn bị hai pha và rủi ro vận hành
+- level1: MVCC
+  level2:
+  - Vì sao cần nhiều phiên bản hàng khi đọc và ghi đồng thời
+  - Transaction ID, xmin, xmax và trạng thái phiên bản hàng
+  - Snapshot và quy tắc nhìn thấy dữ liệu
+  - Snapshot theo câu lệnh và theo giao dịch
+  - UPDATE, DELETE, phiên bản hàng cũ và hàng chết
+  - Ảnh hưởng của giao dịch chưa kết thúc đến dọn dẹp dữ liệu
+  - Serializable Snapshot Isolation và phát hiện phụ thuộc nguy hiểm
+  - HOT update và điều kiện giảm cập nhật chỉ mục
+  - Visibility map, freezing và ý nghĩa với truy vấn
+  - Transaction ID wraparound và tuổi giao dịch
+  - Thí nghiệm hai phiên để quan sát khả năng nhìn thấy dữ liệu
+- level1: Khóa
+  level2:
+  - Phân biệt khóa đối tượng, khóa hàng và khóa nội bộ
+  - Các chế độ khóa bảng và ma trận tương thích
+  - SELECT FOR UPDATE, FOR NO KEY UPDATE, FOR SHARE, FOR KEY SHARE
+  - NOWAIT, SKIP LOCKED và lựa chọn cách chờ
+  - Thứ tự lấy khóa và phát sinh deadlock
+  - Phát hiện chuỗi chặn bằng pg_locks và pg_blocking_pids
+  - lock_timeout, statement_timeout và tác động khác nhau
+  - Advisory lock theo phiên hoặc theo giao dịch
+  - Khóa trong ALTER TABLE, tạo chỉ mục và bảo trì
+  - Kiểm soát cạnh tranh bằng phiên bản dữ liệu trong ứng dụng
+  - Xây hàng đợi công việc với khóa hàng và giới hạn bảo đảm
+  - Giải phóng khóa, hủy truy vấn và chấm dứt phiên an toàn
+- level1: Chỉ mục
+  level2:
+  - Chỉ mục giải quyết bài toán gì và chi phí khi ghi
+  - B-tree và các dạng điều kiện được hỗ trợ
+  - Hash index và truy vấn bằng
+  - GIN, dữ liệu nhiều thành phần và tìm kiếm văn bản
+  - GiST, SP-GiST và các kiểu dữ liệu phù hợp
+  - BRIN và dữ liệu có tương quan với thứ tự vật lý
+  - Chỉ mục nhiều cột và vai trò thứ tự cột
+  - Chỉ mục biểu thức và yêu cầu đối với hàm
+  - Chỉ mục một phần và khả năng suy ra điều kiện
+  - INCLUDE, covering index và index-only scan
+  - Operator class, collation và thứ tự sắp xếp
+  - Chỉ mục duy nhất, NULL và ràng buộc dữ liệu
+  - CREATE INDEX CONCURRENTLY và vòng đời chỉ mục không hợp lệ
+  - Đánh giá chỉ mục thừa, ít dùng hoặc trùng lặp
+  - Đo lợi ích chỉ mục bằng dữ liệu và khối lượng công việc thực tế
+- level1: Kế hoạch truy vấn
+  level2:
+  - EXPLAIN, EXPLAIN ANALYZE và lưu ý khi câu lệnh có tác dụng phụ
+  - Đọc cây kế hoạch, chi phí, số hàng và chiều rộng ước tính
+  - Actual rows, loops và cách diễn giải thời gian
+  - BUFFERS, WAL, SETTINGS và định dạng JSON
+  - Sequential scan, index scan và bitmap scan
+  - Index-only scan và số lần phải đọc heap
+  - Nested loop, hash join, merge join và điều kiện lựa chọn
+  - Sort, incremental sort, aggregate và bộ nhớ tạm
+  - Parallel scan, Gather và Gather Merge
+  - Chênh lệch ước tính với thực tế và cách tìm nút gây tốn kém
+  - Thống kê cột, histogram, giá trị phổ biến và tương quan
+  - Extended statistics cho các cột có phụ thuộc
+  - Generic plan, custom plan và câu lệnh được chuẩn bị
+  - Chi phí đo đạc, bộ nhớ đệm và cách so sánh kế hoạch công bằng
+- level1: Tối ưu truy vấn
+  level2:
+  - Bắt đầu từ mục tiêu độ trễ, thông lượng và truy vấn đại diện
+  - Điều kiện có thể dùng chỉ mục và các dạng ép kiểu gây trở ngại
+  - Giảm dữ liệu đọc bằng cột cần thiết và điều kiện chọn lọc
+  - Viết lại truy vấn con, JOIN và EXISTS theo ngữ nghĩa
+  - Tối ưu ORDER BY, LIMIT và phân trang sâu
+  - Tối ưu tổng hợp, lọc có điều kiện và truy vấn báo cáo
+  - Truy vấn N+1 và truy vấn quá nhiều hàng từ ứng dụng
+  - Tối ưu truy vấn tham số hóa khi dữ liệu phân bố lệch
+  - Xử lý sort hoặc hash tràn ra đĩa
+  - Ảnh hưởng của CTE, hàm tự định nghĩa và rào cản tối ưu
+  - Đo hồi quy hiệu năng sau thay đổi schema, dữ liệu hoặc cấu hình
+  - Tránh ép kế hoạch khi chưa xác định nguyên nhân gốc
+- level1: Phân vùng
+  level2:
+  - Mục tiêu phân vùng và các trường hợp không phù hợp
+  - Phân vùng theo RANGE, LIST và HASH
+  - Khóa phân vùng, biên và phân vùng mặc định
+  - Partition pruning tại lập kế hoạch và thực thi
+  - Định tuyến INSERT và UPDATE thay đổi khóa phân vùng
+  - Chỉ mục, khóa duy nhất và giới hạn trên bảng phân vùng
+  - Khóa ngoại, ràng buộc và mức hỗ trợ theo phiên bản
+  - Phân vùng nhiều tầng và chi phí số lượng phân vùng
+  - ATTACH, DETACH và quản lý vòng đời dữ liệu
+  - Tạo trước phân vùng, kiểm tra khoảng trống và dữ liệu lệch
+  - Phân biệt phân vùng, kế thừa bảng và chia dữ liệu nhiều máy
+  - Đánh giá kế hoạch, khóa và bảo trì trên hệ thống phân vùng
+- level1: JSON và mảng
+  level2:
+  - Lựa chọn bảng quan hệ, jsonb hoặc mô hình kết hợp
+  - Trích xuất JSON bằng toán tử theo khóa và đường dẫn
+  - Toán tử chứa, tồn tại và so sánh jsonb
+  - JSONPath và truy vấn điều kiện trong tài liệu
+  - Chuyển JSON thành hàng, tập bản ghi và chiều ngược lại
+  - Thêm, sửa, xóa thành phần JSON và chi phí cập nhật
+  - Chỉ mục GIN, chỉ mục biểu thức và operator class cho jsonb
+  - Kiểm tra dữ liệu JSON và bảo vệ các trường quan trọng
+  - Truy cập mảng, lát cắt, unnest và WITH ORDINALITY
+  - Toán tử mảng, ANY, ALL và tìm phần giao
+  - Chỉ mục cho mảng và so sánh với bảng liên kết
+  - Phân biệt JSON null, SQL NULL và thành phần không tồn tại
+- level1: Tìm kiếm văn bản
+  level2:
+  - Phân biệt tìm chính xác, theo tiền tố, mẫu và toàn văn
+  - LIKE, ILIKE, biểu thức chính quy và giới hạn hiệu năng
+  - tsvector, tsquery và luồng xử lý tìm kiếm toàn văn
+  - Parser, dictionary, stop word và text search configuration
+  - to_tsvector, plainto_tsquery, phraseto_tsquery và websearch_to_tsquery
+  - Trọng số trường, xếp hạng và làm nổi bật kết quả
+  - Cập nhật tsvector bằng biểu thức hoặc trigger phù hợp
+  - Chỉ mục GIN, GiST và kiểm tra kế hoạch tìm kiếm
+  - pg_trgm, độ tương đồng và tìm kiếm gần đúng
+  - Đặc thù tiếng Việt, dấu, chuẩn hóa và giới hạn từ điển
+  - Kết hợp điều kiện nghiệp vụ với kết quả tìm kiếm
+  - Đánh giá chất lượng tìm kiếm và ranh giới với công cụ tìm kiếm riêng
+- level1: View
+  level2:
+  - View như giao diện truy vấn và mức trừu tượng dữ liệu
+  - Tạo, thay thế, đổi tên và xóa view
+  - View cập nhật được và WITH CHECK OPTION
+  - Quyền thực thi view, security_invoker và security_barrier
+  - Materialized view và sự đánh đổi độ mới của dữ liệu
+  - REFRESH MATERIALIZED VIEW và chế độ CONCURRENTLY
+  - Chỉ mục trên materialized view và truy vấn đọc
+  - Phụ thuộc schema và thay đổi hợp đồng dữ liệu
+  - Lựa chọn view, materialized view hoặc bảng tổng hợp
+- level1: Hàm và thủ tục
+  level2:
+  - CREATE FUNCTION, CREATE PROCEDURE và tiêu chí lựa chọn
+  - Kiểu tham số IN, OUT, INOUT và VARIADIC
+  - Giá trị mặc định, tham số có tên và nạp chồng
+  - Trả giá trị vô hướng, kiểu tổng hợp, TABLE và SETOF
+  - Viết hàm bằng SQL và khả năng được tối ưu hóa
+  - Thuộc tính volatility, STRICT và parallel safety
+  - SECURITY INVOKER, SECURITY DEFINER và search_path an toàn
+  - CALL và điều kiện được điều khiển giao dịch trong thủ tục
+  - Phụ thuộc, đổi chữ ký và quản lý phiên bản hàm
+  - Chi phí gọi hàm, giới hạn tác dụng phụ và tiêu chí đưa logic vào database
+- level1: PL/pgSQL
+  level2:
+  - Cấu trúc khối DECLARE, BEGIN, EXCEPTION và END
+  - Biến, hằng, %TYPE, %ROWTYPE và record
+  - Gán giá trị, SELECT INTO, FOUND và GET DIAGNOSTICS
+  - IF, CASE và cấu trúc điều kiện
+  - LOOP, WHILE, FOR, FOREACH và điều khiển vòng lặp
+  - RETURN, RETURN NEXT và RETURN QUERY
+  - RAISE, mức thông báo, SQLSTATE và xử lý ngoại lệ
+  - SQL động với EXECUTE, USING và format
+  - Bao định danh và giá trị bằng dấu nháy để phòng tránh SQL injection
+  - Cursor, refcursor và vòng đời trong giao dịch
+  - Xử lý theo tập thay cho vòng lặp khi phù hợp
+  - Kiểm thử, quan sát và gỡ lỗi hàm PL/pgSQL
+- level1: Trigger và luật
+  level2:
+  - Phân biệt trigger, ràng buộc, giá trị mặc định và logic ứng dụng
+  - Trigger BEFORE, AFTER, INSTEAD OF và thời điểm thực thi
+  - Trigger theo hàng và theo câu lệnh
+  - NEW, OLD, TG_OP và ngữ cảnh hàm trigger
+  - Điều kiện WHEN và giới hạn các cột kích hoạt
+  - Transition table và xử lý thay đổi theo tập
+  - Constraint trigger và kiểm tra trì hoãn
+  - Event trigger cho thay đổi DDL
+  - Thứ tự trigger, đệ quy và vòng lặp tác dụng phụ
+  - Rules, cơ chế viết lại truy vấn và ranh giới sử dụng
+  - Ứng dụng ghi lịch sử thay đổi và kiểm chứng tính đúng đắn
+- level1: Bảo mật
+  level2:
+  - Role, LOGIN, thành viên role và quyền kế thừa
+  - Chủ sở hữu, superuser và nguyên tắc quyền tối thiểu
+  - GRANT, REVOKE và quyền trên database, schema, bảng, sequence, hàm
+  - Default privileges và quyền của đối tượng tạo trong tương lai
+  - pg_hba.conf, thứ tự luật và giới hạn nguồn kết nối
+  - Xác thực mật khẩu SCRAM và quản lý thông tin bí mật
+  - TLS, chứng chỉ và xác minh danh tính máy chủ
+  - Row-Level Security, policy, USING và WITH CHECK
+  - FORCE ROW LEVEL SECURITY và các trường hợp được bỏ qua chính sách
+  - search_path, schema công khai và nguy cơ chiếm quyền đối tượng
+  - SQL injection, tham số hóa và tên đối tượng động
+  - Quyền hàm SECURITY DEFINER và bảo vệ điểm nâng quyền
+  - Mã hóa, che dữ liệu và giới hạn bảo vệ của từng lớp
+  - Nhật ký truy cập, kiểm toán và xử lý dữ liệu nhạy cảm
+  - Tách role quản trị, migration, sao chép và ứng dụng
+- level1: Kết nối ứng dụng
+  level2:
+  - Giao thức kết nối, phiên làm việc và cấu trúc URI
+  - Prepared statement, tham số truy vấn và vòng đời trên máy chủ
+  - Ánh xạ kiểu dữ liệu PostgreSQL sang Java qua JDBC
+  - Ánh xạ NULL, UUID, JSON và kiểu thời gian
+  - Quản lý autocommit, commit, rollback và tài nguyên JDBC
+  - Connection pool, giới hạn kết nối và sizing theo tải
+  - PgBouncer với session pooling và transaction pooling
+  - Trạng thái phiên, bảng tạm và prepared statement khi dùng pool
+  - Timeout kết nối, truy vấn, mạng và hủy câu lệnh
+  - Phân loại SQLSTATE, lỗi có thể thử lại và tính lặp an toàn
+  - Batch JDBC, fetch size, cursor và đọc kết quả lớn
+  - LISTEN, NOTIFY và giới hạn của thông báo trong cơ sở dữ liệu
+  - ORM, ranh giới giao dịch và kiểm tra SQL thực tế
+  - Quan sát ứng dụng qua application_name và thông tin phiên
+- level1: Nhập xuất dữ liệu
+  level2:
+  - COPY phía máy chủ và \copy phía máy khách
+  - Định dạng text, CSV, binary và lựa chọn mã hóa
+  - Header, dấu phân cách, ký tự escape và biểu diễn NULL
+  - Nhập vào bảng trung gian để kiểm tra và chuẩn hóa
+  - Xử lý hàng lỗi và giới hạn hỗ trợ theo phiên bản
+  - Xuất dữ liệu từ bảng hoặc truy vấn
+  - Nạp dữ liệu lớn với ràng buộc, trigger và chỉ mục
+  - Thiết kế nhập dữ liệu có thể chạy lại và đối soát
+  - Chia lô, kiểm soát giao dịch và tránh tăng WAL đột biến
+  - Phân biệt xuất dữ liệu, dump logic và bản sao lưu phục hồi được
+- level1: Lưu trữ
+  level2:
+  - Heap, trang dữ liệu và cấu trúc tuple
+  - ctid, tableoid và giới hạn của định danh vật lý
+  - TOAST và lưu trữ giá trị lớn
+  - Fork chính, free space map và visibility map
+  - Quan hệ giữa kích thước bảng, chỉ mục và dữ liệu TOAST
+  - Fillfactor, HOT update và không gian trống trên trang
+  - Bloat trong bảng và chỉ mục
+  - CLUSTER, thứ tự vật lý và chi phí viết lại bảng
+  - Đối tượng lớn so với bytea và vòng đời dữ liệu
+  - Phân bố dữ liệu qua tablespace và đặc tính thiết bị lưu trữ
+- level1: VACUUM
+  level2:
+  - Vì sao MVCC cần VACUUM và vai trò của autovacuum
+  - VACUUM thường, VACUUM FULL và khóa liên quan
+  - ANALYZE và cập nhật thống kê cho bộ lập kế hoạch
+  - Ngưỡng, hệ số và cấu hình autovacuum theo bảng
+  - Autovacuum worker, giới hạn chi phí và tốc độ dọn dẹp
+  - Freeze, tuổi transaction ID và chống wraparound
+  - Giao dịch dài, replication slot và chân trời dọn dẹp
+  - Insert-heavy workload và bảng có tốc độ thay đổi lớn
+  - Đo hàng chết, lần vacuum và tiến độ bảo trì
+  - REINDEX, REINDEX CONCURRENTLY và xử lý phình chỉ mục
+  - Lập lịch bảo trì dựa trên bằng chứng thay vì thao tác định kỳ mù
+  - Kiểm tra tính toàn vẹn và phân biệt lỗi vật lý với bloat
+- level1: WAL và checkpoint
+  level2:
+  - Nguyên lý ghi log trước dữ liệu và bảo đảm khôi phục
+  - WAL record, segment, LSN và thứ tự thay đổi
+  - Walwriter, ghi xuống đĩa và thời điểm xác nhận commit
+  - Checkpoint, redo point và thời gian khôi phục sự cố
+  - Full-page write, checksum và bảo vệ tính toàn vẹn
+  - fsync, synchronous_commit và đánh đổi độ bền
+  - wal_level, retention và nhu cầu của các loại sao chép
+  - Archive WAL và kiểm tra tính liên tục
+  - WAL tăng nhanh, checkpoint dày và tác động I/O
+  - Đo lượng WAL phát sinh theo khối lượng ghi
+  - Phân biệt crash recovery, archive recovery và standby replay
+- level1: Sao lưu
+  level2:
+  - RPO, RTO và lựa chọn chiến lược sao lưu
+  - Phân biệt sao lưu logic, vật lý và snapshot lưu trữ
+  - pg_dump với định dạng plain, custom, directory và tar
+  - pg_dumpall cho role và các đối tượng toàn cụm
+  - Nhất quán snapshot và tác động của dump đang chạy
+  - pg_basebackup và bản sao cơ sở vật lý
+  - Sao lưu nền kết hợp lưu trữ WAL
+  - Điều kiện dùng snapshot và tính nhất quán toàn bộ dữ liệu
+  - Manifest, pg_verifybackup và xác minh bản sao lưu
+  - Mã hóa, lưu giữ, lưu ngoài máy chủ và phân quyền bản sao
+  - Theo dõi thất bại sao lưu và tổ chức diễn tập phục hồi
+- level1: Khôi phục
+  level2:
+  - Khôi phục SQL dump và điều khiển lỗi khi chạy script
+  - pg_restore, lựa chọn đối tượng và phục hồi song song
+  - Role, owner, ACL, extension và phụ thuộc khi phục hồi
+  - Khôi phục vật lý và yêu cầu tương thích
+  - Point-in-Time Recovery từ base backup và WAL
+  - Recovery target theo thời gian, LSN hoặc restore point
+  - Timeline, promotion và lịch sử phục hồi
+  - Phục hồi vào môi trường cách ly trước khi thay thế hệ thống
+  - Xác minh dữ liệu, ràng buộc, quyền và tính đầy đủ sau phục hồi
+  - Đo RPO, RTO thực tế và cập nhật quy trình
+  - Phục hồi thao tác xóa nhầm và phân biệt với sự cố hạ tầng
+- level1: Sao chép vật lý
+  level2:
+  - Primary, standby và luồng streaming replication
+  - Đồng bộ vật lý dựa trên WAL và điều kiện tương thích
+  - Tạo standby bằng base backup và cấu hình kết nối
+  - Role sao chép, TLS và giới hạn truy cập
+  - Replication slot, giữ WAL và nguy cơ đầy đĩa
+  - Sao chép bất đồng bộ và đồng bộ
+  - Lựa chọn synchronous_standby_names và mức xác nhận
+  - Hot standby, truy vấn chỉ đọc và xung đột phục hồi
+  - hot_standby_feedback và đánh đổi phình dữ liệu
+  - Write lag, flush lag, replay lag và cách đo độ trễ
+  - Cascading replication và phân phối tải
+  - Kiểm tra mất kết nối, bắt kịp WAL và khởi tạo lại standby
+- level1: Sao chép logic
+  level2:
+  - Khác biệt giữa sao chép logic và vật lý
+  - Publication, subscription và phạm vi dữ liệu
+  - Replica identity và yêu cầu đối với UPDATE hoặc DELETE
+  - Đồng bộ dữ liệu ban đầu và quá trình áp dụng thay đổi
+  - Lọc hàng, chọn cột và kiểm tra hỗ trợ theo phiên bản
+  - DDL, sequence, large object và các giới hạn cần xử lý riêng
+  - Logical replication slot, WAL retention và quan sát tiến độ
+  - Xung đột dữ liệu, lỗi áp dụng và xử lý lệch dữ liệu
+  - Khả năng tương thích giữa các phiên bản và lược đồ
+  - Logical decoding, output plugin và thay đổi dữ liệu cho hệ thống ngoài
+  - Sao chép hai chiều, vòng lặp và rủi ro xung đột
+  - Di chuyển dữ liệu trực tuyến và xác minh trước chuyển đổi
+- level1: Tính sẵn sàng cao
+  level2:
+  - Phân biệt sao chép, sao lưu và tính sẵn sàng cao
+  - Mục tiêu RPO, RTO và kiến trúc nhiều vùng lỗi
+  - Failover, switchover và tiêu chí kích hoạt
+  - Quorum, fencing và ngăn split-brain
+  - Promotion và bảo đảm chỉ một máy chủ nhận ghi
+  - Định tuyến kết nối ghi, đọc và làm mới connection pool
+  - Tính nhất quán khi đọc từ standby và yêu cầu đọc sau ghi
+  - Tích hợp công cụ điều phối như Patroni và kho đồng thuận
+  - pg_rewind, tái gia nhập cụm và điều kiện sử dụng
+  - Diễn tập lỗi mạng, mất máy chủ và mất vùng
+  - Giới hạn của tự động hóa và quy trình can thiệp thủ công
+- level1: Giám sát
+  level2:
+  - Chọn chỉ số theo độ trễ, thông lượng, lỗi và tài nguyên
+  - pg_stat_activity, trạng thái phiên và truy vấn đang chạy
+  - Wait event và phân biệt chờ khóa, I/O, client
+  - pg_stat_database, thống kê bảng và chỉ mục
+  - pg_stat_statements và truy vấn gây tốn tài nguyên
+  - auto_explain, slow query log và chi phí quan sát
+  - Nhật ký kết nối, lỗi, deadlock và checkpoint
+  - Tiến độ VACUUM, tạo chỉ mục, COPY và sao lưu
+  - Giám sát WAL, archive, replication slot và độ trễ sao chép
+  - Đo dung lượng, tốc độ tăng dữ liệu và phần trống
+  - Thu thập chỉ số với exporter và dashboard
+  - Ngưỡng cảnh báo, khoảng thời gian lấy mẫu và giảm báo động giả
+  - Lưu baseline và đối chiếu chỉ số trước sau thay đổi
+- level1: Tối ưu tài nguyên
+  level2:
+  - Phân loại khối lượng công việc và xác định nút thắt
+  - shared_buffers và quan hệ với cache hệ điều hành
+  - work_mem theo thao tác, phiên và truy vấn song song
+  - maintenance_work_mem và bộ nhớ phục vụ bảo trì
+  - effective_cache_size và giả định của bộ lập kế hoạch
+  - Chi phí I/O, thiết bị lưu trữ và tham số liên quan
+  - max_connections, pool kết nối và áp lực bộ nhớ
+  - Parallel worker, giới hạn CPU và hiệu quả truy vấn song song
+  - JIT và chi phí biên dịch đối với từng loại truy vấn
+  - Điều chỉnh checkpoint, WAL và tải ghi
+  - Huge pages, swap, filesystem và giới hạn container
+  - Benchmark bằng pgbench, kịch bản thực tế và kiểm soát sai lệch
+- level1: Quản trị
+  level2:
+  - Quản lý role, database, schema và quyền sở hữu theo vòng đời
+  - Tra cứu session, giao dịch và tác vụ nền
+  - Hủy truy vấn, kết thúc phiên và đánh giá ảnh hưởng
+  - Bảo trì chỉ mục, thống kê và dung lượng theo lịch
+  - Quản lý extension và quyền cài đặt
+  - Luân chuyển log và bảo vệ dung lượng lưu nhật ký
+  - Quản lý thông tin bí mật và thay đổi mật khẩu
+  - Kiểm tra catalog, phụ thuộc và đối tượng không còn sử dụng
+  - Chế độ hoạt động hạn chế và cửa sổ bảo trì
+  - Tự động hóa script có kiểm soát lỗi, timeout và nhật ký
+  - Xây dựng runbook và bằng chứng kiểm tra sau thao tác
+- level1: Nâng cấp
+  level2:
+  - Phân biệt cập nhật bản phụ và nâng cấp bản chính
+  - Đọc ghi chú phát hành và lập danh sách thay đổi tương thích
+  - Kiểm kê extension, kiểu dữ liệu và công cụ phụ thuộc
+  - Nâng cấp bằng dump và restore
+  - Nâng cấp bằng pg_upgrade và lựa chọn chế độ sao chép dữ liệu
+  - Di chuyển bằng sao chép logic để giảm gián đoạn
+  - Nâng cấp primary, standby và công cụ sao lưu theo thứ tự phù hợp
+  - Thay đổi collation, reindex và rủi ro sau nâng cấp hệ điều hành
+  - Thu thập lại thống kê và kiểm tra hồi quy kế hoạch
+  - Diễn tập, đo thời gian dừng và chuẩn bị phương án quay lui
+  - Xác minh dữ liệu, quyền, hiệu năng và sao lưu sau nâng cấp
+- level1: Thay đổi lược đồ
+  level2:
+  - Migration có phiên bản và quản lý lịch sử thay đổi
+  - DDL trong giao dịch và các lệnh có ngoại lệ
+  - ALTER TABLE, mức khóa và thao tác cần viết lại bảng
+  - Thêm cột, giá trị mặc định và kiểm tra hành vi theo phiên bản
+  - Đổi kiểu dữ liệu, backfill và kiểm soát tác động
+  - Thêm chỉ mục CONCURRENTLY ngoài giao dịch migration phù hợp
+  - Triển khai ràng buộc theo giai đoạn NOT VALID và VALIDATE
+  - Mô hình mở rộng rồi thu hẹp để tương thích ứng dụng
+  - Đổi tên, xóa cột và quản lý phụ thuộc view hoặc hàm
+  - Flyway, Liquibase và quy trình kiểm tra migration PostgreSQL
+  - Đối phó migration lỗi, lược đồ lệch và triển khai dở dang
+  - Đánh giá phương án quay lui so với sửa tiếp khi dữ liệu đã đổi
+- level1: Mở rộng
+  level2:
+  - Extension, schema cài đặt và vòng đời CREATE hoặc ALTER EXTENSION
+  - Extension tin cậy, quyền cài đặt và mã chạy phía máy chủ
+  - pgcrypto và lựa chọn hàm mật mã phù hợp
+  - hstore, ltree và các mô hình dữ liệu chuyên biệt
+  - PostGIS và ranh giới giữa kiểu hình học tích hợp với dữ liệu không gian
+  - Kiểu dữ liệu, toán tử, operator class và access method mở rộng
+  - Ngôn ngữ thủ tục bổ sung và rủi ro quyền thực thi
+  - amcheck, pageinspect, pg_buffercache và công cụ khảo sát nội bộ
+  - Tương thích extension khi sao lưu, phục hồi và nâng cấp
+  - Đánh giá độ tin cậy, hiệu năng và khả năng di chuyển trước khi phụ thuộc
+- level1: Tích hợp dữ liệu
+  level2:
+  - Foreign Data Wrapper và mô hình bảng dữ liệu ngoài
+  - postgres_fdw, foreign server, user mapping và foreign table
+  - IMPORT FOREIGN SCHEMA và quản lý cấu trúc nguồn
+  - Đẩy điều kiện, JOIN và tổng hợp sang máy chủ từ xa
+  - Ước tính chi phí, fetch size và hiệu năng truy vấn liên máy
+  - Giao dịch, lỗi mạng và giới hạn tính nguyên tử với nguồn ngoài
+  - So sánh postgres_fdw, dblink và sao chép dữ liệu
+  - Kết nối công cụ BI, ETL và hệ thống phân tích
+  - CDC, sự kiện dữ liệu và bảo đảm xử lý ở hệ thống nhận
+  - Giới hạn PostgreSQL một nút và tiêu chí cân nhắc phân tán dữ liệu
+- level1: Kiểm thử
+  level2:
+  - Tách kiểm thử schema, SQL, giao dịch và hiệu năng
+  - Dữ liệu mẫu, seed và khả năng tái lập
+  - Kiểm thử ràng buộc, NULL, múi giờ và ranh giới kiểu dữ liệu
+  - Kiểm thử hàm, thủ tục và trigger với pgTAP hoặc SQL script
+  - Kiểm thử tích hợp Java bằng PostgreSQL thật và Testcontainers
+  - Kiểm thử cạnh tranh bằng nhiều kết nối và lịch thực thi có kiểm soát
+  - Kiểm thử migration trên dữ liệu và schema phiên bản trước
+  - Kiểm thử quyền role, RLS và hành vi từ chối truy cập
+  - Kiểm thử truy vấn với dữ liệu lệch và dung lượng đại diện
+  - Kiểm thử mất kết nối, thử lại và tính lặp an toàn
+  - Diễn tập phục hồi, failover và kiểm chứng yêu cầu nghiệp vụ
+  - Tích hợp kiểm tra cơ sở dữ liệu vào CI và quản lý môi trường cô lập
+- level1: Triển khai
+  level2:
+  - Lựa chọn máy chủ riêng, container hoặc dịch vụ PostgreSQL được quản lý
+  - Chuẩn bị CPU, RAM, IOPS, dung lượng và tốc độ tăng dữ liệu
+  - Volume bền vững, quyền thư mục và vòng đời container
+  - Triển khai trên Kubernetes với operator và giới hạn trách nhiệm
+  - Quản lý cấu hình, thông tin bí mật và TLS theo môi trường
+  - Health check, readiness và kiểm tra khả năng phục vụ thực tế
+  - Phân vùng mạng, tường lửa và quyền truy cập quản trị
+  - Phân bố lỗi, sao lưu ngoài cụm và kế hoạch khôi phục thảm họa
+  - Đưa migration, giám sát và kiểm tra sau triển khai vào quy trình
+  - Tự động hóa hạ tầng, cấu hình và tài liệu bàn giao
+  - Đánh giá giới hạn dịch vụ được quản lý, chi phí và khả năng chuyển đổi
+- level1: Xử lý sự cố
+  level2:
+  - Không kết nối được do DNS, mạng, TLS, xác thực hoặc pg_hba.conf
+  - Hết kết nối và sự cố dây chuyền từ pool ứng dụng
+  - Truy vấn chậm đột ngột do kế hoạch, dữ liệu hoặc thống kê
+  - Khóa kéo dài, deadlock và giao dịch bị treo
+  - Tăng CPU, tràn bộ nhớ và truy vấn sinh nhiều tệp tạm
+  - Đầy đĩa do bảng, WAL, archive hoặc nhật ký
+  - Autovacuum không theo kịp và cảnh báo transaction ID
+  - Độ trễ sao chép, slot bị bỏ quên và standby mất WAL
+  - Phục hồi bị kẹt, lỗi archive và thiếu chuỗi WAL
+  - Lỗi checksum, nghi ngờ hỏng dữ liệu và bảo toàn bằng chứng
+  - Sự cố sau nâng cấp, thay đổi collation hoặc extension
+  - Thu thập bằng chứng, giảm tác động và xác minh sau xử lý
+  - Phân tích nguyên nhân gốc và cập nhật biện pháp phòng ngừa
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây cơ sở dữ liệu quản lý đơn hàng với schema và ràng buộc
+  - Viết truy vấn báo cáo với JOIN, CTE, tổng hợp và hàm cửa sổ
+  - Mô phỏng đặt hàng đồng thời và bảo vệ số lượng tồn kho
+  - Xây hàng đợi công việc với SKIP LOCKED và cơ chế thử lại
+  - So sánh mô hình quan hệ với jsonb trên cùng yêu cầu
+  - Xây tìm kiếm toàn văn và tìm kiếm gần đúng cho danh mục
+  - Chẩn đoán truy vấn chậm bằng EXPLAIN ANALYZE và chỉ mục
+  - Thiết kế dữ liệu theo thời gian với phân vùng và chính sách lưu giữ
+  - Triển khai phân quyền và RLS cho dữ liệu nhiều khách hàng
+  - Thực hiện migration tương thích khi ứng dụng vẫn hoạt động
+  - Tích hợp JDBC, pool kết nối và xử lý lỗi giao dịch
+  - Dựng primary, standby và diễn tập chuyển đổi vai trò
+  - Sao lưu, phục hồi tới thời điểm xác định và đối soát dữ liệu
+  - Hoàn thiện dashboard, cảnh báo và runbook cho môi trường thực hành

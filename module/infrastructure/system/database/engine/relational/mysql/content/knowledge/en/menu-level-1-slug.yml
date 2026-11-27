@@ -1,0 +1,154 @@
+menu:
+- title: Tổng quan
+  slug: mysql-overview
+  index: 0
+- title: Môi trường thực hành
+  slug: practice-environment
+  index: 1
+- title: Công cụ và kết nối
+  slug: tools-and-connections
+  index: 2
+- title: Kiến trúc
+  slug: database-architecture
+  index: 3
+- title: Storage engine
+  slug: storage-engines
+  index: 4
+- title: Schema và metadata
+  slug: schema-metadata
+  index: 5
+- title: Kiểu dữ liệu
+  slug: data-types
+  index: 6
+- title: Bộ ký tự và collation
+  slug: character-sets-and-collations
+  index: 7
+- title: Ngày giờ
+  slug: date-time-handling
+  index: 8
+- title: SQL mode và ngữ nghĩa
+  slug: sql-modes-and-semantics
+  index: 9
+- title: Bảng và ràng buộc
+  slug: tables-and-constraints
+  index: 10
+- title: SELECT cơ bản
+  slug: select-basics
+  index: 11
+- title: Hàm và biểu thức
+  slug: functions-and-expressions
+  index: 12
+- title: Gom nhóm và tập hợp
+  slug: aggregation-and-set-operations
+  index: 13
+- title: JOIN và truy vấn con
+  slug: joins-and-subqueries
+  index: 14
+- title: CTE và truy vấn cây
+  slug: cte-and-recursion
+  index: 15
+- title: Hàm cửa sổ
+  slug: window-functions
+  index: 16
+- title: Thay đổi dữ liệu
+  slug: data-manipulation
+  index: 17
+- title: Giao dịch
+  slug: transactions
+  index: 18
+- title: MVCC và mức cô lập
+  slug: mvcc-and-isolation
+  index: 19
+- title: Khóa và đồng thời
+  slug: locking-and-concurrency
+  index: 20
+- title: Lưu trữ InnoDB
+  slug: innodb-storage
+  index: 21
+- title: Chỉ mục
+  slug: indexes
+  index: 22
+- title: Bộ tối ưu và thống kê
+  slug: optimizer-and-statistics
+  index: 23
+- title: Kế hoạch thực thi
+  slug: execution-plans
+  index: 24
+- title: Tối ưu SQL
+  slug: sql-tuning
+  index: 25
+- title: Phân vùng
+  slug: partitioning
+  index: 26
+- title: View và bảng tạm
+  slug: views-and-temporary-tables
+  index: 27
+- title: Stored program
+  slug: stored-programs
+  index: 28
+- title: Cursor và xử lý lỗi
+  slug: cursors-and-error-handling
+  index: 29
+- title: Trigger và event
+  slug: triggers-and-events
+  index: 30
+- title: JSON
+  slug: json-data
+  index: 31
+- title: Tìm kiếm văn bản
+  slug: full-text-search
+  index: 32
+- title: Dữ liệu không gian
+  slug: spatial-data
+  index: 33
+- title: Cấu hình và vận hành
+  slug: configuration-and-operations
+  index: 34
+- title: Quan sát hệ thống
+  slug: database-observability
+  index: 35
+- title: Hiệu năng hệ thống
+  slug: system-performance
+  index: 36
+- title: Bảo mật
+  slug: database-security
+  index: 37
+- title: Sao lưu và phục hồi
+  slug: backup-and-recovery
+  index: 38
+- title: Binary log và PITR
+  slug: binary-log-and-pitr
+  index: 39
+- title: Replication và GTID
+  slug: replication-and-gtid
+  index: 40
+- title: Sẵn sàng cao
+  slug: high-availability
+  index: 41
+- title: Nhập xuất và di chuyển
+  slug: data-movement
+  index: 42
+- title: Thay đổi schema
+  slug: schema-evolution
+  index: 43
+- title: Nâng cấp và tương thích
+  slug: upgrades-and-compatibility
+  index: 44
+- title: Connector/J
+  slug: connector-j
+  index: 45
+- title: Spring Boot và JPA
+  slug: spring-boot-and-jpa
+  index: 46
+- title: Kiểm thử
+  slug: database-testing
+  index: 47
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 48
+- title: Mở rộng hệ thống
+  slug: scaling-and-integration
+  index: 49
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 50

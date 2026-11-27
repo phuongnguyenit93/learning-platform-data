@@ -1,0 +1,106 @@
+menu:
+  - title: "Nền tảng cloud compute"
+    slug: cloud-compute-fundamentals
+    index: 0
+  - title: "Kiến trúc hạ tầng tính toán"
+    slug: compute-infrastructure-architecture
+    index: 1
+  - title: "CPU, bộ nhớ và chọn cấu hình máy"
+    slug: cpu-memory-and-instance-sizing
+    index: 2
+  - title: "GPU và bộ tăng tốc"
+    slug: gpus-and-accelerators
+    index: 3
+  - title: "Ảnh máy và hệ điều hành"
+    slug: machine-images-and-operating-systems
+    index: 4
+  - title: "Vòng đời máy ảo"
+    slug: virtual-machine-lifecycle
+    index: 5
+  - title: "Cấp phát và tự động hóa"
+    slug: provisioning-and-automation
+    index: 6
+  - title: "Khởi động và triển khai ứng dụng"
+    slug: application-bootstrap-and-deployment
+    index: 7
+  - title: "Lưu trữ phục vụ compute"
+    slug: compute-storage
+    index: 8
+  - title: "Kết nối mạng cho workload"
+    slug: workload-networking
+    index: 9
+  - title: "Danh tính và truy cập máy"
+    slug: machine-identity-and-access
+    index: 10
+  - title: "Bảo mật workload compute"
+    slug: compute-workload-security
+    index: 11
+  - title: "Bảo trì hệ điều hành và máy chủ"
+    slug: os-and-host-maintenance
+    index: 12
+  - title: "Giám sát và khả năng quan sát"
+    slug: monitoring-and-observability
+    index: 13
+  - title: "Chẩn đoán sự cố compute"
+    slug: compute-troubleshooting
+    index: 14
+  - title: "Đo kiểm và tối ưu hiệu năng"
+    slug: performance-testing-and-optimization
+    index: 15
+  - title: "Cân bằng tải cho compute"
+    slug: compute-load-balancing
+    index: 16
+  - title: "Nhóm máy và tự động co giãn"
+    slug: instance-groups-and-autoscaling
+    index: 17
+  - title: "Sẵn sàng cao và khả năng chịu lỗi"
+    slug: high-availability-and-fault-tolerance
+    index: 18
+  - title: "Sao lưu, khôi phục và di chuyển"
+    slug: backup-recovery-and-migration
+    index: 19
+  - title: "Compute có thể bị thu hồi"
+    slug: interruptible-compute
+    index: 20
+  - title: "Mô hình chi phí compute"
+    slug: compute-cost-models
+    index: 21
+  - title: "Nền tảng container"
+    slug: container-fundamentals
+    index: 22
+  - title: "Dịch vụ chạy container"
+    slug: container-hosting-services
+    index: 23
+  - title: "Compute trong Kubernetes"
+    slug: kubernetes-compute
+    index: 24
+  - title: "Mô hình hàm serverless"
+    slug: serverless-function-models
+    index: 25
+  - title: "Vận hành và tối ưu serverless"
+    slug: serverless-operations-and-optimization
+    index: 26
+  - title: "Xử lý nền và theo lô"
+    slug: background-and-batch-processing
+    index: 27
+  - title: "Điện toán hiệu năng cao"
+    slug: high-performance-computing
+    index: 28
+  - title: "Compute lai và điện toán biên"
+    slug: hybrid-and-edge-computing
+    index: 29
+  - title: "Thiết kế kiến trúc workload"
+    slug: workload-architecture-design
+    index: 30
+  - title: "Đối chiếu compute giữa các cloud"
+    slug: cross-cloud-compute-comparison
+    index: 31
+  - title: "Quản trị tài nguyên compute"
+    slug: compute-resource-governance
+    index: 32
+  - title: "Thực hành triển khai và vận hành"
+    slug: deployment-and-operations-labs
+    index: 33
+  - title: "Dự án tổng hợp và đánh giá"
+    slug: capstone-projects-and-assessment
+    index: 34

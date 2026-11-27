@@ -1,0 +1,719 @@
+menu:
+- level1: Tư duy Cassandra
+  level2:
+  - Apache Cassandra là gì và những bài toán phân tán mà hệ được thiết kế để giải quyết
+  - Mô hình cột rộng, phân vùng dữ liệu và khác biệt với kho phân tích dạng cột
+  - Phân biệt Cassandra, CQL, driver và ứng dụng Java
+  - 'Bản đồ thuật ngữ: keyspace, table, partition, row, node, replica và cluster'
+  - Luồng từ truy vấn ứng dụng đến nút điều phối và các bản sao
+  - Mục tiêu về mở rộng tải, tính sẵn sàng, độ bền và các đánh đổi
+  - Thiết kế theo truy vấn và vai trò của khóa phân vùng
+  - Phạm vi nguyên tử, mức nhất quán và cập nhật có điều kiện
+  - Tình huống phù hợp với dữ liệu sự kiện, lịch sử hoặc truy cập theo khóa
+  - Giới hạn cần cân nhắc với JOIN, ràng buộc quan hệ và giao dịch theo phiên bản
+  - Phân biệt Apache Cassandra với dịch vụ tương thích hoặc sản phẩm mở rộng
+  - Trình tự học từ mô hình cụm và dữ liệu đến CQL, ứng dụng và vận hành
+- level1: Môi trường thực hành
+  level2:
+  - Chọn phiên bản Cassandra, JDK và driver tương thích
+  - Chuẩn bị CPU, RAM, đĩa, hệ điều hành và đồng bộ thời gian
+  - Cài đặt bằng gói hệ điều hành, máy ảo hoặc container
+  - Khởi tạo một nút và kiểm tra trạng thái sẵn sàng
+  - Thiết kế cụm thử nhiều nút, tên cluster và địa chỉ liên lạc
+  - Volume bền vững, thư mục dữ liệu, commit log, hints và saved caches
+  - Cấu hình cơ bản trong cassandra.yaml và các file liên quan
+  - Kết nối bằng cqlsh và xác định phiên bản server/CQL/protocol
+  - Tạo keyspace, tài khoản và dữ liệu mẫu cho thực nghiệm
+  - Thử khởi động lại, mất một nút và đối chiếu dữ liệu
+  - Tách môi trường phát triển, kiểm thử và vận hành
+  - Tái tạo môi trường và quản lý cấu hình thực hành có thể kiểm chứng
+- level1: Công cụ và kết nối
+  level2:
+  - Sử dụng cqlsh để chạy câu lệnh và script
+  - DESCRIBE, USE, SOURCE và quản lý ngữ cảnh keyspace
+  - CONSISTENCY, SERIAL CONSISTENCY, PAGING và TRACING trong cqlsh
+  - Native protocol, cổng truy cập ứng dụng và tương thích giao thức
+  - Địa chỉ listen/broadcast, kết nối giữa nút và từ ứng dụng
+  - Seed node và vai trò khởi tạo thông tin thành viên
+  - Phân giải tên, mạng container, firewall và kiểm tra đường kết nối
+  - Chứng thực, thông tin đăng nhập và kết nối TLS
+  - Đọc lỗi cú pháp, lỗi xác thực, unavailable và timeout
+  - COPY trong cqlsh, giới hạn quy mô và công cụ nạp dữ liệu thay thế
+  - system_schema, system_views và metadata phục vụ thực hành
+  - Ghi lại câu lệnh, cấu hình phiên và kết quả để tái hiện thí nghiệm
+- level1: Kiến trúc cụm
+  level2:
+  - Kiến trúc ngang hàng và vai trò nút điều phối theo từng yêu cầu
+  - Quan hệ giữa node, rack, datacenter và cluster
+  - Luồng ghi từ ứng dụng đến coordinator và replica
+  - Luồng đọc, phản hồi digest và hợp nhất phiên bản
+  - Gossip và truyền thông tin trạng thái thành viên
+  - Failure detector và giới hạn suy luận một nút đã ngừng hoạt động
+  - Snitch, thông tin topology và lựa chọn bản sao theo miền lỗi
+  - Seed node, bootstrap và phân biệt với vai trò leader
+  - Internode messaging, native transport và các loại lưu lượng
+  - Phân vùng mạng, nút chậm và sự khác biệt với lỗi dừng hoàn toàn
+  - Metadata cụm, schema agreement và thay đổi theo phiên bản
+  - Background task, streaming và phối hợp các tài nguyên
+  - Đọc sơ đồ cụm và truy vết một yêu cầu thực tế qua các nút
+- level1: Token và sao chép
+  level2:
+  - Partitioner và ánh xạ khóa phân vùng thành token
+  - Token ring, khoảng token và quyền sở hữu dữ liệu
+  - Virtual node và đánh đổi trong phân phối/cân bằng
+  - Replication factor và tập bản sao của một phân vùng
+  - NetworkTopologyStrategy và bố trí bản sao theo datacenter/rack
+  - SimpleStrategy trong thực nghiệm và giới hạn lựa chọn topology
+  - Phân biệt số nút, số token và số bản sao
+  - Vai trò replica và coordinator khi một nút bất kỳ nhận yêu cầu
+  - Xác định endpoint của một khóa từ công cụ vận hành
+  - Chênh lệch dung lượng hoặc tải dù số token tương đương
+  - Ảnh hưởng của thay đổi RF đến dữ liệu đã tồn tại
+  - Đặt bản sao theo miền lỗi và kiểm chứng khả năng chịu mất nút
+  - Luồng truyền dữ liệu khi thêm, rút hoặc thay thế một nút
+- level1: Nhất quán đọc/ghi
+  level2:
+  - Mức nhất quán điều khiển số phản hồi cần chờ cho từng thao tác
+  - ONE, TWO, THREE, QUORUM và ALL
+  - LOCAL_ONE, LOCAL_QUORUM và EACH_QUORUM theo phạm vi hỗ trợ
+  - ANY cho thao tác ghi và quan hệ với hinted handoff
+  - Tính số phản hồi quorum từ RF và phạm vi datacenter
+  - Điều kiện giao nhau của quorum đọc/ghi và các giả định kèm theo
+  - Phân biệt giao nhau quorum với bảo đảm tuyến tính hóa mọi cập nhật đồng thời
+  - Độ mới của kết quả đọc và xử lý nhiều phiên bản dữ liệu
+  - Read-after-write, mức đọc/ghi và tập bản sao có liên quan
+  - SERIAL/LOCAL_SERIAL và phân biệt với mức nhất quán thông thường
+  - Ảnh hưởng của lỗi nút, mạng chậm và unavailable đến từng lựa chọn
+  - Timeout và kết quả chưa biết của thao tác ghi
+  - Giới hạn hạ mức nhất quán khi retry
+  - Thiết kế mức nhất quán từ yêu cầu nghiệp vụ
+  - Thực nghiệm nhiều phiên và mất nút để kiểm chứng điều kiện đọc/ghi
+- level1: Keyspace và schema
+  level2:
+  - Keyspace là phạm vi cấu hình sao chép và chứa đối tượng dữ liệu
+  - CREATE/ALTER/DROP KEYSPACE và kiểm tra thuộc tính replication
+  - CREATE TABLE, cột, primary key và table option
+  - Tên đối tượng, quoted identifier và phân biệt hoa/thường
+  - IF NOT EXISTS/IF EXISTS và giới hạn kiểm tra định nghĩa đã tồn tại
+  - 'ALTER TABLE: thêm, bỏ, đổi thuộc tính và điều kiện thay đổi kiểu'
+  - Schema agreement và cách quan sát trạng thái chưa đồng bộ
+  - DDL trong cụm đang có nhiều phiên bản ứng dụng
+  - System keyspace và ranh giới dữ liệu người dùng
+  - system_schema và trích xuất định nghĩa phục vụ đối soát
+  - Comment, quy ước đặt tên và tài liệu hóa lựa chọn thiết kế
+  - TRUNCATE/DROP và các điều kiện an toàn trước thao tác
+- level1: Kiểu dữ liệu
+  level2:
+  - Chọn kiểu theo miền giá trị, độ chính xác và mẫu truy cập
+  - tinyint, smallint, int, bigint và varint
+  - decimal, float, double và dữ liệu tiền tệ
+  - text, varchar, ascii và Unicode
+  - blob, boolean, inet và ánh xạ dữ liệu nhị phân/địa chỉ
+  - uuid, timeuuid và yêu cầu về định danh hoặc thứ tự
+  - timestamp, date, time và độ chính xác thời gian
+  - duration và giới hạn ngữ nghĩa theo thao tác hỗ trợ
+  - NULL, giá trị chưa được lưu và UNSET từ driver
+  - list, set, map và lựa chọn cấu trúc dữ liệu
+  - tuple, UDT, frozen và ngữ nghĩa lưu trữ
+  - vector hoặc kiểu bổ sung theo phiên bản
+  - Kiểu dữ liệu trong khóa và các ràng buộc tương ứng
+  - Chuyển kiểu, literal, dữ liệu biên và ánh xạ sang Java
+- level1: Khóa và phân vùng
+  level2:
+  - Quan hệ giữa primary key, partition key và clustering column
+  - Khóa phân vùng đơn và khóa phân vùng ghép
+  - Khóa phân cụm và thứ tự lưu các hàng trong phân vùng
+  - CLUSTERING ORDER BY và truy vấn theo khoảng
+  - Static column và dữ liệu dùng chung trong một phân vùng
+  - Định danh duy nhất trong phạm vi primary key
+  - Kích thước phân vùng theo số hàng, cột và dung lượng
+  - Phân vùng lớn, hàng rộng và ảnh hưởng đến đọc/ghi
+  - Cardinality khóa, dữ liệu lệch và điểm nóng
+  - Khóa tăng dần, thời gian trong khóa và phân phối tải
+  - Chia bucket theo thời gian hoặc miền dữ liệu
+  - Khóa tenant và giới hạn tenant có quy mô quá lớn
+  - Đổi thiết kế khóa bằng bảng mới và kế hoạch di chuyển
+  - Ước lượng, đo thực tế và kiểm chứng giới hạn phân vùng
+- level1: Thiết kế theo truy vấn
+  level2:
+  - Thu thập truy vấn, điều kiện lọc, thứ tự đọc và giới hạn kết quả
+  - Một nhóm truy vấn và thiết kế bảng phù hợp
+  - Chọn partition key từ đường truy cập chủ đạo
+  - Chọn clustering column để hỗ trợ sắp xếp hoặc lọc theo khoảng
+  - Thiết kế bảng tra cứu và bảng lịch sử theo thời gian
+  - Thiết kế dữ liệu sự kiện với bucket và thời hạn lưu
+  - Chấp nhận lặp dữ liệu để giảm truy vấn xuyên phân vùng
+  - Đánh giá chi phí ghi nhiều bảng và đối soát tính nhất quán
+  - Truy vấn phụ hiếm gặp và nhu cầu kho tìm kiếm/phân tích
+  - Kiểm soát collection hoặc chuỗi lịch sử tăng trưởng không giới hạn
+  - Tính dung lượng từ kích thước bản ghi, RF, chỉ mục và thời gian lưu
+  - Thiết kế lại khi mẫu truy cập thay đổi
+  - Ví dụ mô hình đơn hàng, hoạt động người dùng hoặc dữ liệu thiết bị
+  - Kiểm chứng mô hình bằng CQL, dữ liệu đại diện và số liệu đọc/ghi
+- level1: Quan hệ và dữ liệu lặp
+  level2:
+  - Biểu diễn quan hệ một-một, một-nhiều và nhiều-nhiều
+  - Nhúng qua UDT/collection hoặc dùng bảng riêng theo truy vấn
+  - Chọn dữ liệu cần sao chép sang bảng tra cứu
+  - Xác định bảng nguồn chuẩn và các bảng biểu diễn dẫn xuất
+  - Tần suất thay đổi thuộc tính và chi phí cập nhật nhiều bản
+  - Ghi đến nhiều bảng (fan-out) và tập hợp dữ liệu tại ứng dụng khi đọc
+  - Giới hạn JOIN, khóa ngoại và trách nhiệm duy trì toàn vẹn
+  - Đọc dữ liệu từ nhiều bảng trong khi cập nhật đồng thời
+  - Ứng dụng sự kiện hoặc công việc nền để đồng bộ dữ liệu lặp
+  - Xóa dữ liệu gốc và xử lý dữ liệu phụ thuộc
+  - Đối soát, tái xây dựng bảng đọc và sửa chênh lệch
+  - Đánh đổi giữa độ mới của dữ liệu với chi phí duy trì nhiều bảng
+- level1: SELECT và phân trang
+  level2:
+  - Cấu trúc SELECT, chọn cột và biểu thức kết quả
+  - Điều kiện trên partition key và clustering column
+  - Truy vấn theo khóa đầy đủ hoặc theo khoảng trong phân vùng
+  - IN, khóa ghép và số phân vùng bị truy cập
+  - ORDER BY và các điều kiện tương thích với khóa phân cụm
+  - LIMIT, PER PARTITION LIMIT và phạm vi giới hạn
+  - DISTINCT, GROUP BY và các ràng buộc CQL cần kiểm tra
+  - COUNT, hàm tổng hợp và chi phí đọc thực tế
+  - ALLOW FILTERING và đánh giá lượng dữ liệu phải quét
+  - TOKEN để chia phạm vi quét có kiểm soát
+  - Projection và giảm dữ liệu truyền về ứng dụng
+  - Phân trang bằng paging state và giới hạn truy cập tiến
+  - Page size, số hàng trả về và dữ liệu đang thay đổi
+  - Kiểm chứng truy vấn bằng trace và bộ dữ liệu có trường hợp biên
+- level1: Ghi và xóa bằng CQL
+  level2:
+  - INSERT, UPDATE và ngữ nghĩa ghi theo primary key
+  - Upsert và phân biệt ghi mới với thay đổi một phần dữ liệu
+  - Chọn cột cập nhật và ảnh hưởng đến các cột không được gửi
+  - NULL, UNSET và tác động đến dữ liệu hoặc dấu xóa
+  - Ghi giá trị của static column
+  - UPDATE collection và thao tác trên từng phần tử
+  - DELETE theo cột, hàng, khoảng clustering hoặc phân vùng
+  - Ghi dữ liệu không cần đọc trước và giới hạn với thao tác đặc biệt
+  - USING TIMESTAMP, USING TTL và điều kiện được phép kết hợp
+  - IF NOT EXISTS/IF EXISTS và việc chuyển sang cập nhật có điều kiện
+  - TRUNCATE so với DELETE và kế hoạch bảo vệ dữ liệu
+  - Kết quả ghi thông thường, applied của lệnh IF và giới hạn thông tin phản hồi
+  - Nạp nhiều bản ghi bằng yêu cầu độc lập hoặc BATCH phù hợp
+  - Đối chiếu trạng thái trước/sau với hai phiên cập nhật đồng thời
+- level1: Timestamp và TTL
+  level2:
+  - Mutation timestamp và quy tắc last-write-wins
+  - Độ chính xác timestamp của mutation so với kiểu timestamp trong dữ liệu
+  - Timestamp do driver, client hoặc coordinator cung cấp
+  - Sai lệch đồng hồ và cập nhật mang thời điểm quá xa trong tương lai
+  - Ghi đồng thời cùng cột và quy tắc phân giải theo timestamp
+  - WRITETIME, TTL và quan sát metadata của giá trị
+  - TTL cho dữ liệu ghi mới và thời điểm bắt đầu đếm
+  - default_time_to_live và TTL được chỉ định trong câu lệnh
+  - TTL ở các thành phần collection/UDT theo cách lưu trữ
+  - Cập nhật giá trị có TTL và ý nghĩa thời hạn mới
+  - Dữ liệu hết hạn logic, tombstone và thu hồi vật lý
+  - Giới hạn thời hạn hoặc mốc thời gian hết hạn theo phiên bản
+  - Retry với timestamp/TTL và nguy cơ thay đổi kết quả nghiệp vụ
+  - Thiết kế dữ liệu theo thời gian, lưu giữ và kiểm thử đồng hồ
+- level1: Collection và UDT
+  level2:
+  - list, set, map và lựa chọn theo ngữ nghĩa dữ liệu
+  - Collection nhiều cell so với frozen collection
+  - Thêm, sửa, xóa phần tử và chi phí tương ứng
+  - List có thứ tự và những thao tác cần đọc trước hoặc không lũy đẳng
+  - Map key/value, phần tử không tồn tại và cập nhật có điều kiện
+  - Collection không giới hạn và ảnh hưởng đến kích thước hàng/phân vùng
+  - tuple, UDT và mô hình hóa cấu trúc lồng nhau
+  - CREATE/ALTER TYPE và khả năng tiến hóa schema
+  - UDT dạng frozen/non-frozen và cập nhật từng trường
+  - NULL, giá trị trống và dấu xóa khi cập nhật cấu trúc
+  - Chỉ mục hoặc truy vấn collection theo khả năng phiên bản
+  - Ánh xạ collection/UDT sang Java và kiểm thử vòng đọc–ghi
+- level1: BATCH và counter
+  level2:
+  - Mục đích BATCH và phân biệt với giao dịch SQL thông thường
+  - LOGGED BATCH, batchlog và khả năng hoàn tất khi coordinator lỗi
+  - UNLOGGED BATCH và phạm vi sử dụng phù hợp
+  - Phạm vi nguyên tử/cô lập trong cùng phân vùng và qua nhiều phân vùng
+  - BATCH nhiều bảng cùng khóa và điều kiện bảo đảm
+  - Timestamp trong BATCH và giới hạn suy luận thứ tự các câu lệnh
+  - Kích thước BATCH, số phân vùng và tải lên coordinator
+  - So sánh BATCH với nhiều yêu cầu bất đồng bộ có giới hạn
+  - Kiểu counter và các ràng buộc của bảng counter
+  - Tăng/giảm counter, retry và khả năng áp dụng nhiều lần
+  - COUNTER BATCH và giới hạn kết hợp với dữ liệu thông thường
+  - Thực nghiệm lỗi từng phần và đối chiếu kết quả ghi nhiều bản
+- level1: LWT và đồng thời
+  level2:
+  - Bài toán kiểm tra rồi mới ghi và nguy cơ cạnh tranh
+  - IF NOT EXISTS, IF EXISTS và điều kiện trên giá trị
+  - Lightweight transaction và cơ chế đồng thuận theo phiên bản
+  - Phân biệt đường ghi thông thường với đường ghi có điều kiện
+  - Mức nhất quán thông thường và SERIAL/LOCAL_SERIAL
+  - Trường applied cùng giá trị hiện tại khi điều kiện thất bại
+  - Phạm vi điều kiện theo khóa/phân vùng và giới hạn kết hợp nhiều thao tác
+  - Mẫu tạo định danh duy nhất trong phạm vi được bảo đảm
+  - Khóa lạc quan bằng cột phiên bản hoặc trạng thái
+  - Giữ chỗ tài nguyên và những bất biến không thể suy ra từ một bản ghi
+  - Trộn ghi thông thường với LWT và ảnh hưởng đến tính đúng
+  - Timeout khi LWT và kết quả commit chưa xác định
+  - Thử lại LWT, xử lý cạnh tranh và tránh thay đổi điều kiện ngoài ý muốn
+  - Đo chi phí LWT và kiểm chứng lịch sử cập nhật đồng thời
+- level1: Chỉ mục
+  level2:
+  - Primary index và truy cập qua partition/clustering key
+  - Chỉ mục phụ cục bộ và chi phí điều phối truy vấn
+  - Đối chiếu 2i, SASI và SAI theo phiên bản, trạng thái hỗ trợ
+  - CREATE/DROP INDEX và quan sát trạng thái sẵn sàng
+  - SAI gắn với memtable/SSTable và vòng đời dữ liệu
+  - Chọn cột, độ phân biệt và phân bố truy vấn để đánh giá chỉ mục
+  - Điều kiện lọc kết hợp và phạm vi cú pháp được hỗ trợ
+  - Chỉ mục trên collection, map hoặc cấu trúc theo phiên bản
+  - Truy vấn vector/ANN qua SAI khi phiên bản hỗ trợ
+  - Chi phí ghi, lưu trữ, xây dựng lại và truyền chỉ mục
+  - Chỉ mục trong khi dữ liệu hết hạn hoặc có tombstone
+  - So sánh thêm chỉ mục với thiết kế bảng mới theo truy vấn
+  - Kiểm chứng bằng số liệu thực thi thay vì giả định có chỉ mục là đủ
+- level1: CQL nâng cao
+  level2:
+  - Hàm chuyển kiểu, UUID/timeuuid và xử lý ngày giờ
+  - WRITETIME/TTL và điều kiện áp dụng trên từng loại cột
+  - Hàm tổng hợp, GROUP BY và giới hạn ngữ nghĩa truy vấn
+  - SELECT JSON/INSERT JSON và phân biệt định dạng trao đổi với kiểu lưu trữ
+  - User-defined function, cấu hình cho phép và ranh giới bảo mật
+  - User-defined aggregate và chi phí thực thi theo tập dữ liệu
+  - Materialized view, bảng gốc và quan hệ khóa
+  - Điều kiện tạo, cập nhật và giới hạn materialized view theo phiên bản
+  - Tính nhất quán, vận hành và kiểm thử khi dùng view dẫn xuất
+  - Quyền thực thi function/aggregate và dependency của schema
+  - Đánh giá cách tính tại ứng dụng hoặc kho phân tích thay vì quét rộng
+  - Đối chiếu CQL feature với server, native protocol và driver
+- level1: Đường ghi và độ bền
+  level2:
+  - Mutation từ coordinator đến các bản sao chịu trách nhiệm
+  - Commit log, memtable và thời điểm phản hồi ghi
+  - Các chế độ commitlog_sync và phạm vi dữ liệu có thể mất
+  - Flush từ memtable sang SSTable
+  - Commit log segment, tái sử dụng và quan hệ với memtable chưa flush
+  - Độ bền cục bộ so với độ bền nhờ nhiều bản sao
+  - Replication factor, consistency level và điều kiện xác nhận
+  - Hint khi replica không nhận được ghi và các giới hạn
+  - Ghi quá tải, hàng đợi và cơ chế điều tiết theo phiên bản
+  - Crash recovery và phát lại commit log
+  - Ảnh hưởng của đĩa chậm, đĩa đầy hoặc flush bị nghẽn
+  - Thực nghiệm dừng nút và kiểm chứng dữ liệu đã được xác nhận
+- level1: Đường đọc và bộ đệm
+  level2:
+  - Coordinator chọn replica phục vụ đọc theo mức nhất quán
+  - Đọc dữ liệu, đọc digest và phát hiện khác biệt
+  - Hợp nhất các phiên bản từ memtable/SSTable và các bản sao
+  - Bloom filter và ý nghĩa có thể dương tính giả
+  - Partition index, key cache hoặc cơ chế tương ứng theo định dạng SSTable
+  - Row cache và điều kiện phù hợp theo cấu hình/phiên bản
+  - Bộ nhớ đệm hệ điều hành và tập dữ liệu thường được truy cập
+  - Đọc gặp nhiều SSTable, tombstone và dữ liệu phân mảnh
+  - Read repair trong đường đọc và phạm vi bảo đảm
+  - Speculative retry phía server và phân biệt với driver
+  - Đọc theo khoảng/token so với truy vấn một phân vùng
+  - Đối chiếu trace, metric và kết quả để xác định chi phí đọc
+- level1: SSTable và compaction
+  level2:
+  - SSTable bất biến và các thành phần metadata/index/data
+  - Định dạng SSTable và tương thích qua các phiên bản
+  - Read/write/space amplification trong LSM-tree
+  - Mục đích compaction và lựa chọn SSTable được hợp nhất
+  - STCS, LCS, TWCS và đặc điểm tải cần đối chiếu
+  - UCS và điều kiện phiên bản hỗ trợ
+  - Thay đổi compaction strategy và tải chuyển đổi phát sinh
+  - Cấu hình chiến lược theo dữ liệu cập nhật, TTL và chuỗi thời gian
+  - Đọc, ghi lại dữ liệu và nhu cầu dung lượng tạm
+  - Compaction backlog, tốc độ xử lý và ảnh hưởng độ trễ
+  - Điều kiện loại bỏ phiên bản cũ hoặc tombstone
+  - SSTable hết hạn toàn bộ và những dữ liệu còn chặn thu hồi
+  - Major compaction, thao tác thủ công và phạm vi tác động
+  - Quan sát trước/sau thay đổi bằng dung lượng, SSTable count và độ trễ
+- level1: Tombstone và thu hồi
+  level2:
+  - DELETE, NULL và TTL hết hạn tạo dấu xóa như thế nào
+  - Tombstone ở cấp cell, collection, hàng, khoảng hoặc phân vùng
+  - Đọc qua dấu xóa và chi phí hợp nhất dữ liệu
+  - gc_grace_seconds và điều kiện giữ lại dấu xóa
+  - Quan hệ giữa repair, nút ngừng hoạt động và thời gian giữ dấu xóa
+  - Điều kiện thu hồi tombstone trong compaction
+  - Nguy cơ dữ liệu cũ xuất hiện lại khi bản sao bị bỏ sót xóa
+  - Dữ liệu TTL trộn nhiều thời hạn và các SSTable khó thu hồi
+  - Range tombstone và truy vấn theo khoảng
+  - Ngưỡng cảnh báo/thất bại khi đọc nhiều tombstone
+  - Giới hạn điều chỉnh gc_grace hoặc ngưỡng đọc để xử lý triệu chứng
+  - Thiết kế lại mô hình dữ liệu nhằm giảm xóa/cập nhật gây áp lực
+  - Thực nghiệm xóa, replica ngừng hoạt động và khôi phục đúng dữ liệu
+- level1: Đồng bộ bản sao
+  level2:
+  - Các nguyên nhân khiến dữ liệu giữa các replica khác nhau
+  - Hinted handoff và giới hạn thời gian lưu/phát lại hint
+  - Hint backlog, dung lượng hints và replica vắng mặt kéo dài
+  - Read repair và việc chỉ sửa phạm vi dữ liệu được đọc
+  - Background repair/anti-entropy và nhu cầu đối soát chủ động
+  - Merkle tree và so sánh dữ liệu trên cùng khoảng token
+  - Streaming dữ liệu cần bù và chi phí mạng/đĩa
+  - Last-write-wins khi hợp nhất dữ liệu từ nhiều replica
+  - Quorum đọc/ghi và những sai lệch vẫn cần repair
+  - Thay đổi RF hoặc topology và yêu cầu đồng bộ dữ liệu
+  - Repair, replay hint và rebuild giải quyết các bài toán khác nhau
+  - Kiểm tra tiến độ hội tụ và dữ liệu còn thiếu
+  - Thiết kế kịch bản mất kết nối rồi tái gia nhập cụm
+- level1: Repair
+  level2:
+  - Mục tiêu repair và phạm vi token/bảng/keyspace
+  - Full repair so với incremental repair
+  - Trạng thái repaired/unrepaired và quan hệ với compaction
+  - Primary range repair và tránh thực hiện trùng không cần thiết
+  - Repair theo từng nút và phạm vi còn lại của toàn cụm
+  - Repair trong một datacenter hoặc giữa các datacenter
+  - Lập lịch theo dung lượng, tải và gc_grace của dữ liệu
+  - Điều tiết mạng, CPU, đĩa và mức đồng thời khi repair
+  - Repair session, tiến độ và điều kiện xác nhận hoàn tất
+  - Repair bị ngắt, thất bại hoặc không tiến triển
+  - Subrange repair và chia công việc thành các phần nhỏ
+  - Repair sau thay đổi RF, thay nút hoặc sự cố bản sao
+  - Đối chiếu dữ liệu trước/sau và các giới hạn không thể khôi phục bằng repair
+  - Công cụ lập lịch repair và ranh giới với trách nhiệm người vận hành
+- level1: Thay đổi topology
+  level2:
+  - Trạng thái nút và vòng đời gia nhập, rời hoặc bị thay thế
+  - Bootstrap, nhận token và streaming dữ liệu ban đầu
+  - Thêm nút vào cụm đang chạy và bảo vệ tải nghiệp vụ
+  - Decommission, removenode và lựa chọn theo trạng thái nút
+  - Thay thế nút mất dữ liệu và điều kiện định danh/địa chỉ
+  - Rebuild dữ liệu từ bản sao hoặc datacenter khác
+  - Cleanup dữ liệu không còn thuộc phạm vi sở hữu
+  - Thay token hoặc bố trí nút và giới hạn theo phiên bản
+  - Thay RF và kế hoạch repair/kiểm chứng sau thay đổi
+  - Chuyển động topology đồng thời và các điều kiện an toàn
+  - Phân phối lại dung lượng, mạng streaming và nhu cầu dung lượng tạm
+  - Điều phối thay đổi trong khi driver đang làm mới metadata
+  - Kiểm tra trạng thái, quyền sở hữu và truy vấn sau mỗi thao tác
+- level1: Nhiều trung tâm dữ liệu
+  level2:
+  - Thiết kế datacenter/rack theo miền lỗi thực tế
+  - NetworkTopologyStrategy và RF riêng của từng datacenter
+  - LOCAL_ONE, LOCAL_QUORUM và phạm vi phản hồi được tính
+  - QUORUM/EACH_QUORUM trong các thao tác được hỗ trợ
+  - Local datacenter ở driver và đường đi của yêu cầu
+  - Độ trễ sao chép xuyên vùng và yêu cầu đọc dữ liệu mới
+  - Ghi từ nhiều datacenter, timestamp và cập nhật xung đột
+  - Mất một datacenter và lựa chọn tuyến kết nối/khả dụng
+  - Thêm datacenter mới, rebuild và chuyển dần tải ứng dụng
+  - Repair, backup và vận hành trên toàn bộ miền dữ liệu
+  - Băng thông, chi phí truyền và lưu lượng nền
+  - Diễn tập chuyển vùng và đo phạm vi dữ liệu/độ trễ bị ảnh hưởng
+- level1: Quan sát hệ thống
+  level2:
+  - Mức hiệu năng cơ sở, SLI/SLO và ngưỡng cảnh báo
+  - Metric theo node, keyspace, table và yêu cầu ứng dụng
+  - JMX, cơ chế xuất metric và điều kiện bảo vệ truy cập
+  - Độ trễ đọc/ghi và phân vị thay vì chỉ giá trị trung bình
+  - Timeout, failure, unavailable, dropped message và retry
+  - Heap, off-heap, GC, CPU và thời gian chờ I/O
+  - Dung lượng đĩa, commit log, SSTable, hints và snapshot
+  - Memtable, flush queue và pending compaction
+  - Tombstone scanned, live cells và kích thước phân vùng
+  - Streaming, repair session và hoạt động đồng bộ bản sao
+  - Client connection, request in-flight và tải coordinator
+  - Log có cấu trúc, định danh yêu cầu và đối chiếu driver/server
+  - Chênh lệch bộ đếm theo khoảng đo và tác động khi restart
+  - Cảnh báo có thể hành động và sổ tay ứng phó tương ứng
+- level1: Tracing và chẩn đoán
+  level2:
+  - TRACING ON/OFF và thu thập một truy vấn mẫu bằng cqlsh
+  - 'system_traces: session, event và thời gian lưu trace'
+  - Nhận diện coordinator, replica và các bước xử lý trong trace
+  - Phân biệt thời gian phía ứng dụng, mạng và phía server
+  - Trace cho truy vấn một phân vùng so với truy vấn quét nhiều vùng
+  - Đọc chênh lệch digest, đọc bổ sung và xử lý read repair
+  - Slow query logging và công cụ theo phiên bản
+  - nodetool tablestats/tablehistograms và diễn giải số liệu
+  - nodetool tpstats, dropped message và hàng đợi xử lý
+  - Log hệ thống, GC log và tương quan với tăng độ trễ
+  - JFR hoặc profiler JVM trong phạm vi điều tra có kiểm soát
+  - Chi phí tracing/profiling và bảo vệ dữ liệu nhạy cảm
+  - Lập gói bằng chứng gồm truy vấn, tham số, topology, cấu hình và thời điểm
+- level1: Tối ưu truy vấn
+  level2:
+  - Chọn truy vấn trọng yếu từ độ trễ, tần suất và tài nguyên sử dụng
+  - Giới hạn số phân vùng và số hàng cần đọc
+  - Thiết kế khóa phân cụm cho điều kiện theo khoảng hoặc thứ tự
+  - Tránh quét rộng và hiểu chi phí ALLOW FILTERING
+  - Giảm projection, kích thước kết quả và số lần trao đổi mạng
+  - Page size, LIMIT và bộ nhớ phía client/server
+  - Chọn bảng truy vấn riêng hoặc SAI khi có điều kiện phù hợp
+  - Giảm collection lớn, phân vùng lớn và tỷ lệ tombstone
+  - Tối ưu truy vấn dữ liệu theo thời gian bằng bucket
+  - Giới hạn tải của COUNT, tổng hợp và tác vụ xuất dữ liệu
+  - Prepared statement, bind và định tuyến theo khóa
+  - Đối chiếu read/write consistency với yêu cầu nghiệp vụ
+  - Đo lại kết quả đúng, độ trễ và thông lượng sau thay đổi
+- level1: Tối ưu tài nguyên
+  level2:
+  - Phân biệt nghẽn CPU, GC, đĩa, mạng và tranh chấp tài nguyên nền
+  - Heap, off-heap và bộ nhớ cần cho hệ điều hành
+  - Memtable, giới hạn bộ nhớ và áp lực flush
+  - Bộ nhớ đệm, compression chunk và tập dữ liệu thường truy cập
+  - Commit log, thiết bị lưu trữ và mục tiêu độ bền
+  - Compaction throughput, pending task và write amplification
+  - Streaming/repair throughput và ảnh hưởng đến truy vấn nghiệp vụ
+  - Giới hạn request đồng thời và điều tiết ở ứng dụng
+  - Các hàng đợi, thread pool và tham số thay đổi theo phiên bản
+  - Tải coordinator, replica và phân phối yêu cầu giữa các nút
+  - Guardrail, timeout và tác động khi tăng giới hạn để né lỗi
+  - Kích thước mutation, batch, collection và phân vùng
+  - Đo mức mở rộng khi thêm nút trên cùng loại tải
+  - Thay đổi có kiểm soát, mức cơ sở và điều kiện quay lại cấu hình cũ
+- level1: Công cụ vận hành
+  level2:
+  - nodetool status/info/describecluster và đọc trạng thái cụm
+  - nodetool ring/getendpoints và đối chiếu vị trí bản sao
+  - nodetool tablestats/tablehistograms/toppartitions và dữ liệu nóng
+  - nodetool tpstats/compactionstats/netstats và hoạt động nền
+  - nodetool flush/drain và các điều kiện trước dừng nút
+  - nodetool snapshot/listsnapshots/clearsnapshot và kiểm kê bản sao
+  - nodetool repair/rebuild/cleanup và phạm vi dữ liệu tác động
+  - sstablemetadata và đọc thông tin định dạng, token, timestamp
+  - sstabledump, sstableverify và điều kiện dùng theo từng công cụ
+  - sstableloader và yêu cầu tương thích dữ liệu nhập
+  - Công cụ scrub/upgrade SSTable và phạm vi online/offline phải kiểm tra
+  - Phân quyền công cụ, ghi nhật ký thao tác và xác minh sau thực hiện
+- level1: Sao lưu và phục hồi
+  level2:
+  - Xác định dữ liệu cần bảo vệ và yêu cầu RPO/RTO
+  - Phân biệt replica, snapshot và bản sao ngoài miền lỗi
+  - Snapshot SSTable, liên kết cứng (hard link) và dữ liệu schema đi kèm
+  - Sao lưu tăng dần và quan hệ với dữ liệu đã flush
+  - Commit log archiving và phục hồi theo thời điểm khi được cấu hình
+  - Tính nhất quán bản sao ở cấp bảng, nhiều bảng và toàn cụm
+  - Sao lưu schema, cấu hình, system_auth và khóa/chứng thư liên quan
+  - Quản lý dung lượng snapshot và chính sách giữ lại
+  - Lưu bản sao ngoài nút/cụm và bảo vệ quyền truy cập
+  - Khôi phục bảng hoặc keyspace vào môi trường cô lập
+  - sstableloader, restore theo file và đối chiếu topology/phiên bản
+  - Khôi phục sau xóa nhầm và giới hạn với TTL/timestamp/tombstone
+  - Đối soát dữ liệu, bất biến nghiệp vụ và số liệu sau restore
+  - Diễn tập khôi phục, đo thời gian và cập nhật sổ tay
+- level1: Bảo mật
+  level2:
+  - Tách tài khoản ứng dụng, quản trị, sao lưu và đối soát
+  - Role, LOGIN, SUPERUSER và quan hệ kế thừa quyền
+  - Authentication/authorization và cấu hình theo phiên bản
+  - Quyền trên keyspace, table, function và các tài nguyên liên quan
+  - system_auth, RF và điều kiện truy cập khi một miền lỗi gặp sự cố
+  - Thông tin đăng nhập, kho bí mật và luân chuyển mật khẩu
+  - TLS cho kết nối ứng dụng và giữa các nút
+  - Truststore, keystore, xác minh danh tính và đổi chứng thư
+  - JMX, công cụ vận hành và hạn chế truy cập quản trị
+  - Network binding, firewall và tách luồng ứng dụng/đồng bộ
+  - Ngăn chèn CQL bằng bind parameter và kiểm tra định danh động
+  - Audit, full query logging và dữ liệu nhạy cảm theo khả năng hỗ trợ
+  - Quyền chạy UDF, plugin hoặc tính năng mở rộng
+  - Bảo vệ backup, cấu hình, log và dữ liệu thử nghiệm
+- level1: Di chuyển và schema
+  level2:
+  - Quản lý DDL, table option và lịch sử schema bằng version control
+  - Phát hiện schema drift và kiểm tra schema agreement
+  - Thêm cột, thay UDT hoặc đổi thuộc tính theo điều kiện phiên bản
+  - Thiết kế bảng mới khi cần đổi partition/clustering key
+  - Expand/contract với nhiều phiên bản ứng dụng cùng hoạt động
+  - Backfill theo khoảng token/bucket và khả năng tiếp tục sau lỗi
+  - Nạp dữ liệu bằng cqlsh COPY, sstableloader hoặc công cụ bulk phù hợp
+  - Đối chiếu encoding, kiểu số, UUID, timestamp và timezone khi nhập
+  - Dữ liệu có TTL và giữ đúng thời điểm hết hạn khi di chuyển
+  - Đồng bộ thay đổi tăng thêm trong lúc hệ nguồn tiếp tục ghi
+  - Giới hạn tác động đến compaction, dung lượng và tải replica
+  - Đối soát dữ liệu nguồn/đích và các bất biến nghiệp vụ
+  - Cắt chuyển đọc/ghi, quay lui và dọn bảng cũ theo kế hoạch
+- level1: Nâng cấp và tương thích
+  level2:
+  - Xác định phiên bản server, CQL, native protocol và Java driver
+  - Đọc release note, tính năng bị loại bỏ và tham số thay đổi
+  - Đường nâng cấp được hỗ trợ và điều kiện nhảy phiên bản
+  - Cụm chạy lẫn phiên bản trong giai đoạn chuyển tiếp
+  - Thứ tự nâng cấp nút và bảo vệ số bản sao đang phục vụ
+  - Sao lưu cấu hình/dữ liệu và diễn tập khôi phục trước thay đổi
+  - Tương thích định dạng SSTable và nhu cầu upgradesstables
+  - Đối chiếu chỉ mục, compaction strategy, LWT và các tính năng theo release
+  - Kiểm tra schema, topology metadata và trạng thái background task
+  - Ma trận JDK, driver, Spring Data và giao thức sau nâng cấp
+  - Kiểm chứng dữ liệu, truy vấn, độ trễ và lỗi trước/sau
+  - Giới hạn downgrade/rollback và tiêu chí dừng hoặc tiếp tục triển khai
+- level1: Java driver cơ bản
+  level2:
+  - Driver cho Apache Cassandra, tọa độ dependency và package theo phiên bản
+  - CqlSession là điểm vào và phạm vi dùng chung cho một cụm
+  - Contact point, local datacenter và phát hiện topology
+  - Thiết lập keyspace, xác thực và TLS
+  - Driver configuration, execution profile và giá trị có hiệu lực
+  - Quản lý vòng đời session, kết nối và thread pool
+  - An toàn đa luồng của session, statement và đối tượng dữ liệu
+  - SimpleStatement và thực thi truy vấn đồng bộ
+  - ResultSet, Row và lấy giá trị theo tên/chỉ số cột
+  - Ánh xạ số, BigDecimal, UUID, Instant và kiểu ngày giờ
+  - NULL, UNSET và cách đọc trạng thái thiếu giá trị
+  - TypeCodec, generic type và cấu trúc collection/UDT
+  - Metadata schema/topology và điều kiện cập nhật
+  - Load balancing, định tuyến theo token và locality
+  - Giới hạn tài nguyên và tách cấu hình giữa môi trường
+- level1: Truy vấn từ Java
+  level2:
+  - PreparedStatement, BoundStatement và bước chuẩn bị/bind/thực thi
+  - Cache prepared statement và chi phí chuẩn bị lặp
+  - Bind theo vị trí/tên và kiểm tra đúng kiểu dữ liệu
+  - Chọn NULL hoặc UNSET khi cập nhật cột
+  - QueryBuilder, identifier và tránh nối đầu vào vào CQL
+  - Routing key và điều kiện định tuyến theo token
+  - Consistency level, serial consistency và execution profile của statement
+  - Timeout, page size và thuộc tính theo từng truy vấn
+  - Lấy kết quả LWT qua wasApplied và các cột liên quan
+  - BatchStatement và giới hạn theo loại/bản ghi/phân vùng
+  - Cập nhật counter, collection và đánh giá tính lũy đẳng
+  - PagingState, khôi phục trang và ràng buộc với truy vấn gốc
+  - Bảo vệ token phân trang khi đưa ra giao diện ứng dụng
+  - Object mapper/DAO và chi phí trừu tượng hóa
+  - Kiểm chứng CQL phát sinh, dữ liệu trả về và số lần trao đổi mạng
+  - ExecutionInfo, coordinator, cảnh báo và QueryTrace từ driver
+- level1: Retry và lỗi Java
+  level2:
+  - Phân loại lỗi chuẩn bị truy vấn, lỗi đầu vào và lỗi thực thi
+  - Authentication/Unauthorized, SyntaxError và InvalidQuery
+  - Unavailable, ReadTimeout, WriteTimeout và phạm vi kết quả chưa rõ
+  - DriverTimeout, AllNodesFailed và thông tin lỗi theo từng nút
+  - ReadFailure/WriteFailure, Overloaded và tải server
+  - Default retry policy, điều kiện kích hoạt và các lỗi được xử lý riêng
+  - Cờ idempotent và trách nhiệm xác định ngữ nghĩa thao tác
+  - Giới hạn retry với counter, list, TTL và cập nhật có điều kiện
+  - Retry cùng nút hoặc nút khác và ảnh hưởng locality
+  - Chính sách hạ consistency level và nguy cơ vi phạm yêu cầu nghiệp vụ
+  - Speculative execution và phân biệt với retry
+  - Deadline toàn nghiệp vụ, backoff và tránh nhân số lần thử qua nhiều lớp
+  - Đối soát kết quả chưa biết và chống ghi trùng bằng thiết kế nghiệp vụ
+- level1: Bất đồng bộ và reactive
+  level2:
+  - executeAsync, CompletionStage và AsyncResultSet
+  - Phân biệt hoàn tất yêu cầu với đã đọc hết mọi trang kết quả
+  - hasMorePages/fetchNextPage và kết hợp các trang bất đồng bộ
+  - Chuỗi xử lý lỗi, phục hồi và truyền ngữ cảnh ứng dụng
+  - Callback trên luồng driver và giới hạn gọi thao tác chặn
+  - Giới hạn số yêu cầu đồng thời thay vì gửi không kiểm soát
+  - Request throttler, hàng đợi và thời gian chờ
+  - Reactive API, Publisher và điều kiện hỗ trợ theo driver
+  - Subscription, nhu cầu nhận dữ liệu và vòng đời kết quả
+  - Hủy Future/subscription và công việc còn chạy phía server
+  - Phối hợp timeout, retry và phản hồi áp lực tải
+  - Đo bộ nhớ, độ trễ và thông lượng khi chọn đồng bộ/bất đồng bộ
+- level1: Spring Boot và Spring Data
+  level2:
+  - Cấu hình Cassandra trong Spring Boot và ma trận phiên bản thư viện
+  - CqlSession bean, auto-configuration và quản lý vòng đời
+  - Contact point, local datacenter, keyspace và cấu hình theo môi trường
+  - Secret, xác thực, TLS và execution profile trong ứng dụng
+  - '@Table, @Column và ánh xạ tên định danh'
+  - '@PrimaryKey, @PrimaryKeyClass, @PrimaryKeyColumn và thứ tự khóa'
+  - Mapping collection/UDT, enum, thời gian và custom converter
+  - CassandraTemplate/CassandraOperations và kiểm soát CQL
+  - Repository, derived query, @Query và giới hạn biểu đạt
+  - Slice, paging state và chi phí đếm tổng kết quả
+  - Optimistic locking qua @Version và cơ chế cập nhật có điều kiện
+  - Ranh giới @Transactional với bảo đảm CQL/LWT theo khả năng hỗ trợ
+  - Schema action, migration và tách thay đổi DDL khỏi khởi tạo ứng dụng
+  - ReactiveCassandraTemplate/repository và kiểm soát tải, lỗi, subscription
+- level1: Kiểm thử tích hợp
+  level2:
+  - Chọn phiên bản Cassandra, driver và cấu hình giống môi trường mục tiêu
+  - Container/Testcontainers hoặc cụm thử cô lập
+  - Phân biệt nút đã khởi động với dữ liệu đã phục vụ được ở CL yêu cầu
+  - Tạo/reset keyspace, schema và dữ liệu mẫu
+  - Kiểm thử primary key, static column và điều kiện SELECT
+  - Kiểm thử NULL/UNSET, collection, UDT và kiểu dữ liệu biên
+  - Kiểm thử múi giờ, timestamp, TTL và dữ liệu hết hạn
+  - Kiểm thử CRUD, BATCH và giới hạn nguyên tử bằng nhiều phiên
+  - Kiểm thử cạnh tranh LWT và kết quả applied
+  - Kiểm thử phân trang khi dữ liệu thay đổi
+  - Kiểm thử retry/idempotence và kết quả ghi chưa rõ
+  - Kiểm thử mapping/repository và CQL thực tế được phát sinh
+  - Đối soát dữ liệu lặp, xóa phụ thuộc và các bất biến nghiệp vụ
+  - Giới hạn mock/emulator và bằng chứng cần chạy trên engine thật
+- level1: Đo tải và lỗi phân tán
+  level2:
+  - Thiết kế tải đọc/ghi theo truy vấn nghiệp vụ
+  - Dữ liệu đại diện về kích thước, phân vùng, TTL và tỷ lệ cập nhật
+  - Giai đoạn làm nóng và trạng thái cache/compaction
+  - Độ trễ p50/p95/p99, thông lượng và lượng tài nguyên
+  - Điều tiết số yêu cầu đồng thời và tránh sai lệch do bộ phát tải
+  - So sánh CL, RF, chỉ mục và compaction trên cùng điều kiện
+  - Mô phỏng khóa nóng, phân vùng lớn hoặc nhiều tombstone
+  - Dừng nút, mất mạng một phần và yêu cầu bị phản hồi chậm
+  - Ghi được áp dụng nhưng phản hồi bị mất
+  - Thử replica vắng mặt rồi hội tụ bằng hint/repair
+  - Đo tải khi bootstrap, streaming, repair hoặc backup
+  - Kiểm chứng ảnh hưởng của speculative execution và retry
+  - Lưu lịch sử thao tác và kiểm tra bất biến sau sự cố
+  - Ghi lại phiên bản, cấu hình, dữ liệu và điều kiện để tái hiện kết quả
+- level1: Xử lý sự cố
+  level2:
+  - Khoanh vùng thời điểm, phạm vi, thay đổi gần nhất và bằng chứng
+  - Không kết nối được do địa chỉ, cổng, DNS, firewall hoặc topology
+  - Lỗi xác thực, quyền, TLS và chứng thư hết hạn
+  - Keyspace/table không tồn tại và schema disagreement
+  - InvalidQuery do điều kiện khóa, kiểu dữ liệu hoặc truy vấn không được hỗ trợ
+  - Unavailable do không đủ replica để đạt CL
+  - ReadTimeout/WriteTimeout và kiểm tra write type, ack hoặc dữ liệu nhận được
+  - DriverTimeout/AllNodesFailed và đọc lỗi theo từng nút
+  - Tombstone quá nhiều hoặc truy vấn chạm phân vùng lớn
+  - Compaction backlog, nhiều SSTable và đĩa gần đầy
+  - Memtable/flush bị nghẽn, commit log pressure hoặc dropped message
+  - Heap/GC kéo dài, bộ nhớ ngoài heap và tài nguyên hệ điều hành
+  - Hot partition, coordinator quá tải hoặc phân bố dữ liệu lệch
+  - Hint backlog, replica thiếu dữ liệu hoặc đọc kết quả cũ
+  - Repair/streaming bị kẹt và lỗi thay đổi topology
+  - LWT contention, xung đột và thao tác có kết quả chưa biết
+  - Dữ liệu đã xóa xuất hiện lại hoặc TTL không như mong đợi
+  - Đánh giá tác động trước restart, scrub, compact hoặc thay giới hạn
+- level1: Tự động hóa vận hành
+  level2:
+  - Quản lý cấu hình, topology và thay đổi bằng quy trình có thể kiểm tra
+  - Khởi tạo cụm tự động và tách bí mật khỏi cấu hình lưu trong mã nguồn
+  - Kiểm tra sức khỏe trước/sau bảo trì bằng trạng thái và truy vấn
+  - Lập lịch repair dựa trên phạm vi dữ liệu và thời gian giữ dấu xóa
+  - Tự động snapshot/backup, kiểm kê và kiểm tra bản sao ngoài cụm
+  - Thử restore định kỳ và ghi nhận bằng chứng phục hồi
+  - Triển khai lần lượt, giới hạn đồng thời và điều kiện dừng
+  - Điều phối bootstrap/decommission mà không lặp thao tác nguy hiểm
+  - Vận hành container/Kubernetes và lưu trữ bền vững theo điều kiện môi trường
+  - Tách vòng đời nút, địa chỉ, volume và định danh trong tự động hóa
+  - Cảnh báo, sổ tay ứng phó và lưu nhật ký thao tác quản trị
+  - Kiểm chứng quy trình có thể tiếp tục hoặc quay lui sau lỗi từng phần
+- level1: Kiến trúc ứng dụng
+  level2:
+  - Chọn vai trò Cassandra trong hệ thống và xác định nguồn dữ liệu chuẩn
+  - Tách đường ghi nghiệp vụ khỏi bảng đọc theo truy vấn
+  - Đồng bộ nhiều bảng và các cửa sổ dữ liệu lệch
+  - Idempotency key, trạng thái nghiệp vụ và chống xử lý trùng
+  - LWT, bước bù hoặc đối soát khi bất biến vượt một thao tác
+  - CDC/commit log và điều kiện khai thác theo phiên bản
+  - Đưa dữ liệu sang tìm kiếm hoặc phân tích với tiến độ đồng bộ rõ ràng
+  - Cache trước Cassandra và chính sách độ mới dữ liệu
+  - Phân tách tenant, hạn mức tài nguyên và tenant có quy mô lớn
+  - Thiết kế truy cập nhiều datacenter theo yêu cầu người dùng
+  - Giới hạn truy vấn không phù hợp và phối hợp với hệ lưu trữ khác
+  - Viết quyết định kiến trúc bằng thử nghiệm, chi phí và các giả định
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng cụm thử và lập sơ đồ token, bản sao, datacenter
+  - Thiết kế bảng lịch sử hoạt động theo tenant và bucket thời gian
+  - Mô hình hóa cùng nghiệp vụ bằng các bảng phục vụ truy vấn khác nhau
+  - Thực hiện CRUD, TTL và quan sát dữ liệu xóa/hết hạn
+  - So sánh ONE/QUORUM/LOCAL_QUORUM trong kịch bản lỗi đã nêu
+  - Bảo vệ một bất biến trong phạm vi phù hợp bằng LWT
+  - Xây dựng luồng Java với bind, phân trang và giới hạn đồng thời
+  - Tích hợp Spring Data, mapping khóa và kiểm thử truy vấn
+  - Tái hiện timeout, retry và thao tác ghi có thể bị lặp
+  - Đo độ trễ trước/sau thay đổi schema, chỉ mục hoặc cách chia bucket
+  - Quan sát compaction, tombstone và đồng bộ replica sau sự cố
+  - Diễn tập thêm/thay nút và đối soát dữ liệu
+  - Thực hành backup/restore cùng quyền truy cập và TLS
+  - Hoàn thiện sơ đồ, quyết định thiết kế và sổ tay bằng bằng chứng thực nghiệm

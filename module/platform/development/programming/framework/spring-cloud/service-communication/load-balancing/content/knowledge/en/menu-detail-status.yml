@@ -1,0 +1,2809 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Giao tiếp dịch vụ là gì và vì sao cần cân bằng tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: 'Mô hình yêu cầu: dịch vụ gọi, dịch vụ đích và nhiều bản sao'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Tên dịch vụ, địa chỉ máy chủ, cổng và ServiceInstance
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Cân bằng tải phía máy khách và phía máy chủ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vai trò của Spring Cloud Commons và Spring Cloud LoadBalancer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Quan hệ giữa HTTP client, khám phá dịch vụ và bộ cân bằng tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Luồng một yêu cầu từ tên dịch vụ đến bản sao được chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Giao tiếp đồng bộ, bất đồng bộ và ranh giới của module
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Lộ trình học và các bài thực hành xuyên suốt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-foundations
+  title: Nền tảng HTTP
+  childs:
+  - slug: http-foundations-001
+    title: URL, URI, tên máy chủ và phân giải DNS trong lời gọi dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-002
+    title: HTTP method, mã trạng thái và ý nghĩa đối với bên gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-003
+    title: Header, query parameter, path variable và request body
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-004
+    title: Tuần tự hóa JSON, kiểu dữ liệu và hợp đồng trao đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-005
+    title: Kết nối TCP, TLS, keep-alive và tái sử dụng kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-006
+    title: Giao tiếp chặn luồng và không chặn luồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-007
+    title: Tính lũy đẳng và tác động khi gửi lại yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-008
+    title: Phân biệt lỗi kết nối, lỗi giao thức và lỗi nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-009
+    title: Độ trễ mạng, thời gian xử lý và ngân sách thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: project-setup
+  title: Thiết lập dự án
+  childs:
+  - slug: project-setup-001
+    title: Chọn phiên bản Spring Boot và Spring Cloud Release Train tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-002
+    title: Quản lý phiên bản phụ thuộc bằng Spring Cloud BOM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-003
+    title: Các starter cho LoadBalancer và từng HTTP client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-004
+    title: Phân biệt phụ thuộc bắt buộc, tùy chọn và phụ thuộc bắc cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-005
+    title: Tạo mô hình một bên gọi và nhiều bản sao dịch vụ đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-006
+    title: Cấu hình tên dịch vụ, cổng và định danh từng bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-007
+    title: Khai báo danh sách bản sao tĩnh cho môi trường học tập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-008
+    title: Tổ chức cấu hình theo profile và môi trường chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-009
+    title: Kiểm tra điều kiện tự cấu hình và xung đột thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-010
+    title: Chuẩn bị endpoint trả về định danh bản sao để quan sát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-instances
+  title: Danh sách bản sao
+  childs:
+  - slug: service-instances-001
+    title: ServiceInstance và các thông tin dùng để chọn đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-instances-002
+    title: Danh sách tĩnh và danh sách lấy từ DiscoveryClient
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-instances-003
+    title: DiscoveryClient và ReactiveDiscoveryClient trong luồng cân bằng tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-instances-004
+    title: Ranh giới giữa khám phá dịch vụ và chọn bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-instances-005
+    title: Ánh xạ service ID sang các bản sao đang được cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-instances-006
+    title: 'Metadata của bản sao: vùng, trọng số và gợi ý định tuyến'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-instances-007
+    title: Xử lý danh sách rỗng và bản sao thiếu thông tin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-instances-008
+    title: Độ trễ cập nhật khi bản sao được thêm hoặc bị loại bỏ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-instances-009
+    title: Khám phá dịch vụ theo môi trường local, máy ảo và container
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-instances-010
+    title: Khi DNS hoặc hạ tầng đã cung cấp cân bằng tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: loadbalancer-architecture
+  title: Kiến trúc LoadBalancer
+  childs:
+  - slug: loadbalancer-architecture-001
+    title: 'LoadBalancerClient và ReactiveLoadBalancer: vai trò và khác biệt'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loadbalancer-architecture-002
+    title: BlockingLoadBalancerClient trong lời gọi chặn luồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loadbalancer-architecture-003
+    title: ReactorLoadBalancer và kết quả chọn ServiceInstance
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loadbalancer-architecture-004
+    title: LoadBalancerClientFactory và ngữ cảnh riêng theo service ID
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loadbalancer-architecture-005
+    title: ServiceInstanceListSupplier trong chuỗi cung cấp bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loadbalancer-architecture-006
+    title: Request, RequestDataContext và dữ liệu đầu vào khi chọn đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loadbalancer-architecture-007
+    title: Response và trường hợp không chọn được bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loadbalancer-architecture-008
+    title: Tái dựng URI sau khi thay tên dịch vụ bằng địa chỉ thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loadbalancer-architecture-009
+    title: LoadBalancerLifecycle và các thời điểm của một lời gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loadbalancer-architecture-010
+    title: Ranh giới giữa việc chọn bản sao và thực thi HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: per-service-configuration
+  title: Cấu hình theo dịch vụ
+  childs:
+  - slug: per-service-configuration-001
+    title: Cấu hình dùng chung và cấu hình riêng cho từng service ID
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: per-service-configuration-002
+    title: '@LoadBalancerClient và @LoadBalancerClients'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: per-service-configuration-003
+    title: Tách cấu hình riêng khỏi component scan của ứng dụng chính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: per-service-configuration-004
+    title: Ngữ cảnh con, bean theo dịch vụ và nguy cơ cấu hình lan rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: per-service-configuration-005
+    title: Phạm vi thuộc tính spring.cloud.loadbalancer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: per-service-configuration-006
+    title: Đối chiếu thuộc tính được hỗ trợ theo Release Train đang dùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: per-service-configuration-007
+    title: Khởi tạo khi có lời gọi đầu tiên và cấu hình eager loading
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: per-service-configuration-008
+    title: Phân biệt cấu hình LoadBalancer với cấu hình HTTP client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: per-service-configuration-009
+    title: Thứ tự áp dụng cấu hình và cách kiểm chứng giá trị thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: instance-supplier-chain
+  title: Chuỗi cung cấp bản sao
+  childs:
+  - slug: instance-supplier-chain-001
+    title: Thiết kế ServiceInstanceListSupplier bằng builder và decorator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-supplier-chain-002
+    title: Nguồn khám phá dịch vụ và nguồn danh sách tự định nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-supplier-chain-003
+    title: Kết hợp bộ lọc, bộ nhớ đệm và kiểm tra sức khỏe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-supplier-chain-004
+    title: Ảnh hưởng của thứ tự decorator đến danh sách đầu ra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-supplier-chain-005
+    title: Truyền ngữ cảnh yêu cầu qua các lớp supplier
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-supplier-chain-006
+    title: Phân biệt dữ liệu chung với dữ liệu phụ thuộc từng yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-supplier-chain-007
+    title: Tránh lưu đệm nhầm danh sách đã lọc theo người gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-supplier-chain-008
+    title: Xử lý lỗi, danh sách rỗng và khôi phục nguồn cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-supplier-chain-009
+    title: Theo dõi danh sách ứng viên trước và sau từng bước
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: selection-algorithms
+  title: Thuật toán chọn đích
+  childs:
+  - slug: selection-algorithms-001
+    title: 'Round-robin: phân phối luân phiên và trạng thái tại bên gọi'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-algorithms-002
+    title: 'Random: chọn ngẫu nhiên và phân bố trong nhiều yêu cầu'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-algorithms-003
+    title: So sánh round-robin và random bằng phép đo phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-algorithms-004
+    title: Ảnh hưởng của số bản sao và danh sách thay đổi liên tục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-algorithms-005
+    title: Vì sao chia đều số yêu cầu chưa chắc chia đều tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-algorithms-006
+    title: Tải khác nhau giữa yêu cầu đọc, ghi và tác vụ xử lý lâu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-algorithms-007
+    title: Trọng số trong lựa chọn bản sao và nguồn metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-algorithms-008
+    title: Khi nào cần thuật toán tùy biến theo đặc điểm hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-algorithms-009
+    title: Giới hạn của thuật toán khi thiếu thông tin tải thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: zones-routing
+  title: Vùng và định tuyến
+  childs:
+  - slug: zones-routing-001
+    title: Lọc bản sao theo vùng bằng zone preference
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-routing-002
+    title: Nguồn thông tin vùng của bên gọi và dịch vụ đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-routing-003
+    title: Chính sách khi không có bản sao trong vùng ưu tiên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-routing-004
+    title: Định tuyến theo hint và metadata của ServiceInstance
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-routing-005
+    title: Gợi ý mặc định theo dịch vụ và gợi ý từ header yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-routing-006
+    title: Giữ ưu tiên bản sao bằng request-based sticky session
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-routing-007
+    title: Cookie định danh bản sao và điều kiện hoạt động của sticky session
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-routing-008
+    title: Same-instance preference và phạm vi trạng thái của bên gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-routing-009
+    title: Phân biệt tính bám dính với bảo đảm lưu trữ phiên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-routing-010
+    title: Kết hợp vùng, trọng số và gợi ý định tuyến mà không làm rỗng danh sách
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-routing-011
+    title: Rủi ro khi dùng header hoặc cookie do người gọi tự cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: instance-caching
+  title: Bộ nhớ đệm bản sao
+  childs:
+  - slug: instance-caching-001
+    title: Mục đích của cache danh sách ServiceInstance
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-caching-002
+    title: LoadBalancer cache và cache của thư viện khám phá dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-caching-003
+    title: TTL, dung lượng và đánh đổi giữa độ mới với chi phí tra cứu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-caching-004
+    title: Điều kiện dùng Caffeine và cơ chế cache mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-caching-005
+    title: Cấu hình cache toàn cục và kiểm chứng cache có hiệu lực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-caching-006
+    title: Tránh lưu đệm trùng ở nhiều lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-caching-007
+    title: Bản sao đã ngừng hoạt động nhưng còn trong cache
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-caching-008
+    title: Ảnh hưởng của cache đến mở rộng và thu hẹp số bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-caching-009
+    title: Kịch bản đo số lần tra cứu trước và sau khi bật cache
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: instance-health
+  title: Sức khỏe bản sao
+  childs:
+  - slug: instance-health-001
+    title: Phân biệt trạng thái đăng ký với khả năng phục vụ thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-health-002
+    title: HealthCheckServiceInstanceListSupplier và lọc bản sao khỏe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-health-003
+    title: Đường dẫn kiểm tra, chu kỳ và thời điểm bắt đầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-health-004
+    title: Kiểm tra lại nguồn danh sách và phát hiện bản sao mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-health-005
+    title: Chính sách khi mọi bản sao đều bị đánh dấu không khỏe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-health-006
+    title: Phân biệt liveness, readiness và kiểm tra từ phía bên gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-health-007
+    title: Ảnh hưởng của endpoint kiểm tra cần xác thực hoặc HTTPS
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-health-008
+    title: Tránh làm tăng tải vì quá nhiều bên gọi kiểm tra sức khỏe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-health-009
+    title: Kết hợp health check với cache và cập nhật danh sách
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instance-health-010
+    title: Mô phỏng bản sao lỗi rồi phục hồi để kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resttemplate
+  title: RestTemplate
+  childs:
+  - slug: resttemplate-001
+    title: Vai trò của RestTemplate trong hệ thống đang sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resttemplate-002
+    title: Khai báo RestTemplate có @LoadBalanced
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resttemplate-003
+    title: Phân biệt RestTemplate gọi tên dịch vụ và gọi URL trực tiếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resttemplate-004
+    title: LoadBalancerInterceptor và quá trình thay thế URI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resttemplate-005
+    title: Gửi path, query, header và body qua lời gọi có cân bằng tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resttemplate-006
+    title: Đọc response và ánh xạ lỗi HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resttemplate-007
+    title: Cấu hình request factory, timeout và connection pool
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resttemplate-008
+    title: Interceptor cho xác thực, ghi nhận và truyền ngữ cảnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resttemplate-009
+    title: Xử lý trường hợp không tìm thấy service ID hoặc bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resttemplate-010
+    title: Kiểm thử phân phối lời gọi giữa nhiều bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: restclient
+  title: RestClient
+  childs:
+  - slug: restclient-001
+    title: Mô hình gọi đồng bộ với RestClient
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: restclient-002
+    title: Điều kiện phiên bản hỗ trợ tích hợp Spring Cloud LoadBalancer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: restclient-003
+    title: Khai báo RestClient.Builder có @LoadBalanced
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: restclient-004
+    title: Tách builder có cân bằng tải và builder gọi URL trực tiếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: restclient-005
+    title: Tạo lời gọi theo tên dịch vụ với retrieve và exchange
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: restclient-006
+    title: Ánh xạ kiểu phản hồi, mã trạng thái và ngoại lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: restclient-007
+    title: Interceptor và request factory của RestClient
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: restclient-008
+    title: Cấu hình timeout và tái sử dụng kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: restclient-009
+    title: So sánh cách dùng RestClient và RestTemplate trong cùng kịch bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: restclient-010
+    title: Kiểm thử lời gọi và kiểm tra bản sao được chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webclient
+  title: WebClient
+  childs:
+  - slug: webclient-001
+    title: Mô hình reactive và luồng xử lý của WebClient
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webclient-002
+    title: Khai báo WebClient.Builder có @LoadBalanced
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webclient-003
+    title: ReactorLoadBalancerExchangeFilterFunction trong chuỗi filter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webclient-004
+    title: Gọi service ID và ánh xạ Mono hoặc Flux phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webclient-005
+    title: retrieve, exchangeToMono và xử lý mã trạng thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webclient-006
+    title: Truyền header, thông tin xác thực và Reactor Context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webclient-007
+    title: Lựa chọn HTTP connector và cấu hình connection pool
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webclient-008
+    title: Timeout, hủy đăng ký và tác động lên lời gọi đang chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webclient-009
+    title: Tránh block trên event-loop và tác vụ chặn luồng trong filter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webclient-010
+    title: Streaming, backpressure và vòng đời kết nối dài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webclient-011
+    title: Kiểm thử lời gọi reactive có cân bằng tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: openfeign
+  title: OpenFeign
+  childs:
+  - slug: openfeign-001
+    title: HTTP client khai báo với @FeignClient
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-002
+    title: Phụ thuộc OpenFeign, LoadBalancer và điều kiện tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-003
+    title: Phân biệt name, contextId, url và tên dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-004
+    title: Khi cấu hình URL trực tiếp làm thay đổi đường đi cân bằng tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-005
+    title: Ánh xạ path, query, header, body và kiểu phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-006
+    title: Spring MVC contract, Encoder và Decoder
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-007
+    title: RequestInterceptor và truyền ngữ cảnh người gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-008
+    title: ErrorDecoder và phân loại lỗi từ dịch vụ đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-009
+    title: Cấu hình riêng từng Feign client và tránh bean lan sang client khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-010
+    title: Lựa chọn HTTP transport và connection pool
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-011
+    title: 'Timeout và Retryer: kiểm tra hành vi mặc định thực tế'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-012
+    title: Giới hạn chặn luồng và định hướng sử dụng theo vòng đời thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-interfaces
+  title: HTTP Interface
+  childs:
+  - slug: http-interfaces-001
+    title: HTTP Service Interface và các annotation mô tả lời gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-002
+    title: HttpServiceProxyFactory và lớp adapter thực thi HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-003
+    title: Kết nối interface với RestClient hoặc WebClient đã cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-004
+    title: Điều kiện phiên bản và phạm vi tự cấu hình được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-005
+    title: Ánh xạ tham số, header, body và kiểu kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-006
+    title: Chọn cách gọi đồng bộ hoặc reactive phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-007
+    title: Đưa lời gọi qua LoadBalancer và kiểm chứng URI thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-interfaces-008
+    title: So sánh HTTP Interface với OpenFeign theo nhu cầu dự án
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: timeouts
+  title: Thời gian chờ
+  childs:
+  - slug: timeouts-001
+    title: Ngân sách thời gian từ yêu cầu đầu vào đến dịch vụ cuối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-002
+    title: Connect timeout, read timeout và response timeout
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-003
+    title: Thời gian chờ lấy kết nối từ pool
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-004
+    title: Thời gian tra cứu danh sách và thời gian chọn bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-005
+    title: Timeout của từng HTTP transport và sự khác biệt về ý nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-006
+    title: Thiết kế timeout cho chuỗi nhiều dịch vụ gọi nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-007
+    title: Phối hợp timeout với số lần retry và thời gian backoff
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-008
+    title: Truyền deadline và dừng công việc khi yêu cầu đã hết hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-009
+    title: Phân biệt timeout bên gọi với yêu cầu đã hoàn tất bên đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-010
+    title: Thực hành đo và phân loại từng loại thời gian chờ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retries
+  title: Gửi lại yêu cầu
+  childs:
+  - slug: retries-001
+    title: Khi nào retry có ích và khi nào làm tình hình xấu hơn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-002
+    title: Retry cùng bản sao và chuyển sang bản sao khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-003
+    title: Retry ở HTTP client, LoadBalancer và tầng nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-004
+    title: Điều kiện bật retry cho luồng blocking và reactive
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-005
+    title: Retryable status, ngoại lệ và giới hạn số lần thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-006
+    title: Phương thức HTTP được retry và rủi ro với thao tác ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-007
+    title: Backoff, jitter và giới hạn tổng ngân sách thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-008
+    title: Retry-aware supplier và tránh chọn lại bản sao vừa lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-009
+    title: Tránh retry nhân lên khi nhiều tầng cùng gửi lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-010
+    title: Tính lũy đẳng, khóa chống trùng và kết quả không xác định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-011
+    title: Khả năng phát lại request body, upload và streaming
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-012
+    title: Kiểm chứng thứ tự bản sao, số lần thử và kết quả cuối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: isolation-recovery
+  title: Cô lập và khôi phục
+  childs:
+  - slug: isolation-recovery-001
+    title: Phân biệt cân bằng tải, retry và circuit breaker
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-recovery-002
+    title: Khi mọi bản sao chậm dù vẫn có thể kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-recovery-003
+    title: Bulkhead và giới hạn số lời gọi đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-recovery-004
+    title: Rate limit, hàng đợi và kiểm soát áp lực lên dịch vụ đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-recovery-005
+    title: Tích hợp Spring Cloud Circuit Breaker ở ranh giới HTTP client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-recovery-006
+    title: Thứ tự retry, timeout, circuit breaker và bulkhead
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-recovery-007
+    title: Fallback phù hợp nghiệp vụ và tránh trả dữ liệu gây hiểu nhầm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-recovery-008
+    title: Phân biệt lỗi nghiệp vụ với lỗi dùng để đánh giá sức khỏe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-recovery-009
+    title: Khôi phục từng phần và tránh dồn tải vào bản sao còn sống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-recovery-010
+    title: Kịch bản lỗi lan truyền trong chuỗi giao tiếp dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connections-performance
+  title: Kết nối và hiệu năng
+  childs:
+  - slug: connections-performance-001
+    title: Tái sử dụng HTTP client và tránh tạo kết nối cho từng yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-performance-002
+    title: Giới hạn pool tổng thể và theo địa chỉ đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-performance-003
+    title: Ảnh hưởng của số bản sao đến số kết nối cần duy trì
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-performance-004
+    title: Keep-alive, idle timeout và dọn kết nối không còn hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-performance-005
+    title: HTTP/1.1, HTTP/2 và tác động tới cách sử dụng kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-performance-006
+    title: Giới hạn bộ nhớ khi đọc body, buffer và streaming
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-performance-007
+    title: Cân bằng giữa số luồng, mức đồng thời và khả năng bên đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-performance-008
+    title: Cold start, khởi tạo client và làm nóng kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-performance-009
+    title: Đo throughput, độ trễ phân vị và mức sử dụng tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-performance-010
+    title: Phân biệt nút thắt ở bên gọi, mạng và dịch vụ đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contracts-errors
+  title: Hợp đồng và lỗi
+  childs:
+  - slug: contracts-errors-001
+    title: Hợp đồng API và tương thích khi nhiều phiên bản cùng chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-errors-002
+    title: Quy ước mã lỗi, nội dung lỗi và correlation ID
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-errors-003
+    title: Phân biệt lỗi chọn bản sao, kết nối, giải mã và nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-errors-004
+    title: Ánh xạ ngoại lệ của từng HTTP client về mô hình ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-errors-005
+    title: Xử lý response rỗng, dữ liệu sai kiểu và content type không phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-errors-006
+    title: Giới hạn kích thước yêu cầu và phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-errors-007
+    title: Header nhiều giá trị, ký tự đặc biệt và mã hóa URI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-errors-008
+    title: Pagination, tải tệp và các lời gọi kéo dài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-errors-009
+    title: Định tuyến theo metadata khi triển khai nhiều phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-errors-010
+    title: Ranh giới giữa thử nghiệm canary và chính sách định tuyến đầy đủ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: communication-security
+  title: Bảo mật giao tiếp
+  childs:
+  - slug: communication-security-001
+    title: HTTPS và thông tin secure của ServiceInstance
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-002
+    title: Truststore, hostname verification và quản lý chứng chỉ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-003
+    title: mTLS và xác thực giữa các dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-004
+    title: Truyền access token và tích hợp OAuth2 theo loại HTTP client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-005
+    title: Phân biệt danh tính người dùng với danh tính dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-006
+    title: Chỉ chuyển tiếp những header được cho phép
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-007
+    title: Ngăn URL không tin cậy và nguy cơ SSRF ở bên gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-008
+    title: Bảo vệ metadata và nguồn danh sách bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-009
+    title: Ẩn token, cookie và dữ liệu nhạy cảm trong log
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-010
+    title: Làm mới chứng chỉ và thông tin xác thực khi ứng dụng đang chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: system-observability-001
+    title: Log định danh dịch vụ, bản sao và kết quả lời gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-002
+    title: Correlation ID, trace ID và truyền ngữ cảnh qua HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-003
+    title: Micrometer Observation và điểm tích hợp của từng HTTP client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-004
+    title: LoadBalancerLifecycle và thu thập kết quả lựa chọn bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-005
+    title: Metrics theo dịch vụ, kết quả, độ trễ và số lần retry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-006
+    title: Kiểm soát độ phân tán nhãn để tránh quá nhiều chuỗi metric
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-007
+    title: Tách thời gian chọn đích khỏi thời gian kết nối và xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-008
+    title: Quan sát phân phối tải mà không suy diễn từ vài yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-009
+    title: Dashboard cho lỗi, timeout, pool và bản sao không khả dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-010
+    title: Kiểm tra mất trace khi đổi luồng hoặc dùng reactive pipeline
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-loadbalancer
+  title: Tùy biến LoadBalancer
+  childs:
+  - slug: custom-loadbalancer-001
+    title: Tiêu chí chọn cấu hình có sẵn hay viết thành phần riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-loadbalancer-002
+    title: Viết ServiceInstanceListSupplier cho nguồn bản sao riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-loadbalancer-003
+    title: Viết ReactorServiceInstanceLoadBalancer và hợp đồng chọn đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-loadbalancer-004
+    title: Đọc ngữ cảnh yêu cầu để chọn bản sao phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-loadbalancer-005
+    title: Xử lý danh sách rỗng và bảo đảm fallback có chủ đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-loadbalancer-006
+    title: Tính an toàn khi truy cập đồng thời và vòng đời trạng thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-loadbalancer-007
+    title: Tránh I/O chặn luồng trong quá trình lựa chọn reactive
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-loadbalancer-008
+    title: Biến đổi yêu cầu sau khi chọn đích với request transformer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-loadbalancer-009
+    title: Đăng ký tùy biến theo service ID mà không thay toàn hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-loadbalancer-010
+    title: Kiểm thử tính đúng, độ công bằng và chi phí thuật toán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automated-testing
+  title: Kiểm thử tự động
+  childs:
+  - slug: automated-testing-001
+    title: Phân chia unit test, integration test và kiểm thử tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-002
+    title: Giả lập ServiceInstance và danh sách bản sao xác định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-003
+    title: Kiểm thử thuật toán mà không phụ thuộc thứ tự ngẫu nhiên tình cờ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-004
+    title: Kiểm thử chuỗi supplier, cache, vùng và health check
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-005
+    title: Dựng nhiều HTTP server giả với WireMock hoặc MockWebServer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-006
+    title: Kiểm thử RestTemplate, RestClient, WebClient và Feign theo cùng hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-007
+    title: Kiểm thử retry có giới hạn và số lần bên đích thực nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-008
+    title: Kiểm thử timeout, kết nối bị ngắt và phản hồi chậm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-009
+    title: Kiểm thử reactive bằng StepVerifier và kiểm soát thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-010
+    title: Kiểm thử cấu hình riêng từng service ID và ngữ cảnh con
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-011
+    title: Kiểm tra tích hợp discovery thực bằng môi trường cô lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-012
+    title: Giữ test ổn định khi chạy song song và khi danh sách thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Dựng bên gọi và ba bản sao trả về định danh riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: So sánh URL cố định với gọi bằng tên dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Đối chiếu round-robin và random qua tập yêu cầu đủ lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Thêm và gỡ bản sao trong khi hệ thống đang nhận tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Mô phỏng một bản sao chậm, lỗi hoặc ngừng kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: So sánh retry cùng bản sao và chuyển bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Thực hành vùng ưu tiên, trọng số và hint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Quan sát cache cũ và độ trễ phát hiện thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Thử sticky session khi bản sao được ưu tiên bị mất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Đo tác động của timeout và giới hạn pool
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-011
+    title: Tổng hợp log, metrics, trace và đối chiếu kết quả thực nghiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment
+  title: Triển khai
+  childs:
+  - slug: deployment-001
+    title: Địa chỉ quảng bá và địa chỉ kết nối được trong từng môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-002
+    title: Container hostname, cổng nội bộ và cổng ánh xạ ra máy chủ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-003
+    title: Dùng discovery hoặc danh sách tĩnh trong Docker Compose
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-004
+    title: Kubernetes Service, headless Service và lựa chọn điểm cân bằng tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-005
+    title: Gateway, ingress, service mesh và vai trò của LoadBalancer bên gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-006
+    title: Tránh cấu hình nhiều lớp cân bằng tải với kỳ vọng sai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-007
+    title: Readiness, graceful shutdown và ngừng nhận yêu cầu mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-008
+    title: Rolling update, thu hẹp số bản sao và yêu cầu đang xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-009
+    title: Quản lý cấu hình theo môi trường và bí mật kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-010
+    title: Triển khai canary và kiểm chứng phân phối trước khi mở rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Không có bản sao khả dụng: kiểm tra từ nguồn danh sách đến bộ lọc'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: 'Tên dịch vụ bị phân giải như DNS: tìm lỗi tích hợp client'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: URL trực tiếp làm bỏ qua LoadBalancer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: 'Yêu cầu dồn vào một bản sao: kiểm tra cache, sticky và thuật toán'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Kết nối thất bại dù discovery vẫn báo bản sao tồn tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Health check loại hết bản sao hoặc không phát hiện bản sao mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Cấu hình theo client không có hiệu lực hoặc áp dụng nhầm dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Retry quá mức gây yêu cầu trùng và tăng tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Pool cạn, event-loop bị chặn và độ trễ tăng cao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Lỗi URI, TLS, token hoặc header sau khi thay địa chỉ đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Mất trace hoặc thiếu metrics trong đường gọi có cân bằng tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Quy trình tái hiện lỗi tối thiểu và thu thập bằng chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compatibility-upgrades
+  title: Tương thích và nâng cấp
+  childs:
+  - slug: compatibility-upgrades-001
+    title: Phân biệt Ribbon cũ với Spring Cloud LoadBalancer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-upgrades-002
+    title: Nhận diện cấu hình Ribbon, Hystrix và Zuul còn sót trong dự án
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-upgrades-003
+    title: Chuyển cấu hình chọn đích và timeout sang đúng thành phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-upgrades-004
+    title: Đối chiếu retry mặc định khi đổi thư viện hoặc Release Train
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-upgrades-005
+    title: Thay RestTemplate bằng RestClient theo từng đường gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-upgrades-006
+    title: Đánh giá OpenFeign và HTTP Service Interface cho nhu cầu mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-upgrades-007
+    title: Kiểm tra thay đổi HTTP transport và connection pool sau nâng cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-upgrades-008
+    title: Kiểm thử hồi quy cấu hình, lỗi, metrics và phân phối tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-upgrades-009
+    title: Kế hoạch chuyển đổi từng phần và tiêu chí quay lại cấu hình trước
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-choices
+  title: Lựa chọn thiết kế
+  childs:
+  - slug: design-choices-001
+    title: Chọn RestTemplate, RestClient, WebClient, Feign hay HTTP Interface
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-choices-002
+    title: Chọn cân bằng tải phía máy khách hay dựa vào hạ tầng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-choices-003
+    title: Chọn nguồn bản sao, cache và chiến lược sức khỏe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-choices-004
+    title: Chọn thuật toán theo mức đồng đều và đặc điểm yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-choices-005
+    title: Thiết kế chính sách timeout, retry và cô lập nhất quán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-choices-006
+    title: Nhận diện chuỗi gọi quá dài và giao tiếp quá nhiều
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-choices-007
+    title: Khi nên dùng xử lý theo lô, cache nghiệp vụ hoặc giao tiếp bất đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-choices-008
+    title: Đánh giá độ phức tạp vận hành so với lợi ích tùy biến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-choices-009
+    title: Checklist thiết kế, kiểm thử và vận hành lời gọi dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-choices-010
+    title: Bài tập thiết kế hệ thống kèm tiêu chí đánh giá lựa chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

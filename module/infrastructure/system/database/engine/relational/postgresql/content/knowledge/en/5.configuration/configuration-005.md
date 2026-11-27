@@ -1,0 +1,1011 @@
+# ALTER SYSTEM and Managing postgresql.auto.conf in PostgreSQL
+
+When administering PostgreSQL, many configuration changes start from practical needs: logging slow queries, adjusting connection limits, tuning memory, or enabling features for replication. You can edit the `postgresql.conf` file, yet PostgreSQL also provides the **`ALTER SYSTEM`** SQL statement to manage instance-wide settings.
+
+The crucial point is that **`ALTER SYSTEM` is not simply another version of `SET`**. It writes configuration to the **`postgresql.auto.conf`** file, applying to the **entire PostgreSQL instance/database cluster**, not just the currently connected database. Values only take effect when PostgreSQL reloads its configuration or restarts, depending on the parameter type. And although invoked from SQL, this change **is not inside a transaction that can be rolled back with `ROLLBACK`**.
+
+This lesson explains the storage mechanism, precedence order, syntax, operation privileges, and application lifecycle of `ALTER SYSTEM`; demonstrates how to inspect settings using `pg_settings` and `pg_file_settings`; and establishes a verifiable and recoverable change workflow. Examples target **modern PostgreSQL (especially versions 15–18)** on a test instance with administrative privileges. When operating a specific version or managed service, verify the provider's supported features and configuration policies.
+
+## 1. Why Does PostgreSQL Have Multiple Configuration Locations?
+
+PostgreSQL has many **runtime configuration parameters**, commonly called **GUC** (*Grand Unified Configuration*). Each parameter has a name, type, unit, default value, and rules governing **who can change it, at what scope, and when it takes effect**.
+
+Examples:
+
+~~~sql
+SHOW max_connections;
+SHOW shared_buffers;
+SHOW work_mem;
+SHOW log_min_duration_statement;
+~~~
+
+Values do not necessarily all come from the same file:
+
+- Built-in default values provided by PostgreSQL.
+- Configuration in `postgresql.conf` and files loaded via `include`.
+- Values written to `postgresql.auto.conf` by `ALTER SYSTEM`.
+- Server startup command options, such as `postgres -c name=value`.
+- Default settings per database or role via `ALTER DATABASE` / `ALTER ROLE`.
+- Changes in a session via `SET` or inside a transaction via `SET LOCAL`.
+
+Therefore, if you see `work_mem = 32MB` in `postgresql.conf` while an application reports receiving `64MB`, do not jump to the conclusion that PostgreSQL "read the wrong file." There may be an override from `postgresql.auto.conf`, the startup command, a database/role default, or the active session.
+
+### Configuration Source Diagram
+
+~~~mermaid
+flowchart TD
+    A["PostgreSQL built-in defaults"] --> B["postgresql.conf<br/>and included files"]
+    B --> C["postgresql.auto.conf<br/>ALTER SYSTEM"]
+    C --> D["Server startup -c / --parameter"]
+    D --> E["Database / role defaults<br/>if parameter permits"]
+    E --> F["Session or transaction settings<br/>SET / SET LOCAL"]
+    F --> G["Value in use by backend"]
+    H["pg_settings"] -. "inspect value / source / context" .-> G
+    I["pg_file_settings"] -. "inspect file contents" .-> B
+    I -. "inspect file contents" .-> C
+~~~
+
+The diagram illustrates **override layers where applicable**, not that every parameter can be changed at every layer. For example, `max_connections` requires a restart and cannot be changed with `SET` by an application session, whereas `work_mem` can be set per session. Ordering among database, role, and database–role pair settings follows specific rules; inspect the current source via `pg_settings` when verification is needed.
+
+## 2. How Are postgresql.conf and postgresql.auto.conf Related?
+
+### 2.1. postgresql.conf: The Standard Administrative Configuration File
+
+`postgresql.conf` is the main configuration file. Depending on how PostgreSQL is packaged, it may reside inside the data directory or in a configuration location outside the data directory.
+
+Example contents:
+
+~~~ini
+# Example configuration
+max_connections = 100
+shared_buffers = 256MB
+log_min_duration_statement = 1000
+
+include_dir = 'conf.d'
+~~~
+
+PostgreSQL can read files declared via `include`, `include_if_exists`, and `include_dir`. With multiple definitions for the same parameter across that file chain, a value processed later can override an earlier one.
+
+To ask the server where it is reading the main file from:
+
+~~~sql
+SHOW config_file;
+~~~
+
+Do not assume `postgresql.conf` always resides at `/var/lib/postgresql/data` just because a container example uses that path. In some Linux distributions/packages, the main configuration file lives outside the data directory.
+
+### 2.2. postgresql.auto.conf: The File Containing Configuration from ALTER SYSTEM
+
+`postgresql.auto.conf` is placed inside the **PostgreSQL instance's data directory**, typically identified via:
+
+~~~sql
+SHOW data_directory;
+~~~
+
+Illustrative contents:
+
+~~~ini
+# Do not edit this file manually!
+# It will be overwritten by the ALTER SYSTEM command.
+log_min_duration_statement = '500ms'
+work_mem = '16MB'
+~~~
+
+The lines above are illustrative only; quoting format and how values are normalized in the file may differ across parameters and versions.
+
+Unlike `postgresql.conf`, which is edited directly by an administrator or configuration tool, `postgresql.auto.conf` **is maintained by PostgreSQL via `ALTER SYSTEM`**. When reading configuration, a parameter value in `postgresql.auto.conf` typically **overrides a setting of the same name in `postgresql.conf` and included files**. However, server startup options and other scoped overrides can still take higher precedence.
+
+### 2.3. Why Shouldn't You Edit postgresql.auto.conf Directly?
+
+Because `ALTER SYSTEM` manages this file and can rewrite its contents, editing it manually while the server is running can cause:
+
+1. **Lost changes:** a subsequent `ALTER SYSTEM` command may overwrite the file with different contents than expected.
+2. **Conflicts with configuration management tools:** both humans and automation editing the file.
+3. **Difficult auditing:** uncertainty about which settings came from SQL versus deployment.
+4. **Configuration errors:** syntax mistakes or invalid values from manual edits causing reload not to apply as intended.
+
+For self-managed instances, a sound rule is **let `ALTER SYSTEM` manage `postgresql.auto.conf`**. If the infrastructure uses a dedicated configuration management tool (Ansible, a Kubernetes operator, a managed service, etc.), adhere to **a single authoritative source of configuration**. PostgreSQL provides the `allow_alter_system` parameter to disable use of the `ALTER SYSTEM` command in such environments; this is a safeguard against workflow conflicts, **not a security boundary replacing restrictions on superuser privileges**.
+
+## 3. What Does ALTER SYSTEM Actually Do?
+
+Three basic forms:
+
+~~~sql
+ALTER SYSTEM SET configuration_parameter = value;
+
+ALTER SYSTEM RESET configuration_parameter;
+
+ALTER SYSTEM RESET ALL;
+~~~
+
+In addition to `=`, the `SET parameter TO value` syntax is also supported.
+
+| Statement | Effect on postgresql.auto.conf | Immediate Effect on Current Backend |
+| --- | --- | --- |
+| `ALTER SYSTEM SET p = v` | Writes/updates the override for parameter `p` to `v` | **Not guaranteed to take effect immediately**; usually requires reload or restart |
+| `ALTER SYSTEM RESET p` | Removes the override for `p` managed by `ALTER SYSTEM` | Effective value may change after reload/restart, falling back to a lower configuration layer |
+| `ALTER SYSTEM SET p = DEFAULT` | Equivalent to removing the override for `p` | Does not reset the entire instance immediately |
+| `ALTER SYSTEM RESET ALL` | Removes **all** overrides in the file managed by `ALTER SYSTEM` | Very broad; requires corresponding reload/restart and can affect many parameters |
+
+**Key distinction to remember:** `ALTER SYSTEM SET` **writes the change to disk**, whereas applying it at runtime is a separate step. If the parameter belongs to the restart-required group, a reload is not enough.
+
+### 3.1. Example: Changing a Logging Parameter in a Lab Environment
+
+Suppose you want to log SQL statements that run longer than **500 milliseconds**:
+
+~~~sql
+ALTER SYSTEM SET log_min_duration_statement = '500ms';
+~~~
+
+This writes the override into `postgresql.auto.conf`. Next, to instruct the server to re-read configuration:
+
+~~~sql
+SELECT pg_reload_conf();
+~~~
+
+Then verify:
+
+~~~sql
+SHOW log_min_duration_statement;
+~~~
+
+The commands are presented in three steps so learners clearly see: **write configuration → request reload → verify**. `pg_reload_conf()` returns `true` if signaling the reload request succeeded; that result **does not guarantee** every parameter has already been validly applied the moment the function returns. Re-check with a query after the server processes the reload and inspect the logs if needed.
+
+The `log_min_duration_statement` parameter can generate **logs containing SQL statement text** when slow queries exceed the threshold. In production, you must consider log volume, disk space, log read permissions, and the risk of exposing sensitive data in SQL literals. The 500 ms example is only a lab value, not a general recommended threshold.
+
+### 3.2. Reverting the Override You Just Created
+
+~~~sql
+ALTER SYSTEM RESET log_min_duration_statement;
+
+SELECT pg_reload_conf();
+
+SHOW log_min_duration_statement;
+~~~
+
+`RESET` removes the override in `postgresql.auto.conf`. The resulting value depends on remaining active configuration, such as `postgresql.conf`, startup commands, or database/role/session settings. It **does not necessarily** become PostgreSQL's factory default.
+
+If a session previously ran `SET log_min_duration_statement = ...`, that session's value may continue to differ from the global setting even after reload. A reliable way to observe the new default is to open a **new connection** and inspect `pg_settings`, while also checking other override layers.
+
+## 4. Important Characteristic: ALTER SYSTEM Is Not Transactional
+
+Some PostgreSQL DDL statements can run inside a transaction and be rolled back. However, `ALTER SYSTEM` **is not permitted inside a transaction block or function** because it modifies a server-wide configuration file rather than transactional data.
+
+An **intentionally invalid** example:
+
+~~~sql
+BEGIN;
+
+ALTER SYSTEM SET log_min_duration_statement = '500ms';
+-- ERROR: ALTER SYSTEM cannot run inside a transaction block
+
+ROLLBACK;
+~~~
+
+In `psql`, when a statement errors inside a transaction, the transaction enters an aborted state until `ROLLBACK`. More importantly, **no successful `ALTER SYSTEM` operation occurred to roll back with that command**.
+
+Another scenario:
+
+~~~sql
+ALTER SYSTEM SET log_min_duration_statement = '500ms';
+
+ROLLBACK;
+~~~
+
+If the first statement runs successfully outside a transaction, a subsequent `ROLLBACK` does not erase the override line written to disk. With `psql`'s default autocommit behavior, the file modification has already occurred independently of opening/closing SQL transactions afterward.
+
+Therefore, do not put `ALTER SYSTEM` into migration scripts that wrap all SQL inside `BEGIN ... COMMIT` or a transaction-managed framework without a separate step. Before changing production configuration, have a **rollback plan using `ALTER SYSTEM RESET` or `SET` to the previous value**, plus the appropriate reload or restart.
+
+### 4.1. ALTER SYSTEM Scope Is Instance-Wide
+
+~~~text
+PostgreSQL instance
+    |
+    +-- Database app_dev
+    +-- Database app_reporting
+    +-- Database app_prod_like
+    |
+    +-- postgresql.auto.conf
+          |
+          +-- ALTER SYSTEM SET ...
+               affects instance-wide defaults
+~~~
+
+Connecting to database `app_dev` and running `ALTER SYSTEM SET work_mem = '16MB'` **does not** modify only that database. Once in effect, the adjustment applies server-wide except where overridden at a higher valid layer. If you want to change defaults per database or role, look at `ALTER DATABASE ... SET` or `ALTER ROLE ... SET`—do not use `ALTER SYSTEM` simply because you are currently connected to that database.
+
+## 5. Reload or Restart? Rely on Each Parameter's Context
+
+PostgreSQL stores each GUC's `context` in the `pg_settings` view. This is more reliable than guessing from parameter names.
+
+~~~sql
+SELECT
+    name,
+    setting,
+    unit,
+    context,
+    source,
+    pending_restart
+FROM pg_settings
+WHERE name IN (
+    'log_min_duration_statement',
+    'work_mem',
+    'shared_buffers',
+    'max_connections',
+    'wal_level'
+)
+ORDER BY name;
+~~~
+
+Main `context` categories:
+
+| Context | Meaning | How Changes Take Effect |
+| --- | --- | --- |
+| `internal` | Internal value; cannot be set directly via normal configuration | Do not use `ALTER SYSTEM SET` for read-only parameters like these |
+| `postmaster` | Can only be applied at server startup | **Restart PostgreSQL** after writing configuration |
+| `sighup` | Can change when the server receives a configuration reload request | **Reload** without restarting |
+| `backend` | Configuration can be reloaded, yet existing backends cannot change mid-session | Reload and **open a new connection** so it applies to the new backend |
+| `superuser-backend` | Similar to `backend`, requiring higher privileges for session-related settings | Reload and open a new connection |
+| `superuser` | Can be set in files or in a session with appropriate privileges | Reload for file values; session `SET` has its own rules |
+| `user` | Can be set in a session by regular users and via files | Reload for file defaults; `SET` for sessions |
+
+When a change takes effect is also influenced by existing overrides. For `context = user`, if a session has already run `SET` for a value, a reload does not necessarily change that session's value; the session setting has higher precedence.
+
+### 5.1. Example of a Reloadable Parameter
+
+`log_min_duration_statement` is a parameter that supports adjustment on configuration reload:
+
+~~~sql
+SELECT name, context, setting
+FROM pg_settings
+WHERE name = 'log_min_duration_statement';
+~~~
+
+Once `ALTER SYSTEM SET` succeeds and SIGHUP is received, the change becomes visible in backends unless shadowed by a specific override layer.
+
+### 5.2. Example of a Restart-Required Parameter
+
+`max_connections` and `shared_buffers` normally have `context = postmaster`:
+
+~~~sql
+SELECT
+    name, context, setting, pending_restart
+FROM pg_settings
+WHERE name IN ('max_connections', 'shared_buffers');
+~~~
+
+A command such as:
+
+~~~sql
+-- Illustrative LAB example; do not run blindly in production:
+ALTER SYSTEM SET max_connections = 150;
+
+SELECT pg_reload_conf();
+~~~
+
+will record `max_connections = 150` in the configuration file, yet the runtime value **remains the old value** until PostgreSQL is restarted. After the server processes the reload, `pg_settings.pending_restart` normally indicates that the setting is waiting for a restart.
+
+Changing `max_connections` affects resources, memory, and connection capacity; do not pick 150 merely because an application reports running out of connections. Measure active sessions, pooling behavior, reserved slots, and actual workload, then plan a controlled restart.
+
+### 5.3. Pending Restart Can Be Misunderstood
+
+Suppose:
+
+~~~text
+In postgresql.auto.conf: max_connections = 150
+Running server:          max_connections = 100
+pg_settings.pending_restart = true
+~~~
+
+This **does not mean PostgreSQL ignored the file due to an error**. It indicates a difference between the written configuration and the active runtime value, and that the parameter requires a restart to take effect.
+
+In HA systems or managed services, a restart can trigger a role switchover or connection disruption. Follow the runbook and monitor related instances rather than treating reload and restart as equivalent operations.
+
+## 6. Finding the File, Value Source, and Why Configuration Didn't Apply
+
+Two important views serve distinct purposes:
+
+- **`pg_settings`:** shows the **runtime value observed by the current session**, GUC metadata, source, and restart requirements.
+- **`pg_file_settings`:** shows the **current contents of parsed configuration files**, line locations, order, and application issues. It is not a guaranteed snapshot of every value currently active in a backend.
+
+### 6.1. Inspecting pg_settings
+
+~~~sql
+SELECT
+    name,
+    setting,
+    unit,
+    vartype,
+    context,
+    source,
+    sourcefile,
+    sourceline,
+    pending_restart
+FROM pg_settings
+WHERE name IN (
+    'log_min_duration_statement',
+    'work_mem',
+    'max_connections'
+)
+ORDER BY name;
+~~~
+
+Interpretation:
+
+| Column | Question It Answers |
+| --- | --- |
+| `name` | Which parameter? |
+| `setting` | What is the current value of the parameter in this session? |
+| `unit` | What is the implicit unit of the value? |
+| `vartype` | Boolean, string, integer, real, or enum? |
+| `context` | When and by whom can it be changed? |
+| `source` | Which layer did the value come from, e.g., default, configuration file, command line, session...? |
+| `sourcefile` | File supplying the current value, if the source is a file and the role has permission to see it |
+| `sourceline` | Line number in that file |
+| `pending_restart` | Is there a pending change requiring a restart? |
+
+An illustrative row:
+
+~~~text
+name                         setting  unit  context    source              pending_restart
+log_min_duration_statement   500      ms    superuser  configuration file  false
+~~~
+
+The numbers and source in the illustrative output **are not guaranteed results**; role/session and specific configuration determine the actual output.
+
+`sourcefile` and `sourceline` may appear as `NULL` if the parameter does not derive its value from a file or the role lacks privileges to view file paths; superuser or appropriate settings-read privilege such as `pg_read_all_settings` is typically needed to see these details.
+
+### 6.2. Inspecting Entries from postgresql.auto.conf
+
+~~~sql
+SELECT
+    sourcefile,
+    sourceline,
+    seqno,
+    name,
+    setting,
+    applied,
+    error
+FROM pg_file_settings
+WHERE sourcefile LIKE '%postgresql.auto.conf'
+ORDER BY seqno;
+~~~
+
+`pg_file_settings` is normally restricted to superusers by default because it can expose file paths and configuration details. It reflects **entries currently present in the files**, not necessarily when the server last reloaded.
+
+Columns:
+
+| Column | Role |
+| --- | --- |
+| `sourcefile` | Path to the file containing the configuration entry |
+| `sourceline` | Line number |
+| `seqno` | Parse sequence order across files |
+| `name`, `setting` | Parameter name and value written in the file |
+| `applied` | Whether the configuration entry could be applied in the reported processing sequence |
+| `error` | Error message if any |
+
+**`applied = false` is not always an error.** A value may have been overridden by an entry appearing later, in which case `error` can be `NULL`. Conversely, if a file contains a syntax error or invalid parameter name, parsing and applying entries can fail; inspect the specific rows with `error` populated.
+
+### 6.3. Finding Errors in Configuration Files
+
+~~~sql
+SELECT
+    sourcefile,
+    sourceline,
+    name,
+    setting,
+    applied,
+    error
+FROM pg_file_settings
+WHERE error IS NOT NULL
+ORDER BY seqno;
+~~~
+
+This query helps diagnose why a reload did not produce the expected outcome. However, it only reads configuration currently on disk; if a file was edited after the most recent reload, **`pg_file_settings` results and runtime values may not match yet**.
+
+For production systems, combine this with server logs and inspect `pg_settings` after reload/restart. Do not merely check `error IS NULL` and conclude that all changes are already active.
+
+### 6.4. Viewing All Settings Currently Requiring a Restart
+
+~~~sql
+SELECT
+    name,
+    setting,
+    context,
+    source,
+    pending_restart
+FROM pg_settings
+WHERE pending_restart = TRUE
+ORDER BY name;
+~~~
+
+If this query returns rows, it signals the need to plan a restart or revert the pending change. **Do not immediately reboot a production server just to clear this list** without understanding impact, dependencies, and HA policies.
+
+## 7. Precedence: Why Doesn't auto.conf Always Win?
+
+Baseline rules:
+
+1. Within configuration files, `postgresql.auto.conf` is read last and overrides settings of the same name from `postgresql.conf`/includes.
+2. Server startup options `-c name=value` can take **higher precedence** than file configuration, including `postgresql.auto.conf`.
+3. Valid settings from `ALTER DATABASE` and `ALTER ROLE` can establish different defaults for new sessions.
+4. Session `SET`, or transaction `SET LOCAL`, can override defaults within their respective scopes if `context` allows.
+
+An example:
+
+~~~ini
+# postgresql.conf
+work_mem = '8MB'
+~~~
+
+Then the administrator runs:
+
+~~~sql
+ALTER SYSTEM SET work_mem = '16MB';
+SELECT pg_reload_conf();
+~~~
+
+Without a higher override layer, the instance default becomes **16MB**, even though `postgresql.conf` still says 8MB.
+
+Yet if an application session executes:
+
+~~~sql
+SET work_mem = '32MB';
+SHOW work_mem;
+-- 32MB in this session.
+~~~
+
+the session continues to observe 32MB. Afterward:
+
+~~~sql
+RESET work_mem;
+SHOW work_mem;
+~~~
+
+Running `RESET work_mem` in a session **does not delete the line in `postgresql.auto.conf`**; it returns the session's setting to its default according to active layers.
+
+### 7.1. ALTER ROLE/ALTER DATABASE Differ from ALTER SYSTEM
+
+~~~sql
+-- Affects defaults for new connections to a specific database:
+ALTER DATABASE analytics_db SET work_mem = '32MB';
+
+-- Affects defaults for new connections of a specific role:
+ALTER ROLE report_user SET statement_timeout = '30s';
+~~~
+
+These statements are **examples that modify real database/role metadata**; run them only if those objects exist and you have appropriate privileges. Unlike `ALTER SYSTEM`, they set scoped defaults that typically take effect for **new sessions**. A connection pool holding older sessions may not immediately pick up the new defaults.
+
+When reverting to the previous configuration:
+
+~~~sql
+ALTER DATABASE analytics_db RESET work_mem;
+ALTER ROLE report_user RESET statement_timeout;
+~~~
+
+A database/role default can also be overridden by session settings. Do not just read configuration files and guess the timeout used by every application.
+
+### 7.2. Why Does Managed PostgreSQL Behave Differently?
+
+A managed PostgreSQL service may use parameter groups, operators, or orchestration mechanisms to manage configuration. In such cases:
+
+- `ALTER SYSTEM` may be blocked, or the account may lack the required privileges.
+- Certain parameters may be disallowed from SQL modification.
+- Changes must be declared in the infrastructure management layer rather than inside the instance.
+- Restarts or configuration applications may follow provider-orchestrated workflows.
+
+Principle: **never try to bypass administrative boundaries with manual file writes**. If a parameter is restricted, use the official interface and workflow for that environment.
+
+## 8. ALTER SYSTEM Privileges and Operational Limits
+
+`ALTER SYSTEM` modifies **instance-wide configuration**, so it requires much higher privileges than an ordinary `SET` command.
+
+In modern PostgreSQL, this operation is permitted for a **superuser** or a role granted the **`ALTER SYSTEM` privilege on a specific parameter**. Granular privilege capabilities depend on the PostgreSQL version; consult the documentation for the exact server version.
+
+Example for environments with appropriate privilege policies:
+
+~~~sql
+-- Illustrative only for administrators holding GRANT rights:
+GRANT ALTER SYSTEM ON PARAMETER log_min_duration_statement
+TO ops_configurator;
+~~~
+
+This example does not grant permission to modify every other parameter. Nor does it mean role `ops_configurator` automatically can reload/restart the server or read all configuration details; each operation has its own privilege requirements and procedures.
+
+### 8.1. Parameters That Cannot Be Modified via ALTER SYSTEM
+
+Not every parameter shown in `pg_settings` can be set via `ALTER SYSTEM`.
+
+Examples:
+
+- `data_directory` cannot be configured via `ALTER SYSTEM`.
+- Parameters in the `internal` group or disallowed in `postgresql.conf` cannot be set arbitrarily.
+- `allow_alter_system` is managed through `postgresql.conf` or startup commands per applicable rules, **never via `ALTER SYSTEM SET allow_alter_system = off`**.
+
+You can inspect:
+
+~~~sql
+SELECT name, setting, context
+FROM pg_settings
+WHERE name IN (
+    'data_directory',
+    'allow_alter_system',
+    'max_connections'
+);
+~~~
+
+An invalid `ALTER SYSTEM` statement returns an error rather than writing configuration. Never run a series of random trial commands in production just to "discover whether it can be edited."
+
+### 8.2. What Does allow_alter_system = off Mean?
+
+An environment using centralized configuration management might set in `postgresql.conf`:
+
+~~~ini
+allow_alter_system = off
+~~~
+
+According to modern PostgreSQL documentation, this setting **prevents execution of the `ALTER SYSTEM` command**, yet **does not invalidate values already present in `postgresql.auto.conf`**. At the same time, it is not considered a security barrier against superusers; superusers have stronger instance-level administrative capabilities.
+
+This setting is useful for preventing operators from inadvertently changing configuration outside the centralized management system. When applying it in a real environment, understand the deployment pipeline, which tool owns the files, and when configuration is reloaded.
+
+## 9. A Controlled Configuration Change Workflow
+
+Changing `ALTER SYSTEM` on a production server should be treated as an **operational change**, not a harmless SQL statement.
+
+### Step 1 — Verify the Instance, Version, and Parameters
+
+~~~sql
+SELECT
+    current_database() AS database_name,
+    current_user AS role_name,
+    inet_server_addr() AS server_address,
+    inet_server_port() AS server_port,
+    current_setting('server_version') AS postgres_version,
+    pg_postmaster_start_time() AS server_started_at;
+
+SHOW config_file;
+SHOW data_directory;
+~~~
+
+This information helps confirm the target. `inet_server_addr()` can return `NULL` when using Unix-domain sockets; in environments with proxies or load balancers, the actual endpoint should also be confirmed at the infrastructure layer. **Looking solely at the database name is not enough** to be sure you have not connected to production by mistake.
+
+### Step 2 — Capture the Current Value and Source
+
+~~~sql
+SELECT
+    name,
+    setting,
+    unit,
+    context,
+    source,
+    sourcefile,
+    sourceline,
+    pending_restart
+FROM pg_settings
+WHERE name = 'log_min_duration_statement';
+~~~
+
+Record the output in a change ticket or **protected** deployment log. For sensitive parameters, avoid writing raw secret values into inappropriate logs. Knowing whether an override currently exists in `auto.conf` helps choose the right rollback method.
+
+### Step 3 — Identify Impact and Application Conditions
+
+Before making changes:
+
+- Is `context` `sighup`, `postmaster`, or another category?
+- Is a connection-disrupting restart required?
+- What is the expected resource or performance difference?
+- Are there standbys, failover setups, connection pools, or dependent tooling?
+- Could a configuration management tool overwrite the change?
+- Who approves and who monitors after application?
+
+For logging parameters, estimate log generation rate and disk capacity; for `max_connections`, evaluate memory and pools; for `shared_buffers`, evaluate RAM, OS page cache, and restart plans.
+
+### Step 4 — Write a Small, Targeted Change
+
+~~~sql
+-- Only on a LAB instance or after formal approval:
+ALTER SYSTEM SET log_min_duration_statement = '750ms';
+~~~
+
+Do not change multiple parameters at once without good reason: one change at a time makes it clear which parameter caused any observed difference.
+
+### Step 5 — Apply via Reload or Restart
+
+For reloadable parameters:
+
+~~~sql
+SELECT pg_reload_conf();
+~~~
+
+For `context = postmaster`, schedule a restart through the appropriate service manager or HA runbook. Never restart a production primary merely because `ALTER SYSTEM SET` returned "ALTER SYSTEM."
+
+### Step 6 — Verify the Effective Value
+
+~~~sql
+SELECT
+    name,
+    setting,
+    unit,
+    source,
+    sourcefile,
+    pending_restart
+FROM pg_settings
+WHERE name = 'log_min_duration_statement';
+
+SELECT
+    sourcefile,
+    name,
+    setting,
+    applied,
+    error
+FROM pg_file_settings
+WHERE name = 'log_min_duration_statement'
+ORDER BY seqno;
+~~~
+
+When necessary, reconnect with a fresh session to rule out local overrides or contexts that only take effect at backend initialization. Check server logs for any rejected configuration messages.
+
+### Step 7 — Observe the System After the Change
+
+Depending on the parameter, monitor:
+
+- Log volume, file size, and disk write rate.
+- CPU, RAM, I/O latency, connection count, and query states.
+- Slow query rate, lock waits, and impact on application latency.
+- Replication/standby health if the parameter affects topology.
+- Configuration management alerts if drift is detected.
+
+Seeing `SHOW parameter` return the new value only proves **part** of the change took effect—it does not prove the new setting benefits the workload.
+
+### Step 8 — Revert with an Explicit Configuration Action
+
+To remove the override just created:
+
+~~~sql
+ALTER SYSTEM RESET log_min_duration_statement;
+SELECT pg_reload_conf();
+~~~
+
+If the goal is to return to a **previous value set by `ALTER SYSTEM`**, rather than removing the override altogether, use `ALTER SYSTEM SET ...` with the previously recorded value. If the parameter requires a restart, reverting may also require another restart.
+
+Never rely on `ROLLBACK` to undo a successful `ALTER SYSTEM` change.
+
+## 10. Common Diagnostic Scenarios
+
+### 10.1. ALTER SYSTEM Succeeded Yet SHOW Still Shows the Old Value
+
+Possible causes:
+
+1. `pg_reload_conf()` was not called yet, or the server has not processed the reload.
+2. The parameter has `context = postmaster` and `pending_restart = true`.
+3. The current session has its own `SET`, or the role/database has a default override.
+4. The startup command passes `-c name=value` with higher precedence than files.
+5. You are checking a different instance through a connection profile or proxy.
+6. The configuration entry was rejected or the file has an error.
+
+How to check:
+
+~~~sql
+SELECT
+    name, setting, context, source, sourcefile, pending_restart
+FROM pg_settings
+WHERE name = 'work_mem';
+
+SELECT
+    seqno, sourcefile, name, setting, applied, error
+FROM pg_file_settings
+WHERE name = 'work_mem'
+ORDER BY seqno;
+~~~
+
+Do not repeatedly run `ALTER SYSTEM SET` with the same value to "force it to stick." Identify why it has not applied first.
+
+### 10.2. postgresql.auto.conf and postgresql.conf Contain Different Values
+
+Example:
+
+~~~text
+postgresql.conf:        work_mem = 8MB
+postgresql.auto.conf:   work_mem = 16MB
+~~~
+
+For the same parameter and without a higher override layer, `auto.conf` typically takes precedence. Editing `postgresql.conf` from 8 to 12 MB **will not beat** the 16 MB override in `auto.conf`.
+
+If you want to return to managing `work_mem` from `postgresql.conf`:
+
+~~~sql
+ALTER SYSTEM RESET work_mem;
+SELECT pg_reload_conf();
+~~~
+
+Then re-verify `pg_settings.sourcefile` and the value in a new session, rather than just reading the text of the two files.
+
+### 10.3. pg_file_settings.applied = false Without an Error
+
+This can occur when an entry is overridden by a configuration line **appearing later** in the file reading order. Treating `applied = false` alone as broken configuration can lead to false alarms.
+
+Query all entries of the same name ordered by `seqno` to see which one holds final precedence:
+
+~~~sql
+SELECT
+    seqno,
+    sourcefile,
+    sourceline,
+    name,
+    setting,
+    applied,
+    error
+FROM pg_file_settings
+WHERE name = 'work_mem'
+ORDER BY seqno;
+~~~
+
+If `error` is populated, read the message and logs to identify the actual problem.
+
+### 10.4. After RESET, the Value Does Not Return to PostgreSQL's Default
+
+`ALTER SYSTEM RESET` only removes the **override in `auto.conf`**; it does not remove:
+
+- Base settings in `postgresql.conf` or included files.
+- Server startup options.
+- Database/role settings.
+- Session `SET` settings.
+
+Thus `RESET` means "fall back to the remaining configuration source," not always "return to built-in default."
+
+### 10.5. ALTER SYSTEM Errors Inside a Transaction
+
+Error:
+
+~~~text
+ERROR: ALTER SYSTEM cannot run inside a transaction block
+~~~
+
+Commonly seen when:
+
+- A user runs it inside `BEGIN ... COMMIT`.
+- A migration tool wraps scripts in a transaction automatically.
+- An application executes it inside a function or disallowed SQL context.
+
+Separate configuration changes from transactions and execute them via an administrative pipeline with appropriate privileges. **Do not remove transactions from all business migrations just to make one `ALTER SYSTEM` statement run.**
+
+### 10.6. ALTER SYSTEM Is Blocked Despite Being an Application Admin
+
+The role may lack the `ALTER SYSTEM` privilege on that parameter, not be a superuser, have `allow_alter_system = off`, or be restricted by a managed service provider. Holding `CREATE TABLE` privileges in a database is not equivalent to permission to alter cluster-wide GUCs.
+
+Review privilege policies and official configuration methods. Never elevate an application account to superuser just to work around a configuration error.
+
+### 10.7. auto.conf Disappears or Is Managed Outside SQL
+
+An orchestration tool may overwrite configuration or recreate containers/pods. If the authoritative configuration lives in manifests or parameter groups, a value written directly via `ALTER SYSTEM` may be lost or cause configuration drift on the next deployment.
+
+The solution is to establish **one authoritative configuration source**, declare the change there, and avoid two tools concurrently writing `auto.conf`. If inspecting files at the OS level, preserve PostgreSQL file ownership and do not edit files manually on a running server while `ALTER SYSTEM` can write concurrently.
+
+## 11. ALTER SYSTEM Compared to SET, ALTER DATABASE, ALTER ROLE, and File Edits
+
+| Tool | Scope | When Does It Take Effect? | How to Revert | When Is It Appropriate? |
+| --- | --- | --- | --- | --- |
+| `SET p = v` | Current session | Immediately in session if parameter permits | `RESET p` or end session | Debugging/tuning for a single connection |
+| `SET LOCAL p = v` | Current transaction | Within transaction until it ends | `COMMIT`/`ROLLBACK` or change again | Temporarily scoping a query/transaction |
+| `ALTER DATABASE db SET p = v` | Default for new connections to DB | When new sessions start | `ALTER DATABASE db RESET p` | Workload specific to one database |
+| `ALTER ROLE role SET p = v` | Default for new sessions of role | When new sessions start | `ALTER ROLE role RESET p` | Per-user/per-application differentiation |
+| `ALTER SYSTEM SET p = v` | Shared instance config file | Reload or restart depending on `context` | `ALTER SYSTEM RESET/SET`, then apply | Server-wide default changes via SQL |
+| Edit `postgresql.conf`/include | Instance-level config via files | Reload or restart | Edit file and re-apply | Config-as-code/automation environments |
+| Startup option `postgres -c ...` | Instance at startup | When server process starts | Modify startup command and restart | Process/container-level deployment policies |
+
+Notes:
+
+- Role/database/session mechanisms only work for parameters whose `context` permits them.
+- `SET LOCAL` inside a transaction should be used when you truly want a value temporarily scoped to that transaction; outside a transaction block, behavior is not equivalent to a persistent setting.
+- Sessions held by a connection pool may not immediately receive new role/database defaults.
+- Editing `postgresql.conf`/includes via configuration management is often cleaner for auditing and fleet-wide rollouts, whereas `ALTER SYSTEM` is convenient for controlled SQL operations on a specific instance.
+
+### Examples of Choosing the Right Scope
+
+**Only want one reporting query to have a different timeout threshold:**
+
+~~~sql
+BEGIN;
+SET LOCAL statement_timeout = '60s';
+
+-- Run the appropriate reporting query inside this transaction.
+-- Ending the transaction clears the LOCAL setting.
+COMMIT;
+~~~
+
+**Want a dedicated default timeout for one application role:**
+
+~~~sql
+ALTER ROLE report_user SET statement_timeout = '30s';
+~~~
+
+**Want an instance-wide logging change:**
+
+~~~sql
+ALTER SYSTEM SET log_min_duration_statement = '750ms';
+SELECT pg_reload_conf();
+~~~
+
+Only execute examples that alter configuration after confirming the role and environment. Do not set a low server-wide `statement_timeout` just to work around one slow query if other applications legitimately need longer execution times.
+
+## 12. Controlled Operations in HA and Multi-Instance Systems
+
+`ALTER SYSTEM` affects **the instance to which the current connection is attached**; it does not automatically synchronize configuration across all primaries/standbys or nodes in a topology.
+
+Example:
+
+~~~text
+Primary PostgreSQL A
+    A's postgresql.auto.conf
+          |
+          | Physical WAL streaming
+          v
+Standby PostgreSQL B
+    B's postgresql.auto.conf
+~~~
+
+Replication transmits data/WAL changes per its mechanism; **do not treat it as a configuration mechanism that harmonizes every instance's config files**. An `ALTER SYSTEM` change on A does not replace the procedure for adjusting B, and a value on a standby may be constrained by topology or recovery configuration.
+
+When making changes in an HA setup:
+
+1. Identify which instances will change and whether other instances also need updates.
+2. Check whether the parameter affects primary/standby roles or failover capability.
+3. If a restart is required, plan a rolling restart or failover following a tested runbook.
+4. Avoid changing parameters that could make a standby incompatible with the primary without understanding the constraints.
+5. Verify each instance via `pg_settings`, not just a single endpoint behind a load balancer.
+
+In managed services, you typically edit parameter groups or instance/cluster configuration resources via the management API. Never assume that because `ALTER SYSTEM` ran on one node, all nodes now share the same policy.
+
+## 13. Common Misconceptions
+
+| Misconception | Fact to Remember |
+| --- | --- |
+| "ALTER SYSTEM changes parameters immediately" | It writes to `auto.conf`; reload/restart is required to apply |
+| "ALTER SYSTEM affects only the connected database" | It changes defaults for the entire PostgreSQL instance |
+| "ALTER SYSTEM can be rolled back with ROLLBACK like UPDATE" | Cannot run in a transaction and has no transactional rollback |
+| "RESET restores everything to built-in defaults" | RESET only removes the corresponding override in `auto.conf` |
+| "RESET ALL is a harmless configuration cleanup" | It removes all `ALTER SYSTEM` overrides, potentially affecting many parameters |
+| "pg_reload_conf() returning true means everything applied" | Only confirms the reload signal was sent; verify afterward |
+| "After reload, max_connections must have changed" | `postmaster` context parameters require a restart |
+| "Every backend picks up every new value after reload" | `backend`/`superuser-backend` contexts need new sessions; session overrides still win |
+| "postgresql.conf always has highest precedence" | `auto.conf` overrides that file, while startup and session settings can override further |
+| "pg_file_settings lists runtime values" | This view reflects file contents; `pg_settings` shows current active values |
+| "applied=false always means an error" | It may be an entry overridden by a later definition |
+| "sourcefile=NULL means the config file is broken" | The source may not be a file, or the role lacks privileges to see it |
+| "Edit auto.conf manually like a normal conf file" | `ALTER SYSTEM` can overwrite it; avoid conflicts with automation |
+| "allow_alter_system=off completely locks down superusers" | It is not a security control against superusers |
+| "Config working in lab will definitely work in production" | Consider RAM, I/O, traffic, HA, retention, security, and restarts |
+| "Changing primary automatically applies to standby" | Manage configuration per instance and topology |
+
+## 14. Practice Exercises
+
+### Exercise 1 — Identify Reload vs. Restart Parameters
+
+Run on a lab instance:
+
+~~~sql
+SELECT name, setting, context, source, pending_restart
+FROM pg_settings
+WHERE name IN (
+    'log_min_duration_statement',
+    'max_connections',
+    'shared_buffers',
+    'work_mem'
+)
+ORDER BY name;
+~~~
+
+**Question:** Which parameters require a restart, which can be reloaded via SIGHUP, and which can be changed inside a session? Answer based on the `context` column rather than guessing from parameter names.
+
+### Exercise 2 — Write and Remove a Reloadable Override
+
+On a lab database where you have privileges:
+
+~~~sql
+ALTER SYSTEM SET log_min_duration_statement = '1s';
+SELECT pg_reload_conf();
+
+SHOW log_min_duration_statement;
+~~~
+
+Inspect `pg_settings` and `pg_file_settings` for that parameter. After recording the results, revert:
+
+~~~sql
+ALTER SYSTEM RESET log_min_duration_statement;
+SELECT pg_reload_conf();
+~~~
+
+**Question:** After `RESET`, where will the value come from? The answer is not necessarily the built-in default; examine remaining configuration sources.
+
+### Exercise 3 — Distinguish Session RESET from System RESET
+
+Suppose you set:
+
+~~~sql
+ALTER SYSTEM SET work_mem = '16MB';
+SELECT pg_reload_conf();
+
+SET work_mem = '32MB';
+SHOW work_mem;
+~~~
+
+**Question:** If you run `RESET work_mem` (without `ALTER SYSTEM`), does `auto.conf` lose the 16MB override? If not, which statement removes that override?
+
+**Hint:** `RESET work_mem` affects only the session; `ALTER SYSTEM RESET work_mem` modifies `auto.conf`. Remember to clean up any override created at the end of practice if needed.
+
+### Exercise 4 — Recognize pending_restart
+
+An administrator ran:
+
+~~~sql
+ALTER SYSTEM SET max_connections = 150;
+SELECT pg_reload_conf();
+~~~
+
+Yet `SHOW max_connections` still returns 100. Explain this using `context = postmaster` and `pending_restart`. Give reasons why you should not immediately restart during peak hours just to verify the change.
+
+### Exercise 5 — Explain Two Conflicting Configuration Entries
+
+`postgresql.conf` contains `work_mem = '8MB'`, and `postgresql.auto.conf` contains `work_mem = '16MB'`. What value will a new connection without other overrides receive? What if the server started with `-c work_mem=32MB`?
+
+**Hint:** `auto.conf` takes precedence within the file layer; startup options take higher precedence than files. A session can still run `SET` differently if `context` permits.
+
+### Exercise 6 — Read pg_file_settings and Find Errors
+
+~~~sql
+SELECT
+    seqno, sourcefile, name, setting, applied, error
+FROM pg_file_settings
+WHERE name = 'work_mem'
+   OR error IS NOT NULL
+ORDER BY seqno;
+~~~
+
+Explain the case `applied = false, error IS NULL` versus the case where `error` contains a message. Why must you still check `pg_settings` before concluding what value is currently running?
+
+### Exercise 7 — Privileges for Configuration Changes
+
+An application holding only `SELECT`/`INSERT` privileges in schema `sales` wants to increase `max_connections` using `ALTER SYSTEM`. Explain why the application account must not be granted superuser, and who should be responsible for deploying instance-wide configuration.
+
+### Exercise 8 — Test Changing Inside a Transaction
+
+**Only in a lab environment**, run:
+
+~~~sql
+BEGIN;
+ALTER SYSTEM SET log_min_duration_statement = '500ms';
+ROLLBACK;
+~~~
+
+Observe the error and explain why `ALTER SYSTEM` cannot be wrapped inside a migration transaction. Then describe how to record the change log and rollback plan at the operational level.
+
+### Exercise 9 — Plan a Production Change
+
+A team wants to increase `max_connections` from 100 to 300 because their application pool frequently runs out of connections. Draft a short plan:
+
+1. Measure how many connections are actually active vs. idle.
+2. Calculate total pool size across all application instances.
+3. Check CPU, RAM, query latency, reserved slots, and infrastructure limits.
+4. Consider shortening long transactions or introducing a connection pooler.
+5. If an increase is still necessary, record the old setting, apply on staging, and prepare for restart.
+6. After restart, verify the value, connectivity, and metrics.
+7. Specify how to revert to the previous setting if issues arise.
+
+This is a workflow-planning exercise; **do not modify real production**.
+
+## 15. Official Reference Documentation
+
+When working with a PostgreSQL version different from the ones mentioned in this lesson, consult the documentation for the **exact major version**:
+
+- [ALTER SYSTEM — PostgreSQL Documentation](https://www.postgresql.org/docs/current/sql-altersystem.html): syntax, scope, privileges, reload/restart, and transaction restrictions.
+- [Setting Parameters](https://www.postgresql.org/docs/current/config-setting.html): value sources, configuration files, includes, precedence, and SQL/session settings.
+- [pg_settings](https://www.postgresql.org/docs/current/view-pg-settings.html): `context`, `source`, `sourcefile`, and `pending_restart`.
+- [pg_file_settings](https://www.postgresql.org/docs/current/view-pg-file-settings.html): parsed entries, `applied`, and `error`.
+
+URLs under `/docs/current/` point to the current stable release of PostgreSQL. For a specific instance, use `/docs/<major>/...` or the documentation matching that version to avoid misinterpreting behavior across releases.
+
+## 16. Summary
+
+**`ALTER SYSTEM` is a way to change PostgreSQL configuration instance-wide using SQL**, though under the hood it **writes/updates entries in `postgresql.auto.conf`**. This file is typically read after `postgresql.conf` and overrides settings in the file layer; however, startup options and role, database, or session overrides can still determine the final value.
+
+**Writing to disk does not mean applying at runtime:** SIGHUP parameters require a reload, `context = postmaster` parameters require a restart, and some parameters only change on new backends. Use **`pg_settings`** to inspect currently running values and **`pg_file_settings`** to inspect file contents and parse/application errors. To revert, use `ALTER SYSTEM RESET` or re-write the previous value and then reload/restart appropriately; **`ROLLBACK` cannot undo `ALTER SYSTEM`**.
+
+In safe operations, configuration changes require **confirming the target instance, enforcing privileges, recording the previous value, assessing impact, scheduling application, verifying, and preparing a recovery plan**. Mastering `ALTER SYSTEM` and `postgresql.auto.conf` enables administrators to leverage the convenience of SQL while avoiding configuration drift, modifying the wrong environment, or triggering uncontrolled restarts.

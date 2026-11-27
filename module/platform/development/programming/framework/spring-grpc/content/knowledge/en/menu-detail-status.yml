@@ -1,0 +1,5617 @@
+menu:
+- slug: introduction
+  title: Nhập môn
+  childs:
+  - slug: introduction-001
+    title: gRPC là gì và giải quyết bài toán giao tiếp nào?
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-002
+    title: Quan hệ giữa gRPC, HTTP/2, Protocol Buffers và RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-003
+    title: Client, server, service và method trong một cuộc gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-004
+    title: Khi nào gRPC phù hợp hơn REST hoặc messaging?
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-005
+    title: Luồng từ file proto đến mã client và server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-006
+    title: Spring hỗ trợ quản lý gRPC service ở lớp nào?
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-007
+    title: Các thành phần sẽ gặp trong một ứng dụng Spring gRPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-008
+    title: Giao tiếp nội bộ và giao tiếp public khác nhau thế nào?
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-009
+    title: Giới hạn của việc coi RPC như gọi hàm cục bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-010
+    title: Lộ trình từ unary RPC đến streaming và production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: grpc-architecture
+  title: Kiến trúc gRPC
+  childs:
+  - slug: grpc-architecture-001
+    title: Kênh, connection và HTTP/2 stream
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grpc-architecture-002
+    title: Client stub và server implementation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grpc-architecture-003
+    title: Service definition trong Protocol Buffers
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grpc-architecture-004
+    title: RPC method và request, response message
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grpc-architecture-005
+    title: Metadata và headers trong cuộc gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grpc-architecture-006
+    title: Deadline, cancellation và status
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grpc-architecture-007
+    title: Trailers và thông tin kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grpc-architecture-008
+    title: Load balancing và name resolution
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grpc-architecture-009
+    title: Interceptor ở phía client và server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grpc-architecture-010
+    title: Channel lifecycle và tái sử dụng connection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grpc-architecture-011
+    title: Một cuộc gọi qua proxy hoặc gateway
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grpc-architecture-012
+    title: Khác biệt giữa logical RPC và network exchange
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protocol-buffers
+  title: Protocol Buffers
+  childs:
+  - slug: protocol-buffers-001
+    title: Message và field trong proto3
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-buffers-002
+    title: Scalar types và kiểu dữ liệu tương ứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-buffers-003
+    title: Field number và wire compatibility
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-buffers-004
+    title: Field name, JSON name và reserved field
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-buffers-005
+    title: Optional field trong proto3
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-buffers-006
+    title: Default value và presence
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-buffers-007
+    title: Repeated field và map field
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-buffers-008
+    title: Enum và giá trị chưa biết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-buffers-009
+    title: Nested message và nested enum
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-buffers-010
+    title: Oneof và lựa chọn field
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-buffers-011
+    title: Bytes, string và encoding
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-buffers-012
+    title: Timestamp, Duration và well-known types
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-buffers-013
+    title: Any, Empty, FieldMask và wrappers
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-buffers-014
+    title: Import proto và package namespace
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-buffers-015
+    title: Reserved number và reserved name
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schema-design
+  title: Schema design
+  childs:
+  - slug: schema-design-001
+    title: Đặt package cho proto
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-002
+    title: Đặt tên message, field và service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-003
+    title: Thiết kế request và response rõ nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-004
+    title: Tách command, query và event message
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-005
+    title: Không dùng message quá lớn cho mọi RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-006
+    title: Chọn field bắt buộc theo khả năng tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-007
+    title: Thêm field mới mà không phá client cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-008
+    title: Xóa field bằng reserved
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-009
+    title: Thay đổi enum an toàn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-010
+    title: Versioning package và service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-011
+    title: Tách public contract khỏi model nội bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-012
+    title: Kiểm tra schema bằng lint và breaking change check
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-generation
+  title: Code generation
+  childs:
+  - slug: code-generation-001
+    title: protoc và plugin code generation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-002
+    title: Sinh message class từ proto
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-003
+    title: Sinh client stub và server base
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-004
+    title: Blocking, future và async stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-005
+    title: Grpc Java codegen
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-006
+    title: Generated source trong Gradle hoặc Maven
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-007
+    title: Source set cho mã sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-008
+    title: Đường dẫn proto và import path
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-009
+    title: Lặp lại code generation có xác định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-010
+    title: Không sửa tay mã được sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-011
+    title: Quản lý version protoc và plugin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-012
+    title: Khác biệt generated API giữa các phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-013
+    title: Kiểm tra mã sinh trong build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rpc-methods
+  title: RPC methods
+  childs:
+  - slug: rpc-methods-001
+    title: Định nghĩa unary RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-methods-002
+    title: Định nghĩa server streaming RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-methods-003
+    title: Định nghĩa client streaming RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-methods-004
+    title: Định nghĩa bidirectional streaming RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-methods-005
+    title: Request và response của từng loại method
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-methods-006
+    title: Chọn loại RPC theo luồng dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-methods-007
+    title: Một request một response không đồng nghĩa không có stream
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-methods-008
+    title: Streaming message và backpressure
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-methods-009
+    title: Tên method và khả năng đọc contract
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-methods-010
+    title: Method không có payload bằng Empty
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-methods-011
+    title: Phân biệt RPC command với event notification
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: unary-rpc
+  title: Unary RPC
+  childs:
+  - slug: unary-rpc-001
+    title: Một request và một response trong unary call
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unary-rpc-002
+    title: Blocking stub cho unary RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unary-rpc-003
+    title: Async stub cho unary RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unary-rpc-004
+    title: Future stub và kết quả bất đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unary-rpc-005
+    title: Mapping request từ application model
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unary-rpc-006
+    title: Mapping response về application model
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unary-rpc-007
+    title: Deadline cho unary call
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unary-rpc-008
+    title: Retry unary call và idempotency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unary-rpc-009
+    title: Lỗi status trong unary call
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unary-rpc-010
+    title: Metadata request và response
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unary-rpc-011
+    title: Không chặn event loop ngoài ý muốn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unary-rpc-012
+    title: Kiểm thử unary service và client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: server-streaming
+  title: Server streaming
+  childs:
+  - slug: server-streaming-001
+    title: Server streaming trả nhiều response
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-streaming-002
+    title: Khi server streaming phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-streaming-003
+    title: onNext, onError và onCompleted
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-streaming-004
+    title: Thứ tự response trong một stream
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-streaming-005
+    title: Client đọc từng message và backpressure
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-streaming-006
+    title: Hủy stream giữa chừng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-streaming-007
+    title: Deadline của server stream
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-streaming-008
+    title: Lỗi sau khi đã phát một phần dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-streaming-009
+    title: Kích thước response và giới hạn bộ nhớ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-streaming-010
+    title: Retry server stream và khả năng phát lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-streaming-011
+    title: Kiểm thử stream rỗng, nhiều phần tử và lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: client-streaming
+  title: Client streaming
+  childs:
+  - slug: client-streaming-001
+    title: Client streaming nhận nhiều request
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-streaming-002
+    title: Khi client streaming phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-streaming-003
+    title: onNext từ client đến server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-streaming-004
+    title: Server hoàn tất bằng onCompleted
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-streaming-005
+    title: Tổng hợp request stream thành một kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-streaming-006
+    title: Lỗi khi stream chưa hoàn tất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-streaming-007
+    title: Hủy client stream và giải phóng resource
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-streaming-008
+    title: Giới hạn số message và kích thước batch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-streaming-009
+    title: Deadline cho toàn bộ stream
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-streaming-010
+    title: Idempotency khi client gửi lại batch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-streaming-011
+    title: Kiểm thử client gửi rỗng, một phần và đầy đủ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bidirectional-streaming
+  title: Bidirectional streaming
+  childs:
+  - slug: bidirectional-streaming-001
+    title: Hai chiều streaming độc lập trong một RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bidirectional-streaming-002
+    title: Client và server gửi message đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bidirectional-streaming-003
+    title: Điều phối onNext ở cả hai phía
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bidirectional-streaming-004
+    title: Thứ tự message theo từng hướng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bidirectional-streaming-005
+    title: Correlation giữa request và response
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bidirectional-streaming-006
+    title: Nhiều response cho một request
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bidirectional-streaming-007
+    title: Hủy một phía và kết thúc stream
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bidirectional-streaming-008
+    title: Lỗi ở một hướng ảnh hưởng hướng còn lại thế nào?
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bidirectional-streaming-009
+    title: Backpressure trong bidi stream
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bidirectional-streaming-010
+    title: Giới hạn concurrency của stream
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bidirectional-streaming-011
+    title: Kiểm thử chat, command stream và phản hồi liên tục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-integration
+  title: Spring Boot integration
+  childs:
+  - slug: spring-boot-integration-001
+    title: Spring Boot starter cho gRPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-002
+    title: Auto-configuration của gRPC server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-003
+    title: Auto-configuration của gRPC client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-004
+    title: Đăng ký service vào Spring ApplicationContext
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-005
+    title: Cấu hình port và server lifecycle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-006
+    title: Cấu hình channel đến remote server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-007
+    title: Profile cho local, test và production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-008
+    title: Properties và YAML cho gRPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-009
+    title: Bean phụ thuộc vào generated type
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-010
+    title: Khởi động server cùng Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-011
+    title: Tắt server có kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-012
+    title: Kiểm tra điều kiện auto-configuration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-service
+  title: Spring service
+  childs:
+  - slug: spring-service-001
+    title: Đăng ký gRPC service bean trong Spring
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-002
+    title: Annotation hoặc cơ chế nhận diện service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-003
+    title: Kế thừa generated service base
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-004
+    title: Inject service dependency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-005
+    title: Tách application service khỏi gRPC adapter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-006
+    title: Mapping protobuf DTO sang domain command
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-007
+    title: Không đưa entity persistence vào proto contract
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-008
+    title: Xử lý transaction trong RPC handler
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-009
+    title: Blocking handler và thread model
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-010
+    title: Async handler và callback
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-011
+    title: Service lifecycle trong ApplicationContext
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-012
+    title: Nhiều service trong một server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-client
+  title: Spring client
+  childs:
+  - slug: spring-client-001
+    title: Tạo gRPC client channel trong Spring
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-client-002
+    title: GrpcChannelFactory và channel lifecycle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-client-003
+    title: Inject stub vào application service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-client-004
+    title: Blocking stub và async stub trong Spring
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-client-005
+    title: Cấu hình nhiều channel đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-client-006
+    title: Channel theo tên hoặc theo target
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-client-007
+    title: Đóng channel khi context dừng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-client-008
+    title: Timeout mặc định của client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-client-009
+    title: Interceptor dùng chung cho client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-client-010
+    title: Mapping lỗi gRPC sang exception ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-client-011
+    title: Tách client adapter khỏi business code
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: channels-connections
+  title: Channel và connection
+  childs:
+  - slug: channels-connections-001
+    title: ManagedChannel và vòng đời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-connections-002
+    title: Kết nối plaintext trong môi trường phát triển
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-connections-003
+    title: Kết nối TLS trong production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-connections-004
+    title: Keepalive và HTTP/2 connection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-connections-005
+    title: Connection pooling và giới hạn channel
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-connections-006
+    title: Name resolver và target URI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-connections-007
+    title: Reconnection sau khi server khởi động lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-connections-008
+    title: Idle timeout và connection state
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-connections-009
+    title: Channel shutdown và await termination
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-connections-010
+    title: Không tạo channel mỗi request
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-connections-011
+    title: Quan sát trạng thái channel
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-connections-012
+    title: Cấu hình channel riêng cho từng dependency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metadata
+  title: Metadata
+  childs:
+  - slug: metadata-001
+    title: Metadata key và value trong gRPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-002
+    title: ASCII metadata và binary metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-003
+    title: Authorization metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-004
+    title: Correlation ID và trace context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-005
+    title: Tenant ID và locale
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-006
+    title: Metadata interceptor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-007
+    title: Metadata từ client sang server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-008
+    title: Metadata từ server về client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-009
+    title: Không truyền payload lớn qua metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-010
+    title: Không log credential hoặc token
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-011
+    title: Metadata bị mất qua proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-012
+    title: Kiểm thử metadata bắt buộc và tùy chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: status-codes
+  title: Status codes
+  childs:
+  - slug: status-codes-001
+    title: OK và kết quả thành công
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-002
+    title: CANCELLED và client chủ động hủy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-003
+    title: UNKNOWN và lỗi không xác định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-004
+    title: INVALID_ARGUMENT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-005
+    title: DEADLINE_EXCEEDED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-006
+    title: NOT_FOUND
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-007
+    title: ALREADY_EXISTS
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-008
+    title: PERMISSION_DENIED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-009
+    title: UNAUTHENTICATED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-010
+    title: RESOURCE_EXHAUSTED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-011
+    title: FAILED_PRECONDITION
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-012
+    title: ABORTED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-013
+    title: OUT_OF_RANGE
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-014
+    title: UNIMPLEMENTED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-015
+    title: INTERNAL, UNAVAILABLE và DATA_LOSS
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-016
+    title: Chọn status code phản ánh đúng nguyên nhân
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-handling
+  title: Error handling
+  childs:
+  - slug: error-handling-001
+    title: StatusRuntimeException và StatusException
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-002
+    title: Đọc status code và status description
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-003
+    title: Trailers chứa thông tin lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-004
+    title: Mapping lỗi domain sang gRPC status
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-005
+    title: Không trả INTERNAL cho mọi exception
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-006
+    title: Không lộ stack trace hoặc dữ liệu nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-007
+    title: Lỗi validation và INVALID_ARGUMENT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-008
+    title: Lỗi quyền và UNAUTHENTICATED, PERMISSION_DENIED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-009
+    title: Lỗi dependency và UNAVAILABLE
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-010
+    title: Lỗi cạnh tranh và ABORTED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-011
+    title: Global server exception handling
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-012
+    title: Kiểm thử error status và metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deadlines
+  title: Deadlines
+  childs:
+  - slug: deadlines-001
+    title: Deadline là giới hạn thời gian của RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-002
+    title: Deadline truyền từ client đến server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-003
+    title: Deadline propagation qua nested call
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-004
+    title: Deadline hết hạn tạo DEADLINE_EXCEEDED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-005
+    title: Kiểm tra Context.isCancelled
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-006
+    title: Hủy công việc khi deadline hết hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-007
+    title: Không đặt deadline vô hạn mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-008
+    title: Chọn deadline theo loại RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-009
+    title: Deadline và retry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-010
+    title: Deadline qua proxy và load balancer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-011
+    title: Kiểm thử server chậm và client timeout
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cancellation
+  title: Cancellation
+  childs:
+  - slug: cancellation-001
+    title: Client hủy một RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-002
+    title: Server nhận tín hiệu cancellation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-003
+    title: Context cancellation trong handler
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-004
+    title: Dọn tài nguyên khi RPC bị hủy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-005
+    title: Hủy stream khi client ngắt kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-006
+    title: Không tiếp tục side effect sau cancellation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-007
+    title: Cancellation khác với deadline
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-008
+    title: Truyền cancellation sang downstream RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-009
+    title: Cancellable future và reactive bridge
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-010
+    title: Kiểm thử hủy giữa chừng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-011
+    title: Theo dõi RPC bị hủy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retry
+  title: Retry
+  childs:
+  - slug: retry-001
+    title: Retryable status code
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-002
+    title: Retry policy và điều kiện áp dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-003
+    title: Backoff và jitter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-004
+    title: Maximum attempts
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-005
+    title: Retry delay và deadline còn lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-006
+    title: Idempotency của unary RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-007
+    title: Không retry non-idempotent command tùy ý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-008
+    title: Retry server streaming và stream position
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-009
+    title: Retry client streaming và batch duplicate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-010
+    title: Retry qua service config
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-011
+    title: Retry ở client hay ở gateway
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-012
+    title: Quan sát số lần thử và kết quả cuối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: load-balancing
+  title: Load balancing
+  childs:
+  - slug: load-balancing-001
+    title: Client-side load balancing
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-002
+    title: Name resolution trả nhiều địa chỉ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-003
+    title: Round robin và các policy khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-004
+    title: Pick first và failover
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-005
+    title: Kết nối đến nhiều server instance
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-006
+    title: Health-aware load balancing
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-007
+    title: Sticky routing và session state
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-008
+    title: Retry kết hợp load balancing
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-009
+    title: Phối hợp load balancing với cơ chế khám phá service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-010
+    title: Cân bằng giữa region hoặc zone
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-011
+    title: Load balancing qua proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-012
+    title: Kiểm thử server instance bị lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-discovery
+  title: Service discovery
+  childs:
+  - slug: service-discovery-001
+    title: Target URI và resolver
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-002
+    title: DNS resolver cho gRPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-003
+    title: Resolver tùy chỉnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-004
+    title: Đăng ký service trong discovery system
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-005
+    title: Cập nhật danh sách endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-006
+    title: Endpoint không khỏe và loại khỏi pool
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-007
+    title: TTL của service record
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-008
+    title: Resolver và load balancer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-009
+    title: Tên service khác với package proto
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-010
+    title: Môi trường local và production discovery
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-011
+    title: Fallback khi discovery không sẵn sàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interceptors
+  title: Interceptors
+  childs:
+  - slug: interceptors-001
+    title: Client interceptor và server interceptor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interceptors-002
+    title: Ghi log method name và latency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interceptors-003
+    title: Gắn correlation ID
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interceptors-004
+    title: Xác thực metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interceptors-005
+    title: Đo metric theo RPC method
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interceptors-006
+    title: Tracing interceptor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interceptors-007
+    title: Interceptor order
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interceptors-008
+    title: Interceptor cho unary và streaming
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interceptors-009
+    title: Chuyển exception trong interceptor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interceptors-010
+    title: Không làm interceptor chứa nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interceptors-011
+    title: Interceptor dùng chung và cấu hình riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interceptors-012
+    title: Kiểm thử interceptor thành công và lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication
+  title: Authentication
+  childs:
+  - slug: authentication-001
+    title: TLS transport security và identity
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-002
+    title: Bearer token trong metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-003
+    title: Basic credential và giới hạn sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-004
+    title: mTLS giữa client và server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-005
+    title: Certificate chain và trust store
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-006
+    title: Rotation certificate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-007
+    title: Auth interceptor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-008
+    title: Xác thực service account
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-009
+    title: Phân biệt authentication và authorization
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-010
+    title: Metadata không an toàn khi dùng plaintext
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-011
+    title: Kiểm thử request thiếu credential
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authorization
+  title: Authorization
+  childs:
+  - slug: authorization-001
+    title: Quyền gọi theo service và method
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-002
+    title: Role, scope và permission
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-003
+    title: Authorization interceptor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-004
+    title: Tenant isolation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-005
+    title: Kiểm tra quyền trước business action
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-006
+    title: Mapping permission failure sang status
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-007
+    title: Không dựa vào method name từ client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-008
+    title: Context chứa principal và quyền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-009
+    title: Audit quyết định authorization
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-010
+    title: Quyền cho streaming RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-011
+    title: Kiểm thử allow, deny và missing context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tls
+  title: TLS
+  childs:
+  - slug: tls-001
+    title: Tạo server credential từ certificate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-002
+    title: Server certificate và hostname
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-003
+    title: Client trust certificate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-004
+    title: mTLS client certificate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-005
+    title: TLS version và cipher policy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-006
+    title: SNI và nhiều hostname
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-007
+    title: Trust manager và certificate rotation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-008
+    title: Plaintext chỉ dùng trong môi trường phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-009
+    title: Lỗi handshake và chứng chỉ hết hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-010
+    title: Debug TLS an toàn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-011
+    title: Kiểm thử TLS bằng test certificate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-012
+    title: Không bỏ qua xác minh hostname trong production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protobuf-compatibility
+  title: Protobuf compatibility
+  childs:
+  - slug: protobuf-compatibility-001
+    title: Thêm field mới mà client cũ vẫn đọc được
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-compatibility-002
+    title: Không tái sử dụng field number đã xóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-compatibility-003
+    title: Reserved field để ngăn tái sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-compatibility-004
+    title: Đổi tên field và wire compatibility
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-compatibility-005
+    title: Đổi kiểu field có thể phá tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-compatibility-006
+    title: Thêm enum value và client cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-compatibility-007
+    title: oneof thay đổi và tác động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-compatibility-008
+    title: Thay đổi package hoặc service name
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-compatibility-009
+    title: Versioned service và versioned message
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-compatibility-010
+    title: Kiểm tra breaking change trong CI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-compatibility-011
+    title: Backward compatibility và forward compatibility
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-compatibility-012
+    title: Migration schema theo giai đoạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-evolution
+  title: API evolution
+  childs:
+  - slug: api-evolution-001
+    title: Thay đổi RPC request mà không phá caller
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-002
+    title: Thêm field tùy chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-003
+    title: Thêm method mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-004
+    title: Deprecate method cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-005
+    title: Giữ service cũ trong thời gian chuyển đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-006
+    title: Thay đổi semantics không chỉ là đổi schema
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-007
+    title: Version negotiation qua metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-008
+    title: Song song contract mới và cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-009
+    title: Compatibility của generated code
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-010
+    title: Kiểm thử client cũ với server mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-011
+    title: Kiểm thử server cũ với client mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: streaming-flow
+  title: Streaming flow
+  childs:
+  - slug: streaming-flow-001
+    title: Flow control trong HTTP/2
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-flow-002
+    title: Inbound và outbound message queue
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-flow-003
+    title: Backpressure khi client chậm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-flow-004
+    title: Giới hạn inbound message size
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-flow-005
+    title: Giới hạn outbound message size
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-flow-006
+    title: Buffering trong stream observer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-flow-007
+    title: Không gọi onNext sau onError hoặc onCompleted
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-flow-008
+    title: Kết thúc stream đúng lifecycle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-flow-009
+    title: Lỗi giữa stream và giải phóng buffer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-flow-010
+    title: Concurrency trong callback
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-flow-011
+    title: Thread safety của stream observer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-flow-012
+    title: Kiểm thử burst và consumer chậm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: thread-model
+  title: Thread model
+  childs:
+  - slug: thread-model-001
+    title: Thread nào thực thi gRPC handler?
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-002
+    title: Netty event loop và blocking work
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-003
+    title: Tách blocking call khỏi event loop
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-004
+    title: Executor cho service implementation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-005
+    title: Virtual thread và giới hạn theo workload
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-006
+    title: Thread safety của generated stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-007
+    title: Callback thread trong async stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-008
+    title: Context propagation giữa thread
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-009
+    title: MDC và correlation context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-010
+    title: Giới hạn executor và queue
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-011
+    title: Shutdown executor cùng server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-012
+    title: Đo contention và starvation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-configuration
+  title: Spring configuration
+  childs:
+  - slug: spring-configuration-001
+    title: Cấu hình gRPC server bằng properties
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-configuration-002
+    title: Cấu hình port và bind address
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-configuration-003
+    title: Cấu hình client channel theo target
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-configuration-004
+    title: Cấu hình TLS cho server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-configuration-005
+    title: Cấu hình TLS cho client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-configuration-006
+    title: Cấu hình keepalive và message size
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-configuration-007
+    title: Cấu hình executor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-configuration-008
+    title: Cấu hình interceptor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-configuration-009
+    title: Cấu hình health service và reflection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-configuration-010
+    title: Profile local, test, staging và production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-configuration-011
+    title: Secret và certificate từ secret store
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-configuration-012
+    title: Kiểm tra cấu hình khi context khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generated-stubs
+  title: Generated stubs
+  childs:
+  - slug: generated-stubs-001
+    title: BlockingStub và thread gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-stubs-002
+    title: FutureStub và ListenableFuture
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-stubs-003
+    title: AsyncStub và StreamObserver
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-stubs-004
+    title: Stub immutable và cấu hình deadline
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-stubs-005
+    title: withDeadline và withCallCredentials
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-stubs-006
+    title: withInterceptors và metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-stubs-007
+    title: Tạo stub từ channel
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-stubs-008
+    title: Tái sử dụng stub trong application service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-stubs-009
+    title: Stub cho từng service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-stubs-010
+    title: Stub trong test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-stubs-011
+    title: Không chia sẻ stub với channel đã đóng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-stubs-012
+    title: Mapping generated type sang application type
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-service-adapter
+  title: Spring service adapter
+  childs:
+  - slug: spring-service-adapter-001
+    title: Service adapter nhận generated request
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-adapter-002
+    title: Validate protobuf request tại boundary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-adapter-003
+    title: Chuyển request thành command hoặc query
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-adapter-004
+    title: Gọi application service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-adapter-005
+    title: Chuyển domain result thành protobuf response
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-adapter-006
+    title: Mapping domain error sang Status
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-adapter-007
+    title: Không để generated class lan vào domain
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-adapter-008
+    title: Transaction trong adapter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-adapter-009
+    title: Context và metadata trong adapter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-adapter-010
+    title: Xử lý blocking I/O
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-adapter-011
+    title: Tách adapter theo service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-service-adapter-012
+    title: Kiểm thử adapter độc lập với transport
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: health-and-reflection
+  title: Health and reflection
+  childs:
+  - slug: health-and-reflection-001
+    title: gRPC Health Checking Protocol
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-reflection-002
+    title: Health status của service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-reflection-003
+    title: Readiness khác với liveness
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-reflection-004
+    title: Thay đổi health khi dependency lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-reflection-005
+    title: Health check qua load balancer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-reflection-006
+    title: Server reflection dùng để khám phá service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-reflection-007
+    title: Giới hạn reflection trong production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-reflection-008
+    title: grpcurl và kiểm tra endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-reflection-009
+    title: Bảo vệ health và reflection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-reflection-010
+    title: Kiểm thử health transition
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-reflection-011
+    title: Không coi port mở là service healthy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Observability
+  childs:
+  - slug: observability-001
+    title: Metric số RPC theo service và method
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Latency histogram cho unary và streaming
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Status code distribution
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Active stream và stream duration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Message count trong streaming
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Deadline exceeded và cancellation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Retry attempt và final status
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Trace context qua gRPC metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Log request ID và method name
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-010
+    title: Che payload trong log
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-011
+    title: Dashboard theo client, server và dependency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-012
+    title: Alert theo error rate và saturation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: open-telemetry
+  title: OpenTelemetry
+  childs:
+  - slug: open-telemetry-001
+    title: Trace span cho mỗi RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-telemetry-002
+    title: Propagator qua metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-telemetry-003
+    title: Client span và server span
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-telemetry-004
+    title: Parent-child relationship qua downstream call
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-telemetry-005
+    title: Baggage và rủi ro truyền dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-telemetry-006
+    title: Trace streaming dài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-telemetry-007
+    title: Span event cho status và exception
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-telemetry-008
+    title: Sampling trong hệ thống lưu lượng cao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-telemetry-009
+    title: Liên kết trace với log và metric
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-telemetry-010
+    title: Kiểm thử propagation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-telemetry-011
+    title: Không tạo span lồng vô hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Performance
+  childs:
+  - slug: performance-001
+    title: Chi phí serialization và deserialization
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Kích thước protobuf message
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Unary latency và throughput
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Streaming throughput
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Batching và message frequency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Compression và CPU trade-off
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Connection reuse
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Executor sizing
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: HTTP/2 multiplexing
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Flow control và memory
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Large message và chunking
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-012
+    title: Benchmark client-server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-limits
+  title: Resource limits
+  childs:
+  - slug: resource-limits-001
+    title: max inbound message size
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-002
+    title: max outbound message size
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-003
+    title: Số stream đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-004
+    title: Số message trong một stream
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-005
+    title: Deadline bắt buộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-006
+    title: Giới hạn metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-007
+    title: Giới hạn executor queue
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-008
+    title: Giới hạn buffer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-009
+    title: Rate limit theo client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-010
+    title: Giới hạn số connection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-011
+    title: Xử lý RESOURCE_EXHAUSTED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-012
+    title: Theo dõi tài nguyên khi tải tăng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-rpc
+  title: Database RPC
+  childs:
+  - slug: database-rpc-001
+    title: Transaction trong unary RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-rpc-002
+    title: Transaction trong streaming RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-rpc-003
+    title: Không giữ transaction quá lâu khi stream
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-rpc-004
+    title: Optimistic locking và ABORTED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-rpc-005
+    title: Idempotency khi client retry command
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-rpc-006
+    title: Connection pool dưới tải RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-rpc-007
+    title: Timeout database nhỏ hơn deadline RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-rpc-008
+    title: Mapping not found thành NOT_FOUND
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-rpc-009
+    title: Mapping validation thành INVALID_ARGUMENT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-rpc-010
+    title: Side effect và retry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-rpc-011
+    title: Outbox cho event sau RPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-rpc-012
+    title: Kiểm thử rollback và retry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messaging-bridge
+  title: Messaging bridge
+  childs:
+  - slug: messaging-bridge-001
+    title: gRPC như ingress vào message flow
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-bridge-002
+    title: Chuyển RPC request thành command message
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-bridge-003
+    title: Phát event sau khi RPC thành công
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-bridge-004
+    title: Trả response trước hoặc sau khi publish
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-bridge-005
+    title: Correlation giữa RPC và message
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-bridge-006
+    title: Async reply từ message về gRPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-bridge-007
+    title: Deadline qua message boundary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-bridge-008
+    title: Retry giữa gRPC và broker
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-bridge-009
+    title: Idempotency của command
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-bridge-010
+    title: Không giữ stream mở vô hạn để chờ broker
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-bridge-011
+    title: Khi gRPC phù hợp hơn messaging và ngược lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-basics
+  title: Testing basics
+  childs:
+  - slug: testing-basics-001
+    title: Unit test mapping protobuf
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-basics-002
+    title: Unit test validation và status mapping
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-basics-003
+    title: Mock application service phía sau adapter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-basics-004
+    title: Kiểm tra generated request và response
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-basics-005
+    title: In-process gRPC server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-basics-006
+    title: In-process channel cho test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-basics-007
+    title: Test blocking stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-basics-008
+    title: Test async stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-basics-009
+    title: Test server interceptor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-basics-010
+    title: Test client interceptor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-basics-011
+    title: Kiểm tra metadata và deadline
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-basics-012
+    title: Không dùng network thật cho mọi unit test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-testing
+  title: Integration testing
+  childs:
+  - slug: integration-testing-001
+    title: Khởi động gRPC server trong test context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-002
+    title: Kết nối client test tới port động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-003
+    title: Kiểm thử nhiều service cùng server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-004
+    title: Kiểm thử TLS với certificate test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-005
+    title: Kiểm thử auth metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-006
+    title: Kiểm thử health check
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-007
+    title: Kiểm thử retry và server restart
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-008
+    title: Kiểm thử streaming end to end
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-009
+    title: Kiểm thử message size limit
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-010
+    title: Dọn channel và server sau test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-011
+    title: Tránh port cố định và test phụ thuộc thứ tự
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-testing
+  title: Contract testing
+  childs:
+  - slug: contract-testing-001
+    title: Contract test dựa trên proto
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-002
+    title: Kiểm tra service method tồn tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-003
+    title: Kiểm tra request và response field
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-004
+    title: Kiểm tra status code contract
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-005
+    title: Kiểm tra metadata contract
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-006
+    title: Kiểm tra deadline và cancellation semantics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-007
+    title: Kiểm tra backward compatibility
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-008
+    title: Client fixture và server fixture
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-009
+    title: Consumer-driven contract cho gRPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-010
+    title: Breaking change check trong CI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-011
+    title: Contract của error detail
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-012
+    title: Versioning contract test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-testing
+  title: Error testing
+  childs:
+  - slug: error-testing-001
+    title: Test INVALID_ARGUMENT từ request sai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-testing-002
+    title: Test NOT_FOUND và resource thiếu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-testing-003
+    title: Test PERMISSION_DENIED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-testing-004
+    title: Test UNAUTHENTICATED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-testing-005
+    title: Test DEADLINE_EXCEEDED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-testing-006
+    title: Test UNAVAILABLE khi server dừng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-testing-007
+    title: Test RESOURCE_EXHAUSTED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-testing-008
+    title: Test INTERNAL không làm lộ chi tiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-testing-009
+    title: Test cancellation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-testing-010
+    title: Test retryable và non-retryable status
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-testing-011
+    title: Test lỗi sau một phần streaming
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-testing-012
+    title: Assertion status, description và metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment
+  title: Deployment
+  childs:
+  - slug: deployment-001
+    title: Đóng gói gRPC server cùng Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-002
+    title: Expose HTTP/2 và port gRPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-003
+    title: TLS termination ở ứng dụng hay proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-004
+    title: Load balancer hỗ trợ HTTP/2
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-005
+    title: Health check cho orchestrator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-006
+    title: Graceful shutdown
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-007
+    title: Chờ RPC đang chạy hoàn tất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-008
+    title: Draining connection trước khi dừng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-009
+    title: Rolling deployment tương thích proto
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-010
+    title: Canary server và client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-011
+    title: Cấu hình resource container
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-012
+    title: Kiểm tra endpoint sau deploy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliability
+  title: Reliability
+  childs:
+  - slug: reliability-001
+    title: Graceful retry và idempotent command
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-002
+    title: Failover khi một server unavailable
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-003
+    title: Circuit breaker cho dependency gRPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-004
+    title: Bulkhead theo client hoặc method
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-005
+    title: Timeout budget qua nhiều downstream call
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-006
+    title: Hedging và nguy cơ tạo duplicate work
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-007
+    title: Outbox khi RPC kích hoạt event
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-008
+    title: Persist request state cho tác vụ dài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-009
+    title: Redelivery và duplicate response
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-010
+    title: Recovery sau restart
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-011
+    title: Runbook cho UNAVAILABLE tăng đột biến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-012
+    title: SLO cho success, latency và availability
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-operations
+  title: Security operations
+  childs:
+  - slug: security-operations-001
+    title: Rotation access token
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-002
+    title: Rotation server và client certificate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-003
+    title: Thu hồi certificate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-004
+    title: Quản lý trust store
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-005
+    title: Audit quyền gọi method
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-006
+    title: Giới hạn service reflection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-007
+    title: Network policy cho port gRPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-008
+    title: Secret không xuất hiện trong generated config
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-009
+    title: Metadata injection từ client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-010
+    title: Bảo vệ against oversized message
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-011
+    title: Theo dõi request bất thường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-012
+    title: Kiểm tra dependency và plugin codegen
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Troubleshooting
+  childs:
+  - slug: troubleshooting-001
+    title: Không kết nối được đến port gRPC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Server chạy nhưng client không resolve target
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: TLS handshake thất bại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: UNIMPLEMENTED do service chưa đăng ký
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: UNAUTHENTICATED do metadata thiếu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: DEADLINE_EXCEEDED do downstream chậm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: UNAVAILABLE do connection reset
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: RESOURCE_EXHAUSTED do message hoặc quota
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Generated code không khớp proto
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Streaming kết thúc sớm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Header hoặc trace context bị mất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Server shutdown làm RPC lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Dùng grpcurl để thu hẹp nguyên nhân
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: Lỗi thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: Coi gRPC là gọi hàm cục bộ và bỏ qua deadline
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: Tạo channel mới cho từng request
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: Dùng plaintext trong production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: Retry command không idempotent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: Đặt message quá lớn để tránh thiết kế schema
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: Dùng string tự do thay cho enum hoặc message rõ nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: Đổi field number đã phát hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: Nuốt status code thành INTERNAL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-009
+    title: Chặn event loop bằng lời gọi blocking
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-010
+    title: Không giới hạn stream hoặc buffer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-011
+    title: Dùng sleep trong streaming test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-012
+    title: Mock mọi thứ và bỏ qua contract
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-013
+    title: Không graceful shutdown server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-014
+    title: Log toàn bộ payload và credential
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: communication-choice
+  title: Chọn giao tiếp
+  childs:
+  - slug: communication-choice-001
+    title: Chọn gRPC cho RPC nội bộ độ trễ thấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-choice-002
+    title: Chọn REST cho browser và hệ sinh thái HTTP rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-choice-003
+    title: Chọn messaging cho giao tiếp bất đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-choice-004
+    title: Chọn server streaming cho dữ liệu liên tục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-choice-005
+    title: Chọn client streaming cho upload hoặc batch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-choice-006
+    title: Chọn bidi streaming cho tương tác hai chiều
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-choice-007
+    title: Đánh giá schema evolution trước khi chốt proto
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-choice-008
+    title: Đánh giá observability và vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-choice-009
+    title: Đánh giá client library của hệ sinh thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-choice-010
+    title: Đánh giá firewall, proxy và load balancer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-choice-011
+    title: Ghi lại lý do chọn gRPC và giới hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Dự án thực hành
+  childs:
+  - slug: hands-on-project-001
+    title: Định nghĩa proto cho service quản lý đơn hàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Sinh generated message và stub trong Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Tạo Spring Boot gRPC server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Tạo unary RPC với validation và status mapping
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Tạo server streaming cho danh sách lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Tạo client streaming cho upload batch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Tạo bidi streaming cho phiên tương tác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Cấu hình Spring client channel
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Thêm deadline và retry có kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Thêm interceptor cho auth và correlation ID
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-011
+    title: Bật TLS và health check
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-012
+    title: Viết unit, integration và contract test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-013
+    title: Đưa service vào container và graceful shutdown
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-014
+    title: Đo latency, throughput và lỗi sau khi triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

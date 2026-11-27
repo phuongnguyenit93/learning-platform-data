@@ -1,0 +1,448 @@
+menu:
+- level1: Tổng quan Resource Server
+  level2:
+  - Máy chủ tài nguyên (Resource Server) là gì và bảo vệ API như thế nào
+  - Chủ tài nguyên, client, authorization server và resource server
+  - Hành trình một yêu cầu từ access token đến quyết định cho phép truy cập
+  - Xác thực token và phân quyền đối với tài nguyên là hai bước khác nhau
+  - Resource Server khác OAuth2 Client và Authorization Server ở trách nhiệm nào
+  - JWT, opaque token và lựa chọn cách xác minh
+  - Servlet, WebFlux và các thành phần tương ứng trong Spring Security
+  - Ranh giới tin cậy giữa nhà phát hành token, API và dịch vụ phía sau
+  - Lộ trình từ API có bảo vệ đến xác minh, phân quyền và kiểm thử đầy đủ
+- level1: OAuth 2.0 và OIDC
+  level2:
+  - OAuth 2.0 ủy quyền truy cập và OIDC bổ sung lớp danh tính
+  - Access token, refresh token, authorization code và ID token
+  - Đối tượng nhận và mục đích sử dụng của từng loại token
+  - ID token phục vụ OIDC Client và không thay access token để gọi API
+  - Scope openid và các scope profile, email không tự trở thành quyền nghiệp vụ
+  - Đăng nhập OIDC khác với xác thực một yêu cầu Bearer tại Resource Server
+  - Luồng authorization code và client credentials nhìn từ API nhận token
+  - Resource Server không tự cấp mới hoặc làm mới token của client
+  - OIDC Discovery, OAuth metadata và thông tin khóa của nhà phát hành
+  - UserInfo endpoint và lý do không mặc định cần gọi cho mỗi yêu cầu API
+  - Hợp đồng giữa client, nhà phát hành và API về audience, quyền, danh tính
+- level1: Bearer token
+  level2:
+  - 'Ngữ nghĩa Bearer: quyền sử dụng gắn với việc nắm giữ token'
+  - 'Authorization: Bearer và cấu trúc yêu cầu HTTP có token'
+  - BearerTokenResolver và DefaultBearerTokenResolver trong Servlet
+  - Nguồn token mặc định và tùy chỉnh tên header theo hợp đồng
+  - Token trong header, query hoặc form và phạm vi hỗ trợ, rủi ro khác nhau
+  - Yêu cầu có nhiều token, token rỗng và cú pháp không hợp lệ
+  - Không có token khác với có token nhưng không hợp lệ
+  - HTTPS, proxy và bảo vệ token trên đường truyền
+  - 'Token là dữ liệu nhạy cảm: tránh URL, log và thông báo lỗi'
+  - Bearer token không tự chứng minh bên gọi đang giữ một khóa riêng
+  - Phân biệt thông tin xác thực đầu vào với danh tính sau khi xác minh
+- level1: JWT và JOSE
+  level2:
+  - JWT là tập claims được biểu diễn theo một định dạng token
+  - JWS compact, ba thành phần và mã hóa biểu diễn base64url
+  - JOSE header, payload và chữ ký
+  - 'JWS và JWE: ký, mã hóa và phạm vi hỗ trợ của decoder'
+  - Chữ ký bảo vệ toàn vẹn nhưng không che nội dung claims
+  - alg, kid, typ và vai trò khác nhau của từng trường header
+  - Khóa đối xứng, khóa bất đối xứng và phân biệt khóa ký với khóa xác minh
+  - JWK, JWKS và biểu diễn khóa công khai
+  - Registered claims, public claims và claims riêng của hệ thống
+  - NumericDate, kiểu dữ liệu JSON và chuyển đổi sang kiểu Java
+  - Đọc nội dung token để chẩn đoán không đồng nghĩa đã xác minh token
+- level1: Hợp đồng access token
+  level2:
+  - Xác định API nhận token, nhà phát hành được tin cậy và mục đích truy cập
+  - iss, sub, aud, exp, nbf, iat, jti và ý nghĩa trong hợp đồng
+  - Audience của API khác client_id của ứng dụng gọi
+  - Subject đại diện người dùng hay ứng dụng tùy loại token và nhà phát hành
+  - Scope, roles, permissions và quy tắc cấp quyền do hệ thống quy định
+  - azp, client_id và dữ liệu bổ sung cần diễn giải theo hồ sơ token
+  - Định danh tenant và ràng buộc với tài nguyên được truy cập
+  - Claims bắt buộc, claims tùy chọn và xử lý thiếu hoặc sai kiểu dữ liệu
+  - RFC 9068, typ at+jwt và hồ sơ JWT access token
+  - Thiết kế kiểm tra phân biệt access token với token có mục đích khác
+  - Quản lý thay đổi claims và giữ tương thích giữa nhà phát hành với API
+- level1: Khởi tạo và cấu hình
+  level2:
+  - Chọn bộ phiên bản JDK, Spring Boot và Spring Security tương thích
+  - Phụ thuộc Resource Server, JOSE và kiểm thử bảo mật
+  - Khởi tạo ứng dụng Servlet hoặc WebFlux theo mục tiêu thực thi
+  - Cấu hình JWT bằng issuer-uri, jwk-set-uri hoặc khóa được quản lý
+  - Cấu hình opaque token bằng introspection endpoint và thông tin xác thực
+  - Spring Boot tự tạo filter chain, decoder hoặc introspector khi nào
+  - Bean tùy chỉnh, cấu hình DSL và thứ tự ghi đè cấu hình tự động
+  - Tách URL, audience, thông tin xác thực theo môi trường
+  - Quản lý bí mật cho introspection và tránh đưa vào mã nguồn
+  - Xác nhận một yêu cầu công khai và một yêu cầu được bảo vệ
+- level1: Chuỗi xử lý Servlet
+  level2:
+  - SecurityFilterChain và vị trí xử lý Bearer token
+  - BearerTokenAuthenticationFilter và lấy token từ yêu cầu
+  - BearerTokenAuthenticationToken trước khi được xác thực
+  - AuthenticationManager, ProviderManager và lựa chọn provider
+  - JwtAuthenticationProvider và OpaqueTokenAuthenticationProvider
+  - Decoder hoặc introspector chuyển token thành dữ liệu đã được xác minh
+  - Chuyển dữ liệu token thành Authentication và GrantedAuthority
+  - SecurityContextHolder và phạm vi danh tính trong một yêu cầu
+  - ExceptionTranslationFilter, entry point và access denied handler
+  - Đường đi khi không có token, token sai hoặc quyền không đủ
+  - Giữ logic xác thực trong cơ chế Resource Server thay vì viết filter JWT song song
+- level1: Giải mã và xác minh JWT
+  level2:
+  - JwtDecoder và sự khác nhau giữa phân tích cú pháp với xác minh
+  - NimbusJwtDecoder và các nguồn cung cấp khóa
+  - JwtDecoders.fromIssuerLocation và cấu hình dựa trên issuer
+  - Xác minh chữ ký trước khi sử dụng claims để quyết định quyền
+  - Danh sách thuật toán được phép và ghép đúng loại khóa
+  - Khóa công khai cố định và yêu cầu luân chuyển
+  - Khóa đối xứng và ranh giới tin cậy khi bên xác minh cũng giữ bí mật ký
+  - Token không chữ ký, sai chữ ký hoặc không đúng định dạng mong đợi
+  - Xử lý typ và hồ sơ token theo khả năng của phiên bản
+  - JwtValidators và cấu hình chuỗi kiểm tra sau xác minh chữ ký
+  - Thay decoder mặc định mà vẫn giữ các kiểm tra cần thiết
+  - JWE hoặc bộ xử lý token khác và nhu cầu kiểm chứng hỗ trợ tường minh
+- level1: Issuer và discovery
+  level2:
+  - Issuer là định danh nhà phát hành và là một phần của gốc tin cậy
+  - issuer-uri và kiểm tra claim iss theo giá trị đã cấu hình
+  - OIDC Provider Configuration và OAuth Authorization Server Metadata
+  - Discovery tìm jwks_uri như thế nào
+  - Cấu hình trực tiếp jwk-set-uri và vẫn kiểm tra issuer
+  - Khởi tạo sớm, khởi tạo khi nhận yêu cầu và khác biệt theo phiên bản
+  - Authorization Server tạm ngừng và ảnh hưởng đến khởi động, xác minh
+  - URL bên trong, URL công bố và issuer khi triển khai sau proxy
+  - Giới hạn endpoint tin cậy và tránh discovery theo dữ liệu chưa xác thực
+  - Kiểm chứng metadata, HTTPS và chứng chỉ trong từng môi trường
+- level1: JWK và vòng đời khóa
+  level2:
+  - JWK Set, loại khóa, mục đích dùng khóa và thuật toán
+  - kid giúp chọn khóa nhưng không tự tạo ra sự tin cậy
+  - Tải JWKS qua HTTPS và kiểm tra nguồn đã được cho phép
+  - Bộ nhớ đệm JWKS, thời gian sống và làm mới dữ liệu khóa
+  - Token có kid mới trong giai đoạn luân chuyển
+  - Thời gian chồng lấn khóa cũ, khóa mới và token chưa hết hạn
+  - Khóa bị gỡ, khóa bị lộ và giới hạn của cache đang giữ
+  - Timeout, lỗi mạng, thử lại và giới hạn tải khi tra khóa
+  - Tùy chỉnh HTTP client và cache theo khả năng của decoder
+  - jku, x5u hoặc khóa đính kèm không phải nguồn được tự động tin cậy
+  - Nhiều nút API, cache riêng và hành vi khi khóa thay đổi
+  - Kiểm thử luân chuyển, khóa không khớp và nguồn JWKS bị gián đoạn
+- level1: Kiểm tra claims
+  level2:
+  - Kiểm tra exp, nbf và lựa chọn độ lệch đồng hồ cho phép
+  - iat, tuổi token và các chính sách bổ sung theo hợp đồng
+  - JwtIssuerValidator và kiểm tra đúng nhà phát hành
+  - Audience của API và kiểm tra danh sách aud
+  - Kiểu dữ liệu, giá trị rỗng, claims thiếu và token bị từ chối
+  - JwtTimestampValidator và kiểm thử tại các mốc thời gian biên
+  - OAuth2TokenValidator, JwtClaimValidator và quy tắc tùy chỉnh
+  - DelegatingOAuth2TokenValidator và hợp thành các kiểm tra
+  - Giữ validator mặc định khi thêm yêu cầu mới
+  - Kiểm tra RFC 9068 theo phạm vi hỗ trợ của phiên bản
+  - Ràng buộc tenant, client hoặc loại token khi hợp đồng yêu cầu
+  - Không dùng kiểm tra claims thay cho xác minh chữ ký hoặc nguồn token
+- level1: Principal và danh tính
+  level2:
+  - Jwt, JwtAuthenticationToken và dữ liệu danh tính sau xác thực
+  - Authentication.getName và lựa chọn claim làm tên principal
+  - '@AuthenticationPrincipal Jwt và truy cập claims trong controller'
+  - JwtAuthenticationConverter và chuyển token thành Authentication
+  - Subject cần được định danh trong phạm vi issuer
+  - Không dùng email hoặc tên hiển thị làm định danh ổn định khi chưa có hợp đồng
+  - Ánh xạ danh tính ngoài sang tài khoản nội bộ khi nghiệp vụ cần
+  - MappedJwtClaimSetConverter và chuyển kiểu, điều chỉnh claims
+  - Phân biệt chuẩn hóa dữ liệu với tạo thêm quyền không có căn cứ
+  - Giữ dữ liệu token nhạy cảm ngoài phản hồi API và nhật ký
+- level1: Scope và authorities
+  level2:
+  - Scope trong OAuth và GrantedAuthority trong Spring Security
+  - Claims scope, scp và các dạng dữ liệu từ nhà phát hành
+  - Quy ước SCOPE_ và kiểm tra authority tương ứng
+  - hasAuthority, hasRole và tiền tố ROLE_
+  - JwtGrantedAuthoritiesConverter và tùy chỉnh nguồn claims
+  - Đổi tiền tố, phân tách giá trị và chuẩn hóa tên quyền
+  - Roles, permissions lồng trong token và converter theo hợp đồng
+  - Kết hợp nhiều nguồn authority mà không nhân đôi hoặc nâng quyền ngoài ý muốn
+  - Scope chỉ là một phần của điều kiện truy cập tài nguyên
+  - Quyền được chụp tại thời điểm phát token và thay đổi quyền sau đó
+  - Kiểm thử ánh xạ quyền với token thiếu scope, nhiều scope và scope không hợp lệ
+- level1: Phân quyền HTTP
+  level2:
+  - authorizeHttpRequests và chính sách cho từng nhóm endpoint
+  - requestMatchers theo đường dẫn, phương thức và nhu cầu nghiệp vụ
+  - Endpoint công khai, endpoint cần xác thực và endpoint cần quyền cụ thể
+  - Thứ tự khớp quy tắc và quy tắc mặc định cho các yêu cầu còn lại
+  - Phân biệt GET, POST, PUT, DELETE khi gán quyền truy cập
+  - Authenticated không đồng nghĩa đủ scope hoặc được sở hữu tài nguyên
+  - Nhiều SecurityFilterChain, securityMatcher và thứ tự @Order
+  - Đường đi không thuộc chuỗi bảo mật và cách kiểm tra độ bao phủ
+  - permitAll không tự vô hiệu hóa bước xử lý token được gửi đến
+  - Endpoint giám sát, tài liệu API và cấu hình quyền theo môi trường
+  - Kiểm tra cả đường đi được phép lẫn đường đi phải bị từ chối
+- level1: Bảo vệ nghiệp vụ
+  level2:
+  - Phân quyền lớp dịch vụ để bảo vệ hành vi vượt ra ngoài controller
+  - '@EnableMethodSecurity và các cơ chế phân quyền phương thức'
+  - '@PreAuthorize, authority và dữ liệu đầu vào của lời gọi'
+  - Kiểm tra chủ sở hữu, tenant và quan hệ với tài nguyên
+  - Phân biệt quyền thao tác với quyền truy cập một đối tượng cụ thể
+  - AuthorizationManager hoặc thành phần quyết định quyền tùy chỉnh
+  - '@PostAuthorize và giới hạn đối với tác dụng phụ đã xảy ra'
+  - Lọc dữ liệu theo quyền và tránh trả dư tài nguyên trước khi kiểm tra
+  - Proxy, lời gọi nội bộ và trường hợp annotation không được áp dụng
+  - Tách chính sách nghiệp vụ khỏi tên claim riêng của một nhà phát hành
+  - Kiểm thử ranh giới tenant, chủ sở hữu và đường gọi trực tiếp vào dịch vụ
+- level1: Opaque token
+  level2:
+  - Opaque token và xác minh thông qua introspection
+  - Định dạng token không quyết định bắt buộc phải xác minh cục bộ hay từ xa
+  - RFC 7662, introspection request và metadata phản hồi
+  - introspection-uri, client-id, client-secret và xác thực Resource Server
+  - OpaqueTokenIntrospector và SpringOpaqueTokenIntrospector theo phiên bản
+  - OpaqueTokenAuthenticationProvider và BearerTokenAuthentication
+  - Thuộc tính active và xử lý token không còn hiệu lực
+  - OAuth2AuthenticatedPrincipal, attributes, name và authorities
+  - Ánh xạ scope từ phản hồi introspection sang quyền
+  - active=true không thay thế ràng buộc audience và phân quyền của API
+  - Độ trễ, tính sẵn sàng và khả năng phản ánh thu hồi token
+  - Phân biệt lỗi token với lỗi thông tin xác thực introspection hoặc lỗi mạng
+- level1: Tùy chỉnh introspection
+  level2:
+  - Bọc OpaqueTokenIntrospector để thêm kiểm tra theo hợp đồng
+  - Kiểm tra audience, issuer hoặc loại token khi metadata có yêu cầu tương ứng
+  - Chuẩn hóa principal và ánh xạ roles, permissions
+  - Xử lý phản hồi thiếu trường, sai kiểu hoặc trạng thái không hợp lệ
+  - HTTP client, kết nối, timeout và quản lý tài nguyên
+  - Thông tin xác thực introspection và luân chuyển bí mật
+  - Cache kết quả hợp lệ, thời hạn token và cửa sổ chậm thu hồi
+  - Cache kết quả không hợp lệ và giới hạn tài nguyên trước đầu vào tùy ý
+  - Thử lại có giới hạn, quá tải và chính sách lỗi không bỏ qua xác minh
+  - Kiểm thử phần tùy chỉnh độc lập với phản hồi của nhà cung cấp
+- level1: Lỗi và phản hồi Bearer
+  level2:
+  - Yêu cầu thiếu token, token sai định dạng và token bị từ chối
+  - Phân biệt HTTP 400, 401 và 403 trong luồng Bearer
+  - WWW-Authenticate và challenge theo RFC 6750
+  - invalid_request, invalid_token và insufficient_scope
+  - BearerTokenAuthenticationEntryPoint và phản hồi khi chưa xác thực
+  - BearerTokenAccessDeniedHandler và phản hồi thiếu quyền
+  - AuthenticationException, AccessDeniedException và ranh giới xử lý
+  - Phối hợp nội dung lỗi JSON với header, mã trạng thái đúng ngữ nghĩa
+  - Không chuyển lỗi xác thực API thành trang đăng nhập HTML ngoài dự kiến
+  - Giới hạn chi tiết lỗi để không làm lộ token, khóa hoặc cấu hình nội bộ
+  - Kiểm thử phản hồi từ filter thay vì chỉ kiểm thử ngoại lệ trong controller
+- level1: Trạng thái và bảo vệ web
+  level2:
+  - API xác thực Bearer theo từng yêu cầu và lựa chọn quản lý phiên
+  - SessionCreationPolicy.STATELESS và các thành phần có thể tạo trạng thái
+  - SecurityContextRepository và trách nhiệm lưu, khôi phục danh tính
+  - Phối hợp Resource Server với đăng nhập trình duyệt trong nhiều filter chain
+  - CSRF dựa trên cách trình duyệt gửi thông tin xác thực
+  - CORS, preflight và xử lý trước bước yêu cầu token
+  - Allowed origins, headers, methods và credentials theo client thực tế
+  - Cookie chứa token, header chứa token và sự khác nhau về rủi ro
+  - Request cache, redirect và các hành vi không phù hợp với API máy gọi
+  - Kiểm thử API không tạo phiên hoặc tái sử dụng danh tính ngoài chính sách
+- level1: Kiến trúc WebFlux
+  level2:
+  - SecurityWebFilterChain và cấu hình qua ServerHttpSecurity
+  - AuthenticationWebFilter và chuỗi xác thực phản ứng
+  - ServerBearerTokenAuthenticationConverter và nguồn token đầu vào
+  - ReactiveAuthenticationManager cho JWT hoặc opaque token
+  - ReactiveSecurityContextHolder và danh tính trong Reactor Context
+  - SecurityContext trong chuỗi phản ứng khác với ThreadLocal của Servlet
+  - authorizeExchange và quy tắc phân quyền cho HTTP exchange
+  - Phân quyền phương thức phản ứng theo cơ chế phiên bản hỗ trợ
+  - Không đưa decoder, introspector hoặc tra cứu người dùng có chặn vào luồng sự kiện
+  - Lỗi xác thực, từ chối truy cập và handler tương ứng phía server
+  - Thời điểm đăng ký, hủy và truyền ngữ cảnh trong chuỗi xử lý
+- level1: JWT trong WebFlux
+  level2:
+  - ReactiveJwtDecoder và NimbusReactiveJwtDecoder
+  - Cấu hình issuer-uri, jwk-set-uri và khóa được tin cậy
+  - Khám phá metadata, tải JWKS và yêu cầu kết nối ngoài
+  - Kiểm tra chữ ký, issuer, audience và mốc thời gian
+  - OAuth2TokenValidator và giữ nguyên kiểm tra nền tảng khi tùy chỉnh
+  - ReactiveJwtAuthenticationConverter và ánh xạ authorities
+  - ReactiveJwtAuthenticationConverterAdapter và giới hạn của converter đồng bộ
+  - Ánh xạ principal có tra cứu phản ứng khi nghiệp vụ cần
+  - Tùy chỉnh WebClient, timeout và cache theo API của phiên bản
+  - Kiểm thử token không hợp lệ mà vẫn đi qua decoder phản ứng thực tế
+- level1: Introspection phản ứng
+  level2:
+  - ReactiveOpaqueTokenIntrospector và hợp đồng kết quả Mono
+  - SpringReactiveOpaqueTokenIntrospector và cấu hình theo phiên bản
+  - Thông tin xác thực tới introspection endpoint
+  - Kiểm tra active, metadata và ánh xạ scope
+  - OAuth2AuthenticatedPrincipal trong BearerTokenAuthentication
+  - Tùy chỉnh introspector bằng phép hợp thành phản ứng
+  - WebClient, timeout, hủy yêu cầu và giới hạn số kết nối
+  - Cache phản ứng và tránh gọi đồng thời lặp lại cùng một công việc
+  - Phân biệt lỗi từ xa, token không hiệu lực và chính sách từ chối
+  - Kiểm thử không chặn và truyền ngữ cảnh xác thực đến lớp xử lý
+- level1: Nhiều tenant
+  level2:
+  - Tenant, issuer và chiến lược xác minh token có thể khác nhau
+  - AuthenticationManagerResolver trong ứng dụng Servlet
+  - JwtIssuerAuthenticationManagerResolver và tập issuer được tin cậy
+  - Đọc claim chưa xác minh chỉ để chọn chiến lược, không để cấp quyền
+  - Ràng buộc issuer đã chọn với kết quả xác minh cuối cùng
+  - Xác định tenant qua host hoặc đường dẫn và đối chiếu với token
+  - Quản lý decoder, khóa, cache và cấu hình theo từng tenant
+  - Không discovery tùy ý từ URL hoặc issuer do token cung cấp
+  - JwtIssuerReactiveAuthenticationManagerResolver trong WebFlux
+  - Thêm, thu hồi tenant và vòng đời cấu hình được tin cậy
+  - Truyền tenant đã được xác minh xuống truy vấn và dịch vụ phía sau
+  - Kiểm thử token hợp lệ nhưng thuộc tenant khác với tài nguyên yêu cầu
+- level1: Nhiều cơ chế xác thực
+  level2:
+  - Hỗ trợ JWT và opaque token trong một Resource Server
+  - Chọn AuthenticationManager dựa trên yêu cầu và cấu hình được quản lý
+  - Không suy ra mức tin cậy chỉ từ hình dạng hoặc số dấu chấm của token
+  - Tách endpoint, issuer hoặc tenant để chọn chiến lược rõ ràng
+  - Lỗi ở một chiến lược không tự trở thành lý do thử mọi nguồn tin cậy
+  - Phối hợp nhiều provider và tránh chồng lấn phạm vi xử lý
+  - Nhiều filter chain cho API, trình duyệt và các endpoint riêng
+  - Xung đột giữa cookie phiên, HTTP Basic, Bearer và cơ chế khác
+  - Tùy chỉnh token resolver mà vẫn giữ kiểm tra đầu vào thống nhất
+  - Ma trận kiểm thử loại token, nguồn tin cậy, endpoint và kết quả mong đợi
+- level1: Tích hợp nhà phát hành
+  level2:
+  - Đọc metadata và hợp đồng access token của nhà phát hành
+  - Chuẩn hóa scope, roles, principal giữa các nhà cung cấp
+  - Client dành cho người dùng và client máy gọi có thể nhận claims khác nhau
+  - Cấu hình audience cho API thay vì chỉ dùng client_id của ứng dụng giao diện
+  - Không dùng ID token hoặc UserInfo như bước thay thế xác minh access token
+  - Nhà phát hành không có discovery và lựa chọn cấu hình tường minh
+  - Introspection, JWKS và các khả năng cần kiểm chứng ở từng môi trường
+  - Định danh người dùng theo issuer, subject và ánh xạ tài khoản nội bộ
+  - Bộ token mẫu đã được kiểm soát để kiểm tra tương thích khi nhà phát hành thay đổi
+- level1: Vòng đời và thu hồi
+  level2:
+  - Thời điểm phát hành, bắt đầu có hiệu lực và hết hạn của access token
+  - Token tự chứa và giới hạn thu hồi tức thời khi xác minh cục bộ
+  - Introspection, trạng thái active và độ trễ phản ánh thu hồi
+  - Cache kết quả xác minh làm thay đổi cửa sổ chấp nhận token như thế nào
+  - Đăng xuất ở client không tự làm mọi access token đã phát hành mất hiệu lực
+  - Khóa tài khoản, thay đổi quyền và token còn sống
+  - Token ngắn hạn, danh sách thu hồi và đánh đổi trạng thái của Resource Server
+  - Refresh token thuộc trách nhiệm client và authorization server
+  - Resource Server trả lỗi để client xử lý gia hạn theo giao thức phù hợp
+  - Kiểm thử token cũ sau thu hồi, đổi quyền hoặc thay khóa
+- level1: Token ràng buộc khóa
+  level2:
+  - Bearer token và token ràng buộc bên gửi có mô hình bảo vệ khác nhau
+  - DPoP theo RFC 9449 và phạm vi hỗ trợ của từng phiên bản Spring Security
+  - Authorization scheme DPoP và header chứa DPoP proof
+  - DPoP proof khác access token và được ký bằng khóa của client
+  - cnf, jkt và kiểm tra khóa trong proof khớp liên kết của access token
+  - ath và đối chiếu proof với đúng access token được trình
+  - htm, htu và liên kết proof với phương thức, địa chỉ yêu cầu
+  - iat, jti, nonce và kiểm soát phát lại theo cơ chế được triển khai
+  - Cấu hình xử lý DPoP trong Servlet và kiểm chứng giới hạn ở các stack khác
+  - mTLS-bound token và việc đối chiếu token với chứng chỉ kết nối
+  - Xác thực TLS không tự thay thế kiểm tra liên kết chứng chỉ với token
+  - Kiểm thử proof bị thay đổi, phát lại, sai khóa hoặc sai yêu cầu
+- level1: Chuyển tiếp token
+  level2:
+  - Resource Server gọi dịch vụ khác có thể đồng thời đóng vai trò OAuth2 Client
+  - Chuyển tiếp token hiện có khác với lấy token mới hoặc làm mới token
+  - Đích nhận phải được phép và thuộc audience phù hợp
+  - ServletBearerExchangeFilterFunction và hỗ trợ WebClient trong Servlet
+  - ServerBearerExchangeFilterFunction và truyền token trong WebFlux
+  - Ngữ cảnh xác thực khi chuyển sang tác vụ khác hoặc chuỗi bất đồng bộ
+  - Không chuyển token tùy ý sang URL do người dùng cung cấp
+  - Khi cần token riêng cho dịch vụ đích hoặc cơ chế token exchange
+  - Thông tin tương quan, phạm vi quyền và kiểm chứng lời gọi phía sau
+- level1: Kiểm thử Servlet
+  level2:
+  - MockMvc với Spring Security filter chain thực tế
+  - jwt() và tạo Jwt, claims, authorities cho kiểm thử phân quyền
+  - opaqueToken() và mô phỏng principal của token được introspect
+  - '@WithMockUser không mô phỏng đầy đủ principal Resource Server'
+  - Kiểm tra scope, role, phương thức HTTP và quyền truy cập tài nguyên
+  - Kiểm thử thiếu token, token sai cú pháp và phản hồi WWW-Authenticate
+  - Mock JwtDecoder hoặc OpaqueTokenIntrospector để kiểm tra luồng filter
+  - Kiểm thử JwtAuthenticationConverter và validator riêng theo hợp đồng
+  - jwt() không chứng minh chữ ký, discovery hoặc tải JWKS đã được kiểm tra
+  - Kiểm tra nhiều filter chain và endpoint permitAll có gửi token sai
+  - Kiểm thử method security, lời gọi qua proxy và quyền sở hữu dữ liệu
+- level1: Kiểm thử WebFlux
+  level2:
+  - WebTestClient với SecurityWebFilterChain
+  - mockJwt() và tùy chỉnh claims, authorities
+  - mockOpaqueToken() và dữ liệu OAuth2AuthenticatedPrincipal
+  - Kiểm tra Reactor Context và principal tại lớp xử lý
+  - StepVerifier cho validator, converter và introspector phản ứng
+  - Mock ReactiveJwtDecoder và ReactiveOpaqueTokenIntrospector
+  - Kiểm tra 401, 403, challenge và phản hồi lỗi API
+  - Kiểm thử multi-tenant và lựa chọn reactive authentication manager
+  - Kiểm tra timeout, hủy và thao tác có chặn ngoài dự kiến
+  - Phân biệt mock danh tính với kiểm chứng token thực tế qua toàn bộ chuỗi
+- level1: Kiểm chứng tích hợp
+  level2:
+  - Tạo bộ khóa kiểm thử và token có chữ ký với claims được kiểm soát
+  - Máy chủ JWKS, metadata, introspection thử nghiệm và vòng đời tài nguyên
+  - Token đúng, sai chữ ký, sai issuer, sai audience và sai loại
+  - Token hết hạn, chưa có hiệu lực và ranh giới clock skew
+  - Từ chối ID token hoặc token dành cho API khác theo hợp đồng
+  - Luân chuyển khóa, kid mới, khóa cũ và JWKS không truy cập được
+  - Introspection active=false, thiếu metadata và lỗi thông tin xác thực
+  - Cache introspection và thời gian phản ánh token bị thu hồi
+  - Nhiều tenant với token hợp lệ nhưng không thuộc tài nguyên được gọi
+  - Ma trận xác thực, scope, chủ sở hữu và phương thức HTTP
+  - DPoP hoặc ràng buộc khóa khi phiên bản và cấu hình có hỗ trợ
+  - Lỗi mạng, timeout và kiểm chứng không có đường đi bỏ qua xác minh
+- level1: Hiệu năng và vận hành
+  level2:
+  - Chi phí xác minh JWT cục bộ và gọi introspection từ xa
+  - Độ trễ, thông lượng và thời gian xử lý xác thực trong một yêu cầu
+  - Cache JWKS, cache introspection và các mục tiêu khác nhau
+  - Nhóm kết nối, timeout và giới hạn lời gọi đến nhà phát hành
+  - Tải tăng khi gặp kid mới, nhiều issuer hoặc token ngẫu nhiên
+  - Khởi động đồng thời nhiều nút và dồn tải discovery, JWKS
+  - Giới hạn số tenant, số decoder và dữ liệu cache
+  - Metric xác thực thành công, token bị từ chối và lỗi hạ tầng
+  - Log, trace tương quan và che token, secrets, claims nhạy cảm
+  - Phân biệt lỗi chữ ký, claims, quyền với lỗi kết nối hoặc cấu hình
+  - Diễn tập nhà phát hành ngừng hoạt động và xác định phụ thuộc còn cần thiết
+  - Kiểm tra đồng hồ, DNS, TLS, proxy và cấu hình môi trường khi có sự cố
+- level1: Triển khai an toàn
+  level2:
+  - Mô hình đe dọa và các ranh giới tin cậy của API
+  - Danh sách issuer, audience, thuật toán và nguồn khóa được tin cậy
+  - Ngăn nhầm thuật toán, nhầm loại token và dùng token cho sai tài nguyên
+  - Không tin header do gateway hoặc proxy chuyển tiếp nếu chưa bảo vệ nguồn
+  - Kiểm soát đường gọi trực tiếp và xác minh tại ranh giới API được thiết kế
+  - Bảo vệ thông tin xác thực introspection và quy trình luân chuyển
+  - Phân phối khóa xác minh, tránh đưa khóa ký bất đối xứng vào Resource Server
+  - Giới hạn kích thước token, header và chi phí xử lý đầu vào
+  - Cô lập tenant và kiểm tra quyền đối với dữ liệu nghiệp vụ
+  - Chính sách khi discovery, JWKS hoặc introspection không hoạt động
+  - Rà soát endpoint công khai và xác nhận không có chuỗi bảo mật bị bỏ sót
+- level1: Nâng cấp và di chuyển
+  level2:
+  - Đối chiếu bộ phiên bản Boot, Security, JOSE và thư viện HTTP
+  - Cấu hình SecurityFilterChain thay cho mẫu cấu hình cũ
+  - Lambda DSL, phương thức bị thay thế và thay đổi theo dòng phiên bản
+  - Thay đổi decoder, introspector và các lớp triển khai mặc định
+  - Khác biệt giữa cấu hình Bean tường minh và cấu hình tự động
+  - Chuyển servlet javax sang jakarta đúng phạm vi
+  - Kiểm tra thay đổi mặc định về thuật toán, typ và validator
+  - Tùy chỉnh principal, authority converter và hành vi phân quyền khi nâng cấp
+  - Khả năng DPoP, RFC 9068 và các tính năng phụ thuộc phiên bản
+  - Giữ bộ token, khóa, phản hồi lỗi và ca kiểm thử từ chối làm mốc so sánh
+- level1: Thực hành tổng hợp
+  level2:
+  - Bảo vệ API tra cứu dữ liệu bằng JWT từ một issuer tin cậy
+  - Thiết lập audience và chứng minh API từ chối token dành cho nơi khác
+  - Ánh xạ scope, role rồi bảo vệ thao tác đọc, sửa theo phương thức HTTP
+  - Kiểm tra chủ sở hữu và tenant ở lớp nghiệp vụ
+  - Thay xác minh JWT cục bộ bằng introspection và so sánh hành vi
+  - Tạo bản WebFlux có chính sách tương đương bản Servlet
+  - Hỗ trợ hai issuer được phê duyệt và kiểm tra cách ly dữ liệu
+  - Luân chuyển khóa trong môi trường thử nghiệm khi token cũ vẫn còn hạn
+  - Kiểm chứng 400, 401, 403 và header WWW-Authenticate
+  - Viết kiểm thử mock danh tính và kiểm thử chữ ký, introspection thực tế
+  - Thử nghiệm thu hồi token, lỗi nhà phát hành và các chính sách cache
+  - Chuyển tiếp token đến dịch vụ được phép rồi kiểm tra audience, phạm vi quyền

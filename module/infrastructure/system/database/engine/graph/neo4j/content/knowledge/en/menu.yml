@@ -1,0 +1,416 @@
+menu:
+- level1: Tổng quan Neo4j
+  level2:
+  - Cơ sở dữ liệu đồ thị là gì và bài toán Neo4j giải quyết
+  - 'Mô hình đồ thị thuộc tính: nút, quan hệ, nhãn và thuộc tính'
+  - Cách nhìn dữ liệu qua các mối liên hệ thay vì bảng và phép nối
+  - 'Hệ sinh thái Neo4j: máy chủ, công cụ truy vấn, thư viện và dịch vụ quản lý'
+  - So sánh Neo4j với cơ sở dữ liệu quan hệ, tài liệu và kho khóa–giá trị
+  - Dấu hiệu bài toán phù hợp với đồ thị và trường hợp nên chọn hệ lưu trữ khác
+  - Lộ trình học từ mô hình dữ liệu đến truy vấn, ứng dụng và vận hành
+- level1: Khởi tạo môi trường
+  level2:
+  - Lựa chọn môi trường cục bộ, Docker và dịch vụ Neo4j Aura
+  - Cài đặt Neo4j và kiểm tra yêu cầu hệ thống theo phiên bản
+  - Khởi chạy bằng Docker Compose với dữ liệu lưu bền và cấu hình riêng
+  - Cổng kết nối, URI, giao thức Bolt và truy cập qua trình duyệt
+  - Tạo tài khoản ban đầu, đổi mật khẩu và kiểm tra kết nối
+  - Cấu trúc thư mục cấu hình, dữ liệu, nhật ký và phần mở rộng
+  - Phân biệt phiên bản máy chủ, ngôn ngữ Cypher và phiên bản trình điều khiển
+  - Phân biệt khả năng của Community, Enterprise và gói dịch vụ đang sử dụng
+- level1: Công cụ làm việc
+  level2:
+  - 'Neo4j Browser: chạy truy vấn và xem kết quả dạng bảng hoặc đồ thị'
+  - 'Cypher Shell: truy vấn, truyền tham số và thực thi tập lệnh'
+  - Neo4j Desktop và cách tổ chức môi trường phát triển khi sử dụng
+  - 'Neo4j Aura: tạo cơ sở dữ liệu và quản lý thông tin kết nối'
+  - Công cụ khám phá và trực quan hóa đồ thị trong hệ sinh thái Neo4j
+  - Lưu truy vấn mẫu, quản lý tập lệnh và tái tạo bộ dữ liệu thực hành
+  - Đọc thông báo lỗi, cảnh báo và kết quả thống kê sau truy vấn
+- level1: Thành phần đồ thị
+  level2:
+  - Nút, nhãn và thuộc tính trong mô hình đồ thị thuộc tính
+  - Quan hệ có hướng, loại quan hệ và hai nút đầu–cuối
+  - Nhiều nhãn trên một nút và ý nghĩa phân loại thực thể
+  - Quan hệ song song, vòng tự nối và những trường hợp mô hình cần lưu ý
+  - Phân biệt thuộc tính của nút với thuộc tính của quan hệ
+  - Khóa nghiệp vụ, định danh bên ngoài và giới hạn của định danh nội bộ
+  - Nhận diện đường đi, chu trình, thành phần liên thông và nút có bậc cao
+- level1: Kiểu dữ liệu
+  level2:
+  - Kiểu giá trị trong Cypher và kiểu có thể lưu làm thuộc tính
+  - Chuỗi, số, giá trị luận lý và chuyển đổi kiểu dữ liệu
+  - Giá trị null, thuộc tính không tồn tại và logic ba giá trị
+  - Danh sách, bản đồ và cấu trúc giá trị trả về từ truy vấn
+  - Ngày, giờ, ngày giờ, múi giờ và khoảng thời gian
+  - Tọa độ không gian, hệ quy chiếu và giá trị điểm
+  - Giới hạn khi lưu danh sách, bản đồ và cấu trúc lồng nhau
+  - Quy ước kiểu dữ liệu, đơn vị đo và chuẩn hóa giá trị đầu vào
+- level1: Thiết kế mô hình
+  level2:
+  - Đi từ câu hỏi nghiệp vụ và mẫu truy vấn đến mô hình đồ thị
+  - Chọn thực thể làm nút, quan hệ hay thuộc tính
+  - Đặt tên nhãn, loại quan hệ và thuộc tính nhất quán
+  - Thiết kế hướng quan hệ theo ngữ nghĩa nghiệp vụ
+  - Mô hình hóa quan hệ nhiều–nhiều và quan hệ có thuộc tính
+  - Nút trung gian cho sự kiện hoặc quan hệ có nhiều bên tham gia
+  - Mô hình hóa phân cấp, mạng lưới và dữ liệu có thứ tự
+  - Biểu diễn thời gian hiệu lực, lịch sử và phiên bản thực thể
+  - Xử lý nút có bậc quá cao và tránh mô hình làm truy vấn bùng nổ
+  - Đánh giá mô hình bằng truy vấn mẫu, tính toàn vẹn và chi phí cập nhật
+- level1: Nền tảng Cypher
+  level2:
+  - Cấu trúc câu truy vấn Cypher và cách các mệnh đề phối hợp
+  - Khai báo biến cho nút, quan hệ và đường đi
+  - Đọc và viết mẫu đồ thị bằng dấu ngoặc, mũi tên và nhãn
+  - Luồng bảng trung gian, số hàng kết quả và phạm vi biến
+  - Tham số truy vấn và phân biệt dữ liệu đầu vào với cấu trúc câu lệnh
+  - Biểu thức, toán tử, độ ưu tiên và cách viết điều kiện rõ nghĩa
+  - Đặt bí danh, chú thích và định dạng truy vấn dễ bảo trì
+  - Kiểm tra tính tương thích cú pháp trước khi dùng tính năng Cypher mới
+- level1: Truy vấn đọc
+  level2:
+  - MATCH để tìm nút theo nhãn và thuộc tính
+  - MATCH để tìm quan hệ có hướng hoặc không chỉ định hướng
+  - Kết hợp nhiều mẫu liên thông và nhận diện tích Descartes ngoài ý muốn
+  - WHERE để lọc thuộc tính, nhãn, kiểu quan hệ và sự tồn tại
+  - RETURN để chọn trường, trả về thực thể và đặt bí danh
+  - DISTINCT để xử lý giá trị lặp và hiểu ảnh hưởng đến kết quả
+  - ORDER BY, SKIP và LIMIT để sắp xếp và chia trang
+  - OPTIONAL MATCH, giá trị null và vị trí điều kiện lọc
+  - Viết truy vấn chỉ trả dữ liệu cần thiết cho phía ứng dụng
+- level1: Biểu thức và hàm
+  level2:
+  - Biểu thức số học, so sánh, chuỗi và giá trị luận lý
+  - Xử lý null bằng kiểm tra tường minh và hàm coalesce
+  - CASE để biểu diễn rẽ nhánh trong kết quả truy vấn
+  - Hàm chuỗi, biểu thức chính quy và chuẩn hóa văn bản
+  - Hàm số, làm tròn và chuyển đổi giữa các kiểu dữ liệu
+  - Hàm kiểm tra nhãn, loại quan hệ và thuộc tính thực thể
+  - 'Hàm điều kiện trên danh sách: all, any, none và single'
+  - Xử lý dữ liệu sai kiểu hoặc thiếu thuộc tính mà vẫn giữ đúng ngữ nghĩa
+- level1: Danh sách và luồng dữ liệu
+  level2:
+  - WITH để chuyển tiếp, đổi tên và giới hạn phạm vi biến
+  - UNWIND để biến danh sách thành các hàng dữ liệu
+  - Truy cập phần tử, cắt danh sách và tạo dãy giá trị
+  - Biểu thức tạo danh sách và phép lọc phần tử
+  - Map projection để tạo cấu trúc kết quả theo nhu cầu ứng dụng
+  - reduce để tích lũy giá trị từ danh sách
+  - Kết hợp WITH, ORDER BY và LIMIT theo từng giai đoạn xử lý
+  - Theo dõi số hàng khi mở rộng danh sách và ghép nhiều mẫu
+- level1: Tổng hợp dữ liệu
+  level2:
+  - count, sum, avg, min và max trong truy vấn đồ thị
+  - Khóa nhóm ngầm định và cách nhận diện mức tổng hợp
+  - Phân biệt đếm hàng, đếm giá trị khác null và đếm giá trị duy nhất
+  - collect để gom dữ liệu và quản lý kích thước danh sách
+  - Lọc trước tổng hợp và lọc sau tổng hợp bằng WITH
+  - Kết hợp nhiều phép tổng hợp mà không nhân đôi số liệu
+  - Thống kê quan hệ, bậc nút và phân bố theo nhóm nghiệp vụ
+  - Kiểm chứng kết quả tổng hợp bằng bộ dữ liệu nhỏ có đáp án
+- level1: Truy vấn con
+  level2:
+  - CALL với truy vấn con và cách truyền biến theo phiên bản Cypher
+  - EXISTS để kiểm tra sự tồn tại của mẫu hoặc kết quả con
+  - Truy vấn con COUNT và COLLECT khi phiên bản hỗ trợ
+  - Truy vấn con có tương quan và ảnh hưởng đến số lần thực thi
+  - UNION và UNION ALL để hợp nhất các tập kết quả
+  - Cô lập bước tổng hợp để tránh nhân số hàng ngoài ý muốn
+  - Phân chia truy vấn phức tạp thành các khối có thể kiểm chứng
+  - Thực thi theo lô với CALL { ... } IN TRANSACTIONS và điều kiện sử dụng
+- level1: Tạo và cập nhật
+  level2:
+  - CREATE để tạo nút, quan hệ và thuộc tính
+  - MERGE để tìm hoặc tạo dữ liệu theo mẫu
+  - Phân biệt MERGE toàn mẫu với MERGE từng thực thể và quan hệ
+  - ON CREATE SET và ON MATCH SET khi đồng bộ dữ liệu
+  - SET để cập nhật thuộc tính, bổ sung bản đồ và quản lý nhãn
+  - REMOVE để bỏ thuộc tính hoặc nhãn
+  - DELETE và DETACH DELETE cùng tác động đến quan hệ
+  - FOREACH và các lựa chọn cập nhật có điều kiện
+  - Thiết kế cập nhật có tính lũy đẳng và ngăn dữ liệu trùng
+  - Kiểm tra thống kê cập nhật và xác minh trạng thái sau khi ghi
+- level1: Đường đi và duyệt đồ thị
+  level2:
+  - Độ dài đường đi, số bước nhảy và chiều duyệt quan hệ
+  - Mẫu quan hệ có độ dài biến thiên và giới hạn độ sâu
+  - Quantified path patterns khi phiên bản Cypher hỗ trợ
+  - Lấy danh sách nút, quan hệ và độ dài từ một đường đi
+  - Điều kiện lọc trên nút và quan hệ trong quá trình tìm đường
+  - Chu trình, quan hệ lặp và ngữ nghĩa khớp đường đi theo phiên bản
+  - Tìm đường đi ngắn nhất và lựa chọn cú pháp phù hợp phiên bản
+  - Phân biệt đường ngắn nhất theo số cạnh với đường có tổng trọng số nhỏ nhất
+  - Giới hạn tập kết quả để tránh số đường đi tăng theo cấp số nhân
+  - Phân biệt truy vấn đường đi bằng Cypher với thuật toán đồ thị chuyên dụng
+- level1: Ràng buộc dữ liệu
+  level2:
+  - Vai trò của ràng buộc trong bảo vệ tính toàn vẹn đồ thị
+  - Ràng buộc duy nhất trên khóa nghiệp vụ của nút
+  - Ràng buộc tồn tại thuộc tính theo khả năng của phiên bản và edition
+  - Ràng buộc khóa và ràng buộc kiểu thuộc tính khi được hỗ trợ
+  - Ràng buộc trên quan hệ theo phiên bản và edition
+  - Ràng buộc ghép nhiều thuộc tính và lựa chọn khóa phù hợp
+  - Tạo, liệt kê, triển khai và xóa ràng buộc
+  - Phát hiện dữ liệu vi phạm trước khi áp dụng ràng buộc
+  - Phối hợp ràng buộc với MERGE để hạn chế trùng lặp khi ghi đồng thời
+- level1: Chỉ mục tra cứu
+  level2:
+  - Chỉ mục giải quyết chi phí tìm điểm bắt đầu của truy vấn
+  - Phân biệt chỉ mục với ràng buộc và chỉ mục phục vụ ràng buộc
+  - Range index và điều kiện lọc hoặc sắp xếp phù hợp
+  - Text index và các mẫu tìm kiếm chuỗi được hỗ trợ
+  - Point index và truy vấn dữ liệu không gian
+  - Token lookup index cho nhãn và loại quan hệ
+  - Chỉ mục ghép và thứ tự thuộc tính theo mẫu truy vấn
+  - Tạo, xem trạng thái, chờ sẵn sàng và xóa chỉ mục
+  - Cân đối tốc độ đọc với chi phí ghi, dung lượng và bảo trì chỉ mục
+- level1: Tìm kiếm nâng cao
+  level2:
+  - Full-text index cho tìm kiếm văn bản trên nút và quan hệ
+  - Bộ phân tích văn bản, điểm liên quan và giới hạn tìm kiếm toàn văn
+  - Phân biệt chỉ mục văn bản thông thường với chỉ mục toàn văn
+  - Biểu diễn dữ liệu bằng vector và ý nghĩa của độ tương đồng
+  - 'Vector index: cấu hình, truy vấn và khả năng theo phiên bản'
+  - Kết hợp kết quả tìm kiếm với điều kiện và quan hệ trong đồ thị
+  - Đánh giá chất lượng kết quả, độ trễ và chi phí tài nguyên
+  - Quản lý cập nhật chỉ mục và tính nhất quán theo loại chỉ mục
+- level1: Giao dịch
+  level2:
+  - Tính nguyên tử, nhất quán, cô lập và bền vững trong Neo4j
+  - Giao dịch ngầm định và giao dịch tường minh
+  - Ranh giới commit, rollback và vòng đời kết quả truy vấn
+  - Mức cô lập mặc định và các bất thường cần hiểu theo phiên bản
+  - Khóa khi cập nhật nút, quan hệ và thuộc tính
+  - Xung đột ghi, deadlock và chiến lược giảm tranh chấp
+  - Thời gian chờ, giới hạn tài nguyên và hủy giao dịch
+  - Chia lô ghi dữ liệu theo dung lượng và thời gian giao dịch
+  - Kiểm thử rollback và bảo toàn bất biến nghiệp vụ
+- level1: Kế hoạch thực thi
+  level2:
+  - EXPLAIN để xem kế hoạch mà không thực thi truy vấn
+  - PROFILE để đo thực thi và lưu ý với truy vấn ghi
+  - Đọc cây toán tử, hướng luồng dữ liệu và điểm bắt đầu truy vấn
+  - Estimated Rows, Rows, DB Hits và giới hạn diễn giải số liệu
+  - Nhận diện quét dữ liệu, tìm bằng chỉ mục và mở rộng quan hệ
+  - Phát hiện CartesianProduct, Eager, Sort và tập trung gian lớn
+  - Thống kê dữ liệu, lựa chọn kế hoạch và tác động của phân bố lệch
+  - Bộ nhớ, page cache và khác biệt giữa lần chạy nguội với chạy nóng
+  - So sánh kế hoạch trước và sau thay đổi bằng cùng bộ dữ liệu
+- level1: Tối ưu truy vấn
+  level2:
+  - Thu hẹp điểm bắt đầu bằng nhãn, thuộc tính và chỉ mục thích hợp
+  - Đẩy điều kiện lọc đến vị trí có ngữ nghĩa đúng và giảm số hàng
+  - Giới hạn độ sâu, hướng và loại quan hệ khi duyệt đồ thị
+  - Tránh tích Descartes và tổng hợp trên dữ liệu đã bị nhân hàng
+  - Giảm collect lớn, sắp xếp không cần thiết và dữ liệu trả về
+  - Chia trang ổn định và lựa chọn chiến lược cho tập dữ liệu lớn
+  - Tham số hóa để tái sử dụng kế hoạch và giảm chi phí biên dịch
+  - Sử dụng gợi ý chỉ mục hoặc kế hoạch sau khi có bằng chứng đo đạc
+  - Đo độ trễ, thông lượng và mức dùng tài nguyên theo tải thực tế
+  - Nhận diện giới hạn do mô hình dữ liệu thay vì chỉ sửa câu truy vấn
+- level1: Nhập dữ liệu
+  level2:
+  - Lập ánh xạ từ CSV, JSON và nguồn quan hệ sang mô hình đồ thị
+  - 'LOAD CSV: đọc tiêu đề, chuyển kiểu và xử lý giá trị thiếu'
+  - Quyền truy cập tệp, URL và thư mục nhập dữ liệu
+  - Nhập nút trước quan hệ bằng khóa nghiệp vụ ổn định
+  - Phân lô nhập bằng giao dịch và theo dõi tiến độ
+  - Neo4j Admin Import và điều kiện sử dụng cho khối lượng lớn
+  - Phân biệt nhập ban đầu, nhập tăng dần và cập nhật trên cơ sở dữ liệu đang chạy
+  - Chuẩn hóa dữ liệu trùng, dữ liệu lỗi và quan hệ thiếu đầu mút
+  - Thiết kế nhập lại an toàn, tiếp tục sau lỗi và đối soát kết quả
+  - Đo tốc độ nhập và xác định nút thắt ở nguồn, mạng hoặc máy chủ
+- level1: Tích hợp dữ liệu
+  level2:
+  - Thiết kế luồng ETL hoặc ELT đưa dữ liệu nghiệp vụ vào đồ thị
+  - Đồng bộ toàn phần so với đồng bộ thay đổi
+  - Ánh xạ thao tác tạo, cập nhật và xóa từ hệ thống nguồn
+  - Tính lũy đẳng, thứ tự sự kiện và xử lý sự kiện trùng
+  - Neo4j CDC và điều kiện hỗ trợ theo phiên bản hoặc edition
+  - Tích hợp luồng sự kiện và connector khi có yêu cầu nghiệp vụ
+  - Kiểm soát độ trễ đồng bộ và lựa chọn nguồn dữ liệu chuẩn
+  - Đối soát, xử lý sai lệch và khôi phục luồng đồng bộ sau sự cố
+- level1: APOC và phần mở rộng
+  level2:
+  - APOC là gì và khi nào cần mở rộng ngoài Cypher
+  - Phân biệt gói APOC, khả năng hỗ trợ và tương thích phiên bản
+  - Cài đặt, cấu hình danh sách cho phép và giới hạn quyền thủ tục
+  - Gọi procedure, function và đọc chữ ký đầu vào–đầu ra
+  - Các nhóm tiện ích chuyển đổi, cấu trúc dữ liệu và xử lý đồ thị
+  - Mở rộng đường đi bằng APOC với điều kiện giới hạn rõ ràng
+  - Nhập hoặc xuất dữ liệu bằng APOC khi môi trường cho phép
+  - Đánh giá rủi ro của thủ tục không giới hạn và truy cập hệ thống
+  - Tiêu chí chọn APOC, Cypher thuần hoặc phần xử lý ở ứng dụng
+- level1: Thuật toán đồ thị
+  level2:
+  - Phân biệt dữ liệu nghiệp vụ trong Neo4j với đồ thị dùng để tính toán
+  - Neo4j Graph Data Science và điều kiện cài đặt hoặc sử dụng
+  - Chiếu đồ thị vào bộ nhớ và quản lý graph catalog
+  - Chế độ stream, stats, mutate và write của thuật toán khi được hỗ trợ
+  - Ước lượng bộ nhớ trước khi chạy thuật toán trên dữ liệu lớn
+  - Độ trung tâm với PageRank và các thước đo mức độ ảnh hưởng
+  - Phát hiện cộng đồng và thành phần liên thông
+  - Thuật toán đường đi có trọng số và bài toán khoảng cách
+  - Độ tương đồng, gợi ý liên kết và biểu diễn nút bằng vector
+  - Đánh giá kết quả thuật toán theo ý nghĩa nghiệp vụ và dữ liệu kiểm chứng
+  - Quản lý vòng đời đồ thị chiếu và cập nhật kết quả về dữ liệu nguồn
+- level1: Java Driver
+  level2:
+  - Thêm Neo4j Java Driver và chọn phiên bản tương thích
+  - Tạo Driver, cấu hình URI, xác thực và kiểm tra kết nối
+  - Vòng đời Driver, session và lựa chọn cơ sở dữ liệu
+  - Giao dịch được trình điều khiển quản lý cho thao tác đọc và ghi
+  - Thực thi truy vấn có tham số và ánh xạ Record hoặc Value
+  - Đọc kết quả theo luồng và quản lý thời điểm tiêu thụ kết quả
+  - Connection pool, thời gian chờ và giới hạn tài nguyên
+  - Phân loại lỗi trình điều khiển, lỗi máy chủ và lỗi tạm thời
+  - Retry tự động, tính lũy đẳng và tác dụng phụ ngoài cơ sở dữ liệu
+  - Bookmarks, nhất quán nhân quả và định tuyến khi kết nối cụm
+  - Lựa chọn API đồng bộ, bất đồng bộ hoặc reactive theo nhu cầu ứng dụng
+- level1: Spring Data Neo4j
+  level2:
+  - Spring Data Neo4j giải quyết ánh xạ đối tượng–đồ thị như thế nào
+  - Cấu hình kết nối trong Spring Boot và quản lý bí mật
+  - Ánh xạ nút, nhãn, định danh và thuộc tính thực thể
+  - Ánh xạ quan hệ có thuộc tính và kiểm soát hướng quan hệ
+  - Repository, truy vấn khai báo và truy vấn Cypher tùy chỉnh
+  - DTO, projection và kiểm soát độ rộng đồ thị được tải
+  - Ranh giới @Transactional và phối hợp với Neo4jClient
+  - Lưu đồ thị đối tượng, cập nhật quan hệ và tránh ghi ngoài ý muốn
+  - Khóa lạc quan và xử lý cập nhật đồng thời khi sử dụng
+  - Phân trang, tải dữ liệu và nhận diện truy vấn lặp không cần thiết
+  - Kiểm thử tích hợp và xác minh Cypher thực tế do ứng dụng thực thi
+- level1: Thiết kế ứng dụng
+  level2:
+  - Phân chia trách nhiệm giữa mô hình miền, lớp truy cập dữ liệu và API
+  - Thiết kế truy vấn theo ca sử dụng thay vì tải toàn bộ đồ thị
+  - Ranh giới giao dịch theo thao tác nghiệp vụ
+  - Định danh ổn định, tính lũy đẳng và kiểm soát trùng lặp yêu cầu
+  - Chuyển kết quả đồ thị thành DTO mà không tạo tham chiếu vòng
+  - Giới hạn độ sâu, số hàng và thời gian xử lý từ đầu vào người dùng
+  - Xử lý lỗi, timeout, hủy yêu cầu và suy giảm dịch vụ
+  - Phối hợp Neo4j với kho dữ liệu khác và quản lý nhất quán liên hệ thống
+  - Cân nhắc GraphQL khi cần API trên đồ thị và kiểm soát chi phí truy vấn
+- level1: Kiểm thử
+  level2:
+  - Bộ dữ liệu mẫu nhỏ thể hiện đầy đủ quan hệ và trường hợp biên
+  - Kiểm thử Cypher với kết quả mong đợi và thứ tự xác định
+  - Neo4j Harness và phạm vi phù hợp cho kiểm thử trong tiến trình
+  - Testcontainers cho kiểm thử tích hợp với máy chủ Neo4j
+  - Kiểm thử ràng buộc, dữ liệu trùng và thuộc tính bị thiếu
+  - Kiểm thử commit, rollback, xung đột ghi và retry
+  - Kiểm thử ánh xạ Java Driver và Spring Data Neo4j
+  - Kiểm thử tải với phân bố quan hệ gần dữ liệu thực tế
+  - Tái tạo lỗi và chạy kiểm thử hồi quy sau đổi mô hình hoặc phiên bản
+- level1: Bảo mật
+  level2:
+  - Xác thực, quản lý tài khoản và vòng đời thông tin đăng nhập
+  - Phân quyền theo vai trò và khả năng của edition hoặc gói dịch vụ
+  - Giới hạn quyền đọc, ghi, quản trị và thực thi thủ tục
+  - Mã hóa kết nối, chứng chỉ TLS và kiểm tra danh tính máy chủ
+  - Ngăn Cypher injection bằng tham số và kiểm soát thành phần động
+  - Bảo vệ đường dẫn tệp, truy cập URL và cấu hình phần mở rộng
+  - Giới hạn mạng, cổng công khai và truy cập từ ứng dụng
+  - Quản lý bí mật cho phát triển, CI/CD và môi trường triển khai
+  - Nhật ký kiểm toán và bảo vệ dữ liệu nhạy cảm khi được hỗ trợ
+  - Rà soát quyền tối thiểu và thử nghiệm các tình huống truy cập bị từ chối
+- level1: Cấu hình tài nguyên
+  level2:
+  - Quan hệ giữa heap, page cache, bộ nhớ giao dịch và bộ nhớ hệ điều hành
+  - Lập dung lượng theo số nút, số quan hệ, thuộc tính và chỉ mục
+  - Đặc điểm ổ đĩa, độ trễ I/O và yêu cầu lưu trữ bền vững
+  - Cấu hình kết nối mạng, địa chỉ lắng nghe và địa chỉ công bố
+  - Cấu hình thời gian chờ, giới hạn giao dịch và khả năng theo phiên bản
+  - Quản lý transaction log, checkpoint và chính sách giữ nhật ký
+  - Giới hạn CPU, RAM và volume khi triển khai bằng container
+  - Kiểm chứng thay đổi cấu hình bằng số liệu thay vì tăng tài nguyên tùy ý
+- level1: Giám sát
+  level2:
+  - Theo dõi sức khỏe máy chủ, khả năng kết nối và tính sẵn sàng
+  - Nhật ký máy chủ, nhật ký truy vấn và phạm vi hỗ trợ
+  - Theo dõi truy vấn hoặc giao dịch đang chạy và xử lý truy vấn kéo dài
+  - Các chỉ số bộ nhớ, page cache, garbage collection và I/O
+  - Các chỉ số độ trễ, thông lượng, khóa và giao dịch lỗi
+  - Theo dõi dung lượng dữ liệu, chỉ mục và transaction log
+  - Kết hợp số liệu máy chủ với connection pool và độ trễ phía ứng dụng
+  - Thiết lập ngưỡng cảnh báo theo tải nền và mục tiêu dịch vụ
+  - Ẩn dữ liệu nhạy cảm trong log, tham số truy vấn và công cụ giám sát
+- level1: Sao lưu và phục hồi
+  level2:
+  - Phân biệt sao lưu, dump, snapshot và bản sao phục vụ sẵn sàng cao
+  - Đặt mục tiêu RPO, RTO và chính sách lưu giữ bản sao
+  - Dump và load ngoại tuyến theo công cụ của phiên bản đang dùng
+  - Sao lưu trực tuyến khi edition hoặc dịch vụ hỗ trợ
+  - Kiểm tra tính nhất quán và khả năng sử dụng của bản sao
+  - Thực hành khôi phục vào môi trường tách biệt
+  - Bảo vệ cấu hình, bí mật, chứng chỉ và thành phần ngoài tệp dữ liệu
+  - Tự động hóa lịch sao lưu, lưu trữ ngoài máy chủ và kiểm tra định kỳ
+  - Xử lý mất dữ liệu hoặc hỏng lưu trữ theo quy trình đã diễn tập
+- level1: Triển khai
+  level2:
+  - Chọn tự quản lý hay dịch vụ quản lý theo yêu cầu vận hành
+  - Triển khai một máy chủ với lưu trữ bền vững và cấu hình tái tạo được
+  - Kiểm tra readiness, liveness và trình tự khởi động ứng dụng
+  - Quản lý cấu hình và bí mật theo từng môi trường
+  - Triển khai sau proxy, DNS hoặc mạng riêng với địa chỉ kết nối đúng
+  - Đánh giá Kubernetes và hệ lưu trữ trước khi triển khai có trạng thái
+  - Giới hạn tài nguyên, cập nhật an toàn và kế hoạch quay lui
+  - Kiểm tra kết nối, dữ liệu và chỉ mục sau triển khai
+- level1: Cụm và mở rộng
+  level2:
+  - Mục tiêu sẵn sàng cao và giới hạn mở rộng của một máy chủ
+  - Kiến trúc cụm Neo4j theo phiên bản và edition được sử dụng
+  - Vai trò máy chủ, cơ chế đồng thuận và quyền ghi dữ liệu
+  - Định tuyến truy vấn đọc hoặc ghi và cân bằng tải phía trình điều khiển
+  - Bookmarks và nhất quán nhân quả trong ứng dụng có nhiều phiên
+  - Lỗi máy chủ, bầu chọn và hành vi kết nối khi chuyển vai trò
+  - Mở rộng khả năng đọc và nhận diện nút thắt ở đường ghi
+  - Độ trễ mạng, phân vùng mạng và ảnh hưởng đến khả năng phục vụ
+  - Giám sát, sao lưu và diễn tập sự cố trong cụm
+  - Đánh giá đa cơ sở dữ liệu và cách ly khách hàng theo khả năng hỗ trợ
+- level1: Nâng cấp và di trú
+  level2:
+  - Đọc ma trận tương thích máy chủ, driver, Cypher và phần mở rộng
+  - Lập kế hoạch nâng cấp theo đường đi được nhà cung cấp hỗ trợ
+  - Sao lưu và diễn tập khôi phục trước khi nâng cấp
+  - Kiểm tra cú pháp, thủ tục và cấu hình đã ngừng khuyến nghị
+  - Đánh giá thay đổi chỉ mục, định dạng dữ liệu và kế hoạch truy vấn
+  - Quản lý thay đổi mô hình bằng tập lệnh có phiên bản
+  - Di trú nhãn, thuộc tính và quan hệ mà vẫn giữ định danh nghiệp vụ
+  - Triển khai thay đổi tương thích từng bước giữa ứng dụng và dữ liệu
+  - Đối soát dữ liệu, đo hiệu năng và xác định điều kiện quay lui
+- level1: Xử lý sự cố
+  level2:
+  - Lỗi kết nối Bolt, DNS, TLS và địa chỉ định tuyến
+  - Lỗi xác thực, phân quyền và không tìm thấy cơ sở dữ liệu
+  - Lỗi cú pháp, phạm vi biến và kiểu dữ liệu trong Cypher
+  - Dữ liệu trùng, vi phạm ràng buộc và MERGE không như mong đợi
+  - Truy vấn không có kết quả do hướng quan hệ hoặc điều kiện null
+  - Truy vấn chậm vì thiếu chỉ mục, tích Descartes hoặc duyệt quá rộng
+  - Deadlock, hết thời gian giao dịch và cạn connection pool
+  - Thiếu bộ nhớ, ổ đĩa đầy và transaction log tăng bất thường
+  - Chỉ mục chưa sẵn sàng hoặc không được bộ lập kế hoạch lựa chọn
+  - Thu thập bằng chứng, khoanh vùng nguyên nhân và xác minh sau khắc phục
+- level1: Ứng dụng đồ thị
+  level2:
+  - 'Mạng xã hội: kết nối, bạn chung và khoảng cách quan hệ'
+  - Gợi ý sản phẩm hoặc nội dung dựa trên quan hệ và hành vi
+  - Phát hiện gian lận qua liên kết tài khoản, thiết bị và giao dịch
+  - Quản lý phân quyền và đường kế thừa quyền trong tổ chức
+  - Phân tích phụ thuộc hệ thống, tài sản và tác động thay đổi
+  - Định tuyến và mạng lưới khi có dữ liệu trọng số hoặc không gian
+  - 'Đồ thị tri thức: thực thể, quan hệ, nguồn gốc và định danh'
+  - Kết hợp tìm kiếm vector với đồ thị cho truy xuất tăng cường sinh nội dung
+  - Lựa chọn mô hình và thước đo thành công cho từng ca sử dụng
+- level1: Đồ án thực hành
+  level2:
+  - Xác định bài toán, giới hạn phạm vi và câu hỏi nghiệp vụ cần trả lời
+  - Thiết kế mô hình đồ thị và bộ dữ liệu có trường hợp biên
+  - Tạo ràng buộc, chỉ mục và quy trình nạp dữ liệu lũy đẳng
+  - Xây dựng bộ truy vấn đọc, ghi, tổng hợp và tìm đường
+  - Tích hợp Java hoặc Spring Boot với giao dịch và xử lý lỗi
+  - Bổ sung kiểm thử tích hợp, kiểm thử tải và hồ sơ hiệu năng
+  - Cấu hình bảo mật, giám sát và giới hạn tài nguyên
+  - Thực hành sao lưu, phục hồi và một tình huống sự cố
+  - Đánh giá mô hình theo tính đúng, độ trễ, dung lượng và khả năng vận hành

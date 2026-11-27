@@ -1,0 +1,130 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Môi trường thực hành
+  slug: practice-environment
+  index: 1
+- title: Kiến trúc MongoDB
+  slug: mongodb-architecture
+  index: 2
+- title: BSON và kiểu dữ liệu
+  slug: bson-data-types
+  index: 3
+- title: Database và collection
+  slug: databases-collections
+  index: 4
+- title: Mô hình document
+  slug: document-model
+  index: 5
+- title: Schema validation
+  slug: schema-validation
+  index: 6
+- title: Thêm document
+  slug: insert-documents
+  index: 7
+- title: Truy vấn document
+  slug: query-documents
+  index: 8
+- title: Truy vấn mảng
+  slug: array-queries
+  index: 9
+- title: Cập nhật document
+  slug: update-documents
+  index: 10
+- title: Xóa và ghi theo lô
+  slug: deletion-bulk-writes
+  index: 11
+- title: Cursor và phân trang
+  slug: cursors-pagination
+  index: 12
+- title: Index cơ bản
+  slug: basic-indexes
+  index: 13
+- title: Index chuyên biệt
+  slug: specialized-indexes
+  index: 14
+- title: Kế hoạch thực thi
+  slug: query-execution-plans
+  index: 15
+- title: Aggregation cơ bản
+  slug: aggregation-basics
+  index: 16
+- title: Biểu thức aggregation
+  slug: aggregation-expressions
+  index: 17
+- title: Aggregation nâng cao
+  slug: advanced-aggregation
+  index: 18
+- title: Nguyên tử và cạnh tranh
+  slug: atomicity-concurrency
+  index: 19
+- title: Replica set
+  slug: replica-sets
+  index: 20
+- title: Nhất quán đọc ghi
+  slug: read-write-consistency
+  index: 21
+- title: Giao dịch
+  slug: transactions
+  index: 22
+- title: Sharding
+  slug: sharding
+  index: 23
+- title: Change stream
+  slug: change-streams
+  index: 24
+- title: Chuỗi thời gian
+  slug: time-series-data
+  index: 25
+- title: Dữ liệu địa lý
+  slug: geospatial-data
+  index: 26
+- title: Tìm kiếm văn bản
+  slug: text-search
+  index: 27
+- title: Tìm kiếm vector
+  slug: vector-search
+  index: 28
+- title: GridFS
+  slug: gridfs
+  index: 29
+- title: Bảo mật
+  slug: security
+  index: 30
+- title: Sao lưu và phục hồi
+  slug: backup-recovery
+  index: 31
+- title: Quan sát hệ thống
+  slug: observability
+  index: 32
+- title: Tối ưu hiệu năng
+  slug: performance-tuning
+  index: 33
+- title: Vận hành và nâng cấp
+  slug: operations-upgrades
+  index: 34
+- title: Java Driver
+  slug: java-driver
+  index: 35
+- title: Spring Data MongoDB
+  slug: spring-data-mongodb
+  index: 36
+- title: Kiểm thử
+  slug: testing
+  index: 37
+- title: Tiến hóa dữ liệu
+  slug: data-evolution
+  index: 38
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 39
+- title: Thiết kế ứng dụng
+  slug: application-design
+  index: 40
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 41
+- title: Tổng kết và tra cứu
+  slug: summary-reference
+  index: 42

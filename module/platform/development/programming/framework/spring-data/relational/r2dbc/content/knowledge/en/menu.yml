@@ -1,0 +1,418 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Data R2DBC là gì và giải quyết bài toán nào
+  - Từ yêu cầu lưu trữ đến luồng truy cập dữ liệu phản ứng
+  - Phân biệt Spring Data Relational, Spring Data R2DBC và Spring R2DBC
+  - Phân biệt R2DBC, JDBC và JPA/Hibernate
+  - Các thành phần chính và mối liên hệ trong một ứng dụng R2DBC
+  - Khi nào nên dùng R2DBC và khi nào nên cân nhắc JDBC
+  - 'Giới hạn phạm vi: R2DBC không cung cấp đầy đủ cơ chế ORM'
+  - Lộ trình học và các kiến thức cần chuẩn bị
+- level1: Kiến thức nền
+  level2:
+  - SQL, khóa chính, khóa ngoại và ràng buộc dữ liệu cần biết
+  - Giao dịch, mức cô lập và truy cập đồng thời trong cơ sở dữ liệu quan hệ
+  - Reactive Streams và vai trò Publisher, Subscriber, Subscription
+  - Mono và Flux khi biểu diễn kết quả truy vấn
+  - Luồng lạnh, đăng ký thực thi và tính trì hoãn của truy vấn
+  - Điều tiết nhu cầu dữ liệu (backpressure) và giới hạn ở tầng cơ sở dữ liệu
+  - Luồng xử lý không chặn và tác hại của thao tác chặn
+  - Reactor Context và sự khác biệt với ThreadLocal
+- level1: Kiến trúc
+  level2:
+  - Đường đi từ Repository đến trình điều khiển và cơ sở dữ liệu
+  - R2DBC SPI và trách nhiệm của trình điều khiển
+  - ConnectionFactory, Connection, Statement và Result
+  - Vai trò của DatabaseClient trong Spring R2DBC
+  - Vai trò của R2dbcEntityTemplate và R2dbcEntityOperations
+  - Vai trò của Repository và cơ chế tạo triển khai
+  - RelationalMappingContext, R2dbcConverter và chiến lược truy cập dữ liệu
+  - Dialect và ranh giới giữa chức năng chung với khả năng riêng của cơ sở dữ liệu
+- level1: Khởi tạo
+  level2:
+  - Chọn phiên bản Spring Boot, Spring Data và trình điều khiển tương thích
+  - Khai báo dependency bằng Gradle hoặc Maven
+  - Cấu hình kết nối tối thiểu trong application.yml
+  - Khởi tạo ứng dụng bằng cơ chế tự cấu hình của Spring Boot
+  - Cấu hình thủ công và vai trò của AbstractR2dbcConfiguration
+  - Tổ chức các lớp cấu hình, thực thể, Repository và dịch vụ
+  - Chuẩn bị cơ sở dữ liệu phát triển bằng Docker Compose
+  - Kiểm tra kết nối bằng một truy vấn phản ứng đơn giản
+- level1: Kết nối
+  level2:
+  - Định dạng R2DBC URL và các thuộc tính ConnectionFactoryOptions
+  - Phân biệt URL R2DBC với URL JDBC
+  - Cấu hình máy chủ, cổng, tên cơ sở dữ liệu và thông tin xác thực
+  - Cấu hình TLS và các tùy chọn riêng của trình điều khiển
+  - Khám phá trình điều khiển và tạo ConnectionFactory
+  - Mở, sử dụng và giải phóng kết nối theo vòng đời luồng phản ứng
+  - Thiết lập thời gian chờ kết nối và thời gian chờ thực thi
+  - Phân biệt nhiều lần đăng ký với việc tái sử dụng một kết nối
+  - Kiểm tra cấu hình theo môi trường và xử lý lỗi kết nối ban đầu
+- level1: Pool kết nối
+  level2:
+  - Vai trò của r2dbc-pool và điều kiện cần sử dụng
+  - Cấu hình kích thước ban đầu và số kết nối tối đa
+  - Thời gian chờ lấy kết nối và chính sách tạo kết nối
+  - Thời gian nhàn rỗi, tuổi thọ và thu hồi kết nối
+  - Xác thực kết nối và xử lý kết nối hỏng
+  - Quan hệ giữa mức đồng thời của luồng và giới hạn pool
+  - Nhận diện cạn pool, rò rỉ kết nối và truy vấn giữ kết nối lâu
+  - Tính ngân sách kết nối khi ứng dụng có nhiều bản sao
+- level1: Mô hình dữ liệu
+  level2:
+  - Thiết kế thực thể lưu trữ và phân biệt với mô hình API
+  - Khái niệm aggregate trong Spring Data Relational và phạm vi hỗ trợ của R2DBC
+  - Chọn ranh giới aggregate và trách nhiệm của dịch vụ ứng dụng
+  - Biểu diễn quan hệ bằng định danh thay vì giả định quản lý đồ thị đối tượng
+  - Thiết kế khóa ngoại, ràng buộc duy nhất và các bất biến dữ liệu
+  - Thiết kế dữ liệu có thể rỗng và giá trị mặc định
+  - Thực thể khả biến, bất biến và Java record
+  - Phân biệt thực thể, đối tượng giá trị, DTO và kết quả tổng hợp
+  - Thiết kế mô hình phù hợp với mẫu truy vấn thực tế
+- level1: Ánh xạ
+  level2:
+  - Quy ước mặc định khi ánh xạ lớp Java sang bảng
+  - Ánh xạ bảng và schema bằng @Table
+  - Ánh xạ thuộc tính sang cột bằng @Column
+  - Nhận diện khóa chính bằng @Id
+  - Bỏ qua thuộc tính không lưu trữ bằng @Transient
+  - Quy tắc chọn constructor và khởi tạo thực thể từ kết quả
+  - Ánh xạ thuộc tính bất biến và cập nhật bản sao thực thể
+  - Ánh xạ đối tượng lồng nhau và giới hạn theo phiên bản
+  - Chiến lược đặt tên và xử lý định danh có dấu ngoặc
+  - Ánh xạ kế thừa và giới hạn so với JPA
+  - Phân biệt giá trị mặc định trong Java với giá trị mặc định của cơ sở dữ liệu
+- level1: Định danh
+  level2:
+  - Vai trò của định danh trong insert, update và save
+  - Cơ chế mặc định xác định thực thể mới
+  - Ảnh hưởng của kiểu nguyên thủy, kiểu bao và giá trị null đến định danh
+  - Nhận khóa do cơ sở dữ liệu sinh sau khi insert
+  - Tự cấp UUID hoặc định danh trước khi lưu
+  - Điều khiển trạng thái mới bằng Persistable
+  - Quan hệ giữa thuộc tính @Version và việc xác định thực thể mới
+  - 'Khóa ghép: kiểm tra hỗ trợ theo phiên bản và lựa chọn mô hình thay thế'
+  - Phân biệt thực thể được truyền vào với thực thể được trả về sau khi lưu
+- level1: Chuyển đổi kiểu
+  level2:
+  - Các kiểu dữ liệu Java và kiểu cột được hỗ trợ
+  - Chuyển đổi chiều đọc và chiều ghi
+  - Đăng ký converter tùy chỉnh bằng R2dbcCustomConversions
+  - Ánh xạ enum theo tên, mã nghiệp vụ hoặc kiểu riêng của cơ sở dữ liệu
+  - Ánh xạ UUID, giá trị tiền tệ và kiểu số chính xác
+  - Ánh xạ ngày giờ, múi giờ và độ chính xác thời gian
+  - Ánh xạ JSON, mảng và kiểu dữ liệu đặc thù trình điều khiển
+  - Xử lý dữ liệu nhị phân, Blob, Clob và vòng đời tài nguyên
+  - Kiểm tra chuyển đổi hai chiều, dữ liệu null và lỗi không tương thích kiểu
+- level1: Thao tác thực thể
+  level2:
+  - Khởi tạo và sử dụng R2dbcEntityTemplate
+  - Insert thực thể và nhận kết quả sau khi lưu
+  - Select một thực thể, nhiều thực thể và trường hợp không có kết quả
+  - Update thực thể và xử lý bản ghi không tồn tại
+  - Delete theo thực thể hoặc điều kiện
+  - Phân biệt save của Repository với insert và update của Template
+  - Truy vấn exists, count và lựa chọn phép toán phù hợp
+  - Chọn bảng đích và kiểu kết quả cho từng thao tác
+  - Sử dụng giao diện thao tác theo từng bước để biểu đạt truy vấn
+  - Phân biệt thay đổi thực thể trong bộ nhớ với ghi thay đổi xuống cơ sở dữ liệu
+- level1: Truy vấn động
+  level2:
+  - Xây dựng Query, Criteria và Update
+  - Kết hợp điều kiện AND, OR và nhóm điều kiện
+  - Điều kiện so sánh, tập giá trị và khoảng giá trị
+  - Điều kiện null, chuỗi rỗng và tìm kiếm theo mẫu
+  - Tạo điều kiện từ bộ lọc tùy chọn mà không mở rộng truy vấn ngoài ý muốn
+  - Chọn cột, sắp xếp và giới hạn kết quả
+  - Cập nhật chọn lọc một số cột
+  - Xóa theo điều kiện và kiểm soát phạm vi tác động
+  - Lựa chọn giữa truy vấn động của Template và SQL tự viết
+- level1: Repository
+  level2:
+  - Khai báo ReactiveCrudRepository và R2dbcRepository
+  - Quét Repository và liên kết với hạ tầng R2DBC
+  - Kiểu trả về Mono, Flux và hợp đồng không có kết quả
+  - Các thao tác CRUD và ý nghĩa kết quả trả về
+  - saveAll, deleteAll và các giới hạn khi xử lý nhiều bản ghi
+  - Suy diễn truy vấn từ tên phương thức
+  - Kết hợp điều kiện, sắp xếp tĩnh và giới hạn từ tên phương thức
+  - Query by Example và cấu hình ExampleMatcher
+  - Giới hạn của Query by Example và lựa chọn truy vấn khác
+  - Mở rộng Repository bằng fragment và triển khai tùy chỉnh
+- level1: Truy vấn khai báo
+  level2:
+  - Khai báo SQL bằng @Query
+  - Tham số có tên, tham số theo vị trí và ký hiệu bind của trình điều khiển
+  - Liên kết tham số bằng @Param
+  - Biểu thức SpEL trong truy vấn và ranh giới dữ liệu đáng tin cậy
+  - Ánh xạ tên cột, bí danh và thuộc tính kết quả
+  - Truy vấn cập nhật hoặc xóa bằng @Modifying
+  - Kiểu trả về và số hàng bị tác động của truy vấn thay đổi dữ liệu
+  - Phân biệt truy vấn cập nhật trực tiếp với lưu thực thể qua vòng đời ánh xạ
+  - Truy vấn IN, tập tham số rỗng và giới hạn số tham số
+  - Truy vấn tổng hợp, GROUP BY và dữ liệu thống kê
+  - Tổ chức SQL phức tạp và kiểm tra khả năng di chuyển giữa hệ quản trị
+- level1: Kết quả truy vấn
+  level2:
+  - Chọn thực thể đầy đủ hay chỉ các cột cần dùng
+  - Phép chiếu dựa trên interface và điều kiện hỗ trợ
+  - Phép chiếu dựa trên DTO hoặc Java record
+  - Phép chiếu động và lựa chọn kiểu kết quả
+  - Ánh xạ kết quả join hoặc tổng hợp vào mô hình đọc riêng
+  - Phân biệt cột bị bỏ qua, giá trị null và thuộc tính không được ánh xạ
+  - Giữ đúng hợp đồng một kết quả và xử lý nhiều kết quả ngoài dự kiến
+  - Tổ chức mô hình đọc khi truy vấn không tương ứng với một bảng
+  - Đánh giá tác động của phép chiếu đến SQL và chi phí ánh xạ
+- level1: Quan hệ dữ liệu
+  level2:
+  - Biểu diễn quan hệ một-một bằng khóa ngoại
+  - Đọc và ghi quan hệ một-nhiều một cách tường minh
+  - Mô hình bảng liên kết cho quan hệ nhiều-nhiều
+  - Truy vấn join và ghép kết quả thành cấu trúc dữ liệu mong muốn
+  - Phân biệt join ở SQL với kết hợp nhiều Publisher
+  - Nhận diện và xử lý truy vấn N+1
+  - Đọc tập định danh rồi truy vấn theo nhóm
+  - Thứ tự ghi, xóa và trách nhiệm duy trì ràng buộc tham chiếu
+  - Không giả định lazy loading, cascade hoặc dirty checking như JPA
+  - Chọn mô hình đọc riêng khi đồ thị dữ liệu quá phức tạp
+- level1: Phân trang
+  level2:
+  - Sắp xếp ổn định và thêm khóa phân biệt khi giá trị trùng nhau
+  - Truy vấn theo Pageable, Sort và giới hạn của từng API
+  - Phân trang offset và chi phí khi vị trí bắt đầu lớn
+  - Phân trang theo khóa tiếp nối và điều kiện áp dụng
+  - Tách truy vấn lấy dữ liệu với truy vấn đếm tổng
+  - Thiết kế kết quả phân trang khi không cần tổng số bản ghi
+  - Bảo đảm tính nhất quán giữa trang dữ liệu và tổng đếm
+  - Phân trang với bộ lọc động, join và truy vấn tổng hợp
+  - Xử lý thay đổi dữ liệu trong lúc người dùng duyệt nhiều trang
+- level1: SQL trực tiếp
+  level2:
+  - Tạo truy vấn bằng DatabaseClient.sql
+  - Bind tham số có giá trị và bindNull
+  - Đọc Row, RowMetadata và ánh xạ kết quả thủ công
+  - Phân biệt one, first, all và kết quả rỗng
+  - Nhận số hàng thay đổi bằng rowsUpdated
+  - Yêu cầu cột được sinh từ thao tác ghi
+  - Tùy chỉnh Statement và các tùy chọn được trình điều khiển hỗ trợ
+  - Sử dụng inConnection và inConnectionMany khi cần truy cập Connection
+  - Phân biệt trách nhiệm của DatabaseClient với R2dbcEntityTemplate
+  - Sử dụng R2DBC SPI trực tiếp và nghĩa vụ quản lý kết quả, tài nguyên
+- level1: Ghi nhiều bản ghi
+  level2:
+  - Phân biệt saveAll với thao tác SQL theo lô
+  - Nhiều bộ tham số trên Statement và giới hạn trình điều khiển
+  - Batch ở R2DBC SPI và khác biệt với Statement có bind
+  - SQL chèn nhiều hàng và giới hạn của từng hệ quản trị
+  - Chia dữ liệu thành nhóm theo số hàng hoặc số tham số
+  - Kiểm soát thứ tự ghi và mức đồng thời
+  - Nhận định danh sinh ra và xử lý lỗi của từng nhóm
+  - Chọn giao dịch cho toàn bộ dữ liệu hay từng nhóm
+  - Upsert bằng SQL đặc thù và kiểm tra tính lũy đẳng
+- level1: Giao dịch
+  level2:
+  - ReactiveTransactionManager và vai trò của R2dbcTransactionManager
+  - Cấu hình TransactionalOperator
+  - Khai báo @Transactional trên phương thức trả về Publisher
+  - Thời điểm bắt đầu, commit và rollback theo đăng ký thực thi
+  - Liên kết kết nối giao dịch qua Reactor Context
+  - Ranh giới giao dịch qua proxy và vấn đề tự gọi phương thức
+  - Quy tắc rollback theo loại lỗi và cấu hình
+  - Propagation, mức cô lập và giới hạn trình điều khiển
+  - Savepoint, giao dịch lồng nhau và kiểm tra khả năng hỗ trợ
+  - Hủy đăng ký, thời gian chờ và tác động đến giao dịch
+  - Tránh tác vụ song song không phù hợp trên cùng kết nối giao dịch
+  - Phân biệt giao dịch R2DBC với giao dịch JDBC trong cùng ứng dụng
+- level1: Nhất quán dữ liệu
+  level2:
+  - Các hiện tượng mất cập nhật, đọc không lặp lại và đọc bóng
+  - Chọn mức cô lập theo bất biến nghiệp vụ
+  - Khóa lạc quan bằng @Version
+  - Xử lý xung đột phiên bản khi cập nhật hoặc xóa
+  - Kiểm soát đồng thời bằng điều kiện cập nhật và số hàng bị tác động
+  - Khóa bi quan bằng SQL và phạm vi hỗ trợ của cơ sở dữ liệu
+  - Ràng buộc duy nhất làm chốt bảo vệ khi nhiều yêu cầu cùng ghi
+  - Thiết kế thao tác lũy đẳng để chịu được yêu cầu lặp lại
+  - Giới hạn giao dịch cục bộ khi liên quan nhiều tài nguyên
+  - Outbox và bù trừ khi cần phối hợp cơ sở dữ liệu với hệ thống khác
+- level1: Luồng thực thi
+  level2:
+  - Dùng map, flatMap và concatMap quanh thao tác truy cập dữ liệu
+  - Dùng then, thenMany và delayUntil để diễn đạt quan hệ phụ thuộc
+  - Dùng switchIfEmpty và defer cho nhánh dữ liệu không tồn tại
+  - Lựa chọn mức đồng thời để bảo vệ pool kết nối
+  - Tránh subscribe thủ công bên trong tầng Repository và dịch vụ
+  - Tránh block, toFuture().get và các thao tác chặn trên luồng xử lý sự kiện
+  - Tách tác vụ chặn không thể tránh và đánh giá lại ranh giới giao dịch
+  - Ảnh hưởng của cache, share và đăng ký nhiều lần đến truy vấn
+  - Giữ thứ tự kết quả khi kết hợp nhiều thao tác bất đồng bộ
+  - Xử lý hủy đăng ký và giải phóng tài nguyên
+  - Không dùng null để biểu diễn một phần tử trong luồng phản ứng
+- level1: Xử lý lỗi
+  level2:
+  - Phân loại lỗi kết nối, cú pháp, ánh xạ và ràng buộc dữ liệu
+  - Cơ chế chuyển lỗi sang hệ phân cấp DataAccessException
+  - Phân biệt không có dữ liệu với truy vấn thất bại
+  - Sử dụng onErrorMap và onErrorResume theo ý nghĩa nghiệp vụ
+  - Retry có giới hạn, khoảng lùi và điều kiện lỗi được phép thử lại
+  - Đặt retry đúng phạm vi để tạo giao dịch mới khi cần
+  - Nguy cơ ghi trùng khi mất kết nối sau khi cơ sở dữ liệu đã ghi
+  - Kết hợp thời gian chờ ở ứng dụng, pool và cơ sở dữ liệu
+  - Giữ nguyên nguyên nhân lỗi và tránh ghi log thông tin nhạy cảm
+- level1: Vòng đời thực thể
+  level2:
+  - Các giai đoạn chuyển đổi, lưu và đọc thực thể
+  - EntityCallback đồng bộ và callback phản ứng
+  - Chuẩn bị dữ liệu trước chuyển đổi bằng BeforeConvertCallback
+  - Can thiệp dữ liệu trước khi lưu và kiểm soát thứ tự callback
+  - Xử lý thực thể sau đọc hoặc sau lưu
+  - Trả về thực thể mới trong callback khi mô hình bất biến
+  - Phạm vi callback với Repository, Template và SQL trực tiếp
+  - Tránh tác dụng phụ, truy vấn lặp và phụ thuộc vòng trong callback
+- level1: Auditing
+  level2:
+  - Bật auditing phản ứng bằng @EnableR2dbcAuditing
+  - Ánh xạ thời điểm tạo và cập nhật dữ liệu
+  - Ánh xạ người tạo và người cập nhật
+  - Cung cấp người dùng hiện tại bằng ReactiveAuditorAware
+  - Lấy danh tính từ ngữ cảnh bảo mật phản ứng
+  - Chọn nguồn thời gian, múi giờ và kiểm thử thời gian
+  - Phân biệt trường auditing với nhật ký thay đổi nghiệp vụ
+  - Giới hạn auditing khi cập nhật trực tiếp bằng SQL
+- level1: Schema
+  level2:
+  - Tạo schema ban đầu cho môi trường phát triển
+  - Spring Boot SQL initialization và thứ tự khởi tạo
+  - Quản lý phiên bản schema bằng Flyway hoặc Liquibase
+  - Tách kết nối JDBC cho công cụ migration khi cần
+  - Phối hợp migration với khởi động ứng dụng R2DBC
+  - Thiết kế bảng, chỉ mục và ràng buộc phù hợp truy vấn
+  - Mặc định, cột được sinh và tác động đến ánh xạ thực thể
+  - Thay đổi schema tương thích khi nhiều phiên bản ứng dụng cùng chạy
+  - Chuẩn bị dữ liệu mẫu và tách biệt dữ liệu kiểm thử
+- level1: Nhiều cơ sở dữ liệu
+  level2:
+  - Khai báo nhiều ConnectionFactory và đặt tên bean rõ ràng
+  - Gắn từng nhóm Repository với đúng R2dbcEntityOperations
+  - Tách Template, DatabaseClient và bộ ánh xạ khi cần
+  - Chọn đúng transaction manager cho từng nguồn dữ liệu
+  - Định tuyến kết nối dựa trên Reactor Context
+  - Phân biệt nhiều cơ sở dữ liệu với nhiều schema
+  - Thiết kế đa khách thuê và bảo vệ ranh giới dữ liệu
+  - Tách truy vấn đọc và ghi với lưu ý về độ trễ bản sao
+  - Giới hạn giao dịch khi định tuyến hoặc truy cập nhiều nguồn
+- level1: Khác biệt hệ quản trị
+  level2:
+  - Đánh giá mức hỗ trợ R2DBC của hệ quản trị và trình điều khiển
+  - 'PostgreSQL: định danh sinh tự động, JSON và mảng'
+  - 'MySQL/MariaDB: trình điều khiển, khóa sinh và khác biệt cú pháp'
+  - 'SQL Server: phân trang, kiểu dữ liệu và kết quả sinh ra'
+  - 'H2: lợi ích thử nghiệm và khác biệt với cơ sở dữ liệu thật'
+  - Kiểm tra đặc tính Oracle và các trình điều khiển khác trước khi sử dụng
+  - Khác biệt ký hiệu bind, dấu ngoặc định danh và từ khóa dành riêng
+  - Khác biệt về khóa ghép, upsert, batch và savepoint
+  - Lập kiểm thử tương thích thay vì giả định cùng một SQL chạy mọi nơi
+- level1: Tích hợp WebFlux
+  level2:
+  - Luồng yêu cầu HTTP từ Controller qua dịch vụ đến Repository
+  - Thiết kế DTO, kiểm tra đầu vào và chuyển đổi sang mô hình lưu trữ
+  - Chọn Mono hoặc Flux theo hợp đồng API
+  - Biểu diễn không tìm thấy dữ liệu và xung đột cập nhật
+  - Đặt ranh giới giao dịch ở tầng dịch vụ
+  - Truyền danh tính, mã theo dõi và khách thuê qua Reactor Context
+  - Phân biệt streaming HTTP với streaming kết quả cơ sở dữ liệu
+  - Nguy cơ giữ kết nối lâu khi phía nhận tiêu thụ dữ liệu chậm
+  - Phối hợp lời gọi HTTP hoặc sự kiện ngoài với thao tác lưu trữ
+- level1: Kiểm thử
+  level2:
+  - Phân biệt kiểm thử đơn vị với kiểm thử tích hợp truy cập dữ liệu
+  - Kiểm tra kết quả, hoàn thành và lỗi bằng StepVerifier
+  - Dùng TestPublisher hoặc mock ở đúng ranh giới cần kiểm soát
+  - Kiểm thử Repository bằng @DataR2dbcTest
+  - Dùng Testcontainers với đúng hệ quản trị mục tiêu
+  - Cung cấp thuộc tính kết nối động cho môi trường kiểm thử
+  - Khởi tạo schema và dữ liệu kiểm thử có thể lặp lại
+  - Kiểm thử rollback mà không giả định cơ chế giao dịch của JDBC test
+  - Kiểm thử mapping, converter, callback và auditing
+  - Kiểm thử xung đột đồng thời, khóa lạc quan và tính lũy đẳng
+  - Kiểm thử thời gian chờ, retry, hủy đăng ký và giải phóng kết nối
+  - Kiểm thử API với WebTestClient và cơ sở dữ liệu thật
+- level1: Hiệu năng
+  level2:
+  - Xác định độ trễ, thông lượng và số kết nối làm mục tiêu đo
+  - Đọc kế hoạch thực thi SQL và lựa chọn chỉ mục
+  - Giảm số truy vấn, số cột và số bản ghi phải truyền
+  - Phân tích N+1, truy vấn đếm và phân trang offset sâu
+  - Tối ưu mức đồng thời cùng kích thước pool
+  - Điều chỉnh kích thước lấy dữ liệu khi trình điều khiển hỗ trợ
+  - Tránh gom toàn bộ Flux lớn vào bộ nhớ
+  - Đánh giá thời gian giữ giao dịch và kết nối
+  - So sánh ghi từng hàng, ghi theo nhóm và SQL nhiều hàng
+  - Thiết kế cache cùng chiến lược vô hiệu hóa dữ liệu
+  - Đo tải thực tế và tránh suy luận rằng không chặn luôn nhanh hơn
+- level1: Quan sát
+  level2:
+  - Ghi log SQL và tham số theo môi trường
+  - 'Quan sát pool: kết nối đang dùng, nhàn rỗi và yêu cầu chờ'
+  - Đo thời gian truy vấn, thời gian chờ pool và thời gian giao dịch
+  - Tích hợp Micrometer và công cụ quan sát tương thích phiên bản
+  - Liên kết dấu vết HTTP với thao tác truy cập dữ liệu
+  - Truyền mã theo dõi qua ngữ cảnh phản ứng
+  - Phân biệt health check, readiness và khả năng phục vụ tải thật
+  - Thiết kế cảnh báo lỗi, cạn pool và truy vấn chậm
+- level1: Bảo mật
+  level2:
+  - Bind tham số để bảo vệ giá trị đầu vào khỏi SQL injection
+  - Kiểm soát tên bảng, tên cột và hướng sắp xếp động
+  - Quản lý thông tin xác thực bằng cấu hình và kho bí mật
+  - Phân quyền tài khoản cơ sở dữ liệu theo nhu cầu tối thiểu
+  - Bảo vệ dữ liệu trên đường truyền bằng TLS
+  - Kiểm soát quyền truy cập bản ghi và ranh giới khách thuê
+  - Che dữ liệu nhạy cảm trong log SQL và dấu vết
+  - Giới hạn kích thước truy vấn, số bản ghi và thời gian xử lý
+- level1: Triển khai
+  level2:
+  - Tách cấu hình phát triển, kiểm thử và production
+  - Phối hợp khởi động ứng dụng, migration và kiểm tra sẵn sàng
+  - Tính giới hạn pool theo tài nguyên và số bản sao ứng dụng
+  - Đóng ứng dụng có kiểm soát và chờ thao tác đang thực thi
+  - Xử lý cơ sở dữ liệu khởi động lại hoặc chuyển vai trò
+  - Kiểm soát thời gian chờ xuyên suốt HTTP, pool và truy vấn
+  - Phối hợp thay đổi schema với phát hành liên tục
+  - Kiểm tra cấu hình TLS, múi giờ và encoding khi triển khai
+- level1: Chuyển đổi
+  level2:
+  - Đánh giá ứng dụng JDBC/JPA trước khi chuyển sang R2DBC
+  - Thay thế giả định ORM bằng truy vấn và ranh giới ghi tường minh
+  - Chuyển hợp đồng dịch vụ từ giá trị trực tiếp sang Publisher
+  - Phân tách giao dịch và tài nguyên khi JDBC cùng tồn tại với R2DBC
+  - Di chuyển từng chức năng và kiểm chứng hành vi tương đương
+  - Đọc release notes và đối chiếu ma trận tương thích trước khi nâng cấp
+  - Kiểm tra thay đổi ở Spring Data Relational, Spring R2DBC và trình điều khiển
+  - Lập bộ kiểm thử hồi quy cho SQL, mapping, giao dịch và hiệu năng
+- level1: Thực hành
+  level2:
+  - Xây dựng chức năng quản lý dữ liệu từ schema đến API WebFlux
+  - Triển khai bộ lọc động, sắp xếp và phân trang ổn định
+  - Đọc quan hệ nhiều bảng bằng mô hình kết quả riêng
+  - Xây dựng thao tác chuyển tiền với giao dịch và bất biến dữ liệu
+  - Xử lý cập nhật đồng thời bằng @Version và phản hồi xung đột
+  - Nhập dữ liệu theo nhóm với giới hạn đồng thời và chính sách lỗi
+  - Bổ sung auditing, phân quyền bản ghi và bảo vệ thông tin nhạy cảm
+  - Viết kiểm thử tích hợp bằng Testcontainers và StepVerifier
+  - Đo tải, xác định điểm nghẽn và đánh giá lựa chọn R2DBC
+- level1: Chẩn đoán
+  level2:
+  - Không tìm thấy trình điều khiển hoặc không tạo được ConnectionFactory
+  - Sai bean, sai nhóm Repository hoặc sai transaction manager
+  - Lỗi bind tham số, cú pháp SQL và định danh có dấu ngoặc
+  - Lỗi chuyển đổi kiểu, constructor và thuộc tính không được ánh xạ
+  - save thực hiện insert hoặc update khác dự kiến
+  - Truy vấn không chạy hoặc chạy nhiều lần do cách đăng ký
+  - Giao dịch không có hiệu lực do proxy, context hoặc ranh giới luồng
+  - Xung đột phiên bản, vi phạm ràng buộc và số hàng cập nhật bằng không
+  - Cạn pool, kết nối bị giữ lâu và lỗi khi hủy luồng
+  - Kết quả kiểm thử H2 khác cơ sở dữ liệu production
+  - Checklist kiểm chứng cấu hình, SQL và luồng thực thi trước khi kết luận lỗi

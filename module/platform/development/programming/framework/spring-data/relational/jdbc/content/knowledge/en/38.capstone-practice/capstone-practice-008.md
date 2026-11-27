@@ -1,0 +1,618 @@
+# Testing with Testcontainers and Measuring Query Costs
+
+A repository test running against H2 can verify basic mapping and CRUD, yet it does not prove SQL statements behave identically to PostgreSQL or MySQL in production. Database engines, JDBC drivers, data types, indexes, optimizers, and transaction semantics all affect outcomes. **Testcontainers** runs a real database inside a container so integration tests use the same engine as the deployment environment.
+
+Once tests pass functionally, the next step is understanding query costs. A repository method might execute multiple SQL statements, fetch more rows than needed, or use an inefficient execution plan. You should combine three kinds of evidence:
+
+1. **Integration tests on a real database:** verify mappings, constraints, transactions, and query behavior.
+2. **Measurements at the JDBC/repository layer:** count statements, measure execution time, and detect N+1 queries.
+3. **Database execution plans:** inspect how the optimizer scans tables/indexes, estimates row counts, and how much data it actually processes.
+
+## 1. Why use Testcontainers?
+
+Testcontainers launches a database inside a Docker container and supplies connections to that database for your tests. With Spring Boot, the **@ServiceConnection** annotation automatically creates connection details from the container.
+
+With PostgreSQL:
+
+~~~mermaid
+flowchart TD
+    Test["Spring Data JDBC integration test"]
+    Boot["@DataJdbcTest + @ServiceConnection"]
+    Container["PostgreSQLContainer"]
+    Details["JdbcConnectionDetails"]
+    DataSource["Boot DataSource + PostgreSQL driver"]
+    Repo["Spring Data JDBC Repository"]
+    DB[("PostgreSQL in Docker")]
+    Test --> Boot --> Container
+    Container --> Details --> DataSource
+    Boot --> Repo --> DataSource --> DB
+~~~
+
+Tests exercise PostgreSQL's actual SQL dialect, data types, and optimizer. Containers also give each test run a controlled, reproducible database environment.
+
+Testcontainers does not automatically turn a test into a production benchmark. Speed also depends on Docker CPU/RAM, storage, cache, network, database version, and loaded data volume.
+
+## 2. Declaring dependencies
+
+The example below uses Spring Boot 4.x, Spring Data JDBC, and PostgreSQL Testcontainers:
+
+~~~groovy
+dependencies {
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-data-jdbc-test")
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+
+    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testRuntimeOnly("org.postgresql:postgresql")
+}
+~~~
+
+Let Spring Boot dependency management/BOM manage versions. If using Spring Boot 3.x, test module names and annotation packages differ; use the imports and dependencies matching your project version.
+
+The Docker daemon must be running when executing tests. Testcontainers will pull the image if it is not yet present locally, start the container, and stop it according to the configured lifecycle.
+
+## 3. Writing a repository integration test with PostgreSQL
+
+Example `Order` entity:
+
+~~~java
+package com.example.sales.order;
+
+import java.time.Instant;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("orders")
+public class Order {
+
+    @Id
+    private Long id;
+
+    private Long customerId;
+    private String status;
+    private Instant createdAt;
+
+    protected Order() {
+    }
+
+    public Order(Long customerId, String status, Instant createdAt) {
+        this.customerId = customerId;
+        this.status = status;
+        this.createdAt = createdAt;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getCustomerId() {
+        return customerId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+}
+~~~
+
+Repository:
+
+~~~java
+package com.example.sales.order;
+
+import java.util.List;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jdbc.repository.query.Query;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
+
+public interface OrderRepository extends CrudRepository<Order, Long> {
+
+    List<Order> findByCustomerIdAndStatusOrderByCreatedAtDesc(
+        Long customerId,
+        String status,
+        Pageable pageable
+    );
+
+    @Query("""
+        SELECT *
+        FROM orders
+        WHERE customer_id = :customerId
+          AND status = :status
+        ORDER BY created_at DESC
+        LIMIT :limit
+        """)
+    List<Order> findRecentOrders(
+        @Param("customerId") Long customerId,
+        @Param("status") String status,
+        @Param("limit") int limit
+    );
+}
+~~~
+
+Schema migration:
+
+~~~sql
+CREATE TABLE orders (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    customer_id BIGINT NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
+);
+~~~
+
+Both derived-query repository methods and `@Query` methods are tested on PostgreSQL. This helps uncover discrepancies in column mapping, timestamp types, result limits, and SQL syntax.
+
+## 4. Starting PostgreSQLContainer and connecting via @ServiceConnection
+
+Test class:
+
+~~~java
+package com.example.sales.order;
+
+import java.time.Instant;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.data.jdbc.test.autoconfigure.DataJdbcTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@DataJdbcTest
+@Testcontainers
+@AutoConfigureTestDatabase(replace = Replace.NONE)
+class OrderRepositoryPostgresTests {
+
+    @Container
+    @ServiceConnection
+    static final PostgreSQLContainer<?> postgres =
+        new PostgreSQLContainer<>("postgres:17-alpine");
+
+    @Autowired
+    private OrderRepository orders;
+
+    @Test
+    void savesAndLoadsOrder() {
+        Order saved = orders.save(
+            new Order(101L, "OPEN", Instant.parse("2026-01-10T10:00:00Z"))
+        );
+
+        Order loaded = orders.findById(saved.getId()).orElseThrow();
+
+        assertThat(loaded.getCustomerId()).isEqualTo(101L);
+        assertThat(loaded.getStatus()).isEqualTo("OPEN");
+    }
+}
+~~~
+
+**@ServiceConnection** creates connection details from the PostgreSQL container. **Replace.NONE** explicitly instructs the test to keep the container-backed DataSource. In current Spring Boot versions, **Replace.NON_TEST** can also retain an auto-configured DataSource recognized as a test database.
+
+With **@DataJdbcTest**, Spring Boot loads only the configuration required for Spring Data JDBC; regular components and configuration properties are not scanned automatically. If a test needs a custom configuration bean, import it or use **@EnableConfigurationProperties**.
+
+### DataJdbcTest transactions
+
+`@DataJdbcTest` by default runs each test method inside a transaction and rolls it back upon completion. This keeps tests isolated from one another. The PostgreSQL container can be shared across methods in the class while data created inside each test's transaction rolls back.
+
+If you need to inspect committed data or run benchmarks across multiple connections, design an explicit transaction boundary. Do not assume the container is wiped after every test; containers typically live for the duration of the class or test suite.
+
+## 5. Creating reproducible schemas and test datasets
+
+A test with 3 rows is insufficient to evaluate indexes or the optimizer on a table with hundreds of thousands of records. To measure query cost, the dataset should roughly reflect:
+
+- Row counts.
+- Customer/status distributions.
+- Ratio of common vs. rare values.
+- NULL ratios if allowed by the schema.
+- String lengths and column sizes.
+- Relationships between root tables and child collections.
+
+You can use Flyway/Liquibase to create a production-like schema, then use dedicated SQL fixtures to seed test data.
+
+Example PostgreSQL script generating a large dataset in a test environment:
+
+~~~sql
+INSERT INTO orders (customer_id, status, created_at)
+SELECT
+    1 + (g % 10000),
+    CASE
+        WHEN g % 5 = 0 THEN 'CANCELLED'
+        WHEN g % 3 = 0 THEN 'CONFIRMED'
+        ELSE 'OPEN'
+    END,
+    TIMESTAMPTZ '2025-01-01 00:00:00+00'
+        + (g % 365) * INTERVAL '1 day'
+FROM generate_series(1, 200000) AS g;
+
+ANALYZE orders;
+~~~
+
+This seed script uses the PostgreSQL-specific function **generate_series**. It inserts 200,000 rows with a reproducible distribution of customers and statuses. The **ANALYZE** command updates the statistics the PostgreSQL optimizer uses when choosing execution plans.
+
+For large tables, load data in a committed setup step or dedicated migration/fixture. When a test slice wraps the entire test in a transaction, understand which transactions can see the seeded data and when statistics are refreshed.
+
+Do not use real data containing personal information or production secrets inside test containers. Generate synthetic data that mirrors the distribution of the workload under test.
+
+## 6. Testing correctness before measuring performance
+
+Before inspecting query plans, verify that the query returns accurate data:
+
+~~~java
+@Test
+void findsRecentOpenOrdersForCustomer() {
+    List<Order> result = orders.findRecentOrders(101L, "OPEN", 20);
+
+    assertThat(result)
+        .hasSizeLessThanOrEqualTo(20)
+        .allSatisfy(order -> {
+            assertThat(order.getCustomerId()).isEqualTo(101L);
+            assertThat(order.getStatus()).isEqualTo("OPEN");
+        });
+}
+~~~
+
+A fast query that returns missing rows, wrong ordering, or ignores business conditions is not a successful optimization. Correctness testing must come before cost measurement.
+
+Scenarios to include:
+
+- Customer with no Orders.
+- Customer with many Orders.
+- Common status and rare status.
+- First page and deep pages.
+- Boundary filter values and large datasets.
+- Aggregates with child collections if the query loads the full aggregate.
+- Transaction rollbacks and constraint violations.
+
+## 7. Timing repository methods
+
+You can measure the duration from calling a repository method until it returns using `System.nanoTime`:
+
+~~~java
+long start = System.nanoTime();
+
+List<Order> result = orders.findRecentOrders(101L, "OPEN", 50);
+
+long elapsedNanos = System.nanoTime() - start;
+long elapsedMicros = TimeUnit.NANOSECONDS.toMicros(elapsedNanos);
+
+log.info("findRecentOrders returned {} rows in {} microseconds",
+    result.size(), elapsedMicros);
+~~~
+
+Measuring at the repository layer includes more overhead than SQL time alone:
+
+- Acquiring a connection.
+- Sending the query and receiving results.
+- Reading the `ResultSet`.
+- Mapping rows into domain objects.
+- Building collections and returning results.
+
+This figure closely matches the latency observed by the application service. It does not replace the database execution plan.
+
+Do not write functional tests asserting things like "query must finish under 20 ms" in regular CI. Timings fluctuate based on CPU, machine load, Docker, cache, and CI runner resources. Log durations or use generous thresholds in a separate performance suite.
+
+## 8. Counting SQL statements and detecting N+1 queries
+
+A single repository method can execute multiple statements due to aggregate mapping, child collections, secondary queries, or repeated repository calls in application code. Counting statements helps catch N+1 issues and regressions that increase database round trips.
+
+The **datasource-proxy** library wraps a `DataSource` to log queries, elapsed time, SELECT/INSERT/UPDATE/DELETE counts, and execution errors.
+
+Test dependency:
+
+~~~groovy
+dependencies {
+    testImplementation("net.ttddyy:datasource-proxy:1.11.1")
+}
+~~~
+
+Create a proxy wrapping the original `DataSource`:
+
+~~~java
+DataSource observedDataSource =
+    ProxyDataSourceBuilder.create(actualDataSource)
+        .name("orders-test")
+        .countQuery()
+        .afterQuery((executionInfo, queryInfoList) -> {
+            if (executionInfo.getElapsedTime() >= 100) {
+                log.warn("Slow SQL: {} ms, queries={}",
+                    executionInfo.getElapsedTime(),
+                    queryInfoList.size());
+            }
+        })
+        .build();
+~~~
+
+The proxy must be registered as the `DataSource` actually used by `JdbcTemplate`/Spring Data JDBC in the test context. Wrap the original `DataSource` instead of creating a second connection pool. Only enable query/parameter logging in tests or controlled environments because SQL parameters can contain sensitive data.
+
+Once query counting is enabled:
+
+~~~java
+QueryCountHolder.clear();
+
+List<Order> result = orders.findRecentOrders(101L, "OPEN", 20);
+
+QueryCount count = QueryCountHolder.getGrandTotal();
+log.info("SELECT={}, total={}, elapsed={} ms",
+    count.getSelect(),
+    count.getTotal(),
+    count.getTime());
+~~~
+
+`QueryCountHolder` stores metrics in a thread-local by default. Call `clear` before each measurement/test and note that work executed on other threads does not automatically add to the current thread's counter. You can use `SingleQueryCountHolder` when aggregated counts across threads are needed, remembering to reset it explicitly.
+
+### Recognizing N+1 queries
+
+Suppose a service loads 100 customers and then queries the repository for each customer's Orders:
+
+~~~java
+for (Customer customer : customers) {
+    List<Order> customerOrders =
+        orders.findByCustomerId(customer.getId());
+    // Process the result.
+}
+~~~
+
+This code pattern can execute 1 query for customers plus 100 queries for Orders. The query count scales with the number of customers.
+
+Compare statement counts when testing with 1, 10, and 100 parent records. If query count grows linearly and unexpectedly, inspect loops calling repositories, how aggregates are loaded, and whether a batch ID query or read projection is appropriate.
+
+Do not assume every aggregate load must take only a single statement. What matters is checking that the query count matches the mapping and does not scale unexpectedly with row counts.
+
+## 9. Viewing query plans with PostgreSQL EXPLAIN
+
+PostgreSQL provides **EXPLAIN** to display the execution plan selected by the optimizer. Add **ANALYZE** to execute the statement and report actual metrics; add **BUFFERS** to inspect buffer reads/writes.
+
+Example:
+
+~~~sql
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT id, customer_id, status, created_at
+FROM orders
+WHERE customer_id = 101
+  AND status = 'OPEN'
+ORDER BY created_at DESC
+LIMIT 50;
+~~~
+
+Key elements to read:
+
+| Metric | Meaning |
+|---|---|
+| Startup cost / total cost | Optimizer's estimated cost, not milliseconds |
+| rows | Estimated row count at the plan node |
+| actual time | Actual elapsed time at the node |
+| actual rows | Actual rows returned by the node |
+| loops | Number of times the node executed |
+| Buffers: shared hit | Blocks already cached in shared buffers |
+| Buffers: shared read | Blocks read from storage into shared buffers |
+| temp read/written | Temporary data read/written, often tied to large sorts/hashes |
+
+**EXPLAIN ANALYZE actually executes the query.** For `SELECT`, it reads data like a normal query. For `INSERT`/`UPDATE`/`DELETE`, it performs the write operation; run it only on test data and wrap in a rolled-back transaction if appropriate.
+
+### Reading estimated rows vs. actual rows
+
+If the optimizer estimates 20 rows but actually returns 50,000 rows, table statistics or data distributions may diverge from optimizer assumptions. Check:
+
+- Whether table/index statistics are up to date.
+- Whether filter values have skewed distributions.
+- Whether columns are correlated in ways the optimizer does not know.
+- Whether actual parameters select very common or very rare values.
+
+In PostgreSQL, run `ANALYZE` after loading large test datasets:
+
+~~~sql
+ANALYZE orders;
+~~~
+
+A Sequential Scan is not always bad. For small tables or queries returning most rows, scanning sequentially can be cheaper than index lookups. Evaluate row counts, buffers, actual time, and workload instead of reacting solely to the node name.
+
+## 10. Viewing query plans with MySQL EXPLAIN ANALYZE
+
+MySQL 8.4 supports:
+
+~~~sql
+EXPLAIN ANALYZE
+SELECT id, customer_id, status, created_at
+FROM orders
+WHERE customer_id = 101
+  AND status = 'OPEN'
+ORDER BY created_at DESC
+LIMIT 50;
+~~~
+
+MySQL displays a `TREE`-formatted plan with details such as:
+
+- Estimated cost and estimated rows.
+- Actual time to return the first row and finish the iterator.
+- Actual rows returned.
+- Number of iterator loops.
+
+`EXPLAIN ANALYZE` also executes the `SELECT` statement. Supported syntax and statement types differ from PostgreSQL; consult documentation matching the exact MySQL version running in your container.
+
+## 11. Example index optimization based on a query plan
+
+Common query:
+
+~~~sql
+SELECT id, customer_id, status, created_at
+FROM orders
+WHERE customer_id = 101
+  AND status = 'OPEN'
+ORDER BY created_at DESC
+LIMIT 50;
+~~~
+
+If the plan shows the database scanning many rows and then sorting before taking 50 results, you can test a composite index:
+
+~~~sql
+CREATE INDEX idx_orders_customer_status_created
+ON orders(customer_id, status, created_at DESC);
+~~~
+
+This index places equality filter columns first, followed by the sort column. This is a hypothesis to verify against execution plans and real workloads, not a universal formula for every query.
+
+After creating the index:
+
+1. Re-run the exact same query with the same data and parameters.
+2. Compare estimated vs. actual rows.
+3. Compare buffer reads and actual elapsed time.
+4. Check whether the query eliminated the sort or reduced rows read.
+5. Also measure write cost, as the new index adds work to `INSERT`/`UPDATE`/`DELETE`.
+
+Do not add indexes just to make a single specific test run faster. Every index consumes storage, increases write overhead, and requires maintenance.
+
+## 12. Distinguishing query cost, query latency, and repository latency
+
+Several numbers are often lumped together as "query cost," yet they measure different things:
+
+| Metric | What it measures | Tool |
+|---|---|---|
+| Optimizer cost | Internal estimate for comparing plans | `EXPLAIN` |
+| Database execution time | Execution duration inside the database | `EXPLAIN ANALYZE`, database monitoring |
+| JDBC statement elapsed time | Duration of executing via JDBC | `datasource-proxy`, JDBC listener |
+| Repository method latency | Time from invoking the method to returning objects | Timer/StopWatch/Micrometer |
+| Request latency | Duration of the entire request | HTTP metrics/tracing |
+
+Optimizer cost is not milliseconds and cannot be compared directly between PostgreSQL and MySQL. JDBC elapsed time includes network round trips and driver processing. Repository latency additionally includes object mapping and Java work after the query returns.
+
+To isolate bottlenecks, inspect these numbers side by side rather than relying on a single metric.
+
+## 13. Metrics with Spring Boot Actuator and Micrometer
+
+When Actuator and Micrometer are on the classpath, Spring Boot automatically instruments the DataSource and Spring Data repositories:
+
+- **jdbc.connections**: active, idle, maximum, and minimum pool connections.
+- **hikaricp**: HikariCP-specific metrics.
+- **spring.data.repository.invocations**: duration and invocation counts for repository methods.
+
+Repository metrics reveal which methods are called frequently or exhibit high latency. DataSource metrics show how heavily the connection pool is utilized. They do not replace query-level logging or `EXPLAIN` plans.
+
+Example Actuator dependency configuration:
+
+~~~groovy
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
+}
+~~~
+
+Expose endpoints/registries according to your application's governance rules. Do not expose metrics endpoints outside authorized operational networks; metric tags must also avoid containing SQL parameters or personal data.
+
+## 14. Designing meaningful, repeatable measurements
+
+A single measurement is not enough to conclude a query got faster. Control for:
+
+### Dataset
+
+- Identical row counts and data distributions.
+- Identical indexes, constraints, and migrations.
+- Identical parameter values or a representative parameter set.
+- Refreshed statistics after seeding.
+
+### Environment
+
+- Identical PostgreSQL/MySQL and JDBC driver versions.
+- Identical CPU/RAM limits on containers.
+- Avoid running competing benchmarks on the same Docker host.
+- Distinguish cold-cache runs from warm-cache runs.
+- Exclude image pull and container startup times from query timings.
+
+### Measurement procedure
+
+1. Run several warm-up iterations so the JVM, driver, and database stabilize.
+2. Run multiple iterations under identical conditions.
+3. Record median and percentiles such as p95, not just the single fastest run.
+4. Record query count, returned row count, execution plan, and buffers.
+5. Measure before and after index or SQL changes against the exact same dataset.
+6. Verify returned results remain identical.
+
+Avoid tight timing thresholds in regular unit tests. CI runners and Docker hosts experience variable load. Keep functional assertions and query-count regression checks in the main test suite; run latency benchmarks in a dedicated pipeline or performance environment.
+
+## 15. Using Testcontainers for query-plan regression checks
+
+A specialized test can verify that a query still returns the right data and that its execution plan has not degraded dramatically. However, plan text varies across database versions and statistics, so avoid brittle full-string comparisons of the plan output.
+
+Meaningful properties to assert include:
+
+- The query does not emit an unexpected number of statements.
+- It does not read tens of thousands of rows when only 50 are requested.
+- Critical indexes still exist.
+- Actual rows and loop counts do not spike abnormally.
+- The query returns the expected ordering and limit.
+
+If plan-based assertions are needed, parse the output per database version and assert only stable properties. Never force every test to require a specific scan type; the optimizer may choose a different plan that is actually faster.
+
+## 16. Common pitfalls
+
+| Mistake | Consequence | Fix |
+|---|---|---|
+| Testing only on H2 | Misses dialect/driver differences | Use Testcontainers with production database |
+| Using too small a dataset | Optimizer picks unrepresentative plans | Seed data with realistic cardinality and skew |
+| Measuring the very first query | Cache/JIT/container startup skews results | Warm up and measure across multiple runs |
+| Looking only at `EXPLAIN` cost | Confusing estimated cost with real time | Use `ANALYZE` and actual metrics |
+| Not updating statistics after seeding | Optimizer estimates inaccurately | Run `ANALYZE` or equivalent stats update |
+| Measuring only the repository method | Unclear which query caused slowness | Combine JDBC query listeners and execution plans |
+| Counting queries without checking row counts | Few queries yet reading excessive data | Monitor rows scanned and result sizes |
+| Missing N+1 issues | Query count grows with parent count | Compare query counts across increasing data sizes |
+| Adding indexes by intuition | Increases storage and write cost | Measure plans before/after and evaluate workload |
+| Running `EXPLAIN ANALYZE` on real data carelessly | Write queries actually mutate data | Run only on test data, rolling back if appropriate |
+| Asserting very tight latencies in CI | Tests flake with runner load | Use a dedicated benchmark suite |
+| Logging all SQL parameters in production | Risks leaking sensitive data | Restrict logging and redact parameters |
+
+## 17. Recommended hands-on workflow
+
+1. Start a PostgreSQL Testcontainer matching production's major version.
+2. Use `@ServiceConnection` so Boot configures the JDBC DataSource.
+3. Use `@DataJdbcTest` for repository/mapping tests and preserve the container DataSource via `Replace.NONE` or appropriate `NON_TEST` policy.
+4. Run Flyway/Liquibase to build the application schema.
+5. Seed a representative dataset and update database statistics.
+6. Write functional tests verifying results, ordering, constraints, and transactions.
+7. Enable `datasource-proxy` in tests to record query counts and elapsed times.
+8. Use `EXPLAIN ANALYZE` to inspect execution plans of slow queries.
+9. Test indexes or query rewrites and re-measure on the same dataset.
+10. Use Actuator/Micrometer to track repository latency and pool metrics in live environments.
+11. Separate performance benchmarks from unit tests to avoid CI flakiness.
+12. Record database version, driver version, dataset size, indexes, and container configuration alongside measurements.
+
+## 18. Practice lab
+
+1. Create `OrderRepository` with a derived query filtering by customer/status and sorting by `createdAt`.
+2. Run repository tests against `PostgreSQLContainer` with `@DataJdbcTest` and `@ServiceConnection`.
+3. Create the schema with Flyway and seed at least 200,000 `Order` rows in the container.
+4. Run `ANALYZE` after seeding PostgreSQL data.
+5. Call the repository method and measure elapsed time using `System.nanoTime` or a Micrometer `Timer`.
+6. Wrap the DataSource with `datasource-proxy` in the test context; record query counts and per-statement durations.
+7. Increase parent/child record counts and inspect query counts to detect N+1 patterns.
+8. Run `EXPLAIN (ANALYZE, BUFFERS)` on the PostgreSQL query; record actual rows, loops, and buffers.
+9. Add a composite index matching the filter/sort; re-run the same query and compare plans.
+10. Repeat the exercise on MySQL 8.4 using `EXPLAIN ANALYZE`.
+11. Enable Actuator metrics and observe repository invocations alongside connection pool metrics.
+12. Design a multi-iteration performance test recording median/p95 without enforcing tight timing thresholds in regular CI.
+
+## 19. Key takeaways
+
+Testcontainers allows Spring Data JDBC repositories to be tested on the real database engine and JDBC driver, exposing differences that embedded databases can mask. Use `@DataJdbcTest` for repository slice testing, `@ServiceConnection` to wire JDBC connection details, and migrations/fixtures to prepare reproducible schemas and datasets.
+
+Measuring query cost requires combining query counts, JDBC statement elapsed times, repository latency, and execution plans. PostgreSQL `EXPLAIN (ANALYZE, BUFFERS)` and MySQL `EXPLAIN ANALYZE` reveal actual rows, loops, timings, and buffer activity; `datasource-proxy` counts and times JDBC statements; Actuator/Micrometer monitors repositories and connection pools. Measure repeatedly on representative datasets, compare before and after under identical conditions, and always verify functional correctness before claiming an optimization.
+
+## References
+
+- [Spring Boot — Testcontainers](https://docs.spring.io/spring-boot/reference/testing/testcontainers.html)
+- [Spring Boot — Auto-configured Data JDBC Tests](https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html)
+- [Spring Boot — Metrics](https://docs.spring.io/spring-boot/reference/actuator/metrics.html)
+- [PostgreSQL — EXPLAIN](https://www.postgresql.org/docs/current/sql-explain.html)
+- [PostgreSQL — Using EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html)
+- [MySQL 8.4 — EXPLAIN Statement](https://dev.mysql.com/doc/refman/8.4/en/explain.html)
+- [datasource-proxy — User Guide](https://jdbc-observations.github.io/datasource-proxy/docs/current/user-guide/)

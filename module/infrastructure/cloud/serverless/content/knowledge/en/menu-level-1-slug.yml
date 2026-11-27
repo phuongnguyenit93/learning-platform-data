@@ -1,0 +1,103 @@
+menu:
+  - title: "Nền tảng serverless"
+    slug: serverless-foundations
+    index: 0
+  - title: "Thiết kế kiến trúc serverless"
+    slug: serverless-architecture
+    index: 1
+  - title: "Vòng đời thực thi function"
+    slug: function-execution-lifecycle
+    index: 2
+  - title: "Sự kiện và hợp đồng dữ liệu"
+    slug: events-and-data-contracts
+    index: 3
+  - title: "HTTP API và webhook"
+    slug: http-apis-and-webhooks
+    index: 4
+  - title: "Hàng đợi và luồng sự kiện"
+    slug: queues-and-event-streams
+    index: 5
+  - title: "Trạng thái và lưu trữ"
+    slug: state-and-storage
+    index: 6
+  - title: "Workflow và điều phối"
+    slug: workflows-and-orchestration
+    index: 7
+  - title: "Java trên serverless"
+    slug: java-on-serverless
+    index: 8
+  - title: "Framework và runtime Java"
+    slug: java-frameworks-and-runtimes
+    index: 9
+  - title: "AWS Lambda căn bản"
+    slug: aws-lambda-fundamentals
+    index: 10
+  - title: "Tích hợp serverless trên AWS"
+    slug: aws-serverless-integrations
+    index: 11
+  - title: "Azure Functions"
+    slug: azure-functions
+    index: 12
+  - title: "Serverless trên Google Cloud"
+    slug: google-cloud-serverless
+    index: 13
+  - title: "Edge và nền tảng mở"
+    slug: edge-and-open-platforms
+    index: 14
+  - title: "Hạ tầng dưới dạng mã"
+    slug: infrastructure-as-code
+    index: 15
+  - title: "Cấu hình và môi trường"
+    slug: configuration-and-environments
+    index: 16
+  - title: "Bảo mật ứng dụng"
+    slug: application-security
+    index: 17
+  - title: "Danh tính và mạng"
+    slug: identity-and-networking
+    index: 18
+  - title: "Kiểm thử serverless"
+    slug: serverless-testing
+    index: 19
+  - title: "CI/CD và phát hành"
+    slug: ci-cd-and-releases
+    index: 20
+  - title: "Quan sát hệ thống"
+    slug: observability
+    index: 21
+  - title: "Tối ưu hiệu năng"
+    slug: performance-optimization
+    index: 22
+  - title: "Mở rộng và điều tiết tải"
+    slug: scaling-and-load-control
+    index: 23
+  - title: "Độ tin cậy và phục hồi"
+    slug: reliability-and-recovery
+    index: 24
+  - title: "Tính đúng đắn của dữ liệu"
+    slug: data-correctness
+    index: 25
+  - title: "Chi phí và FinOps"
+    slug: costs-and-finops
+    index: 26
+  - title: "Quản trị và tuân thủ"
+    slug: governance-and-compliance
+    index: 27
+  - title: "Di chuyển sang serverless"
+    slug: serverless-migration
+    index: 28
+  - title: "Mẫu ứng dụng thực tế"
+    slug: application-patterns
+    index: 29
+  - title: "Dự án API Java serverless"
+    slug: java-serverless-api-project
+    index: 30
+  - title: "Dự án xử lý sự kiện"
+    slug: event-processing-project
+    index: 31
+  - title: "Dự án workflow nghiệp vụ"
+    slug: business-workflow-project
+    index: 32
+  - title: "Chẩn đoán và vận hành thực chiến"
+    slug: troubleshooting-and-operations
+    index: 33

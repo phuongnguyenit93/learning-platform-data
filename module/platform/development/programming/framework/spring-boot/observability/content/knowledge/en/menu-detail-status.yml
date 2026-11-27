@@ -1,0 +1,3979 @@
+menu:
+- slug: observability-foundation
+  title: Nền tảng Observability
+  childs:
+  - slug: observability-foundation-001
+    title: Observability là gì
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-foundation-002
+    title: Spring Boot quan sát hệ thống như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-foundation-003
+    title: Khác biệt giữa monitoring và observability
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-foundation-004
+    title: Tín hiệu từ bên ngoài và trạng thái bên trong
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-foundation-005
+    title: Observability trong vòng đời ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-foundation-006
+    title: Vai trò của Spring Boot Actuator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-foundation-007
+    title: Micrometer trong Spring ecosystem
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-foundation-008
+    title: Khi nào cần custom instrumentation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-foundation-009
+    title: Observability cho local và production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: three-pillars
+  title: Ba trụ cột
+  childs:
+  - slug: three-pillars-001
+    title: Logging
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: three-pillars-002
+    title: Metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: three-pillars-003
+    title: Traces
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: three-pillars-004
+    title: Quan hệ giữa log, metric và trace
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: three-pillars-005
+    title: Tín hiệu định lượng và định tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: three-pillars-006
+    title: Từ metric đến trace điều tra sự cố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: three-pillars-007
+    title: Correlation ID giữa các tín hiệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: three-pillars-008
+    title: Chọn tín hiệu cho từng câu hỏi vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: three-pillars-009
+    title: Giới hạn của từng trụ cột
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: micrometer-observation
+  title: Micrometer Observation
+  childs:
+  - slug: micrometer-observation-001
+    title: Observation là gì
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-observation-002
+    title: ObservationRegistry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-observation-003
+    title: Observation.Context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-observation-004
+    title: ObservationHandler
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-observation-005
+    title: ObservationDocumentation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-observation-006
+    title: Observation name
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-observation-007
+    title: Observation start và stop
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-observation-008
+    title: Observation thành công và thất bại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-observation-009
+    title: Observation cho metrics và traces
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-observation-010
+    title: No-op khi thiếu registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-observation-011
+    title: Observation API và vendor API
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observation-lifecycle
+  title: Vòng đời observation
+  childs:
+  - slug: observation-lifecycle-001
+    title: Tạo observation chưa bắt đầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-lifecycle-002
+    title: Bắt đầu observation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-lifecycle-003
+    title: Mở scope
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-lifecycle-004
+    title: Đóng scope
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-lifecycle-005
+    title: Ghi nhận exception
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-lifecycle-006
+    title: Ghi low-cardinality key value
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-lifecycle-007
+    title: Ghi high-cardinality key value
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-lifecycle-008
+    title: Observation event
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-lifecycle-009
+    title: Nested observation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-lifecycle-010
+    title: Observation bị hủy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-lifecycle-011
+    title: Đảm bảo stop observation trong mọi nhánh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: registry-configuration
+  title: Cấu hình registry
+  childs:
+  - slug: registry-configuration-001
+    title: Đăng ký ObservationRegistry trong Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-configuration-002
+    title: Auto-configuration của registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-configuration-003
+    title: ObservationRegistryCustomizer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-configuration-004
+    title: ObservationPredicate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-configuration-005
+    title: GlobalObservationConvention
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-configuration-006
+    title: ObservationFilter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-configuration-007
+    title: ObservationHandler bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-configuration-008
+    title: Thứ tự xử lý handler
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-configuration-009
+    title: Nhiều registry trong một ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-configuration-010
+    title: Registry cho test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-configuration-011
+    title: Tách registry theo boundary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-observation
+  title: Custom observation
+  childs:
+  - slug: custom-observation-001
+    title: Tạo observation cho nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-observation-002
+    title: Observation.createNotStarted
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-observation-003
+    title: Tên observation ổn định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-observation-004
+    title: Chọn context phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-observation-005
+    title: Convention cho custom observation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-observation-006
+    title: Gắn low-cardinality metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-observation-007
+    title: Gắn high-cardinality metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-observation-008
+    title: Bao quanh đoạn code bằng observe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-observation-009
+    title: Custom observation cho batch job
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-observation-010
+    title: Custom observation cho integration flow
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-observation-011
+    title: Tránh instrument cùng một đoạn hai lần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: convention-and-filter
+  title: Convention và filter
+  childs:
+  - slug: convention-and-filter-001
+    title: ObservationConvention
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convention-and-filter-002
+    title: Default convention
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convention-and-filter-003
+    title: Custom convention
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convention-and-filter-004
+    title: GlobalObservationConvention
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convention-and-filter-005
+    title: ObservationFilter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convention-and-filter-006
+    title: ObservationPredicate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convention-and-filter-007
+    title: Đổi observation name
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convention-and-filter-008
+    title: Thêm key value theo request
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convention-and-filter-009
+    title: Loại bỏ observation không cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convention-and-filter-010
+    title: Không thay convention bằng filter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convention-and-filter-011
+    title: Kiểm thử convention
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cardinality-and-metadata
+  title: Cardinality và metadata
+  childs:
+  - slug: cardinality-and-metadata-001
+    title: Low-cardinality key value
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-metadata-002
+    title: High-cardinality key value
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-metadata-003
+    title: Cardinality trong metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-metadata-004
+    title: Cardinality trong traces
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-metadata-005
+    title: Tag theo endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-metadata-006
+    title: Tag theo tenant
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-metadata-007
+    title: Tag theo user id
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-metadata-008
+    title: Tag theo request id
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-metadata-009
+    title: Rủi ro tạo metric theo giá trị động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-metadata-010
+    title: Giới hạn kích thước metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-metadata-011
+    title: Chính sách lọc dữ liệu nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-foundation
+  title: Metrics nền tảng
+  childs:
+  - slug: metrics-foundation-001
+    title: MeterRegistry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-002
+    title: Counter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-003
+    title: Timer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-004
+    title: LongTaskTimer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-005
+    title: Gauge
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-006
+    title: DistributionSummary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-007
+    title: Percentile
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-008
+    title: Histogram
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-009
+    title: Base unit
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-010
+    title: Metric name
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-011
+    title: Tag và common tag
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-012
+    title: Meter bị trùng tên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-foundation-013
+    title: Metric lifecycle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-metrics
+  title: Spring Boot metrics
+  childs:
+  - slug: spring-boot-metrics-001
+    title: Auto-configured MeterRegistry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-metrics-002
+    title: management.metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-metrics-003
+    title: Common tags
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-metrics-004
+    title: Global registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-metrics-005
+    title: MeterFilter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-metrics-006
+    title: MeterRegistryCustomizer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-metrics-007
+    title: Metric naming convention
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-metrics-008
+    title: Binders
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-metrics-009
+    title: JVM metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-metrics-010
+    title: System metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-metrics-011
+    title: Application metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-metrics-012
+    title: Tomcat và WebFlux metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-metrics-013
+    title: Data source metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-metrics
+  title: Application metrics
+  childs:
+  - slug: application-metrics-001
+    title: HTTP request metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-metrics-002
+    title: HTTP client metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-metrics-003
+    title: JVM memory metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-metrics-004
+    title: JVM threads metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-metrics-005
+    title: Garbage collection metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-metrics-006
+    title: Class loading metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-metrics-007
+    title: CPU metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-metrics-008
+    title: File descriptor metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-metrics-009
+    title: Process uptime metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-metrics-010
+    title: Logback metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-metrics-011
+    title: Executor metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-metrics-012
+    title: Cache metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-metrics-013
+    title: Data source pool metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: actuator-metrics-endpoint
+  title: Actuator metrics endpoint
+  childs:
+  - slug: actuator-metrics-endpoint-001
+    title: Endpoint /actuator/metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-metrics-endpoint-002
+    title: Liệt kê metric names
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-metrics-endpoint-003
+    title: Đọc một metric
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-metrics-endpoint-004
+    title: Danh sách available tags
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-metrics-endpoint-005
+    title: Query theo tag
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-metrics-endpoint-006
+    title: Content type của metrics API
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-metrics-endpoint-007
+    title: Metric endpoint và security
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-metrics-endpoint-008
+    title: Metric endpoint trong production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-metrics-endpoint-009
+    title: Khác biệt metrics endpoint và exporter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-metrics-endpoint-010
+    title: Không coi endpoint là time-series backend
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: meter-registry-and-exporter
+  title: Meter registry và exporter
+  childs:
+  - slug: meter-registry-and-exporter-001
+    title: SimpleMeterRegistry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meter-registry-and-exporter-002
+    title: PrometheusMeterRegistry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meter-registry-and-exporter-003
+    title: OTLP meter registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meter-registry-and-exporter-004
+    title: Datadog registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meter-registry-and-exporter-005
+    title: Graphite registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meter-registry-and-exporter-006
+    title: Influx registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meter-registry-and-exporter-007
+    title: CloudWatch registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meter-registry-and-exporter-008
+    title: Atlas registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meter-registry-and-exporter-009
+    title: Exporter step và batch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meter-registry-and-exporter-010
+    title: Push và pull model
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meter-registry-and-exporter-011
+    title: Điều kiện chọn backend
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meter-registry-and-exporter-012
+    title: Kiểm thử metric export
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tracing
+  title: Tracing
+  childs:
+  - slug: tracing-001
+    title: Trace là gì
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-002
+    title: Span là gì
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-003
+    title: Trace ID
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-004
+    title: Span ID
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-005
+    title: Parent-child span
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-006
+    title: Micrometer Tracing
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-007
+    title: Tracer abstraction
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-008
+    title: Span name
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-009
+    title: Span attributes
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-010
+    title: Span event
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-011
+    title: Span error
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-012
+    title: Trace backend
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-013
+    title: Trace và metrics correlation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tracer-implementation
+  title: Tracer implementation
+  childs:
+  - slug: tracer-implementation-001
+    title: OpenTelemetry với OTLP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracer-implementation-002
+    title: OpenZipkin Brave với Zipkin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracer-implementation-003
+    title: Micrometer tracing bridge
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracer-implementation-004
+    title: OpenTelemetry tracer provider
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracer-implementation-005
+    title: Brave tracer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracer-implementation-006
+    title: OTLP HTTP exporter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracer-implementation-007
+    title: OTLP gRPC exporter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracer-implementation-008
+    title: Zipkin exporter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracer-implementation-009
+    title: Chọn tracer theo hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracer-implementation-010
+    title: Tránh dùng vendor API trực tiếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracer-implementation-011
+    title: Tương thích tracer và Boot version
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-propagation
+  title: Context propagation
+  childs:
+  - slug: context-propagation-001
+    title: Tracing context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-002
+    title: Mở scope trong thread hiện tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-003
+    title: Context qua HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-004
+    title: Context qua messaging
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-005
+    title: Context qua executor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-006
+    title: Context qua reactive pipeline
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-007
+    title: ThreadLocal và Reactor Context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-008
+    title: Context propagation trong async task
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-009
+    title: Mất trace context khi tự tạo thread
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-010
+    title: Dùng builder auto-configured để giữ propagation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-011
+    title: Kiểm thử propagation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: baggage-and-correlation
+  title: Baggage và correlation
+  childs:
+  - slug: baggage-and-correlation-001
+    title: Baggage là gì
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-and-correlation-002
+    title: Tạo baggage trong scope
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-and-correlation-003
+    title: Remote baggage fields
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-and-correlation-004
+    title: Correlation fields
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-and-correlation-005
+    title: Baggage trong HTTP header
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-and-correlation-006
+    title: Baggage trong gRPC metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-and-correlation-007
+    title: Baggage trong MDC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-and-correlation-008
+    title: Baggage khác trace tag như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-and-correlation-009
+    title: Giới hạn kích thước baggage
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-and-correlation-010
+    title: Bảo vệ dữ liệu trong baggage
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-and-correlation-011
+    title: Theo dõi correlation ID xuyên service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sampling
+  title: Sampling
+  childs:
+  - slug: sampling-001
+    title: Trace sampling là gì
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-002
+    title: Sampling probability
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-003
+    title: Mặc định 10 phần trăm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-004
+    title: Always-on sampler
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-005
+    title: Always-off sampler
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-006
+    title: Trace ID ratio sampler
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-007
+    title: Parent-based sampler
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-008
+    title: Sampling theo môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-009
+    title: Sampling cho lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-010
+    title: Sampling cho traffic cao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-011
+    title: Đánh đổi chi phí và độ quan sát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-012
+    title: Kiểm tra sampling thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: opentelemetry
+  title: OpenTelemetry
+  childs:
+  - slug: opentelemetry-001
+    title: OpenTelemetry trong Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-002
+    title: Actuator hỗ trợ OpenTelemetry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-003
+    title: OpenTelemetry Resource
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-004
+    title: Resource attributes
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-005
+    title: OTEL_SERVICE_NAME
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-006
+    title: OTEL_RESOURCE_ATTRIBUTES
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-007
+    title: Context propagators
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-008
+    title: SdkTracerProvider
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-009
+    title: SdkMeterProvider
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-010
+    title: SdkLoggerProvider
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-011
+    title: Bật và tắt OpenTelemetry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-012
+    title: Micrometer và OpenTelemetry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-013
+    title: Không nhầm OTel metrics với Micrometer metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: otlp-export
+  title: OTLP export
+  childs:
+  - slug: otlp-export-001
+    title: OTLP là gì
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-export-002
+    title: OTLP traces
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-export-003
+    title: OTLP metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-export-004
+    title: OTLP HTTP endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-export-005
+    title: OTLP gRPC endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-export-006
+    title: Signal-specific endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-export-007
+    title: Endpoint fallback
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-export-008
+    title: management.opentelemetry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-export-009
+    title: Cấu hình resource attributes
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-export-010
+    title: Kiểm tra exporter connectivity
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-export-011
+    title: Exporter retry và timeout
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-export-012
+    title: Không export secret trong telemetry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logging
+  title: Logging
+  childs:
+  - slug: logging-001
+    title: Structured logging
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-002
+    title: Log level theo environment
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-003
+    title: Correlation ID trong log
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-004
+    title: Trace ID và span ID trong MDC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-005
+    title: Log exception đúng context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-006
+    title: Log request và response an toàn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-007
+    title: Mask dữ liệu nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-008
+    title: Giảm duplicate log
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-009
+    title: Log sampling
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-010
+    title: Log aggregation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-011
+    title: Liên kết log với trace
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-012
+    title: Log retention
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-server-observability
+  title: HTTP server observability
+  childs:
+  - slug: http-server-observability-001
+    title: http.server.requests
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-observability-002
+    title: HTTP server observation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-observability-003
+    title: Request method
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-observability-004
+    title: URI template
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-observability-005
+    title: Response status
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-observability-006
+    title: Outcome
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-observability-007
+    title: Exception
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-observability-008
+    title: Server request convention
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-observability-009
+    title: Servlet instrumentation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-observability-010
+    title: Reactive server instrumentation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-observability-011
+    title: Server observation filter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-observability-012
+    title: Không dùng raw URL làm metric tag
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-observability-013
+    title: Theo dõi latency phân vị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-client-observability
+  title: HTTP client observability
+  childs:
+  - slug: http-client-observability-001
+    title: http.client.requests
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-observability-002
+    title: RestTemplate observation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-observability-003
+    title: RestClient observation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-observability-004
+    title: WebClient observation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-observability-005
+    title: Client request convention
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-observability-006
+    title: HTTP client method
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-observability-007
+    title: URI template
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-observability-008
+    title: Client name
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-observability-009
+    title: Status và outcome
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-observability-010
+    title: IO_ERROR
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-observability-011
+    title: Client timeout
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-observability-012
+    title: Connection establishment time
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-observability-013
+    title: Body deserialization time
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-observability-014
+    title: Giữ propagation bằng auto-configured builder
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-observability
+  title: Database observability
+  childs:
+  - slug: database-observability-001
+    title: JDBC observability
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-observability-002
+    title: Datasource Micrometer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-observability-003
+    title: JDBC observation starter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-observability-004
+    title: R2DBC observability
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-observability-005
+    title: r2dbc-proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-observability-006
+    title: Query latency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-observability-007
+    title: Connection pool metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-observability-008
+    title: Active và idle connection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-observability-009
+    title: Database error metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-observability-010
+    title: Trace database call
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-observability-011
+    title: Mask SQL parameter nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-observability-012
+    title: Phân biệt query time và pool wait time
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messaging-and-task-observability
+  title: Messaging và task observability
+  childs:
+  - slug: messaging-and-task-observability-001
+    title: Message publish observation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-and-task-observability-002
+    title: Message process observation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-and-task-observability-003
+    title: JMS instrumentation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-and-task-observability-004
+    title: Kafka instrumentation boundary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-and-task-observability-005
+    title: RabbitMQ instrumentation boundary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-and-task-observability-006
+    title: Scheduled task observation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-and-task-observability-007
+    title: tasks.scheduled.execution
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-and-task-observability-008
+    title: Executor observation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-and-task-observability-009
+    title: Queue depth và lag
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-and-task-observability-010
+    title: Trace context qua message header
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-and-task-observability-011
+    title: Đo thời gian chờ và thời gian xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotation-observability
+  title: Annotation observability
+  childs:
+  - slug: annotation-observability-001
+    title: '@Observed'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-observability-002
+    title: '@Timed'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-observability-003
+    title: '@Counted'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-observability-004
+    title: '@MeterTag'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-observability-005
+    title: '@NewSpan'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-observability-006
+    title: management.observations.annotations.enabled
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-observability-007
+    title: AspectJ weaver
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-observability-008
+    title: Spring Boot starter aspectj
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-observability-009
+    title: Annotation trên service method
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-observability-010
+    title: Annotation trên controller
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-observability-011
+    title: Duplicate observation khi auto-instrumented
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-observability-012
+    title: Predicate để loại trừ annotation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-observability-013
+    title: Khi dùng annotation thay custom API
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: actuator-and-management
+  title: Actuator và management
+  childs:
+  - slug: actuator-and-management-001
+    title: Spring Boot Actuator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-management-002
+    title: Management server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-management-003
+    title: Management port
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-management-004
+    title: Expose management endpoints
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-management-005
+    title: Include và exclude endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-management-006
+    title: Security cho actuator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-management-007
+    title: Health endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-management-008
+    title: Info endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-management-009
+    title: Metrics endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-management-010
+    title: Prometheus endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-management-011
+    title: Loggers endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-management-012
+    title: Shutdown endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-management-013
+    title: Không public endpoint nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: health-and-readiness
+  title: Health và readiness
+  childs:
+  - slug: health-and-readiness-001
+    title: Health indicator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-readiness-002
+    title: Readiness state
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-readiness-003
+    title: Liveness state
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-readiness-004
+    title: Application availability
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-readiness-005
+    title: Startup state
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-readiness-006
+    title: Broker health
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-readiness-007
+    title: Database health
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-readiness-008
+    title: External service health
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-readiness-009
+    title: Health group
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-readiness-010
+    title: Health endpoint detail
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-readiness-011
+    title: Readiness khi dependency lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-readiness-012
+    title: Không dùng liveness thay cho business metric
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-and-readiness-013
+    title: Kubernetes probe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-and-privacy
+  title: Security và privacy
+  childs:
+  - slug: security-and-privacy-001
+    title: Bảo vệ telemetry endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-002
+    title: Authorization cho actuator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-003
+    title: Không log access token
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-004
+    title: Không trace password
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-005
+    title: Mask request body
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-006
+    title: Mask response body
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-007
+    title: PII trong tags
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-008
+    title: PII trong baggage
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-009
+    title: PII trong logs
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-010
+    title: Data retention
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-011
+    title: Tenant isolation trong telemetry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-012
+    title: Kiểm tra quyền đọc metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-performance
+  title: Hiệu năng observability
+  childs:
+  - slug: observability-performance-001
+    title: Chi phí tạo observation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-performance-002
+    title: Chi phí export telemetry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-performance-003
+    title: Async exporter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-performance-004
+    title: Batch exporter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-performance-005
+    title: Queue của exporter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-performance-006
+    title: Drop telemetry khi quá tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-performance-007
+    title: Cardinality budget
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-performance-008
+    title: Metric registry memory
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-performance-009
+    title: Trace sampling budget
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-performance-010
+    title: Log volume budget
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-performance-011
+    title: Không làm telemetry chặn request
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-performance-012
+    title: Load test khi bật instrumentation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-testing
+  title: Testing observability
+  childs:
+  - slug: observability-testing-001
+    title: Test custom observation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-testing-002
+    title: Test ObservationRegistry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-testing-003
+    title: Test observation name
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-testing-004
+    title: Test low-cardinality key
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-testing-005
+    title: Test high-cardinality key
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-testing-006
+    title: Test ObservationPredicate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-testing-007
+    title: Test ObservationFilter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-testing-008
+    title: Test metrics bằng SimpleMeterRegistry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-testing-009
+    title: Test trace propagation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-testing-010
+    title: Test baggage propagation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-testing-011
+    title: Test actuator endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-testing-012
+    title: Test exporter bằng mock
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-testing-013
+    title: Test lỗi mà không làm mất telemetry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dashboard-and-alert
+  title: Dashboard và alert
+  childs:
+  - slug: dashboard-and-alert-001
+    title: Dashboard request rate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-and-alert-002
+    title: Dashboard error rate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-and-alert-003
+    title: Dashboard latency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-and-alert-004
+    title: Dashboard saturation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-and-alert-005
+    title: Dashboard JVM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-and-alert-006
+    title: Dashboard database
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-and-alert-007
+    title: Dashboard external calls
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-and-alert-008
+    title: Dashboard queue và executor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-and-alert-009
+    title: Alert theo error rate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-and-alert-010
+    title: Alert theo latency percentile
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-and-alert-011
+    title: Alert theo health state
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-and-alert-012
+    title: Alert theo exporter failure
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-and-alert-013
+    title: Runbook gắn với alert
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Không thấy metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Không thấy traces
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Trace context bị mất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Sai service name
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Sai exporter endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Observation không được ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Metric bị trùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Cardinality tăng bất thường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Log không có correlation ID
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Actuator endpoint bị 401
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Health báo DOWN ngoài dự kiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Phân biệt lỗi ứng dụng và lỗi exporter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Kiểm tra bằng curl và actuator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-design
+  title: Thiết kế kiến trúc
+  childs:
+  - slug: architecture-design-001
+    title: Chọn metric cho SLI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-002
+    title: Chọn trace cho điều tra latency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-003
+    title: Chọn log cho chi tiết nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-004
+    title: Đặt tên observation ổn định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-005
+    title: Đặt tag có bounded values
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-006
+    title: Tách business telemetry và framework telemetry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-007
+    title: Instrumentation ở đúng boundary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-008
+    title: Không instrument trùng lặp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-009
+    title: Telemetry contract giữa service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-010
+    title: Observability trong monolith
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-011
+    title: Observability trong microservices
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-012
+    title: Chiến lược rollout telemetry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: production-operations
+  title: Vận hành production
+  childs:
+  - slug: production-operations-001
+    title: Cấu hình theo profile
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-002
+    title: Cấu hình exporter bằng environment
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-003
+    title: Quản lý secret exporter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-004
+    title: Sampling theo môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-005
+    title: Alert khi collector lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-006
+    title: Fallback khi backend telemetry lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-007
+    title: Kiểm soát chi phí lưu trữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-008
+    title: Retention metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-009
+    title: Retention traces
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-010
+    title: Retention logs
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-011
+    title: Kiểm tra sau deployment
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-012
+    title: Canary observability change
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-013
+    title: Postmortem dùng telemetry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Tạo custom observation cho use case
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Bật metrics và trace cho HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Gắn correlation ID vào log
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Cấu hình Prometheus endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Cấu hình OTLP trace export
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Thiết lập sampling
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Thêm baggage và MDC correlation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Instrument database call
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Thiết lập health và readiness
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Viết dashboard latency và error
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Mô phỏng mất exporter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Điều tra một request chậm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-013
+    title: Checklist production readiness
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

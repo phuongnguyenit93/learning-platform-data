@@ -1,0 +1,329 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - CI/CD là gì và vai trò trong vòng đời phát triển phần mềm
+  - 'Tích hợp liên tục (Continuous Integration): mục tiêu và cách làm'
+  - 'Phân phối liên tục (Continuous Delivery): luôn sẵn sàng đưa thay đổi đến người dùng'
+  - 'Triển khai liên tục (Continuous Deployment): tự động triển khai thay đổi đạt điều kiện'
+  - Phân biệt build, kiểm thử, triển khai và phát hành
+  - Mối liên hệ giữa DevOps, CI/CD và phản hồi từ vận hành
+  - Nhận diện commit, pipeline, job, runner, artifact và môi trường
+  - Lộ trình học từ thay đổi mã nguồn đến kiểm chứng trên môi trường đích
+- level1: Nguyên lý
+  level2:
+  - Tích hợp thay đổi nhỏ và thường xuyên
+  - Giữ nhánh chính ở trạng thái có thể phát hành
+  - Tự động hóa quy trình có thể lặp lại
+  - Phát hiện lỗi sớm và ưu tiên sửa luồng tích hợp bị hỏng
+  - Dựng một lần và sử dụng cùng artifact qua các môi trường
+  - Thiết kế kiểm tra theo rủi ro và thời gian phản hồi
+  - Chia sẻ trách nhiệm về chất lượng, triển khai và phục hồi
+  - Phân biệt mục tiêu giao phần mềm với số lượng công cụ được sử dụng
+- level1: Luồng giao phần mềm
+  level2:
+  - Mô tả luồng từ commit đến kết quả người dùng quan sát được
+  - Xác định đầu vào, đầu ra và điều kiện qua từng giai đoạn
+  - Phân biệt thời gian thực hiện với thời gian chờ
+  - Nhận diện điểm bàn giao và thao tác thủ công dễ sai
+  - Phân biệt kiểm tra trước khi tích hợp với kiểm tra sau khi tích hợp
+  - Theo dõi một thay đổi qua mã nguồn, artifact và bản triển khai
+  - Thiết kế pipeline tối thiểu trước khi mở rộng
+- level1: Tích hợp mã nguồn
+  level2:
+  - Quản lý mã ứng dụng, kiểm thử và cấu hình pipeline bằng hệ thống phiên bản
+  - Phân biệt kiểm tra trên nhánh với thực hành tích hợp liên tục
+  - Giữ nhánh ngắn hạn và giảm độ lớn của lần tích hợp
+  - Vai trò của pull request, rà soát mã và kiểm tra bắt buộc
+  - Kiểm tra đúng phiên bản sẽ được hợp nhất hoặc triển khai
+  - Xử lý thay đổi mới làm kết quả kiểm tra trước đó mất hiệu lực
+  - Giữ nhánh chính hoạt động và thống nhất cách sửa build lỗi
+  - Tách chiến lược nhánh chi tiết khỏi nguyên lý CI/CD
+- level1: Kiến trúc pipeline
+  level2:
+  - Phân biệt pipeline, giai đoạn, công việc và bước thực thi
+  - Mô tả phụ thuộc giữa các công việc bằng đồ thị có hướng
+  - Chọn công việc tuần tự và công việc có thể chạy song song
+  - Truyền đầu ra giữa các công việc bằng cơ chế rõ ràng
+  - Phân biệt trạng thái thành công, thất bại, bỏ qua và hủy
+  - Xác định mã thoát và điều kiện để một bước được coi là đạt
+  - Tách kiểm tra nhanh với kiểm tra cần nhiều tài nguyên
+  - Đặt cổng kiểm soát trước tác động lên môi trường dùng chung
+  - Nhận diện khác biệt thuật ngữ giữa các nền tảng CI/CD
+- level1: Pipeline bằng mã
+  level2:
+  - Lưu định nghĩa pipeline cùng lịch sử thay đổi
+  - Đọc cấu trúc YAML hoặc DSL ở mức khái niệm
+  - Phân biệt điều kiện của nền tảng với lệnh chạy trong shell
+  - Tổ chức script có thể chạy cả cục bộ và trong CI
+  - Rà soát thay đổi pipeline như thay đổi mã ứng dụng
+  - Tái sử dụng cấu hình có kiểm soát và tránh sao chép khó bảo trì
+  - Ghim phiên bản thành phần tái sử dụng và công cụ thực thi
+  - Kiểm tra cấu hình trước khi chạy lên môi trường thật
+- level1: Sự kiện kích hoạt
+  level2:
+  - Kích hoạt theo push, pull request, nhãn phiên bản và lịch định kỳ
+  - Kích hoạt thủ công với đầu vào được kiểm tra
+  - Chọn nhánh, đường dẫn và phạm vi thay đổi cần xử lý
+  - Phân biệt sự kiện từ nguồn tin cậy với đóng góp bên ngoài
+  - Tránh chạy trùng cùng một kiểm tra do nhiều sự kiện
+  - Hiểu giới hạn của bộ lọc thay đổi với phụ thuộc dùng chung
+  - Liên kết sự kiện kích hoạt với đúng commit hoặc artifact
+  - Ngăn vòng lặp khi pipeline tự tạo commit, nhãn hoặc sự kiện mới
+- level1: Môi trường thực thi
+  level2:
+  - Vai trò của runner, agent hoặc worker trong việc chạy công việc
+  - Phân biệt máy chạy do nền tảng cung cấp với máy tự quản lý
+  - Thiết kế vùng làm việc sạch và cách ly các lần chạy
+  - Ghim hệ điều hành, toolchain và phiên bản công cụ
+  - Sử dụng container làm môi trường công việc khi phù hợp
+  - Chuẩn bị dịch vụ phụ trợ cho kiểm thử tích hợp
+  - Quản lý tài nguyên, thời gian chờ và giới hạn kết nối
+  - Kiểm soát quyền của máy chạy và khả năng truy cập mạng
+  - Dọn tiến trình, tệp tạm và dữ liệu sau khi kết thúc
+- level1: Build tái lập
+  level2:
+  - Tự động hóa build bằng một lệnh rõ ràng
+  - Sử dụng wrapper và toolchain để giảm khác biệt môi trường
+  - Phân biệt build chạy lại được với đầu ra tái lập từng byte
+  - Kiểm soát phụ thuộc vào thời gian, ngẫu nhiên và đường dẫn máy
+  - Xác định đầu vào cần ghim và dữ liệu cần ghi nhận
+  - Build từ mã nguồn sạch thay vì dựa vào tệp có sẵn trên máy
+  - Ví dụ luồng biên dịch, kiểm thử và đóng gói một dự án Java
+  - Kiểm tra artifact độc lập với môi trường vừa tạo ra nó
+- level1: Phụ thuộc và cache
+  level2:
+  - Phân biệt phụ thuộc trực tiếp, phụ thuộc bắc cầu và công cụ build
+  - Ghim phiên bản và quản lý tệp khóa khi hệ sinh thái hỗ trợ
+  - Tải phụ thuộc từ nguồn được kiểm soát
+  - Phân biệt cache tăng tốc với artifact cần bàn giao
+  - Thiết kế khóa cache theo đầu vào và môi trường phù hợp
+  - Xử lý cache cũ, cache hỏng và kết quả không nhất quán
+  - Ngăn dữ liệu từ nguồn không tin cậy làm nhiễm cache dùng chung
+  - Đảm bảo pipeline vẫn đúng khi cache không có sẵn
+- level1: Chiến lược kiểm thử
+  level2:
+  - Phân biệt kiểm thử đơn vị, tích hợp, hợp đồng và đầu cuối
+  - Chọn lớp kiểm thử theo loại rủi ro cần phát hiện
+  - Đưa kiểm tra nhanh và có giá trị phản hồi cao lên sớm
+  - Tách kiểm thử chức năng với hiệu năng và bảo mật
+  - Quản lý dữ liệu kiểm thử và trạng thái ban đầu
+  - Kiểm thử với dịch vụ thật, môi trường cô lập hoặc đối tượng thay thế
+  - Giữ kết quả độc lập với thứ tự và mức song song
+  - Nhận diện kiểm thử chập chờn và điều tra nguyên nhân
+  - Lưu báo cáo đủ để xác định lỗi mà không chỉ nhìn trạng thái đỏ
+  - Hiểu giới hạn của tỷ lệ bao phủ mã và kết quả kiểm thử đạt
+- level1: Cổng chất lượng
+  level2:
+  - Xác định điều kiện đạt cho từng giai đoạn pipeline
+  - Kiểm tra định dạng, quy tắc mã và lỗi phân tích tĩnh
+  - Đặt kiểm tra bảo mật theo mức độ ảnh hưởng
+  - Phân biệt kiểm tra bắt buộc với kết quả chỉ mang tính tham khảo
+  - Thiết kế phê duyệt thủ công dựa trên rủi ro và trách nhiệm
+  - Kiểm tra lại artifact hoặc cấu hình nếu có thay đổi sau phê duyệt
+  - Quản lý ngoại lệ có thời hạn và bằng chứng giải thích
+  - Tránh cho phép bỏ qua lỗi làm pipeline thành công giả
+- level1: Artifact
+  level2:
+  - Phân biệt sản phẩm build với mã nguồn và tệp tạm
+  - Định danh artifact bằng phiên bản, checksum hoặc digest
+  - Lưu artifact trong kho phù hợp thay vì phụ thuộc vùng làm việc CI
+  - Bàn giao đúng artifact đã qua kiểm tra cho bước triển khai
+  - Phân biệt promotion artifact với dựng lại cho môi trường tiếp theo
+  - Lưu thông tin commit, lần build và phụ thuộc liên quan
+  - Kiểm tra tính toàn vẹn trước khi sử dụng artifact
+  - Quản lý thời gian lưu để hỗ trợ kiểm chứng và quay lui
+  - Giới thiệu bằng chứng nguồn gốc build và danh mục thành phần phần mềm
+- level1: Cấu hình môi trường
+  level2:
+  - Phân biệt mã ứng dụng, cấu hình và thông tin bí mật
+  - Tổ chức môi trường phát triển, kiểm thử, tiền sản xuất và sản xuất
+  - Giữ tương đồng cần thiết mà không sao chép dữ liệu nhạy cảm
+  - Truyền cấu hình tại thời điểm triển khai hoặc chạy ứng dụng
+  - Quản lý phiên bản và kiểm tra tính hợp lệ của cấu hình
+  - Nhận diện cấu hình lệch giữa mô tả mong muốn và trạng thái thực
+  - Giới thiệu hạ tầng bằng mã và môi trường tạm thời
+  - Liên kết bản triển khai với đúng phiên bản cấu hình
+- level1: Bí mật và danh tính
+  level2:
+  - Lưu thông tin bí mật trong hệ thống chuyên dụng của môi trường
+  - Phân biệt danh tính người dùng với danh tính pipeline
+  - Cấp quyền tối thiểu theo công việc và môi trường
+  - Dùng thông tin xác thực ngắn hạn khi nền tảng hỗ trợ
+  - Giới thiệu OIDC và liên kết danh tính với dịch vụ đích
+  - Ngăn bí mật xuất hiện trong mã nguồn, nhật ký, cache và artifact
+  - Giới hạn quyền đối với pipeline của pull request không tin cậy
+  - Luân chuyển, thu hồi và kiểm chứng thông tin xác thực
+  - Xác định ranh giới truy cập vào môi trường sản xuất
+- level1: Bảo mật pipeline
+  level2:
+  - Nhận diện pipeline là một phần của chuỗi cung ứng phần mềm
+  - Bảo vệ nhánh chính, cấu hình pipeline và thành phần tái sử dụng
+  - Kiểm tra mã hoặc tham số đầu vào trước khi đưa vào lệnh shell
+  - Kiểm soát action, plugin, image và script từ bên thứ ba
+  - Cách ly mã không tin cậy với runner và thông tin xác thực đặc quyền
+  - Tích hợp kiểm tra phụ thuộc, mã nguồn và thông tin bí mật
+  - Xác minh artifact và bằng chứng build trước khi triển khai
+  - Phân tách quyền phê duyệt, xuất bản và triển khai khi cần
+  - Ghi nhận hoạt động thay đổi pipeline và sử dụng quyền
+  - Giữ quy trình kiểm soát có thể kiểm chứng mà không tạo thành thủ tục hình thức
+- level1: Triển khai tự động
+  level2:
+  - Xác định đầu vào gồm artifact, cấu hình và môi trường đích
+  - Tự động hóa cùng một quy trình triển khai cho các môi trường
+  - Thiết kế script có kiểm tra lỗi và trạng thái hoàn tất rõ ràng
+  - Phân biệt chạy lệnh thành công với ứng dụng thực sự sẵn sàng
+  - Kiểm tra điều kiện trước khi triển khai và quyền truy cập đích
+  - Giảm gián đoạn bằng khởi động, chuyển lưu lượng và dừng có kiểm soát
+  - Lặp lại thao tác an toàn khi tiến trình bị ngắt hoặc kết quả chưa rõ
+  - Lưu định danh bản triển khai để kiểm chứng và phục hồi
+- level1: Chiến lược triển khai
+  level2:
+  - Hiểu triển khai thay thế toàn bộ và khoảng gián đoạn
+  - Hiểu triển khai cuốn chiếu và điều kiện tương thích
+  - Hiểu blue-green và thời điểm chuyển lưu lượng
+  - Hiểu canary và cách tăng dần phạm vi ảnh hưởng
+  - Phân biệt chiến lược triển khai với thử nghiệm A/B
+  - Chọn tín hiệu và điều kiện dừng triển khai
+  - Đánh giá chi phí hạ tầng và mức rủi ro của từng chiến lược
+  - Xác định khả năng hỗ trợ của nền tảng trước khi áp dụng
+- level1: Phát hành tính năng
+  level2:
+  - Phân biệt triển khai phần mềm với mở tính năng cho người dùng
+  - Giới thiệu cờ tính năng và cách che thay đổi chưa hoàn tất
+  - Mở tính năng theo nhóm người dùng hoặc từng giai đoạn
+  - Kiểm tra hành vi khi cờ bật và khi cờ tắt
+  - Xác định trách nhiệm, vòng đời và thời điểm gỡ cờ
+  - Phân biệt quyết định phát hành nghiệp vụ với kiểm tra kỹ thuật
+  - Nhận diện trường hợp cần phân phối liên tục mà chưa triển khai liên tục
+- level1: Thay đổi dữ liệu
+  level2:
+  - Đưa thay đổi lược đồ cơ sở dữ liệu vào quy trình phiên bản
+  - Phối hợp phiên bản ứng dụng với phiên bản lược đồ
+  - Giới thiệu mở rộng, chuyển đổi rồi thu gọn lược đồ
+  - Giữ tương thích khi nhiều phiên bản ứng dụng cùng chạy
+  - Tách đổi lược đồ với chuyển đổi dữ liệu tốn nhiều thời gian
+  - Kiểm soát khóa, thời lượng và khả năng chạy lại tác vụ dữ liệu
+  - Phân biệt quay lui mã ứng dụng với phục hồi dữ liệu
+  - Kiểm thử nâng cấp cùng dữ liệu đại diện trước khi triển khai
+- level1: Kiểm chứng sau triển khai
+  level2:
+  - Xác nhận đúng phiên bản đã chạy trên môi trường đích
+  - Phân biệt tiến trình còn sống với dịch vụ sẵn sàng nhận lưu lượng
+  - Thực hiện kiểm tra khói cho các luồng quan trọng
+  - Kiểm tra kết nối, cấu hình và phụ thuộc tại môi trường đích
+  - Theo dõi lỗi, độ trễ và tín hiệu nghiệp vụ sau thay đổi
+  - Đối chiếu với mức nền trước khi triển khai
+  - Chọn khoảng quan sát và tiêu chí chấp nhận
+  - Dừng mở rộng hoặc chuyển sang phục hồi khi có tín hiệu xấu
+  - Lưu bằng chứng xác nhận kết quả triển khai
+- level1: Quay lui và phục hồi
+  level2:
+  - Xác định điều kiện quay lui trước khi triển khai
+  - Chọn quay về artifact cũ hoặc sửa tiến về phiên bản mới
+  - Giữ sẵn artifact và cấu hình đã được xác minh
+  - Phục hồi lưu lượng khi dùng blue-green hoặc canary
+  - Kiểm tra tương thích dữ liệu khi chạy lại phiên bản ứng dụng cũ
+  - Phân biệt tắt tính năng với quay lui bản triển khai
+  - Diễn tập quy trình phục hồi trong điều kiện có sự cố
+  - Kiểm chứng dịch vụ và tác động người dùng sau phục hồi
+- level1: Thất bại và thử lại
+  level2:
+  - Phân loại lỗi mã nguồn, kiểm thử, hạ tầng và cấu hình
+  - Dừng sớm khi lỗi đã đủ để loại bỏ một thay đổi
+  - Chọn phạm vi chạy lại mà vẫn giữ bằng chứng kiểm tra hợp lệ
+  - Chỉ tự thử lại lỗi tạm thời với số lần và thời gian chờ hữu hạn
+  - Tránh thử lại thao tác xuất bản hoặc triển khai gây tác động lặp
+  - Xử lý hết thời gian chờ khi chưa biết thao tác đích đã hoàn tất hay chưa
+  - Dọn tài nguyên bằng cơ chế luôn được thực hiện khi kết thúc
+  - Phân công người xử lý và làm rõ trạng thái pipeline chưa hoàn tất
+- level1: Điều phối đồng thời
+  level2:
+  - Phân biệt chạy song song công việc với chạy đồng thời nhiều pipeline
+  - Tuần tự hóa thay đổi vào cùng một môi trường dùng chung
+  - Ngăn pipeline cũ ghi đè phiên bản mới hơn
+  - Hủy công việc lỗi thời khi chưa gây tác động cần giữ
+  - Kiểm soát hai lần xuất bản cùng một phiên bản
+  - Thiết kế khóa và thời gian chờ với khả năng giải phóng khi lỗi
+  - Xử lý sự kiện được giao nhiều lần mà không triển khai trùng
+  - Giới hạn mức song song theo tài nguyên và dịch vụ phụ thuộc
+- level1: Tối ưu phản hồi
+  level2:
+  - Đo thời gian chờ máy chạy và thời gian từng công việc
+  - Tối ưu phần nằm trên đường phụ thuộc dài nhất
+  - Chạy kiểm thử độc lập song song và phân chia bộ kiểm thử
+  - Tận dụng cache mà vẫn bảo toàn tính đúng
+  - Chọn ma trận hệ điều hành và phiên bản theo nhu cầu hỗ trợ
+  - Giảm công việc không cần thiết bằng phân tích phạm vi thay đổi
+  - Chuyển kiểm tra tốn thời gian sang giai đoạn phù hợp với rủi ro
+  - Cân bằng tốc độ, độ tin cậy và chi phí thực thi
+- level1: Quan sát và bằng chứng
+  level2:
+  - Đọc nhật ký theo từng bước và giữ thông báo lỗi có ý nghĩa
+  - Thu thập báo cáo kiểm thử, kết quả phân tích và thông tin triển khai
+  - Liên kết commit, pipeline, artifact và môi trường trong cùng dấu vết
+  - Phân biệt thông báo lỗi cần hành động với cập nhật trạng thái thông thường
+  - Giới hạn dữ liệu nhạy cảm trong báo cáo và nhật ký
+  - Đặt thời gian lưu bằng chứng theo nhu cầu điều tra
+  - Theo dõi tình trạng dịch vụ CI và runner
+  - Lưu lịch sử thay đổi và phê duyệt đối với môi trường quan trọng
+- level1: Nhiều dự án
+  level2:
+  - Phân biệt pipeline cho một ứng dụng với nhiều thành phần
+  - Nhận diện ảnh hưởng của mã và thư viện dùng chung
+  - Chọn phạm vi build trong monorepo mà không bỏ sót phụ thuộc
+  - Phối hợp artifact và hợp đồng giữa nhiều kho mã
+  - Thiết kế pipeline dùng lại mà vẫn cho phép cấu hình rõ ràng
+  - Giảm phụ thuộc triển khai đồng thời giữa các dịch vụ
+  - Giữ khả năng kiểm thử và phát hành độc lập khi kiến trúc cho phép
+  - Đánh giá độ phức tạp trước khi thêm điều phối nhiều pipeline
+- level1: Công cụ và mô hình
+  level2:
+  - Đặt GitHub Actions, GitLab CI và Jenkins vào cùng mô hình khái niệm
+  - Phân biệt dịch vụ quản lý sẵn với hệ thống CI tự vận hành
+  - Chọn công cụ theo hệ sinh thái, quyền truy cập và năng lực vận hành
+  - Phân biệt pipeline điều khiển trực tiếp với triển khai kiểu GitOps
+  - Hiểu mô hình đẩy thay đổi với tác nhân kéo trạng thái mong muốn
+  - Xác định phần nguyên lý dùng chung trước khi học cú pháp từng nền tảng
+  - Tránh phụ thuộc công cụ khi thiết kế lệnh build và kiểm thử cốt lõi
+- level1: Phối hợp nhóm
+  level2:
+  - Thống nhất trách nhiệm giữa phát triển, kiểm thử, bảo mật và vận hành
+  - Thiết kế tiêu chí hoàn tất gồm khả năng triển khai và quan sát
+  - Ưu tiên sửa nhánh chính hoặc pipeline hỏng
+  - Rà soát thay đổi nhỏ để giảm thời gian chờ tích hợp
+  - Quản lý quyền phê duyệt và quy trình xử lý khẩn cấp
+  - Ghi nhận sự cố để cải tiến quy trình thay vì chỉ chạy lại cho thành công
+  - Tài liệu hóa cách chạy cục bộ, điều tra lỗi và phục hồi
+- level1: Đo lường và cải tiến
+  level2:
+  - Đo thời gian từ thay đổi đến khi sử dụng được trên môi trường đích
+  - Phân biệt tần suất triển khai với số lần chạy pipeline
+  - Theo dõi tỷ lệ thay đổi gây lỗi và khả năng phục hồi
+  - Đo thời gian phản hồi, độ ổn định kiểm thử và thời gian chờ
+  - Phân biệt chỉ số của pipeline với kết quả giao phần mềm
+  - Giới thiệu cách dùng chỉ số DORA theo bối cảnh nhóm
+  - Tìm điểm nghẽn bằng dữ liệu thay vì tăng số bước tự động hóa
+  - Chọn một cải tiến nhỏ và kiểm tra ảnh hưởng sau khi áp dụng
+- level1: Lỗi tư duy
+  level2:
+  - Cho rằng có máy chủ CI đồng nghĩa đã thực hành tích hợp liên tục
+  - Đồng nhất Continuous Delivery với Continuous Deployment
+  - Cho rằng build thành công chứng minh đủ điều kiện phát hành
+  - Dựng lại artifact riêng cho mỗi môi trường rồi coi là cùng bản đã kiểm thử
+  - Lưu bí mật trong cấu hình pipeline hoặc cấp toàn quyền cho runner
+  - Bỏ qua kiểm thử lỗi hoặc thử lại vô hạn để đạt trạng thái xanh
+  - Triển khai mà không kiểm chứng dịch vụ sau thay đổi
+  - Mặc định quay lui ứng dụng cũng quay lui an toàn dữ liệu
+  - Tối ưu thời gian pipeline mà bỏ qua thời gian chờ và độ tin cậy
+- level1: Thực hành
+  level2:
+  - Vẽ luồng một thay đổi từ commit đến kiểm chứng triển khai
+  - Thiết kế pipeline tối thiểu gồm build, kiểm thử và đóng gói
+  - Chạy cùng lệnh kiểm tra cục bộ và trên runner sạch
+  - Lưu artifact rồi bàn giao đúng artifact cho môi trường tiếp theo
+  - Thêm cổng chất lượng và kiểm tra quyền theo mức tin cậy nguồn
+  - Truyền cấu hình cùng bí mật bằng cơ chế tách biệt
+  - Tự động triển khai lên môi trường thử nghiệm và chạy kiểm tra khói
+  - Mô phỏng build lỗi, mất kết nối và hai lần triển khai đồng thời
+  - Diễn tập quay lui và xác nhận dịch vụ phục hồi
+  - Tự đánh giá khả năng tích hợp thường xuyên, phản hồi nhanh và phát hành an toàn

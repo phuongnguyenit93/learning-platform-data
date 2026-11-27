@@ -1,0 +1,118 @@
+menu:
+- title: Nền tảng Spring Integration
+  slug: spring-integration-fundamentals
+  index: 0
+- title: Mô hình message flow
+  slug: message-flow-model
+  index: 1
+- title: Message
+  slug: message
+  index: 2
+- title: MessageBuilder
+  slug: message-builder
+  index: 3
+- title: Message headers
+  slug: message-headers
+  index: 4
+- title: Message channel
+  slug: message-channel
+  index: 5
+- title: Kiểu channel
+  slug: channel-types
+  index: 6
+- title: DirectChannel
+  slug: direct-channel
+  index: 7
+- title: PublishSubscribeChannel
+  slug: publish-subscribe-channel
+  index: 8
+- title: Queue và pollable channel
+  slug: queue-and-pollable-channel
+  index: 9
+- title: Message endpoint
+  slug: message-endpoint
+  index: 10
+- title: Poller
+  slug: poller
+  index: 11
+- title: Poller transaction
+  slug: poller-transaction
+  index: 12
+- title: Channel adapter
+  slug: channel-adapter
+  index: 13
+- title: Messaging gateway
+  slug: messaging-gateway
+  index: 14
+- title: MessagingTemplate
+  slug: messaging-template
+  index: 15
+- title: Service activator
+  slug: service-activator
+  index: 16
+- title: Transformer
+  slug: transformer
+  index: 17
+- title: Filter
+  slug: filter
+  index: 18
+- title: Router
+  slug: router
+  index: 19
+- title: Splitter
+  slug: splitter
+  index: 20
+- title: Aggregator
+  slug: aggregator
+  index: 21
+- title: Resequencer
+  slug: resequencer
+  index: 22
+- title: Messaging bridge
+  slug: messaging-bridge
+  index: 23
+- title: Java DSL
+  slug: java-dsl
+  index: 24
+- title: DSL nâng cao
+  slug: advanced-java-dsl
+  index: 25
+- title: Annotation và XML
+  slug: annotations-and-xml
+  index: 26
+- title: Error handling
+  slug: error-handling
+  index: 27
+- title: Advice và retry
+  slug: advice-and-retries
+  index: 28
+- title: Transaction support
+  slug: transaction-support
+  index: 29
+- title: Message store
+  slug: message-store
+  index: 30
+- title: Correlation và state
+  slug: correlation-and-state
+  index: 31
+- title: System management
+  slug: system-management
+  index: 32
+- title: Metrics và observability
+  slug: metrics-and-observability
+  index: 33
+- title: Reactive support
+  slug: reactive-support
+  index: 34
+- title: Testing support
+  slug: testing-support
+  index: 35
+- title: Cấu hình và lifecycle
+  slug: configuration-and-lifecycle
+  index: 36
+- title: Thiết kế flow
+  slug: flow-design
+  index: 37
+- title: Thực hành tổng hợp
+  slug: comprehensive-practice
+  index: 38

@@ -1,0 +1,5758 @@
+menu:
+- slug: cassandra-foundations
+  title: Tư duy Cassandra
+  childs:
+  - slug: cassandra-foundations-001
+    title: Apache Cassandra là gì và những bài toán phân tán mà hệ được thiết kế để giải quyết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-foundations-002
+    title: Mô hình cột rộng, phân vùng dữ liệu và khác biệt với kho phân tích dạng cột
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-foundations-003
+    title: Phân biệt Cassandra, CQL, driver và ứng dụng Java
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-foundations-004
+    title: 'Bản đồ thuật ngữ: keyspace, table, partition, row, node, replica và cluster'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-foundations-005
+    title: Luồng từ truy vấn ứng dụng đến nút điều phối và các bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-foundations-006
+    title: Mục tiêu về mở rộng tải, tính sẵn sàng, độ bền và các đánh đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-foundations-007
+    title: Thiết kế theo truy vấn và vai trò của khóa phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-foundations-008
+    title: Phạm vi nguyên tử, mức nhất quán và cập nhật có điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-foundations-009
+    title: Tình huống phù hợp với dữ liệu sự kiện, lịch sử hoặc truy cập theo khóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-foundations-010
+    title: Giới hạn cần cân nhắc với JOIN, ràng buộc quan hệ và giao dịch theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-foundations-011
+    title: Phân biệt Apache Cassandra với dịch vụ tương thích hoặc sản phẩm mở rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-foundations-012
+    title: Trình tự học từ mô hình cụm và dữ liệu đến CQL, ứng dụng và vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice-environment
+  title: Môi trường thực hành
+  childs:
+  - slug: practice-environment-001
+    title: Chọn phiên bản Cassandra, JDK và driver tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-002
+    title: Chuẩn bị CPU, RAM, đĩa, hệ điều hành và đồng bộ thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-003
+    title: Cài đặt bằng gói hệ điều hành, máy ảo hoặc container
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-004
+    title: Khởi tạo một nút và kiểm tra trạng thái sẵn sàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-005
+    title: Thiết kế cụm thử nhiều nút, tên cluster và địa chỉ liên lạc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-006
+    title: Volume bền vững, thư mục dữ liệu, commit log, hints và saved caches
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-007
+    title: Cấu hình cơ bản trong cassandra.yaml và các file liên quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-008
+    title: Kết nối bằng cqlsh và xác định phiên bản server/CQL/protocol
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-009
+    title: Tạo keyspace, tài khoản và dữ liệu mẫu cho thực nghiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-010
+    title: Thử khởi động lại, mất một nút và đối chiếu dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-011
+    title: Tách môi trường phát triển, kiểm thử và vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-012
+    title: Tái tạo môi trường và quản lý cấu hình thực hành có thể kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-and-connections
+  title: Công cụ và kết nối
+  childs:
+  - slug: tools-and-connections-001
+    title: Sử dụng cqlsh để chạy câu lệnh và script
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-connections-002
+    title: DESCRIBE, USE, SOURCE và quản lý ngữ cảnh keyspace
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-connections-003
+    title: CONSISTENCY, SERIAL CONSISTENCY, PAGING và TRACING trong cqlsh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-connections-004
+    title: Native protocol, cổng truy cập ứng dụng và tương thích giao thức
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-connections-005
+    title: Địa chỉ listen/broadcast, kết nối giữa nút và từ ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-connections-006
+    title: Seed node và vai trò khởi tạo thông tin thành viên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-connections-007
+    title: Phân giải tên, mạng container, firewall và kiểm tra đường kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-connections-008
+    title: Chứng thực, thông tin đăng nhập và kết nối TLS
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-connections-009
+    title: Đọc lỗi cú pháp, lỗi xác thực, unavailable và timeout
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-connections-010
+    title: COPY trong cqlsh, giới hạn quy mô và công cụ nạp dữ liệu thay thế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-connections-011
+    title: system_schema, system_views và metadata phục vụ thực hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-connections-012
+    title: Ghi lại câu lệnh, cấu hình phiên và kết quả để tái hiện thí nghiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cluster-architecture
+  title: Kiến trúc cụm
+  childs:
+  - slug: cluster-architecture-001
+    title: Kiến trúc ngang hàng và vai trò nút điều phối theo từng yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-002
+    title: Quan hệ giữa node, rack, datacenter và cluster
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-003
+    title: Luồng ghi từ ứng dụng đến coordinator và replica
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-004
+    title: Luồng đọc, phản hồi digest và hợp nhất phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-005
+    title: Gossip và truyền thông tin trạng thái thành viên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-006
+    title: Failure detector và giới hạn suy luận một nút đã ngừng hoạt động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-007
+    title: Snitch, thông tin topology và lựa chọn bản sao theo miền lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-008
+    title: Seed node, bootstrap và phân biệt với vai trò leader
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-009
+    title: Internode messaging, native transport và các loại lưu lượng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-010
+    title: Phân vùng mạng, nút chậm và sự khác biệt với lỗi dừng hoàn toàn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-011
+    title: Metadata cụm, schema agreement và thay đổi theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-012
+    title: Background task, streaming và phối hợp các tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-013
+    title: Đọc sơ đồ cụm và truy vết một yêu cầu thực tế qua các nút
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tokens-and-replication
+  title: Token và sao chép
+  childs:
+  - slug: tokens-and-replication-001
+    title: Partitioner và ánh xạ khóa phân vùng thành token
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-replication-002
+    title: Token ring, khoảng token và quyền sở hữu dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-replication-003
+    title: Virtual node và đánh đổi trong phân phối/cân bằng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-replication-004
+    title: Replication factor và tập bản sao của một phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-replication-005
+    title: NetworkTopologyStrategy và bố trí bản sao theo datacenter/rack
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-replication-006
+    title: SimpleStrategy trong thực nghiệm và giới hạn lựa chọn topology
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-replication-007
+    title: Phân biệt số nút, số token và số bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-replication-008
+    title: Vai trò replica và coordinator khi một nút bất kỳ nhận yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-replication-009
+    title: Xác định endpoint của một khóa từ công cụ vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-replication-010
+    title: Chênh lệch dung lượng hoặc tải dù số token tương đương
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-replication-011
+    title: Ảnh hưởng của thay đổi RF đến dữ liệu đã tồn tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-replication-012
+    title: Đặt bản sao theo miền lỗi và kiểm chứng khả năng chịu mất nút
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-replication-013
+    title: Luồng truyền dữ liệu khi thêm, rút hoặc thay thế một nút
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: read-write-consistency
+  title: Nhất quán đọc/ghi
+  childs:
+  - slug: read-write-consistency-001
+    title: Mức nhất quán điều khiển số phản hồi cần chờ cho từng thao tác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-consistency-002
+    title: ONE, TWO, THREE, QUORUM và ALL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-consistency-003
+    title: LOCAL_ONE, LOCAL_QUORUM và EACH_QUORUM theo phạm vi hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-consistency-004
+    title: ANY cho thao tác ghi và quan hệ với hinted handoff
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-consistency-005
+    title: Tính số phản hồi quorum từ RF và phạm vi datacenter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-consistency-006
+    title: Điều kiện giao nhau của quorum đọc/ghi và các giả định kèm theo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-consistency-007
+    title: Phân biệt giao nhau quorum với bảo đảm tuyến tính hóa mọi cập nhật đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-consistency-008
+    title: Độ mới của kết quả đọc và xử lý nhiều phiên bản dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-consistency-009
+    title: Read-after-write, mức đọc/ghi và tập bản sao có liên quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-consistency-010
+    title: SERIAL/LOCAL_SERIAL và phân biệt với mức nhất quán thông thường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-consistency-011
+    title: Ảnh hưởng của lỗi nút, mạng chậm và unavailable đến từng lựa chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-consistency-012
+    title: Timeout và kết quả chưa biết của thao tác ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-consistency-013
+    title: Giới hạn hạ mức nhất quán khi retry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-consistency-014
+    title: Thiết kế mức nhất quán từ yêu cầu nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-consistency-015
+    title: Thực nghiệm nhiều phiên và mất nút để kiểm chứng điều kiện đọc/ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: keyspaces-and-schema
+  title: Keyspace và schema
+  childs:
+  - slug: keyspaces-and-schema-001
+    title: Keyspace là phạm vi cấu hình sao chép và chứa đối tượng dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspaces-and-schema-002
+    title: CREATE/ALTER/DROP KEYSPACE và kiểm tra thuộc tính replication
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspaces-and-schema-003
+    title: CREATE TABLE, cột, primary key và table option
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspaces-and-schema-004
+    title: Tên đối tượng, quoted identifier và phân biệt hoa/thường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspaces-and-schema-005
+    title: IF NOT EXISTS/IF EXISTS và giới hạn kiểm tra định nghĩa đã tồn tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspaces-and-schema-006
+    title: 'ALTER TABLE: thêm, bỏ, đổi thuộc tính và điều kiện thay đổi kiểu'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspaces-and-schema-007
+    title: Schema agreement và cách quan sát trạng thái chưa đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspaces-and-schema-008
+    title: DDL trong cụm đang có nhiều phiên bản ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspaces-and-schema-009
+    title: System keyspace và ranh giới dữ liệu người dùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspaces-and-schema-010
+    title: system_schema và trích xuất định nghĩa phục vụ đối soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspaces-and-schema-011
+    title: Comment, quy ước đặt tên và tài liệu hóa lựa chọn thiết kế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspaces-and-schema-012
+    title: TRUNCATE/DROP và các điều kiện an toàn trước thao tác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-types
+  title: Kiểu dữ liệu
+  childs:
+  - slug: data-types-001
+    title: Chọn kiểu theo miền giá trị, độ chính xác và mẫu truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-002
+    title: tinyint, smallint, int, bigint và varint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-003
+    title: decimal, float, double và dữ liệu tiền tệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-004
+    title: text, varchar, ascii và Unicode
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-005
+    title: blob, boolean, inet và ánh xạ dữ liệu nhị phân/địa chỉ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-006
+    title: uuid, timeuuid và yêu cầu về định danh hoặc thứ tự
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-007
+    title: timestamp, date, time và độ chính xác thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-008
+    title: duration và giới hạn ngữ nghĩa theo thao tác hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-009
+    title: NULL, giá trị chưa được lưu và UNSET từ driver
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-010
+    title: list, set, map và lựa chọn cấu trúc dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-011
+    title: tuple, UDT, frozen và ngữ nghĩa lưu trữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-012
+    title: vector hoặc kiểu bổ sung theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-013
+    title: Kiểu dữ liệu trong khóa và các ràng buộc tương ứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-014
+    title: Chuyển kiểu, literal, dữ liệu biên và ánh xạ sang Java
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: keys-and-partitions
+  title: Khóa và phân vùng
+  childs:
+  - slug: keys-and-partitions-001
+    title: Quan hệ giữa primary key, partition key và clustering column
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-partitions-002
+    title: Khóa phân vùng đơn và khóa phân vùng ghép
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-partitions-003
+    title: Khóa phân cụm và thứ tự lưu các hàng trong phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-partitions-004
+    title: CLUSTERING ORDER BY và truy vấn theo khoảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-partitions-005
+    title: Static column và dữ liệu dùng chung trong một phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-partitions-006
+    title: Định danh duy nhất trong phạm vi primary key
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-partitions-007
+    title: Kích thước phân vùng theo số hàng, cột và dung lượng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-partitions-008
+    title: Phân vùng lớn, hàng rộng và ảnh hưởng đến đọc/ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-partitions-009
+    title: Cardinality khóa, dữ liệu lệch và điểm nóng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-partitions-010
+    title: Khóa tăng dần, thời gian trong khóa và phân phối tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-partitions-011
+    title: Chia bucket theo thời gian hoặc miền dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-partitions-012
+    title: Khóa tenant và giới hạn tenant có quy mô quá lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-partitions-013
+    title: Đổi thiết kế khóa bằng bảng mới và kế hoạch di chuyển
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-partitions-014
+    title: Ước lượng, đo thực tế và kiểm chứng giới hạn phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-driven-design
+  title: Thiết kế theo truy vấn
+  childs:
+  - slug: query-driven-design-001
+    title: Thu thập truy vấn, điều kiện lọc, thứ tự đọc và giới hạn kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-driven-design-002
+    title: Một nhóm truy vấn và thiết kế bảng phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-driven-design-003
+    title: Chọn partition key từ đường truy cập chủ đạo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-driven-design-004
+    title: Chọn clustering column để hỗ trợ sắp xếp hoặc lọc theo khoảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-driven-design-005
+    title: Thiết kế bảng tra cứu và bảng lịch sử theo thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-driven-design-006
+    title: Thiết kế dữ liệu sự kiện với bucket và thời hạn lưu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-driven-design-007
+    title: Chấp nhận lặp dữ liệu để giảm truy vấn xuyên phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-driven-design-008
+    title: Đánh giá chi phí ghi nhiều bảng và đối soát tính nhất quán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-driven-design-009
+    title: Truy vấn phụ hiếm gặp và nhu cầu kho tìm kiếm/phân tích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-driven-design-010
+    title: Kiểm soát collection hoặc chuỗi lịch sử tăng trưởng không giới hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-driven-design-011
+    title: Tính dung lượng từ kích thước bản ghi, RF, chỉ mục và thời gian lưu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-driven-design-012
+    title: Thiết kế lại khi mẫu truy cập thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-driven-design-013
+    title: Ví dụ mô hình đơn hàng, hoạt động người dùng hoặc dữ liệu thiết bị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-driven-design-014
+    title: Kiểm chứng mô hình bằng CQL, dữ liệu đại diện và số liệu đọc/ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: relations-and-denormalization
+  title: Quan hệ và dữ liệu lặp
+  childs:
+  - slug: relations-and-denormalization-001
+    title: Biểu diễn quan hệ một-một, một-nhiều và nhiều-nhiều
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-and-denormalization-002
+    title: Nhúng qua UDT/collection hoặc dùng bảng riêng theo truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-and-denormalization-003
+    title: Chọn dữ liệu cần sao chép sang bảng tra cứu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-and-denormalization-004
+    title: Xác định bảng nguồn chuẩn và các bảng biểu diễn dẫn xuất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-and-denormalization-005
+    title: Tần suất thay đổi thuộc tính và chi phí cập nhật nhiều bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-and-denormalization-006
+    title: Ghi đến nhiều bảng (fan-out) và tập hợp dữ liệu tại ứng dụng khi đọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-and-denormalization-007
+    title: Giới hạn JOIN, khóa ngoại và trách nhiệm duy trì toàn vẹn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-and-denormalization-008
+    title: Đọc dữ liệu từ nhiều bảng trong khi cập nhật đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-and-denormalization-009
+    title: Ứng dụng sự kiện hoặc công việc nền để đồng bộ dữ liệu lặp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-and-denormalization-010
+    title: Xóa dữ liệu gốc và xử lý dữ liệu phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-and-denormalization-011
+    title: Đối soát, tái xây dựng bảng đọc và sửa chênh lệch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-and-denormalization-012
+    title: Đánh đổi giữa độ mới của dữ liệu với chi phí duy trì nhiều bảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: select-and-paging
+  title: SELECT và phân trang
+  childs:
+  - slug: select-and-paging-001
+    title: Cấu trúc SELECT, chọn cột và biểu thức kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: select-and-paging-002
+    title: Điều kiện trên partition key và clustering column
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: select-and-paging-003
+    title: Truy vấn theo khóa đầy đủ hoặc theo khoảng trong phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: select-and-paging-004
+    title: IN, khóa ghép và số phân vùng bị truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: select-and-paging-005
+    title: ORDER BY và các điều kiện tương thích với khóa phân cụm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: select-and-paging-006
+    title: LIMIT, PER PARTITION LIMIT và phạm vi giới hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: select-and-paging-007
+    title: DISTINCT, GROUP BY và các ràng buộc CQL cần kiểm tra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: select-and-paging-008
+    title: COUNT, hàm tổng hợp và chi phí đọc thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: select-and-paging-009
+    title: ALLOW FILTERING và đánh giá lượng dữ liệu phải quét
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: select-and-paging-010
+    title: TOKEN để chia phạm vi quét có kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: select-and-paging-011
+    title: Projection và giảm dữ liệu truyền về ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: select-and-paging-012
+    title: Phân trang bằng paging state và giới hạn truy cập tiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: select-and-paging-013
+    title: Page size, số hàng trả về và dữ liệu đang thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: select-and-paging-014
+    title: Kiểm chứng truy vấn bằng trace và bộ dữ liệu có trường hợp biên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cql-writes-and-deletes
+  title: Ghi và xóa bằng CQL
+  childs:
+  - slug: cql-writes-and-deletes-001
+    title: INSERT, UPDATE và ngữ nghĩa ghi theo primary key
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cql-writes-and-deletes-002
+    title: Upsert và phân biệt ghi mới với thay đổi một phần dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cql-writes-and-deletes-003
+    title: Chọn cột cập nhật và ảnh hưởng đến các cột không được gửi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cql-writes-and-deletes-004
+    title: NULL, UNSET và tác động đến dữ liệu hoặc dấu xóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cql-writes-and-deletes-005
+    title: Ghi giá trị của static column
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cql-writes-and-deletes-006
+    title: UPDATE collection và thao tác trên từng phần tử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cql-writes-and-deletes-007
+    title: DELETE theo cột, hàng, khoảng clustering hoặc phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cql-writes-and-deletes-008
+    title: Ghi dữ liệu không cần đọc trước và giới hạn với thao tác đặc biệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cql-writes-and-deletes-009
+    title: USING TIMESTAMP, USING TTL và điều kiện được phép kết hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cql-writes-and-deletes-010
+    title: IF NOT EXISTS/IF EXISTS và việc chuyển sang cập nhật có điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cql-writes-and-deletes-011
+    title: TRUNCATE so với DELETE và kế hoạch bảo vệ dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cql-writes-and-deletes-012
+    title: Kết quả ghi thông thường, applied của lệnh IF và giới hạn thông tin phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cql-writes-and-deletes-013
+    title: Nạp nhiều bản ghi bằng yêu cầu độc lập hoặc BATCH phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cql-writes-and-deletes-014
+    title: Đối chiếu trạng thái trước/sau với hai phiên cập nhật đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: timestamps-and-ttl
+  title: Timestamp và TTL
+  childs:
+  - slug: timestamps-and-ttl-001
+    title: Mutation timestamp và quy tắc last-write-wins
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-and-ttl-002
+    title: Độ chính xác timestamp của mutation so với kiểu timestamp trong dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-and-ttl-003
+    title: Timestamp do driver, client hoặc coordinator cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-and-ttl-004
+    title: Sai lệch đồng hồ và cập nhật mang thời điểm quá xa trong tương lai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-and-ttl-005
+    title: Ghi đồng thời cùng cột và quy tắc phân giải theo timestamp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-and-ttl-006
+    title: WRITETIME, TTL và quan sát metadata của giá trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-and-ttl-007
+    title: TTL cho dữ liệu ghi mới và thời điểm bắt đầu đếm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-and-ttl-008
+    title: default_time_to_live và TTL được chỉ định trong câu lệnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-and-ttl-009
+    title: TTL ở các thành phần collection/UDT theo cách lưu trữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-and-ttl-010
+    title: Cập nhật giá trị có TTL và ý nghĩa thời hạn mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-and-ttl-011
+    title: Dữ liệu hết hạn logic, tombstone và thu hồi vật lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-and-ttl-012
+    title: Giới hạn thời hạn hoặc mốc thời gian hết hạn theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-and-ttl-013
+    title: Retry với timestamp/TTL và nguy cơ thay đổi kết quả nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-and-ttl-014
+    title: Thiết kế dữ liệu theo thời gian, lưu giữ và kiểm thử đồng hồ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collections-and-udt
+  title: Collection và UDT
+  childs:
+  - slug: collections-and-udt-001
+    title: list, set, map và lựa chọn theo ngữ nghĩa dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-udt-002
+    title: Collection nhiều cell so với frozen collection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-udt-003
+    title: Thêm, sửa, xóa phần tử và chi phí tương ứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-udt-004
+    title: List có thứ tự và những thao tác cần đọc trước hoặc không lũy đẳng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-udt-005
+    title: Map key/value, phần tử không tồn tại và cập nhật có điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-udt-006
+    title: Collection không giới hạn và ảnh hưởng đến kích thước hàng/phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-udt-007
+    title: tuple, UDT và mô hình hóa cấu trúc lồng nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-udt-008
+    title: CREATE/ALTER TYPE và khả năng tiến hóa schema
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-udt-009
+    title: UDT dạng frozen/non-frozen và cập nhật từng trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-udt-010
+    title: NULL, giá trị trống và dấu xóa khi cập nhật cấu trúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-udt-011
+    title: Chỉ mục hoặc truy vấn collection theo khả năng phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-udt-012
+    title: Ánh xạ collection/UDT sang Java và kiểm thử vòng đọc–ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: batches-and-counters
+  title: BATCH và counter
+  childs:
+  - slug: batches-and-counters-001
+    title: Mục đích BATCH và phân biệt với giao dịch SQL thông thường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-and-counters-002
+    title: LOGGED BATCH, batchlog và khả năng hoàn tất khi coordinator lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-and-counters-003
+    title: UNLOGGED BATCH và phạm vi sử dụng phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-and-counters-004
+    title: Phạm vi nguyên tử/cô lập trong cùng phân vùng và qua nhiều phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-and-counters-005
+    title: BATCH nhiều bảng cùng khóa và điều kiện bảo đảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-and-counters-006
+    title: Timestamp trong BATCH và giới hạn suy luận thứ tự các câu lệnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-and-counters-007
+    title: Kích thước BATCH, số phân vùng và tải lên coordinator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-and-counters-008
+    title: So sánh BATCH với nhiều yêu cầu bất đồng bộ có giới hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-and-counters-009
+    title: Kiểu counter và các ràng buộc của bảng counter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-and-counters-010
+    title: Tăng/giảm counter, retry và khả năng áp dụng nhiều lần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-and-counters-011
+    title: COUNTER BATCH và giới hạn kết hợp với dữ liệu thông thường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batches-and-counters-012
+    title: Thực nghiệm lỗi từng phần và đối chiếu kết quả ghi nhiều bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lwt-and-concurrency
+  title: LWT và đồng thời
+  childs:
+  - slug: lwt-and-concurrency-001
+    title: Bài toán kiểm tra rồi mới ghi và nguy cơ cạnh tranh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lwt-and-concurrency-002
+    title: IF NOT EXISTS, IF EXISTS và điều kiện trên giá trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lwt-and-concurrency-003
+    title: Lightweight transaction và cơ chế đồng thuận theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lwt-and-concurrency-004
+    title: Phân biệt đường ghi thông thường với đường ghi có điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lwt-and-concurrency-005
+    title: Mức nhất quán thông thường và SERIAL/LOCAL_SERIAL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lwt-and-concurrency-006
+    title: Trường applied cùng giá trị hiện tại khi điều kiện thất bại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lwt-and-concurrency-007
+    title: Phạm vi điều kiện theo khóa/phân vùng và giới hạn kết hợp nhiều thao tác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lwt-and-concurrency-008
+    title: Mẫu tạo định danh duy nhất trong phạm vi được bảo đảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lwt-and-concurrency-009
+    title: Khóa lạc quan bằng cột phiên bản hoặc trạng thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lwt-and-concurrency-010
+    title: Giữ chỗ tài nguyên và những bất biến không thể suy ra từ một bản ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lwt-and-concurrency-011
+    title: Trộn ghi thông thường với LWT và ảnh hưởng đến tính đúng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lwt-and-concurrency-012
+    title: Timeout khi LWT và kết quả commit chưa xác định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lwt-and-concurrency-013
+    title: Thử lại LWT, xử lý cạnh tranh và tránh thay đổi điều kiện ngoài ý muốn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lwt-and-concurrency-014
+    title: Đo chi phí LWT và kiểm chứng lịch sử cập nhật đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: indexes
+  title: Chỉ mục
+  childs:
+  - slug: indexes-001
+    title: Primary index và truy cập qua partition/clustering key
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-002
+    title: Chỉ mục phụ cục bộ và chi phí điều phối truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-003
+    title: Đối chiếu 2i, SASI và SAI theo phiên bản, trạng thái hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-004
+    title: CREATE/DROP INDEX và quan sát trạng thái sẵn sàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-005
+    title: SAI gắn với memtable/SSTable và vòng đời dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-006
+    title: Chọn cột, độ phân biệt và phân bố truy vấn để đánh giá chỉ mục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-007
+    title: Điều kiện lọc kết hợp và phạm vi cú pháp được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-008
+    title: Chỉ mục trên collection, map hoặc cấu trúc theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-009
+    title: Truy vấn vector/ANN qua SAI khi phiên bản hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-010
+    title: Chi phí ghi, lưu trữ, xây dựng lại và truyền chỉ mục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-011
+    title: Chỉ mục trong khi dữ liệu hết hạn hoặc có tombstone
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-012
+    title: So sánh thêm chỉ mục với thiết kế bảng mới theo truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-013
+    title: Kiểm chứng bằng số liệu thực thi thay vì giả định có chỉ mục là đủ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-cql
+  title: CQL nâng cao
+  childs:
+  - slug: advanced-cql-001
+    title: Hàm chuyển kiểu, UUID/timeuuid và xử lý ngày giờ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-cql-002
+    title: WRITETIME/TTL và điều kiện áp dụng trên từng loại cột
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-cql-003
+    title: Hàm tổng hợp, GROUP BY và giới hạn ngữ nghĩa truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-cql-004
+    title: SELECT JSON/INSERT JSON và phân biệt định dạng trao đổi với kiểu lưu trữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-cql-005
+    title: User-defined function, cấu hình cho phép và ranh giới bảo mật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-cql-006
+    title: User-defined aggregate và chi phí thực thi theo tập dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-cql-007
+    title: Materialized view, bảng gốc và quan hệ khóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-cql-008
+    title: Điều kiện tạo, cập nhật và giới hạn materialized view theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-cql-009
+    title: Tính nhất quán, vận hành và kiểm thử khi dùng view dẫn xuất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-cql-010
+    title: Quyền thực thi function/aggregate và dependency của schema
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-cql-011
+    title: Đánh giá cách tính tại ứng dụng hoặc kho phân tích thay vì quét rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-cql-012
+    title: Đối chiếu CQL feature với server, native protocol và driver
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: write-path-and-durability
+  title: Đường ghi và độ bền
+  childs:
+  - slug: write-path-and-durability-001
+    title: Mutation từ coordinator đến các bản sao chịu trách nhiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-and-durability-002
+    title: Commit log, memtable và thời điểm phản hồi ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-and-durability-003
+    title: Các chế độ commitlog_sync và phạm vi dữ liệu có thể mất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-and-durability-004
+    title: Flush từ memtable sang SSTable
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-and-durability-005
+    title: Commit log segment, tái sử dụng và quan hệ với memtable chưa flush
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-and-durability-006
+    title: Độ bền cục bộ so với độ bền nhờ nhiều bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-and-durability-007
+    title: Replication factor, consistency level và điều kiện xác nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-and-durability-008
+    title: Hint khi replica không nhận được ghi và các giới hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-and-durability-009
+    title: Ghi quá tải, hàng đợi và cơ chế điều tiết theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-and-durability-010
+    title: Crash recovery và phát lại commit log
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-and-durability-011
+    title: Ảnh hưởng của đĩa chậm, đĩa đầy hoặc flush bị nghẽn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-and-durability-012
+    title: Thực nghiệm dừng nút và kiểm chứng dữ liệu đã được xác nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: read-path-and-caching
+  title: Đường đọc và bộ đệm
+  childs:
+  - slug: read-path-and-caching-001
+    title: Coordinator chọn replica phục vụ đọc theo mức nhất quán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-path-and-caching-002
+    title: Đọc dữ liệu, đọc digest và phát hiện khác biệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-path-and-caching-003
+    title: Hợp nhất các phiên bản từ memtable/SSTable và các bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-path-and-caching-004
+    title: Bloom filter và ý nghĩa có thể dương tính giả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-path-and-caching-005
+    title: Partition index, key cache hoặc cơ chế tương ứng theo định dạng SSTable
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-path-and-caching-006
+    title: Row cache và điều kiện phù hợp theo cấu hình/phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-path-and-caching-007
+    title: Bộ nhớ đệm hệ điều hành và tập dữ liệu thường được truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-path-and-caching-008
+    title: Đọc gặp nhiều SSTable, tombstone và dữ liệu phân mảnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-path-and-caching-009
+    title: Read repair trong đường đọc và phạm vi bảo đảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-path-and-caching-010
+    title: Speculative retry phía server và phân biệt với driver
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-path-and-caching-011
+    title: Đọc theo khoảng/token so với truy vấn một phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-path-and-caching-012
+    title: Đối chiếu trace, metric và kết quả để xác định chi phí đọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sstables-and-compaction
+  title: SSTable và compaction
+  childs:
+  - slug: sstables-and-compaction-001
+    title: SSTable bất biến và các thành phần metadata/index/data
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sstables-and-compaction-002
+    title: Định dạng SSTable và tương thích qua các phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sstables-and-compaction-003
+    title: Read/write/space amplification trong LSM-tree
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sstables-and-compaction-004
+    title: Mục đích compaction và lựa chọn SSTable được hợp nhất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sstables-and-compaction-005
+    title: STCS, LCS, TWCS và đặc điểm tải cần đối chiếu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sstables-and-compaction-006
+    title: UCS và điều kiện phiên bản hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sstables-and-compaction-007
+    title: Thay đổi compaction strategy và tải chuyển đổi phát sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sstables-and-compaction-008
+    title: Cấu hình chiến lược theo dữ liệu cập nhật, TTL và chuỗi thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sstables-and-compaction-009
+    title: Đọc, ghi lại dữ liệu và nhu cầu dung lượng tạm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sstables-and-compaction-010
+    title: Compaction backlog, tốc độ xử lý và ảnh hưởng độ trễ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sstables-and-compaction-011
+    title: Điều kiện loại bỏ phiên bản cũ hoặc tombstone
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sstables-and-compaction-012
+    title: SSTable hết hạn toàn bộ và những dữ liệu còn chặn thu hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sstables-and-compaction-013
+    title: Major compaction, thao tác thủ công và phạm vi tác động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sstables-and-compaction-014
+    title: Quan sát trước/sau thay đổi bằng dung lượng, SSTable count và độ trễ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tombstones-and-reclamation
+  title: Tombstone và thu hồi
+  childs:
+  - slug: tombstones-and-reclamation-001
+    title: DELETE, NULL và TTL hết hạn tạo dấu xóa như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tombstones-and-reclamation-002
+    title: Tombstone ở cấp cell, collection, hàng, khoảng hoặc phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tombstones-and-reclamation-003
+    title: Đọc qua dấu xóa và chi phí hợp nhất dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tombstones-and-reclamation-004
+    title: gc_grace_seconds và điều kiện giữ lại dấu xóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tombstones-and-reclamation-005
+    title: Quan hệ giữa repair, nút ngừng hoạt động và thời gian giữ dấu xóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tombstones-and-reclamation-006
+    title: Điều kiện thu hồi tombstone trong compaction
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tombstones-and-reclamation-007
+    title: Nguy cơ dữ liệu cũ xuất hiện lại khi bản sao bị bỏ sót xóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tombstones-and-reclamation-008
+    title: Dữ liệu TTL trộn nhiều thời hạn và các SSTable khó thu hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tombstones-and-reclamation-009
+    title: Range tombstone và truy vấn theo khoảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tombstones-and-reclamation-010
+    title: Ngưỡng cảnh báo/thất bại khi đọc nhiều tombstone
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tombstones-and-reclamation-011
+    title: Giới hạn điều chỉnh gc_grace hoặc ngưỡng đọc để xử lý triệu chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tombstones-and-reclamation-012
+    title: Thiết kế lại mô hình dữ liệu nhằm giảm xóa/cập nhật gây áp lực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tombstones-and-reclamation-013
+    title: Thực nghiệm xóa, replica ngừng hoạt động và khôi phục đúng dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: replica-synchronization
+  title: Đồng bộ bản sao
+  childs:
+  - slug: replica-synchronization-001
+    title: Các nguyên nhân khiến dữ liệu giữa các replica khác nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-synchronization-002
+    title: Hinted handoff và giới hạn thời gian lưu/phát lại hint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-synchronization-003
+    title: Hint backlog, dung lượng hints và replica vắng mặt kéo dài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-synchronization-004
+    title: Read repair và việc chỉ sửa phạm vi dữ liệu được đọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-synchronization-005
+    title: Background repair/anti-entropy và nhu cầu đối soát chủ động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-synchronization-006
+    title: Merkle tree và so sánh dữ liệu trên cùng khoảng token
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-synchronization-007
+    title: Streaming dữ liệu cần bù và chi phí mạng/đĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-synchronization-008
+    title: Last-write-wins khi hợp nhất dữ liệu từ nhiều replica
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-synchronization-009
+    title: Quorum đọc/ghi và những sai lệch vẫn cần repair
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-synchronization-010
+    title: Thay đổi RF hoặc topology và yêu cầu đồng bộ dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-synchronization-011
+    title: Repair, replay hint và rebuild giải quyết các bài toán khác nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-synchronization-012
+    title: Kiểm tra tiến độ hội tụ và dữ liệu còn thiếu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-synchronization-013
+    title: Thiết kế kịch bản mất kết nối rồi tái gia nhập cụm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: replica-repair
+  title: Repair
+  childs:
+  - slug: replica-repair-001
+    title: Mục tiêu repair và phạm vi token/bảng/keyspace
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-repair-002
+    title: Full repair so với incremental repair
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-repair-003
+    title: Trạng thái repaired/unrepaired và quan hệ với compaction
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-repair-004
+    title: Primary range repair và tránh thực hiện trùng không cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-repair-005
+    title: Repair theo từng nút và phạm vi còn lại của toàn cụm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-repair-006
+    title: Repair trong một datacenter hoặc giữa các datacenter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-repair-007
+    title: Lập lịch theo dung lượng, tải và gc_grace của dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-repair-008
+    title: Điều tiết mạng, CPU, đĩa và mức đồng thời khi repair
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-repair-009
+    title: Repair session, tiến độ và điều kiện xác nhận hoàn tất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-repair-010
+    title: Repair bị ngắt, thất bại hoặc không tiến triển
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-repair-011
+    title: Subrange repair và chia công việc thành các phần nhỏ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-repair-012
+    title: Repair sau thay đổi RF, thay nút hoặc sự cố bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-repair-013
+    title: Đối chiếu dữ liệu trước/sau và các giới hạn không thể khôi phục bằng repair
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-repair-014
+    title: Công cụ lập lịch repair và ranh giới với trách nhiệm người vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: topology-changes
+  title: Thay đổi topology
+  childs:
+  - slug: topology-changes-001
+    title: Trạng thái nút và vòng đời gia nhập, rời hoặc bị thay thế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-changes-002
+    title: Bootstrap, nhận token và streaming dữ liệu ban đầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-changes-003
+    title: Thêm nút vào cụm đang chạy và bảo vệ tải nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-changes-004
+    title: Decommission, removenode và lựa chọn theo trạng thái nút
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-changes-005
+    title: Thay thế nút mất dữ liệu và điều kiện định danh/địa chỉ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-changes-006
+    title: Rebuild dữ liệu từ bản sao hoặc datacenter khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-changes-007
+    title: Cleanup dữ liệu không còn thuộc phạm vi sở hữu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-changes-008
+    title: Thay token hoặc bố trí nút và giới hạn theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-changes-009
+    title: Thay RF và kế hoạch repair/kiểm chứng sau thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-changes-010
+    title: Chuyển động topology đồng thời và các điều kiện an toàn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-changes-011
+    title: Phân phối lại dung lượng, mạng streaming và nhu cầu dung lượng tạm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-changes-012
+    title: Điều phối thay đổi trong khi driver đang làm mới metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-changes-013
+    title: Kiểm tra trạng thái, quyền sở hữu và truy vấn sau mỗi thao tác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-datacenter-deployment
+  title: Nhiều trung tâm dữ liệu
+  childs:
+  - slug: multi-datacenter-deployment-001
+    title: Thiết kế datacenter/rack theo miền lỗi thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-datacenter-deployment-002
+    title: NetworkTopologyStrategy và RF riêng của từng datacenter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-datacenter-deployment-003
+    title: LOCAL_ONE, LOCAL_QUORUM và phạm vi phản hồi được tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-datacenter-deployment-004
+    title: QUORUM/EACH_QUORUM trong các thao tác được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-datacenter-deployment-005
+    title: Local datacenter ở driver và đường đi của yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-datacenter-deployment-006
+    title: Độ trễ sao chép xuyên vùng và yêu cầu đọc dữ liệu mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-datacenter-deployment-007
+    title: Ghi từ nhiều datacenter, timestamp và cập nhật xung đột
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-datacenter-deployment-008
+    title: Mất một datacenter và lựa chọn tuyến kết nối/khả dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-datacenter-deployment-009
+    title: Thêm datacenter mới, rebuild và chuyển dần tải ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-datacenter-deployment-010
+    title: Repair, backup và vận hành trên toàn bộ miền dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-datacenter-deployment-011
+    title: Băng thông, chi phí truyền và lưu lượng nền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-datacenter-deployment-012
+    title: Diễn tập chuyển vùng và đo phạm vi dữ liệu/độ trễ bị ảnh hưởng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cluster-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: cluster-observability-001
+    title: Mức hiệu năng cơ sở, SLI/SLO và ngưỡng cảnh báo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-observability-002
+    title: Metric theo node, keyspace, table và yêu cầu ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-observability-003
+    title: JMX, cơ chế xuất metric và điều kiện bảo vệ truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-observability-004
+    title: Độ trễ đọc/ghi và phân vị thay vì chỉ giá trị trung bình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-observability-005
+    title: Timeout, failure, unavailable, dropped message và retry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-observability-006
+    title: Heap, off-heap, GC, CPU và thời gian chờ I/O
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-observability-007
+    title: Dung lượng đĩa, commit log, SSTable, hints và snapshot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-observability-008
+    title: Memtable, flush queue và pending compaction
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-observability-009
+    title: Tombstone scanned, live cells và kích thước phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-observability-010
+    title: Streaming, repair session và hoạt động đồng bộ bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-observability-011
+    title: Client connection, request in-flight và tải coordinator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-observability-012
+    title: Log có cấu trúc, định danh yêu cầu và đối chiếu driver/server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-observability-013
+    title: Chênh lệch bộ đếm theo khoảng đo và tác động khi restart
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-observability-014
+    title: Cảnh báo có thể hành động và sổ tay ứng phó tương ứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tracing-and-diagnosis
+  title: Tracing và chẩn đoán
+  childs:
+  - slug: tracing-and-diagnosis-001
+    title: TRACING ON/OFF và thu thập một truy vấn mẫu bằng cqlsh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-and-diagnosis-002
+    title: 'system_traces: session, event và thời gian lưu trace'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-and-diagnosis-003
+    title: Nhận diện coordinator, replica và các bước xử lý trong trace
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-and-diagnosis-004
+    title: Phân biệt thời gian phía ứng dụng, mạng và phía server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-and-diagnosis-005
+    title: Trace cho truy vấn một phân vùng so với truy vấn quét nhiều vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-and-diagnosis-006
+    title: Đọc chênh lệch digest, đọc bổ sung và xử lý read repair
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-and-diagnosis-007
+    title: Slow query logging và công cụ theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-and-diagnosis-008
+    title: nodetool tablestats/tablehistograms và diễn giải số liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-and-diagnosis-009
+    title: nodetool tpstats, dropped message và hàng đợi xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-and-diagnosis-010
+    title: Log hệ thống, GC log và tương quan với tăng độ trễ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-and-diagnosis-011
+    title: JFR hoặc profiler JVM trong phạm vi điều tra có kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-and-diagnosis-012
+    title: Chi phí tracing/profiling và bảo vệ dữ liệu nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-and-diagnosis-013
+    title: Lập gói bằng chứng gồm truy vấn, tham số, topology, cấu hình và thời điểm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-tuning
+  title: Tối ưu truy vấn
+  childs:
+  - slug: query-tuning-001
+    title: Chọn truy vấn trọng yếu từ độ trễ, tần suất và tài nguyên sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-tuning-002
+    title: Giới hạn số phân vùng và số hàng cần đọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-tuning-003
+    title: Thiết kế khóa phân cụm cho điều kiện theo khoảng hoặc thứ tự
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-tuning-004
+    title: Tránh quét rộng và hiểu chi phí ALLOW FILTERING
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-tuning-005
+    title: Giảm projection, kích thước kết quả và số lần trao đổi mạng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-tuning-006
+    title: Page size, LIMIT và bộ nhớ phía client/server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-tuning-007
+    title: Chọn bảng truy vấn riêng hoặc SAI khi có điều kiện phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-tuning-008
+    title: Giảm collection lớn, phân vùng lớn và tỷ lệ tombstone
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-tuning-009
+    title: Tối ưu truy vấn dữ liệu theo thời gian bằng bucket
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-tuning-010
+    title: Giới hạn tải của COUNT, tổng hợp và tác vụ xuất dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-tuning-011
+    title: Prepared statement, bind và định tuyến theo khóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-tuning-012
+    title: Đối chiếu read/write consistency với yêu cầu nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-tuning-013
+    title: Đo lại kết quả đúng, độ trễ và thông lượng sau thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-tuning
+  title: Tối ưu tài nguyên
+  childs:
+  - slug: resource-tuning-001
+    title: Phân biệt nghẽn CPU, GC, đĩa, mạng và tranh chấp tài nguyên nền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-tuning-002
+    title: Heap, off-heap và bộ nhớ cần cho hệ điều hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-tuning-003
+    title: Memtable, giới hạn bộ nhớ và áp lực flush
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-tuning-004
+    title: Bộ nhớ đệm, compression chunk và tập dữ liệu thường truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-tuning-005
+    title: Commit log, thiết bị lưu trữ và mục tiêu độ bền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-tuning-006
+    title: Compaction throughput, pending task và write amplification
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-tuning-007
+    title: Streaming/repair throughput và ảnh hưởng đến truy vấn nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-tuning-008
+    title: Giới hạn request đồng thời và điều tiết ở ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-tuning-009
+    title: Các hàng đợi, thread pool và tham số thay đổi theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-tuning-010
+    title: Tải coordinator, replica và phân phối yêu cầu giữa các nút
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-tuning-011
+    title: Guardrail, timeout và tác động khi tăng giới hạn để né lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-tuning-012
+    title: Kích thước mutation, batch, collection và phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-tuning-013
+    title: Đo mức mở rộng khi thêm nút trên cùng loại tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-tuning-014
+    title: Thay đổi có kiểm soát, mức cơ sở và điều kiện quay lại cấu hình cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operational-tools
+  title: Công cụ vận hành
+  childs:
+  - slug: operational-tools-001
+    title: nodetool status/info/describecluster và đọc trạng thái cụm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-tools-002
+    title: nodetool ring/getendpoints và đối chiếu vị trí bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-tools-003
+    title: nodetool tablestats/tablehistograms/toppartitions và dữ liệu nóng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-tools-004
+    title: nodetool tpstats/compactionstats/netstats và hoạt động nền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-tools-005
+    title: nodetool flush/drain và các điều kiện trước dừng nút
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-tools-006
+    title: nodetool snapshot/listsnapshots/clearsnapshot và kiểm kê bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-tools-007
+    title: nodetool repair/rebuild/cleanup và phạm vi dữ liệu tác động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-tools-008
+    title: sstablemetadata và đọc thông tin định dạng, token, timestamp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-tools-009
+    title: sstabledump, sstableverify và điều kiện dùng theo từng công cụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-tools-010
+    title: sstableloader và yêu cầu tương thích dữ liệu nhập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-tools-011
+    title: Công cụ scrub/upgrade SSTable và phạm vi online/offline phải kiểm tra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-tools-012
+    title: Phân quyền công cụ, ghi nhật ký thao tác và xác minh sau thực hiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backup-and-recovery
+  title: Sao lưu và phục hồi
+  childs:
+  - slug: backup-and-recovery-001
+    title: Xác định dữ liệu cần bảo vệ và yêu cầu RPO/RTO
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-002
+    title: Phân biệt replica, snapshot và bản sao ngoài miền lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-003
+    title: Snapshot SSTable, liên kết cứng (hard link) và dữ liệu schema đi kèm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-004
+    title: Sao lưu tăng dần và quan hệ với dữ liệu đã flush
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-005
+    title: Commit log archiving và phục hồi theo thời điểm khi được cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-006
+    title: Tính nhất quán bản sao ở cấp bảng, nhiều bảng và toàn cụm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-007
+    title: Sao lưu schema, cấu hình, system_auth và khóa/chứng thư liên quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-008
+    title: Quản lý dung lượng snapshot và chính sách giữ lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-009
+    title: Lưu bản sao ngoài nút/cụm và bảo vệ quyền truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-010
+    title: Khôi phục bảng hoặc keyspace vào môi trường cô lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-011
+    title: sstableloader, restore theo file và đối chiếu topology/phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-012
+    title: Khôi phục sau xóa nhầm và giới hạn với TTL/timestamp/tombstone
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-013
+    title: Đối soát dữ liệu, bất biến nghiệp vụ và số liệu sau restore
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-014
+    title: Diễn tập khôi phục, đo thời gian và cập nhật sổ tay
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-security
+  title: Bảo mật
+  childs:
+  - slug: database-security-001
+    title: Tách tài khoản ứng dụng, quản trị, sao lưu và đối soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-security-002
+    title: Role, LOGIN, SUPERUSER và quan hệ kế thừa quyền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-security-003
+    title: Authentication/authorization và cấu hình theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-security-004
+    title: Quyền trên keyspace, table, function và các tài nguyên liên quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-security-005
+    title: system_auth, RF và điều kiện truy cập khi một miền lỗi gặp sự cố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-security-006
+    title: Thông tin đăng nhập, kho bí mật và luân chuyển mật khẩu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-security-007
+    title: TLS cho kết nối ứng dụng và giữa các nút
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-security-008
+    title: Truststore, keystore, xác minh danh tính và đổi chứng thư
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-security-009
+    title: JMX, công cụ vận hành và hạn chế truy cập quản trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-security-010
+    title: Network binding, firewall và tách luồng ứng dụng/đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-security-011
+    title: Ngăn chèn CQL bằng bind parameter và kiểm tra định danh động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-security-012
+    title: Audit, full query logging và dữ liệu nhạy cảm theo khả năng hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-security-013
+    title: Quyền chạy UDF, plugin hoặc tính năng mở rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-security-014
+    title: Bảo vệ backup, cấu hình, log và dữ liệu thử nghiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-migration-and-schema
+  title: Di chuyển và schema
+  childs:
+  - slug: data-migration-and-schema-001
+    title: Quản lý DDL, table option và lịch sử schema bằng version control
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-and-schema-002
+    title: Phát hiện schema drift và kiểm tra schema agreement
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-and-schema-003
+    title: Thêm cột, thay UDT hoặc đổi thuộc tính theo điều kiện phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-and-schema-004
+    title: Thiết kế bảng mới khi cần đổi partition/clustering key
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-and-schema-005
+    title: Expand/contract với nhiều phiên bản ứng dụng cùng hoạt động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-and-schema-006
+    title: Backfill theo khoảng token/bucket và khả năng tiếp tục sau lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-and-schema-007
+    title: Nạp dữ liệu bằng cqlsh COPY, sstableloader hoặc công cụ bulk phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-and-schema-008
+    title: Đối chiếu encoding, kiểu số, UUID, timestamp và timezone khi nhập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-and-schema-009
+    title: Dữ liệu có TTL và giữ đúng thời điểm hết hạn khi di chuyển
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-and-schema-010
+    title: Đồng bộ thay đổi tăng thêm trong lúc hệ nguồn tiếp tục ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-and-schema-011
+    title: Giới hạn tác động đến compaction, dung lượng và tải replica
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-and-schema-012
+    title: Đối soát dữ liệu nguồn/đích và các bất biến nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-and-schema-013
+    title: Cắt chuyển đọc/ghi, quay lui và dọn bảng cũ theo kế hoạch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-and-compatibility
+  title: Nâng cấp và tương thích
+  childs:
+  - slug: upgrades-and-compatibility-001
+    title: Xác định phiên bản server, CQL, native protocol và Java driver
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-002
+    title: Đọc release note, tính năng bị loại bỏ và tham số thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-003
+    title: Đường nâng cấp được hỗ trợ và điều kiện nhảy phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-004
+    title: Cụm chạy lẫn phiên bản trong giai đoạn chuyển tiếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-005
+    title: Thứ tự nâng cấp nút và bảo vệ số bản sao đang phục vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-006
+    title: Sao lưu cấu hình/dữ liệu và diễn tập khôi phục trước thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-007
+    title: Tương thích định dạng SSTable và nhu cầu upgradesstables
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-008
+    title: Đối chiếu chỉ mục, compaction strategy, LWT và các tính năng theo release
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-009
+    title: Kiểm tra schema, topology metadata và trạng thái background task
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-010
+    title: Ma trận JDK, driver, Spring Data và giao thức sau nâng cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-011
+    title: Kiểm chứng dữ liệu, truy vấn, độ trễ và lỗi trước/sau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-012
+    title: Giới hạn downgrade/rollback và tiêu chí dừng hoặc tiếp tục triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-driver-basics
+  title: Java driver cơ bản
+  childs:
+  - slug: java-driver-basics-001
+    title: Driver cho Apache Cassandra, tọa độ dependency và package theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-basics-002
+    title: CqlSession là điểm vào và phạm vi dùng chung cho một cụm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-basics-003
+    title: Contact point, local datacenter và phát hiện topology
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-basics-004
+    title: Thiết lập keyspace, xác thực và TLS
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-basics-005
+    title: Driver configuration, execution profile và giá trị có hiệu lực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-basics-006
+    title: Quản lý vòng đời session, kết nối và thread pool
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-basics-007
+    title: An toàn đa luồng của session, statement và đối tượng dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-basics-008
+    title: SimpleStatement và thực thi truy vấn đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-basics-009
+    title: ResultSet, Row và lấy giá trị theo tên/chỉ số cột
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-basics-010
+    title: Ánh xạ số, BigDecimal, UUID, Instant và kiểu ngày giờ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-basics-011
+    title: NULL, UNSET và cách đọc trạng thái thiếu giá trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-basics-012
+    title: TypeCodec, generic type và cấu trúc collection/UDT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-basics-013
+    title: Metadata schema/topology và điều kiện cập nhật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-basics-014
+    title: Load balancing, định tuyến theo token và locality
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-basics-015
+    title: Giới hạn tài nguyên và tách cấu hình giữa môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-query-execution
+  title: Truy vấn từ Java
+  childs:
+  - slug: java-query-execution-001
+    title: PreparedStatement, BoundStatement và bước chuẩn bị/bind/thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-002
+    title: Cache prepared statement và chi phí chuẩn bị lặp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-003
+    title: Bind theo vị trí/tên và kiểm tra đúng kiểu dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-004
+    title: Chọn NULL hoặc UNSET khi cập nhật cột
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-005
+    title: QueryBuilder, identifier và tránh nối đầu vào vào CQL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-006
+    title: Routing key và điều kiện định tuyến theo token
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-007
+    title: Consistency level, serial consistency và execution profile của statement
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-008
+    title: Timeout, page size và thuộc tính theo từng truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-009
+    title: Lấy kết quả LWT qua wasApplied và các cột liên quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-010
+    title: BatchStatement và giới hạn theo loại/bản ghi/phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-011
+    title: Cập nhật counter, collection và đánh giá tính lũy đẳng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-012
+    title: PagingState, khôi phục trang và ràng buộc với truy vấn gốc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-013
+    title: Bảo vệ token phân trang khi đưa ra giao diện ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-014
+    title: Object mapper/DAO và chi phí trừu tượng hóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-015
+    title: Kiểm chứng CQL phát sinh, dữ liệu trả về và số lần trao đổi mạng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-query-execution-016
+    title: ExecutionInfo, coordinator, cảnh báo và QueryTrace từ driver
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-retries-and-errors
+  title: Retry và lỗi Java
+  childs:
+  - slug: java-retries-and-errors-001
+    title: Phân loại lỗi chuẩn bị truy vấn, lỗi đầu vào và lỗi thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-retries-and-errors-002
+    title: Authentication/Unauthorized, SyntaxError và InvalidQuery
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-retries-and-errors-003
+    title: Unavailable, ReadTimeout, WriteTimeout và phạm vi kết quả chưa rõ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-retries-and-errors-004
+    title: DriverTimeout, AllNodesFailed và thông tin lỗi theo từng nút
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-retries-and-errors-005
+    title: ReadFailure/WriteFailure, Overloaded và tải server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-retries-and-errors-006
+    title: Default retry policy, điều kiện kích hoạt và các lỗi được xử lý riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-retries-and-errors-007
+    title: Cờ idempotent và trách nhiệm xác định ngữ nghĩa thao tác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-retries-and-errors-008
+    title: Giới hạn retry với counter, list, TTL và cập nhật có điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-retries-and-errors-009
+    title: Retry cùng nút hoặc nút khác và ảnh hưởng locality
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-retries-and-errors-010
+    title: Chính sách hạ consistency level và nguy cơ vi phạm yêu cầu nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-retries-and-errors-011
+    title: Speculative execution và phân biệt với retry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-retries-and-errors-012
+    title: Deadline toàn nghiệp vụ, backoff và tránh nhân số lần thử qua nhiều lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-retries-and-errors-013
+    title: Đối soát kết quả chưa biết và chống ghi trùng bằng thiết kế nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: async-and-reactive
+  title: Bất đồng bộ và reactive
+  childs:
+  - slug: async-and-reactive-001
+    title: executeAsync, CompletionStage và AsyncResultSet
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-002
+    title: Phân biệt hoàn tất yêu cầu với đã đọc hết mọi trang kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-003
+    title: hasMorePages/fetchNextPage và kết hợp các trang bất đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-004
+    title: Chuỗi xử lý lỗi, phục hồi và truyền ngữ cảnh ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-005
+    title: Callback trên luồng driver và giới hạn gọi thao tác chặn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-006
+    title: Giới hạn số yêu cầu đồng thời thay vì gửi không kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-007
+    title: Request throttler, hàng đợi và thời gian chờ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-008
+    title: Reactive API, Publisher và điều kiện hỗ trợ theo driver
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-009
+    title: Subscription, nhu cầu nhận dữ liệu và vòng đời kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-010
+    title: Hủy Future/subscription và công việc còn chạy phía server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-011
+    title: Phối hợp timeout, retry và phản hồi áp lực tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-012
+    title: Đo bộ nhớ, độ trễ và thông lượng khi chọn đồng bộ/bất đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-and-spring-data
+  title: Spring Boot và Spring Data
+  childs:
+  - slug: spring-boot-and-spring-data-001
+    title: Cấu hình Cassandra trong Spring Boot và ma trận phiên bản thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-and-spring-data-002
+    title: CqlSession bean, auto-configuration và quản lý vòng đời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-and-spring-data-003
+    title: Contact point, local datacenter, keyspace và cấu hình theo môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-and-spring-data-004
+    title: Secret, xác thực, TLS và execution profile trong ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-and-spring-data-005
+    title: '@Table, @Column và ánh xạ tên định danh'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-and-spring-data-006
+    title: '@PrimaryKey, @PrimaryKeyClass, @PrimaryKeyColumn và thứ tự khóa'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-and-spring-data-007
+    title: Mapping collection/UDT, enum, thời gian và custom converter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-and-spring-data-008
+    title: CassandraTemplate/CassandraOperations và kiểm soát CQL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-and-spring-data-009
+    title: Repository, derived query, @Query và giới hạn biểu đạt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-and-spring-data-010
+    title: Slice, paging state và chi phí đếm tổng kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-and-spring-data-011
+    title: Optimistic locking qua @Version và cơ chế cập nhật có điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-and-spring-data-012
+    title: Ranh giới @Transactional với bảo đảm CQL/LWT theo khả năng hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-and-spring-data-013
+    title: Schema action, migration và tách thay đổi DDL khỏi khởi tạo ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-and-spring-data-014
+    title: ReactiveCassandraTemplate/repository và kiểm soát tải, lỗi, subscription
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-testing
+  title: Kiểm thử tích hợp
+  childs:
+  - slug: integration-testing-001
+    title: Chọn phiên bản Cassandra, driver và cấu hình giống môi trường mục tiêu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-002
+    title: Container/Testcontainers hoặc cụm thử cô lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-003
+    title: Phân biệt nút đã khởi động với dữ liệu đã phục vụ được ở CL yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-004
+    title: Tạo/reset keyspace, schema và dữ liệu mẫu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-005
+    title: Kiểm thử primary key, static column và điều kiện SELECT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-006
+    title: Kiểm thử NULL/UNSET, collection, UDT và kiểu dữ liệu biên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-007
+    title: Kiểm thử múi giờ, timestamp, TTL và dữ liệu hết hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-008
+    title: Kiểm thử CRUD, BATCH và giới hạn nguyên tử bằng nhiều phiên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-009
+    title: Kiểm thử cạnh tranh LWT và kết quả applied
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-010
+    title: Kiểm thử phân trang khi dữ liệu thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-011
+    title: Kiểm thử retry/idempotence và kết quả ghi chưa rõ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-012
+    title: Kiểm thử mapping/repository và CQL thực tế được phát sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-013
+    title: Đối soát dữ liệu lặp, xóa phụ thuộc và các bất biến nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-014
+    title: Giới hạn mock/emulator và bằng chứng cần chạy trên engine thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: load-and-fault-testing
+  title: Đo tải và lỗi phân tán
+  childs:
+  - slug: load-and-fault-testing-001
+    title: Thiết kế tải đọc/ghi theo truy vấn nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-and-fault-testing-002
+    title: Dữ liệu đại diện về kích thước, phân vùng, TTL và tỷ lệ cập nhật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-and-fault-testing-003
+    title: Giai đoạn làm nóng và trạng thái cache/compaction
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-and-fault-testing-004
+    title: Độ trễ p50/p95/p99, thông lượng và lượng tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-and-fault-testing-005
+    title: Điều tiết số yêu cầu đồng thời và tránh sai lệch do bộ phát tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-and-fault-testing-006
+    title: So sánh CL, RF, chỉ mục và compaction trên cùng điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-and-fault-testing-007
+    title: Mô phỏng khóa nóng, phân vùng lớn hoặc nhiều tombstone
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-and-fault-testing-008
+    title: Dừng nút, mất mạng một phần và yêu cầu bị phản hồi chậm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-and-fault-testing-009
+    title: Ghi được áp dụng nhưng phản hồi bị mất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-and-fault-testing-010
+    title: Thử replica vắng mặt rồi hội tụ bằng hint/repair
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-and-fault-testing-011
+    title: Đo tải khi bootstrap, streaming, repair hoặc backup
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-and-fault-testing-012
+    title: Kiểm chứng ảnh hưởng của speculative execution và retry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-and-fault-testing-013
+    title: Lưu lịch sử thao tác và kiểm tra bất biến sau sự cố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-and-fault-testing-014
+    title: Ghi lại phiên bản, cấu hình, dữ liệu và điều kiện để tái hiện kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Khoanh vùng thời điểm, phạm vi, thay đổi gần nhất và bằng chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Không kết nối được do địa chỉ, cổng, DNS, firewall hoặc topology
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Lỗi xác thực, quyền, TLS và chứng thư hết hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Keyspace/table không tồn tại và schema disagreement
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: InvalidQuery do điều kiện khóa, kiểu dữ liệu hoặc truy vấn không được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Unavailable do không đủ replica để đạt CL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: ReadTimeout/WriteTimeout và kiểm tra write type, ack hoặc dữ liệu nhận được
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: DriverTimeout/AllNodesFailed và đọc lỗi theo từng nút
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Tombstone quá nhiều hoặc truy vấn chạm phân vùng lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Compaction backlog, nhiều SSTable và đĩa gần đầy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Memtable/flush bị nghẽn, commit log pressure hoặc dropped message
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Heap/GC kéo dài, bộ nhớ ngoài heap và tài nguyên hệ điều hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Hot partition, coordinator quá tải hoặc phân bố dữ liệu lệch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Hint backlog, replica thiếu dữ liệu hoặc đọc kết quả cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-015
+    title: Repair/streaming bị kẹt và lỗi thay đổi topology
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-016
+    title: LWT contention, xung đột và thao tác có kết quả chưa biết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-017
+    title: Dữ liệu đã xóa xuất hiện lại hoặc TTL không như mong đợi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-018
+    title: Đánh giá tác động trước restart, scrub, compact hoặc thay giới hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-automation
+  title: Tự động hóa vận hành
+  childs:
+  - slug: operations-automation-001
+    title: Quản lý cấu hình, topology và thay đổi bằng quy trình có thể kiểm tra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-002
+    title: Khởi tạo cụm tự động và tách bí mật khỏi cấu hình lưu trong mã nguồn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-003
+    title: Kiểm tra sức khỏe trước/sau bảo trì bằng trạng thái và truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-004
+    title: Lập lịch repair dựa trên phạm vi dữ liệu và thời gian giữ dấu xóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-005
+    title: Tự động snapshot/backup, kiểm kê và kiểm tra bản sao ngoài cụm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-006
+    title: Thử restore định kỳ và ghi nhận bằng chứng phục hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-007
+    title: Triển khai lần lượt, giới hạn đồng thời và điều kiện dừng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-008
+    title: Điều phối bootstrap/decommission mà không lặp thao tác nguy hiểm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-009
+    title: Vận hành container/Kubernetes và lưu trữ bền vững theo điều kiện môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-010
+    title: Tách vòng đời nút, địa chỉ, volume và định danh trong tự động hóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-011
+    title: Cảnh báo, sổ tay ứng phó và lưu nhật ký thao tác quản trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-012
+    title: Kiểm chứng quy trình có thể tiếp tục hoặc quay lui sau lỗi từng phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-architecture
+  title: Kiến trúc ứng dụng
+  childs:
+  - slug: application-architecture-001
+    title: Chọn vai trò Cassandra trong hệ thống và xác định nguồn dữ liệu chuẩn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-002
+    title: Tách đường ghi nghiệp vụ khỏi bảng đọc theo truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-003
+    title: Đồng bộ nhiều bảng và các cửa sổ dữ liệu lệch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-004
+    title: Idempotency key, trạng thái nghiệp vụ và chống xử lý trùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-005
+    title: LWT, bước bù hoặc đối soát khi bất biến vượt một thao tác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-006
+    title: CDC/commit log và điều kiện khai thác theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-007
+    title: Đưa dữ liệu sang tìm kiếm hoặc phân tích với tiến độ đồng bộ rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-008
+    title: Cache trước Cassandra và chính sách độ mới dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-009
+    title: Phân tách tenant, hạn mức tài nguyên và tenant có quy mô lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-010
+    title: Thiết kế truy cập nhiều datacenter theo yêu cầu người dùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-011
+    title: Giới hạn truy vấn không phù hợp và phối hợp với hệ lưu trữ khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-012
+    title: Viết quyết định kiến trúc bằng thử nghiệm, chi phí và các giả định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Dựng cụm thử và lập sơ đồ token, bản sao, datacenter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Thiết kế bảng lịch sử hoạt động theo tenant và bucket thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Mô hình hóa cùng nghiệp vụ bằng các bảng phục vụ truy vấn khác nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Thực hiện CRUD, TTL và quan sát dữ liệu xóa/hết hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: So sánh ONE/QUORUM/LOCAL_QUORUM trong kịch bản lỗi đã nêu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Bảo vệ một bất biến trong phạm vi phù hợp bằng LWT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Xây dựng luồng Java với bind, phân trang và giới hạn đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Tích hợp Spring Data, mapping khóa và kiểm thử truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Tái hiện timeout, retry và thao tác ghi có thể bị lặp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Đo độ trễ trước/sau thay đổi schema, chỉ mục hoặc cách chia bucket
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Quan sát compaction, tombstone và đồng bộ replica sau sự cố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Diễn tập thêm/thay nút và đối soát dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-013
+    title: Thực hành backup/restore cùng quyền truy cập và TLS
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-014
+    title: Hoàn thiện sơ đồ, quyết định thiết kế và sổ tay bằng bằng chứng thực nghiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

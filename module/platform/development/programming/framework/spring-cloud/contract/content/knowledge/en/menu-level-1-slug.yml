@@ -1,0 +1,112 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Thiết kế hợp đồng
+  slug: contract-design
+  index: 1
+- title: Vòng đời hợp đồng
+  slug: contract-lifecycle
+  index: 2
+- title: Thiết lập dự án
+  slug: project-setup
+  index: 3
+- title: Tổ chức hợp đồng
+  slug: contract-organization
+  index: 4
+- title: Groovy DSL
+  slug: groovy-dsl
+  index: 5
+- title: YAML và DSL khác
+  slug: yaml-other-dsls
+  index: 6
+- title: Request HTTP
+  slug: request-http
+  index: 7
+- title: Response HTTP
+  slug: response-http
+  index: 8
+- title: Dữ liệu hợp đồng
+  slug: contract-data
+  index: 9
+- title: Giá trị hai phía
+  slug: client-server-values
+  index: 10
+- title: Matcher và assertion
+  slug: matchers-assertions
+  index: 11
+- title: Trạng thái và lỗi
+  slug: statuses-errors
+  index: 12
+- title: Contract Verifier
+  slug: contract-verifier
+  index: 13
+- title: Base test
+  slug: base-test
+  index: 14
+- title: Kiểm thử HTTP
+  slug: http-contract-testing
+  index: 15
+- title: Kiểm thử reactive
+  slug: reactive-contract-testing
+  index: 16
+- title: Hợp đồng thông điệp
+  slug: message-contracts
+  index: 17
+- title: Kiểm thử messaging
+  slug: messaging-contract-testing
+  index: 18
+- title: Sinh và đóng gói stub
+  slug: stub-generation-packaging
+  index: 19
+- title: Stub Runner
+  slug: stub-runner
+  index: 20
+- title: WireMock
+  slug: wiremock
+  index: 21
+- title: Kiểm thử consumer
+  slug: consumer-testing
+  index: 22
+- title: Stub độc lập
+  slug: standalone-stubs
+  index: 23
+- title: Tích hợp Gradle
+  slug: gradle-integration
+  index: 24
+- title: Tích hợp Maven
+  slug: maven-integration
+  index: 25
+- title: Kho hợp đồng và artifact
+  slug: contract-artifact-repositories
+  index: 26
+- title: Phiên bản và tương thích
+  slug: versioning-compatibility
+  index: 27
+- title: Phối hợp nhiều nhóm
+  slug: team-coordination
+  index: 28
+- title: CI/CD
+  slug: cicd
+  index: 29
+- title: Bảo mật hợp đồng
+  slug: contract-security
+  index: 30
+- title: Chất lượng hợp đồng
+  slug: contract-quality
+  index: 31
+- title: Tùy biến và mở rộng
+  slug: customization-extension
+  index: 32
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 33
+- title: Tương thích công cụ
+  slug: tool-compatibility
+  index: 34
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 35
+- title: Lựa chọn chiến lược
+  slug: strategy-selection
+  index: 36

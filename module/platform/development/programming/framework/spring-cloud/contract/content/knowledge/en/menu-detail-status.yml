@@ -1,0 +1,3532 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Kiểm thử hợp đồng là gì và vì sao cần trong hệ thống nhiều dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Producer, consumer và ranh giới giao tiếp giữa hai bên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Consumer-driven contract và producer-driven contract
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt contract test, unit test, integration test và end-to-end test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Spring Cloud Contract Verifier và Stub Runner
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Hợp đồng, kiểm thử được sinh và stub có quan hệ thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Luồng kiểm chứng một thay đổi từ producer đến consumer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Phân biệt hợp đồng kiểm thử với OpenAPI và tài liệu API
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Những lỗi có thể phát hiện và những bảo đảm không thể suy ra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Lộ trình học với ví dụ HTTP và thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-design
+  title: Thiết kế hợp đồng
+  childs:
+  - slug: contract-design-001
+    title: Xác định nhu cầu thực tế của consumer trước khi viết hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-002
+    title: Chọn ranh giới HTTP hoặc messaging cần kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-003
+    title: Mô tả hành vi quan sát được thay vì chi tiết triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-004
+    title: Hợp đồng tối thiểu và nguy cơ ràng buộc dữ liệu không cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-005
+    title: Chọn ví dụ đại diện cho từng nhánh tương tác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-006
+    title: Phân biệt trường bắt buộc, trường tùy chọn và trường bị bỏ qua
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-007
+    title: Thiết kế hợp đồng cho thành công, lỗi và dữ liệu rỗng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-008
+    title: Giữ dữ liệu kiểm thử xác định và có ý nghĩa nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-009
+    title: Phạm vi trách nhiệm của producer và từng consumer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-010
+    title: Tiêu chí đánh giá một hợp đồng có thể duy trì lâu dài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-lifecycle
+  title: Vòng đời hợp đồng
+  childs:
+  - slug: contract-lifecycle-001
+    title: Từ yêu cầu của consumer đến đề xuất hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-lifecycle-002
+    title: Producer xác minh khả năng đáp ứng hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-lifecycle-003
+    title: Sinh và chạy kiểm thử phía producer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-lifecycle-004
+    title: Sinh stub từ cùng nguồn hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-lifecycle-005
+    title: Đóng gói, công bố và lấy stub theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-lifecycle-006
+    title: Consumer kiểm thử mã gọi với stub đã công bố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-lifecycle-007
+    title: Xử lý hợp đồng mới khi producer chưa triển khai xong
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-lifecycle-008
+    title: Loại bỏ hợp đồng không còn consumer sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-lifecycle-009
+    title: Bằng chứng cần có trước khi công bố khả năng tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: project-setup
+  title: Thiết lập dự án
+  childs:
+  - slug: project-setup-001
+    title: Chọn Spring Boot và Spring Cloud Release Train tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-002
+    title: Quản lý phiên bản bằng BOM và plugin tương ứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-003
+    title: Phụ thuộc cần thiết cho producer và consumer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-004
+    title: Phân biệt thư viện runtime với công cụ sinh kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-005
+    title: Chọn Maven hoặc Gradle cho quy trình thực hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-006
+    title: Chọn JUnit, Spock và ngôn ngữ kiểm thử theo khả năng hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-007
+    title: Tạo producer và consumer tối thiểu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-008
+    title: Cấu trúc thư mục hợp đồng, base test và tài nguyên stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-009
+    title: Chạy quy trình đầu tiên từ hợp đồng đến consumer test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-010
+    title: Kiểm tra phiên bản Java và điều kiện của công cụ build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-organization
+  title: Tổ chức hợp đồng
+  childs:
+  - slug: contract-organization-001
+    title: Đặt tên hợp đồng, mô tả và nhãn nhận diện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-organization-002
+    title: Nhóm hợp đồng theo consumer và năng lực nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-organization-003
+    title: Một tệp chứa một hoặc nhiều tương tác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-organization-004
+    title: Phân biệt hợp đồng HTTP với hợp đồng thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-organization-005
+    title: Quy ước đường dẫn ảnh hưởng đến kiểm thử được sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-organization-006
+    title: Tách dữ liệu body lớn sang tệp tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-organization-007
+    title: Đánh dấu hợp đồng tạm bỏ qua hoặc đang phát triển khi được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-organization-008
+    title: Chọn hợp đồng bằng bộ lọc bao gồm và loại trừ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-organization-009
+    title: Tránh trùng tên kiểm thử, nhãn và đường dẫn stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-organization-010
+    title: Quyền sở hữu và rà soát thay đổi trong kho hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: groovy-dsl
+  title: Groovy DSL
+  childs:
+  - slug: groovy-dsl-001
+    title: Cấu trúc Contract.make và các khối cơ bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-002
+    title: Khối request, response, input và outputMessage
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-003
+    title: Khai báo method, URL, header và body
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-004
+    title: Giá trị literal, map, list và chuỗi nhiều dòng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-005
+    title: Tham chiếu tệp body từ hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-006
+    title: Hàm hỗ trợ và biểu thức trong Groovy DSL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-007
+    title: Định nghĩa nhiều hợp đồng trong cùng tệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-008
+    title: Metadata và mô tả phục vụ người đọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-009
+    title: Giới hạn của mã tùy ý trong hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-010
+    title: Đọc lỗi cú pháp và kiểm chứng hợp đồng trước khi sinh test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: yaml-other-dsls
+  title: YAML và DSL khác
+  childs:
+  - slug: yaml-other-dsls-001
+    title: Biểu diễn cùng tương tác bằng YAML
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-other-dsls-002
+    title: Cấu trúc request, response và phần matcher trong YAML
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-other-dsls-003
+    title: Giá trị hai phía trong định dạng khai báo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-other-dsls-004
+    title: Body lồng nhau, mảng và dữ liệu lấy từ tệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-other-dsls-005
+    title: Quy tắc quoting, escape và kiểu dữ liệu YAML
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-other-dsls-006
+    title: Java DSL và Kotlin DSL theo khả năng hỗ trợ của phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-other-dsls-007
+    title: So sánh tính dễ đọc, khả năng mở rộng và yêu cầu công cụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-other-dsls-008
+    title: Chuyển định dạng mà vẫn giữ nguyên ý nghĩa kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-other-dsls-009
+    title: Chọn một quy ước thống nhất trong nhóm phát triển
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: request-http
+  title: Request HTTP
+  childs:
+  - slug: request-http-001
+    title: HTTP method và đường dẫn yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-http-002
+    title: Phân biệt URL đầy đủ với urlPath
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-http-003
+    title: Path parameter và biểu thức khớp đường dẫn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-http-004
+    title: Query parameter bắt buộc, tùy chọn và nhiều giá trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-http-005
+    title: Request header và content negotiation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-http-006
+    title: Cookie và thông tin phiên trong hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-http-007
+    title: JSON request body và cấu trúc lồng nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-http-008
+    title: Form URL-encoded và mã hóa ký tự
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-http-009
+    title: Multipart, trường biểu mẫu và nội dung tệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-http-010
+    title: Body dạng chuỗi, XML và dữ liệu nhị phân
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-http-011
+    title: Phân biệt trường không có với trường có giá trị null
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-http-012
+    title: Xác minh yêu cầu có xác thực bằng dữ liệu kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: response-http
+  title: Response HTTP
+  childs:
+  - slug: response-http-001
+    title: Mã trạng thái và ý nghĩa hợp đồng đối với consumer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-http-002
+    title: Response header và content type
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-http-003
+    title: JSON response body và cấu trúc dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-http-004
+    title: Phản hồi rỗng, không có body và giá trị null
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-http-005
+    title: Phản hồi dạng mảng và danh sách không có phần tử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-http-006
+    title: Cookie, location và chuyển hướng khi thuộc phạm vi kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-http-007
+    title: Thông báo lỗi và cấu trúc lỗi dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-http-008
+    title: Giá trị động như mã định danh và thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-http-009
+    title: Trường mới trong response và kiểm tra tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-http-010
+    title: Đối chiếu phản hồi thực tế với kỳ vọng được sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-data
+  title: Dữ liệu hợp đồng
+  childs:
+  - slug: contract-data-001
+    title: Thiết kế fixture đơn giản, ổn định và sát nhu cầu consumer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-data-002
+    title: JSON object, mảng, số, boolean và chuỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-data-003
+    title: Ngày giờ, múi giờ và độ chính xác dữ liệu số
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-data-004
+    title: Body từ tệp JSON, XML hoặc tài nguyên nhị phân
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-data-005
+    title: Ký tự Unicode, ký tự đặc biệt và escape
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-data-006
+    title: Phân biệt giá trị mẫu với miền giá trị hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-data-007
+    title: 'Dữ liệu biên: rỗng, thiếu, null và giá trị giới hạn'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-data-008
+    title: Tránh dữ liệu ngẫu nhiên khiến kiểm thử không lặp lại được
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-data-009
+    title: Ẩn danh dữ liệu và loại bỏ thông tin production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-data-010
+    title: Giữ fixture độc lập với cơ sở dữ liệu hoặc dịch vụ ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: client-server-values
+  title: Giá trị hai phía
+  childs:
+  - slug: client-server-values-001
+    title: Mô hình consumer value và producer value
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-server-values-002
+    title: Vai trò của từng phía trong request và response
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-server-values-003
+    title: Biểu diễn value, consumer, producer và các dạng viết gọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-server-values-004
+    title: Matcher dùng khi nhận request và giá trị mẫu dùng khi sinh test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-server-values-005
+    title: Matcher dùng khi xác minh response và giá trị trả về trong stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-server-values-006
+    title: Chọn giá trị mẫu thỏa mãn biểu thức quy định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-server-values-007
+    title: Dùng regex cho dữ liệu động mà vẫn giữ kỳ vọng rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-server-values-008
+    title: Tham chiếu dữ liệu request trong response khi được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-server-values-009
+    title: Giới hạn của giá trị thực thi bằng mã phía kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-server-values-010
+    title: Đọc test và mapping được sinh để phát hiện nhầm hai phía
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-server-values-011
+    title: Thực hành sửa hợp đồng khớp quá rộng hoặc quá chặt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: matchers-assertions
+  title: Matcher và assertion
+  childs:
+  - slug: matchers-assertions-001
+    title: So khớp bằng giá trị chính xác và bằng biểu thức chính quy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-assertions-002
+    title: Matcher theo kiểu dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-assertions-003
+    title: JSONPath cho thuộc tính và phần tử mảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-assertions-004
+    title: Số lượng phần tử và điều kiện trên tập dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-assertions-005
+    title: Kiểm tra có, thiếu, null hoặc rỗng theo ngữ nghĩa được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-assertions-006
+    title: Bỏ qua trường động mà không bỏ mất hành vi quan trọng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-assertions-007
+    title: Custom assertion bằng phương thức trong base test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-assertions-008
+    title: Matcher cho XML và giới hạn theo công cụ kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-assertions-009
+    title: So khớp body không phụ thuộc định dạng khoảng trắng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-assertions-010
+    title: Phân biệt thứ tự phần tử có ý nghĩa và không có ý nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-assertions-011
+    title: Escape regex qua các lớp DSL, JSON và Java
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-assertions-012
+    title: Đánh giá assertion được sinh thay vì chỉ nhìn hợp đồng nguồn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: statuses-errors
+  title: Trạng thái và lỗi
+  childs:
+  - slug: statuses-errors-001
+    title: Thiết lập trạng thái producer trước từng tương tác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statuses-errors-002
+    title: Tách chuẩn bị dữ liệu khỏi hành vi cần xác minh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statuses-errors-003
+    title: Hợp đồng cho dữ liệu không tồn tại và yêu cầu không hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statuses-errors-004
+    title: Phân biệt lỗi nghiệp vụ với lỗi kết nối hoặc hạ tầng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statuses-errors-005
+    title: Chuỗi tương tác có trạng thái và điều kiện trước khi dùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statuses-errors-006
+    title: Scenario của stub và giới hạn so với trạng thái hệ thống thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statuses-errors-007
+    title: Tránh kiểm thử phụ thuộc thứ tự hoặc dùng chung trạng thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statuses-errors-008
+    title: Hành vi retry và giới hạn kiểm chứng bằng hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statuses-errors-009
+    title: Phản hồi chậm, lỗi mạng giả lập và phạm vi kiểm thử consumer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-verifier
+  title: Contract Verifier
+  childs:
+  - slug: contract-verifier-001
+    title: Pipeline đọc hợp đồng, sinh kiểm thử và thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verifier-002
+    title: Chọn framework, ngôn ngữ và chế độ kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verifier-003
+    title: Cấu hình thư mục hợp đồng và đầu ra được sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verifier-004
+    title: Tên package, lớp kiểm thử và phương thức kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verifier-005
+    title: Ánh xạ nhóm hợp đồng đến base class phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verifier-006
+    title: Phân biệt sinh test thành công với test thực sự chạy và đạt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verifier-007
+    title: Đọc mã kiểm thử được sinh để hiểu lời gọi và assertion
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verifier-008
+    title: Chọn tập hợp đồng cần xác minh trong từng lần build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verifier-009
+    title: Xử lý hợp đồng không hợp lệ và trường hợp không có hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verifier-010
+    title: Quản lý mã được sinh trong hệ thống build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verifier-011
+    title: Điều tra lỗi từ hợp đồng nguồn đến kết quả kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: base-test
+  title: Base test
+  childs:
+  - slug: base-test-001
+    title: Vai trò base class trong kiểm thử phía producer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: base-test-002
+    title: Cấu hình test context và dependency cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: base-test-003
+    title: Khởi tạo controller hoặc ứng dụng cần kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: base-test-004
+    title: Mock cộng tác viên ngoài ranh giới hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: base-test-005
+    title: Thiết lập fixture, xác thực và trạng thái ban đầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: base-test-006
+    title: Viết phương thức hỗ trợ cho custom assertion
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: base-test-007
+    title: Chia base class theo nhóm nghiệp vụ hoặc loại giao tiếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: base-test-008
+    title: Ánh xạ bằng tên package và cấu hình tường minh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: base-test-009
+    title: Dọn trạng thái sau kiểm thử và tránh ảnh hưởng chéo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: base-test-010
+    title: Kiểm soát thời gian, mã định danh và nguồn dữ liệu động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: base-test-011
+    title: Tránh base test mô phỏng chính hành vi producer cần kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-contract-testing
+  title: Kiểm thử HTTP
+  childs:
+  - slug: http-contract-testing-001
+    title: Kiểm thử controller bằng MockMvc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-testing-002
+    title: Dùng RestAssuredMockMvc trong base test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-testing-003
+    title: Kiểm thử qua HTTP thật với ứng dụng chạy trên cổng ngẫu nhiên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-testing-004
+    title: Chọn chế độ explicit và cấu hình địa chỉ producer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-testing-005
+    title: Điều kiện kiểm thử JAX-RS theo môi trường ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-testing-006
+    title: Kiểm thử security filter và danh tính người gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-testing-007
+    title: Kiểm thử serialization, validation và exception handler
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-testing-008
+    title: Giới hạn khi bỏ qua filter hoặc cấu hình web thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-testing-009
+    title: Chuẩn bị dữ liệu cho các nhánh thành công và thất bại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-testing-010
+    title: Kiểm chứng request multipart và response không phải JSON
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-testing-011
+    title: Chọn mức độ tích hợp vừa đủ cho ranh giới HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-contract-testing
+  title: Kiểm thử reactive
+  childs:
+  - slug: reactive-contract-testing-001
+    title: Phân biệt hợp đồng HTTP với cách triển khai reactive
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-contract-testing-002
+    title: Tích hợp WebTestClient theo khả năng Contract Verifier hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-contract-testing-003
+    title: Thiết lập base test cho ứng dụng WebFlux
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-contract-testing-004
+    title: Kiểm chứng Mono, Flux và dữ liệu phản hồi được tổng hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-contract-testing-005
+    title: Thời gian chờ và tác vụ bất đồng bộ trong kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-contract-testing-006
+    title: Streaming, SSE và giới hạn mô tả bằng hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-contract-testing-007
+    title: Tránh block hoặc điều kiện đua trong phần chuẩn bị kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-contract-testing-008
+    title: Khi cần bổ sung kiểm thử reactive ngoài hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-contracts
+  title: Hợp đồng thông điệp
+  childs:
+  - slug: message-contracts-001
+    title: Producer và consumer trong giao tiếp qua thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-002
+    title: Phân biệt hợp đồng thông điệp với hợp đồng HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-003
+    title: Input, outputMessage và địa chỉ gửi hoặc nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-004
+    title: Body, header và content type của thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-005
+    title: Kích hoạt producer bằng triggeredBy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-006
+    title: Xác minh điều kiện bằng assertion trong hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-007
+    title: Hợp đồng nhận một thông điệp và phát thông điệp khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-008
+    title: Hợp đồng chỉ phát hoặc chỉ tiếp nhận thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-009
+    title: Giá trị động và matcher trong payload hoặc header
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-010
+    title: Serialization và sự khác nhau giữa dữ liệu trước và sau chuyển đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-011
+    title: Correlation ID, khóa nghiệp vụ và dữ liệu định tuyến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-012
+    title: Giới hạn kiểm chứng thứ tự, giao nhận lại và xử lý đúng một lần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messaging-contract-testing
+  title: Kiểm thử messaging
+  childs:
+  - slug: messaging-contract-testing-001
+    title: Test binder và adapter kiểm thử trong luồng thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-contract-testing-002
+    title: Tích hợp Spring Cloud Stream theo mô hình lập trình được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-contract-testing-003
+    title: Tích hợp Spring Integration và Spring AMQP theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-contract-testing-004
+    title: Các adapter messaging bổ sung và điều kiện sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-contract-testing-005
+    title: Chuẩn bị base test cho lời gọi kích hoạt gửi thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-contract-testing-006
+    title: Giả lập đầu vào và kiểm tra thông điệp đầu ra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-contract-testing-007
+    title: Stub Runner kích hoạt thông điệp theo nhãn hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-contract-testing-008
+    title: Timeout, đồng bộ và chờ kết quả xử lý bất đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-contract-testing-009
+    title: Dọn kênh hoặc hàng đợi để các kiểm thử không ảnh hưởng nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-contract-testing-010
+    title: Phân biệt kiểm thử qua adapter với kiểm thử broker thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-contract-testing-011
+    title: Khi cần bổ sung kiểm thử ack, retry, DLQ và giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stub-generation-packaging
+  title: Sinh và đóng gói stub
+  childs:
+  - slug: stub-generation-packaging-001
+    title: Stub HTTP được sinh từ hợp đồng như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-generation-packaging-002
+    title: WireMock mapping và tệp body trong gói stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-generation-packaging-003
+    title: Hợp đồng messaging và dữ liệu phục vụ Stub Runner
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-generation-packaging-004
+    title: Phân biệt artifact ứng dụng với artifact stubs
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-generation-packaging-005
+    title: Classifier, group ID, artifact ID và version
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-generation-packaging-006
+    title: Tổ chức thư mục contracts và mappings trong artifact
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-generation-packaging-007
+    title: Chỉ định hợp đồng thuộc từng consumer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-generation-packaging-008
+    title: Kiểm tra nội dung gói stub trước khi công bố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-generation-packaging-009
+    title: Liên kết phiên bản stub với mã producer đã được xác minh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-generation-packaging-010
+    title: Tránh công bố stub khi producer test chưa đạt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stub-runner
+  title: Stub Runner
+  childs:
+  - slug: stub-runner-001
+    title: Vai trò Stub Runner trong kiểm thử consumer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-002
+    title: Khởi động bằng @AutoConfigureStubRunner
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-003
+    title: StubRunnerExtension và cách dùng ngoài Spring test khi được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-004
+    title: Khai báo stub ID và tọa độ artifact
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-005
+    title: Chế độ lấy stub từ CLASSPATH, LOCAL và REMOTE
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-006
+    title: Phiên bản, classifier và cổng trong cấu hình stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-007
+    title: Khởi động nhiều producer stub trong cùng kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-008
+    title: Lấy cổng hoặc URL stub được cấp phát động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-009
+    title: Chọn stub theo consumer name và cấu trúc hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-010
+    title: Ánh xạ artifact sang service ID khi tích hợp khám phá dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-011
+    title: Kích hoạt messaging stub theo nhãn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-012
+    title: Xử lý lỗi tải artifact, khởi động stub và không tìm thấy mapping
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: wiremock
+  title: WireMock
+  childs:
+  - slug: wiremock-001
+    title: WireMock trong Spring Cloud Contract và giới hạn trách nhiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-002
+    title: '@AutoConfigureWireMock cho kiểm thử HTTP độc lập'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-003
+    title: Nạp mapping được sinh và mapping viết tay
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-004
+    title: So khớp method, URL, query, header và body
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-005
+    title: Cổng ngẫu nhiên và truyền địa chỉ vào cấu hình consumer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-006
+    title: Xác minh số lần gọi và request thực tế đã nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-007
+    title: Kiểm soát độ ưu tiên khi nhiều mapping cùng khớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-008
+    title: Scenario và trạng thái trong stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-009
+    title: Giả lập độ trễ, mã lỗi và kết nối gặp sự cố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-010
+    title: HTTPS và cấu hình client trong môi trường kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-011
+    title: Reset mapping, request journal và vòng đời giữa các test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-012
+    title: Phân biệt khả năng của WireMock với khả năng DSL sinh stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consumer-testing
+  title: Kiểm thử consumer
+  childs:
+  - slug: consumer-testing-001
+    title: Kiểm thử mã HTTP client của consumer với stub thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-testing-002
+    title: Thay địa chỉ producer bằng URL do Stub Runner cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-testing-003
+    title: Xác minh serialization, deserialization và ánh xạ lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-testing-004
+    title: Kiểm tra nhu cầu consumer đã được phản ánh trong hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-testing-005
+    title: Tránh assertion chỉ kiểm tra chính dữ liệu fixture
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-testing-006
+    title: Kiểm thử nhiều producer và cách ly cấu hình từng client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-testing-007
+    title: Consumer reactive và thời điểm chờ lời gọi hoàn tất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-testing-008
+    title: Kiểm thử timeout, retry và fallback bằng stub bổ sung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-testing-009
+    title: Xác nhận mã consumer thực sự đi qua stub mong đợi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-testing-010
+    title: Giới hạn bằng chứng khi chưa chạy producer test cùng phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-testing-011
+    title: Phối hợp contract test với kiểm thử tích hợp và end-to-end
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: standalone-stubs
+  title: Stub độc lập
+  childs:
+  - slug: standalone-stubs-001
+    title: Chạy stub ngoài tiến trình kiểm thử của consumer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-stubs-002
+    title: Stub Runner Boot và cách cấu hình các producer stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-stubs-003
+    title: Chạy stub trong container theo bộ công cụ được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-stubs-004
+    title: Công bố cổng và URL cho ứng dụng gọi thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-stubs-005
+    title: Tra cứu stub đang chạy và kích hoạt thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-stubs-006
+    title: Dùng stub cho phát triển cục bộ hoặc môi trường tạm thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-stubs-007
+    title: Giới hạn truy cập và tránh dùng stub như dịch vụ production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-stubs-008
+    title: Quản lý vòng đời, cấu hình và phiên bản stub độc lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gradle-integration
+  title: Tích hợp Gradle
+  childs:
+  - slug: gradle-integration-001
+    title: Áp dụng plugin Spring Cloud Contract và khai báo dependency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-002
+    title: Cấu hình contracts DSL trong build Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-003
+    title: Task sinh kiểm thử và quan hệ với vòng đời test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-004
+    title: Task sinh stub, đóng gói và công bố artifact
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-005
+    title: Cấu hình source set, thư mục nguồn và đầu ra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-006
+    title: Chọn test framework, base class và bộ lọc hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-007
+    title: Tích hợp Maven Publish cho artifact stubs
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-008
+    title: Quy trình nhiều module producer và consumer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-009
+    title: Build tăng dần, build cache và đầu vào cần theo dõi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-010
+    title: Kiểm chứng một clean build thực sự sinh và chạy đủ kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maven-integration
+  title: Tích hợp Maven
+  childs:
+  - slug: maven-integration-001
+    title: Khai báo spring-cloud-contract-maven-plugin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-002
+    title: Cấu hình plugin, dependency và thứ tự thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-003
+    title: Gắn sinh kiểm thử với lifecycle Maven
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-004
+    title: Chạy test được sinh bằng công cụ kiểm thử phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-005
+    title: Đính kèm artifact stubs và classifier
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-006
+    title: Quy trình package, install và deploy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-007
+    title: Cấu hình base class, thư mục hợp đồng và bộ lọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-008
+    title: Tách cấu hình dùng cho local và CI bằng profile
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-009
+    title: Build nhiều module và thứ tự công bố phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-010
+    title: Kiểm tra build không bỏ sót generated test hoặc stub artifact
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-artifact-repositories
+  title: Kho hợp đồng và artifact
+  childs:
+  - slug: contract-artifact-repositories-001
+    title: Lưu hợp đồng cùng producer hoặc trong kho riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-artifact-repositories-002
+    title: Lưu hợp đồng theo consumer và nhu cầu hợp tác giữa nhóm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-artifact-repositories-003
+    title: Lấy hợp đồng từ vị trí hoặc artifact ngoài dự án
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-artifact-repositories-004
+    title: Quy ước group ID, artifact ID, version và classifier
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-artifact-repositories-005
+    title: Kho Maven cục bộ và kho artifact từ xa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-artifact-repositories-006
+    title: Xác thực, proxy và truy cập kho trong CI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-artifact-repositories-007
+    title: Phiên bản SNAPSHOT, cache và độ mới của stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-artifact-repositories-008
+    title: Ghim phiên bản bất biến để tái lập kết quả kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-artifact-repositories-009
+    title: Truy vết stub về hợp đồng, commit và lần xác minh producer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-artifact-repositories-010
+    title: Xóa artifact cũ mà không làm hỏng consumer còn dùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versioning-compatibility
+  title: Phiên bản và tương thích
+  childs:
+  - slug: versioning-compatibility-001
+    title: Thay đổi tương thích và thay đổi phá vỡ hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-002
+    title: Thêm trường response và mức ràng buộc thực tế của consumer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-003
+    title: Đổi tên, xóa trường và thay kiểu dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-004
+    title: Thay đổi trường bắt buộc, giá trị null và quy tắc validation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-005
+    title: Thay đổi mã trạng thái, header hoặc kiểu thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-006
+    title: Nhiều phiên bản producer và consumer cùng tồn tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-007
+    title: Xác minh hợp đồng của các consumer còn được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-008
+    title: Giai đoạn chuyển tiếp khi thay đổi API hoặc schema
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-009
+    title: Deprecation và tiêu chí kết thúc hỗ trợ hợp đồng cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-010
+    title: Giới hạn suy luận tương thích chỉ từ việc kiểm thử đạt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-011
+    title: Ma trận phiên bản và bằng chứng cần cho từng tổ hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: team-coordination
+  title: Phối hợp nhiều nhóm
+  childs:
+  - slug: team-coordination-001
+    title: Quy trình consumer đề xuất và producer rà soát hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-coordination-002
+    title: Quy trình producer công bố hợp đồng cho consumer sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-coordination-003
+    title: Thỏa thuận trách nhiệm sở hữu từng hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-coordination-004
+    title: Phân biệt kỳ vọng hợp lệ với yêu cầu chưa được thống nhất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-coordination-005
+    title: Hợp đồng đang phát triển và cách ngăn xác nhận giả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-coordination-006
+    title: Phản hồi khi producer chưa đáp ứng tương tác mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-coordination-007
+    title: Quản lý nhiều consumer có kỳ vọng khác nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-coordination-008
+    title: Giữ thay đổi hợp đồng và triển khai producer có thể truy vết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-coordination-009
+    title: Loại bỏ hợp đồng cũ có xác nhận của bên sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-coordination-010
+    title: Quy ước rà soát và tiêu chí chấp nhận thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cicd
+  title: CI/CD
+  childs:
+  - slug: cicd-001
+    title: 'Pipeline producer: kiểm tra hợp đồng, sinh test và xác minh'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-002
+    title: Chỉ công bố stub sau khi toàn bộ kiểm thử bắt buộc đạt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-003
+    title: Pipeline consumer dùng đúng phiên bản stub cần kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-004
+    title: Kiểm thử đề xuất thay đổi trước khi producer phát hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-005
+    title: Chia job và lưu bằng chứng từ test đến artifact
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-006
+    title: Cache dependency mà vẫn kiểm soát tính mới của SNAPSHOT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-007
+    title: Chạy song song và tránh xung đột cổng hoặc trạng thái stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-008
+    title: Phân biệt kết quả kiểm thử với quyết định cho phép triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-009
+    title: Bảo vệ credential kho artifact và quyền công bố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-010
+    title: Tái chạy pipeline với cùng đầu vào và cùng phiên bản stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-011
+    title: Ngăn thay đổi không tin cậy trong DSL chạy bằng mã tùy ý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-security
+  title: Bảo mật hợp đồng
+  childs:
+  - slug: contract-security-001
+    title: Giả lập xác thực và phân quyền trong producer test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-002
+    title: Header token, cookie và chứng chỉ bằng dữ liệu kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-003
+    title: Tránh ghi Secret hoặc dữ liệu cá nhân vào hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-004
+    title: Ẩn thông tin nhạy cảm trong stub và báo cáo kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-005
+    title: Bảo vệ quyền đọc và ghi kho artifact
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-006
+    title: Rủi ro khi nạp Groovy hoặc mã mở rộng từ nguồn không tin cậy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-007
+    title: Giới hạn mạng và quyền của tiến trình chạy stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-008
+    title: Rà soát tác dụng phụ của base test và custom assertion
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-quality
+  title: Chất lượng hợp đồng
+  childs:
+  - slug: contract-quality-001
+    title: Bao phủ tương tác mà consumer thật sự phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-quality-002
+    title: Phát hiện hợp đồng trùng, lỗi thời hoặc không có chủ sở hữu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-quality-003
+    title: Matcher quá rộng làm bỏ lọt thay đổi không tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-quality-004
+    title: Matcher quá chặt khiến thay đổi vô hại làm vỡ test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-quality-005
+    title: Tính xác định của fixture và kiểm thử được sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-quality-006
+    title: Kiểm tra đủ nhánh thành công, lỗi và trường hợp biên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-quality-007
+    title: Đánh giá test producer có kiểm chứng mã triển khai thực không
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-quality-008
+    title: Đánh giá test consumer có gọi đúng stub và phiên bản không
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-quality-009
+    title: Kiểm tra thủ công generated test và mapping khi thay đổi phức tạp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-quality-010
+    title: Danh sách kiểm tra trước khi hợp nhất hoặc công bố hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: customization-extension
+  title: Tùy biến và mở rộng
+  childs:
+  - slug: customization-extension-001
+    title: Khi dùng cấu hình có sẵn và khi cần extension
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-extension-002
+    title: Custom assertion và helper trong base test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-extension-003
+    title: Metadata phục vụ sinh stub theo khả năng hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-extension-004
+    title: Biến đổi hợp đồng và bổ sung định dạng nguồn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-extension-005
+    title: Tùy biến cách lấy hợp đồng hoặc artifact stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-extension-006
+    title: Adapter messaging cho công nghệ không có hỗ trợ sẵn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-extension-007
+    title: Tùy biến WireMock mà vẫn giữ dấu vết nguồn hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-extension-008
+    title: Kiểm thử extension và tương thích khi nâng phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-extension-009
+    title: Giới hạn mã tùy biến để quy trình hợp đồng dễ bảo trì
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Plugin không tìm thấy hợp đồng hoặc không sinh kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Generated test được tạo nhưng không được công cụ build chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Sai base class, package hoặc test framework
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Request không khớp stub do URL, query hoặc header
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Sai content type, serialization hoặc dữ liệu body
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Nhầm consumer value và producer value
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Regex hoặc JSONPath đúng trong ý tưởng nhưng sai khi được sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Stub artifact không tồn tại, sai classifier hoặc sai phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Cổng stub không được truyền vào HTTP client của consumer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Kiểm thử dùng cache SNAPSHOT cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Scenario hoặc request journal gây ảnh hưởng chéo giữa các test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Messaging test không nhận được thông điệp hoặc chờ quá lâu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Producer test đạt nhưng consumer vẫn không tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Quy trình đọc hợp đồng, generated test, mapping và request thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tool-compatibility
+  title: Tương thích công cụ
+  childs:
+  - slug: tool-compatibility-001
+    title: Đối chiếu Spring Boot, Spring Cloud Contract và phiên bản plugin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-compatibility-002
+    title: Kiểm tra thay đổi Java, Groovy và framework kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-compatibility-003
+    title: Rà soát WireMock, HTTP client và xung đột dependency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-compatibility-004
+    title: Kiểm tra chuyển đổi namespace thư viện theo nền tảng đang dùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-compatibility-005
+    title: Chuyển kiểm thử cũ sang JUnit hoặc công cụ mới phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-compatibility-006
+    title: Đối chiếu generated test và stub trước và sau nâng cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-compatibility-007
+    title: Giới hạn tích hợp với OpenAPI, Pact và các công cụ hợp đồng khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-compatibility-008
+    title: Kiểm thử hồi quy pipeline công bố và tải stub
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Xây dựng producer HTTP và consumer với hợp đồng đầu tiên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Sinh test producer, công bố stub và chạy consumer test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Viết hợp đồng JSON có trường động và matcher
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Kiểm thử request multipart và trường hợp phản hồi lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Phát hiện thay đổi phá vỡ khi xóa trường consumer đang dùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Hỗ trợ đồng thời nhiều consumer và nhiều phiên bản hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Xây dựng luồng nhận và phát thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Kích hoạt messaging stub và kiểm chứng mã consumer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Chạy nhiều stub bằng cổng ngẫu nhiên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Thiết lập pipeline với artifact có thể truy vết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-011
+    title: Điều tra một lỗi từ kết quả CI về hợp đồng nguồn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: strategy-selection
+  title: Lựa chọn chiến lược
+  childs:
+  - slug: strategy-selection-001
+    title: Khi nên áp dụng Spring Cloud Contract
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-selection-002
+    title: Khi kiểm thử tích hợp hoặc end-to-end phù hợp hơn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-selection-003
+    title: Chọn phạm vi HTTP, messaging và số consumer cần hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-selection-004
+    title: Chọn nơi lưu hợp đồng và quy trình đề xuất thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-selection-005
+    title: Chọn fixture, matcher và mức độ ràng buộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-selection-006
+    title: Chọn chạy verifier trong tiến trình hay qua ứng dụng thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-selection-007
+    title: Cân bằng tốc độ kiểm thử với mức tin cậy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-selection-008
+    title: Đánh giá chi phí phối hợp và duy trì hợp đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-selection-009
+    title: Bài tập thiết kế chiến lược kiểm thử cho hệ thống nhiều dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

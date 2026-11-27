@@ -1,0 +1,1944 @@
+# Re-Collecting Statistics and Checking Plan Regressions
+
+After upgrading PostgreSQL, the database may start cleanly and retain all data while query performance shifts dramatically. A major reason is that the optimizer needs statistics matching both the current data and the new version. The planner uses statistics to estimate row counts, selectivity, distinct value counts, value distributions, and the costs of execution choices. If statistics have not been regathered, are stale, or fail to describe the actual data distribution, PostgreSQL may pick a sequential scan instead of an index scan, choose a suboptimal join order, allocate oversized hashes/sorts, or misuse parallelism.
+
+A major upgrade also changes planner code, cost model behavior, executor logic, collation libraries, extension versions, and certain defaults. A query can produce a different plan even when SQL and data are unchanged. Therefore, an upgrade workflow requires two distinct tasks: **regathering statistics post-upgrade** and **checking for query plan regressions**. `ANALYZE` generates statistical data for the optimizer; plan regression testing identifies whether critical queries experience unfavorable plan or latency shifts.
+
+Success must not be judged merely by server startup or a few passing smoke tests. Post-upgrade, workloads must be observed under representative conditions: common and rare query parameters, concurrency, cache states, batch windows, and realistic data volumes. Comparisons must cover both execution plans and latency, rows, buffers, temporary I/O, WAL, and spillover impact on other queries. A changed plan is not automatically a regression; the planner might pick a better new plan. Conversely, an identical plan does not guarantee identical runtime if hardware, storage, cache, or concurrency changed.
+
+This lesson belongs to the **Upgrades** chapter of the **Database Engine Relational PostgreSQL** module. It covers the role of planner statistics, running `ANALYZE` after a major upgrade, extended statistics, autovacuum/analyze, capturing baseline plans, before/after comparisons, and remediating different forms of plan regression.
+
+## 1. Learning Objectives
+
+After this lesson, you will be able to:
+
+- Explain how planner statistics influence cardinality estimates and execution plans.
+- Distinguish catalog statistics from runtime statistics.
+- Understand why statistics must be regathered after a PostgreSQL major upgrade.
+- Use `ANALYZE`, `VACUUM (ANALYZE)`, and `vacuumdb` to update statistics.
+- Schedule analyze by database/table/partition and workload.
+- Inspect `last_analyze`, `n_mod_since_analyze`, and analyze progress.
+- Tune statistics targets and create extended statistics when supported by evidence.
+- Capture query fingerprints, representative parameters, and `EXPLAIN` plans prior to upgrading.
+- Compare estimated/actual rows, plan nodes, buffers, I/O, and runtime post-upgrade.
+- Distinguish justified plan changes from performance regressions.
+- Investigate regressions caused by stale stats, skew, collations, indexes, configs, extensions, or prepared plans.
+- Build post-upgrade rollout, acceptance criteria, rollback, and monitoring processes.
+
+## 2. What Are Planner Statistics?
+
+The PostgreSQL planner estimates the cost of multiple execution strategies before choosing one plan. Statistics help the planner estimate how much data flows through each node.
+
+### 2.1. Cardinality Estimates
+
+The planner must predict how many rows scans, filters, joins, aggregates, and subqueries will return. Inaccurate estimates can distort join method and join order choices.
+
+### 2.2. Selectivity
+
+Selectivity represents the fraction of rows matching a predicate. For instance, filtering on a common status has different selectivity than filtering on a rare UUID.
+
+### 2.3. Value Distribution
+
+Histogram bounds, most common values, and null fractions describe how values are distributed within a column.
+
+### 2.4. Distinct Values
+
+Distinct value counts help the planner estimate group cardinalities, distinct operations, and join behavior.
+
+### 2.5. Correlation
+
+Correlation between physical row order and column values affects index access cost. Correlation across multiple columns also affects selectivity estimation.
+
+## 3. Planner Statistics vs. Runtime Statistics
+
+PostgreSQL maintains several statistics subsystems for different purposes. Distinguish them before investigating.
+
+| Type | Examples | Purpose |
+|---|---|---|
+| Planner statistics | `pg_statistic`, `pg_stats` | Estimating rows and selectivity |
+| Table activity | `pg_stat_user_tables` | Scans, tuples, analyze/vacuum history |
+| Query activity | `pg_stat_statements` | Calls, execution time, buffers |
+| Session/wait | `pg_stat_activity` | Active sessions and wait events |
+| I/O activity | `pg_stat_io` | I/O counters by backend/context on supported versions |
+| Progress | `pg_stat_progress_analyze` | Tracking running `ANALYZE` on supported versions |
+
+### 3.1. Planner Statistics
+
+Generated by `ANALYZE` and stored in system catalogs. The planner reads them during planning.
+
+### 3.2. Runtime Statistics
+
+Record actual activity such as calls, elapsed time, blocks, sessions, and waits. They show which queries consume resources.
+
+### 3.3. Statistics Resets
+
+Certain runtime counters can reset or be lost across restarts. Planner statistics are catalog data with a separate lifecycle.
+
+### 3.4. Do Not Substitute `pg_stat_statements` for `ANALYZE`
+
+`pg_stat_statements` shows how queries performed; it does not replace the histograms/MCV statistics needed by the optimizer.
+
+### 3.5. Combine Both Types
+
+Planner stats explain plan decisions; runtime stats tell whether those decisions yield good performance in real workloads.
+
+## 4. Why Must `ANALYZE` Run After a Major Upgrade?
+
+A major upgrade can create a new cluster or alter catalog/system metadata such that old optimizer statistics are not carried over reliably as part of the upgrade process.
+
+### 4.1. Statistics May Not Transfer
+
+In `pg_upgrade` workflows, optimizer statistics must be rebuilt on the new cluster. Upgrade tooling typically provides or instructs running an analyze script afterward.
+
+### 4.2. The Planner Version Changed
+
+A newer planner may feature different costing, cardinality estimation, or plan selection behavior. Fresh statistics give the planner inputs suited to the new cluster.
+
+### 4.3. Extension and Type Changes
+
+Extension upgrades, custom types, operator classes, collations, or function definitions can affect selectivity or ordering semantics. Statistics should be rebuilt once objects are compatible.
+
+### 4.4. Data May Have Changed
+
+During upgrade/cutover, backfills, logical replication, or ETL can shift data distributions from the baseline. `ANALYZE` must reflect data at the target.
+
+### 4.5. Do Not Open Full Workload Before Sufficient Stats
+
+Critical queries can get poor plans if the planner operates on missing or default statistics. Identify critical tables and analyze them before ramping traffic.
+
+## 5. How Does `ANALYZE` Work?
+
+`ANALYZE` samples rows from a table/partition, computes column statistics, and stores results in the catalog.
+
+~~~sql
+ANALYZE;
+~~~
+
+### 5.1. Database-Wide Analyze
+
+Omitting a relation analyzes eligible tables in the current database. This can take considerable time on large databases.
+
+### 5.2. Table-Specific Analyze
+
+~~~sql
+ANALYZE public.orders;
+~~~
+
+Use when prioritizing critical or recently backfilled tables.
+
+### 5.3. Column-Specific Analyze
+
+~~~sql
+ANALYZE public.orders (tenant_id, status, created_at);
+~~~
+
+Helps target key columns quickly, provided remaining statistics are not neglected long-term.
+
+### 5.4. `VACUUM (ANALYZE)`
+
+~~~sql
+VACUUM (ANALYZE) public.orders;
+~~~
+
+Combines cleanup and statistics collection. `VACUUM` serves its own purpose; do not run `VACUUM` solely for statistics if `ANALYZE` suffices.
+
+### 5.5. Analyze Does Not Lock Tables Like Exclusive DDL
+
+`ANALYZE` normally allows concurrent reads and writes, yet still consumes I/O and CPU and can contend for resources. Schedule around peak workloads.
+
+## 6. `ANALYZE` After `pg_upgrade`
+
+After a major upgrade with `pg_upgrade`, run analyze on the new cluster before concluding performance is stable.
+
+### 6.1. Read `pg_upgrade` Output
+
+Review notices and generated scripts in the upgrade working directory. Follow instructions for your exact major version.
+
+### 6.2. `analyze_new_cluster.sh`
+
+Some `pg_upgrade` workflows generate a script such as `analyze_new_cluster.sh` to run analyze on the new cluster. Inspect the exact generated script, permissions, and target cluster before running.
+
+### 6.3. `vacuumdb --analyze-in-stages`
+
+You can run `vacuumdb` with `--analyze-in-stages` to generate usable statistics quickly in initial stages and then progressively raise statistics detail.
+
+~~~bash
+vacuumdb --all --analyze-in-stages --jobs=4
+~~~
+
+Tune jobs based on CPU, I/O headroom, and workload. Verify options in `vacuumdb` for your exact major version.
+
+### 6.4. Prioritize Critical Databases and Tables
+
+If the entire cluster is too large to analyze immediately, prioritize critical databases and tables serving logins, transactions, routing, inventory, or tight-SLO workloads. Track remaining tables until complete.
+
+### 6.5. Record Progress
+
+Log database/table, start/end times, rows/sizes if available, errors, and pending tables. Do not treat launching the command as completion.
+
+## 7. Analyzing by Database, Schema, and Table
+
+Scope operations based on data size, criticality, and available maintenance time.
+
+### 7.1. Current Database
+
+~~~sql
+ANALYZE;
+~~~
+
+Simple for small databases or when maintenance windows permit.
+
+### 7.2. Specific Table Lists
+
+~~~sql
+ANALYZE public.customers;
+ANALYZE public.orders;
+ANALYZE public.order_items;
+~~~
+
+Order by critical query dependencies.
+
+### 7.3. Schema Scope
+
+You can generate a list of relations from catalogs and run `ANALYZE` per relation. Never assume `ANALYZE schema` is valid syntax.
+
+### 7.4. Newly Bulk-Loaded Tables
+
+After `COPY` or large imports, run `ANALYZE` on affected tables so the planner sees the new distribution.
+
+### 7.5. Temporary Tables
+
+Temporary tables have session-specific statistics behavior; applications may need to run `ANALYZE` after populating them prior to complex queries.
+
+## 8. Checking Analyze History
+
+`pg_stat_user_tables` and `pg_stat_all_tables` track analyze activity and modification counters.
+
+~~~sql
+SELECT
+    schemaname,
+    relname,
+    n_live_tup,
+    n_mod_since_analyze,
+    last_analyze,
+    last_autoanalyze
+FROM pg_stat_user_tables
+ORDER BY n_mod_since_analyze DESC NULLS LAST;
+~~~
+
+### 8.1. `last_analyze`
+
+Timestamp of the most recent manual `ANALYZE`.
+
+### 8.2. `last_autoanalyze`
+
+Timestamp of the most recent auto-analyze performed by an autovacuum worker.
+
+### 8.3. `n_mod_since_analyze`
+
+Estimated row modifications since the last analyze. High values suggest statistics may be stale relative to workload changes.
+
+### 8.4. `n_live_tup`
+
+Estimated live tuples—not an exact `COUNT(*)`. Useful for gauging scale and autovacuum thresholds.
+
+### 8.5. Do Not Rely Solely on Timestamps
+
+A table analyzed recently but subsequently bulk-loaded with millions of rows still requires re-analyzing. Watch modification counts and distribution shifts.
+
+## 9. Autovacuum and Auto-Analyze
+
+Autovacuum automatically runs vacuum/analyze based on thresholds and settings. After an upgrade, auto-analyze may lag behind returning traffic.
+
+### 9.1. Analyze Thresholds
+
+Auto-analyze triggers when modifications exceed a base threshold plus a scale factor proportional to table size. Exact parameters and behavior vary by PostgreSQL version.
+
+### 9.2. Global Settings
+
+Review `autovacuum_analyze_threshold`, `autovacuum_analyze_scale_factor`, and worker capacity.
+
+### 9.3. Per-Table Settings
+
+You can override scale factors/thresholds for large or rapidly changing tables:
+
+~~~sql
+ALTER TABLE public.orders
+SET (autovacuum_analyze_scale_factor = 0.02);
+~~~
+
+Adjust only when workload and analyze cadence justify it.
+
+### 9.4. Worker Capacity
+
+`autovacuum_max_workers`, cost delays, and I/O budgets affect how fast workers catch up across many tables. Adding workers can increase I/O contention.
+
+### 9.5. Autovacuum Does Not Replace a Post-Upgrade Plan
+
+Do not wait for natural autovacuum cycles when critical queries need stats before opening traffic. Analyze proactively per the upgrade runbook.
+
+## 10. Monitoring `ANALYZE` Progress
+
+PostgreSQL versions supporting progress reporting for `ANALYZE` provide the `pg_stat_progress_analyze` view.
+
+~~~sql
+SELECT
+    pid,
+    datname,
+    relid::regclass AS relation,
+    phase,
+    sample_blks_total,
+    sample_blks_scanned,
+    ext_stats_total,
+    ext_stats_computed,
+    child_tables_total,
+    child_tables_done
+FROM pg_stat_progress_analyze;
+~~~
+
+### 10.1. Phase
+
+Indicates the current stage of analyze. Verify exact phase names and columns for your major version.
+
+### 10.2. Sample Blocks
+
+`sample_blks_total`/`scanned` show block sampling progress where exposed by the version.
+
+### 10.3. Extended Statistics
+
+Extended-stats counters indicate progress building multi-column statistics.
+
+### 10.4. Partition Children
+
+When analyzing partitioned relations with children, progress may reflect child tables processed depending on version.
+
+### 10.5. Progress Is Not an Exact ETA
+
+Sample sizes, I/O latency, and relation traits cause remaining time to fluctuate. Use it for observation, not as a strict ETA guarantee.
+
+## 11. Statistics Target and Sample Quality
+
+`default_statistics_target` controls the default granularity for many planner statistics. Higher targets require larger samples and increase analyze cost.
+
+### 11.1. Default Target
+
+~~~sql
+SHOW default_statistics_target;
+~~~
+
+The default often suffices for ordinary columns, though heavy data skew may require column-specific targets.
+
+### 11.2. Column-Specific Targets
+
+~~~sql
+ALTER TABLE public.orders
+ALTER COLUMN status SET STATISTICS 500;
+
+ANALYZE public.orders (status);
+~~~
+
+### 11.3. Target Too Low
+
+MCVs/histograms may miss important common or rare values, leading to poor selectivity estimates.
+
+### 11.4. Target Too High
+
+Analyze requires larger samples, increasing CPU, I/O, and catalog storage. Raising targets globally across all columns is not a default best practice.
+
+### 11.5. Pick Columns Based on Query Evidence
+
+Focus on columns appearing in predicates, joins, groupings, and columns exhibiting skew. Re-evaluate estimates and plans after raising targets.
+
+## 12. Reading Planner Statistics via `pg_stats`
+
+`pg_stats` is a more readable view over the internal `pg_statistic` catalog.
+
+~~~sql
+SELECT
+    schemaname,
+    tablename,
+    attname,
+    null_frac,
+    n_distinct,
+    most_common_vals,
+    most_common_freqs,
+    histogram_bounds,
+    correlation
+FROM pg_stats
+WHERE schemaname = 'public'
+  AND tablename = 'orders'
+ORDER BY attname;
+~~~
+
+### 12.1. `null_frac`
+
+Estimated fraction of NULLs in the column. `IS NULL` predicates rely on this metric.
+
+### 12.2. `n_distinct`
+
+Estimated distinct value count. Negative values indicate a fraction of total rows rather than an absolute count.
+
+### 12.3. `most_common_vals`/`freqs`
+
+List of most frequent values and their corresponding frequencies. Crucial for skewed distributions and hot keys.
+
+### 12.4. `histogram_bounds`
+
+Histogram capturing distribution of values outside the MCV list. Supports range selectivity estimates.
+
+### 12.5. `correlation`
+
+Correlation between physical row ordering and column values ranges from `-1` to `1`; values near `±1` indicate stronger physical locality for index scans.
+
+## 13. Extended Statistics for Correlated Columns
+
+Single-column statistics assume independence in many estimates. When columns are dependent or correlated, the planner can miscalculate combined selectivities.
+
+### 13.1. Data Correlation Example
+
+An `orders` table has `tenant_id` and `region_id`. Each tenant belongs to one region; predicates on both are not independent. Treating them as independent can make estimated rows far lower than actual rows.
+
+### 13.2. Dependencies
+
+Dependencies statistics describe functional dependencies among columns.
+
+~~~sql
+CREATE STATISTICS orders_tenant_region_dep
+    (dependencies)
+ON tenant_id, region_id
+FROM public.orders;
+
+ANALYZE public.orders;
+~~~
+
+### 13.3. N-Distinct
+
+N-distinct statistics improve estimates of distinct group combinations across multiple columns.
+
+~~~sql
+CREATE STATISTICS orders_tenant_status_nd
+    (ndistinct)
+ON tenant_id, status
+FROM public.orders;
+
+ANALYZE public.orders;
+~~~
+
+### 13.4. Most Common Combinations
+
+MCV extended statistics capture frequent multi-column combinations.
+
+~~~sql
+CREATE STATISTICS orders_tenant_status_mcv
+    (mcv)
+ON tenant_id, status
+FROM public.orders;
+
+ANALYZE public.orders;
+~~~
+
+### 13.5. Do Not Create Extended Stats for Every Column Pair
+
+Create them only when plans/estimates show correlation or multi-column predicates cause misestimation. Extended stats add analyze work and catalog overhead.
+
+## 14. Expression Statistics and Expression Indexes
+
+Queries filtering on expressions may need statistics and indexes matching those expressions.
+
+### 14.1. Expression Index
+
+~~~sql
+CREATE INDEX idx_users_lower_email
+ON public.users (lower(email));
+~~~
+
+The planner can use the index when the query expression matches.
+
+### 14.2. Expression Statistics
+
+PostgreSQL supports statistics objects on expressions in supported versions:
+
+~~~sql
+CREATE STATISTICS users_lower_email_stats
+ON (lower(email))
+FROM public.users;
+
+ANALYZE public.users;
+~~~
+
+### 14.3. Expression Consistency
+
+Expressions in queries, indexes, and statistics must match in function and operator semantics. Immutability rules apply to index expressions; check version-specific rules.
+
+### 14.4. Functional Transformations
+
+Predicates using `date_trunc`, `lower`, casts, or arithmetic complicate selectivity estimation unless appropriate expression statistics exist.
+
+### 14.5. Check the Plan
+
+Use `EXPLAIN` to confirm the planner uses the index/statistics and actual rows align more closely with estimates.
+
+## 15. Partitioned Tables and Statistics
+
+Partitioning adds dimensions around parent/child relations, partition pruning, and per-partition data distributions.
+
+### 15.1. Parent and Partitions
+
+Check statistics on both partitioned parents and leaf partitions per major version. Ensure analyze runs on relations accessed by critical queries.
+
+### 15.2. Skew Across Partitions
+
+Recent partitions may hold most hot rows while historical partitions are massive yet rarely queried. Global averages may misrepresent per-partition queries.
+
+### 15.3. Incremental Data Growth
+
+New partitions added post-upgrade need analyzing right after data loads. Do not wait for auto-analyze when a partition is bulk-populated and queried immediately.
+
+### 15.4. Partition Pruning
+
+`EXPLAIN` should confirm irrelevant partitions are pruned. Good statistics cannot fix queries missing predicates on the partition key.
+
+### 15.5. Parent-Level Planning
+
+Test plans against the parent relation with representative parameters; testing a leaf partition directly does not reproduce production query planning.
+
+## 16. Statistics and Collation Changes
+
+Major upgrades can coincide with `libc`/ICU collation provider or version changes. This can affect sorting/equality ordering, indexes, and planner behavior.
+
+### 16.1. Collation Versions
+
+Inspect collation version metadata and log warnings. Changes in collation semantics may require `REINDEX` to restore index ordering.
+
+### 16.2. `REINDEX` Before Workload
+
+If collation version mismatches require rebuilding indexes, execute them per the upgrade runbook before evaluating plan regressions. `ANALYZE` does not repair index ordering.
+
+### 16.3. Statistics After Reindex
+
+Once indexes are rebuilt and schemas/data settle, run `ANALYZE` so the planner has accurate statistics.
+
+### 16.4. ICU/libc Differences
+
+Different providers or versions can alter ordering and comparisons. Verify OS/library versions and database collation definitions.
+
+### 16.5. Separate the Two Issues
+
+Plan regressions from stale statistics and broken index ordering are two distinct root causes. Never try to fix a collation mismatch merely by raising statistics targets.
+
+## 17. Capturing Baseline Queries Before Upgrade
+
+To detect regressions, you must know which queries matter and how they behaved on the old cluster.
+
+### 17.1. Select a Representative Workload
+
+Capture top queries by total execution time, mean/p95 latency if tracing exists, calls, rows, buffers, temp blocks, and WAL.
+
+### 17.2. Query Fingerprints
+
+Record normalized query text, `queryid`, `application_name`, database, role, and workload class. `queryid` can change across major versions; never use it as the sole matching key across an upgrade.
+
+### 17.3. Representative Parameters
+
+Save parameter classes such as small/large tenants, common/rare statuses, short/long date ranges, and NULL/non-NULL inputs. Avoid storing unnecessary sensitive literals.
+
+### 17.4. Baseline `EXPLAIN`
+
+Capture `EXPLAIN (FORMAT JSON)` or TEXT with relevant settings/buffers. For runtime metrics, run `EXPLAIN ANALYZE` in staging or production per safety policy.
+
+### 17.5. Baseline Environment
+
+Record PostgreSQL version, extensions, schema/index definitions, planner settings, hardware/storage, collation versions, and data size.
+
+## 18. Selecting Queries for Regression Testing
+
+You do not need to test every single statement in an application; prioritize queries with high business impact or resource cost.
+
+### 18.1. High-Frequency Queries
+
+A tiny query executed millions of times can consume substantial CPU and connection capacity.
+
+### 18.2. High-Total-Time Queries
+
+Queries with high total execution time drive overall throughput. Optimizing them can reclaim major capacity.
+
+### 18.3. Tail-Latency Queries
+
+Infrequent queries with very high p99/max latency can breach user-facing SLOs or hold locks for long periods.
+
+### 18.4. Critical Business Paths
+
+Login, checkout, payment, inventory, account lookup, and transactional writes require representative tests even if `pg_stat_statements` does not rank them at the top.
+
+### 18.5. Maintenance and Reporting Queries
+
+ETL, reports, backup metadata, vacuum-sensitive queries, and scheduled jobs also require testing because they compete with OLTP workloads.
+
+## 19. Saving `EXPLAIN` Plans Before and After Upgrade
+
+`EXPLAIN` JSON captures structured plans for automated diffing, parsing, and tooling visualization.
+
+~~~sql
+EXPLAIN (FORMAT JSON, SETTINGS)
+SELECT *
+FROM public.orders
+WHERE tenant_id = 42
+  AND status = 'open'
+  AND created_at >= DATE '2026-01-01';
+~~~
+
+### 19.1. `FORMAT JSON`
+
+JSON preserves node types, costs, estimates, relation names, index names, and plan attributes cleanly for automated processing.
+
+### 19.2. `SETTINGS`
+
+Records non-default planner settings affecting the plan per version. Save relevant session/server GUCs alongside the plan.
+
+### 19.3. `EXPLAIN ANALYZE`
+
+In staging, you can run:
+
+~~~sql
+EXPLAIN (ANALYZE, BUFFERS, WAL, SETTINGS, VERBOSE)
+SELECT count(*)
+FROM public.orders
+WHERE status = 'open';
+~~~
+
+`EXPLAIN ANALYZE` executes the query; for `INSERT`/`UPDATE`/`DELETE` or side-effecting functions, use transaction rollback only when semantics permit and side effects are understood. Prefer staging/clones for tests.
+
+### 19.4. Plan-Only vs. Runtime Tests
+
+`EXPLAIN FORMAT JSON` does not execute the query; `EXPLAIN ANALYZE` measures actual runtime. Both are needed because plan shape changes and runtime regressions are distinct signals.
+
+### 19.5. Normalize the Environment
+
+Identical roles, `search_path`, parameters, planner settings, prepared statement modes, and data snapshots make comparisons meaningful.
+
+## 20. Reading Plan Diffs After Upgrade
+
+Plan diffs should focus on changes likely to alter execution cost.
+
+### 20.1. Node Type Changes
+
+Seq Scan turning into Index Scan, Nested Loop turning into Hash Join, or parallel plans appearing/disappearing. Never automatically flag every change as a regression.
+
+### 20.2. Join Order
+
+The planner may reorder joins due to updated cardinality or cost estimates. Inspect intermediate rows and loop counts.
+
+### 20.3. Estimated Rows
+
+Compare before/after estimated rows against actual rows. Improved estimates can explain beneficial plan changes even when the node tree looks different.
+
+### 20.4. Cost Estimates
+
+Cost parameters/defaults or planner refinements can alter estimated costs. Cost is not runtime; never compare cost units as milliseconds.
+
+### 20.5. Buffers and Temp Usage
+
+Runtime plans expose differences in shared blocks, temp blocks, and WAL. Combine these with latency and host metrics to confirm real impact.
+
+## 21. What Is a Plan Regression?
+
+A plan regression is an execution strategy change causing a workload or query to perform worse or consume more resources than baseline under equivalent conditions.
+
+### 21.1. Latency Regression
+
+Query runtime or p95/p99 climbs significantly, breaching SLOs or business thresholds.
+
+### 21.2. Resource Regression
+
+A query consumes noticeably more CPU, reads, temp I/O, WAL, or memory even if latency has not spiked yet due to spare headroom.
+
+### 21.3. Concurrency Regression
+
+A new plan holds locks longer, spawns more parallel workers, or causes queueing that slows concurrent requests.
+
+### 21.4. A Plan Change Is Not Always a Regression
+
+The planner may switch to a faster new plan. Judge by measured workload metrics, not merely diffing node names.
+
+### 21.5. Same Plan Does Not Guarantee Same Performance
+
+Hardware, OS cache, storage, data volume, collations, concurrent load, and cache warmth can alter runtime even with an identical plan tree.
+
+## 22. Cardinality Estimate Errors After Upgrade
+
+Misestimated row counts are a leading cause of bad plans.
+
+### 22.1. Estimated vs. Actual
+
+In `EXPLAIN ANALYZE`, compare estimated rows against actual rows at every node, factoring in `loops` to evaluate total work.
+
+### 22.2. Scan Node Skew
+
+Often caused by stale stats, coarse histograms, data skew, or expression predicates.
+
+### 22.3. Join Node Skew
+
+Often caused by correlated join keys, duplicate distributions, FK relationships, or column independence assumptions.
+
+### 22.4. Extended Stats
+
+Dependencies, `ndistinct`, and MCV extended stats can improve multi-column estimates. Create them based on evidence and re-run `ANALYZE`.
+
+### 22.5. Data Growth
+
+If data volume grew significantly during upgrade/cutover, old statistics or small benchmark datasets may no longer mirror production distributions.
+
+## 23. Common Causes of Plan Regressions
+
+After an upgrade, a query can change plans because multiple inputs shift simultaneously. Categorizing root causes guides the right fix.
+
+### 23.1. Missing or Stale Statistics
+
+The target cluster was not analyzed, analyze covered only selected tables, or data changed after analyze.
+
+### 23.2. Insufficient Statistics Targets
+
+MCVs/histograms fail to capture significant skew. Heavily skewed columns may require custom targets.
+
+### 23.3. Correlated Predicates
+
+The planner assumes independence between columns that actually have dependencies. Extended statistics can help.
+
+### 23.4. Index or Schema Differences
+
+Indexes may be missing, invalid, un-rebuilt, use different operator classes/collations, or schema migrations altered query paths.
+
+### 23.5. Planner Settings and Cost Parameters
+
+`random_page_cost`, `effective_cache_size`, `work_mem`, `enable_*` flags, parallel thresholds, and JIT thresholds may differ across clusters.
+
+### 23.6. Version Behavior Changes
+
+Planner/executor enhancements or bug fixes can change plan selection. Read release notes for the exact major versions and reproduce in staging.
+
+### 23.7. Collation, Type, or Extension Changes
+
+Ordering, comparison operators, custom selectivity functions, and extension upgrades can alter plans or index eligibility.
+
+## 24. Prepared Statements and Generic/Custom Plans
+
+Prepared statements can switch between a reusable generic plan and parameter-specific custom plans. This matters greatly when parameter distributions are skewed.
+
+### 24.1. Generic Plan
+
+A generic plan ignores specific parameter values, reducing planning overhead while risking poor performance on extreme parameter values.
+
+### 24.2. Custom Plan
+
+A custom plan is generated for specific parameter values, often performing better under skew at the cost of higher planning work.
+
+### 24.3. `plan_cache_mode`
+
+You can use `plan_cache_mode` for investigation:
+
+~~~sql
+SHOW plan_cache_mode;
+SET plan_cache_mode = force_custom_plan;
+~~~
+
+This is a diagnostic/session-level tool; never change global policy without benchmarking the full workload.
+
+### 24.4. Parameter-Sensitive Testing
+
+Test small/large tenants, narrow/wide date ranges, common/rare values, and NULLs. A single sample parameter is insufficient.
+
+### 24.5. Driver and Pooler Behavior
+
+Prepared statement lifecycles depend on drivers, pooling modes, and server-side prepare settings. Test exactly how the real application dispatches statements.
+
+## 25. Post-Upgrade Planner Configuration
+
+Never copy the entire old `postgresql.conf` blindly onto a new major version or different environment.
+
+### 25.1. Compare Settings
+
+Export `pg_settings` from both old and new clusters, comparing setting, unit, context, source, and `pending_restart`.
+
+### 25.2. Defaults May Change
+
+Defaults and behavior can change across major versions. Consult release notes and target version documentation.
+
+### 25.3. `effective_cache_size`
+
+This is a planner estimate of available cache per query—it allocates no memory. Base it on `shared_buffers`, OS page cache, and concurrency assumptions.
+
+### 25.4. `random_page_cost`
+
+The planner's cost assumption for random page access. Appropriate values depend on storage and caching; never lower it solely to force index scans.
+
+### 25.5. `work_mem` and Parallelism
+
+`work_mem` and parallel settings govern memory and worker concurrency. Tuning for a single query can trigger resource regressions under concurrent workloads.
+
+## 26. Query Plans and Index State After Upgrade
+
+Plan regressions can stem from index availability, validity, or physical condition.
+
+### 26.1. Check Index Validity
+
+~~~sql
+SELECT
+    ns.nspname AS schema_name,
+    tbl.relname AS table_name,
+    idx.relname AS index_name,
+    i.indisvalid,
+    i.indisready,
+    i.indisunique
+FROM pg_index AS i
+JOIN pg_class AS idx ON idx.oid = i.indexrelid
+JOIN pg_class AS tbl ON tbl.oid = i.indrelid
+JOIN pg_namespace AS ns ON ns.oid = tbl.relnamespace
+WHERE ns.nspname NOT IN ('pg_catalog', 'information_schema')
+ORDER BY 1, 2, 3;
+~~~
+
+### 26.2. Collation Mismatches
+
+Check collation version mismatches and reindex requirements before concluding the optimizer is ignoring an index.
+
+### 26.3. Operator Classes
+
+Index operator classes/families must match the operators used by queries. Extension and type upgrades may require re-verification.
+
+### 26.4. Index-Only Scans
+
+Visibility map state and vacuum history govern heap fetches. After upgrades or bulk loads, an Index Only Scan may still perform frequent heap fetches.
+
+### 26.5. Index Bloat and Cache Footprint
+
+Larger indexes increase page reads and cache footprint. Compare relation sizes and I/O before and after.
+
+## 27. Runtime Regression Testing
+
+Plan comparisons should be paired with runtime tests against representative workloads.
+
+### 27.1. Same Data Snapshot
+
+Use an identical copy or equivalent dataset snapshot. If data differs, record discrepancies and avoid direct comparisons.
+
+### 27.2. Same Parameters
+
+Use matching parameter sets covering common, rare, boundary, and NULL values where valid.
+
+### 27.3. Same Concurrency
+
+Test across representative concurrency levels: single query, normal load, peak load, and bursts.
+
+### 27.4. Cache Conditions
+
+Test warm-cache and cold-cache scenarios separately. Never flush OS caches on production to stage a cold test.
+
+### 27.5. Multiple Runs
+
+Run multiple iterations and compare medians/percentiles; discard warm-up runs affected by startup, JIT compilation, or background tasks when measuring steady state.
+
+## 28. Comparing Latency and Resource Consumption
+
+A plan may run faster for one query while slowing down the entire system.
+
+### 28.1. Query Execution Time
+
+Record mean/median/p95/p99 and max by query class. A single `EXPLAIN ANALYZE` sample does not replace production latency distributions.
+
+### 28.2. Planning Time
+
+Planning time can rise for complex queries, heavily partitioned tables, or generic/custom plan behavior. Track planning time when planning overhead matters.
+
+### 28.3. Buffer Activity
+
+Compare shared hits/reads, local/temp blocks, and heap fetches under identical plan and test conditions.
+
+### 28.4. CPU and I/O
+
+Measure process CPU, storage latency/IOPS/throughput, and wait events. A plan with low elapsed time in cached tests can cause an I/O storm in production.
+
+### 28.5. WAL and Writes
+
+Write queries may generate different WAL or index maintenance overhead post-upgrade. Compare `wal_bytes`, rows modified, checkpoint pressure, and replica lag.
+
+## 29. `pg_stat_statements` Before and After Upgrade
+
+Query statistics help prioritize regression investigations, provided resets and query identity changes are accounted for.
+
+~~~sql
+SELECT
+    calls,
+    total_exec_time,
+    mean_exec_time,
+    rows,
+    shared_blks_hit,
+    shared_blks_read,
+    temp_blks_written,
+    wal_bytes,
+    query
+FROM pg_stat_statements
+ORDER BY total_exec_time DESC
+LIMIT 50;
+~~~
+
+### 29.1. Export Baseline
+
+Capture periodic snapshots before upgrading—do not wait until the downtime window starts. Record `stats_reset` and the measurement interval.
+
+### 29.2. Reset/Epoch on Target
+
+After cutover, start a fresh measurement interval or mark the stats reset timestamp. Never compare cumulative counters across differing historical spans.
+
+### 29.3. Query Identity
+
+`queryid` can change across PostgreSQL major versions, configurations, or query normalization rules. Match queries by normalized SQL and application context, not `queryid` alone.
+
+### 29.4. Calls vs. Total Time
+
+A query whose total time grew may simply have received more calls rather than slower individual executions. Compare calls, mean time, and latency distribution.
+
+### 29.5. Query Text Sensitivity
+
+Handle query text and parameters per privacy policy. Use normalized fingerprints and redact sensitive literals in shared reports.
+
+## 30. `auto_explain` and Slow Query Logging
+
+When regressions appear only under production parameters or load, logging helps capture live execution plans.
+
+### 30.1. `log_min_duration_statement`
+
+Logs statements exceeding a duration threshold. Choose a threshold that captures problematic queries without flooding log volume.
+
+### 30.2. `auto_explain`
+
+The `auto_explain` extension logs execution plans for statements exceeding a threshold. Requires preload/configuration and log access.
+
+### 30.3. `log_analyze` and Buffers
+
+Analyze/buffers logging can be enabled in `auto_explain` per policy, though both add overhead. Benchmark in staging and enable selectively.
+
+### 30.4. Sampling and Log Volume
+
+You do not need to log every query with `ANALYZE`. Use thresholds, sampling, and time windows; monitor log storage and rotation.
+
+### 30.5. Production Safety
+
+EXPLAIN logging must never overload the server or expose sensitive query literals. Keep an emergency switch ready to disable instrumentation if overhead spikes.
+
+## 31. Analyzing Regressions by Query Class
+
+Do not tune only the top query in isolation. Classify impact by workload type.
+
+### 31.1. OLTP Critical Path
+
+Test low-latency, high-frequency lookups, updates, and transaction boundaries. Inspect lock duration, connection usage, and p99 latency.
+
+### 31.2. Reporting/OLAP
+
+Test large scans, joins, sorts, aggregates, parallel workers, and temp files. Measure completion time and spillover onto foreground traffic.
+
+### 31.3. Batch/ETL
+
+Test rows/sec, WAL bytes, commit cadence, dead tuples, replication lag, and restartability.
+
+### 31.4. Administrative Queries
+
+Test catalog scans, monitoring dashboards, backup metadata, and maintenance jobs. These can be impacted by catalog/version changes.
+
+### 31.5. Cross-Workload Impact
+
+A fix helping OLAP might increase `shared_buffers` churn or CPU and degrade OLTP p99. Acceptance criteria must cover all interacting workloads.
+
+## 32. Prioritizing Regressions by Severity
+
+Assess regressions by business and resource impact, not percentage change alone.
+
+| Level | Example | Action |
+|---|---|---|
+| Critical | Checkout/payment breaches SLO or times out | Halt rollout / roll back per policy |
+| High | Core query p99 jumps sharply; replica lag exceeds limit | Hotfix or tune before opening traffic |
+| Medium | Report slows down yet stays within completion window | Monitor and plan optimization |
+| Low | Plan differs while latency/resources stay healthy | Document; no immediate fix needed |
+
+### 32.1. Absolute vs. Relative Change
+
+Jumping from 1 ms to 2 ms is 100% yet may be negligible; jumping from 2 s to 3 s can break SLOs. Evaluate both absolute and relative impacts.
+
+### 32.2. Frequency
+
+A rare query and a query executing millions of times carry vastly different impacts. Calculate total workload cost.
+
+### 32.3. Business Criticality
+
+Prioritize payments, accounts, inventory, and transactional integrity ahead of non-critical reports.
+
+### 32.4. Resource Externalities
+
+A report taking twice as long without hurting OLTP differs sharply from a query saturating storage queues across the entire cluster.
+
+### 32.5. Regression Budget
+
+Establish thresholds before upgrading: latency, throughput, errors, CPU, memory, I/O, WAL, and replication lag. Never set thresholds after seeing results.
+
+## 33. Post-Upgrade Statistics Collection Process
+
+An ordered workflow ensures the new cluster has statistics before taking full load.
+
+### 33.1. Complete Upgrade Mechanics
+
+Verify the new PostgreSQL starts, catalogs/extensions are upgraded, data directory is correct, logs are clean, and all databases are present.
+
+### 33.2. Verify Schema and Index State
+
+Confirm migration scripts, extension updates, index validity, collation steps, and rebuilt objects are complete.
+
+### 33.3. Run Analyze Stages
+
+Use the script generated by `pg_upgrade` or `vacuumdb --analyze-in-stages` per version/tooling. Check output and exit status.
+
+### 33.4. Prioritize Critical Relations
+
+If analyzing everything takes too long, run `ANALYZE` on critical tables/columns before opening matching workloads. Track remaining relations.
+
+### 33.5. Re-Analyze After Data Changes
+
+If logical replication cutover, backfills, or ETL modify data afterward, re-analyze relations whose distributions shifted noticeably.
+
+## 34. Sequencing When Using Logical Replication for Upgrades
+
+A major upgrade via logical replication can involve multi-stage data loads and writes on the target.
+
+### 34.1. Analyze After Initial Load
+
+Once the initial copy completes and target data stabilizes, analyze target tables so the planner sees a realistic distribution.
+
+### 34.2. Cutover Writes
+
+Freeze source writes, let replication catch up, and cut applications over to the target per runbook.
+
+### 34.3. Analyze After Catch-Up
+
+If post-initial-analyze changes were substantial or skew shifted, re-analyze critical tables after catch-up.
+
+### 34.4. Sequence State
+
+Logical replication does not automatically keep sequences synchronized. Sequence alignment is a separate upgrade runbook task; do not confuse it with planner statistics.
+
+### 34.5. Validate Before Opening Full Traffic
+
+Verify row counts/invariants, schemas, indexes, sequences, planner stats, and critical query plans before ramping traffic.
+
+## 35. Staging Upgrades and Rehearsal
+
+Staging rehearsals reveal analyze timings and query regressions ahead of production.
+
+### 35.1. Representative Dataset
+
+Use a sanitized copy matching production scale and skew. Tiny datasets hide plan regressions.
+
+### 35.2. Run the Full Upgrade Sequence
+
+Execute the exact `pg_upgrade`/logical migration, extension updates, collation checks, analyze, and application deployment.
+
+### 35.3. Capture Analyze Duration
+
+Record duration per database/table, CPU/I/O impact, and concurrency. Use these measurements to budget the maintenance window.
+
+### 35.4. Plan Regression Suite
+
+Execute representative queries across chosen parameter sets and archive `EXPLAIN`/`ANALYZE` outputs.
+
+### 35.5. Rehearse Remediation
+
+Test targeted analyze, higher statistics targets, extended stats, index adjustments, and config changes in staging. Document gains and side effects.
+
+## 36. Production Cutover Checklist for Statistics
+
+### 36.1. Before Cutover
+
+Archive old-cluster query baselines, critical query list, representative parameters, `pg_settings`, extensions, schema/index inventories, and hardware/storage profiles.
+
+### 36.2. After Upgrade
+
+Complete extension/schema/index/collation steps and run `ANALYZE` per plan. Check analyze history and progress.
+
+### 36.3. Before Traffic Ramp
+
+Inspect critical `EXPLAIN` plans and run safe runtime checks. Confirm estimate quality and absence of critical plan regressions.
+
+### 36.4. During Traffic Ramp
+
+Ramp traffic in stages while tracking p95/p99, throughput, CPU/I/O, waits, temp files, WAL, and replica lag.
+
+### 36.5. After Full Traffic
+
+Continue collecting query stats through peak windows and batch cycles. The first hour does not represent weekly or month-end jobs.
+
+## 37. When Must `ANALYZE` Run Again?
+
+`ANALYZE` is not a one-time post-upgrade task.
+
+### 37.1. Bulk Loads
+
+After `COPY`, imports, or large inserts, analyze newly loaded relations.
+
+### 37.2. Backfills / Distribution Shifts
+
+Backfills can alter NULL fractions, MCVs, histograms, and correlations. Analyze once batches finish.
+
+### 37.3. Partition Attach/Detach
+
+After adding or modifying partitions, update statistics per relation scope and version behavior.
+
+### 37.4. Sudden Data Skew
+
+Tenant growth, status concentration, or hot keys can outdate existing statistics quickly.
+
+### 37.5. Plan Estimates Drift
+
+When actual rows diverge sharply from estimates, check stats freshness/targets and column correlation before forcing plans.
+
+## 38. Remediating Regressions from Stale Statistics
+
+This is the very first root cause to inspect after an upgrade.
+
+### 38.1. Check Analyze History
+
+Inspect `last_analyze`/`last_autoanalyze`, `n_mod_since_analyze`, and the target relation.
+
+### 38.2. Analyze the Right Relation
+
+Run `ANALYZE` on the affected table or columns, then re-run `EXPLAIN` with identical parameters.
+
+### 38.3. Compare Estimated vs. Actual Rows
+
+If estimates improve and plans/runtimes recover, stale or insufficient stats were likely responsible.
+
+### 38.4. Avoid Repeated Unconditional Cluster-Wide Analyzes
+
+If only one table has an issue, targeted analyzing saves I/O and avoids noisy system impact.
+
+### 38.5. Document Findings
+
+Record the relation, analyze time, before/after estimates, plan changes, and runtime impact.
+
+## 39. Remediating Regressions from Skew or Correlation
+
+Single-column stats may fall short for multi-column predicates.
+
+### 39.1. Identify Involved Predicates
+
+Find columns appearing together in `WHERE`/`JOIN`/`GROUP BY` and determine business/data dependencies.
+
+### 39.2. Inspect `pg_stats`
+
+Check MCVs, histograms, null fractions, and distinct estimates for each column.
+
+### 39.3. Create Extended Statistics
+
+Pick appropriate `dependencies`, `ndistinct`, or `mcv` stats; run `ANALYZE` and re-check the plan.
+
+### 39.4. Raise Targets Selectively
+
+If a column has many skewed values or MCVs, raise per-column statistics targets and measure analyze cost.
+
+### 39.5. Avoid Forcing Join Order Before Fixing Estimates
+
+Planner hints or `enable_*` tweaks mask underlying causes. Fix statistics and data models first, then re-benchmark.
+
+## 40. Remediating Regressions from Indexes or Collations
+
+### 40.1. Check Index Validity
+
+Inspect `indisvalid`/`indisready` and logs from upgrades or concurrent index operations.
+
+### 40.2. Check Collation Versions
+
+If mismatched, follow the proper reindex procedure. Analyze cannot replace `REINDEX`.
+
+### 40.3. Inspect Query Expressions
+
+Query predicates must match index expressions and operators. Type casts and function wrappers can disqualify index use.
+
+### 40.4. Check the Visibility Map
+
+If an Index Only Scan performs excessive heap fetches, vacuum/visibility state may explain runtime overhead.
+
+### 40.5. Evaluate Write Cost
+
+Adding an index may fix a read regression while increasing write latency and WAL. Test mixed workloads before committing.
+
+## 41. Remediating Regressions from Planner Settings or Version Behavior
+
+### 41.1. Compare Settings
+
+Diff planner-related GUCs and their sources across old and new clusters. Identify changed defaults.
+
+### 41.2. Test Session-Level Alternatives
+
+Use `SET LOCAL` or session settings in staging to test cost parameters, `work_mem`, parallelism, or `plan_cache_mode`.
+
+### 41.3. Never Disable Plan Nodes Globally
+
+`enable_seqscan`, `enable_nestloop`, and other `enable_*` switches are primarily diagnostic controls, not general tuning fixes.
+
+### 41.4. Read Release Notes
+
+Look up planner, statistics, collation, executor, and extension changes across major versions to spot intentional behavior shifts.
+
+### 41.5. Persist Settings Only After Benchmarking
+
+If a setting helps query A while hurting query B, evaluate overall workload SLOs before applying it globally.
+
+## 42. Query Plan Stability and Parameter Sets
+
+A single query can legitimately have different optimal plans for different parameter values.
+
+### 42.1. Parameter Matrix
+
+Build a matrix covering common/rare values, small/large tenants, narrow/wide time ranges, NULL/non-NULL, and boundary values.
+
+### 42.2. Generic/Custom Behavior
+
+Test how prepared statements are actually prepared and executed via your driver and pooler. Use `plan_cache_mode` diagnostically if needed.
+
+### 42.3. Data Distribution Matrix
+
+Test both current and historical partitions, tenant skew, and table growth scenarios.
+
+### 42.4. Plan Stability Is Not an Absolute Goal
+
+A plan changing by parameter can be the optimal choice. The true goal is predictable runtime meeting SLOs.
+
+### 42.5. Regression Suite Automation
+
+Store query templates, safe parameters, environment metadata, and expected performance bands. Avoid brittle exact plan-text assertions when minor variations do not harm performance.
+
+## 43. Rollback and Mitigation for Severe Regressions
+
+If critical workloads fail SLOs, act according to your pre-approved upgrade rollback policy.
+
+### 43.1. Pause Traffic Ramp
+
+Hold traffic steady or restrict non-essential flows. Never increase load while a critical regression remains unexplained.
+
+### 43.2. Quick Mitigations
+
+Options include running analyze, fixing queries, tuning targeted statistics, restoring missing/invalid indexes, or applying benchmarked session-level settings.
+
+### 43.3. Rollback Boundaries
+
+Major-version upgrades can render data directories/catalogs incompatible with old binaries. Rolling back normally requires an intact old cluster, snapshots/backups, or a reverse replication plan.
+
+### 43.4. Post-Cutover Writes
+
+Once the target has accepted writes, rolling back to the source requires reverse replication or reconciliation. Never merely flip connection strings.
+
+### 43.5. Business Decision
+
+If mitigations cannot restore SLOs, incident/change and business owners decide between continuing and rolling back based on data safety, RPO, and downtime impact.
+
+## 44. Post-Upgrade Monitoring Across Multiple Cycles
+
+Stable performance must be confirmed across peak and periodic cycles.
+
+### 44.1. First-Hour Checks
+
+Watch critical query latency, active sessions, CPU/I/O, errors, and replica lag immediately after ramping traffic.
+
+### 44.2. Daily Peaks
+
+Compare peak-hour p95/p99 and throughput against baselines with matching traffic profiles.
+
+### 44.3. Batch Windows
+
+Run ETL, reporting, and maintenance jobs, comparing completion times, WAL, temp files, and checkpoint/vacuum behavior.
+
+### 44.4. Weekly and Month-End Jobs
+
+Some regressions trigger only over large date ranges or seasonal concurrency spikes. Wait for or rehearse those workloads.
+
+### 44.5. Closeout
+
+Close post-upgrade performance tracking only once acceptance thresholds hold across representative cycles or owners formally accept residual risks.
+
+## 45. Documentation and Evidence to Archive
+
+A useful performance baseline captures enough metadata for reproducibility.
+
+### 45.1. Environment
+
+PostgreSQL versions/builds, OS/kernel, CPU/RAM, storage class, network, extensions, collations, and config snapshots.
+
+### 45.2. Schema and Data
+
+DDL, indexes, partition layout, row counts/size estimates, data distributions, and snapshot identifier.
+
+### 45.3. Query Artifacts
+
+Normalized SQL, application/workload class, parameter class, `EXPLAIN` JSON, `ANALYZE` outputs, and timing samples.
+
+### 45.4. Statistics Evidence
+
+Analyze timestamps, statistics targets, relevant `pg_stats` excerpts, and extended statistics definitions.
+
+### 45.5. Decision Record
+
+Regression severity, owner, mitigation, benchmark results, sign-off, and rollback decision.
+
+## 46. Lab: `ANALYZE` After a Major Upgrade
+
+This lab uses two PostgreSQL environments sharing a representative dataset: an older version and a newer target version.
+
+### 46.1. Prepare the Dataset
+
+Create tables with data skew, tenant distributions, date ranges, and indexes mirroring production workloads. Record the snapshot identifier and table sizes.
+
+### 46.2. Capture Old-Cluster Baselines
+
+Run representative queries across chosen parameter classes. Save `EXPLAIN` JSON, `EXPLAIN ANALYZE`, buffers, and runtime samples.
+
+### 46.3. Execute Target Upgrade
+
+Follow the rehearsed upgrade procedure. Complete extension, catalog, schema, index, and collation steps before benchmarking.
+
+### 46.4. Collect Statistics
+
+Run `vacuumdb --analyze-in-stages` or the matching analyze script. Monitor duration, progress, analyze history, and resource usage.
+
+### 46.5. Compare After Analyze
+
+Re-run identical queries and parameters, comparing estimated rows, plan nodes, buffers, runtime, and resource metrics. Flag queries failing thresholds.
+
+## 47. Lab: Detecting Cardinality Estimate Regressions
+
+### 47.1. Create Skewed Data
+
+Create a table with one dominant status and many rare statuses; add a `tenant_id` with uneven distribution.
+
+### 47.2. Run Queries with Varying Parameters
+
+Test common/rare statuses and small/large tenants. Record estimated rows vs. actual rows.
+
+### 47.3. Raise Statistics Targets
+
+Raise the statistics target on skewed columns, run `ANALYZE`, and re-capture plans.
+
+### 47.4. Test Extended Statistics
+
+Create `dependencies` or `mcv` statistics on correlated columns, run `ANALYZE`, and compare estimate accuracy.
+
+### 47.5. Evaluate Trade-Offs
+
+Compare analyze duration, catalog stats size, plan behavior, and runtime across the full parameter matrix—not just the best result for a single value.
+
+## 48. Lab: Testing Prepared Statements
+
+### 48.1. Prepare Parameterized Queries
+
+Use a query filtering on `tenant_id`/`status` with pronounced skew.
+
+### 48.2. Execute Prepared Runs
+
+Run multiple parameter values over the same connection/driver behavior mirroring production.
+
+### 48.3. Compare Generic vs. Custom
+
+In the lab session, test `plan_cache_mode=force_generic_plan` and `force_custom_plan` to observe differences. Reset to default afterward.
+
+### 48.4. Capture `EXPLAIN`/Runtime
+
+Compare plans, planning time, execution time, and buffers for each parameter class.
+
+### 48.5. Choose Policy by Workload
+
+If custom plans improve skewed cases while raising planning overhead, weigh aggregate workload and driver behavior before altering global policy.
+
+## 49. Lab: Before/After Upgrade Regression Suite
+
+### 49.1. Pick the Query Set
+
+Include critical OLTP, high-total-time, tail-latency, reporting, and batch queries.
+
+### 49.2. Package Test Inputs
+
+Store normalized SQL, parameter classes, role, `search_path`, settings, and expected data state.
+
+### 49.3. Run on Old and New Clusters
+
+Keep data, concurrency, cache state, and hardware as close as possible. Document any unavoidable differences.
+
+### 49.4. Compare Against Thresholds
+
+Compare p50/p95/p99, throughput, error rates, plan shapes, estimated/actual rows, buffers, temp blocks, WAL, and CPU/I/O.
+
+### 49.5. Produce a Regression Report
+
+Document query, impact, evidence, likely cause, mitigation, owner, and acceptance/rollback decision.
+
+## 50. Common Post-Upgrade Mistakes
+
+1. Opening full traffic before running `ANALYZE` on critical tables.
+2. Assuming `pg_upgrade` transfers complete optimizer statistics.
+3. Running `ANALYZE` once and then running backfills/ETL that shift distributions.
+4. Analyzing a database while skipping key tables or partitions.
+5. Waiting for autovacuum auto-analyze while critical queries suffer poor plans.
+6. Raising `default_statistics_target` globally without measuring analyze cost.
+7. Ignoring correlated predicates and extended statistics.
+8. Using `pg_stat_statements` `queryid` as the sole matching key across major versions.
+9. Comparing cumulative counters with differing `stats_reset` epochs.
+10. Comparing planner cost numbers as if they were milliseconds.
+11. Treating every plan shape change as a regression.
+12. Assuming identical plans guarantee identical runtime.
+13. Testing only a single parameter value and ignoring data skew.
+14. Ignoring prepared statement generic/custom plan behavior.
+15. Confusing stale statistics with collation or index validity issues.
+16. Running `EXPLAIN ANALYZE` on DML in production without assessing side effects.
+17. Raising `work_mem` for one sort spill without accounting for concurrency.
+18. Forcing index or join strategies before fixing cardinality estimates.
+19. Testing only OLTP while neglecting batch, reporting, and maintenance workloads.
+20. Signing off on an upgrade immediately after smoke tests without observing peak and batch cycles.
+
+## 51. Practice Exercises
+
+### Exercise 1 — Planner Statistics
+
+What do planner statistics help PostgreSQL decide?
+
+**Answer:** Cardinality/selectivity and cost estimates to select execution plans.
+
+### Exercise 2 — Runtime Statistics
+
+Can `pg_stat_statements` replace `pg_stats`?
+
+**Answer:** No; one tracks runtime query execution, while the other exposes per-column planner statistics.
+
+### Exercise 3 — Major Upgrade
+
+Why is `ANALYZE` needed after `pg_upgrade`?
+
+**Answer:** Optimizer statistics must be regathered on the new cluster so the planner has accurate inputs.
+
+### Exercise 4 — Table Analyze
+
+Which command analyzes a single table?
+
+**Answer:** `ANALYZE schema.table`.
+
+### Exercise 5 — Analyze Stages
+
+What is the goal of `vacuumdb --analyze-in-stages`?
+
+**Hint:** Quickly build usable statistics first, then progressively increase detail.
+
+### Exercise 6 — `n_mod_since_analyze`
+
+What does this column help identify?
+
+**Answer:** Estimated row modifications since the last analyze.
+
+### Exercise 7 — Auto-Analyze
+
+Does autovacuum auto-analyze always run immediately after a bulk load?
+
+**Answer:** No; it depends on thresholds, scheduling, and worker capacity.
+
+### Exercise 8 — Statistics Target
+
+What trade-off comes with raising the statistics target?
+
+**Answer:** Finer statistics at the cost of larger samples, higher CPU/I/O, and more catalog space.
+
+### Exercise 9 — MCV
+
+What are `most_common_vals`/`freqs` used for?
+
+**Answer:** Describing the most frequent values and their frequencies.
+
+### Exercise 10 — Histograms
+
+Which predicate types benefit most from `histogram_bounds`?
+
+**Answer:** Range predicates and selectivity estimation across value distributions.
+
+### Exercise 11 — Correlation
+
+What does the `correlation` column in `pg_stats` describe?
+
+**Answer:** Correlation between physical row order and column values.
+
+### Exercise 12 — Extended Statistics
+
+When should `dependencies`/`mcv` statistics be used?
+
+**Hint:** When multiple columns are correlated and the planner misestimates combined predicates.
+
+### Exercise 13 — N-Distinct
+
+What estimate does extended `ndistinct` statistics improve?
+
+**Answer:** The number of distinct combinations/groups across multiple columns.
+
+### Exercise 14 — Partitions
+
+Why must a new partition be analyzed after a bulk load?
+
+**Answer:** The planner needs statistics reflecting the partition's data distribution.
+
+### Exercise 15 — Collations
+
+Does `ANALYZE` fix index collation mismatches?
+
+**Answer:** No; collation versions and reindexing must be handled per upgrade procedure.
+
+### Exercise 16 — `EXPLAIN` JSON
+
+What benefit does `FORMAT JSON` provide?
+
+**Answer:** Structured plans that can be saved, parsed, and diffed automatically.
+
+### Exercise 17 — Cost
+
+Does planner `cost=5000` mean the query takes 5 seconds?
+
+**Answer:** No; cost is a relative unit, not elapsed milliseconds.
+
+### Exercise 18 — Actual Rows
+
+What does a large gap between estimated rows and actual rows suggest?
+
+**Hint:** Missing/stale statistics, skew, correlation, or parameter-sensitive behavior.
+
+### Exercise 19 — `queryid`
+
+Should queries across major versions be matched solely by `queryid`?
+
+**Answer:** No; `queryid` can change. Match via normalized SQL and application context.
+
+### Exercise 20 — Generic Plans
+
+What drawback does a generic plan have under data skew?
+
+**Answer:** It is not tailored to individual parameter values.
+
+### Exercise 21 — `plan_cache_mode`
+
+Is enabling `force_custom_plan` globally in production safe immediately?
+
+**Answer:** No; use it first for diagnostics/benchmarking, then assess planning overhead.
+
+### Exercise 22 — `pg_stat_statements`
+
+If calls double while mean time stays constant, how does total time change?
+
+**Answer:** Total execution time roughly doubles, all else being equal.
+
+### Exercise 23 — `EXPLAIN ANALYZE`
+
+Does `EXPLAIN ANALYZE` actually execute the statement?
+
+**Answer:** Yes; account for side effects and workload impact.
+
+### Exercise 24 — `auto_explain`
+
+What does `auto_explain` help investigate?
+
+**Answer:** Logging execution plans of statements meeting configured duration/sampling thresholds.
+
+### Exercise 25 — Plan Regressions
+
+Is switching from Seq Scan to Index Scan always better?
+
+**Answer:** No; measure rows, buffers, runtime, and overall workload impact.
+
+### Exercise 26 — Statistics After Backfill
+
+Why re-analyze after a large backfill?
+
+**Answer:** Backfills can shift null fractions, histograms, MCVs, and correlations.
+
+### Exercise 27 — Regression Severity
+
+Does a report whose runtime increased while staying within its completion window require rollback?
+
+**Answer:** Not necessarily; evaluate business impact and acceptance thresholds.
+
+### Exercise 28 — Rollback
+
+After a major upgrade, can you simply start old binaries against the new data directory?
+
+**Answer:** No; you need an appropriate rollback topology, backup, or reverse replication plan.
+
+### Exercise 29 — Benchmarks
+
+Why must parameter distributions and concurrency remain comparable?
+
+**Answer:** To compare representative workloads fairly and avoid mistaking input differences for regressions.
+
+### Exercise 30 — Acceptance
+
+List metric groups to monitor during traffic ramp-up.
+
+**Hint:** p95/p99, throughput, errors, CPU/I/O, waits, temp files, WAL, and replication lag.
+
+## 52. Post-Upgrade Statistics Collection Checklist
+
+- [ ] Upgrade/cutover mechanics confirmed complete?
+- [ ] Extension, schema, index, and collation steps finished?
+- [ ] `pg_upgrade` output/scripts reviewed for the specific cluster?
+- [ ] Analyze script or `vacuumdb --analyze-in-stages` executed?
+- [ ] Critical tables and partitions prioritized?
+- [ ] Bulk load, backfill, and cutover data shifts accounted for?
+- [ ] `last_analyze`/`last_autoanalyze` and `n_mod_since_analyze` checked?
+- [ ] Key statistics targets and extended stats verified?
+- [ ] Analyze errors and pending relations recorded?
+- [ ] Resource impact and completion times logged?
+- [ ] Traffic opened only once critical stats meet criteria?
+
+## 53. Plan Regression Testing Checklist
+
+- [ ] Old-version baseline includes normalized SQL and query context?
+- [ ] Representative parameter matrix covers skew and boundary values?
+- [ ] Old and new environment metadata archived?
+- [ ] `EXPLAIN` JSON/`ANALYZE` artifacts captured safely?
+- [ ] Estimated vs. actual rows, loops, and join order compared?
+- [ ] Buffers, temp I/O, WAL, and planning time reviewed?
+- [ ] Runtime p50/p95/p99 and throughput benchmarked?
+- [ ] `queryid` shifts across versions handled during matching?
+- [ ] Generic/custom prepared plan behavior tested?
+- [ ] Collation/index validity and extension compatibility confirmed?
+- [ ] Critical OLTP, reporting, and batch workloads covered?
+- [ ] Severity, acceptance, and rollback thresholds defined?
+- [ ] Regression decisions backed by evidence, owners, and actions?
+
+## 54. Quick Reference Table
+
+| Component | Purpose |
+|---|---|
+| `ANALYZE` | Gather planner statistics |
+| `VACUUM (ANALYZE)` | Clean up and refresh statistics |
+| `vacuumdb --analyze-in-stages` | Multi-stage analyze post-upgrade |
+| `pg_stats` | Human-readable view of planner statistics |
+| `pg_statistic` | Catalog storing planner statistics |
+| `pg_stat_user_tables` | Analyze history and modification estimates |
+| `n_mod_since_analyze` | Modifications since last analyze |
+| `default_statistics_target` | Default statistics granularity |
+| `ALTER COLUMN SET STATISTICS` | Per-column statistics target |
+| `CREATE STATISTICS` | Extended statistics object |
+| `dependencies` | Multi-column functional dependencies |
+| `ndistinct` | Distinct multi-column combinations |
+| `mcv` | Most common multi-column combinations |
+| `pg_stat_progress_analyze` | Analyze progress on supported versions |
+| `EXPLAIN FORMAT JSON` | Structured estimated plan |
+| `EXPLAIN ANALYZE` | Actual execution measurements |
+| `pg_stat_statements` | Query workload aggregates |
+| `auto_explain` | Conditional execution plan logging |
+| `queryid` | Normalized query identifier; may change across versions |
+| generic plan | Plan independent of specific parameter values |
+| custom plan | Plan tailored to specific parameter values |
+| `plan_cache_mode` | Controls generic/custom plan selection |
+| Plan regression | Plan/runtime shift causing performance degradation |
+| `pg_upgrade` | Major-version upgrade utility |
+
+## 55. Conclusion
+
+**After a major upgrade, regather planner statistics and inspect query plans before declaring performance stable.** `ANALYZE` provides null fractions, MCVs, histograms, distinct counts, and correlations so the planner can estimate rows and selectivity accurately. `vacuumdb --analyze-in-stages` or `pg_upgrade`-generated analyze scripts build statistics progressively; critical tables should be prioritized whenever traffic must open quickly. After bulk loads, backfills, or partition changes, re-analyze whenever data distributions shift.
+
+Plan regression testing starts with pre-upgrade baselines: query fingerprints, parameter classes, schemas/indexes, planner settings, and `EXPLAIN` artifacts. Post-upgrade, compare estimated vs. actual rows, join orders, node types, buffers, temp I/O, WAL, planning time, and runtime percentiles. `queryid` can change across major versions; match queries via normalized SQL and application context. A changed plan is not automatically a regression, and an identical plan does not guarantee identical runtime.
+
+When regressions surface, investigate in order: statistics freshness/targets, skew/correlation, index validity/collations, prepared generic/custom plans, planner settings, and version behavior. Validate with representative workloads, data, parameters, and concurrency; change one variable at a time and enforce rollback criteria. Monitor past cutover through peak and batch cycles, not just initial smoke tests.
+
+Upgrade principle: **`ANALYZE` so the planner understands the new data, benchmark to understand the new behavior, and accept the upgrade only when critical workloads meet SLOs with reproducible evidence.**
+
+
+## 23. Common Causes of Plan Regressions
+
+After an upgrade, a query can change plans because multiple inputs shift simultaneously. Categorizing root causes guides the right fix.
+
+### 23.1. Missing or Stale Statistics
+
+The target cluster was not analyzed, analyze covered only selected tables, or data changed after analyze.
+
+### 23.2. Insufficient Statistics Targets
+
+MCVs/histograms fail to capture significant skew. Heavily skewed columns may require custom targets.
+
+### 23.3. Correlated Predicates
+
+The planner assumes independence between columns that actually have dependencies. Extended statistics can help.
+
+### 23.4. Index or Schema Differences
+
+Indexes may be missing, invalid, un-rebuilt, use different operator classes/collations, or schema migrations altered query paths.
+
+### 23.5. Planner Settings and Cost Parameters
+
+`random_page_cost`, `effective_cache_size`, `work_mem`, `enable_*` flags, parallel thresholds, and JIT thresholds may differ across clusters.
+
+### 23.6. Version Behavior Changes
+
+Planner/executor enhancements or bug fixes can change plan selection. Read release notes for the exact major versions and reproduce in staging.
+
+### 23.7. Collation, Type, or Extension Changes
+
+Ordering, comparison operators, custom selectivity functions, and extension upgrades can alter plans or index eligibility.
+
+## 24. Prepared Statements and Generic/Custom Plans
+
+Prepared statements can switch between a reusable generic plan and parameter-specific custom plans. This matters greatly when parameter distributions are skewed.
+
+### 24.1. Generic Plan
+
+A generic plan ignores specific parameter values, reducing planning overhead while risking poor performance on extreme parameter values.
+
+### 24.2. Custom Plan
+
+A custom plan is generated for specific parameter values, often performing better under skew at the cost of higher planning work.
+
+### 24.3. `plan_cache_mode`
+
+You can use `plan_cache_mode` for investigation:
+
+~~~sql
+SHOW plan_cache_mode;
+SET plan_cache_mode = force_custom_plan;
+~~~
+
+This is a diagnostic/session-level tool; never change global policy without benchmarking the full workload.
+
+### 24.4. Parameter-Sensitive Testing
+
+Test small/large tenants, narrow/wide date ranges, common/rare values, and NULLs. A single sample parameter is insufficient.
+
+### 24.5. Driver and Pooler Behavior
+
+Prepared statement lifecycles depend on drivers, pooling modes, and server-side prepare settings. Test exactly how the real application dispatches statements.
+
+## 25. Post-Upgrade Planner Configuration
+
+Never copy the entire old `postgresql.conf` blindly onto a new major version or different environment.
+
+### 25.1. Compare Settings
+
+Export `pg_settings` from both old and new clusters, comparing setting, unit, context, source, and `pending_restart`.
+
+### 25.2. Defaults May Change
+
+Defaults and behavior can change across major versions. Consult release notes and target version documentation.
+
+### 25.3. `effective_cache_size`
+
+This is a planner estimate of available cache per query—it allocates no memory. Base it on `shared_buffers`, OS page cache, and concurrency assumptions.
+
+### 25.4. `random_page_cost`
+
+The planner's cost assumption for random page access. Appropriate values depend on storage and caching; never lower it solely to force index scans.
+
+### 25.5. `work_mem` and Parallelism
+
+`work_mem` and parallel settings govern memory and worker concurrency. Tuning for a single query can trigger resource regressions under concurrent workloads.
+
+## 26. Query Plans and Index State After Upgrade
+
+Plan regressions can stem from index availability, validity, or physical condition.
+
+### 26.1. Check Index Validity
+
+~~~sql
+SELECT
+    ns.nspname AS schema_name,
+    tbl.relname AS table_name,
+    idx.relname AS index_name,
+    i.indisvalid,
+    i.indisready,
+    i.indisunique
+FROM pg_index AS i
+JOIN pg_class AS idx ON idx.oid = i.indexrelid
+JOIN pg_class AS tbl ON tbl.oid = i.indrelid
+JOIN pg_namespace AS ns ON ns.oid = tbl.relnamespace
+WHERE ns.nspname NOT IN ('pg_catalog', 'information_schema')
+ORDER BY 1, 2, 3;
+~~~
+
+### 26.2. Collation Mismatches
+
+Check collation version mismatches and reindex requirements before concluding the optimizer is ignoring an index.
+
+### 26.3. Operator Classes
+
+Index operator classes/families must match the operators used by queries. Extension and type upgrades may require re-verification.
+
+### 26.4. Index-Only Scans
+
+Visibility map state and vacuum history govern heap fetches. After upgrades or bulk loads, an Index Only Scan may still perform frequent heap fetches.
+
+### 26.5. Index Bloat and Cache Footprint
+
+Larger indexes increase page reads and cache footprint. Compare relation sizes and I/O before and after.
+
+## 27. Runtime Regression Testing
+
+Plan comparisons should be paired with runtime tests against representative workloads.
+
+### 27.1. Same Data Snapshot
+
+Use an identical copy or equivalent dataset snapshot. If data differs, record discrepancies and avoid direct comparisons.
+
+### 27.2. Same Parameters
+
+Use matching parameter sets covering common, rare, boundary, and NULL values where valid.
+
+### 27.3. Same Concurrency
+
+Test across representative concurrency levels: single query, normal load, peak load, and bursts.
+
+### 27.4. Cache Conditions
+
+Test warm-cache and cold-cache scenarios separately. Never flush OS caches on production to stage a cold test.
+
+### 27.5. Multiple Runs
+
+Run multiple iterations and compare medians/percentiles; discard warm-up runs affected by startup, JIT compilation, or background tasks when measuring steady state.
+
+## 28. Comparing Latency and Resource Consumption
+
+A plan may run faster for one query while slowing down the entire system.
+
+### 28.1. Query Execution Time
+
+Record mean/median/p95/p99 and max by query class. A single `EXPLAIN ANALYZE` sample does not replace production latency distributions.
+
+### 28.2. Planning Time
+
+Planning time can rise for complex queries, heavily partitioned tables, or generic/custom plan behavior. Track planning time when planning overhead matters.
+
+### 28.3. Buffer Activity
+
+Compare shared hits/reads, local/temp blocks, and heap fetches under identical plan and test conditions.
+
+### 28.4. CPU and I/O
+
+Measure process CPU, storage latency/IOPS/throughput, and wait events. A plan with low elapsed time in cached tests can cause an I/O storm in production.
+
+### 28.5. WAL and Writes
+
+Write queries may generate different WAL or index maintenance overhead post-upgrade. Compare `wal_bytes`, rows modified, checkpoint pressure, and replica lag.
+
+## 29. `pg_stat_statements` Before and After Upgrade
+
+Query statistics help prioritize regression investigations, provided resets and query identity changes are accounted for.
+
+~~~sql
+SELECT
+    calls,
+    total_exec_time,
+    mean_exec_time,
+    rows,
+    shared_blks_hit,
+    shared_blks_read,
+    temp_blks_written,
+    wal_bytes,
+    query
+FROM pg_stat_statements
+ORDER BY total_exec_time DESC
+LIMIT 50;
+~~~
+
+### 29.1. Export Baseline
+
+Capture periodic snapshots before upgrading—do not wait until the downtime window starts. Record `stats_reset` and the measurement interval.
+
+### 29.2. Reset/Epoch on Target
+
+After cutover, start a fresh measurement interval or mark the stats reset timestamp. Never compare cumulative counters across differing historical spans.
+
+### 29.3. Query Identity
+
+`queryid` can change across PostgreSQL major versions, configurations, or query normalization rules. Match queries by normalized SQL and application context, not `queryid` alone.
+
+### 29.4. Calls vs. Total Time
+
+A query whose total time grew may simply have received more calls rather than slower individual executions. Compare calls, mean time, and latency distribution.
+
+### 29.5. Query Text Sensitivity
+
+Handle query text and parameters per privacy policy. Use normalized fingerprints and redact sensitive literals in shared reports.
+
+## 30. `auto_explain` and Slow Query Logging
+
+When regressions appear only under production parameters or load, logging helps capture live execution plans.
+
+### 30.1. `log_min_duration_statement`
+
+Logs statements exceeding a duration threshold. Choose a threshold that captures problematic queries without flooding log volume.
+
+### 30.2. `auto_explain`
+
+The `auto_explain` extension logs execution plans for statements exceeding a threshold. Requires preload/configuration and log access.
+
+### 30.3. `log_analyze` and Buffers
+
+Analyze/buffers logging can be enabled in `auto_explain` per policy, though both add overhead. Benchmark in staging and enable selectively.
+
+### 30.4. Sampling and Log Volume
+
+You do not need to log every query with `ANALYZE`. Use thresholds, sampling, and time windows; monitor log storage and rotation.
+
+### 30.5. Production Safety
+
+EXPLAIN logging must never overload the server or expose sensitive query literals. Keep an emergency switch ready to disable instrumentation if overhead spikes.
+
+## 31. Analyzing Regressions by Query Class
+
+Do not tune only the top query in isolation. Classify impact by workload type.
+
+### 31.1. OLTP Critical Path
+
+Test low-latency, high-frequency lookups, updates, and transaction boundaries. Inspect lock duration, connection usage, and p99 latency.
+
+### 31.2. Reporting/OLAP
+
+Test large scans, joins, sorts, aggregates, parallel workers, and temp files. Measure completion time and spillover onto foreground traffic.
+
+### 31.3. Batch/ETL
+
+Test rows/sec, WAL bytes, commit cadence, dead tuples, replication lag, and restartability.
+
+### 31.4. Administrative Queries
+
+Test catalog scans, monitoring dashboards, backup metadata, and maintenance jobs. These can be impacted by catalog/version changes.
+
+### 31.5. Cross-Workload Impact
+
+A fix helping OLAP might increase `shared_buffers` churn or CPU and degrade OLTP p99. Acceptance criteria must cover all interacting workloads.
+
+## 32. Prioritizing Regressions by Severity
+
+Assess regressions by business and resource impact, not percentage change alone.
+
+| Level | Example | Action |
+|---|---|---|
+| Critical | Checkout/payment breaches SLO or times out | Halt rollout / roll back per policy |
+| High | Core query p99 jumps sharply; replica lag exceeds limit | Hotfix or tune before opening traffic |
+| Medium | Report slows down yet stays within completion window | Monitor and plan optimization |
+| Low | Plan differs while latency/resources stay healthy | Document; no immediate fix needed |
+
+### 32.1. Absolute vs. Relative Change
+
+Jumping from 1 ms to 2 ms is 100% yet may be negligible; jumping from 2 s to 3 s can break SLOs. Evaluate both absolute and relative impacts.
+
+### 32.2. Frequency
+
+A rare query and a query executing millions of times carry vastly different impacts. Calculate total workload cost.
+
+### 32.3. Business Criticality
+
+Prioritize payments, accounts, inventory, and transactional integrity ahead of non-critical reports.
+
+### 32.4. Resource Externalities
+
+A report taking twice as long without hurting OLTP differs sharply from a query saturating storage queues across the entire cluster.
+
+### 32.5. Regression Budget
+
+Establish thresholds before upgrading: latency, throughput, errors, CPU, memory, I/O, WAL, and replication lag. Never set thresholds after seeing results.

@@ -1,0 +1,3 @@
+menuLevel1: Luồng thực thi
+menuLevel2: Tránh block, toFuture().get và các thao tác chặn trên luồng xử lý sự kiện
+status: TRANSLATE

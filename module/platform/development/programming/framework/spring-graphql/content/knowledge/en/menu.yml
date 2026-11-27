@@ -1,0 +1,532 @@
+menu:
+- level1: Nền tảng GraphQL
+  level2:
+  - GraphQL là gì
+  - GraphQL giải quyết vấn đề nào
+  - Schema và operation
+  - Query, mutation và subscription
+  - Client chọn đúng dữ liệu cần nhận
+  - Một endpoint cho nhiều use case
+  - GraphQL type system
+  - Resolver và data fetcher
+  - GraphQL request và response
+  - Khi dùng GraphQL thay cho REST
+  - Giới hạn của GraphQL
+- level1: Spring for GraphQL
+  level2:
+  - Spring for GraphQL là gì
+  - Quan hệ với GraphQL Java
+  - Các lớp trong kiến trúc Spring GraphQL
+  - GraphQlSource
+  - ExecutionGraphQlService
+  - WebGraphQlHandler
+  - GraphQL schema trong ứng dụng Spring
+  - Annotated controller
+  - Transport và execution tách biệt
+  - Blocking và reactive application
+  - Spring Boot integration
+- level1: Spring Boot starter
+  level2:
+  - spring-boot-starter-graphql
+  - Starter cho Spring MVC
+  - Starter cho Spring WebFlux
+  - Classpath schema locations
+  - spring.graphql.schema.locations
+  - GraphQL HTTP endpoint
+  - GraphQL WebSocket endpoint
+  - GraphQL RSocket transport
+  - Auto-configuration của Boot
+  - GraphQlSourceBuilderCustomizer
+  - GraphQlWebMvcAutoConfiguration
+  - GraphQlWebFluxAutoConfiguration
+  - Cấu hình bằng application properties
+- level1: Schema SDL
+  level2:
+  - Schema Definition Language
+  - type Query
+  - type Mutation
+  - type Subscription
+  - Object type
+  - Field definition
+  - Non-null type
+  - List type
+  - Schema root operation
+  - Schema-first development
+  - Đặt tên type và field
+  - Tổ chức nhiều file schema
+  - Schema documentation bằng mô tả
+- level1: GraphQL type system
+  level2:
+  - Scalar type
+  - Object type
+  - Enum type
+  - Input object type
+  - Interface type
+  - Union type
+  - Custom scalar
+  - Type extension
+  - Schema directive
+  - Nullable và non-null
+  - Nested list type
+  - Type compatibility khi mapping Java
+- level1: Field và argument
+  level2:
+  - Field argument
+  - Argument bắt buộc
+  - Argument mặc định
+  - Argument nullable
+  - Input object cho mutation
+  - Field selection
+  - Nested field selection
+  - Alias
+  - Fragment
+  - Inline fragment
+  - Directive trên field
+  - Field resolver và parent source
+- level1: Scalar và input
+  level2:
+  - String, Int, Float và Boolean
+  - ID scalar
+  - Date và DateTime scalar
+  - UUID scalar
+  - Custom scalar wiring
+  - GraphQLScalarType
+  - Input object binding
+  - Nested input object
+  - List input
+  - Enum input
+  - Input validation
+  - Chuyển đổi scalar sang Java type
+- level1: Interface và union
+  level2:
+  - Interface trong schema
+  - Object implements interface
+  - Union type
+  - TypeResolver
+  - GraphQL type resolution
+  - Interface mapping trong controller
+  - Union mapping trong controller
+  - Inline fragment khi query
+  - Interface batch mapping
+  - Schema evolution với interface
+  - Khi dùng interface hay union
+- level1: Directive và introspection
+  level2:
+  - Directive là gì
+  - Built-in @skip
+  - Built-in @include
+  - Deprecated field
+  - Custom schema directive
+  - Directive wiring
+  - Introspection query
+  - Schema introspection trong production
+  - Ẩn metadata nhạy cảm
+  - GraphQL documentation trong schema
+  - Directive và authorization
+- level1: Schema loading
+  level2:
+  - SchemaResourceBuilder
+  - Schema file trong classpath
+  - schema.graphqls
+  - Nhiều schema resource
+  - Schema location pattern
+  - Schema parse lỗi
+  - Schema validation khi startup
+  - Schema trùng type
+  - Schema thiếu root operation
+  - Reload schema trong development
+  - Schema inspection trước khi chạy
+- level1: Runtime wiring
+  level2:
+  - RuntimeWiring.Builder
+  - DataFetcher registration
+  - RuntimeWiringConfigurer
+  - GraphQlSourceBuilder
+  - GraphQlSourceBuilderCustomizer
+  - RuntimeWiringConfigurer trong Boot
+  - Custom scalar wiring
+  - Directive wiring
+  - TypeResolver wiring
+  - Code registry
+  - AnnotatedControllerConfigurer
+  - Khi dùng wiring thủ công
+- level1: Annotated controller
+  level2:
+  - '@Controller trong Spring GraphQL'
+  - '@SchemaMapping'
+  - '@QueryMapping'
+  - '@MutationMapping'
+  - '@SubscriptionMapping'
+  - Tên field mặc định từ method
+  - typeName mặc định từ source type
+  - Schema mapping ở cấp class
+  - Controller scan
+  - Nhiều controller cho một schema
+  - DataFetcher từ handler method
+  - Controller và service boundary
+- level1: Query mapping
+  level2:
+  - '@QueryMapping cho Query field'
+  - Query trả về object
+  - Query trả về list
+  - Query có argument
+  - Query với nhiều field
+  - Query mapping theo tên tùy chỉnh
+  - Query mapping với root source
+  - Query blocking
+  - Query reactive
+  - Query và authorization
+  - Query và pagination
+- level1: Mutation mapping
+  level2:
+  - '@MutationMapping cho Mutation field'
+  - Mutation input object
+  - Mutation trả về payload object
+  - Mutation tạo resource
+  - Mutation cập nhật resource
+  - Mutation xóa resource
+  - Mutation validation
+  - Mutation transaction
+  - Mutation idempotency
+  - Mutation error response
+  - Thiết kế mutation theo nghiệp vụ
+- level1: Schema mapping
+  level2:
+  - Field mapping bằng @SchemaMapping
+  - Parent source object
+  - Mapping field của nested type
+  - typeName và field
+  - Source parameter
+  - Method return value
+  - Method argument resolution
+  - Mapping interface field
+  - Mapping field có argument
+  - Class-level @SchemaMapping
+  - Tránh resolver lặp lại
+- level1: Argument binding
+  level2:
+  - '@Argument'
+  - '@Arguments'
+  - ArgumentValue
+  - Argument name và parameter name
+  - Binding scalar argument
+  - Binding input object
+  - Binding nested input
+  - Map arguments
+  - Constructor binding
+  - Setter binding
+  - Direct field access
+  - Argument omitted và null
+  - Lỗi BindException
+- level1: Return type và reactive
+  level2:
+  - Java object làm GraphQL result
+  - Optional return type
+  - Collection return type
+  - CompletableFuture
+  - Mono
+  - Flux
+  - Kotlin suspend function
+  - Reactive data fetcher
+  - Blocking method
+  - Executor cho blocking controller
+  - Async return và error
+  - Mapping null result
+- level1: DataLoader
+  level2:
+  - N+1 select problem
+  - DataLoader là gì
+  - BatchLoaderRegistry
+  - Register batch loader
+  - Mapped batch loader
+  - DataLoader key và value
+  - DataLoaderRegistry
+  - DataLoader method argument
+  - DataLoader context
+  - Batch loader trả về CompletableFuture
+  - Batch loader trả về Mono
+  - Phạm vi DataLoader theo request
+  - Tránh DataLoader dùng state toàn cục
+- level1: Batch mapping
+  level2:
+  - '@BatchMapping'
+  - Batch mapping cho nested field
+  - List source objects
+  - Map source sang target
+  - Batch mapping field name
+  - Batch mapping type name
+  - Batch mapping bằng Mono
+  - Batch mapping trên interface
+  - Khi cần BatchLoaderRegistry thay vì @BatchMapping
+  - equals và hashCode của source key
+  - Batch loading có argument
+  - Đo hiệu quả chống N+1
+- level1: Context và request state
+  level2:
+  - GraphQLContext
+  - LocalGraphQlContext
+  - '@ContextValue'
+  - '@LocalContextValue'
+  - GraphQLContext trong controller
+  - Request metadata
+  - SecurityContext trong GraphQL context
+  - Locale và timezone
+  - Correlation ID
+  - Context propagation sang DataLoader
+  - Context không dùng làm shared mutable state
+  - WebGraphQlRequest và context
+- level1: Interceptor
+  level2:
+  - WebGraphQlInterceptor
+  - Interceptor chain
+  - WebGraphQlRequest
+  - WebGraphQlResponse
+  - GraphQlInterceptor
+  - ExecutionGraphQlRequest
+  - Thêm header vào response
+  - Correlation ID trong interceptor
+  - Authentication trong interceptor
+  - Rate limit trong interceptor
+  - Logging request metadata
+  - Interceptor blocking và reactive
+- level1: GraphQL error
+  level2:
+  - GraphQLError
+  - errors trong response
+  - DataFetchingEnvironment
+  - DataFetchingException
+  - GraphQlExceptionHandler
+  - '@GraphQlExceptionHandler'
+  - Exception ở controller
+  - Exception ở DataFetcher
+  - Error classification
+  - Error extensions
+  - Path của field bị lỗi
+  - Partial data và errors
+  - Ẩn stack trace khỏi client
+- level1: Validation
+  level2:
+  - Bean Validation trong controller
+  - '@Valid'
+  - '@Validated'
+  - ConstraintViolationException
+  - Validation trên @Argument
+  - Validation trên @Arguments
+  - Validation trên input object
+  - Validation groups
+  - Binding error theo field path
+  - GraphQL schema validation
+  - Validation trước khi gọi service
+  - Thông báo lỗi an toàn
+- level1: Subscription
+  level2:
+  - Subscription operation
+  - '@SubscriptionMapping'
+  - Flux cho subscription
+  - Publisher và subscription
+  - Subscription event source
+  - Backpressure trong subscription
+  - Hủy subscription
+  - Subscription error
+  - Subscription lifecycle
+  - Authorization cho subscription
+  - Subscription với WebSocket
+  - Subscription với SSE
+  - Subscription với RSocket
+- level1: Server transport
+  level2:
+  - HTTP GraphQL transport
+  - Spring MVC transport
+  - Spring WebFlux transport
+  - WebSocket transport
+  - RSocket transport
+  - GraphQL HTTP request
+  - GraphQL response content type
+  - application/graphql-response+json
+  - HTTP status cho lỗi transport
+  - WebSocketGraphQlHandler
+  - WebGraphQlHandler
+  - Transport và execution service
+  - CORS và transport
+- level1: Security
+  level2:
+  - Spring Security với GraphQL
+  - Authentication trước execution
+  - Authorization ở controller
+  - Method security
+  - '@PreAuthorize trên resolver'
+  - Authorization theo field
+  - Authorization theo argument
+  - Tenant context
+  - SecurityContext trong DataLoader
+  - Bảo vệ introspection
+  - Giới hạn query depth
+  - Giới hạn query complexity
+  - Bảo vệ subscription connection
+  - Không log token và secret
+- level1: GraphQL client
+  level2:
+  - GraphQlClient
+  - HttpGraphQlClient
+  - WebSocketGraphQlClient
+  - RSocketGraphQlClient
+  - Client document
+  - DocumentSource
+  - Retrieve một field
+  - Decode response
+  - Client variables
+  - Client error handling
+  - Subscription bằng retrieveSubscription
+  - SubscriptionErrorException
+  - GraphQlTransportException
+  - WebSocketDisconnectedException
+  - Client interceptor
+- level1: Testing cơ bản
+  level2:
+  - GraphQlTester
+  - HttpGraphQlTester
+  - WebGraphQlTester
+  - ExecutionGraphQlServiceTester
+  - GraphQlTester document
+  - Execute query
+  - Execute mutation
+  - JSONPath response
+  - Assert data
+  - Assert errors
+  - Error filter
+  - Test schema mapping
+  - Test argument binding
+- level1: Testing nâng cao
+  level2:
+  - '@GraphQlTest'
+  - Test controller slice
+  - Test không cần live server
+  - WebTestClient với GraphQL
+  - Test WebGraphQlInterceptor
+  - Test DataLoader
+  - Test batch mapping
+  - Test validation
+  - Test authorization
+  - Test subscription bằng StepVerifier
+  - Test WebSocket subscription
+  - Test reactive resolver
+  - Test timeout và transport error
+- level1: Observability
+  level2:
+  - Micrometer trong Spring GraphQL
+  - ObservationRegistry
+  - graphql.request observation
+  - graphql.dataloader observation
+  - graphql.operation.type
+  - graphql.outcome
+  - graphql.field.path
+  - graphql.error.type
+  - graphql.loader.name
+  - GraphQL observation convention
+  - Metrics cho data fetching
+  - Trace request và resolver
+  - High-cardinality key
+  - Không đưa query nhạy cảm vào trace
+- level1: Hiệu năng
+  level2:
+  - Chi phí query execution
+  - N+1 và batch loading
+  - DataLoader cache theo request
+  - Query depth limit
+  - Query complexity limit
+  - Pagination
+  - Cursor pagination
+  - Offset pagination
+  - Giới hạn kích thước query
+  - Timeout execution
+  - Blocking resolver và thread pool
+  - Reactive resolver và backpressure
+  - Cache schema và metadata
+  - Đo latency theo field
+- level1: Transaction và nghiệp vụ
+  level2:
+  - Transaction trong query
+  - Transaction trong mutation
+  - Transaction boundary của resolver
+  - Mutation gọi service transaction
+  - Lazy loading trong resolver
+  - Persistence context và nested field
+  - DataLoader sau commit
+  - Exception và rollback
+  - Subscription không giữ transaction dài
+  - Idempotent mutation
+  - Domain event sau mutation
+  - Không đặt nghiệp vụ trong resolver
+- level1: Federation và mở rộng
+  level2:
+  - GraphQL federation là gì
+  - FederationSchemaFactory
+  - Entity mapping
+  - '@EntityMapping'
+  - Federated type
+  - Federated key
+  - Resolver cho entity
+  - Schema composition
+  - Gateway và subgraph
+  - Spring GraphQL trong kiến trúc nhiều service
+  - Authorization giữa các subgraph
+  - Observability xuyên federation
+- level1: Tùy biến GraphQL Java
+  level2:
+  - Custom DataFetcher
+  - GraphQL Java Instrumentation
+  - Instrumentation chain
+  - ExecutionId
+  - ExecutionInput
+  - ExecutionResult
+  - DataFetcherExceptionHandler
+  - PreparsedDocumentProvider
+  - ExecutionStrategy
+  - GraphQLContext customization
+  - Configurer và builder customization
+  - Khi dùng GraphQL Java trực tiếp
+- level1: API design và tiến hóa
+  level2:
+  - Thiết kế schema theo domain
+  - Tên field ổn định
+  - Backward compatibility
+  - Deprecate field
+  - Thêm field không phá client
+  - Thay đổi nullability
+  - Versioning bằng schema evolution
+  - Input type và output type tách biệt
+  - Error contract
+  - Pagination contract
+  - Mutation payload contract
+  - Namespacing query
+  - Tránh schema quá rộng
+- level1: Vận hành và triển khai
+  level2:
+  - Schema validation trong CI
+  - GraphQL endpoint readiness
+  - Health check cho transport
+  - Cấu hình timeout
+  - Giới hạn request body
+  - CORS và CSRF
+  - Log request an toàn
+  - Metrics và alert GraphQL
+  - Theo dõi lỗi theo operation
+  - Triển khai schema nhiều module
+  - Kiểm tra compatibility trước release
+  - Canary schema change
+  - Runbook khi resolver chậm
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây query và @QueryMapping
+  - Xây mutation có input validation
+  - Xây nested field bằng @SchemaMapping
+  - Sửa N+1 bằng @BatchMapping
+  - Thêm custom scalar
+  - Thêm GraphQL error handler
+  - Bảo vệ resolver bằng Spring Security
+  - Tạo subscription bằng Flux
+  - Viết GraphQlTester cho query
+  - Đo observation của DataLoader
+  - Giới hạn query depth và complexity
+  - Thiết kế schema tiến hóa
+  - Checklist production readiness

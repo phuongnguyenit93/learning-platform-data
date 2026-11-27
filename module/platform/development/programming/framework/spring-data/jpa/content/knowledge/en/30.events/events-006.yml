@@ -1,0 +1,3 @@
+menuLevel1: Sự kiện
+menuLevel2: Xử lý sự kiện theo giai đoạn giao dịch bằng @TransactionalEventListener
+status: TRANSLATE

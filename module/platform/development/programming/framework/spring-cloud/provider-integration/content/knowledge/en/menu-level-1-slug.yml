@@ -1,0 +1,112 @@
+menu:
+- title: Định hướng
+  slug: overview
+  index: 0
+- title: Nền tảng đám mây
+  slug: cloud-platforms
+  index: 1
+- title: Kiến trúc tích hợp
+  slug: integration-architecture
+  index: 2
+- title: Khởi tạo dự án
+  slug: project-bootstrap
+  index: 3
+- title: Cấu hình ứng dụng
+  slug: application-configuration
+  index: 4
+- title: Danh tính và quyền
+  slug: identity-access
+  index: 5
+- title: Nền tảng AWS
+  slug: aws-platform
+  index: 6
+- title: Cấu hình AWS
+  slug: aws-configuration
+  index: 7
+- title: Amazon S3
+  slug: amazon-s3
+  index: 8
+- title: Amazon SQS
+  slug: amazon-sqs
+  index: 9
+- title: Amazon SNS và SES
+  slug: amazon-sns-ses
+  index: 10
+- title: Dữ liệu AWS
+  slug: aws-data-services
+  index: 11
+- title: Nền tảng Azure
+  slug: azure-platform
+  index: 12
+- title: Cấu hình Azure
+  slug: azure-configuration
+  index: 13
+- title: Azure Storage
+  slug: azure-storage
+  index: 14
+- title: Azure Service Bus
+  slug: azure-service-bus
+  index: 15
+- title: Sự kiện Azure
+  slug: azure-events
+  index: 16
+- title: Dữ liệu Azure
+  slug: azure-data-services
+  index: 17
+- title: Microsoft Entra ID
+  slug: microsoft-entra-id
+  index: 18
+- title: Nền tảng Google Cloud
+  slug: google-cloud-platform
+  index: 19
+- title: Cấu hình Google Cloud
+  slug: google-cloud-configuration
+  index: 20
+- title: Google Cloud Storage
+  slug: google-cloud-storage
+  index: 21
+- title: Google Cloud Pub/Sub
+  slug: google-cloud-pubsub
+  index: 22
+- title: Dữ liệu Google Cloud
+  slug: google-cloud-data-services
+  index: 23
+- title: Oracle Cloud
+  slug: oracle-cloud
+  index: 24
+- title: Alibaba Cloud
+  slug: alibaba-cloud
+  index: 25
+- title: Kết nối hệ sinh thái
+  slug: ecosystem-connectivity
+  index: 26
+- title: Độ tin cậy
+  slug: reliability
+  index: 27
+- title: Bảo vệ dữ liệu
+  slug: data-protection
+  index: 28
+- title: Quan sát hệ thống
+  slug: observability
+  index: 29
+- title: Kiểm thử tích hợp
+  slug: integration-testing
+  index: 30
+- title: Triển khai ứng dụng
+  slug: application-deployment
+  index: 31
+- title: Hiệu năng và chi phí
+  slug: performance-cost
+  index: 32
+- title: Đa đám mây
+  slug: multicloud
+  index: 33
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 34
+- title: Nâng cấp tích hợp
+  slug: integration-upgrades
+  index: 35
+- title: Thực hành tổng hợp
+  slug: hands-on-integration
+  index: 36

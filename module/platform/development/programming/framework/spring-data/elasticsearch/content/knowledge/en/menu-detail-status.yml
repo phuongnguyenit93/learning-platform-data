@@ -1,0 +1,4030 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Spring Data Elasticsearch là gì và giải quyết nhu cầu tìm kiếm nào
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-002
+    title: Mối liên hệ giữa Spring Data, Elasticsearch và Elasticsearch Java Client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-003
+    title: Document, index, mapping, query và Repository trong cùng một mô hình
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-004
+    title: Luồng xử lý từ lời gọi Java đến yêu cầu HTTP và kết quả tìm kiếm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-005
+    title: Phân biệt cơ sở dữ liệu nghiệp vụ và mô hình dữ liệu phục vụ tìm kiếm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-006
+    title: So sánh Repository, ElasticsearchOperations và client trực tiếp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-007
+    title: Khi nên dùng Elasticsearch và khi nên chọn công cụ khác
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-008
+    title: Kiến thức Java, Spring, HTTP, JSON và tìm kiếm cần chuẩn bị
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: elasticsearch-foundations
+  title: Nền tảng Elasticsearch
+  childs:
+  - slug: elasticsearch-foundations-001
+    title: Cluster, node, shard và replica
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elasticsearch-foundations-002
+    title: Document, trường dữ liệu, _id và _source
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elasticsearch-foundations-003
+    title: Inverted index và cơ chế tìm kiếm văn bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elasticsearch-foundations-004
+    title: Mapping tường minh, dynamic mapping và dynamic templates
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elasticsearch-foundations-005
+    title: Phân biệt text, keyword và mục đích sử dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elasticsearch-foundations-006
+    title: Analyzer, tokenizer, token filter và normalizer
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elasticsearch-foundations-007
+    title: Query context, filter context và điểm liên quan
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elasticsearch-foundations-008
+    title: Near real-time, refresh, flush và commit trong Elasticsearch
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elasticsearch-foundations-009
+    title: Định tuyến tài liệu đến shard và vai trò của routing
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elasticsearch-foundations-010
+    title: Giới hạn giao dịch, phép join và ràng buộc dữ liệu so với SQL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: setup
+  title: Khởi tạo
+  childs:
+  - slug: setup-001
+    title: Tạo ứng dụng Spring Boot với Spring Data Elasticsearch
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-002
+    title: Chọn phiên bản Spring Boot, Spring Data, client và Elasticsearch tương thích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-003
+    title: Khởi chạy Elasticsearch phục vụ học tập bằng Docker
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-004
+    title: Cấu hình địa chỉ cluster và thông tin xác thực
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-005
+    title: Tạo Document, ElasticsearchRepository và dịch vụ đầu tiên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-006
+    title: Thực hiện lưu, đọc, tìm kiếm và xóa tài liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-007
+    title: Kiểm tra index, mapping và dữ liệu bằng API Elasticsearch
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-008
+    title: Tổ chức gói mã nguồn và cấu hình theo môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-009
+    title: Nhận diện lỗi kết nối, chứng chỉ và không tương thích phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: clients-and-connections
+  title: Client và kết nối
+  childs:
+  - slug: clients-and-connections-001
+    title: Cơ chế tự cấu hình client của Spring Boot
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clients-and-connections-002
+    title: Cấu hình bằng ElasticsearchConfiguration và ClientConfiguration
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clients-and-connections-003
+    title: Vai trò của ElasticsearchClient, transport và lớp HTTP
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clients-and-connections-004
+    title: Khai báo nhiều địa chỉ và lựa chọn endpoint của cluster
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clients-and-connections-005
+    title: Cấu hình HTTPS, CA và xác minh chứng chỉ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clients-and-connections-006
+    title: Cấu hình tài khoản, API key và header xác thực
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clients-and-connections-007
+    title: Connect timeout, socket timeout và thời gian chờ yêu cầu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clients-and-connections-008
+    title: Connection pool, keep-alive và quản lý vòng đời client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clients-and-connections-009
+    title: Proxy, path prefix và header tùy chỉnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clients-and-connections-010
+    title: Tiêm client trực tiếp khi Operations chưa hỗ trợ API cần dùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clients-and-connections-011
+    title: Phân biệt client đồng bộ và client reactive
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: document-mapping
+  title: Ánh xạ Document
+  childs:
+  - slug: document-mapping-001
+    title: '@Document, indexName và phạm vi tự tạo index'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-mapping-002
+    title: '@Id và ánh xạ định danh tài liệu'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-mapping-003
+    title: '@Field, tên trường Java và tên trường trong Elasticsearch'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-mapping-004
+    title: '@Setting, @Mapping và nạp cấu hình từ tài nguyên'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-mapping-005
+    title: Cấu hình số shard, replica và refresh interval theo môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-mapping-006
+    title: MappingElasticsearchConverter và metadata ánh xạ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-mapping-007
+    title: Đối tượng bất biến, constructor và Java record theo phiên bản hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-mapping-008
+    title: '@Transient, @ReadOnlyProperty và @WriteOnlyProperty'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-mapping-009
+    title: Type hint, trường _class và ánh xạ kiểu đa hình
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-mapping-010
+    title: Index name động bằng biểu thức và IndexCoordinates
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-mapping-011
+    title: Phân biệt metadata ánh xạ phía ứng dụng và mapping đã tồn tại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-types
+  title: Kiểu dữ liệu
+  childs:
+  - slug: data-types-001
+    title: Ánh xạ text và keyword theo nhu cầu tìm kiếm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-002
+    title: Multi-field với @MultiField và @InnerField
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-003
+    title: Kiểu số nguyên, số thực, scaled_float và độ chính xác
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-004
+    title: Boolean, binary, IP và các kiểu chuyên biệt
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-005
+    title: Kiểu date, date_nanos, định dạng và múi giờ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-006
+    title: Ánh xạ mảng, tập hợp và giá trị nhiều phần tử
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-007
+    title: Object, nested và khác biệt khi lọc nhiều thuộc tính con
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-008
+    title: Flattened và giới hạn khi cấu trúc thuộc tính thay đổi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-009
+    title: Giá trị null, trường thiếu, chuỗi rỗng và null_value
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-010
+    title: index, store, doc_values và giới hạn truy xuất từng loại trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-011
+    title: Range, geo_point, geo_shape và phạm vi hỗ trợ của Spring Data
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: text-analysis
+  title: Phân tích văn bản
+  childs:
+  - slug: text-analysis-001
+    title: Phân biệt phân tích lúc lập chỉ mục và lúc tìm kiếm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-analysis-002
+    title: Chọn analyzer theo ngôn ngữ và dạng nội dung
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-analysis-003
+    title: Tạo analyzer từ character filter, tokenizer và token filter
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-analysis-004
+    title: Normalizer cho keyword và tìm kiếm không phân biệt hoa thường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-analysis-005
+    title: Kiểm tra token bằng Analyze API
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-analysis-006
+    title: Stop word, stemming và đánh đổi về độ chính xác
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-analysis-007
+    title: Synonym, synonym graph và quản lý thay đổi từ đồng nghĩa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-analysis-008
+    title: Edge n-gram, n-gram và chi phí kích thước chỉ mục
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-analysis-009
+    title: Tìm kiếm tiếng Việt, dấu tiếng Việt và yêu cầu plugin tương ứng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-analysis-010
+    title: Thiết kế multi-field cho tìm kiếm, sắp xếp và thống kê
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-analysis-011
+    title: Thay đổi analyzer, reindex và kiểm thử chất lượng tìm kiếm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: object-mapping
+  title: Chuyển đổi đối tượng
+  childs:
+  - slug: object-mapping-001
+    title: Quy trình chuyển Java object sang Document và đọc ngược
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-mapping-002
+    title: Đăng ký ElasticsearchCustomConversions
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-mapping-003
+    title: Phân biệt ReadingConverter và WritingConverter
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-mapping-004
+    title: Chuyển đổi từng thuộc tính bằng @ValueConverter
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-mapping-005
+    title: Ánh xạ kiểu thời gian và định dạng ngày tùy chỉnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-mapping-006
+    title: Xử lý enum, tiền tệ và kiểu giá trị nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-mapping-007
+    title: Chuyển đổi đối tượng lồng nhau và collection
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-mapping-008
+    title: Giới hạn của cấu hình Jackson đối với cơ chế mapping của Spring Data
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-mapping-009
+    title: Kiểm thử dữ liệu sau một vòng ghi và đọc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: index-management
+  title: Quản lý chỉ mục
+  childs:
+  - slug: index-management-001
+    title: Vai trò của IndexOperations và cách lấy indexOps
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: index-management-002
+    title: Kiểm tra tồn tại, tạo và xóa index
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: index-management-003
+    title: Tạo mapping từ Document và áp dụng mapping
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: index-management-004
+    title: Đọc mapping, settings và đối chiếu với mô hình Java
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: index-management-005
+    title: Khi Repository tự tạo index và khi phải quản lý tường minh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: index-management-006
+    title: Tách quyền quản lý index khỏi quyền đọc ghi tài liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: index-management-007
+    title: Settings tĩnh, settings động và điều kiện cập nhật
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: index-management-008
+    title: Vì sao không thể đổi tùy ý kiểu trường đã lập chỉ mục
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: index-management-009
+    title: Index template, component template và phạm vi API được hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: index-management-010
+    title: Ngăn tự tạo mapping ngoài ý muốn trong môi trường triển khai
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aliases-and-lifecycle
+  title: Alias và vòng đời
+  childs:
+  - slug: aliases-and-lifecycle-001
+    title: Alias là gì và cách tách tên logic khỏi index vật lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aliases-and-lifecycle-002
+    title: Tạo, cập nhật và xóa alias bằng API phù hợp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aliases-and-lifecycle-003
+    title: Read alias, write alias và is_write_index
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aliases-and-lifecycle-004
+    title: Chuyển alias nguyên tử khi thay phiên bản index
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aliases-and-lifecycle-005
+    title: Quy trình tạo index mới, reindex, kiểm tra và chuyển alias
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aliases-and-lifecycle-006
+    title: Rollover và quản lý index theo thời gian
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aliases-and-lifecycle-007
+    title: Index Lifecycle Management và trách nhiệm của hạ tầng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aliases-and-lifecycle-008
+    title: Data stream, dữ liệu nối thêm và yêu cầu tương thích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aliases-and-lifecycle-009
+    title: Chính sách lưu giữ, snapshot và phục hồi dữ liệu tìm kiếm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aliases-and-lifecycle-010
+    title: Phân biệt quản lý vòng đời ở cluster với chức năng Repository
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: repository
+  title: Repository
+  childs:
+  - slug: repository-001
+    title: ElasticsearchRepository và các thao tác dữ liệu được cung cấp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-002
+    title: Khai báo kiểu Document và kiểu khóa định danh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-003
+    title: Quét Repository với @EnableElasticsearchRepositories
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-004
+    title: Interface cơ sở dùng chung và @NoRepositoryBean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-005
+    title: Cơ chế tạo proxy và triển khai Repository mặc định
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-006
+    title: Phân biệt phương thức CRUD và phương thức truy vấn tự khai báo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-007
+    title: Kiểu trả về được hỗ trợ và hợp đồng dữ liệu không tồn tại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-008
+    title: Phân vùng Repository khi nhiều mô-đun Spring Data cùng tồn tại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-009
+    title: Nhận diện giới hạn Repository và thời điểm chuyển sang Operations
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crud-operations
+  title: Thao tác CRUD
+  childs:
+  - slug: crud-operations-001
+    title: save và hành vi tạo mới hoặc thay thế tài liệu theo id
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-operations-002
+    title: Chọn id do ứng dụng cấp hoặc id do Elasticsearch sinh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-operations-003
+    title: saveAll và giới hạn bảo đảm thành công toàn bộ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-operations-004
+    title: findById, findAllById và Optional
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-operations-005
+    title: Phân biệt lấy trực tiếp theo id và tìm kiếm qua index
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-operations-006
+    title: existsById, count và chi phí thao tác
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-operations-007
+    title: deleteById, delete và deleteAll
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-operations-008
+    title: Xóa theo điều kiện và khác biệt với xóa từng id
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-operations-009
+    title: Kiểm soát index đích bằng IndexCoordinates khi dùng Operations
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-operations-010
+    title: Chọn refresh policy theo yêu cầu đọc sau ghi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-operations-011
+    title: Vì sao save không tương đương cập nhật một phần
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: derived-queries
+  title: Truy vấn theo tên
+  childs:
+  - slug: derived-queries-001
+    title: Cấu trúc tên phương thức và phân giải đường dẫn thuộc tính
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-002
+    title: Điều kiện Is, Not, And và Or
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-003
+    title: Between, LessThan, GreaterThan, Before và After
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-004
+    title: In, NotIn và khác biệt theo kiểu keyword hoặc text
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-005
+    title: Like, StartingWith, EndingWith và Containing
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-006
+    title: True, False, Exists, IsNull và IsNotNull
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-007
+    title: Phân biệt trường thiếu, chuỗi rỗng và điều kiện IsEmpty
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-008
+    title: OrderBy, Sort và Pageable trong phương thức truy vấn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-009
+    title: findBy, countBy, existsBy và deleteBy theo khả năng hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-010
+    title: Đọc Query DSL được sinh và tránh suy diễn từ hành vi JPA
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-011
+    title: Giới hạn biểu diễn nested, geo-shape và điều kiện phức tạp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-012
+    title: Khi tên phương thức quá dài hoặc không còn rõ nghĩa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: operations-and-templates
+  title: Operations và Template
+  childs:
+  - slug: operations-and-templates-001
+    title: Vai trò của ElasticsearchOperations và ElasticsearchTemplate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-templates-002
+    title: Phân chia DocumentOperations, SearchOperations và IndexOperations
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-templates-003
+    title: Chọn index qua kiểu Document hoặc IndexCoordinates
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-templates-004
+    title: Lưu, lấy, kiểm tra tồn tại và xóa tài liệu qua Operations
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-templates-005
+    title: Thực hiện search, count và multi-search theo API hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-templates-006
+    title: Tham số Query và lựa chọn CriteriaQuery, StringQuery, NativeQuery
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-templates-007
+    title: Truy xuất metadata kết quả thay vì chỉ lấy nội dung Document
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-templates-008
+    title: Thao tác cập nhật, bulk và reindex qua API thích hợp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-templates-009
+    title: Quản lý tài nguyên tìm kiếm và chuyển đổi ngoại lệ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-templates-010
+    title: Tiêm Operations trong dịch vụ hoặc Repository fragment
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: criteria-queries
+  title: CriteriaQuery
+  childs:
+  - slug: criteria-queries-001
+    title: Criteria và CriteriaQuery cho điều kiện tìm kiếm bằng Java
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: criteria-queries-002
+    title: So sánh giá trị, khoảng, thời gian và tập hợp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: criteria-queries-003
+    title: Điều kiện chuỗi và sự phụ thuộc vào mapping
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: criteria-queries-004
+    title: Kết hợp and, or, not và biểu thức nhóm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: criteria-queries-005
+    title: Xử lý điều kiện tùy chọn khi xây dựng biểu mẫu lọc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: criteria-queries-006
+    title: Phân biệt điều kiện truy vấn và điều kiện lọc được sinh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: criteria-queries-007
+    title: Kết hợp CriteriaQuery với Sort và Pageable
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: criteria-queries-008
+    title: Truy vấn địa lý theo khả năng của Criteria
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: criteria-queries-009
+    title: Đọc Query DSL thực tế và nhận biết giới hạn của Criteria
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: native-queries
+  title: NativeQuery
+  childs:
+  - slug: native-queries-001
+    title: NativeQuery và kiểu Query của Elasticsearch Java Client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-queries-002
+    title: Xây dựng truy vấn bằng builder và biểu thức lambda
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-queries-003
+    title: Kết hợp truy vấn, filter và post_filter
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-queries-004
+    title: Thiết lập sort, phân trang và giới hạn kết quả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-queries-005
+    title: Khai báo aggregation và đọc kết quả tương ứng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-queries-006
+    title: Thiết lập highlight, source filter và các tùy chọn tìm kiếm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-queries-007
+    title: Nested query, inner hits và truy vấn đặc thù
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-queries-008
+    title: Script, runtime field và các tùy chọn tùy phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-queries-009
+    title: Tái sử dụng bộ dựng truy vấn theo điều kiện nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-queries-010
+    title: Phân biệt NativeQuery với các API truy vấn cũ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: json-queries
+  title: Truy vấn JSON
+  childs:
+  - slug: json-queries-001
+    title: StringQuery và biểu diễn Query DSL dạng JSON
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-queries-002
+    title: Khai báo truy vấn bằng @Query trên Repository
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-queries-003
+    title: Tham số ?0, ?1 và cơ chế thay thế giá trị
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-queries-004
+    title: Truyền chuỗi, số, boolean, collection và giá trị đặc biệt
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-queries-005
+    title: Phân biệt mệnh đề query với toàn bộ search request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-queries-006
+    title: Kiểm soát escaping và tránh ghép JSON từ đầu vào tùy ý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-queries-007
+    title: Tổ chức truy vấn JSON trong tài nguyên cấu hình có thể kiểm thử
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-queries-008
+    title: Search template, tham số mẫu và API triển khai phù hợp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-queries-009
+    title: '@SearchTemplateQuery khi phiên bản Spring Data hỗ trợ'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-queries-010
+    title: Kiểm thử cấu trúc JSON và truy vấn sau khi gắn tham số
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: full-text-search
+  title: Tìm kiếm toàn văn
+  childs:
+  - slug: full-text-search-001
+    title: Match query và phân tích chuỗi truy vấn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: full-text-search-002
+    title: Match phrase, khoảng cách từ và thứ tự xuất hiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: full-text-search-003
+    title: Multi-match và tìm kiếm trên nhiều trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: full-text-search-004
+    title: Term, terms và khác biệt với match
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: full-text-search-005
+    title: Bool query với must, should, must_not và filter
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: full-text-search-006
+    title: minimum_should_match và điều kiện bắt buộc khi kết hợp bool
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: full-text-search-007
+    title: Prefix, wildcard, regexp và chi phí truy vấn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: full-text-search-008
+    title: Fuzzy query, fuzziness và kiểm soát lỗi chính tả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: full-text-search-009
+    title: Query string, simple query string và giới hạn cú pháp đầu vào
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: full-text-search-010
+    title: Range query cho số và thời gian
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: full-text-search-011
+    title: Exists query và ý nghĩa giá trị thiếu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: full-text-search-012
+    title: Thiết kế truy vấn kết hợp từ khóa và bộ lọc nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: filtering-and-ranking
+  title: Lọc và xếp hạng
+  childs:
+  - slug: filtering-and-ranking-001
+    title: Điểm _score và các yếu tố của BM25
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-ranking-002
+    title: Query context và filter context trong thực tế
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-ranking-003
+    title: Boost từng trường và từng mệnh đề
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-ranking-004
+    title: Disjunction max và cách kết hợp điểm nhiều trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-ranking-005
+    title: Function score để bổ sung tín hiệu nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-ranking-006
+    title: Script score và giới hạn chi phí tính toán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-ranking-007
+    title: Độ mới, mức phổ biến và khoảng cách trong công thức xếp hạng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-ranking-008
+    title: Phân biệt filter và post_filter khi tạo bộ lọc thống kê
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-ranking-009
+    title: min_score, rescore và điều kiện sử dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-ranking-010
+    title: Explain API, Profile API và phân tích kết quả không như mong muốn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-ranking-011
+    title: Đánh giá mức liên quan bằng tập truy vấn và kết quả kỳ vọng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: search-results
+  title: Kết quả tìm kiếm
+  childs:
+  - slug: search-results-001
+    title: Phân biệt nội dung Document và metadata của SearchHit
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: search-results-002
+    title: SearchHit<T>, SearchHits<T> và SearchPage<T>
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: search-results-003
+    title: Đọc _score, sort values, tên index và định danh kết quả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: search-results-004
+    title: Total hits, total hits relation và ngưỡng đếm chính xác
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: search-results-005
+    title: Đọc highlight, inner hits, aggregation và suggest
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: search-results-006
+    title: Source filtering với danh sách trường được lấy hoặc loại bỏ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: search-results-007
+    title: Phân biệt _source, stored fields và docvalue fields
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: search-results-008
+    title: Ánh xạ kết quả sang DTO và projection theo API hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: search-results-009
+    title: Xử lý kết quả rỗng, nhiều kết quả và lỗi chuyển đổi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: search-results-010
+    title: Giữ metadata cần thiết khi thiết kế phản hồi tìm kiếm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: sorting-and-pagination
+  title: Sắp xếp và phân trang
+  childs:
+  - slug: sorting-and-pagination-001
+    title: Sort, Sort.Order và Pageable trong Spring Data
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-002
+    title: Sắp xếp theo keyword, số, ngày và nhiều trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-003
+    title: Sắp xếp theo _score và điều kiện giữ điểm liên quan
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-004
+    title: Xử lý trường thiếu, giá trị nhiều phần tử và nested sort
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-005
+    title: Geo distance sort và thứ tự theo khoảng cách
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-006
+    title: Chỉ số trang, kích thước trang và ánh xạ from, size
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-007
+    title: Giới hạn index.max_result_window và chi phí phân trang sâu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-008
+    title: Thứ tự ổn định và trường phân xử khi nhiều tài liệu có cùng giá trị
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-009
+    title: track_total_hits và đánh đổi khi tính tổng số kết quả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-010
+    title: Kiểm soát thuộc tính sắp xếp và kích thước trang từ đầu vào
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-011
+    title: Phân biệt phân trang giao diện và quét dữ liệu để xuất
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: scrolling-and-export
+  title: Cuộn và xuất dữ liệu
+  childs:
+  - slug: scrolling-and-export-001
+    title: search_after và vị trí tiếp tục dựa trên sort values
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scrolling-and-export-002
+    title: Point in time để duy trì góc nhìn dữ liệu giữa các trang
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scrolling-and-export-003
+    title: Kết hợp PIT với search_after qua API phiên bản đang dùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scrolling-and-export-004
+    title: Quản lý keep_alive, PIT id và đóng tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scrolling-and-export-005
+    title: Scroll API và trường hợp quét dữ liệu theo lô
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scrolling-and-export-006
+    title: SearchHitsIterator và đóng iterator sau khi sử dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scrolling-and-export-007
+    title: Chọn kích thước lô, timeout và mức tiêu thụ bộ nhớ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scrolling-and-export-008
+    title: Khôi phục khi xuất dữ liệu gián đoạn và giới hạn của điểm tiếp tục
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scrolling-and-export-009
+    title: Thay đổi dữ liệu trong lúc quét và yêu cầu nhất quán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scrolling-and-export-010
+    title: Giới hạn truy vấn lớn, hủy thao tác và kiểm soát tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: highlighting-and-suggestions
+  title: Highlight và gợi ý
+  childs:
+  - slug: highlighting-and-suggestions-001
+    title: Cơ chế đánh dấu đoạn văn bản khớp truy vấn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: highlighting-and-suggestions-002
+    title: Cấu hình highlight bằng Query hoặc annotation Repository
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: highlighting-and-suggestions-003
+    title: '@Highlight, @HighlightField và tham số liên quan'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: highlighting-and-suggestions-004
+    title: Đọc highlight từ SearchHit và ánh xạ về DTO
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: highlighting-and-suggestions-005
+    title: Fragment size, số đoạn, thẻ đánh dấu và nguồn văn bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: highlighting-and-suggestions-006
+    title: Hiển thị highlight an toàn khi nội dung có HTML
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: highlighting-and-suggestions-007
+    title: Phân biệt tự động hoàn thành, gợi ý chính tả và tìm kiếm tiền tố
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: highlighting-and-suggestions-008
+    title: Completion suggester và dữ liệu đầu vào gợi ý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: highlighting-and-suggestions-009
+    title: Term suggester, phrase suggester và đọc kết quả suggest
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: highlighting-and-suggestions-010
+    title: Search-as-you-type, edge n-gram và lựa chọn theo yêu cầu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aggregation
+  title: Aggregation
+  childs:
+  - slug: aggregation-001
+    title: Phân biệt aggregation và danh sách tài liệu tìm được
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-002
+    title: Metric aggregation với min, max, sum, avg và stats
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-003
+    title: Terms aggregation để tạo nhóm và bộ lọc thống kê
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-004
+    title: Date histogram, histogram và khoảng giá trị
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-005
+    title: Filter aggregation và thống kê theo tập điều kiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-006
+    title: Aggregation lồng nhau và kết hợp metric với bucket
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-007
+    title: Nested, reverse_nested và thống kê quan hệ lồng nhau
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-008
+    title: Cardinality, percentile và giới hạn độ chính xác
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-009
+    title: Pipeline aggregation và tính toán từ kết quả nhóm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-010
+    title: Composite aggregation và phân trang bucket
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-011
+    title: Khai báo aggregation bằng NativeQuery và đọc wrapper của client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-012
+    title: Bucket size, shard_size, số bucket và chi phí tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-013
+    title: Kết hợp aggregation với post_filter để xây dựng faceted search
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: geospatial-data
+  title: Dữ liệu địa lý
+  childs:
+  - slug: geospatial-data-001
+    title: Phân biệt geo_point và geo_shape
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: geospatial-data-002
+    title: Ánh xạ GeoPoint, @GeoPoint và cấu trúc tọa độ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: geospatial-data-003
+    title: Kinh độ, vĩ độ, đơn vị khoảng cách và lỗi đảo tọa độ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: geospatial-data-004
+    title: Geo distance query và tìm kiếm quanh một vị trí
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: geospatial-data-005
+    title: Bounding box và lọc theo vùng bản đồ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: geospatial-data-006
+    title: Geo-shape query và quan hệ hình học
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: geospatial-data-007
+    title: Sắp xếp, tổng hợp và trả về khoảng cách phù hợp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: geospatial-data-008
+    title: Truy vấn bằng CriteriaQuery, NativeQuery hoặc client trực tiếp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: geospatial-data-009
+    title: Kiểm thử điểm biên, dữ liệu thiếu và độ chính xác địa lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: document-relationships
+  title: Quan hệ tài liệu
+  childs:
+  - slug: document-relationships-001
+    title: Thiết kế phi chuẩn hóa thay vì join theo mô hình quan hệ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-relationships-002
+    title: 'Object và nested: bảo toàn cặp thuộc tính của phần tử con'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-relationships-003
+    title: Nested query, score mode và inner hits
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-relationships-004
+    title: Giới hạn số đối tượng nested và chi phí cập nhật
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-relationships-005
+    title: Join field cho mô hình cha-con khi có nhu cầu phù hợp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-relationships-006
+    title: '@JoinTypeRelations, JoinField và cách ánh xạ'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-relationships-007
+    title: Has parent, has child và yêu cầu cùng shard
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-relationships-008
+    title: '@Routing, RoutingResolver và thao tác đọc ghi dữ liệu cha-con'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-relationships-009
+    title: So sánh embedded, nested, cha-con và liên kết ở tầng ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-relationships-010
+    title: Cập nhật dữ liệu lặp và xử lý nhất quán giữa các tài liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: updates-scripts
+  title: Cập nhật và script
+  childs:
+  - slug: updates-scripts-001
+    title: Phân biệt index toàn bộ tài liệu và partial update
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-scripts-002
+    title: UpdateQuery, nội dung doc và trường cần cập nhật
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-scripts-003
+    title: Upsert, doc_as_upsert và điều kiện tài liệu chưa tồn tại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-scripts-004
+    title: Script cập nhật bằng Painless và tham số script
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-scripts-005
+    title: Thay đổi mảng, bộ đếm và đối tượng lồng nhau
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-scripts-006
+    title: Update by query và các giới hạn nhất quán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-scripts-007
+    title: Delete by query, xung đột và kết quả từng tác vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-scripts-008
+    title: Scripted field và runtime field trong tìm kiếm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-scripts-009
+    title: Stored script, tái sử dụng và kiểm soát quyền thực thi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-scripts-010
+    title: Chi phí script, an toàn đầu vào và kiểm thử trường hợp biên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bulk-import
+  title: Bulk và nhập liệu
+  childs:
+  - slug: bulk-import-001
+    title: Bulk API và sự khác biệt với nhiều yêu cầu đơn lẻ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bulk-import-002
+    title: Bulk index, create, update và delete
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bulk-import-003
+    title: BulkOptions, kích thước lô và giới hạn theo phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bulk-import-004
+    title: Phân biệt HTTP thành công và lỗi từng phần tử trong bulk
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bulk-import-005
+    title: Đọc BulkFailureException hoặc kết quả chi tiết theo API
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bulk-import-006
+    title: Phân loại lỗi có thể retry và lỗi dữ liệu không hợp lệ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bulk-import-007
+    title: Backoff, jitter và giới hạn số yêu cầu đồng thời
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bulk-import-008
+    title: Id ổn định, thao tác create và tính lặp an toàn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bulk-import-009
+    title: Refresh policy khi nhập dữ liệu và đánh đổi tốc độ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bulk-import-010
+    title: Nạp dữ liệu lớn, chia lô và kiểm soát bộ nhớ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bulk-import-011
+    title: Ingest pipeline và giới hạn trách nhiệm của ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bulk-import-012
+    title: Kiểm tra đủ dữ liệu, đối soát lỗi và tiếp tục sau gián đoạn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: consistency-and-concurrency
+  title: Nhất quán và đồng thời
+  childs:
+  - slug: consistency-and-concurrency-001
+    title: Vì sao tìm kiếm có thể chưa thấy tài liệu vừa ghi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-002
+    title: GET theo id và search có đặc điểm nhất quán khác nhau
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-003
+    title: Refresh policy NONE, IMMEDIATE và WAIT_UNTIL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-004
+    title: Phân biệt refresh với flush và độ bền dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-005
+    title: Optimistic concurrency bằng sequence number và primary term
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-006
+    title: SeqNoPrimaryTerm và cách mang metadata khi cập nhật
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-007
+    title: Versioning, @Version và yêu cầu tương thích API
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-008
+    title: Xử lý version conflict khi ghi và cập nhật
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-009
+    title: Retry xung đột và giới hạn an toàn với cập nhật không lặp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-010
+    title: Không có giao dịch ACID đa tài liệu tương đương JPA
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-011
+    title: Phối hợp nhiều thao tác nghiệp vụ và cơ chế bù trừ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: callbacks-auditing
+  title: Callback và Auditing
+  childs:
+  - slug: callbacks-auditing-001
+    title: Entity callback và các mốc xử lý dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callbacks-auditing-002
+    title: BeforeConvertCallback để chuẩn hóa trước khi chuyển đổi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callbacks-auditing-003
+    title: AfterLoadCallback và AfterConvertCallback khi đọc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callbacks-auditing-004
+    title: AfterSaveCallback và metadata sau khi lưu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callbacks-auditing-005
+    title: Thứ tự callback bằng Ordered hoặc @Order
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callbacks-auditing-006
+    title: Phân biệt callback đồng bộ và callback reactive
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callbacks-auditing-007
+    title: Bật kiểm toán với @EnableElasticsearchAuditing
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callbacks-auditing-008
+    title: '@CreatedDate, @LastModifiedDate, @CreatedBy và @LastModifiedBy'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callbacks-auditing-009
+    title: AuditorAware, DateTimeProvider và ngữ cảnh người thao tác
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callbacks-auditing-010
+    title: Nhận diện tài liệu mới và ảnh hưởng đến trường kiểm toán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callbacks-auditing-011
+    title: Giới hạn callback, auditing khi dùng script, bulk hoặc client trực tiếp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reactive
+  title: Reactive
+  childs:
+  - slug: reactive-001
+    title: Mô hình Publisher, Mono, Flux và thời điểm thực thi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-002
+    title: Cấu hình ReactiveElasticsearchConfiguration và client reactive
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-003
+    title: ReactiveElasticsearchRepository và quét Repository
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-004
+    title: ReactiveElasticsearchOperations và ReactiveElasticsearchTemplate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-005
+    title: Chuỗi thao tác lưu, tìm kiếm và xóa không chặn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-006
+    title: ReactiveSearchHits và đọc metadata cùng luồng kết quả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-007
+    title: Truy vấn theo tên, @Query và NativeQuery trong luồng reactive
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-008
+    title: Phân trang truy vấn và giới hạn khi dữ liệu được phát thành Flux
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-009
+    title: Backpressure, giới hạn concurrency và kiểm soát bộ nhớ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-010
+    title: Timeout, retry, hủy đăng ký và giải phóng tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-011
+    title: Tránh block và thao tác chặn trong luồng xử lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-012
+    title: Reactive callback, ReactiveAuditorAware và bật auditing reactive
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-013
+    title: Truyền ngữ cảnh xác thực qua Reactor Context
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-014
+    title: Kiểm thử bằng StepVerifier và dữ liệu Elasticsearch thực
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: custom-repository
+  title: Repository tùy biến
+  childs:
+  - slug: custom-repository-001
+    title: Khi nên dùng default method, fragment hoặc dịch vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-repository-002
+    title: Định nghĩa Repository fragment và lớp triển khai
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-repository-003
+    title: Quy ước tên lớp, phạm vi quét và ghép fragment
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-repository-004
+    title: Tiêm ElasticsearchOperations hoặc ReactiveElasticsearchOperations
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-repository-005
+    title: Đóng gói tìm kiếm phức tạp mà vẫn giữ metadata kết quả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-repository-006
+    title: Dùng client trực tiếp cho API Operations chưa cung cấp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-repository-007
+    title: Tái sử dụng bộ dựng query và ánh xạ DTO
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-repository-008
+    title: Kiểm thử fragment và cấu hình Repository thực tế
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-synchronization
+  title: Đồng bộ dữ liệu
+  childs:
+  - slug: data-synchronization-001
+    title: Chọn nguồn dữ liệu chuẩn và mô hình chiếu cho tìm kiếm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-synchronization-002
+    title: Phân biệt ghi kép trực tiếp, outbox và CDC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-synchronization-003
+    title: Vì sao @Transactional không tạo giao dịch chung giữa JPA và Elasticsearch
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-synchronization-004
+    title: Thiết kế thông điệp thay đổi và id tài liệu ổn định
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-synchronization-005
+    title: Xử lý sự kiện trùng, đến muộn và sai thứ tự
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-synchronization-006
+    title: Truyền thay đổi xóa, tombstone và ngăn hồi sinh tài liệu cũ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-synchronization-007
+    title: Độ trễ lập chỉ mục và hợp đồng tìm kiếm sau cập nhật
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-synchronization-008
+    title: Retry, hàng đợi lỗi và đối soát dữ liệu bị thiếu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-synchronization-009
+    title: Bootstrap index từ dữ liệu cũ mà không mất thay đổi mới
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-synchronization-010
+    title: Reindex mô hình chiếu, đổi alias và phương án quay lại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-synchronization-011
+    title: Theo dõi độ trễ đồng bộ và khả năng khôi phục
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Bảo vệ kết nối HTTPS và xác minh chứng chỉ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-002
+    title: Tài khoản dịch vụ, API key và quyền tối thiểu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-003
+    title: Tách quyền đọc tìm kiếm, ghi dữ liệu và quản lý index
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-004
+    title: Quản lý bí mật kết nối bằng cấu hình môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-005
+    title: Phân quyền dữ liệu ở dịch vụ và khả năng bảo vệ phía cluster
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-006
+    title: Cách ly nhiều khách hàng bằng index hoặc bộ lọc tenant
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-007
+    title: Routing không thay thế kiểm soát quyền truy cập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-008
+    title: Giới hạn query string, wildcard, script và kích thước truy vấn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-009
+    title: Kiểm soát trường trả về và dữ liệu nhạy cảm trong _source
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-010
+    title: Che dữ liệu trong log, trace và thông báo lỗi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-011
+    title: Kiểm thử truy cập trái phép và rò rỉ dữ liệu chéo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Xác định mục tiêu độ trễ, thông lượng và chất lượng tìm kiếm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-002
+    title: Đo riêng thời gian phía ứng dụng và thời gian Elasticsearch
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-003
+    title: Chọn mapping và doc_values phù hợp trước khi tối ưu query
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-004
+    title: Giảm dữ liệu trả về bằng source filtering và kích thước trang
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-005
+    title: Dùng filter cho điều kiện không cần chấm điểm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-006
+    title: Kiểm soát wildcard đầu chuỗi, script và truy vấn tốn tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-007
+    title: Giảm chi phí aggregation, đếm tổng và phân trang sâu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-008
+    title: Tối ưu bulk size, mức đồng thời và refresh interval
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-009
+    title: Shard, replica, routing và nguy cơ shard nhận tải không đều
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-010
+    title: Phân biệt query cache, request cache và cache ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-011
+    title: Heap, bộ nhớ ngoài heap, đĩa và chi phí index lớn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-012
+    title: Đo hiệu năng trên dữ liệu và truy vấn gần với thực tế
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Phân biệt kiểm thử dịch vụ và tích hợp Repository
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-002
+    title: Phạm vi tự cấu hình của @DataElasticsearchTest
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-003
+    title: Khởi chạy Elasticsearch bằng Testcontainers tương thích phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-004
+    title: Cấp cấu hình động, chứng chỉ và thông tin xác thực cho kiểm thử
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-005
+    title: Chuẩn bị index, settings, mapping và dữ liệu có tính xác định
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-006
+    title: Refresh tường minh hoặc chờ điều kiện thay vì dùng thời gian ngủ cố định
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-007
+    title: Kiểm thử analyzer, converter và một vòng ghi đọc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-008
+    title: Kiểm thử derived query, CriteriaQuery, @Query và NativeQuery
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-009
+    title: Kiểm thử sort, phân trang, highlight và aggregation
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-010
+    title: Kiểm thử nested, geo và đồng thời theo nhu cầu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-011
+    title: Kiểm thử bulk lỗi một phần, retry và tính lặp an toàn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-012
+    title: Kiểm thử reactive bằng StepVerifier
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-013
+    title: Cách ly index giữa các ca kiểm thử và dọn dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-014
+    title: Không giả định rollback giao dịch sẽ dọn tài liệu Elasticsearch
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: monitoring-and-diagnostics
+  title: Giám sát và chẩn đoán
+  childs:
+  - slug: monitoring-and-diagnostics-001
+    title: Phân loại lỗi kết nối, xác thực, mapping và truy vấn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-diagnostics-002
+    title: Đọc DataAccessException và chuỗi nguyên nhân từ client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-diagnostics-003
+    title: Lỗi chuyển đổi kiểu, ngày tháng và tên trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-diagnostics-004
+    title: Index not found, alias sai và index bị chặn ghi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-diagnostics-005
+    title: Version conflict, tài liệu không tồn tại và cập nhật thất bại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-diagnostics-006
+    title: HTTP 429, rejection, timeout và lỗi từng phần tử bulk
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-diagnostics-007
+    title: Kết quả rỗng do analyzer, mapping hoặc refresh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-diagnostics-008
+    title: Lỗi sắp xếp, aggregation trên text và giới hạn fielddata
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-diagnostics-009
+    title: Nhật ký client, request id và trace có che dữ liệu nhạy cảm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-diagnostics-010
+    title: Slow log, Profile API và phân tích truy vấn chậm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-diagnostics-011
+    title: Cluster health, shard allocation và ngưỡng dung lượng đĩa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-diagnostics-012
+    title: Theo dõi độ trễ, lỗi, thông lượng và độ trễ đồng bộ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-diagnostics-013
+    title: Chẩn đoán kết quả thiếu, shard thất bại và tổng số chỉ là ước lượng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-design
+  title: Thiết kế ứng dụng
+  childs:
+  - slug: application-design-001
+    title: Tách Document tìm kiếm khỏi Entity cơ sở dữ liệu nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-002
+    title: Thiết kế mô hình phi chuẩn hóa theo trường hợp sử dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-003
+    title: Tổ chức dịch vụ tìm kiếm, Repository và bộ dựng truy vấn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-004
+    title: DTO yêu cầu, DTO phản hồi và hợp đồng metadata
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-005
+    title: Bộ lọc tùy chọn, giá trị null và quy tắc kết hợp điều kiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-006
+    title: Thiết kế API phân trang, con trỏ và giới hạn truy cập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-007
+    title: Quản lý phiên bản Document và index schema
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-008
+    title: Xóa mềm, thời hạn dữ liệu và chiến lược lọc nhất quán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-009
+    title: Nhiều index, nhiều cluster và giới hạn truy vấn liên nguồn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-design-010
+    title: Lựa chọn đồng bộ hoặc reactive theo mô hình tải thực tế
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: semantic-search
+  title: Tìm kiếm ngữ nghĩa
+  childs:
+  - slug: semantic-search-001
+    title: Phân biệt tìm kiếm từ khóa và tìm kiếm theo ý nghĩa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-search-002
+    title: Embedding, dense_vector và số chiều dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-search-003
+    title: Chuẩn bị vector và giữ đồng bộ với nội dung tài liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-search-004
+    title: Độ tương đồng, kNN và đánh đổi giữa tốc độ với độ chính xác
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-search-005
+    title: Thực hiện truy vấn qua NativeQuery hoặc client theo phiên bản hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-search-006
+    title: Kết hợp tìm kiếm từ khóa và vector theo khả năng của Elasticsearch
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-search-007
+    title: Lọc quyền truy cập và điều kiện nghiệp vụ trong truy vấn vector
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-search-008
+    title: Chi phí lập chỉ mục, bộ nhớ và đánh giá chất lượng kết quả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-search-009
+    title: Kiểm tra phiên bản, mô hình embedding và điều kiện sử dụng tính năng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: version-upgrade
+  title: Phiên bản và nâng cấp
+  childs:
+  - slug: version-upgrade-001
+    title: Đọc ma trận tương thích Spring Boot, Spring Data, client và server
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-upgrade-002
+    title: Phân biệt Elasticsearch với OpenSearch và phạm vi tương thích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-upgrade-003
+    title: Chuyển từ TransportClient hoặc RestHighLevelClient sang client phù hợp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-upgrade-004
+    title: Thay API cũ như ElasticsearchRestTemplate và NativeSearchQuery theo dòng phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-upgrade-005
+    title: Kiểm tra thay đổi package, builder và kiểu aggregation
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-upgrade-006
+    title: Đánh giá thay đổi mapping, converter và type hint
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-upgrade-007
+    title: Nâng cấp reactive client, auditing và callback
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-upgrade-008
+    title: Tái tạo index khi thay đổi kiểu trường hoặc analyzer
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-upgrade-009
+    title: Kiểm thử hồi quy truy vấn, điểm xếp hạng và hiệu năng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-upgrade-010
+    title: Lập kế hoạch nâng cấp cluster và ứng dụng có thể quay lại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Xây dựng tìm kiếm sản phẩm với text, keyword và multi-field
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-002
+    title: Tạo bộ lọc danh mục, khoảng giá và thống kê faceted search
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-003
+    title: Bổ sung sắp xếp, phân trang và highlight cho kết quả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-004
+    title: Thiết kế tự động hoàn thành và gợi ý sửa lỗi chính tả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-005
+    title: Tìm địa điểm theo bán kính và thứ tự khoảng cách
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-006
+    title: Mô hình thuộc tính sản phẩm bằng nested query
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-007
+    title: Nhập dữ liệu theo lô và xử lý lỗi từng tài liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-008
+    title: Đồng bộ thay đổi từ cơ sở dữ liệu qua outbox
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-009
+    title: Đổi mapping bằng reindex và chuyển alias
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-010
+    title: Xây dựng luồng tìm kiếm reactive và kiểm thử giới hạn tải
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-011
+    title: Đánh giá giải pháp bằng tính đúng đắn, mức liên quan và hiệu năng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

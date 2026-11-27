@@ -1,0 +1,354 @@
+# Naming Rules `<function>-in-<index>` and `<function>-out-<index>`
+
+In Spring Cloud Stream's functional programming model, each `Supplier`, `Function`, or `Consumer` can be connected to the messaging system through input and output bindings. Spring Cloud Stream names bindings based on the function bean name and the position of the data port. The standard naming convention has the form `<function>-in-<index>` for inputs and `<function>-out-<index>` for outputs.
+
+Understanding this convention properly helps you configure `destination`, `group`, `content-type`, retry, or binder-specific properties on the right binding. A binding name is a logical identifier within the application; it is not the name of a topic, queue, exchange, or subscription on the broker.
+
+## 1. Structure of a binding name
+
+A binding name in the functional model consists of three parts:
+
+| Part | Meaning | Example |
+| --- | --- | --- |
+| `<function>` | The function bean name registered by Spring in the application context | `processOrder` |
+| `in` or `out` | Data direction relative to the function | `in` is data entering the function; `out` is data leaving the function |
+| `<index>` | Index of the input or output port, starting from `0` | `0`, `1`, `2` |
+
+Therefore:
+
+- `processOrder-in-0` is the first input port of the `processOrder` function.
+- `processOrder-out-0` is the first output port of the `processOrder` function.
+- `processOrder-in-1` is the second input port if the function supports multiple inputs.
+- `processOrder-out-1` is the second output port if the function supports multiple outputs.
+
+The index is the port's ordinal number, zero-based. It does not represent a message sequence number, a Kafka partition, a consumer instance, or the position of an element within a payload.
+
+The `<function>` name is taken from the function bean name recognized by Spring. With a typical `@Bean` declaration, this is usually the name of the bean factory method. If the bean is given an explicit name, you must use that actual bean name in `spring.cloud.function.definition` and in the corresponding binding names.
+
+## 2. Binding names for Supplier, Function, and Consumer
+
+Each function type has a different number of data directions. The binding naming rule reflects those directions accurately.
+
+| Function type | Input | Output |
+| --- | --- | --- |
+| `Supplier<T>` | No input binding | `<function>-out-0` |
+| `Function<T, R>` | `<function>-in-0` | `<function>-out-0` |
+| `Consumer<T>` | `<function>-in-0` | No output binding |
+
+### Supplier: output only
+
+A `Supplier` produces data and emits it to the broker. For example:
+
+```java
+import java.util.function.Supplier;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class EventSources {
+
+    @Bean
+    public Supplier<String> orderEvents() {
+        return () -> "ORDER_CREATED";
+    }
+}
+```
+
+The output binding name is generated from the bean name:
+
+```text
+orderEvents-out-0
+```
+
+There is no `orderEvents-in-0`, because a `Supplier` does not receive messages from the broker via an input parameter. With `Supplier<Flux<T>>`, the output is still the single port `orderEvents-out-0`; returning a stream of multiple elements does not automatically create multiple bindings.
+
+### Function: input and output
+
+A `Function` receives data, processes it, and returns a result. For example:
+
+```java
+import java.util.function.Function;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class OrderProcessors {
+
+    @Bean
+    public Function<String, String> normalizeOrder() {
+        return orderId -> orderId.trim().toUpperCase();
+    }
+}
+```
+
+The two corresponding bindings are:
+
+```text
+normalizeOrder-in-0
+normalizeOrder-out-0
+```
+
+Messages from the input binding's destination are passed to the `normalizeOrder` function. The return value of the function is sent through the output binding to its configured destination.
+
+### Consumer: input only
+
+A `Consumer` receives messages and performs an action without returning data to emit via an output binding:
+
+```java
+import java.util.function.Consumer;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class OrderListeners {
+
+    @Bean
+    public Consumer<String> recordOrder() {
+        return orderId -> System.out.println("Received: " + orderId);
+    }
+}
+```
+
+The binding name is:
+
+```text
+recordOrder-in-0
+```
+
+There is no `recordOrder-out-0`. If you need to emit a new message after processing, use a `Function` that returns data or a message-sending mechanism suited to your application design.
+
+## 3. Configuring bindings using default names
+
+Usually, it is best to keep the default binding names generated by Spring Cloud Stream. In that case, configuration for each binding lives under `spring.cloud.stream.bindings` with the binding name as the key.
+
+For example, the `normalizeOrder` function reads from `orders.raw` and emits results to `orders.normalized`:
+
+```yaml
+spring:
+  cloud:
+    function:
+      definition: normalizeOrder
+    stream:
+      bindings:
+        normalizeOrder-in-0:
+          destination: orders.raw
+          group: order-normalizer
+          content-type: application/json
+          consumer:
+            max-attempts: 3
+        normalizeOrder-out-0:
+          destination: orders.normalized
+          content-type: application/json
+```
+
+In this example:
+
+- `spring.cloud.function.definition` selects the function bean to activate.
+- `normalizeOrder-in-0` configures the function's input port.
+- `destination: orders.raw` is the input resource on the broker.
+- `group: order-normalizer` specifies the consumer group for the input binding; its exact semantics are mapped by the binder according to the broker.
+- `normalizeOrder-out-0` configures the function's output port.
+- `destination: orders.normalized` is the target resource receiving the results.
+- `content-type` declares the payload format so the framework can perform conversion.
+
+The binding name and destination name can differ. When you change the destination from `orders.raw` to `orders.submitted`, the binding name `normalizeOrder-in-0` stays the same. A binding name only changes when you change the function bean name, the port structure, or the name-mapping rules.
+
+## 4. Why does the index start at 0?
+
+The index numbers the ports of the same function sequentially. The first port always uses `0`, the second port uses `1`, and so on. This rule applies separately to inputs and outputs.
+
+By convention, for example:
+
+| Port | Name |
+| --- | --- |
+| First input | `aggregate-in-0` |
+| Second input | `aggregate-in-1` |
+| First output | `aggregate-out-0` |
+| Second output | `aggregate-out-1` |
+
+A function with one input and two outputs will have one `in-0` binding, along with two output bindings `out-0` and `out-1`. A function with two inputs and one output will have two input bindings `in-0`, `in-1` and one `out-0` binding. The actual number of bindings depends on the function signature and the data types supported by your Spring Cloud Function / Spring Cloud Stream version.
+
+In stream-processing functions with multiple inputs or multiple outputs, Spring Cloud Stream can use tuple structures to represent multiple ports. Here is an illustrative example of a function that accepts two streams and emits one stream:
+
+```java
+import java.util.function.Function;
+
+import reactor.core.publisher.Flux;
+import reactor.util.function.Tuple2;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class JoinFunctions {
+
+    @Bean
+    public Function<Tuple2<Flux<String>, Flux<String>>, Flux<String>> mergeEvents() {
+        return inputs -> Flux.merge(inputs.getT1(), inputs.getT2());
+    }
+}
+```
+
+With this two-input, one-output signature, the ports are named by convention:
+
+```text
+mergeEvents-in-0
+mergeEvents-in-1
+mergeEvents-out-0
+```
+
+The tuple example shows that the index identifies the port position in the function structure. How tuples, reactive types, and multi-port signatures are supported should be checked against the Spring Cloud Stream / Spring Cloud Function version used by your project. You should not increment the index just because a message has multiple fields or a stream has multiple elements.
+
+## 5. Function names and selecting activated functions
+
+An application can declare multiple function beans, but Spring Cloud Stream needs to know which functions should be wired to the binder. The `spring.cloud.function.definition` property selects the function or composition expression to activate.
+
+For example, given two beans:
+
+```java
+@Bean
+public Function<String, String> normalizeOrder() {
+    return value -> value.trim().toUpperCase();
+}
+
+@Bean
+public Consumer<String> auditOrder() {
+    return value -> System.out.println("Audit: " + value);
+}
+```
+
+If only `normalizeOrder` is selected, that function's bindings are `normalizeOrder-in-0` and `normalizeOrder-out-0`. If `auditOrder` is selected, the binding is `auditOrder-in-0`. Having a bean in the application context does not mean every bean is automatically connected to the broker; function selection must be explicit.
+
+When you need to activate multiple independent functions, you can list their definitions using the syntax supported by Spring Cloud Function, typically separated by `;`. Each function still gets binding names based on its own name. Check the definition configuration for your version, especially when mixing independent functions and composed functions.
+
+## 6. Binding names when composing multiple functions
+
+Spring Cloud Function allows composing compatible functions into a single pipeline. For example, `uppercase` converts a string to uppercase and `addPrefix` prepends a prefix. You can select the pipeline with:
+
+```yaml
+spring:
+  cloud:
+    function:
+      definition: uppercase|addPrefix
+```
+
+For a composed function with one input and one output, the binding names are generated from the composed definition name:
+
+```text
+uppercase|addPrefix-in-0
+uppercase|addPrefix-out-0
+```
+
+Full configuration example:
+
+```yaml
+spring:
+  cloud:
+    function:
+      definition: uppercase|addPrefix
+    stream:
+      bindings:
+        "uppercase|addPrefix-in-0":
+          destination: orders.raw
+        "uppercase|addPrefix-out-0":
+          destination: orders.display
+```
+
+When writing YAML, wrap names containing the `|` character in quotes to make clear that it is a string key. If the pipeline has multiple inputs or outputs, the index continues numbering the ports of the composed function. Component functions must have compatible output and input types in order to be chained together.
+
+Do not confuse the pipeline name with the destination name. `uppercase|addPrefix-in-0` is the pipeline's input binding; `orders.raw` is the destination used by that binding.
+
+## 7. Renaming default bindings with aliases
+
+Spring Cloud Stream allows mapping a default binding name to a custom name. This configuration is useful when you want to use a short name, an internal naming convention, or a stable name for externalized configuration.
+
+For example, mapping the binding `normalizeOrder-in-0` to the alias `ordersInput`, and `normalizeOrder-out-0` to `ordersOutput`:
+
+```yaml
+spring:
+  cloud:
+    function:
+      definition: normalizeOrder
+    stream:
+      function:
+        bindings:
+          normalizeOrder-in-0: ordersInput
+          normalizeOrder-out-0: ordersOutput
+```
+
+After mapping, binding property configuration uses the aliases:
+
+```yaml
+spring:
+  cloud:
+    stream:
+      bindings:
+        ordersInput:
+          destination: orders.raw
+          group: order-normalizer
+        ordersOutput:
+          destination: orders.normalized
+```
+
+The full name of the mapping property is `spring.cloud.stream.function.bindings`. When using aliases, all binding property configuration must consistently reference the corresponding alias name. This can force readers to trace back from the alias to the function name, so it is best to keep the default names unless you have a specific need.
+
+An alias only changes the binding name used in configuration. It does not change the function bean name, nor does it automatically change the destination on the broker. Renaming a topic, exchange, or queue is still done via the `destination` property or the corresponding broker resource configuration.
+
+## 8. Distinguishing binding names from other names
+
+In a Spring Cloud Stream configuration, several kinds of names appear side by side. You need to identify each one's role correctly to avoid placing properties in the wrong place:
+
+| Value | Example | Role |
+| --- | --- | --- |
+| Function bean name | `normalizeOrder` | Selects the function in the application context |
+| Input binding | `normalizeOrder-in-0` | Identifies the function's input port |
+| Output binding | `normalizeOrder-out-0` | Identifies the function's output port |
+| Destination | `orders.raw` | Logical resource name on the broker |
+| Consumer group | `order-normalizer` | Consumer/subscription group as mapped by the binder |
+| Binder type | `kafka` | Implementation type connecting to the broker |
+| Binder instance | `kafka-east` | Specific connection configuration referenced by a binding |
+
+For example, `normalizeOrder-in-0` can read from destination `orders.raw` using binder instance `kafka-east` and consumer group `order-normalizer`. Each value serves its own purpose. Do not use a group name as a binding name or destination name unless there is a clear architectural reason.
+
+## 9. Troubleshooting binding name errors
+
+If the application fails to create bindings or does not receive messages, check the following in order:
+
+1. **Bean name:** Is the function bean registered? Does the name in `spring.cloud.function.definition` match the bean name?
+2. **Function type:** Is the function a `Supplier`, `Function`, or `Consumer`? Does the binding direction match the function type?
+3. **Default name:** Do the configuration keys use `<function>-in-<index>` or `<function>-out-<index>` accurately? Does the index start at 0?
+4. **Port count:** Does the function signature actually provide multiple inputs or outputs? Are the tuples or data types supported by the version in use?
+5. **Composition:** If using `|`, is the pipeline definition in the right order and are the function types compatible? Are YAML keys quoted when needed?
+6. **Alias:** If renaming bindings, is the mapping configuration correct and do the binding properties use the mapped aliases?
+7. **Destination and binder:** Does the binding point to the right destination, binder instance, and connection settings?
+
+When you need to observe the effective configuration, you can enable verbose logging in your development environment:
+
+```yaml
+logging:
+  level:
+    org.springframework.cloud.stream: DEBUG
+    org.springframework.cloud.function: DEBUG
+```
+
+Inspect the logs to see the created binding names, the binder selection process, and any destination binding errors. For applications using Actuator, the `bindings` endpoint can report binding state if that endpoint is enabled and exposed appropriately. Do not expose management endpoints to public environments without access controls.
+
+## 10. Practice: determine binding names before configuring the broker
+
+For each function, you can draft a data-port table before writing `application.yml`:
+
+| Function bean | Type | Input binding | Output binding |
+| --- | --- | --- | --- |
+| `orderEvents` | `Supplier<String>` | — | `orderEvents-out-0` |
+| `normalizeOrder` | `Function<String, String>` | `normalizeOrder-in-0` | `normalizeOrder-out-0` |
+| `recordOrder` | `Consumer<String>` | `recordOrder-in-0` | — |
+| `mergeEvents` | Two-input, one-output function | `mergeEvents-in-0`, `mergeEvents-in-1` | `mergeEvents-out-0` |
+
+Once the binding names are identified, attach each binding to its appropriate destination, group, content type, and binder. This practice helps catch naming or direction mistakes early before investigating broker connectivity.
+
+## Conclusion
+
+In Spring Cloud Stream's functional model, binding names are formed from the function bean name, data direction, and a zero-based index. A `Supplier` has an output binding, a `Consumer` has an input binding, and a `Function` typically has both. Multi-port and composed functions extend naming following the same rules. Keeping default names makes configuration easier to read; if you use aliases, map and reference them consistently. Clearly distinguishing binding names from destinations, groups, and binders makes both configuration and event-flow troubleshooting much clearer.

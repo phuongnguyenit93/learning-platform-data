@@ -1,0 +1,79 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Môi trường
+  slug: environment
+  index: 1
+- title: Task đầu tiên
+  slug: first-task
+  index: 2
+- title: Luồng xử lý
+  slug: processing-flow
+  index: 3
+- title: Vòng đời
+  slug: lifecycle
+  index: 4
+- title: Dữ liệu thực thi
+  slug: execution-data
+  index: 5
+- title: Kho và schema
+  slug: repository-schema
+  index: 6
+- title: Cấu hình mở rộng
+  slug: advanced-configuration
+  index: 7
+- title: Listener
+  slug: listener
+  index: 8
+- title: Kết quả và mã thoát
+  slug: results-exit-codes
+  index: 9
+- title: Khóa và đồng thời
+  slug: locking-concurrency
+  index: 10
+- title: Chạy lại an toàn
+  slug: idempotent-retries
+  index: 11
+- title: Spring Batch
+  slug: spring-batch
+  index: 12
+- title: Job một bước
+  slug: single-step-jobs
+  index: 13
+- title: Phân vùng từ xa
+  slug: remote-partitioning
+  index: 14
+- title: Sự kiện
+  slug: events
+  index: 15
+- title: Khởi chạy
+  slug: task-launching
+  index: 16
+- title: Data Flow
+  slug: data-flow
+  index: 17
+- title: Lịch chạy
+  slug: scheduling
+  index: 18
+- title: Triển khai
+  slug: deployment
+  index: 19
+- title: Quan sát
+  slug: observability
+  index: 20
+- title: Kiểm thử
+  slug: testing
+  index: 21
+- title: Bảo mật
+  slug: security
+  index: 22
+- title: Tối ưu và nâng cấp
+  slug: tuning-upgrades
+  index: 23
+- title: Chẩn đoán
+  slug: diagnostics
+  index: 24
+- title: Thực hành
+  slug: hands-on-practice
+  index: 25

@@ -1,0 +1,683 @@
+# Repeatable Schema and Test Data Initialization
+
+Spring Data R2DBC tests are only trustworthy when every run starts from a known database state. If schema remains from a previous run, fixture data has been mutated, or tests depend on execution order, the same test suite can pass at times and fail at others. These bugs are often hard to reproduce on developer machines and even harder to diagnose in CI.
+
+Repeatable test initialization means tests can create the exact required schema and data predictably, and run repeatedly without depending on state left over from prior runs. With R2DBC, you must decide clearly who owns the schema, whether to use scripts or migrations, how to isolate the database, how to load fixtures, and when to clean up data.
+
+A solid workflow typically combines a real database via Testcontainers, schema created through migrations or SQL scripts, fixtures with deterministic values, reactive queries verified with `StepVerifier`, and data isolation suited to parallel test execution.
+
+## 1. Why Is Repeatable Initialization Needed?
+
+A repository test may depend on several conditions:
+
+- Tables and columns already exist with the right data types.
+- Primary keys, unique constraints, and foreign keys have been created.
+- Parent rows are inserted before child rows.
+- Timestamps, statuses, and monetary amounts have deterministic values.
+- Sequences/identities are in a valid state.
+- No leftover data from earlier tests remains.
+- The database and driver behave like the target deployment environment.
+
+If a test only passes after a developer creates the schema manually, the test is not self-contained. If the second test needs the first test to run beforehand to populate data, the test suite is order-dependent. If re-running a test triggers a duplicate key error because old fixtures remain, initialization or cleanup is not repeatable.
+
+### 1.1. Goals to Achieve
+
+A good initialization process should be:
+
+1. **Deterministic:** the same test setup produces identical structure and input data.
+2. **Isolated:** tests do not read or modify another test's data.
+3. **Repeatable:** runnable again whether the previous test passed or failed.
+4. **Versioned:** schema changes are managed by scripts/migrations in the repository.
+5. **Representative:** the test database behaves closely to the target database.
+6. **Observable:** when initialization fails, logs identify the script, migration, or constraint at fault.
+
+### 1.2. Do Not Use a Shared Developer Database as a Fixture
+
+A local database can contain manual test records, data from an old code branch, or an out-of-sync schema. Using that database in tests makes results machine-dependent. Create a dedicated database/container for tests, or at minimum a dedicated schema reset automatically.
+
+## 2. Choosing How to Initialize the Schema
+
+Three approaches are common in Spring Data R2DBC projects:
+
+| Approach | Best suited when | Things to watch out for |
+|---|---|---|
+| `schema.sql` and `data.sql` | Small tests, simple schemas, fast setup needed | Scripts must be maintained carefully; syntax may depend on the database |
+| Migrations such as Flyway/Liquibase | Schema evolves across versions and must match production process | Many migration tools connect over JDBC; separate configuration is needed when the app runs R2DBC |
+| `ConnectionFactoryInitializer` and `ResourceDatabasePopulator` | Want explicit control over R2DBC scripts in test config | Must control initialization order and avoid running twice alongside Boot SQL init |
+
+Do not let multiple mechanisms create the same schema without clear ordering and ownership. For example, if migrations are the source of truth for the schema, do not let `schema.sql` recreate the same tables with a different structure.
+
+## 3. Initializing with schema.sql and data.sql
+
+Spring Boot supports database initialization with SQL scripts. For non-embedded databases such as PostgreSQL in Testcontainers, you usually need `spring.sql.init.mode=always` in the test profile.
+
+Example `application-test.yml` configuration:
+
+```yaml
+spring:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/test/schema.sql
+      data-locations: classpath:db/test/data.sql
+      continue-on-error: false
+```
+
+`schema-locations` specifies the schema creation script; `data-locations` specifies fixtures loaded after the schema is ready. `continue-on-error: false` makes tests fail immediately if a script has errors instead of continuing with a partially initialized database.
+
+Spring Boot also supports platform-specific scripts such as `schema-${platform}.sql` and `data-${platform}.sql` when `spring.sql.init.platform` is set. This helps when tests run across multiple database engines with differing DDL/DML syntax.
+
+### 3.1. Example schema.sql
+
+PostgreSQL schema example for customers, orders, and order lines:
+
+```sql
+CREATE TABLE customers (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    email VARCHAR(254) NOT NULL UNIQUE,
+    display_name VARCHAR(120) NOT NULL
+);
+
+CREATE TABLE orders (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    customer_id BIGINT NOT NULL REFERENCES customers(id),
+    order_code VARCHAR(32) NOT NULL UNIQUE,
+    status VARCHAR(20) NOT NULL DEFAULT 'NEW',
+    created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE order_lines (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    order_id BIGINT NOT NULL REFERENCES orders(id),
+    line_number INTEGER NOT NULL,
+    product_code VARCHAR(40) NOT NULL,
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    unit_price NUMERIC(19, 2) NOT NULL,
+    CONSTRAINT uq_order_line_number UNIQUE (order_id, line_number)
+);
+
+CREATE INDEX idx_orders_customer_created
+    ON orders(customer_id, created_at DESC);
+
+CREATE INDEX idx_order_lines_order
+    ON order_lines(order_id);
+```
+
+The script creates parent tables before child tables so foreign keys can be declared. Indexes and constraints are part of the schema to be tested; do not drop them just to make test inserts easier if production relies on them.
+
+### 3.2. Example data.sql with Deterministic Fixtures
+
+```sql
+INSERT INTO customers (email, display_name)
+VALUES
+    ('an@example.test', 'An Nguyen'),
+    ('binh@example.test', 'Binh Tran');
+
+INSERT INTO orders (customer_id, order_code, status, created_at)
+SELECT id, 'ORD-TEST-001', 'PAID', TIMESTAMPTZ '2026-01-10 08:00:00+00'
+FROM customers
+WHERE email = 'an@example.test';
+
+INSERT INTO orders (customer_id, order_code, status, created_at)
+SELECT id, 'ORD-TEST-002', 'NEW', TIMESTAMPTZ '2026-01-11 09:00:00+00'
+FROM customers
+WHERE email = 'binh@example.test';
+
+INSERT INTO order_lines (order_id, line_number, product_code, quantity, unit_price)
+SELECT id, 1, 'BOOK-001', 2, 125000.00
+FROM orders
+WHERE order_code = 'ORD-TEST-001';
+```
+
+The fixture does not rely on specific identity IDs. The script looks up parent keys using stable natural keys such as email or order code. This avoids assuming the first ID is always 1, especially when the database was not freshly created or sequences advanced during another test.
+
+Timestamps are written explicitly instead of using `CURRENT_TIMESTAMP`, allowing tests to compare values accurately regardless of execution time. For timezone-sensitive data, use literals and column types suited to the database.
+
+### 3.3. Are Default Scripts Repeatable?
+
+Plain `CREATE TABLE` fails if the table already exists; plain `INSERT` fails if fixtures violate unique constraints after a prior run. Thus, a pair of scripts does not automatically become repeatable simply by living in `schema.sql` and `data.sql`.
+
+Two common strategies:
+
+- Create a fresh database/schema per suite or test class, then run scripts once.
+- Reset the test schema to an empty state before recreating tables and loading fixtures.
+
+In an isolated database dedicated exclusively to tests, `schema.sql` can start by dropping tables in dependency order and recreating them. Never use a reset script like this on a shared or production database.
+
+PostgreSQL test-only example:
+
+```sql
+DROP TABLE IF EXISTS order_lines;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS customers;
+
+-- Followed by CREATE TABLE and CREATE INDEX statements.
+```
+
+Drop statements are intentionally destructive. Only run them when tests connect to a database/container created specifically for testing.
+
+### 3.4. Idempotent Seeding via Upsert
+
+If you do not reset the entire schema, you can design idempotent seed scripts using upserts. PostgreSQL example:
+
+```sql
+INSERT INTO customers (email, display_name)
+VALUES ('an@example.test', 'An Nguyen')
+ON CONFLICT (email)
+DO UPDATE SET display_name = EXCLUDED.display_name;
+```
+
+Re-running the script restores records to the same fixture state. However, upserts do not replace cleanup if tests insert extra rows. Nor is the syntax portable; other databases use `MERGE` or vendor-specific syntax.
+
+Use `ON CONFLICT DO NOTHING` only when skipping existing records is genuinely correct. It can mask stale fixtures with modified contents. `DO UPDATE` is clearer when the goal is restoring data to a standard state.
+
+## 4. Configuring SQL Initialization by Test Profile
+
+Avoid accidentally running test scripts in development or production environments. Put the configuration in `src/test/resources/application-test.yml` and activate the profile from tests:
+
+```java
+@ActiveProfiles("test")
+@DataR2dbcTest
+class OrderRepositoryTest {
+    // tests
+}
+```
+
+Example resource layout:
+
+```text
+src/
+  main/
+    resources/
+      application.yml
+  test/
+    resources/
+      application-test.yml
+      db/
+        test/
+          schema.sql
+          data.sql
+```
+
+The test profile can configure:
+
+```yaml
+spring:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/test/schema.sql
+      data-locations: classpath:db/test/data.sql
+      continue-on-error: false
+```
+
+In production, if a migration tool manages the schema, script initialization is typically disabled so two mechanisms do not mutate the database simultaneously. Always verify the active profile at test startup; do not rely on filenames without confirming Spring loaded the right configuration.
+
+## 5. Using ConnectionFactoryInitializer for Explicit Configuration
+
+Spring Framework provides `ConnectionFactoryInitializer` and `ResourceDatabasePopulator` in R2DBC to run scripts via `ConnectionFactory`.
+
+```java
+@TestConfiguration
+public class R2dbcTestDatabaseConfiguration {
+
+    @Bean
+    ConnectionFactoryInitializer testDatabaseInitializer(
+            ConnectionFactory connectionFactory) {
+
+        ConnectionFactoryInitializer initializer =
+                new ConnectionFactoryInitializer();
+        initializer.setConnectionFactory(connectionFactory);
+        initializer.setDatabasePopulator(new ResourceDatabasePopulator(
+                new ClassPathResource("db/test/schema.sql"),
+                new ClassPathResource("db/test/data.sql")));
+        return initializer;
+    }
+}
+```
+
+Corresponding imports typically include:
+
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.r2dbc.connection.init.ConnectionFactoryInitializer;
+import org.springframework.r2dbc.connection.init.ResourceDatabasePopulator;
+import io.r2dbc.spi.ConnectionFactory;
+```
+
+This initializer is useful when you want explicit control over script selection, ordering, or custom settings. If you already use `spring.sql.init.*` for the same scripts, do not register an initializer that runs them twice. Pick one mechanism and check initialization ordering before repositories are used.
+
+## 6. Using Migrations to Test Versioned Schemas
+
+In applications whose schemas evolve over time, migrations usually fit better than a single large `schema.sql`. Each schema change is stored as an ordered migration, for example:
+
+```text
+src/main/resources/db/migration/
+  V1__create_customers.sql
+  V2__create_orders.sql
+  V3__add_order_status_index.sql
+```
+
+Tests running migrations from scratch on a fresh database verify that the entire schema history can be applied. This catches broken older migrations or new migrations incompatible with the target database.
+
+### 6.1. Flyway/Liquibase and R2DBC Applications
+
+Popular migration tools such as Flyway and Liquibase commonly use JDBC to connect and alter schemas. An application can use R2DBC for runtime queries while using a separate JDBC connection to run migrations against the same database. When doing so:
+
+- Add the JDBC driver and configure the migration connection if required by the tool.
+- Keep the migration URL, database, schema, and credentials aligned with the R2DBC environment.
+- Run migrations before repository tests start querying.
+- Do not let `schema.sql` recreate tables already managed by migrations.
+- Verify that the migration tool and version support the database server in use.
+
+Do not assume migration tools automatically run over R2DBC simply because the application defines `spring.r2dbc.url`. Verify which connection type the tool actually uses.
+
+### 6.2. Testing Migrations from an Empty Database
+
+An important test initializes a completely blank database, runs all migrations, and executes several basic repository operations. Do not test migrations solely against a database carrying an old schema, as leftover state can hide missing migration steps.
+
+### 6.3. Testing Upgrades from Prior Versions
+
+If the product supports upgrading databases that already contain data, add tests starting from an earlier schema version populated with representative data. These tests confirm that migrations not only succeed on empty databases but also preserve or transform existing data according to rules.
+
+## 7. Using Testcontainers for a Production-Like Database
+
+H2 or an embedded database is convenient for fast tests, but cannot fully represent PostgreSQL, MySQL, SQL Server, or Oracle. Differences arise in data types, SQL syntax, identities, generated columns, JSON, collation, transaction isolation, and constraint errors.
+
+Testcontainers starts a real database in a container so integration tests use the intended engine and driver.
+
+### 7.1. Declaring Dependencies
+
+For PostgreSQL and JUnit 5, projects typically need:
+
+```gradle
+testImplementation("org.testcontainers:junit-jupiter")
+testImplementation("org.testcontainers:postgresql")
+testImplementation("org.springframework.boot:spring-boot-starter-test")
+testImplementation("io.projectreactor:reactor-test")
+runtimeOnly("org.postgresql:r2dbc-postgresql")
+```
+
+Manage versions via Spring Boot dependency management or the appropriate Testcontainers BOM. Do not pin standalone versions if the project already uses a BOM.
+
+### 7.2. Creating the Container and Configuring the R2DBC URL
+
+```java
+@Testcontainers
+@DataR2dbcTest
+@ActiveProfiles("test")
+class OrderRepositoryIntegrationTest {
+
+    @Container
+    static final PostgreSQLContainer<?> postgres =
+            new PostgreSQLContainer<>("postgres:16.4-alpine")
+                    .withDatabaseName("store_test")
+                    .withUsername("test_user")
+                    .withPassword("test_password");
+
+    @DynamicPropertySource
+    static void configureR2dbc(DynamicPropertyRegistry registry) {
+        registry.add("spring.r2dbc.url", () ->
+                "r2dbc:postgresql://" + postgres.getHost() + ":"
+                        + postgres.getMappedPort(5432) + "/"
+                        + postgres.getDatabaseName());
+        registry.add("spring.r2dbc.username", postgres::getUsername);
+        registry.add("spring.r2dbc.password", postgres::getPassword);
+    }
+
+    @Autowired
+    OrderRepository orderRepository;
+}
+```
+
+The example uses a version-pinned image so CI results are reproducible. The R2DBC URL is constructed from the host and mapped port provided by Testcontainers; do not use the host machine's default port because containers are usually mapped to dynamic ports.
+
+`@DynamicPropertySource` registers properties before Spring creates `ConnectionFactory`. Tests need the matching R2DBC driver in test runtime. If the project uses a Spring Boot version with suitable service connection support for R2DBC, you can use that mechanism; check your version's support instead of assuming an annotation auto-configures everything properly.
+
+### 7.3. Running Initialization Scripts in the Container
+
+With the test profile from earlier, Spring Boot can run `schema.sql` and `data.sql` against the container database when the ApplicationContext starts. Because the container is a real database, scripts are validated against actual PostgreSQL syntax and the real R2DBC driver.
+
+If using a migration tool, configure migrations to run on the same container before repository tests. Avoid running both migrations and `schema.sql` for the same tables.
+
+### 7.4. Pin Images and Environments
+
+Do not use `postgres:latest` in tests requiring reproducibility. Pin a major/minor or patch version verified by the project. For sensitive tests, specify image digests or follow a controlled image-update process. Also fix locale, timezone, extensions, and server settings if they affect results.
+
+## 8. Organizing Fixtures Deterministically
+
+Good fixtures make tests easy to read and independent of random data.
+
+### 8.1. Using Stable Natural Keys
+
+Prefer looking up records by fixed business codes such as `ORD-TEST-001` or `an@example.test` rather than assuming an identity ID is always a specific number.
+
+```java
+repository.findByOrderCode("ORD-TEST-001");
+```
+
+If a test needs to check generated IDs, assert that the ID is non-null and read back using the returned ID; do not assume it equals `1`.
+
+### 8.2. Fixing Timestamps
+
+Avoid fixtures using `CURRENT_TIMESTAMP`, `now()`, or `Instant.now()` when assertions depend on exact timestamps. Use fixed values:
+
+```java
+Instant createdAt = Instant.parse("2026-01-10T08:00:00Z");
+```
+
+If a test needs to verify auditing that uses the current clock, inject a `Clock` and supply a fixed clock in tests. This prevents tests from failing across second, day, or timezone boundaries.
+
+### 8.3. Creating Fixtures via Builders/Factories
+
+When entities have many properties, create test factories to manage defaults centrally:
+
+```java
+final class OrderFixtures {
+
+    private OrderFixtures() {
+    }
+
+    static OrderEntity newOrder(String orderCode, Long customerId) {
+        return new OrderEntity(
+                null,
+                customerId,
+                orderCode,
+                "NEW",
+                Instant.parse("2026-01-10T08:00:00Z"));
+    }
+}
+```
+
+Factories should not hide critical data. When a test checks `PAID` status, pass that status explicitly in the test or create a factory whose name conveys the intent.
+
+### 8.4. Respecting Foreign Key Order
+
+Insert parent rows before child rows; clean up child rows before parent rows unless using cascade. For example:
+
+1. Insert customer.
+2. Insert order referencing customer.
+3. Insert order line referencing order.
+
+When deleting:
+
+1. Delete order lines.
+2. Delete orders.
+3. Delete customers.
+
+Do not disable foreign keys in tests just to load fixtures easily, as doing so skips a critical part of the schema.
+
+## 9. Cleaning Up and Resetting Data Between Tests
+
+There are multiple ways to reset data; the choice depends on speed, isolation, and parallel execution needs.
+
+### 9.1. Dedicated Database per Suite or Class
+
+This provides strong isolation and clarity. Testcontainers creates a fresh database/container, runs schema and fixtures once per suite, and when the container stops, all state vanishes.
+
+Advantages:
+
+- No dependency on data from earlier runs.
+- Destructive scripts can run safely inside the dedicated database.
+- Easy to verify migrations starting from an empty state.
+
+The downside is container startup cost. You can use one container per test class or suite and reset data between individual tests.
+
+### 9.2. Selective Deletion
+
+With a database shared across a class, you can delete test-created fixtures before each test. Example using `DatabaseClient`:
+
+```java
+Mono<Void> cleanOrderFixtures() {
+    return databaseClient.sql("DELETE FROM order_lines")
+            .fetch().rowsUpdated()
+            .then(databaseClient.sql("DELETE FROM orders")
+                    .fetch().rowsUpdated())
+            .then(databaseClient.sql("DELETE FROM customers")
+                    .fetch().rowsUpdated())
+            .then();
+}
+```
+
+Deletion order obeys foreign keys. You can scope deletion by fixture code or test tenant when multiple tests share a database. Do not run whole-table cleanup while other tests may be running against the same database.
+
+### 9.3. TRUNCATE and Resetting Identities
+
+PostgreSQL supports:
+
+```sql
+TRUNCATE TABLE order_lines, orders, customers
+RESTART IDENTITY CASCADE;
+```
+
+This clears data quickly, resets sequences/identities, and cascades across relationships. This syntax is PostgreSQL-specific; other databases have different truncate rules. Run it only in an isolated test database, never on a shared or production database.
+
+### 9.4. Transaction Rollback in Reactive Tests
+
+Rollback can clean up data after tests, but do not assume every R2DBC test automatically rolls back simply because of `@Transactional`. Test transactions depend on the transaction manager and how reactive subscriptions are managed. Verify your Spring Test/Spring Boot version's support and how tests actually subscribe to publishers.
+
+An explicit option is wrapping test operations in `TransactionalOperator` when reactive transactions are needed and marking them rollback-only in the test flow. However, if a test verifies commit behavior, transaction isolation, multiple connections, or data that must outlive publisher completion, rollback can invalidate the scenario. For those tests, isolated databases/schemas and explicit cleanup are more predictable.
+
+### 9.5. Do Not Mix Rollback with Concurrency Tests Unintentionally
+
+Optimistic locking or transaction isolation tests require multiple real transactions/connections. If all setup and operations are wrapped in one outer test transaction, the test may fail to simulate two concurrent requests. Design transaction boundaries to match the exact scenario under test.
+
+## 10. Writing Reactive Tests with StepVerifier
+
+R2DBC repositories return `Mono` or `Flux`; tests should subscribe and verify publishers using `StepVerifier`.
+
+Example:
+
+```java
+@Test
+void findsSeededOrder() {
+    StepVerifier.create(orderRepository.findByOrderCode("ORD-TEST-001"))
+            .assertNext(order -> {
+                assertThat(order.orderCode()).isEqualTo("ORD-TEST-001");
+                assertThat(order.status()).isEqualTo("PAID");
+            })
+            .verifyComplete();
+}
+```
+
+`StepVerifier` verifies that the publisher emits expected data and completes. With `Flux`, you can assert count, order, errors, and timing if needed.
+
+### 10.1. Do Not Use block in Application Code
+
+Never call `.block()` inside Services/Repositories to make tests easier to write. That breaks the reactive model and can deadlock or block event loops. In tests, `StepVerifier` is the natural choice because it drives subscription and assertions.
+
+Some imperative test setup/cleanup helpers may call `.block()` on a regular JUnit thread, but keep it strictly at test boundaries and never run it on Reactor event-loop threads. Whenever possible, chain setup/cleanup into the test publisher so the entire flow stays reactive.
+
+### 10.2. Combining Setup and Action in the Same Test
+
+```java
+@Test
+void savesAndReadsOrder() {
+    Mono<OrderEntity> scenario = cleanOrderFixtures()
+            .then(customerRepository.save(
+                    new CustomerEntity(null, "test@example.test", "Test User")))
+            .flatMap(customer -> orderRepository.save(
+                    OrderFixtures.newOrder("ORD-NEW-001", customer.id())))
+            .flatMap(saved -> orderRepository.findById(saved.id()));
+
+    StepVerifier.create(scenario)
+            .assertNext(found -> {
+                assertThat(found.id()).isNotNull();
+                assertThat(found.orderCode()).isEqualTo("ORD-NEW-001");
+            })
+            .verifyComplete();
+}
+```
+
+The example illustrates cleanup, insert, and read in a single pipeline. In a suite with many tests, move cleanup into `@BeforeEach` or a consistent helper while keeping fixture keys distinct to avoid collisions.
+
+## 11. Testing with @DataR2dbcTest
+
+`@DataR2dbcTest` is Spring Boot's test slice for Spring Data R2DBC. It focuses on persistence components such as repositories, mapping, and required R2DBC configuration rather than starting the whole web application.
+
+Structural example:
+
+```java
+@DataR2dbcTest
+@ActiveProfiles("test")
+class OrderRepositoryTest {
+
+    @Autowired
+    OrderRepository orderRepository;
+
+    @Autowired
+    DatabaseClient databaseClient;
+
+    @Test
+    void readsOrderFromFixture() {
+        StepVerifier.create(orderRepository.findByOrderCode("ORD-TEST-001"))
+                .expectNextMatches(order -> order.status().equals("PAID"))
+                .verifyComplete();
+    }
+}
+```
+
+Test slices run faster and narrow bean scope. If you need Testcontainers configuration, custom converters, auditing, or additional repositories, import the required test configuration with appropriate annotations. Do not assume all application beans are loaded inside `@DataR2dbcTest`.
+
+If a test needs WebFilters, Security chains, Controllers, or the full Service graph, use `@SpringBootTest` or another matching test slice rather than turning `@DataR2dbcTest` into a full-app integration test.
+
+## 12. Is @Sql an Option for R2DBC?
+
+Spring Test's `@Sql` annotation belongs to SQL execution via a JDBC `DataSource`. It does not automatically run scripts through an R2DBC `ConnectionFactory` simply because the test class uses `@DataR2dbcTest`.
+
+If a project has both a JDBC `DataSource` and an R2DBC `ConnectionFactory`, `@Sql` can run scripts over a JDBC connection, which is a separate connection path. Ensure both connections point to the same database/schema and scripts finish before R2DBC tests query.
+
+For R2DBC-only tests, prefer:
+
+- Spring Boot `spring.sql.init.*`.
+- `ConnectionFactoryInitializer`/`ResourceDatabasePopulator`.
+- Explicitly configured migration tools.
+- `DatabaseClient` for publisher-based setup/cleanup.
+
+Do not pick `@Sql` merely out of habit from JDBC tests.
+
+## 13. Running Tests Safely in Parallel
+
+When parallel test execution is enabled, multiple tests may access one database/container simultaneously. One test resetting tables while another test is reading produces nondeterministic results.
+
+### 13.1. Isolation Strategies
+
+| Strategy | Isolation level | Cost | Best suited for |
+|---|---|---|---|
+| Dedicated container/database per test class | High | Higher startup cost | Tests needing independent schemas/data |
+| Dedicated schema per worker/test class | High when search path is configured properly | Medium | Multiple tests running in parallel against one server |
+| Distinct tenant or fixture keys | Medium | Low | Tests operating only on partitionable data |
+| Shared database with TRUNCATE before each test | Low when running in parallel | Low | Sequential tests |
+| Disable parallelism for DB-sharing test groups | Prevents races within group | Potentially slower | Tests performing whole-table cleanup or using fixed IDs |
+
+### 13.2. Do Not Share Fixture Keys Across Parallel Tests
+
+If two tests both insert `ORD-TEST-001`, the unique constraint will fail one test. Use separate databases/schemas or namespace test keys per test. If keys are randomly generated, retain the generated key in a test variable to clean up the right record; never depend on execution order.
+
+### 13.3. Avoid Whole-Table Resets in @BeforeEach During Parallel Runs
+
+`TRUNCATE` or `DELETE FROM` does not distinguish between the current test's rows and another test's rows. When multiple tests share a schema, whole-table cleanup can delete data another test is actively using. Use separate schemas/databases or clean up by fixture key.
+
+### 13.4. Connection Pools in Tests
+
+Parallel tests also place load on the connection pool. If the pool is too small, tests can time out despite valid logic; if too large, the database container may be overwhelmed. Size the pool to match concurrency and CI resources. Never enlarge the pool merely to mask deadlocks or leaked connections.
+
+## 14. Test Schemas vs. Production Migrations
+
+You can run the same production migrations in integration tests to verify the real schema. This is generally best when migrations are the database source of truth.
+
+If tests need minimal seed data, create separate fixtures while still letting migrations build the schema. Avoid maintaining a separate test `schema.sql` that diverges from production over time, because tests could pass while production migrations miss columns, indexes, or constraints.
+
+If you need to test across schema versions:
+
+- Test an empty database running all migrations.
+- Test upgrading from an older schema version with representative data.
+- Test compatibility with critical constraints and indexes.
+- Test rollback/forward strategies if operational processes require them.
+
+## 15. Common Pitfalls
+
+### One-Shot Scripts
+
+`CREATE TABLE` and `INSERT` fail on repeat runs. Create a fresh database, reset the test schema, or use intentional upsert seeds.
+
+### Hard-Coding Identity IDs in Assertions
+
+IDs can shift with sequences or database history. Look up fixtures by natural key; only assert that generated IDs have values when verifying ID generation itself.
+
+### Inserting Child Data Before Parent Data
+
+Foreign keys cause scripts to fail. Load data in dependency order and clean up in reverse order.
+
+### Using Current Timestamps in Fixtures
+
+Tests depend on run timing and can fail across time boundaries. Use fixed timestamps or a mocked clock.
+
+### Substituting H2 for the Production Database Everywhere
+
+Tests can miss differences in SQL, data types, identity, JSON, transactions, and error mapping. Use Testcontainers for database-dependent behavior.
+
+### Running Both Migrations and schema.sql Concurrently
+
+Two mechanisms creating tables or altering columns can conflict. Choose one source of schema ownership.
+
+### Assuming @Sql Runs Over R2DBC
+
+`@Sql` uses a JDBC `DataSource`. For R2DBC, use an initializer or `DatabaseClient` unless a JDBC path is explicitly configured.
+
+### Assuming Tests Roll Back Automatically
+
+Reactive transactions in tests must be verified for the active transaction manager and subscription flow. Use explicit cleanup or isolated databases when unsure.
+
+### Whole-Table Cleanup During Parallel Runs
+
+One test can wipe another test's data. Isolate schemas/databases or clean up by fixture key.
+
+### Using Testcontainers `latest` Images
+
+Changing server versions makes tests non-reproducible. Pin image versions and upgrade deliberately.
+
+### Testing Only Mocked Repositories
+
+Mocks do not check schemas, SQL dialects, mappings, foreign keys, or drivers. Add integration tests against a real database.
+
+## 16. Workflow for Setting Up a Repeatable Test Suite
+
+1. Choose a database engine and version close to production.
+2. Create a dedicated database/container or schema for tests.
+3. Pin image and dependency versions for reproducible environments.
+4. Pick a single source of schema ownership: migrations or SQL initialization.
+5. Configure a test profile so scripts never run accidentally in other environments.
+6. Create the schema in dependency order, including critical constraints and indexes.
+7. Load fixtures using deterministic values, natural keys, and fixed timestamps.
+8. Define the reset strategy: fresh database, schema reset, selective cleanup, or verified transaction rollback.
+9. Use `StepVerifier` to verify repositories and reactive pipelines.
+10. Test generated IDs, defaults, constraints, and mappings on the right driver.
+11. Isolate data for parallel runs; avoid truncating shared databases.
+12. Run migrations from an empty database and test upgrades if required by the project.
+13. Log clearly which script/migration failed and fail fast when initialization errors occur.
+14. Re-run the same tests multiple times locally and in CI to verify independence from machine state.
+
+## 17. Checklist
+
+- [ ] Test database is created automatically and does not rely on a shared developer database.
+- [ ] Database engine/version closely matches production for critical integration tests.
+- [ ] Testcontainers images and dependencies are version-pinned.
+- [ ] Only one primary mechanism manages the schema per test context.
+- [ ] `spring.sql.init.mode` and locations are configured in the test profile when using scripts.
+- [ ] `continue-on-error` does not mask schema initialization failures.
+- [ ] Fixtures use stable natural keys and deterministic timestamps.
+- [ ] Parent rows are loaded before child rows.
+- [ ] Identity IDs are not assumed to equal a fixed number.
+- [ ] Seed scripts have an explicit repeatability strategy.
+- [ ] Cleanup obeys foreign keys and does not delete other tests' data.
+- [ ] `@Transactional` is not assumed to roll back every reactive test automatically.
+- [ ] `@Sql` is not mistaken for an R2DBC script runner.
+- [ ] Repository tests use `StepVerifier` and check values as well as completion/errors.
+- [ ] Parallel tests have appropriate database/schema/fixture isolation.
+- [ ] Production migrations run in integration tests when they are the primary schema source.
+- [ ] The suite can run repeatedly across different machines and in CI.
+
+Repeatable schema and fixture initialization is the foundation of reliable R2DBC integration tests. When databases are isolated, schemas have a single clear owner, test data is deterministic, and cleanup supports parallel runs, every test starts from a predictable state. Combining Testcontainers, migrations or SQL initializers, and `StepVerifier` verifies both Spring Data behavior and the real database/driver your application runs on.

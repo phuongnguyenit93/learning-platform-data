@@ -1,0 +1,3 @@
+menuLevel1: VACUUM
+menuLevel2: Freeze, tuổi transaction ID và chống wraparound
+status: TRANSLATE

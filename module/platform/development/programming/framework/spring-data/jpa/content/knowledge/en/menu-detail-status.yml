@@ -1,0 +1,3940 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Spring Data JPA là gì và giải quyết vấn đề truy cập dữ liệu nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Mối liên hệ giữa Spring Data, JPA, Hibernate, JDBC và cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Entity, bảng, khóa định danh, Repository và giao dịch trong cùng một mô hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Luồng xử lý từ lời gọi Repository đến câu SQL và kết quả trả về
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: So sánh Spring Data JPA với JDBC, Spring Data JDBC và R2DBC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Khi nên dùng JPA và khi nên chọn công cụ truy cập dữ liệu khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Kiến thức Java, SQL và Spring cần có trước khi bắt đầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Thứ tự học và mô hình nghiệp vụ xuyên suốt tài liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bootstrap
+  title: Khởi tạo
+  childs:
+  - slug: bootstrap-001
+    title: Tạo ứng dụng Spring Boot với Spring Data JPA và trình điều khiển JDBC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-002
+    title: Quản lý phiên bản Spring Boot, Spring Data và Hibernate bằng BOM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-003
+    title: Cấu hình DataSource, thông tin kết nối và hồ sơ môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-004
+    title: Khởi tạo Entity, JpaRepository và dịch vụ nghiệp vụ đầu tiên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-005
+    title: Chạy thử thao tác thêm, đọc, sửa và xóa dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-006
+    title: Phân biệt cơ sở dữ liệu nhúng và cơ sở dữ liệu dùng trong triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-007
+    title: Cấu hình ghi nhật ký SQL và tham số truy vấn theo môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-008
+    title: Tổ chức gói mã nguồn và phạm vi quét Entity, Repository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-009
+    title: Kiểm tra kết nối, tạo schema thử nghiệm và lỗi khởi động thường gặp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jpa-infrastructure
+  title: Hạ tầng JPA
+  childs:
+  - slug: jpa-infrastructure-001
+    title: Vai trò của DataSource, EntityManagerFactory và EntityManager
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-infrastructure-002
+    title: Persistence unit, PersistenceContext và vòng đời tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-infrastructure-003
+    title: Cơ chế tự cấu hình JPA của Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-infrastructure-004
+    title: Cấu hình @EnableJpaRepositories và @EntityScan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-infrastructure-005
+    title: Cấu hình JPA bằng Java khi không dùng Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-infrastructure-006
+    title: Vai trò của JpaVendorAdapter và các thuộc tính nhà cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-infrastructure-007
+    title: Cấu hình TransactionManager và liên kết với persistence unit
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-infrastructure-008
+    title: Chế độ khởi tạo Repository DEFAULT, LAZY và DEFERRED
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpa-infrastructure-009
+    title: Cấu hình XML, persistence.xml và phạm vi áp dụng trong hệ thống cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repositories
+  title: Repository
+  childs:
+  - slug: repositories-001
+    title: Repository, CrudRepository và hợp đồng thao tác dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-002
+    title: ListCrudRepository, PagingAndSortingRepository và JpaRepository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-003
+    title: Lựa chọn interface theo phiên bản và nhu cầu của ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-004
+    title: Kiểu Entity và kiểu khóa định danh trong khai báo Repository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-005
+    title: Cơ chế tạo proxy và vai trò của SimpleJpaRepository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-006
+    title: Chọn lọc phương thức bằng RepositoryDefinition và interface cơ sở
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-007
+    title: Ngăn tạo Repository trung gian bằng @NoRepositoryBean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-008
+    title: Phân biệt phương thức CRUD kế thừa và phương thức truy vấn tự khai báo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-009
+    title: Nhận diện Repository khi nhiều mô-đun Spring Data cùng tồn tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: entity-mapping
+  title: Ánh xạ Entity
+  childs:
+  - slug: entity-mapping-001
+    title: '@Entity, @Table và quan hệ giữa tên Entity với tên bảng'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-002
+    title: Yêu cầu về constructor, lớp Entity và khả năng tạo proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-003
+    title: Chọn truy cập theo trường hoặc thuộc tính bằng @Access
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-004
+    title: '@Column, nullability, độ dài, precision và scale'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-005
+    title: Phân biệt ràng buộc ánh xạ, Bean Validation và ràng buộc cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-006
+    title: Loại trừ thuộc tính bằng @Transient và từ khóa transient
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-007
+    title: Ánh xạ thời gian bằng LocalDate, LocalDateTime, Instant và múi giờ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-008
+    title: Ánh xạ enum bằng STRING, ORDINAL và rủi ro thay đổi thứ tự
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-009
+    title: Ánh xạ LOB, dữ liệu nhị phân và chi phí tải dữ liệu lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-010
+    title: Quy tắc đặt tên vật lý, tên logic và tên trùng từ khóa SQL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identifiers
+  title: Khóa định danh
+  childs:
+  - slug: identifiers-001
+    title: Khóa tự nhiên, khóa thay thế và tiêu chí lựa chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-002
+    title: Khai báo @Id và các yêu cầu về tính ổn định của định danh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-003
+    title: So sánh chiến lược sinh khóa AUTO, IDENTITY, SEQUENCE và TABLE
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-004
+    title: Cấu hình @SequenceGenerator và phân bổ giá trị khóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-005
+    title: Sinh khóa UUID và yêu cầu tương thích phiên bản JPA, Hibernate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-006
+    title: Khóa do ứng dụng gán và cách Spring Data nhận diện Entity mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-007
+    title: Khóa ghép với @EmbeddedId và @IdClass
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-008
+    title: Định danh phụ thuộc với @MapsId
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-009
+    title: Thiết kế equals và hashCode cho khóa ghép
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-010
+    title: Tác động của chiến lược sinh khóa đến nhập dữ liệu theo lô
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: value-types
+  title: Kiểu giá trị
+  childs:
+  - slug: value-types-001
+    title: Phân biệt Entity và đối tượng giá trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-types-002
+    title: Tái sử dụng nhóm thuộc tính bằng @Embeddable và @Embedded
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-types-003
+    title: Ghi đè ánh xạ bằng @AttributeOverride và @AssociationOverride
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-types-004
+    title: Tập hợp kiểu cơ bản và đối tượng giá trị với @ElementCollection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-types-005
+    title: Cấu hình bảng tập hợp bằng @CollectionTable
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-types-006
+    title: Chuyển đổi dữ liệu bằng AttributeConverter và @Convert
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-types-007
+    title: Áp dụng autoApply và giới hạn của bộ chuyển đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-types-008
+    title: Ánh xạ giá trị tiền tệ, mã nghiệp vụ và thời gian có quy tắc riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-types-009
+    title: Lựa chọn kiểu chuẩn JPA hoặc kiểu đặc thù nhà cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: singular-relationships
+  title: Quan hệ đơn
+  childs:
+  - slug: singular-relationships-001
+    title: Phân biệt quan hệ đơn hướng, hai hướng và phía sở hữu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: singular-relationships-002
+    title: Ánh xạ nhiều-một bằng @ManyToOne và @JoinColumn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: singular-relationships-003
+    title: Ánh xạ một-một bằng @OneToOne
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: singular-relationships-004
+    title: Quan hệ một-một dùng khóa chính chung với @MapsId
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: singular-relationships-005
+    title: Vai trò của mappedBy và vị trí lưu khóa ngoại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: singular-relationships-006
+    title: Đồng bộ hai phía quan hệ bằng phương thức nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: singular-relationships-007
+    title: optional, nullable, khóa ngoại và ràng buộc duy nhất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: singular-relationships-008
+    title: Lựa chọn LAZY hoặc EAGER cho quan hệ đơn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: singular-relationships-009
+    title: Xử lý tham chiếu không tồn tại và giới hạn tải lười theo nhà cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collection-relationships
+  title: Quan hệ tập hợp
+  childs:
+  - slug: collection-relationships-001
+    title: Ánh xạ một-nhiều bằng @OneToMany
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-relationships-002
+    title: So sánh một-nhiều dùng khóa ngoại và bảng liên kết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-relationships-003
+    title: Ánh xạ nhiều-nhiều bằng @ManyToMany và @JoinTable
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-relationships-004
+    title: Thay quan hệ nhiều-nhiều bằng Entity liên kết có thuộc tính riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-relationships-005
+    title: Chọn List, Set và Map cho quan hệ tập hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-relationships-006
+    title: Duy trì thứ tự bằng @OrderBy và @OrderColumn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-relationships-007
+    title: Ánh xạ khóa Map bằng @MapKey và các biến thể phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-relationships-008
+    title: CascadeType và phạm vi lan truyền từng thao tác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-relationships-009
+    title: Phân biệt orphanRemoval, CascadeType.REMOVE và ON DELETE của cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-relationships-010
+    title: Thêm, xóa và thay thế phần tử mà vẫn giữ nhất quán hai phía
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-relationships-011
+    title: Rủi ro xóa dây chuyền và cập nhật dư thừa ở quan hệ lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inheritance
+  title: Kế thừa
+  childs:
+  - slug: inheritance-001
+    title: Lựa chọn kế thừa Entity hoặc kết hợp đối tượng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-002
+    title: Chia sẻ thuộc tính bằng @MappedSuperclass
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-003
+    title: Chiến lược SINGLE_TABLE và cột phân biệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-004
+    title: Chiến lược JOINED và chi phí kết nối bảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-005
+    title: Chiến lược TABLE_PER_CLASS và truy vấn đa hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-006
+    title: Cấu hình @Inheritance, @DiscriminatorColumn và @DiscriminatorValue
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-007
+    title: Truy vấn theo lớp cha và xử lý lớp con
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-008
+    title: Đánh đổi giữa toàn vẹn dữ liệu, khả năng mở rộng và hiệu năng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: entity-lifecycle
+  title: Vòng đời Entity
+  childs:
+  - slug: entity-lifecycle-001
+    title: Các trạng thái transient, managed, detached và removed
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-lifecycle-002
+    title: Bộ nhớ đệm cấp một và định danh đối tượng trong PersistenceContext
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-lifecycle-003
+    title: persist, merge, remove, find và getReference
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-lifecycle-004
+    title: Dirty checking và thời điểm phát hiện thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-lifecycle-005
+    title: Flush khác commit như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-lifecycle-006
+    title: FlushModeType.AUTO, COMMIT và ảnh hưởng đến truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-lifecycle-007
+    title: detach, clear, refresh và khi cần đồng bộ lại trạng thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-lifecycle-008
+    title: Vì sao merge trả về một đối tượng managed khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-lifecycle-009
+    title: Entity callback với @PrePersist, @PreUpdate, @PostLoad và các mốc liên quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-lifecycle-010
+    title: EntityListener, Bean Validation và giới hạn xử lý trong callback
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-lifecycle-011
+    title: Thiết kế equals, hashCode, toString và sử dụng Lombok an toàn với Entity
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: crud-operations
+  title: Thao tác CRUD
+  childs:
+  - slug: crud-operations-001
+    title: save và cách lựa chọn persist hoặc merge
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-operations-002
+    title: Nhận diện Entity mới qua thuộc tính version, id và Persistable
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-operations-003
+    title: Cập nhật Entity managed mà không gọi save lặp lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-operations-004
+    title: saveAll và sự khác biệt với câu lệnh chèn theo lô
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-operations-005
+    title: findById, Optional và hợp đồng khi dữ liệu không tồn tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-operations-006
+    title: getReferenceById, proxy và thời điểm kiểm tra sự tồn tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-operations-007
+    title: findAll, findAllById và giới hạn khi đọc tập dữ liệu lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-operations-008
+    title: existsById, count và chi phí truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-operations-009
+    title: delete, deleteById, deleteAll và ảnh hưởng đến callback
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-operations-010
+    title: flush, saveAndFlush và saveAllAndFlush
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-operations-011
+    title: deleteAllInBatch, deleteAllByIdInBatch và trạng thái PersistenceContext
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: derived-queries
+  title: Truy vấn theo tên
+  childs:
+  - slug: derived-queries-001
+    title: 'Cấu trúc tên phương thức: chủ ngữ, điều kiện và thứ tự'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-002
+    title: 'Query lookup strategy: CREATE, USE_DECLARED_QUERY và CREATE_IF_NOT_FOUND'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-003
+    title: Duyệt thuộc tính lồng nhau và phân giải tên bằng dấu gạch dưới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-004
+    title: Tìm theo điều kiện bằng, so sánh, khoảng và thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-005
+    title: Xử lý null, boolean, In và NotIn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-006
+    title: Tìm chuỗi bằng Like, Containing, StartingWith và EndingWith
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-007
+    title: Ký tự đại diện, escaping và khác biệt khi truyền null
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-008
+    title: Kết hợp And, Or và giới hạn biểu diễn điều kiện có nhóm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-009
+    title: IgnoreCase, AllIgnoreCase và tác động đến chỉ mục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-010
+    title: Distinct, countDistinct và ý nghĩa thực tế của phép đếm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-011
+    title: Top, First, OrderBy và giới hạn số kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-012
+    title: existsBy, countBy, deleteBy và removeBy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-013
+    title: Tên phương thức dành riêng và xung đột với thuộc tính tên id
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-014
+    title: Nhận biết tên phương thức quá dài và thời điểm chuyển cách truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jpql
+  title: JPQL
+  childs:
+  - slug: jpql-001
+    title: JPQL truy vấn theo Entity và thuộc tính thay vì bảng và cột
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpql-002
+    title: Khai báo truy vấn bằng @Query
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpql-003
+    title: SELECT, WHERE, ORDER BY và biểu thức điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpql-004
+    title: INNER JOIN, LEFT JOIN và điều kiện ON
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpql-005
+    title: Đường dẫn thuộc tính và các phép join phát sinh ngầm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpql-006
+    title: JOIN FETCH và khác biệt với join phục vụ lọc dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpql-007
+    title: GROUP BY, HAVING và các hàm tổng hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpql-008
+    title: Truy vấn con, EXISTS và điều kiện tương quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpql-009
+    title: DISTINCT, giá trị null và kết quả trùng do join
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpql-010
+    title: Biểu thức CASE, COALESCE, NULLIF và hàm chuẩn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpql-011
+    title: Truy vấn đa hình với TYPE và TREAT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpql-012
+    title: Constructor expression để trả về DTO
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpql-013
+    title: Hàm cơ sở dữ liệu, FUNCTION và giới hạn tính khả chuyển
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: native-sql
+  title: SQL thuần
+  childs:
+  - slug: native-sql-001
+    title: Khi nào cần native SQL thay cho JPQL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-sql-002
+    title: Khai báo @Query với nativeQuery và khả năng dùng @NativeQuery theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-sql-003
+    title: Ánh xạ kết quả native query về Entity
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-sql-004
+    title: Trả về dữ liệu vô hướng, interface projection và DTO
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-sql-005
+    title: Ánh xạ phức tạp bằng @SqlResultSetMapping và @ConstructorResult
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-sql-006
+    title: Phân trang native query và khai báo countQuery
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-sql-007
+    title: Sắp xếp động, bộ phân tích truy vấn và giới hạn theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-sql-008
+    title: Truy vấn CTE, hàm cửa sổ và cú pháp riêng của cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-sql-009
+    title: Ràng buộc tham số an toàn và tránh ghép SQL từ đầu vào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-sql-010
+    title: Kiểm thử tính đúng đắn và khả năng chuyển cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: named-queries
+  title: Truy vấn đặt tên
+  childs:
+  - slug: named-queries-001
+    title: Định nghĩa JPQL bằng @NamedQuery và @NamedQueries
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: named-queries-002
+    title: Định nghĩa SQL bằng @NamedNativeQuery
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: named-queries-003
+    title: Quy ước tên Entity.phươngThức và cơ chế tìm truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: named-queries-004
+    title: Tổ chức truy vấn trong META-INF/orm.xml
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: named-queries-005
+    title: Thứ tự lựa chọn giữa @Query, named query và truy vấn theo tên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: named-queries-006
+    title: Áp dụng query hints và giới hạn phụ thuộc nhà cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: named-queries-007
+    title: Sử dụng @Meta để bổ sung chú thích truy vấn khi được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: named-queries-008
+    title: Phát hiện truy vấn sai lúc khởi tạo và lúc thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parameters-and-results
+  title: Tham số và kết quả
+  childs:
+  - slug: parameters-and-results-001
+    title: Ràng buộc tham số theo vị trí và theo tên với @Param
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-results-002
+    title: Biểu thức giá trị trong @Query và biến entityName
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-results-003
+    title: Truyền tập hợp, enum, thời gian và tham số có thể null
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-results-004
+    title: Phân biệt không truyền bộ lọc, lọc IS NULL và lọc bằng giá trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-results-005
+    title: Kiểu trả về đơn, Optional và nhiều kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-results-006
+    title: Collection, List, Set và hợp đồng thứ tự kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-results-007
+    title: Truy vấn vô hướng và ánh xạ giá trị tổng hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-results-008
+    title: Nullability của tham số và kết quả theo phiên bản Spring Data
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-results-009
+    title: Xử lý kết quả rỗng và IncorrectResultSizeDataAccessException
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-results-010
+    title: Lựa chọn kiểu trả về theo mục đích sử dụng và chi phí truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: projections-and-dtos
+  title: Projection và DTO
+  childs:
+  - slug: projections-and-dtos-001
+    title: Vì sao nên chọn dữ liệu cần đọc thay vì luôn tải Entity
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-and-dtos-002
+    title: Interface projection đóng và ánh xạ tên thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-and-dtos-003
+    title: Interface projection mở với biểu thức và đánh đổi tối ưu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-and-dtos-004
+    title: Projection lồng nhau và nguy cơ tải quan hệ ngoài dự kiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-and-dtos-005
+    title: Default method và wrapper cho thuộc tính có thể null
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-and-dtos-006
+    title: DTO theo constructor và lựa chọn constructor bằng @PersistenceCreator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-and-dtos-007
+    title: Sử dụng Java record làm DTO projection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-and-dtos-008
+    title: Projection động với tham số Class<T>
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-and-dtos-009
+    title: Projection cho truy vấn theo tên, JPQL và native SQL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-and-dtos-010
+    title: Phân biệt DTO trả kết quả truy vấn và DTO nhận dữ liệu cập nhật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sorting-and-pagination
+  title: Sắp xếp và phân trang
+  childs:
+  - slug: sorting-and-pagination-001
+    title: Sort, Sort.Order và sắp xếp theo nhiều thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-pagination-002
+    title: Chiều sắp xếp, thứ tự null và khác biệt giữa cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-pagination-003
+    title: Sắp xếp theo biểu thức và rủi ro của JpaSort.unsafe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-pagination-004
+    title: Pageable, PageRequest và quy ước chỉ số trang bắt đầu từ 0
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-pagination-005
+    title: Phân biệt List, Slice và Page
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-pagination-006
+    title: Count query tự sinh, countQuery tùy chỉnh và chi phí đếm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-pagination-007
+    title: Phân trang khi join quan hệ và tránh đếm trùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-pagination-008
+    title: Vì sao phân trang với collection fetch join dễ sai hoặc tốn bộ nhớ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-pagination-009
+    title: Thứ tự ổn định, khóa phụ và thay đổi dữ liệu giữa các trang
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-pagination-010
+    title: Giới hạn kích thước trang và kiểm soát thuộc tính được phép sắp xếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-pagination-011
+    title: Tích hợp Pageable, Sort với Spring MVC và quy tắc cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-pagination-012
+    title: Ánh xạ Page<Entity> sang Page<DTO> và hợp đồng phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scrolling-and-streams
+  title: Cuộn và luồng
+  childs:
+  - slug: scrolling-and-streams-001
+    title: Giới hạn của phân trang offset khi dữ liệu tăng lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrolling-and-streams-002
+    title: Mô hình Window, ScrollPosition và truy vấn hỗ trợ scrolling
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrolling-and-streams-003
+    title: So sánh offset scrolling và keyset scrolling
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrolling-and-streams-004
+    title: Thiết kế thứ tự sắp xếp và chỉ mục cho keyset
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrolling-and-streams-005
+    title: Ràng buộc về giá trị null và thuộc tính sắp xếp trong projection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrolling-and-streams-006
+    title: Duyệt nhiều cửa sổ và quản lý vị trí tiếp tục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrolling-and-streams-007
+    title: Đọc kết quả bằng Stream<T> trong phạm vi giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrolling-and-streams-008
+    title: Đóng Stream, fetch size và thời gian giữ kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrolling-and-streams-009
+    title: Giới hạn số kết quả bằng Top, First hoặc Limit theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrolling-and-streams-010
+    title: Truy vấn bất đồng bộ với @Async và giới hạn của JPA đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-by-example
+  title: Query by Example
+  childs:
+  - slug: query-by-example-001
+    title: Mô hình probe, Example và ExampleMatcher
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-002
+    title: Cấu hình thuộc tính được xét hoặc bỏ qua
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-003
+    title: So khớp chuỗi, phân biệt chữ hoa thường và giá trị null
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-004
+    title: matchingAll, matchingAny và tùy chỉnh theo thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-005
+    title: Xử lý giá trị mặc định của kiểu nguyên thủy trong probe
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-006
+    title: Tìm kiếm, đếm, kiểm tra tồn tại và phân trang bằng Example
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-007
+    title: Thực thi linh hoạt với fluent query của QueryByExampleExecutor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-008
+    title: Giới hạn về điều kiện nhóm, quan hệ và truy vấn phức tạp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-009
+    title: Lựa chọn Query by Example cho biểu mẫu tìm kiếm đơn giản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specifications
+  title: Specification
+  childs:
+  - slug: specifications-001
+    title: Vì sao cần Specification cho bộ lọc kết hợp động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-002
+    title: JpaSpecificationExecutor và hợp đồng Specification<T>
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-003
+    title: CriteriaBuilder, CriteriaQuery, Root, Path và Predicate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-004
+    title: Tạo điều kiện so sánh, chuỗi, khoảng, null và tập hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-005
+    title: Kết hợp điều kiện bằng and, or, not và nhóm logic
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-006
+    title: Join quan hệ, truy vấn con và xử lý kết quả trùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-007
+    title: Xây dựng bộ lọc tùy chọn mà không sinh điều kiện thừa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-008
+    title: Metamodel tĩnh và giảm lỗi tên thuộc tính khi tái cấu trúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-009
+    title: Phân trang, sắp xếp và fluent query khi phiên bản hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-010
+    title: Tách điều kiện lọc khỏi fetch join và logic count query
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-011
+    title: Giới hạn thao tác xóa theo Specification và tác động của bulk delete
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-012
+    title: Kiểm thử bộ Specification tái sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: querydsl
+  title: Querydsl
+  childs:
+  - slug: querydsl-001
+    title: Vai trò của Querydsl và lựa chọn so với Specification
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: querydsl-002
+    title: Cấu hình sinh Q-type tương thích Jakarta Persistence
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: querydsl-003
+    title: Xây dựng predicate có kiểm tra kiểu bằng Q-type
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: querydsl-004
+    title: QuerydslPredicateExecutor cho tìm kiếm, đếm và tồn tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: querydsl-005
+    title: Kết hợp điều kiện tìm kiếm động bằng BooleanBuilder
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: querydsl-006
+    title: Join, projection và truy vấn phức tạp trong Repository tùy biến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: querydsl-007
+    title: Phân trang, sắp xếp và kiểm soát count query với Querydsl
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: querydsl-008
+    title: Ràng buộc bộ lọc từ web bằng QuerydslBinderCustomizer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: querydsl-009
+    title: Kiểm soát thuộc tính được công khai khi nhận predicate từ web
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: querydsl-010
+    title: Đánh giá phiên bản, nguồn phát hành và chi phí phụ thuộc Querydsl
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-repositories
+  title: Repository tùy biến
+  childs:
+  - slug: custom-repositories-001
+    title: Khi nào nên bổ sung hành vi ngoài phương thức truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-repositories-002
+    title: Thiết kế Repository fragment và lớp triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-repositories-003
+    title: Quy ước tên lớp triển khai, hậu tố và phạm vi quét
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-repositories-004
+    title: Kết hợp nhiều fragment và xử lý phương thức trùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-repositories-005
+    title: Tiêm EntityManager bằng @PersistenceContext
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-repositories-006
+    title: Tạo truy vấn động bằng EntityManager
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-repositories-007
+    title: Tùy chỉnh lớp Repository cơ sở và repositoryBaseClass
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-repositories-008
+    title: Phân biệt default method, fragment và dịch vụ nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-repositories-009
+    title: Phối hợp JPA với JDBC cho thao tác đặc thù trong cùng giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-repositories-010
+    title: Kiểm thử fragment và bảo đảm cấu hình được áp dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions
+  title: Giao dịch
+  childs:
+  - slug: transactions-001
+    title: Ranh giới giao dịch theo một thao tác nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-002
+    title: Giao dịch mặc định của CRUD và phương thức truy vấn tự khai báo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-003
+    title: Đặt @Transactional ở dịch vụ và phối hợp nhiều Repository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-004
+    title: Cơ chế proxy, lời gọi nội bộ và tình huống giao dịch không hoạt động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-005
+    title: Propagation REQUIRED, REQUIRES_NEW và giới hạn NESTED với JPA
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-006
+    title: Isolation, hiện tượng đọc dữ liệu và khả năng hỗ trợ của cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-007
+    title: Quy tắc rollback, checked exception và rollbackFor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-008
+    title: readOnly là gợi ý tối ưu và giới hạn bảo vệ dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-009
+    title: Timeout, flush và thời điểm phát sinh lỗi ràng buộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-010
+    title: UnexpectedRollbackException và xử lý rollback-only
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-011
+    title: Giao dịch qua luồng, @Async và phạm vi EntityManager
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-012
+    title: TransactionTemplate khi cần điều khiển giao dịch bằng mã
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: locking-and-concurrency
+  title: Khóa và đồng thời
+  childs:
+  - slug: locking-and-concurrency-001
+    title: Cập nhật mất dữ liệu và nhu cầu kiểm soát đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-concurrency-002
+    title: Khóa lạc quan bằng @Version
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-concurrency-003
+    title: Xử lý OptimisticLockException và xung đột cập nhật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-concurrency-004
+    title: Khóa bi quan và các LockModeType phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-concurrency-005
+    title: Áp dụng @Lock lên truy vấn và phương thức CRUD khai báo lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-concurrency-006
+    title: Thời gian chờ khóa, deadlock và khác biệt theo cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-concurrency-007
+    title: Khóa quan hệ và giới hạn phạm vi bảo vệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-concurrency-008
+    title: Cập nhật nguyên tử bằng điều kiện nghiệp vụ và kiểm tra số dòng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-concurrency-009
+    title: Retry có giới hạn, tính lặp an toàn và giao dịch mới sau lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-concurrency-010
+    title: Kiểm thử đồng thời cho tồn kho, số dư và đặt chỗ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fetching
+  title: Tải dữ liệu
+  childs:
+  - slug: fetching-001
+    title: FetchType, proxy và thời điểm truy cập quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fetching-002
+    title: Nhận diện N+1 từ số câu SQL và hình dạng dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fetching-003
+    title: JOIN FETCH để tải dữ liệu theo nhu cầu từng trường hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fetching-004
+    title: '@EntityGraph, @NamedEntityGraph và attributePaths'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fetching-005
+    title: Phân biệt fetch graph và load graph
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fetching-006
+    title: Kết hợp EntityGraph với phương thức truy vấn phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fetching-007
+    title: Batch fetching, @BatchSize và cấu hình đặc thù Hibernate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fetching-008
+    title: LazyInitializationException và thiết kế ranh giới đọc dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fetching-009
+    title: Open EntityManager in View, cấu hình open-in-view và đánh đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fetching-010
+    title: Tránh vòng lặp, tải lười và lộ dữ liệu khi tuần tự hóa Entity
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fetching-011
+    title: Tải nhiều tập hợp, tích Descartes và MultipleBagFetchException
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fetching-012
+    title: Chọn fetch plan theo màn hình, DTO và giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bulk-operations
+  title: Thao tác hàng loạt
+  childs:
+  - slug: bulk-operations-001
+    title: Phân biệt saveAll, JDBC batching và bulk DML
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-002
+    title: JPQL UPDATE, DELETE và @Modifying
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-003
+    title: Yêu cầu giao dịch cho truy vấn thay đổi dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-004
+    title: flushAutomatically và clearAutomatically
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-005
+    title: PersistenceContext lỗi thời sau bulk update hoặc bulk delete
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-006
+    title: Bulk DML và giới hạn callback, cascade, version
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-007
+    title: Đếm số dòng tác động và xác nhận điều kiện cập nhật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-008
+    title: Cấu hình batch size, order_inserts và order_updates trong Hibernate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-009
+    title: Tác động của IDENTITY và SEQUENCE đến khả năng batching
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-010
+    title: Chia lô, flush và clear khi nhập tập dữ liệu lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-011
+    title: Khôi phục khi một lô thất bại và thiết kế xử lý lặp an toàn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-012
+    title: Lựa chọn JDBC hoặc công cụ chuyên dụng khi JPA không phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: auditing
+  title: Auditing
+  childs:
+  - slug: auditing-001
+    title: Kích hoạt kiểm toán với @EnableJpaAuditing
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-002
+    title: '@CreatedDate, @LastModifiedDate và kiểu thời gian phù hợp'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-003
+    title: '@CreatedBy, @LastModifiedBy và AuditorAware'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-004
+    title: Tích hợp người thao tác với ngữ cảnh xác thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-005
+    title: Cấu hình AuditingEntityListener và lớp thuộc tính dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-006
+    title: DateTimeProvider, múi giờ và đồng hồ có thể kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-007
+    title: Giá trị kiểm toán khi nhập dữ liệu nền hoặc chạy tác vụ định kỳ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-008
+    title: Giới hạn auditing với bulk DML và cập nhật ngoài JPA
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-009
+    title: Phân biệt thông tin người sửa cuối với lịch sử từng phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-010
+    title: Spring Data Envers, RevisionRepository và yêu cầu Hibernate Envers
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: events
+  title: Sự kiện
+  childs:
+  - slug: events-001
+    title: Công bố sự kiện từ aggregate bằng @DomainEvents
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-002
+    title: Dọn sự kiện bằng @AfterDomainEventPublication
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-003
+    title: Phương thức Repository có tham gia công bố sự kiện và các ngoại lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-004
+    title: Sử dụng AbstractAggregateRoot khi phù hợp với mô hình nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-005
+    title: Phân biệt sự kiện miền, Entity callback và auditing
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-006
+    title: Xử lý sự kiện theo giai đoạn giao dịch bằng @TransactionalEventListener
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-007
+    title: Hành vi khi rollback, khi không có giao dịch và khi dùng @Async
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-008
+    title: Giới hạn giao nhận sự kiện trong bộ nhớ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-009
+    title: Mẫu transactional outbox cho thay đổi dữ liệu và công bố thông điệp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-010
+    title: Thiết kế bộ xử lý sự kiện có tính lặp an toàn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stored-procedures
+  title: Thủ tục lưu trữ
+  childs:
+  - slug: stored-procedures-001
+    title: Khi nào nên gọi stored procedure từ ứng dụng JPA
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-002
+    title: Khai báo phương thức Repository bằng @Procedure
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-003
+    title: Định nghĩa @NamedStoredProcedureQuery và tham số thủ tục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-004
+    title: Phân biệt IN, OUT, INOUT và REF_CURSOR theo khả năng hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-005
+    title: Ánh xạ giá trị trả về, nhiều OUT và tập kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-006
+    title: Gọi thủ tục bằng EntityManager khi cần điều khiển chi tiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-007
+    title: Giao dịch, lỗi thủ tục và quy tắc riêng của cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-008
+    title: Kiểm thử thủ tục trên đúng hệ quản trị mục tiêu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching
+  title: Bộ nhớ đệm
+  childs:
+  - slug: caching-001
+    title: Phạm vi và tính nhất quán của bộ nhớ đệm cấp một
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-002
+    title: Bộ nhớ đệm cấp hai và cách cấu hình theo nhà cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-003
+    title: Chính sách truy cập cache cho Entity có thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-004
+    title: Bộ nhớ đệm kết quả truy vấn và quan hệ với cache Entity
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-005
+    title: Làm mất hiệu lực cache khi cập nhật từ JPA và hệ thống khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-006
+    title: Query hints và CacheRetrieveMode, CacheStoreMode
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-007
+    title: Phân biệt JPA cache với Spring Cache
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-008
+    title: Chọn dữ liệu nên cache, thời hạn và khả năng chấp nhận dữ liệu cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-009
+    title: Đo hit, miss và kiểm thử tính đúng đắn khi bật cache
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Thiết lập dữ liệu và phép đo trước khi tối ưu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Quan sát số truy vấn, thời gian SQL và số dòng trả về
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Đọc execution plan và thiết kế chỉ mục theo truy vấn thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Tránh đọc toàn bảng, chọn thừa cột và đếm không cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Giảm N+1 bằng fetch plan hoặc projection phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Tối ưu join, DISTINCT, truy vấn con và bộ lọc lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Giới hạn kích thước PersistenceContext và bộ nhớ ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Cấu hình connection pool theo tải và thời gian giữ kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Đo chi phí flush, dirty checking và cập nhật dư thừa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Thống kê Hibernate, công cụ theo dõi SQL và chỉ số vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Kiểm thử hiệu năng với cơ sở dữ liệu và dữ liệu gần thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-012
+    title: Lựa chọn giữa tối ưu JPA, native SQL và truy cập JDBC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Phân biệt kiểm thử đơn vị dịch vụ và kiểm thử tích hợp Repository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Phạm vi tự cấu hình của @DataJpaTest
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Tạo dữ liệu thử nghiệm bằng TestEntityManager
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Rollback trong kiểm thử và lỗi bị che khuất bởi giao dịch thử nghiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: flush và clear để xác minh dữ liệu thực trong cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Dùng Testcontainers với PostgreSQL hoặc MySQL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Khác biệt H2 với hệ quản trị triển khai và rủi ro kết quả sai lệch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử mapping, cascade, orphanRemoval và ràng buộc dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử derived query, JPQL, native SQL và Specification
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử Page, count query, projection và trường hợp kết quả rỗng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử auditing, callback và sự kiện sau commit
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử khóa, xung đột đồng thời và rollback
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Phát hiện N+1 và hồi quy số truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: Quản lý fixture bằng @Sql, migration và dữ liệu có tính xác định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: Phân loại lỗi cấu hình, ánh xạ, truy vấn và dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: PropertyReferenceException và tên thuộc tính không hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: QueryCreationException, lỗi JPQL và tham số không khớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Not a managed type và lỗi quét Entity
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: TransientPropertyValueException và tham chiếu chưa được lưu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Detached Entity, merge sai và EntityExistsException
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: LazyInitializationException và truy cập ngoài PersistenceContext
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: DataIntegrityViolationException và ràng buộc cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: IncorrectResultSizeDataAccessException và dữ liệu không duy nhất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Lỗi khóa lạc quan, khóa bi quan và deadlock
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: DataAccessException và cơ chế chuyển đổi ngoại lệ của Spring
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Lỗi chỉ xuất hiện lúc flush hoặc commit
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Đọc chuỗi nguyên nhân, SQLState và log mà không lộ dữ liệu nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schema-and-deployment
+  title: Schema và triển khai
+  childs:
+  - slug: schema-and-deployment-001
+    title: Phân biệt tạo schema bằng JPA và quản lý migration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-deployment-002
+    title: Ý nghĩa các chế độ ddl-auto trong từng môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-deployment-003
+    title: Quản lý thay đổi bằng Flyway hoặc Liquibase
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-deployment-004
+    title: Phối hợp migration, kiểm tra mapping và khởi động ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-deployment-005
+    title: Thứ tự schema.sql, data.sql và khởi tạo dữ liệu của Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-deployment-006
+    title: Thay đổi cột, chỉ mục và ràng buộc mà vẫn tương thích triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-deployment-007
+    title: Backfill dữ liệu và chiến lược thay đổi schema nhiều bước
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-deployment-008
+    title: Quản lý bí mật kết nối và quyền tối thiểu cho tài khoản ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-deployment-009
+    title: Cấu hình dialect, múi giờ, pool và timeout theo môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-deployment-010
+    title: Kiểm tra kết nối, quan sát lỗi và phục hồi sau sự cố cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multiple-data-sources
+  title: Nhiều nguồn dữ liệu
+  childs:
+  - slug: multiple-data-sources-001
+    title: Khi nào cần nhiều DataSource trong một ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-data-sources-002
+    title: Tách EntityManagerFactory, persistence unit và TransactionManager
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-data-sources-003
+    title: Phân vùng gói Repository bằng entityManagerFactoryRef và transactionManagerRef
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-data-sources-004
+    title: Chọn giao dịch theo tên TransactionManager
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-data-sources-005
+    title: Giới hạn tính nguyên tử khi cập nhật nhiều nguồn dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-data-sources-006
+    title: Tổng quan JTA, XA và lựa chọn bù trừ nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-data-sources-007
+    title: Định tuyến đọc-ghi, độ trễ bản sao và nhất quán sau ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-data-sources-008
+    title: Mô hình đa khách hàng theo cơ sở dữ liệu, schema hoặc tenant_id
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-data-sources-009
+    title: Truyền ngữ cảnh khách hàng và ngăn rò rỉ dữ liệu chéo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-data-sources-010
+    title: Kiểm thử định tuyến, giao dịch và cách ly dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-design
+  title: Thiết kế ứng dụng
+  childs:
+  - slug: application-design-001
+    title: Đặt Repository ở đâu trong kiến trúc phân lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-002
+    title: Thiết kế aggregate và ranh giới cập nhật nhất quán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-003
+    title: Phân tách Entity lưu trữ với DTO và mô hình phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-004
+    title: Cập nhật một phần, giá trị null và tránh ghi đè dữ liệu ngoài ý muốn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-005
+    title: Kiểm tra tồn tại trước khi ghi và cuộc đua dữ liệu đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-006
+    title: Kết hợp Bean Validation, quy tắc nghiệp vụ và ràng buộc cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-007
+    title: Chọn truy vấn theo tên, JPQL, Specification, Querydsl hoặc native SQL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-008
+    title: Thiết kế bộ lọc an toàn, giới hạn phân trang và kiểm soát quyền dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-009
+    title: Tách luồng đọc và ghi khi yêu cầu truy vấn khác biệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-010
+    title: Tránh Repository quá lớn, generic CRUD tùy tiện và gọi save dư thừa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hibernate-extensions
+  title: Mở rộng Hibernate
+  childs:
+  - slug: hibernate-extensions-001
+    title: Phân biệt chuẩn Jakarta Persistence và tính năng riêng của Hibernate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hibernate-extensions-002
+    title: Unwrap EntityManager sang Session khi có nhu cầu cụ thể
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hibernate-extensions-003
+    title: Xóa mềm, lọc dữ liệu và tính duy nhất sau khi xóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hibernate-extensions-004
+    title: Lựa chọn cơ chế soft delete hoặc filter theo phiên bản Hibernate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hibernate-extensions-005
+    title: Ánh xạ JSON và kiểu cơ sở dữ liệu đặc thù
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hibernate-extensions-006
+    title: Thuộc tính tính toán, trường do cơ sở dữ liệu sinh và rủi ro đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hibernate-extensions-007
+    title: Khóa tự nhiên và khả năng truy xuất đặc thù Hibernate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hibernate-extensions-008
+    title: Bytecode enhancement, tải lười thuộc tính và dirty tracking
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hibernate-extensions-009
+    title: Đánh giá chi phí phụ thuộc nhà cung cấp trước khi sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hibernate-extensions-010
+    title: Kiểm thử tính năng mở rộng trên phiên bản và cơ sở dữ liệu mục tiêu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versioning-and-upgrades
+  title: Phiên bản và nâng cấp
+  childs:
+  - slug: versioning-and-upgrades-001
+    title: Đọc ma trận tương thích Java, Spring Boot, Spring Data và Hibernate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-upgrades-002
+    title: Chuyển từ javax.persistence sang jakarta.persistence
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-upgrades-003
+    title: Thay đổi phân cấp Repository và hợp đồng phương thức giữa các dòng phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-upgrades-004
+    title: Thay API lỗi thời như getOne, getById và các phương thức xóa theo lô
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-upgrades-005
+    title: Kiểm tra thay đổi bộ phân tích JPQL, native query và count query
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-upgrades-006
+    title: Đánh giá API mới như Limit, scrolling hoặc Specification theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-upgrades-007
+    title: Cập nhật annotation processor cho metamodel và Querydsl
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-upgrades-008
+    title: Đối chiếu SQL sinh ra và hành vi tải quan hệ sau nâng cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-upgrades-009
+    title: Kiểm thử native image, AOT và reflection khi có yêu cầu triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-upgrades-010
+    title: Lập bộ kiểm tra hồi quy dữ liệu, giao dịch và hiệu năng trước phát hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comprehensive-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: comprehensive-practice-001
+    title: Xây dựng quản lý khách hàng với CRUD, validation và DTO
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-002
+    title: Thiết kế đơn hàng, dòng hàng và vòng đời aggregate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-003
+    title: Xây dựng tìm kiếm nhiều điều kiện bằng Specification
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-004
+    title: Làm báo cáo có projection, tổng hợp và phân trang chính xác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-005
+    title: Tái hiện N+1 và so sánh các phương án khắc phục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-006
+    title: Mô phỏng hai giao dịch tranh chấp tồn kho và xử lý xung đột
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-007
+    title: Nhập dữ liệu lớn với chia lô, flush và phục hồi lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-008
+    title: Kết hợp auditing, lịch sử thay đổi và sự kiện nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-009
+    title: Kiểm thử Repository bằng Testcontainers và migration thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-010
+    title: Đánh giá giải pháp bằng tính đúng đắn, SQL, hiệu năng và khả năng bảo trì
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,109 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: overall-picture
+  index: 0
+- title: Message runtime
+  slug: message-runtime
+  index: 1
+- title: Application context
+  slug: application-context
+  index: 2
+- title: IntegrationFlowContext
+  slug: integration-flow-context
+  index: 3
+- title: Endpoint lifecycle
+  slug: endpoint-lifecycle
+  index: 4
+- title: Consumer runtime
+  slug: consumer-runtime
+  index: 5
+- title: Task scheduler
+  slug: task-scheduler
+  index: 6
+- title: Task executor
+  slug: task-executor
+  index: 7
+- title: Threading model
+  slug: threading-model
+  index: 8
+- title: Channel runtime
+  slug: channel-runtime
+  index: 9
+- title: Dispatcher
+  slug: dispatcher
+  index: 10
+- title: Channel interceptor
+  slug: channel-interceptors
+  index: 11
+- title: Message producer
+  slug: message-producers
+  index: 12
+- title: Message handler
+  slug: message-handlers
+  index: 13
+- title: Handler adapter
+  slug: handler-adapters
+  index: 14
+- title: Conversion
+  slug: conversion
+  index: 15
+- title: Error runtime
+  slug: error-handling
+  index: 16
+- title: Retry và recovery
+  slug: retries-recovery
+  index: 17
+- title: Advice chain
+  slug: advice-chain
+  index: 18
+- title: Transaction runtime
+  slug: transaction-runtime
+  index: 19
+- title: Message store
+  slug: message-store
+  index: 20
+- title: Correlation runtime
+  slug: correlation-runtime
+  index: 21
+- title: Metadata store
+  slug: metadata-store
+  index: 22
+- title: Lock registry
+  slug: lock-registry
+  index: 23
+- title: Persistence và restart
+  slug: persistence-restarts
+  index: 24
+- title: Reactive runtime
+  slug: reactive-runtime
+  index: 25
+- title: Dynamic runtime
+  slug: dynamic-runtime
+  index: 26
+- title: Control và quản trị
+  slug: control-management
+  index: 27
+- title: Observability
+  slug: observability
+  index: 28
+- title: Testing runtime
+  slug: runtime-testing
+  index: 29
+- title: Debugging
+  slug: debugging
+  index: 30
+- title: Hiệu năng
+  slug: performance
+  index: 31
+- title: Vận hành
+  slug: operations
+  index: 32
+- title: Bảo mật runtime
+  slug: runtime-security
+  index: 33
+- title: Thiết kế runtime
+  slug: runtime-design
+  index: 34
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 35

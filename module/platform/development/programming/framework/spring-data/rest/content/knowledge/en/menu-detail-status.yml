@@ -1,0 +1,2716 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Spring Data REST là gì và bài toán tự động công bố repository qua HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vai trò của tài nguyên, biểu diễn, liên kết và phương thức HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mối liên hệ giữa Spring Data REST, Spring Data, Spring MVC và Spring HATEOAS
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Từ mô hình miền đến repository, tài nguyên tập hợp và tài nguyên đơn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: REST, HATEOAS và khả năng khám phá API qua liên kết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: So sánh API từ repository với API tự viết Controller–Service–DTO
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: 'Các trường hợp phù hợp: CRUD, công cụ nội bộ và tra cứu dữ liệu'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Giới hạn với nghiệp vụ nhiều bước, hợp đồng công khai và mô hình miền phức tạp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Kiến thức nền cần có và thứ tự học Spring Data REST
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: setup
+  title: Khởi tạo
+  childs:
+  - slug: setup-001
+    title: Lựa chọn phiên bản tương thích của Java, Spring Boot và Spring Data REST
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-002
+    title: Quản lý dependency bằng Spring Boot BOM hoặc Spring Data BOM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-003
+    title: Thêm spring-boot-starter-data-rest với Maven và Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-004
+    title: Lựa chọn kho dữ liệu và kiểm tra mức hỗ trợ xuất REST theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-005
+    title: Tạo ứng dụng mẫu với Spring Data JPA, H2 và dữ liệu khởi tạo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-006
+    title: Khai báo entity, repository và chạy API đầu tiên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-007
+    title: Cơ chế tự cấu hình Spring Boot và điều kiện để repository được phát hiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-008
+    title: Tích hợp spring-data-rest-webmvc vào ứng dụng Spring MVC hiện có
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-009
+    title: Cấu hình spring.data.rest.* và RepositoryRestConfigurer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-010
+    title: Dùng curl và HAL Explorer kiểm tra tài nguyên gốc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-model
+  title: Mô hình miền
+  childs:
+  - slug: domain-model-001
+    title: Thực thể, đối tượng giá trị và ranh giới cụm nghiệp vụ (aggregate)
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-002
+    title: Lựa chọn mô hình miền phù hợp để công bố trực tiếp qua REST
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-003
+    title: Định danh tài nguyên với Long, UUID và kiểu ID tùy chỉnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-004
+    title: Phân biệt ID lưu trữ, URI tài nguyên và khóa nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-005
+    title: Thuộc tính đơn, đối tượng lồng và quan hệ giữa các thực thể
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-006
+    title: Ảnh hưởng của việc có repository riêng đến cách biểu diễn quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-007
+    title: Quan hệ một-một, một-nhiều và nhiều-nhiều trong ví dụ JPA
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-008
+    title: Phía sở hữu quan hệ, mappedBy, cascade và orphanRemoval trong JPA
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-009
+    title: Thiết kế bất biến nghiệp vụ khi người dùng có thể ghi trực tiếp vào entity
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-010
+    title: Phân biệt hành vi chung của REST exporter và đặc điểm riêng của kho dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processing-flow
+  title: Luồng xử lý
+  childs:
+  - slug: processing-flow-001
+    title: Các thành phần chính của REST exporter và RepositoryRestMvcConfiguration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-flow-002
+    title: RepositoryRestHandlerMapping lựa chọn bộ xử lý yêu cầu như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-flow-003
+    title: Các bộ xử lý tài nguyên tập hợp, tài nguyên đơn, liên kết và tìm kiếm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-flow-004
+    title: Đọc metadata repository, kiểu miền và phương thức CRUD khả dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-flow-005
+    title: Chuyển đổi tham số đường dẫn, query parameter và request body
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-flow-006
+    title: Ánh xạ lời gọi HTTP đến phương thức repository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-flow-007
+    title: Vị trí của validation, sự kiện, phân quyền và tuần tự hóa trong luồng xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-flow-008
+    title: Quan hệ giữa cấu hình Spring MVC thông thường và hạ tầng riêng của Spring Data REST
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-exposure
+  title: Công bố repository
+  childs:
+  - slug: repository-exposure-001
+    title: '@RepositoryRestResource và các thuộc tính điều khiển công bố tài nguyên'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-exposure-002
+    title: 'RepositoryDetectionStrategy: DEFAULT, ALL, VISIBILITY và ANNOTATED'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-exposure-003
+    title: Ảnh hưởng của phạm vi public và annotation đến việc phát hiện repository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-exposure-004
+    title: Ẩn toàn bộ repository bằng exported = false
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-exposure-005
+    title: Ẩn phương thức CRUD hoặc truy vấn bằng @RestResource(exported = false)
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-exposure-006
+    title: Chọn phương thức công bố với Repository, CrudRepository và JpaRepository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-exposure-007
+    title: Vai trò của PagingAndSortingRepository và thay đổi quan hệ kế thừa theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-exposure-008
+    title: '@NoRepositoryBean và interface repository cơ sở dùng chung'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-exposure-009
+    title: ExposureConfiguration để giới hạn HTTP method toàn cục hoặc theo kiểu miền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-exposure-010
+    title: Phân biệt khóa POST, PUT, PATCH khi cùng dựa trên phương thức save
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-exposure-011
+    title: Rà soát các biến thể phương thức delete và thiết kế repository chỉ đọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-paths
+  title: Đường dẫn tài nguyên
+  childs:
+  - slug: resource-paths-001
+    title: Cấu hình base path và phân biệt với servlet context path
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-paths-002
+    title: Quy tắc suy ra đường dẫn mặc định từ tên kiểu miền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-paths-003
+    title: Tùy chỉnh path, collectionResourceRel và itemResourceRel
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-paths-004
+    title: Phân biệt đường dẫn URL và tên quan hệ liên kết (rel)
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-paths-005
+    title: Tùy chỉnh đường dẫn và rel của phương thức tìm kiếm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-paths-006
+    title: Tùy chỉnh đường dẫn tài nguyên liên kết trên thuộc tính quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-paths-007
+    title: Tùy chỉnh URI định danh bằng EntityLookup và withEntityLookup
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-paths-008
+    title: Chuyển đổi ID bằng BackendIdConverter, mã hóa URL và xử lý ID không hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-paths-009
+    title: Tránh trùng đường dẫn giữa repository và Controller tự viết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hal-hateoas
+  title: HAL và HATEOAS
+  childs:
+  - slug: hal-hateoas-001
+    title: Cấu trúc biểu diễn HAL với _links, _embedded và dữ liệu nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hal-hateoas-002
+    title: Ý nghĩa của self, profile, search và liên kết quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hal-hateoas-003
+    title: Biểu diễn tài nguyên đơn, tập hợp và kết quả phân trang
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hal-hateoas-004
+    title: URI template, thuộc tính templated và cách điền tham số
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hal-hateoas-005
+    title: Khám phá tài nguyên từ API gốc thay vì ghép cứng URL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hal-hateoas-006
+    title: Thương lượng nội dung bằng Accept và Content-Type
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hal-hateoas-007
+    title: Phân biệt application/hal+json và application/json theo cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hal-hateoas-008
+    title: Biểu diễn tập hợp rỗng, liên kết vắng mặt và quan hệ tùy chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hal-hateoas-009
+    title: Ảnh hưởng của thay đổi rel và cấu trúc biểu diễn đến máy khách
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hal-hateoas-010
+    title: HAL-FORMS và biểu mẫu thao tác khi phiên bản, media type hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-reads
+  title: Đọc tài nguyên
+  childs:
+  - slug: resource-reads-001
+    title: GET tài nguyên gốc và xác định các repository đang được công bố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-reads-002
+    title: GET tập hợp và phương thức findAll được sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-reads-003
+    title: GET tài nguyên đơn và phương thức findById
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-reads-004
+    title: HEAD để kiểm tra tài nguyên và đọc header
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-reads-005
+    title: OPTIONS và Allow để kiểm tra HTTP method khả dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-reads-006
+    title: Phân biệt tài nguyên không tồn tại, tập hợp rỗng và phương thức bị tắt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-reads-007
+    title: Đọc Location, Content-Type và các header trong phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-reads-008
+    title: Thực hành lần theo liên kết từ tập hợp đến tài nguyên đơn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-writes
+  title: Ghi tài nguyên
+  childs:
+  - slug: resource-writes-001
+    title: POST tạo tài nguyên và xác định các thuộc tính được phép ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-writes-002
+    title: 201 Created, Location và cách lấy biểu diễn sau khi tạo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-writes-003
+    title: PUT thay thế tài nguyên và tác động lên thuộc tính bị bỏ qua
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-writes-004
+    title: Khả năng tạo tài nguyên bằng PUT và cấu hình disablePutForCreation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-writes-005
+    title: PATCH cập nhật một phần và phân biệt với PUT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-writes-006
+    title: Cập nhật từng phần bằng JSON theo media type được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-writes-007
+    title: JSON Patch với application/json-patch+json và các thao tác cơ bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-writes-008
+    title: JSON Merge Patch với application/merge-patch+json
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-writes-009
+    title: Phân biệt trường bị bỏ qua, giá trị null và thay thế mảng khi cập nhật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-writes-010
+    title: DELETE tài nguyên và ảnh hưởng của ràng buộc dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-writes-011
+    title: Cấu hình returnBodyOnCreate, returnBodyOnUpdate và ảnh hưởng của Accept
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-writes-012
+    title: Phân biệt 200, 201, 204 và lỗi phương thức không được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-writes-013
+    title: Tính lũy đẳng của HTTP method và rủi ro gửi lại yêu cầu ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: linked-resources
+  title: Tài nguyên liên kết
+  childs:
+  - slug: linked-resources-001
+    title: Phân biệt liên kết HAL và tài nguyên thao tác quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-resources-002
+    title: Đường dẫn /{collection}/{id}/{property} cho quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-resources-003
+    title: GET quan hệ đơn và quan hệ tập hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-resources-004
+    title: Gửi tham chiếu tài nguyên bằng URI trong JSON khi tạo hoặc cập nhật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-resources-005
+    title: text/uri-list và cách biểu diễn một hoặc nhiều URI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-resources-006
+    title: PUT để thiết lập hoặc thay thế quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-resources-007
+    title: POST để bổ sung phần tử vào quan hệ tập hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-resources-008
+    title: DELETE để gỡ liên kết và phân biệt với xóa thực thể đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-resources-009
+    title: Gỡ một phần tử khỏi quan hệ tập hợp bằng URI thành viên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-resources-010
+    title: Quan hệ bắt buộc, URI không tồn tại và lỗi số lượng tham chiếu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-resources-011
+    title: Ảnh hưởng của phía sở hữu quan hệ và transaction khi cập nhật liên kết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-resources-012
+    title: Ẩn quan hệ bằng @RestResource và kiểm soát đường ghi còn lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: search-queries
+  title: Truy vấn tìm kiếm
+  childs:
+  - slug: search-queries-001
+    title: Tài nguyên /search và cơ chế khám phá các phương thức truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-queries-002
+    title: Công bố derived query method thành tài nguyên chỉ đọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-queries-003
+    title: Đặt tên tham số truy vấn bằng @Param
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-queries-004
+    title: Tùy chỉnh path và rel của truy vấn bằng @RestResource
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-queries-005
+    title: Công bố truy vấn @Query và giữ logic truy vấn trong tầng repository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-queries-006
+    title: Kiểu trả về đơn, Optional, tập hợp, Page và Slice
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-queries-007
+    title: Kết hợp tham số nghiệp vụ với Pageable và Sort
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-queries-008
+    title: Chuyển đổi enum, ngày giờ và kiểu tham số tùy chỉnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-queries-009
+    title: Tham số thiếu, giá trị không hợp lệ và kết quả không có dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-queries-010
+    title: Giới hạn của lọc tự động từ query parameter và lựa chọn truy vấn tường minh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-queries-011
+    title: QuerydslPredicateExecutor và tùy chỉnh binding khi phiên bản, kho dữ liệu hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-queries-012
+    title: Giới hạn thuộc tính được phép lọc bằng QuerydslBinderCustomizer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-queries-013
+    title: Giới hạn công bố truy vấn ghi dữ liệu hoặc truy vấn tốn tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pagination-sorting
+  title: Phân trang và sắp xếp
+  childs:
+  - slug: pagination-sorting-001
+    title: Điều kiện để tài nguyên tập hợp hỗ trợ phân trang và sắp xếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-sorting-002
+    title: Tham số page, size và quy ước chỉ số trang bắt đầu từ 0
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-sorting-003
+    title: 'Metadata phân trang: number, size, totalElements và totalPages'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-sorting-004
+    title: Liên kết first, prev, next và last trong kết quả phân trang
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-sorting-005
+    title: 'Page và Slice: tổng số phần tử, chi phí đếm và liên kết điều hướng'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-sorting-006
+    title: Cấu hình kích thước trang mặc định và kích thước tối đa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-sorting-007
+    title: Tùy chỉnh tên tham số phân trang và sắp xếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-sorting-008
+    title: Sắp xếp tăng, giảm và nhiều thuộc tính bằng sort
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-sorting-009
+    title: Sắp xếp thuộc tính lồng và giới hạn với quan hệ được biểu diễn bằng liên kết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-sorting-010
+    title: Thứ tự ổn định, trang vượt phạm vi và dữ liệu thay đổi giữa các lần đọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: projections-excerpts
+  title: Projections và Excerpts
+  childs:
+  - slug: projections-excerpts-001
+    title: Projection là gì và nhu cầu thay đổi góc nhìn dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-excerpts-002
+    title: Khai báo interface @Projection với name và types
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-excerpts-003
+    title: Chọn projection bằng query parameter projection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-excerpts-004
+    title: Cơ chế quét package và đăng ký projection tường minh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-excerpts-005
+    title: Projection lồng nhau và thay đổi cách hiển thị quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-excerpts-006
+    title: Thuộc tính tính toán với @Value và biểu thức SpEL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-excerpts-007
+    title: Excerpt projection và cấu hình excerptProjection trên repository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-excerpts-008
+    title: Phân biệt excerpt mặc định và projection do máy khách yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-excerpts-009
+    title: Phạm vi áp dụng excerpt với tập hợp, quan hệ và tài nguyên đơn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-excerpts-010
+    title: Projection có thể làm lộ dữ liệu đã ẩn bằng @JsonIgnore
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-excerpts-011
+    title: Giới hạn của projection đối với đầu vào ghi, phân quyền và hợp đồng DTO
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: json-mapping
+  title: Ánh xạ JSON
+  childs:
+  - slug: json-mapping-001
+    title: ObjectMapper của Spring Data REST và cơ chế ánh xạ entity–liên kết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-mapping-002
+    title: Tuần tự hóa đối tượng được quản lý và đối tượng lồng thông thường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-mapping-003
+    title: Điều khiển tên thuộc tính bằng @JsonProperty và quy tắc đặt tên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-mapping-004
+    title: '@JsonIgnore, thuộc tính chỉ đọc và thuộc tính chỉ ghi'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-mapping-005
+    title: Chủ động công bố ID bằng exposeIdsFor khi cần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-mapping-006
+    title: Ánh xạ enum, ngày giờ, tiền tệ và kiểu giá trị tùy chỉnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-mapping-007
+    title: Đăng ký Jackson Module, serializer và deserializer tùy chỉnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-mapping-008
+    title: Ánh xạ interface hoặc lớp trừu tượng sang kiểu triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-mapping-009
+    title: Quan hệ hai chiều, vòng lặp JSON và tác động của Hibernate proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-mapping-010
+    title: Kiểm soát mass assignment và dữ liệu đầu vào ngoài dự kiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-validation
+  title: Kiểm tra dữ liệu
+  childs:
+  - slug: data-validation-001
+    title: Phân biệt kiểm tra cú pháp JSON, ràng buộc dữ liệu và quy tắc nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-002
+    title: Khai báo Jakarta Bean Validation và xác minh điểm thực sự kích hoạt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-003
+    title: Triển khai Spring Validator với supports và validate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-004
+    title: Đăng ký validator bằng tiền tố bean beforeCreate và beforeSave
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-005
+    title: Đăng ký tường minh qua configureValidatingRepositoryEventListener
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-006
+    title: Validation cho tạo mới, cập nhật và thay đổi liên kết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-007
+    title: Kiểm tra trường bắt buộc, ràng buộc chéo trường và thông báo đa ngôn ngữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-008
+    title: Phối hợp validator với ràng buộc duy nhất và khóa ngoại trong cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-009
+    title: Định dạng lỗi validation và kiểm thử dữ liệu không hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-events
+  title: Sự kiện REST
+  childs:
+  - slug: rest-events-001
+    title: Vòng đời sự kiện của REST exporter và điểm mở rộng xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-events-002
+    title: BeforeCreateEvent và AfterCreateEvent khi tạo tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-events-003
+    title: BeforeSaveEvent và AfterSaveEvent khi cập nhật tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-events-004
+    title: BeforeLinkSaveEvent và AfterLinkSaveEvent khi thay đổi liên kết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-events-005
+    title: BeforeDeleteEvent và AfterDeleteEvent khi xóa tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-events-006
+    title: Viết listener bằng ApplicationListener và AbstractRepositoryEventListener
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-events-007
+    title: '@RepositoryEventHandler và các annotation @HandleBefore*, @HandleAfter*'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-events-008
+    title: Đăng ký handler thành Spring bean và giới hạn kiểu miền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-events-009
+    title: Tính đồng bộ mặc định, thứ tự xử lý và ngoại lệ trong listener
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-events-010
+    title: Phân biệt REST event, repository domain event và callback của JPA
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-events-011
+    title: Giới hạn của REST event khi repository được gọi từ luồng ngoài HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions-auditing
+  title: Giao dịch và auditing
+  childs:
+  - slug: transactions-auditing-001
+    title: Ranh giới transaction của repository và luồng gọi REST exporter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-auditing-002
+    title: Vì sao sự kiện After* không đồng nghĩa với transaction đã commit
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-auditing-003
+    title: Thực thi tác vụ sau commit bằng cơ chế transaction phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-auditing-004
+    title: Nghiệp vụ nhiều repository và nhu cầu điều phối ở tầng service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-auditing-005
+    title: Rollback, lỗi listener và tác động đến dữ liệu đã thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-auditing-006
+    title: Auditing với @CreatedDate, @LastModifiedDate, @CreatedBy và @LastModifiedBy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-auditing-007
+    title: Lấy người dùng hiện tại qua AuditorAware khi tích hợp Spring Security
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-auditing-008
+    title: Phân biệt kiểm toán dữ liệu, log HTTP và nhật ký nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: etags-caching
+  title: ETag và bộ nhớ đệm
+  childs:
+  - slug: etags-caching-001
+    title: ETag và quan hệ với thuộc tính phiên bản @Version
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: etags-caching-002
+    title: Phân biệt annotation @Version của JPA và Spring Data
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: etags-caching-003
+    title: Khóa lạc quan tại kho dữ liệu và điều kiện HTTP tại REST API
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: etags-caching-004
+    title: If-Match cho PUT, PATCH, DELETE và phản hồi 412
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: etags-caching-005
+    title: If-None-Match cho GET và phản hồi 304 Not Modified
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: etags-caching-006
+    title: Last-Modified, @LastModifiedDate và điều kiện hỗ trợ auditing
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: etags-caching-007
+    title: If-Modified-Since và kiểm tra thời điểm thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: etags-caching-008
+    title: Lưu ETag theo đúng URI, tham số và biểu diễn đã yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: etags-caching-009
+    title: Đồng bộ lại dữ liệu khi nhiều máy khách cùng chỉnh sửa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: etags-caching-010
+    title: Phân biệt kiểm tra freshness bằng header và bộ nhớ đệm dữ liệu của ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication-authorization
+  title: Xác thực và phân quyền
+  childs:
+  - slug: authentication-authorization-001
+    title: Tích hợp SecurityFilterChain với các đường dẫn Spring Data REST
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-002
+    title: Xác thực bằng session hoặc bearer token theo kiến trúc ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-003
+    title: Bật bảo mật mức phương thức bằng @EnableMethodSecurity
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-004
+    title: '@PreAuthorize tại repository và phương thức CRUD'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-005
+    title: Quy tắc phương thức ghi đè quy tắc bảo mật ở cấp repository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-006
+    title: Rà soát toàn bộ phương thức save, delete và các biến thể được kế thừa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-007
+    title: Phân quyền đọc, tạo, sửa, xóa và thao tác liên kết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-008
+    title: Kiểm soát truy cập theo chủ sở hữu và ngăn truy cập chéo bản ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-009
+    title: Giới hạn truy vấn theo người dùng hoặc tenant trong tầng dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-010
+    title: Bảo vệ trường nhạy cảm qua JSON, projection và liên kết quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-011
+    title: Phân biệt ẩn tài nguyên, ẩn liên kết và thực thi kiểm tra quyền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-012
+    title: CSRF, session cookie và chiến lược cho API dùng token
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-013
+    title: Phản hồi 401, 403 và kiểm thử truy cập không được phép
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cors
+  title: CORS
+  childs:
+  - slug: cors-001
+    title: Cùng nguồn, khác nguồn và cơ chế preflight của trình duyệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-002
+    title: Cấu hình @CrossOrigin trên repository
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-003
+    title: Cấu hình CORS cho Controller tùy chỉnh của Spring Data REST
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-004
+    title: Cấu hình toàn cục qua RepositoryRestConfigurer và CorsRegistry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-005
+    title: Quan hệ giữa cấu hình CORS riêng của exporter và Spring MVC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-006
+    title: Phối hợp CORS với Spring Security và yêu cầu OPTIONS
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-007
+    title: Origins, methods, headers, credentials và giới hạn wildcard
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-008
+    title: Cho phép trình duyệt đọc Location, ETag và các header cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metadata
+  title: Siêu dữ liệu
+  childs:
+  - slug: metadata-001
+    title: Liên kết profile và khả năng tự mô tả của tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-002
+    title: ALPS mô tả thuộc tính và thao tác trên tài nguyên như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-003
+    title: Descriptor, rel và các kiểu SEMANTIC, SAFE, IDEMPOTENT, UNSAFE
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-004
+    title: Khám phá các projection được công bố qua metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-005
+    title: JSON Schema của tài nguyên và thương lượng media type
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-006
+    title: Bổ sung mô tả tài nguyên, thuộc tính và truy vấn bằng @Description
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-007
+    title: Quốc tế hóa mô tả bằng rest-messages.properties
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-008
+    title: Khác biệt giữa ALPS, JSON Schema và tài liệu hợp đồng OpenAPI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-009
+    title: Khả năng và giới hạn của metadata đối với validation, phân quyền và nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-extensions
+  title: Mở rộng API
+  childs:
+  - slug: api-extensions-001
+    title: 'Lựa chọn điểm mở rộng: cấu hình, processor, listener hoặc Controller'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-extensions-002
+    title: '@RepositoryRestController và tích hợp với base path, converter, xử lý lỗi'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-extensions-003
+    title: '@BasePathAwareController và phân biệt với @RestController thông thường'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-extensions-004
+    title: Viết endpoint nghiệp vụ tùy chỉnh qua tầng service
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-extensions-005
+    title: Trả EntityModel, CollectionModel, PagedModel và ResponseEntity
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-extensions-006
+    title: PersistentEntityResourceAssembler cho biểu diễn entity nhất quán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-extensions-007
+    title: Bổ sung liên kết và biểu diễn bằng RepresentationModelProcessor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-extensions-008
+    title: Tạo liên kết repository bằng RepositoryEntityLinks
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-extensions-009
+    title: Nhận tham chiếu tài nguyên bằng AggregateReference khi phiên bản hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-extensions-010
+    title: Giải quyết xung đột mapping và thay thế bộ xử lý mặc định có chủ đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-extensions-011
+    title: Giữ nguyên phân trang, projection, header và bảo mật khi tự xử lý endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-extensions-012
+    title: Ranh giới giữa mở rộng Spring Data REST và chuyển sang API dùng DTO riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-handling
+  title: Xử lý lỗi
+  childs:
+  - slug: error-handling-001
+    title: Cơ chế RepositoryRestExceptionHandler và phạm vi xử lý ngoại lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-002
+    title: 400 cho tham số, JSON hoặc dữ liệu đầu vào không hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-003
+    title: 404 cho tài nguyên thiếu và phân biệt với truy vấn trả tập hợp rỗng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-004
+    title: 405 và header Allow khi HTTP method bị vô hiệu hóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-005
+    title: 406 và 415 khi Accept hoặc Content-Type không được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-006
+    title: 409 cho xung đột ràng buộc dữ liệu và khóa lạc quan tùy trường hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-007
+    title: 412 cho điều kiện If-Match không còn hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-008
+    title: Định dạng lỗi validation, lỗi liên kết và ngoại lệ nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-009
+    title: Tùy chỉnh xử lý lỗi bằng advice phù hợp với hạ tầng exporter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-010
+    title: Thông báo an toàn cho máy khách, mã theo dõi và chi tiết dành cho log
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Phân biệt kiểm thử repository, cấu hình xuất REST và hợp đồng HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Chọn @SpringBootTest, MockMvc hoặc HTTP thật theo phạm vi kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Chuẩn bị dữ liệu độc lập và dọn trạng thái giữa các ca kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm tra API gốc, đường dẫn tài nguyên, rel và cấu trúc HAL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm tra GET, POST, PUT, PATCH, DELETE cùng status và header
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm tra JSON Patch, Merge Patch, trường bị bỏ qua và giá trị null
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm tra thêm, thay thế, gỡ liên kết và quan hệ bắt buộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm tra search, chuyển đổi tham số, phân trang và sắp xếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm tra projection, excerpt và dữ liệu nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm tra validation, sự kiện và rollback khi xử lý thất bại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm tra ETag với hai máy khách cập nhật đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm tra phân quyền, CSRF và CORS bằng Spring Security Test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Kiểm tra hợp đồng với cơ sở dữ liệu thật qua Testcontainers
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: Kiểm thử hồi quy việc công bố ngoài ý muốn khi thêm repository hoặc phương thức
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo độ trễ, số truy vấn và kích thước biểu diễn trước khi tối ưu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Nhận diện N+1 khi đọc quan hệ, projection và excerpt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Tối ưu truy vấn JPA bằng fetch plan và @EntityGraph khi phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Ảnh hưởng của lazy loading và Open Session in View
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Giảm dữ liệu trả về bằng projection và giới hạn kích thước trang
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Chi phí count query, Page, Slice và phân trang tập dữ liệu lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Thiết kế chỉ mục cho các truy vấn tìm kiếm được công bố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Giới hạn request body, truy vấn tốn tài nguyên và số yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Đánh đổi giữa nhúng dữ liệu, lần theo liên kết và số lượt HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations
+  title: Vận hành
+  childs:
+  - slug: operations-001
+    title: Tách cấu hình phát triển, kiểm thử và production
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-002
+    title: Triển khai sau reverse proxy với context path và base path
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-003
+    title: Forwarded header, HTTPS và tính đúng đắn của liên kết tuyệt đối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-004
+    title: Giới hạn tin cậy proxy để tránh sinh liên kết từ host giả mạo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-005
+    title: Quan sát request bằng log, tracing và metrics
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-006
+    title: Tích hợp health check và quản lý quyền truy cập Actuator
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-007
+    title: Quản lý thời gian chờ, connection pool và lỗi kho dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-008
+    title: Kiểm soát việc bật HAL Explorer trong môi trường triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-009
+    title: Rà soát bề mặt API được công bố sau mỗi lần phát hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: client-integration
+  title: Tích hợp máy khách
+  childs:
+  - slug: client-integration-001
+    title: Khám phá API bằng HAL Explorer và đọc URI template
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-002
+    title: Thực hiện chuỗi thao tác bằng curl hoặc Postman
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-003
+    title: Đọc HAL từ ứng dụng JavaScript và xử lý _embedded, _links
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-004
+    title: Điều hướng theo rel và mở rộng URI template an toàn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-005
+    title: Tạo mới qua Location và quản lý URI của tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-006
+    title: Quản lý phân trang, projection và trạng thái dữ liệu trên giao diện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-007
+    title: Lưu ETag và xử lý xung đột chỉnh sửa trên giao diện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-008
+    title: Phân biệt retry yêu cầu đọc với gửi lại thao tác tạo hoặc cập nhật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-and-upgrades
+  title: Thiết kế và nâng cấp
+  childs:
+  - slug: design-and-upgrades-001
+    title: Phân định API công bố repository và API nghiệp vụ tự thiết kế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-upgrades-002
+    title: Giảm phụ thuộc giữa cấu trúc entity và hợp đồng HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-upgrades-003
+    title: Quản lý thay đổi tên trường, path, rel và projection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-upgrades-004
+    title: Versioning hợp đồng API và chiến lược chuyển tiếp cho máy khách
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-upgrades-005
+    title: Giới hạn REST exporter với nghiệp vụ nhiều bước và transaction xuyên tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-upgrades-006
+    title: Kiểm tra tương thích Spring Boot, Spring Data REST, Spring HATEOAS và Jackson
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-upgrades-007
+    title: Đối chiếu thay đổi API, annotation và mặc định cấu hình khi nâng cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-upgrades-008
+    title: Phân biệt các ví dụ cũ dùng Resource, PagedResources với API RepresentationModel
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-upgrades-009
+    title: Nhận diện và khắc phục công bố quá mức, logic nghiệp vụ trong listener và URL ghép cứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Xây dựng API quản lý danh mục với entity, repository và HAL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-002
+    title: Thực hành CRUD và kiểm chứng khác biệt PUT, PATCH, DELETE
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-003
+    title: Thiết lập và gỡ quan hệ giữa sản phẩm, danh mục bằng URI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-004
+    title: Bổ sung tìm kiếm, phân trang, sắp xếp và projection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-005
+    title: Thêm validation, auditing và sự kiện xử lý dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-006
+    title: Bảo vệ API theo vai trò và quyền sở hữu tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-007
+    title: Mô phỏng hai người dùng cập nhật đồng thời với ETag
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-008
+    title: Viết endpoint nghiệp vụ qua service và bổ sung liên kết HAL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-009
+    title: Hoàn thiện bộ kiểm thử hợp đồng, lỗi và cấu hình triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

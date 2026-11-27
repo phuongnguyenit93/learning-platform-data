@@ -1,0 +1,3 @@
+menuLevel1: Tìm kiếm văn bản
+menuLevel2: to_tsvector, plainto_tsquery, phraseto_tsquery và websearch_to_tsquery
+status: TRANSLATE

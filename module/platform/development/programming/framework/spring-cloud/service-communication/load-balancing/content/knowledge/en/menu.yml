@@ -1,0 +1,363 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Giao tiếp dịch vụ là gì và vì sao cần cân bằng tải
+  - 'Mô hình yêu cầu: dịch vụ gọi, dịch vụ đích và nhiều bản sao'
+  - Tên dịch vụ, địa chỉ máy chủ, cổng và ServiceInstance
+  - Cân bằng tải phía máy khách và phía máy chủ
+  - Vai trò của Spring Cloud Commons và Spring Cloud LoadBalancer
+  - Quan hệ giữa HTTP client, khám phá dịch vụ và bộ cân bằng tải
+  - Luồng một yêu cầu từ tên dịch vụ đến bản sao được chọn
+  - Giao tiếp đồng bộ, bất đồng bộ và ranh giới của module
+  - Lộ trình học và các bài thực hành xuyên suốt
+- level1: Nền tảng HTTP
+  level2:
+  - URL, URI, tên máy chủ và phân giải DNS trong lời gọi dịch vụ
+  - HTTP method, mã trạng thái và ý nghĩa đối với bên gọi
+  - Header, query parameter, path variable và request body
+  - Tuần tự hóa JSON, kiểu dữ liệu và hợp đồng trao đổi
+  - Kết nối TCP, TLS, keep-alive và tái sử dụng kết nối
+  - Giao tiếp chặn luồng và không chặn luồng
+  - Tính lũy đẳng và tác động khi gửi lại yêu cầu
+  - Phân biệt lỗi kết nối, lỗi giao thức và lỗi nghiệp vụ
+  - Độ trễ mạng, thời gian xử lý và ngân sách thời gian
+- level1: Thiết lập dự án
+  level2:
+  - Chọn phiên bản Spring Boot và Spring Cloud Release Train tương thích
+  - Quản lý phiên bản phụ thuộc bằng Spring Cloud BOM
+  - Các starter cho LoadBalancer và từng HTTP client
+  - Phân biệt phụ thuộc bắt buộc, tùy chọn và phụ thuộc bắc cầu
+  - Tạo mô hình một bên gọi và nhiều bản sao dịch vụ đích
+  - Cấu hình tên dịch vụ, cổng và định danh từng bản sao
+  - Khai báo danh sách bản sao tĩnh cho môi trường học tập
+  - Tổ chức cấu hình theo profile và môi trường chạy
+  - Kiểm tra điều kiện tự cấu hình và xung đột thư viện
+  - Chuẩn bị endpoint trả về định danh bản sao để quan sát
+- level1: Danh sách bản sao
+  level2:
+  - ServiceInstance và các thông tin dùng để chọn đích
+  - Danh sách tĩnh và danh sách lấy từ DiscoveryClient
+  - DiscoveryClient và ReactiveDiscoveryClient trong luồng cân bằng tải
+  - Ranh giới giữa khám phá dịch vụ và chọn bản sao
+  - Ánh xạ service ID sang các bản sao đang được cung cấp
+  - 'Metadata của bản sao: vùng, trọng số và gợi ý định tuyến'
+  - Xử lý danh sách rỗng và bản sao thiếu thông tin
+  - Độ trễ cập nhật khi bản sao được thêm hoặc bị loại bỏ
+  - Khám phá dịch vụ theo môi trường local, máy ảo và container
+  - Khi DNS hoặc hạ tầng đã cung cấp cân bằng tải
+- level1: Kiến trúc LoadBalancer
+  level2:
+  - 'LoadBalancerClient và ReactiveLoadBalancer: vai trò và khác biệt'
+  - BlockingLoadBalancerClient trong lời gọi chặn luồng
+  - ReactorLoadBalancer và kết quả chọn ServiceInstance
+  - LoadBalancerClientFactory và ngữ cảnh riêng theo service ID
+  - ServiceInstanceListSupplier trong chuỗi cung cấp bản sao
+  - Request, RequestDataContext và dữ liệu đầu vào khi chọn đích
+  - Response và trường hợp không chọn được bản sao
+  - Tái dựng URI sau khi thay tên dịch vụ bằng địa chỉ thật
+  - LoadBalancerLifecycle và các thời điểm của một lời gọi
+  - Ranh giới giữa việc chọn bản sao và thực thi HTTP
+- level1: Cấu hình theo dịch vụ
+  level2:
+  - Cấu hình dùng chung và cấu hình riêng cho từng service ID
+  - '@LoadBalancerClient và @LoadBalancerClients'
+  - Tách cấu hình riêng khỏi component scan của ứng dụng chính
+  - Ngữ cảnh con, bean theo dịch vụ và nguy cơ cấu hình lan rộng
+  - Phạm vi thuộc tính spring.cloud.loadbalancer
+  - Đối chiếu thuộc tính được hỗ trợ theo Release Train đang dùng
+  - Khởi tạo khi có lời gọi đầu tiên và cấu hình eager loading
+  - Phân biệt cấu hình LoadBalancer với cấu hình HTTP client
+  - Thứ tự áp dụng cấu hình và cách kiểm chứng giá trị thực tế
+- level1: Chuỗi cung cấp bản sao
+  level2:
+  - Thiết kế ServiceInstanceListSupplier bằng builder và decorator
+  - Nguồn khám phá dịch vụ và nguồn danh sách tự định nghĩa
+  - Kết hợp bộ lọc, bộ nhớ đệm và kiểm tra sức khỏe
+  - Ảnh hưởng của thứ tự decorator đến danh sách đầu ra
+  - Truyền ngữ cảnh yêu cầu qua các lớp supplier
+  - Phân biệt dữ liệu chung với dữ liệu phụ thuộc từng yêu cầu
+  - Tránh lưu đệm nhầm danh sách đã lọc theo người gọi
+  - Xử lý lỗi, danh sách rỗng và khôi phục nguồn cung cấp
+  - Theo dõi danh sách ứng viên trước và sau từng bước
+- level1: Thuật toán chọn đích
+  level2:
+  - 'Round-robin: phân phối luân phiên và trạng thái tại bên gọi'
+  - 'Random: chọn ngẫu nhiên và phân bố trong nhiều yêu cầu'
+  - So sánh round-robin và random bằng phép đo phù hợp
+  - Ảnh hưởng của số bản sao và danh sách thay đổi liên tục
+  - Vì sao chia đều số yêu cầu chưa chắc chia đều tải
+  - Tải khác nhau giữa yêu cầu đọc, ghi và tác vụ xử lý lâu
+  - Trọng số trong lựa chọn bản sao và nguồn metadata
+  - Khi nào cần thuật toán tùy biến theo đặc điểm hệ thống
+  - Giới hạn của thuật toán khi thiếu thông tin tải thực tế
+- level1: Vùng và định tuyến
+  level2:
+  - Lọc bản sao theo vùng bằng zone preference
+  - Nguồn thông tin vùng của bên gọi và dịch vụ đích
+  - Chính sách khi không có bản sao trong vùng ưu tiên
+  - Định tuyến theo hint và metadata của ServiceInstance
+  - Gợi ý mặc định theo dịch vụ và gợi ý từ header yêu cầu
+  - Giữ ưu tiên bản sao bằng request-based sticky session
+  - Cookie định danh bản sao và điều kiện hoạt động của sticky session
+  - Same-instance preference và phạm vi trạng thái của bên gọi
+  - Phân biệt tính bám dính với bảo đảm lưu trữ phiên
+  - Kết hợp vùng, trọng số và gợi ý định tuyến mà không làm rỗng danh sách
+  - Rủi ro khi dùng header hoặc cookie do người gọi tự cung cấp
+- level1: Bộ nhớ đệm bản sao
+  level2:
+  - Mục đích của cache danh sách ServiceInstance
+  - LoadBalancer cache và cache của thư viện khám phá dịch vụ
+  - TTL, dung lượng và đánh đổi giữa độ mới với chi phí tra cứu
+  - Điều kiện dùng Caffeine và cơ chế cache mặc định
+  - Cấu hình cache toàn cục và kiểm chứng cache có hiệu lực
+  - Tránh lưu đệm trùng ở nhiều lớp
+  - Bản sao đã ngừng hoạt động nhưng còn trong cache
+  - Ảnh hưởng của cache đến mở rộng và thu hẹp số bản sao
+  - Kịch bản đo số lần tra cứu trước và sau khi bật cache
+- level1: Sức khỏe bản sao
+  level2:
+  - Phân biệt trạng thái đăng ký với khả năng phục vụ thật
+  - HealthCheckServiceInstanceListSupplier và lọc bản sao khỏe
+  - Đường dẫn kiểm tra, chu kỳ và thời điểm bắt đầu
+  - Kiểm tra lại nguồn danh sách và phát hiện bản sao mới
+  - Chính sách khi mọi bản sao đều bị đánh dấu không khỏe
+  - Phân biệt liveness, readiness và kiểm tra từ phía bên gọi
+  - Ảnh hưởng của endpoint kiểm tra cần xác thực hoặc HTTPS
+  - Tránh làm tăng tải vì quá nhiều bên gọi kiểm tra sức khỏe
+  - Kết hợp health check với cache và cập nhật danh sách
+  - Mô phỏng bản sao lỗi rồi phục hồi để kiểm chứng
+- level1: RestTemplate
+  level2:
+  - Vai trò của RestTemplate trong hệ thống đang sử dụng
+  - Khai báo RestTemplate có @LoadBalanced
+  - Phân biệt RestTemplate gọi tên dịch vụ và gọi URL trực tiếp
+  - LoadBalancerInterceptor và quá trình thay thế URI
+  - Gửi path, query, header và body qua lời gọi có cân bằng tải
+  - Đọc response và ánh xạ lỗi HTTP
+  - Cấu hình request factory, timeout và connection pool
+  - Interceptor cho xác thực, ghi nhận và truyền ngữ cảnh
+  - Xử lý trường hợp không tìm thấy service ID hoặc bản sao
+  - Kiểm thử phân phối lời gọi giữa nhiều bản sao
+- level1: RestClient
+  level2:
+  - Mô hình gọi đồng bộ với RestClient
+  - Điều kiện phiên bản hỗ trợ tích hợp Spring Cloud LoadBalancer
+  - Khai báo RestClient.Builder có @LoadBalanced
+  - Tách builder có cân bằng tải và builder gọi URL trực tiếp
+  - Tạo lời gọi theo tên dịch vụ với retrieve và exchange
+  - Ánh xạ kiểu phản hồi, mã trạng thái và ngoại lệ
+  - Interceptor và request factory của RestClient
+  - Cấu hình timeout và tái sử dụng kết nối
+  - So sánh cách dùng RestClient và RestTemplate trong cùng kịch bản
+  - Kiểm thử lời gọi và kiểm tra bản sao được chọn
+- level1: WebClient
+  level2:
+  - Mô hình reactive và luồng xử lý của WebClient
+  - Khai báo WebClient.Builder có @LoadBalanced
+  - ReactorLoadBalancerExchangeFilterFunction trong chuỗi filter
+  - Gọi service ID và ánh xạ Mono hoặc Flux phản hồi
+  - retrieve, exchangeToMono và xử lý mã trạng thái
+  - Truyền header, thông tin xác thực và Reactor Context
+  - Lựa chọn HTTP connector và cấu hình connection pool
+  - Timeout, hủy đăng ký và tác động lên lời gọi đang chạy
+  - Tránh block trên event-loop và tác vụ chặn luồng trong filter
+  - Streaming, backpressure và vòng đời kết nối dài
+  - Kiểm thử lời gọi reactive có cân bằng tải
+- level1: OpenFeign
+  level2:
+  - HTTP client khai báo với @FeignClient
+  - Phụ thuộc OpenFeign, LoadBalancer và điều kiện tích hợp
+  - Phân biệt name, contextId, url và tên dịch vụ
+  - Khi cấu hình URL trực tiếp làm thay đổi đường đi cân bằng tải
+  - Ánh xạ path, query, header, body và kiểu phản hồi
+  - Spring MVC contract, Encoder và Decoder
+  - RequestInterceptor và truyền ngữ cảnh người gọi
+  - ErrorDecoder và phân loại lỗi từ dịch vụ đích
+  - Cấu hình riêng từng Feign client và tránh bean lan sang client khác
+  - Lựa chọn HTTP transport và connection pool
+  - 'Timeout và Retryer: kiểm tra hành vi mặc định thực tế'
+  - Giới hạn chặn luồng và định hướng sử dụng theo vòng đời thư viện
+- level1: HTTP Interface
+  level2:
+  - HTTP Service Interface và các annotation mô tả lời gọi
+  - HttpServiceProxyFactory và lớp adapter thực thi HTTP
+  - Kết nối interface với RestClient hoặc WebClient đã cấu hình
+  - Điều kiện phiên bản và phạm vi tự cấu hình được hỗ trợ
+  - Ánh xạ tham số, header, body và kiểu kết quả
+  - Chọn cách gọi đồng bộ hoặc reactive phù hợp
+  - Đưa lời gọi qua LoadBalancer và kiểm chứng URI thực tế
+  - So sánh HTTP Interface với OpenFeign theo nhu cầu dự án
+- level1: Thời gian chờ
+  level2:
+  - Ngân sách thời gian từ yêu cầu đầu vào đến dịch vụ cuối
+  - Connect timeout, read timeout và response timeout
+  - Thời gian chờ lấy kết nối từ pool
+  - Thời gian tra cứu danh sách và thời gian chọn bản sao
+  - Timeout của từng HTTP transport và sự khác biệt về ý nghĩa
+  - Thiết kế timeout cho chuỗi nhiều dịch vụ gọi nhau
+  - Phối hợp timeout với số lần retry và thời gian backoff
+  - Truyền deadline và dừng công việc khi yêu cầu đã hết hạn
+  - Phân biệt timeout bên gọi với yêu cầu đã hoàn tất bên đích
+  - Thực hành đo và phân loại từng loại thời gian chờ
+- level1: Gửi lại yêu cầu
+  level2:
+  - Khi nào retry có ích và khi nào làm tình hình xấu hơn
+  - Retry cùng bản sao và chuyển sang bản sao khác
+  - Retry ở HTTP client, LoadBalancer và tầng nghiệp vụ
+  - Điều kiện bật retry cho luồng blocking và reactive
+  - Retryable status, ngoại lệ và giới hạn số lần thử
+  - Phương thức HTTP được retry và rủi ro với thao tác ghi
+  - Backoff, jitter và giới hạn tổng ngân sách thời gian
+  - Retry-aware supplier và tránh chọn lại bản sao vừa lỗi
+  - Tránh retry nhân lên khi nhiều tầng cùng gửi lại
+  - Tính lũy đẳng, khóa chống trùng và kết quả không xác định
+  - Khả năng phát lại request body, upload và streaming
+  - Kiểm chứng thứ tự bản sao, số lần thử và kết quả cuối
+- level1: Cô lập và khôi phục
+  level2:
+  - Phân biệt cân bằng tải, retry và circuit breaker
+  - Khi mọi bản sao chậm dù vẫn có thể kết nối
+  - Bulkhead và giới hạn số lời gọi đồng thời
+  - Rate limit, hàng đợi và kiểm soát áp lực lên dịch vụ đích
+  - Tích hợp Spring Cloud Circuit Breaker ở ranh giới HTTP client
+  - Thứ tự retry, timeout, circuit breaker và bulkhead
+  - Fallback phù hợp nghiệp vụ và tránh trả dữ liệu gây hiểu nhầm
+  - Phân biệt lỗi nghiệp vụ với lỗi dùng để đánh giá sức khỏe
+  - Khôi phục từng phần và tránh dồn tải vào bản sao còn sống
+  - Kịch bản lỗi lan truyền trong chuỗi giao tiếp dịch vụ
+- level1: Kết nối và hiệu năng
+  level2:
+  - Tái sử dụng HTTP client và tránh tạo kết nối cho từng yêu cầu
+  - Giới hạn pool tổng thể và theo địa chỉ đích
+  - Ảnh hưởng của số bản sao đến số kết nối cần duy trì
+  - Keep-alive, idle timeout và dọn kết nối không còn hợp lệ
+  - HTTP/1.1, HTTP/2 và tác động tới cách sử dụng kết nối
+  - Giới hạn bộ nhớ khi đọc body, buffer và streaming
+  - Cân bằng giữa số luồng, mức đồng thời và khả năng bên đích
+  - Cold start, khởi tạo client và làm nóng kết nối
+  - Đo throughput, độ trễ phân vị và mức sử dụng tài nguyên
+  - Phân biệt nút thắt ở bên gọi, mạng và dịch vụ đích
+- level1: Hợp đồng và lỗi
+  level2:
+  - Hợp đồng API và tương thích khi nhiều phiên bản cùng chạy
+  - Quy ước mã lỗi, nội dung lỗi và correlation ID
+  - Phân biệt lỗi chọn bản sao, kết nối, giải mã và nghiệp vụ
+  - Ánh xạ ngoại lệ của từng HTTP client về mô hình ứng dụng
+  - Xử lý response rỗng, dữ liệu sai kiểu và content type không phù hợp
+  - Giới hạn kích thước yêu cầu và phản hồi
+  - Header nhiều giá trị, ký tự đặc biệt và mã hóa URI
+  - Pagination, tải tệp và các lời gọi kéo dài
+  - Định tuyến theo metadata khi triển khai nhiều phiên bản
+  - Ranh giới giữa thử nghiệm canary và chính sách định tuyến đầy đủ
+- level1: Bảo mật giao tiếp
+  level2:
+  - HTTPS và thông tin secure của ServiceInstance
+  - Truststore, hostname verification và quản lý chứng chỉ
+  - mTLS và xác thực giữa các dịch vụ
+  - Truyền access token và tích hợp OAuth2 theo loại HTTP client
+  - Phân biệt danh tính người dùng với danh tính dịch vụ
+  - Chỉ chuyển tiếp những header được cho phép
+  - Ngăn URL không tin cậy và nguy cơ SSRF ở bên gọi
+  - Bảo vệ metadata và nguồn danh sách bản sao
+  - Ẩn token, cookie và dữ liệu nhạy cảm trong log
+  - Làm mới chứng chỉ và thông tin xác thực khi ứng dụng đang chạy
+- level1: Quan sát hệ thống
+  level2:
+  - Log định danh dịch vụ, bản sao và kết quả lời gọi
+  - Correlation ID, trace ID và truyền ngữ cảnh qua HTTP
+  - Micrometer Observation và điểm tích hợp của từng HTTP client
+  - LoadBalancerLifecycle và thu thập kết quả lựa chọn bản sao
+  - Metrics theo dịch vụ, kết quả, độ trễ và số lần retry
+  - Kiểm soát độ phân tán nhãn để tránh quá nhiều chuỗi metric
+  - Tách thời gian chọn đích khỏi thời gian kết nối và xử lý
+  - Quan sát phân phối tải mà không suy diễn từ vài yêu cầu
+  - Dashboard cho lỗi, timeout, pool và bản sao không khả dụng
+  - Kiểm tra mất trace khi đổi luồng hoặc dùng reactive pipeline
+- level1: Tùy biến LoadBalancer
+  level2:
+  - Tiêu chí chọn cấu hình có sẵn hay viết thành phần riêng
+  - Viết ServiceInstanceListSupplier cho nguồn bản sao riêng
+  - Viết ReactorServiceInstanceLoadBalancer và hợp đồng chọn đích
+  - Đọc ngữ cảnh yêu cầu để chọn bản sao phù hợp
+  - Xử lý danh sách rỗng và bảo đảm fallback có chủ đích
+  - Tính an toàn khi truy cập đồng thời và vòng đời trạng thái
+  - Tránh I/O chặn luồng trong quá trình lựa chọn reactive
+  - Biến đổi yêu cầu sau khi chọn đích với request transformer
+  - Đăng ký tùy biến theo service ID mà không thay toàn hệ thống
+  - Kiểm thử tính đúng, độ công bằng và chi phí thuật toán
+- level1: Kiểm thử tự động
+  level2:
+  - Phân chia unit test, integration test và kiểm thử tải
+  - Giả lập ServiceInstance và danh sách bản sao xác định
+  - Kiểm thử thuật toán mà không phụ thuộc thứ tự ngẫu nhiên tình cờ
+  - Kiểm thử chuỗi supplier, cache, vùng và health check
+  - Dựng nhiều HTTP server giả với WireMock hoặc MockWebServer
+  - Kiểm thử RestTemplate, RestClient, WebClient và Feign theo cùng hợp đồng
+  - Kiểm thử retry có giới hạn và số lần bên đích thực nhận
+  - Kiểm thử timeout, kết nối bị ngắt và phản hồi chậm
+  - Kiểm thử reactive bằng StepVerifier và kiểm soát thời gian
+  - Kiểm thử cấu hình riêng từng service ID và ngữ cảnh con
+  - Kiểm tra tích hợp discovery thực bằng môi trường cô lập
+  - Giữ test ổn định khi chạy song song và khi danh sách thay đổi
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng bên gọi và ba bản sao trả về định danh riêng
+  - So sánh URL cố định với gọi bằng tên dịch vụ
+  - Đối chiếu round-robin và random qua tập yêu cầu đủ lớn
+  - Thêm và gỡ bản sao trong khi hệ thống đang nhận tải
+  - Mô phỏng một bản sao chậm, lỗi hoặc ngừng kết nối
+  - So sánh retry cùng bản sao và chuyển bản sao
+  - Thực hành vùng ưu tiên, trọng số và hint
+  - Quan sát cache cũ và độ trễ phát hiện thay đổi
+  - Thử sticky session khi bản sao được ưu tiên bị mất
+  - Đo tác động của timeout và giới hạn pool
+  - Tổng hợp log, metrics, trace và đối chiếu kết quả thực nghiệm
+- level1: Triển khai
+  level2:
+  - Địa chỉ quảng bá và địa chỉ kết nối được trong từng môi trường
+  - Container hostname, cổng nội bộ và cổng ánh xạ ra máy chủ
+  - Dùng discovery hoặc danh sách tĩnh trong Docker Compose
+  - Kubernetes Service, headless Service và lựa chọn điểm cân bằng tải
+  - Gateway, ingress, service mesh và vai trò của LoadBalancer bên gọi
+  - Tránh cấu hình nhiều lớp cân bằng tải với kỳ vọng sai
+  - Readiness, graceful shutdown và ngừng nhận yêu cầu mới
+  - Rolling update, thu hẹp số bản sao và yêu cầu đang xử lý
+  - Quản lý cấu hình theo môi trường và bí mật kết nối
+  - Triển khai canary và kiểm chứng phân phối trước khi mở rộng
+- level1: Chẩn đoán sự cố
+  level2:
+  - 'Không có bản sao khả dụng: kiểm tra từ nguồn danh sách đến bộ lọc'
+  - 'Tên dịch vụ bị phân giải như DNS: tìm lỗi tích hợp client'
+  - URL trực tiếp làm bỏ qua LoadBalancer
+  - 'Yêu cầu dồn vào một bản sao: kiểm tra cache, sticky và thuật toán'
+  - Kết nối thất bại dù discovery vẫn báo bản sao tồn tại
+  - Health check loại hết bản sao hoặc không phát hiện bản sao mới
+  - Cấu hình theo client không có hiệu lực hoặc áp dụng nhầm dịch vụ
+  - Retry quá mức gây yêu cầu trùng và tăng tải
+  - Pool cạn, event-loop bị chặn và độ trễ tăng cao
+  - Lỗi URI, TLS, token hoặc header sau khi thay địa chỉ đích
+  - Mất trace hoặc thiếu metrics trong đường gọi có cân bằng tải
+  - Quy trình tái hiện lỗi tối thiểu và thu thập bằng chứng
+- level1: Tương thích và nâng cấp
+  level2:
+  - Phân biệt Ribbon cũ với Spring Cloud LoadBalancer
+  - Nhận diện cấu hình Ribbon, Hystrix và Zuul còn sót trong dự án
+  - Chuyển cấu hình chọn đích và timeout sang đúng thành phần
+  - Đối chiếu retry mặc định khi đổi thư viện hoặc Release Train
+  - Thay RestTemplate bằng RestClient theo từng đường gọi
+  - Đánh giá OpenFeign và HTTP Service Interface cho nhu cầu mới
+  - Kiểm tra thay đổi HTTP transport và connection pool sau nâng cấp
+  - Kiểm thử hồi quy cấu hình, lỗi, metrics và phân phối tải
+  - Kế hoạch chuyển đổi từng phần và tiêu chí quay lại cấu hình trước
+- level1: Lựa chọn thiết kế
+  level2:
+  - Chọn RestTemplate, RestClient, WebClient, Feign hay HTTP Interface
+  - Chọn cân bằng tải phía máy khách hay dựa vào hạ tầng
+  - Chọn nguồn bản sao, cache và chiến lược sức khỏe
+  - Chọn thuật toán theo mức đồng đều và đặc điểm yêu cầu
+  - Thiết kế chính sách timeout, retry và cô lập nhất quán
+  - Nhận diện chuỗi gọi quá dài và giao tiếp quá nhiều
+  - Khi nên dùng xử lý theo lô, cache nghiệp vụ hoặc giao tiếp bất đồng bộ
+  - Đánh giá độ phức tạp vận hành so với lợi ích tùy biến
+  - Checklist thiết kế, kiểm thử và vận hành lời gọi dịch vụ
+  - Bài tập thiết kế hệ thống kèm tiêu chí đánh giá lựa chọn

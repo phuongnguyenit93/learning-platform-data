@@ -1,0 +1,127 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng Redis
+  slug: redis-foundation
+  index: 1
+- title: Kiến trúc Spring
+  slug: spring-architecture
+  index: 2
+- title: Khởi tạo
+  slug: bootstrap
+  index: 3
+- title: Trình điều khiển
+  slug: driver
+  index: 4
+- title: Kết nối và pool
+  slug: connection-pool
+  index: 5
+- title: Thiết kế khóa
+  slug: key-design
+  index: 6
+- title: Tuần tự hóa
+  slug: serialization
+  index: 7
+- title: RedisTemplate
+  slug: redis-template
+  index: 8
+- title: Chuỗi và bộ đếm
+  slug: strings-and-counters
+  index: 9
+- title: Hash
+  slug: hashes
+  index: 10
+- title: Danh sách
+  slug: lists
+  index: 11
+- title: Tập hợp
+  slug: sets
+  index: 12
+- title: Tập có thứ tự
+  slug: sorted-sets
+  index: 13
+- title: Kiểu dữ liệu khác
+  slug: other-data-types
+  index: 14
+- title: Hết hạn và loại bỏ
+  slug: expiration-and-eviction
+  index: 15
+- title: Quản lý khóa
+  slug: key-management
+  index: 16
+- title: Ánh xạ thực thể
+  slug: entity-mapping
+  index: 17
+- title: Redis Repository
+  slug: redis-repository
+  index: 18
+- title: Chỉ mục và truy vấn
+  slug: indexes-and-queries
+  index: 19
+- title: TTL của thực thể
+  slug: entity-ttl
+  index: 20
+- title: Giao dịch
+  slug: transactions
+  index: 21
+- title: Pipeline
+  slug: pipelines
+  index: 22
+- title: Lua và tính nguyên tử
+  slug: lua-atomicity
+  index: 23
+- title: Spring Cache
+  slug: spring-cache
+  index: 24
+- title: Chiến lược cache
+  slug: cache-strategies
+  index: 25
+- title: Pub/Sub
+  slug: pub-sub
+  index: 26
+- title: Redis Streams
+  slug: redis-streams
+  index: 27
+- title: Thông báo khóa
+  slug: keyspace-notifications
+  index: 28
+- title: Redis phản ứng
+  slug: reactive-redis
+  index: 29
+- title: Replication và Sentinel
+  slug: replication-and-sentinel
+  index: 30
+- title: Redis Cluster
+  slug: redis-cluster
+  index: 31
+- title: Mẫu ứng dụng
+  slug: application-patterns
+  index: 32
+- title: Độ bền dữ liệu
+  slug: data-durability
+  index: 33
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 34
+- title: Kiểm thử
+  slug: testing
+  index: 35
+- title: Hiệu năng
+  slug: performance
+  index: 36
+- title: Quan sát
+  slug: observability
+  index: 37
+- title: Bảo mật
+  slug: security
+  index: 38
+- title: Triển khai
+  slug: deployment
+  index: 39
+- title: Thực hành
+  slug: practical-exercises
+  index: 40
+- title: Chẩn đoán
+  slug: troubleshooting
+  index: 41

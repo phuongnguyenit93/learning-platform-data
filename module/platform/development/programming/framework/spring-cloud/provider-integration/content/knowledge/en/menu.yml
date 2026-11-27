@@ -1,0 +1,390 @@
+menu:
+- level1: Định hướng
+  level2:
+  - Tích hợp nhà cung cấp đám mây là gì và giải quyết vấn đề nào
+  - Vị trí của tích hợp nhà cung cấp trong hệ sinh thái Spring Cloud
+  - Phân biệt nhà cung cấp, dịch vụ được quản lý, SDK, starter và adapter
+  - Bản đồ AWS, Azure, Google Cloud, OCI và Alibaba Cloud
+  - Từ yêu cầu nghiệp vụ đến lựa chọn dịch vụ và cách tích hợp
+  - Kiến thức cần có về Spring Boot, cấu hình, HTTP và xử lý bất đồng bộ
+  - Lộ trình học từ kết nối đầu tiên đến tích hợp có thể vận hành
+- level1: Nền tảng đám mây
+  level2:
+  - Tài khoản, subscription, project, tenancy và ranh giới tài nguyên
+  - Region, availability zone, endpoint và vị trí lưu trữ dữ liệu
+  - Phân biệt API quản lý tài nguyên và API truy cập dữ liệu
+  - Mô hình trách nhiệm chia sẻ giữa ứng dụng và nhà cung cấp
+  - Tính nhất quán, độ trễ và sự cố từng phần khi gọi dịch vụ từ xa
+  - Hạn ngạch, giới hạn tốc độ và mô hình tính phí theo mức sử dụng
+  - Phân tách tài nguyên phát triển, kiểm thử và sản xuất
+- level1: Kiến trúc tích hợp
+  level2:
+  - Luồng xử lý từ mã nghiệp vụ qua Spring đến SDK và dịch vụ
+  - Auto-configuration, điều kiện tạo bean và cơ chế tùy chỉnh client
+  - Chọn starter, template, repository hay SDK trực tiếp theo nhu cầu
+  - Phân biệt client đồng bộ, bất đồng bộ và mô hình reactive
+  - Đặt giao diện nghiệp vụ và adapter nhà cung cấp ở ranh giới phù hợp
+  - Vòng đời client, khả năng dùng chung và đóng tài nguyên
+  - Chuyển đổi dữ liệu, ngoại lệ và thông tin yêu cầu tại ranh giới tích hợp
+  - Giới hạn của tính di động giữa các nhà cung cấp
+- level1: Khởi tạo dự án
+  level2:
+  - Chọn tổ hợp Java, Spring Boot, Spring Cloud và thư viện nhà cung cấp
+  - Đọc ma trận tương thích và xác định đơn vị bảo trì từng dự án
+  - Quản lý phiên bản bằng BOM trong Maven và Gradle
+  - Phân tích dependency tree và xử lý xung đột SDK, HTTP client, Netty
+  - Thêm đúng starter và giới hạn các tích hợp được kích hoạt
+  - Tổ chức cấu hình và adapter theo từng môi trường
+  - Thực hiện kết nối tối thiểu và xác minh danh tính đang sử dụng
+  - Ghi lại phiên bản, tài nguyên và điều kiện chạy ví dụ có thể tái lập
+- level1: Cấu hình ứng dụng
+  level2:
+  - Binding cấu hình dịch vụ bằng ConfigurationProperties
+  - Thứ tự ưu tiên giữa tệp cấu hình, biến môi trường và nguồn từ xa
+  - Nạp cấu hình bằng Config Data và spring.config.import khi được hỗ trợ
+  - Phân biệt tham số cấu hình, bí mật và định danh tài nguyên
+  - Chọn hành vi khi nguồn cấu hình bắt buộc hoặc tùy chọn bị lỗi
+  - Kiểm tra giá trị cấu hình và phát hiện sai endpoint từ lúc khởi động
+  - Tách cấu hình toàn cục với cấu hình riêng của từng dịch vụ
+  - Nạp lại cấu hình, xoay vòng bí mật và giới hạn cập nhật bean đang chạy
+- level1: Danh tính và quyền
+  level2:
+  - Phân biệt xác thực ứng dụng và phân quyền truy cập tài nguyên
+  - Chuỗi tìm thông tin xác thực và thứ tự lựa chọn danh tính
+  - Danh tính người phát triển tại máy cục bộ và danh tính ứng dụng khi triển khai
+  - Danh tính được quản lý, vai trò và token ngắn hạn
+  - Liên kết danh tính OIDC cho CI/CD và workload identity
+  - Thiết kế quyền tối thiểu theo hành động và phạm vi tài nguyên
+  - Truy cập khác tài khoản, subscription hoặc project
+  - Hết hạn token, làm mới thông tin xác thực và thời gian hệ thống
+  - Giữ khóa bí mật ngoài mã nguồn, ảnh container và nhật ký
+- level1: Nền tảng AWS
+  level2:
+  - Spring Cloud AWS của AWSpring và ranh giới với AWS SDK for Java
+  - Chọn BOM, starter và thế hệ AWS SDK phù hợp
+  - DefaultCredentialsProvider và chuỗi tìm region
+  - Hồ sơ AWS CLI, AWS IAM Identity Center và phát triển cục bộ
+  - Vai trò IAM cho EC2, ECS và EKS theo môi trường triển khai
+  - STS AssumeRole và truy cập tài nguyên khác tài khoản
+  - Tùy chỉnh client theo dịch vụ, HTTP transport và endpoint
+  - Thiết lập kết nối AWS giả lập bằng LocalStack
+- level1: Cấu hình AWS
+  level2:
+  - Chọn Parameter Store hay Secrets Manager theo loại dữ liệu
+  - Nạp Parameter Store bằng Config Data
+  - Nạp Secrets Manager bằng Config Data
+  - Ánh xạ đường dẫn, tiền tố và khóa bí mật vào thuộc tính Spring
+  - Phân quyền đọc tham số, bí mật và khóa KMS liên quan
+  - Nguồn cấu hình bắt buộc, optional và lỗi lúc khởi động
+  - Nạp lại cấu hình và xoay vòng bí mật theo khả năng phiên bản
+  - Kiểm thử quyền truy cập và xử lý cấu hình bị thiếu
+- level1: Amazon S3
+  level2:
+  - Bucket, object key, metadata và mô hình truy cập đối tượng
+  - Cấu hình S3 client, S3Template và Spring Resource
+  - Thao tác tải lên, tải xuống, liệt kê và xóa đối tượng S3
+  - Truyền dữ liệu dạng luồng và tải lên nhiều phần
+  - Tạo URL ký sẵn và giới hạn quyền truy cập theo thời gian
+  - Phân trang, điều kiện ghi và kiểm soát ghi đè
+  - Mã hóa, versioning và vòng đời đối tượng
+  - S3-compatible endpoint, path-style access và khác biệt với AWS S3
+  - Sự kiện S3 và phối hợp xử lý tệp qua hàng đợi
+- level1: Amazon SQS
+  level2:
+  - Standard queue, FIFO queue và phạm vi bảo đảm thứ tự
+  - Gửi và nhận thông điệp bằng SqsTemplate
+  - Xử lý thông điệp bằng SqsListener và listener container
+  - Ánh xạ payload, header và chuyển đổi JSON
+  - Visibility timeout, long polling và gia hạn thời gian xử lý
+  - Chế độ xác nhận và thời điểm xóa thông điệp
+  - Xử lý trùng lặp, message group và deduplication
+  - Retry, dead-letter queue và phát lại thông điệp lỗi
+  - Batch, mức song song, backpressure và dừng listener an toàn
+- level1: Amazon SNS và SES
+  level2:
+  - Topic, subscription và mô hình phân phối thông báo SNS
+  - Phát thông báo bằng SnsTemplate và thuộc tính thông điệp
+  - Lọc subscription và phân phối SNS đến nhiều SQS queue
+  - Xác minh chữ ký, xác nhận subscription và xử lý thông báo HTTP
+  - Phân quyền publish, subscribe và phối hợp topic policy với queue policy
+  - Tích hợp Amazon SES với cơ chế gửi thư của Spring
+  - Danh tính gửi thư, sandbox và xử lý lỗi chuyển phát
+  - Chọn SNS, SQS hay SES theo mục đích giao tiếp
+- level1: Dữ liệu AWS
+  level2:
+  - Tích hợp DynamoDB bằng starter và DynamoDbTemplate khi phiên bản hỗ trợ
+  - Thiết kế partition key, sort key và ánh xạ đối tượng DynamoDB
+  - Đọc ghi dữ liệu, truy vấn chỉ mục và phân trang
+  - Phân biệt Query và Scan khi thiết kế truy cập
+  - Ghi có điều kiện, khóa lạc quan và lựa chọn tính nhất quán
+  - Giới hạn giao dịch, dung lượng và xử lý throttling
+  - Kết nối RDS qua JDBC và quản lý pool kết nối
+  - Xác thực RDS bằng IAM khi được hỗ trợ và làm mới kết nối
+  - Tích hợp dịch vụ AWS chưa có starter bằng SDK trong adapter riêng
+- level1: Nền tảng Azure
+  level2:
+  - Spring Cloud Azure, Azure SDK for Java và phạm vi các starter
+  - BOM Azure và ma trận tương thích Spring Boot
+  - Subscription, resource group, tenant và endpoint dịch vụ
+  - DefaultAzureCredential và lựa chọn danh tính trong từng môi trường
+  - Azure CLI, managed identity và workload identity
+  - Phân biệt quyền quản lý tài nguyên và quyền truy cập dữ liệu bằng Azure RBAC
+  - Tùy chỉnh Azure client builder, HTTP pipeline và proxy
+  - Phân biệt tích hợp thư viện Azure với nền tảng lưu trú ứng dụng
+- level1: Cấu hình Azure
+  level2:
+  - Phân biệt Azure App Configuration và Azure Key Vault
+  - Nạp App Configuration vào môi trường cấu hình Spring
+  - Key, label, bộ lọc và ánh xạ cấu hình theo môi trường
+  - Cờ tính năng và ranh giới với cấu hình thông thường
+  - Tích hợp Key Vault Secrets và ánh xạ bí mật vào thuộc tính
+  - Tham chiếu Key Vault trong App Configuration
+  - Làm mới cấu hình, bộ nhớ đệm và xoay vòng bí mật
+  - Quyền truy cập, hành vi khi nguồn từ xa lỗi và kiểm thử cấu hình
+- level1: Azure Storage
+  level2:
+  - Phân biệt Blob Storage, File Share và Storage Queue
+  - Cấu hình Blob client và thao tác container, blob
+  - Tải lên, tải xuống và xử lý tệp lớn theo dạng luồng
+  - Managed identity, SAS và quyền truy cập Storage
+  - ETag, điều kiện ghi và kiểm soát cập nhật đồng thời
+  - Metadata, phiên bản, tầng lưu trữ và vòng đời dữ liệu
+  - Tích hợp File Share theo khả năng starter
+  - Gửi nhận Storage Queue và giới hạn so với Service Bus
+  - Dùng Azurite để kiểm thử các khả năng được giả lập
+- level1: Azure Service Bus
+  level2:
+  - Queue, topic, subscription và mô hình xử lý thông điệp
+  - Tạo sender, receiver và processor qua Spring Cloud Azure
+  - Chuyển đổi payload và truyền thuộc tính thông điệp
+  - Peek-lock, complete, abandon, defer và dead-letter
+  - Gia hạn khóa và xử lý tác vụ kéo dài
+  - Sessions, thứ tự thông điệp và phát hiện trùng lặp
+  - Retry, số lần giao lại và phát lại dead-letter
+  - JMS, Spring Integration và Stream binder khi phù hợp
+  - Giới hạn giao dịch và ranh giới với giao dịch cơ sở dữ liệu
+- level1: Sự kiện Azure
+  level2:
+  - Phân biệt Event Hubs, Event Grid và Service Bus
+  - Partition, consumer group và thứ tự trong Event Hubs
+  - Gửi sự kiện và vận hành Event Hubs processor
+  - Checkpoint, quyền sở hữu partition và khôi phục consumer
+  - Tích hợp Event Hubs với Spring Integration hoặc Stream binder
+  - Điều tiết tốc độ nhận và xử lý lại sự kiện
+  - Phát và nhận Event Grid theo khả năng SDK hoặc starter
+  - Xác minh điểm nhận sự kiện và xử lý sự kiện trùng lặp
+- level1: Dữ liệu Azure
+  level2:
+  - Tích hợp Azure Cosmos DB bằng Spring Data Cosmos
+  - Partition key, ánh xạ tài liệu và repository
+  - Truy vấn, phân trang và kiểm soát request units
+  - ETag, optimistic locking và lựa chọn mức nhất quán
+  - Ranh giới giao dịch và cách xử lý cập nhật nhiều partition
+  - Kết nối Azure Database for MySQL hoặc PostgreSQL qua JDBC
+  - Xác thực Microsoft Entra cho cơ sở dữ liệu khi được hỗ trợ
+  - Tích hợp Redis qua Spring Data và kiểm tra vòng đời dịch vụ
+  - Chọn API dữ liệu đồng bộ hoặc reactive theo luồng xử lý
+- level1: Microsoft Entra ID
+  level2:
+  - Phân biệt danh tính ứng dụng gọi Azure và danh tính người dùng đăng nhập
+  - App registration, tenant, application ID và đối tượng dịch vụ
+  - Tích hợp đăng nhập OIDC với Spring Security
+  - Bảo vệ API bằng OAuth2 resource server
+  - Scope, application role và kiểm tra quyền trong ứng dụng
+  - Lấy token gọi API phía sau theo luồng phù hợp
+  - Xác minh issuer, audience và ranh giới tin cậy nhiều tenant
+- level1: Nền tảng Google Cloud
+  level2:
+  - Spring Cloud GCP và tên dự án Spring Framework on Google Cloud
+  - BOM, starter và ma trận tương thích Spring Boot
+  - Project ID, region, API cần bật và phạm vi tài nguyên
+  - Application Default Credentials và thứ tự chọn danh tính
+  - Phân biệt đăng nhập gcloud với thông tin xác thực ADC
+  - Service account, impersonation và quyền IAM tối thiểu
+  - Workload Identity Federation và danh tính ứng dụng khi triển khai
+  - Tùy chỉnh client, credentials provider và project ID theo dịch vụ
+- level1: Cấu hình Google Cloud
+  level2:
+  - Nạp Secret Manager vào cấu hình Spring theo phiên bản thư viện
+  - Tham chiếu tên bí mật, project và phiên bản bí mật
+  - Chọn bí mật bắt buộc hoặc tùy chọn trong Config Data
+  - Phân quyền đọc bí mật và truy cập khác project
+  - Phiên bản bí mật, bộ nhớ đệm và cập nhật ứng dụng sau xoay vòng
+  - Phân biệt Secret Manager, biến môi trường và tệp cấu hình
+  - Xử lý thiếu quyền, API chưa bật và bí mật không tồn tại
+- level1: Google Cloud Storage
+  level2:
+  - Bucket, object name, generation và metadata trên Google Cloud
+  - Tích hợp Cloud Storage bằng client và Spring Resource
+  - Thao tác tải lên, tải xuống, liệt kê và xóa đối tượng Google Cloud Storage
+  - Truyền dữ liệu lớn và lựa chọn cách tải có thể tiếp tục
+  - Signed URL và quyền của danh tính thực hiện ký
+  - Generation precondition và ngăn ghi đè ngoài ý muốn
+  - Mã hóa, versioning, retention và vòng đời đối tượng
+  - Kết nối Storage với Spring Integration và thông báo thay đổi đối tượng
+- level1: Google Cloud Pub/Sub
+  level2:
+  - Topic, subscription, publisher và subscriber trong Pub/Sub
+  - Gửi nhận thông điệp bằng PubSubTemplate
+  - Chuyển đổi payload, thuộc tính và ordering key
+  - Ack, nack, ack deadline và gia hạn thời gian xử lý
+  - Điều tiết luồng nhận, batching và mức song song
+  - Retry policy, dead-letter topic và phát lại thông điệp
+  - Phạm vi hỗ trợ exactly-once và tính lũy đẳng của xử lý nghiệp vụ
+  - Push subscription, xác minh token và bảo vệ điểm nhận
+  - Tích hợp Spring Integration và Spring Cloud Stream theo nhu cầu
+  - Pub/Sub emulator và khác biệt với dịch vụ thật
+- level1: Dữ liệu Google Cloud
+  level2:
+  - Kết nối Cloud SQL bằng JDBC và Cloud SQL Connector
+  - Pool kết nối, private IP và IAM database authentication khi hỗ trợ
+  - Ánh xạ dữ liệu và truy vấn với Spring Data Spanner
+  - Giao dịch Spanner và lựa chọn cách đọc dữ liệu
+  - Phân biệt Datastore và Firestore khi chọn mô hình lưu trữ
+  - Repository Firestore reactive và truy cập Datastore theo thư viện tương ứng
+  - Tích hợp BigQuery bằng client, template và tải dữ liệu theo lô
+  - Phân biệt cơ sở dữ liệu phục vụ giao dịch và kho phân tích BigQuery
+  - Kiểm soát chi phí truy vấn, hạn ngạch và tài nguyên kết nối
+- level1: Oracle Cloud
+  level2:
+  - Spring Cloud Oracle, Spring Cloud OCI và ranh giới các dự án con
+  - Chọn phiên bản tương thích trước khi thêm OCI starter
+  - Tenancy, compartment, OCID, region và OCI IAM policy
+  - Xác thực bằng tệp cấu hình, instance principal hoặc resource principal
+  - Tích hợp OCI Object Storage với tài nguyên Spring
+  - Tích hợp OCI Vault và nguồn cấu hình bí mật
+  - Phân biệt OCI Queue, Streaming và Notifications
+  - Phân biệt quản lý Autonomous Database và kết nối JDBC đến cơ sở dữ liệu
+  - Tích hợp Logging, Email Delivery và gọi Functions theo nhu cầu
+  - Dùng OCI Java SDK cho chức năng ngoài phạm vi starter
+- level1: Alibaba Cloud
+  level2:
+  - Phân biệt Spring Cloud Alibaba và starter dịch vụ Alibaba Cloud
+  - Kiểm tra đơn vị bảo trì, BOM và khả năng tương thích hiện tại
+  - Region, endpoint, RAM role và thông tin xác thực STS
+  - Tích hợp Object Storage Service qua SDK hoặc starter còn phù hợp
+  - Tích hợp SMS với mẫu thông báo và xử lý kết quả gửi
+  - Kết nối RDS hoặc Redis qua thư viện dữ liệu tương ứng
+  - Ranh giới với Nacos, Sentinel, Seata và RocketMQ
+  - Thay thế starter cũ khi không có phiên bản tương thích
+  - Bọc SDK Alibaba Cloud trong adapter và kiểm thử hợp đồng
+- level1: Kết nối hệ sinh thái
+  level2:
+  - Ánh xạ tài nguyên đám mây vào Spring Resource
+  - Chọn Spring Integration cho luồng tích hợp hướng thông điệp
+  - Chọn Spring Cloud Stream binder và nhận biết khác biệt ngữ nghĩa nhà cung cấp
+  - Ranh giới giữa cấu hình nhà cung cấp và Spring Cloud Config
+  - Service binding và ánh xạ thông tin kết nối do nền tảng cung cấp
+  - Ranh giới với Service Discovery, Kubernetes và Service Broker
+  - Ranh giới giữa gọi dịch vụ serverless và triển khai Spring Cloud Function
+  - Phối hợp lưu trữ đối tượng, hàng đợi và cơ sở dữ liệu trong một luồng
+- level1: Độ tin cậy
+  level2:
+  - Đặt thời hạn toàn thao tác và timeout cho từng lần gọi
+  - Phân công retry giữa SDK, thư viện Spring và mã nghiệp vụ
+  - Exponential backoff, jitter và xử lý giới hạn tốc độ
+  - Thiết kế thao tác lũy đẳng và khóa chống xử lý trùng
+  - Phân biệt bảo đảm giao nhận với bảo đảm tác động nghiệp vụ
+  - Phạm vi thứ tự thông điệp và xử lý sự kiện đến muộn
+  - Dead-letter, phát lại có kiểm soát và khôi phục sau sự cố
+  - Transactional outbox và bù trừ khi không có giao dịch xuyên dịch vụ
+  - Circuit breaker, giới hạn đồng thời và suy giảm chức năng
+  - Dừng ứng dụng an toàn khi còn thông điệp hoặc yêu cầu đang xử lý
+- level1: Bảo vệ dữ liệu
+  level2:
+  - TLS, xác minh chứng chỉ và kết nối qua proxy
+  - Private endpoint, DNS riêng và đường mạng tới dịch vụ
+  - Mã hóa phía máy chủ, phía ứng dụng và quản lý khóa
+  - Phân loại dữ liệu, giới hạn quyền đọc và che thông tin nhạy cảm
+  - Giới hạn thời gian, phạm vi và quyền của URL hoặc token chia sẻ
+  - Kiểm tra chữ ký webhook, token sự kiện và chống phát lại
+  - Xoay vòng khóa, thu hồi quyền và ứng phó khi lộ thông tin xác thực
+  - Lưu vết truy cập, vị trí dữ liệu và chính sách lưu giữ
+- level1: Quan sát hệ thống
+  level2:
+  - Health indicator, readiness và liveness cho phụ thuộc đám mây
+  - Đo độ trễ, tỷ lệ lỗi, throttling và số lần retry
+  - Theo dõi tuổi thông điệp, lượng tồn đọng và dead-letter và thời gian xử lý
+  - Liên kết trace qua HTTP, hàng đợi và xử lý nền
+  - Nhật ký có cấu trúc, correlation ID và request ID của nhà cung cấp
+  - Tích hợp CloudWatch, Azure Monitor hoặc Google Cloud Observability theo thư viện phù hợp
+  - Giới hạn số giá trị nhãn metric và chi phí dữ liệu quan sát
+  - Thiết kế cảnh báo gắn với chất lượng phục vụ và cách xử lý
+- level1: Kiểm thử tích hợp
+  level2:
+  - Phân biệt unit test, kiểm thử hợp đồng và kiểm thử trên dịch vụ thật
+  - Mock giao diện nghiệp vụ và giả lập client ở ranh giới thích hợp
+  - Dùng Testcontainers để quản lý dịch vụ hoặc môi trường giả lập
+  - LocalStack cho những API AWS được hỗ trợ
+  - Azurite cho Storage và giới hạn các dịch vụ Azure được giả lập
+  - Emulator Google Cloud và cấu hình endpoint theo từng dịch vụ
+  - Chờ điều kiện bất đồng bộ và kiểm thử timeout có tính xác định
+  - Kiểm thử thiếu quyền, token hết hạn, throttling và đứt kết nối
+  - Kiểm thử gửi trùng, xử lý lại và tương thích schema thông điệp
+  - Tạo tài nguyên kiểm thử biệt lập và dọn dẹp sau mỗi lần chạy
+- level1: Triển khai ứng dụng
+  level2:
+  - Tách việc cấp phát tài nguyên khỏi thao tác xử lý nghiệp vụ
+  - Mô tả hạ tầng bằng mã và truyền đầu ra cấu hình cho ứng dụng
+  - Đóng gói JAR hoặc container và kiểm tra điều kiện môi trường chạy
+  - Cấp danh tính cho ứng dụng trên máy ảo, container và Kubernetes
+  - Cấp quyền CI/CD bằng liên kết danh tính thay cho khóa dài hạn
+  - Cấu hình mạng, DNS, egress và endpoint riêng khi triển khai
+  - Thứ tự khởi tạo tài nguyên, cấp quyền và đưa ứng dụng vào phục vụ
+  - Triển khai thử, kiểm tra kết nối và rollback thay đổi tích hợp
+  - Đóng listener và client đúng vòng đời khi ứng dụng dừng
+- level1: Hiệu năng và chi phí
+  level2:
+  - Tái sử dụng client, connection pool và HTTP transport
+  - Giới hạn thread, kết nối và bộ đệm trong luồng bất đồng bộ
+  - Batching, prefetch và điều tiết tốc độ theo tài nguyên xử lý
+  - Truyền dữ liệu dạng luồng để giới hạn bộ nhớ
+  - Phân trang, bộ nhớ đệm và giảm số lần gọi dịch vụ
+  - Lựa chọn region và đánh giá độ trễ, lưu lượng liên vùng
+  - Ước lượng chi phí theo thao tác, dung lượng và truyền dữ liệu
+  - Giám sát hạn ngạch, đặt ngân sách và phát hiện tăng chi phí
+  - Đo tải bằng dịch vụ thật trước khi điều chỉnh cấu hình sản xuất
+- level1: Đa đám mây
+  level2:
+  - Phân biệt dùng nhiều nhà cung cấp và khả năng chuyển đổi nhà cung cấp
+  - So sánh mô hình lưu trữ đối tượng, thông điệp, bí mật và dữ liệu
+  - Định nghĩa hợp đồng theo nhu cầu nghiệp vụ thay vì tên SDK
+  - Lựa chọn cấu hình và adapter bằng profile hoặc điều kiện bean
+  - Bảo toàn tính năng riêng khi một abstraction chung không đủ
+  - Chuyển dữ liệu, danh tính, endpoint và quy trình vận hành
+  - Kiểm thử cùng hợp đồng trên nhiều adapter
+  - Đánh giá chi phí di chuyển, độ nhất quán và kế hoạch chuyển đổi
+- level1: Xử lý sự cố
+  level2:
+  - Không tạo được bean do điều kiện auto-configuration hoặc dependency thiếu
+  - Không tìm thấy danh tính hoặc chọn nhầm tài khoản, tenant, project
+  - Phân biệt lỗi xác thực, thiếu quyền và tài nguyên không tồn tại
+  - Sai region, endpoint, DNS hoặc kết nối private network
+  - Lỗi timeout, TLS, proxy và cạn connection pool
+  - Nguồn cấu hình không nạp hoặc bí mật xoay vòng chưa có hiệu lực
+  - Thông điệp không được nhận, không được xác nhận hoặc bị xử lý lặp
+  - Throttling, vượt hạn ngạch và điểm nóng trên partition
+  - Lỗi tương thích SDK, classpath, Netty hoặc mô hình blocking/reactive
+  - Khoanh vùng bằng request ID và thu thập bằng chứng đã che bí mật
+- level1: Nâng cấp tích hợp
+  level2:
+  - Theo dõi vòng đời Spring Boot, Spring Cloud và thư viện nhà cung cấp
+  - Đọc release note, migration guide và thay đổi cấu hình trước nâng cấp
+  - Phân biệt thay đổi artifact, package và API công khai
+  - Chuyển từ bootstrap hoặc cơ chế cấu hình cũ khi phiên bản yêu cầu
+  - Thay thế thư viện hoặc connector đã ngừng bảo trì
+  - Xác minh thay đổi mặc định của danh tính, retry và listener
+  - Kiểm thử hồi quy hành vi và tương thích dữ liệu đang lưu
+  - Nâng cấp theo giai đoạn và chuẩn bị phương án quay lại
+- level1: Thực hành tổng hợp
+  level2:
+  - Kết nối đầu tiên tới một dịch vụ bằng danh tính có quyền tối thiểu
+  - Xây dựng kho tài liệu với lưu trữ đối tượng và URL truy cập tạm thời
+  - Xử lý tệp bất đồng bộ qua sự kiện, hàng đợi và tiến trình xử lý
+  - Nạp cấu hình và xoay vòng bí mật mà không ghi khóa vào mã
+  - Phối hợp cơ sở dữ liệu với hàng đợi bằng outbox và xử lý lũy đẳng
+  - Mô phỏng lỗi quyền, timeout, thông điệp trùng và phục hồi
+  - Thay adapter nhà cung cấp và kiểm thử lại hợp đồng nghiệp vụ
+  - Triển khai môi trường thử, đo tải và quan sát toàn bộ luồng
+  - Viết hướng dẫn chạy, sơ đồ tài nguyên và quy trình xử lý sự cố
+  - Đánh giá kết quả tích hợp và dọn dẹp toàn bộ tài nguyên thực hành

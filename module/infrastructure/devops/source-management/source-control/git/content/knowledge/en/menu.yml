@@ -1,0 +1,376 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Git là gì và vai trò trong quản lý mã nguồn
+  - 'Vấn đề Git giải quyết: lưu vết, cộng tác và khôi phục thay đổi'
+  - Quản lý phiên bản tập trung và phân tán
+  - Git, dịch vụ lưu trữ kho mã và nền tảng cộng tác khác nhau thế nào
+  - Mô hình bản chụp, commit và đồ thị lịch sử
+  - Kho mã, thư mục làm việc và chỉ mục (staging area)
+  - Nhánh, HEAD, remote và nhánh theo dõi từ xa
+  - 'Vòng lặp làm việc: sửa tệp, kiểm tra, đưa vào chỉ mục và commit'
+  - Giới hạn của Git đối với triển khai, sao lưu và quản lý bí mật
+- level1: Cài đặt và cấu hình
+  level2:
+  - Cài đặt Git trên Windows, macOS và Linux
+  - Kiểm tra phiên bản, trợ giúp và khả năng tương thích lệnh
+  - 'Các cấp cấu hình: system, global, local, worktree và tham số -c'
+  - Xem cấu hình hiệu lực bằng git config --list --show-origin
+  - Thiết lập tên, email và phân biệt tác giả với người tạo commit
+  - Chọn trình soạn thảo, công cụ so sánh và công cụ xử lý xung đột
+  - Đặt tên nhánh khởi tạo và các mặc định của clone, fetch, pull, push
+  - Tạo bí danh (alias) cho các thao tác thường dùng
+  - Cấu hình riêng theo thư mục bằng include và includeIf
+  - Biến môi trường, đường dẫn Git và thứ tự ưu tiên cấu hình
+  - Thiết lập terminal, màu hiển thị và cách đọc thông báo lỗi
+- level1: Khởi tạo kho mã
+  level2:
+  - Tạo kho mã bằng git init và xác định thư mục gốc
+  - 'Sao chép kho mã bằng git clone: URL, thư mục đích và nhánh ban đầu'
+  - Vai trò của .git, thư mục làm việc và kho mã bare
+  - Kiểm tra kho mã bằng git status và git rev-parse
+  - 'Vòng đời tệp: untracked, tracked, modified, staged và committed'
+  - Phân biệt tệp chưa theo dõi, tệp bị bỏ qua và tệp đã được theo dõi
+  - Tổ chức cấu trúc kho mã và ranh giới thư mục nên đưa vào Git
+  - Khởi tạo lịch sử cho dự án có sẵn mà không đưa nhầm tệp sinh ra
+  - Nhận diện kho mã lồng nhau ngoài ý muốn và ranh giới submodule
+- level1: Tệp và chỉ mục
+  level2:
+  - Vai trò của chỉ mục trong việc chọn nội dung cho commit
+  - Đưa tệp vào chỉ mục bằng git add theo tệp, thư mục và toàn bộ kho
+  - Chọn từng phần thay đổi bằng git add -p và git add -i
+  - Khác biệt giữa nội dung trong chỉ mục và lần sửa mới nhất trên đĩa
+  - Bỏ nội dung khỏi chỉ mục bằng git restore --staged
+  - Khôi phục thay đổi chưa commit bằng git restore và phạm vi mất dữ liệu
+  - Đổi tên, di chuyển và xóa tệp bằng git mv, git rm
+  - Ngừng theo dõi tệp nhưng giữ bản cục bộ bằng git rm --cached
+  - Nhận diện thư mục rỗng, tệp sinh ra và tệp cấu hình theo máy
+  - Chọn đường dẫn bằng pathspec và tách tùy chọn với dấu --
+  - Kiểm tra chỉ mục bằng git ls-files và các trạng thái hợp nhất
+  - Giới hạn của assume-unchanged và skip-worktree
+- level1: Tạo commit
+  level2:
+  - 'Commit chứa gì: cây tệp, commit cha, tác giả, thời gian và thông điệp'
+  - Chuẩn bị một commit tập trung vào một thay đổi có ý nghĩa
+  - Tạo commit từ chỉ mục và kiểm tra nội dung trước khi ghi
+  - Giới hạn của git commit -a đối với tệp chưa được theo dõi
+  - Viết thông điệp commit có tiêu đề, ngữ cảnh và lý do thay đổi
+  - Thay commit mới nhất bằng git commit --amend
+  - Sửa tác giả, email và thời gian của commit đúng phạm vi
+  - Commit rỗng, commit hợp nhất và commit gốc
+  - Dùng trailer để lưu thông tin đồng tác giả và tham chiếu công việc
+  - Kiểm tra mã định danh và nội dung commit vừa tạo bằng git show
+- level1: So sánh thay đổi
+  level2:
+  - So sánh thư mục làm việc với chỉ mục bằng git diff
+  - So sánh chỉ mục với HEAD bằng git diff --staged
+  - So sánh hai commit, hai nhánh và một đường dẫn cụ thể
+  - Phân biệt cú pháp A..B và A...B khi dùng git diff
+  - 'Đọc bản vá: đường dẫn, vùng thay đổi và dòng thêm hoặc xóa'
+  - Xem thống kê thay đổi bằng --stat, --name-only và --name-status
+  - So sánh theo từ và điều chỉnh số dòng ngữ cảnh
+  - Phát hiện đổi tên, sao chép và giới hạn của suy luận tương đồng
+  - Kiểm tra khoảng trắng lỗi bằng git diff --check
+  - So sánh tệp nhị phân và sử dụng git difftool
+- level1: Tra cứu lịch sử
+  level2:
+  - Đọc lịch sử bằng git log và đồ thị nhánh
+  - Lọc commit theo tác giả, thời gian, thông điệp và đường dẫn
+  - Định dạng kết quả git log để đọc nhanh hoặc trích xuất dữ liệu
+  - Đọc thay đổi của một commit bằng git show
+  - Định vị commit bằng mã rút gọn, HEAD~, HEAD^ và tên tham chiếu
+  - Tập commit A..B và A...B trong lệnh duyệt lịch sử
+  - Theo dõi lịch sử tệp đổi tên bằng git log --follow
+  - Tìm commit thêm hoặc xóa nội dung bằng git log -S và -G
+  - Tra cứu trách nhiệm từng dòng bằng git blame và giới hạn diễn giải
+  - Tìm nội dung trong phiên bản đã theo dõi bằng git grep
+  - Lịch sử tuyến chính với --first-parent và cách đọc commit hợp nhất
+- level1: Nhánh và HEAD
+  level2:
+  - Nhánh là con trỏ có thể di chuyển trong đồ thị commit
+  - Tạo, liệt kê và đổi tên nhánh cục bộ
+  - Chuyển nhánh bằng git switch và git checkout
+  - Tạo nhánh mới từ commit hoặc nhánh có sẵn
+  - HEAD gắn với nhánh và trạng thái detached HEAD
+  - Giữ kết quả thử nghiệm khi đang ở detached HEAD
+  - Điều kiện chuyển nhánh khi có thay đổi chưa commit
+  - Phân biệt nhánh cục bộ, nhánh từ xa và upstream
+  - Xem quan hệ ahead/behind bằng git branch -vv và git status
+  - Xóa nhánh an toàn và ý nghĩa của -d so với -D
+  - Quy tắc tên nhánh, tên tham chiếu và kiểm tra bằng git check-ref-format
+- level1: Hợp nhất nhánh
+  level2:
+  - Tổ tiên chung và nguyên lý hợp nhất ba chiều
+  - Hợp nhất fast-forward và trường hợp không tạo merge commit
+  - Hợp nhất có merge commit và lựa chọn --ff-only, --no-ff
+  - Chọn nhánh đích và kiểm tra phạm vi trước khi git merge
+  - Dừng trước khi tạo commit bằng git merge --no-commit
+  - Hợp nhất squash và ảnh hưởng đến quan hệ lịch sử
+  - 'Trạng thái đang hợp nhất: MERGE_HEAD, chỉ mục và thư mục làm việc'
+  - Hoàn tất hoặc hủy hợp nhất bằng git merge --continue, --abort
+  - Chiến lược hợp nhất và phân biệt ours với tùy chọn -X ours
+  - Đánh giá kết quả hợp nhất bằng diff, log và kiểm thử
+- level1: Giải quyết xung đột
+  level2:
+  - Vì sao xung đột xuất hiện và giới hạn của hợp nhất tự động
+  - Đọc dấu xung đột với merge, diff3 và zdiff3
+  - Ý nghĩa ours và theirs trong merge, rebase và cherry-pick
+  - Tìm danh sách tệp xung đột bằng git status và git diff
+  - Giải quyết xung đột sửa cùng dòng và xóa so với sửa
+  - Xử lý xung đột đổi tên, đổi kiểu tệp và tệp nhị phân
+  - Chọn nội dung kết hợp đúng ý nghĩa thay vì chỉ bỏ dấu xung đột
+  - Sử dụng git mergetool và đánh dấu tệp đã giải quyết
+  - Ghi nhớ cách giải quyết lặp lại bằng git rerere
+  - Khôi phục dấu xung đột để xem xét lại quyết định
+  - Kiểm tra phần còn sót và xác nhận hành vi sau khi xử lý xung đột
+- level1: Kết nối remote
+  level2:
+  - Remote là gì và vì sao origin chỉ là tên theo quy ước
+  - Thêm, đổi tên, liệt kê và xóa remote bằng git remote
+  - Phân biệt địa chỉ fetch với địa chỉ push
+  - Giao thức HTTPS, SSH và đường dẫn kho mã cục bộ
+  - Kiểm tra kết nối và quyền truy cập kho mã từ xa
+  - Liệt kê tham chiếu từ xa bằng git ls-remote
+  - Refspec và ánh xạ refs/heads với refs/remotes
+  - Kết nối nhiều remote cho kho chính và bản fork
+  - Thay đổi địa chỉ remote khi di chuyển kho mã
+  - Chẩn đoán lỗi URL, DNS, proxy, chứng chỉ và kết nối SSH
+- level1: Đồng bộ kho mã
+  level2:
+  - Fetch lấy đối tượng và cập nhật nhánh theo dõi từ xa như thế nào
+  - Phân biệt git fetch, git pull và git push
+  - Thiết lập upstream bằng git push -u và git branch --set-upstream-to
+  - 'Chọn hành vi pull: fast-forward only, merge hoặc rebase'
+  - Đẩy đúng nhánh và refspec bằng git push
+  - Cấu hình push.default và tránh đẩy nhầm nhánh
+  - 'Từ chối non-fast-forward: nguyên nhân và cách xử lý'
+  - Force push, --force-with-lease và giới hạn bảo vệ khi có fetch nền
+  - Xóa nhánh từ xa và dọn nhánh theo dõi cũ bằng fetch --prune
+  - Đồng bộ tag một cách tường minh và các giới hạn khi cập nhật tag
+  - Kiểm tra trước khi đẩy bằng --dry-run và đối chiếu tham chiếu
+  - Xử lý nhánh phân kỳ và cập nhật đồng thời từ nhiều người
+- level1: Cộng tác bằng Git
+  level2:
+  - Quyền sở hữu nhánh và nguyên tắc không viết lại lịch sử đã chia sẻ
+  - Chu trình nhận việc, tạo nhánh, commit, đồng bộ và bàn giao
+  - Quy trình dùng kho chung so với quy trình fork
+  - Chuẩn bị nhánh thay đổi nhỏ để người khác dễ xem xét
+  - Pull request và merge request là lớp cộng tác của nền tảng
+  - Cập nhật nhánh đang được xem xét sau khi nhận phản hồi
+  - Thỏa thuận lựa chọn merge, squash hoặc rebase khi tích hợp
+  - Xử lý thay đổi khẩn cấp và chuyển bản sửa giữa các nhánh
+  - Ranh giới giữa lệnh Git, chính sách nhánh và chiến lược phân nhánh của nhóm
+- level1: Rebase
+  level2:
+  - Rebase sao chép commit lên nền mới và thay đổi mã định danh
+  - Khi nào dùng rebase và khi nào giữ nguyên đồ thị bằng merge
+  - Rebase nhánh công việc lên nhánh đích đã cập nhật
+  - 'Interactive rebase: reword, edit, squash, fixup và drop'
+  - Tạo fixup commit và sắp xếp tự động bằng --autosquash
+  - Chuyển một đoạn lịch sử bằng git rebase --onto
+  - Giải quyết xung đột và dùng --continue, --skip, --abort
+  - Giữ cấu trúc hợp nhất với --rebase-merges và các giới hạn
+  - Đối chiếu chuỗi commit trước và sau bằng git range-diff
+  - Phục hồi rebase sai và phối hợp khi cần cập nhật nhánh đã chia sẻ
+- level1: Chuyển và hoàn tác
+  level2:
+  - Phân biệt restore, reset, revert và checkout theo vùng tác động
+  - Git reset --soft tác động đến HEAD và giữ chỉ mục
+  - Git reset --mixed tác động đến HEAD và chỉ mục
+  - Git reset --hard và điều kiện bảo vệ thay đổi chưa commit
+  - Reset theo đường dẫn so với reset con trỏ nhánh
+  - Git revert tạo commit đảo ngược trên lịch sử đã chia sẻ
+  - Hoàn tác merge commit bằng revert -m và hệ quả cho lần hợp nhất sau
+  - Chọn commit sang nhánh khác bằng git cherry-pick
+  - Chuyển nhiều commit, giữ tham chiếu nguồn với -x và xử lý xung đột
+  - Áp dụng thay đổi không tạo commit bằng cherry-pick --no-commit
+  - Xóa tệp chưa theo dõi bằng git clean và kiểm tra trước với -n
+- level1: Stash
+  level2:
+  - Stash lưu tạm thay đổi nào và liên hệ với chỉ mục
+  - Tạo stash có mô tả và xem danh sách stash
+  - Đưa tệp chưa theo dõi hoặc tệp bị bỏ qua vào stash bằng -u, -a
+  - Chỉ lưu một phần thay đổi với --patch, --staged và --keep-index
+  - Phân biệt git stash apply với git stash pop
+  - Khôi phục trạng thái chỉ mục bằng stash apply --index
+  - Giải quyết xung đột khi áp dụng stash và tạo nhánh bằng stash branch
+  - Xem, xóa và phục hồi stash bị mất trước khi đối tượng bị dọn
+- level1: Tag và mốc phiên bản
+  level2:
+  - Tag là tham chiếu cố định theo quy ước, khác với nhánh
+  - Tạo lightweight tag và annotated tag
+  - Liệt kê, lọc và xem thông tin tag
+  - Tạo tag tại commit trong quá khứ và kiểm tra đối tượng đích
+  - Làm việc với tag trong trạng thái detached HEAD
+  - Đẩy từng tag, --tags và --follow-tags
+  - Đổi hoặc xóa tag cục bộ, tag từ xa và phối hợp với người đã tải
+  - Tag có chữ ký và kiểm tra bằng git tag -v
+  - Ranh giới giữa Git tag, phiên bản phần mềm và bản phát hành trên nền tảng
+- level1: Tìm lỗi và phục hồi
+  level2:
+  - Lập bản sao bảo vệ và ghi nhận trạng thái trước khi cứu dữ liệu
+  - Reflog ghi lại sự di chuyển của tham chiếu và thời hạn lưu giữ
+  - Tìm commit bị mất sau reset, xóa nhánh hoặc rebase
+  - Khôi phục nhánh bằng commit tìm được trong reflog
+  - Vai trò và giới hạn của ORIG_HEAD, FETCH_HEAD và MERGE_HEAD
+  - Định vị commit gây lỗi bằng git bisect
+  - Tự động hóa bisect bằng lệnh kiểm thử và xử lý commit không kiểm tra được
+  - Khôi phục một tệp hoặc thư mục từ phiên bản trước
+  - Kiểm tra tính toàn vẹn bằng git fsck và tìm đối tượng không còn được tham chiếu
+  - Chẩn đoán tệp khóa còn sót và tránh can thiệp khi tiến trình Git đang chạy
+  - Giới hạn phục hồi đối với dữ liệu chưa từng được add hoặc commit
+  - Xác minh nội dung, lịch sử và kết quả kiểm thử sau khi phục hồi
+- level1: Ignore và attributes
+  level2:
+  - Phân biệt .gitignore với .gitattributes
+  - 'Phạm vi bỏ qua: .gitignore, .git/info/exclude và core.excludesFile'
+  - Mẫu đường dẫn, dấu /, ** và quy tắc phủ định trong .gitignore
+  - Thứ tự áp dụng và giới hạn đưa lại tệp nằm trong thư mục bị bỏ qua
+  - Chẩn đoán quy tắc bỏ qua bằng git check-ignore -v
+  - Vì sao thêm .gitignore không làm ngừng theo dõi tệp đã commit
+  - Phạm vi và thứ tự ưu tiên của thuộc tính tệp
+  - Kiểm tra thuộc tính hiệu lực bằng git check-attr
+  - Khai báo tệp văn bản, tệp nhị phân và bộ xử lý diff hoặc merge
+  - Thuộc tính export-ignore, export-subst và nội dung bản xuất
+- level1: Đa môi trường
+  level2:
+  - LF, CRLF và lý do thay đổi dòng có thể xuất hiện hàng loạt
+  - Phối hợp core.autocrlf, core.eol với thuộc tính text và eol
+  - Chuẩn hóa tệp đã theo dõi bằng git add --renormalize
+  - Phân biệt chữ hoa chữ thường và xử lý đổi tên chỉ khác hoa thường
+  - Quyền thực thi, core.filemode và giới hạn metadata Git lưu
+  - Liên kết tượng trưng và khác biệt hỗ trợ giữa các hệ điều hành
+  - Tên tệp Unicode, ký tự không hợp lệ và đường dẫn dài
+  - Ảnh hưởng của clean/smudge filter và working-tree-encoding
+  - Kiểm tra bản sao sạch để phát hiện khác biệt môi trường
+- level1: Nhiều thư mục làm việc
+  level2:
+  - Git worktree giải quyết việc chuyển ngữ cảnh giữa các nhánh
+  - Tạo thư mục làm việc bổ sung bằng git worktree add
+  - Những dữ liệu được chia sẻ và dữ liệu riêng của mỗi worktree
+  - Ràng buộc khi một nhánh đã được dùng trong worktree khác
+  - Liệt kê, di chuyển và khóa worktree
+  - Xóa worktree đúng cách và dọn thông tin cũ bằng prune
+  - Sửa liên kết sau khi di chuyển thư mục bằng git worktree repair
+  - Dùng worktree cho bản sửa khẩn cấp, xem xét và thử nghiệm song song
+- level1: Kho mã chọn lọc
+  level2:
+  - Phân biệt shallow clone, partial clone và sparse checkout
+  - Giới hạn độ sâu lịch sử bằng --depth và --shallow-since
+  - Bổ sung lịch sử bằng --deepen và --unshallow
+  - Giới hạn nhánh tải về bằng --single-branch và refspec
+  - Partial clone với --filter và cơ chế tải đối tượng khi cần
+  - Sparse checkout giới hạn đường dẫn trong thư mục làm việc
+  - Cấu hình cone mode và sparse index
+  - Giới hạn khi tra cứu, hợp nhất và làm việc ngoại tuyến với bản sao không đầy đủ
+- level1: Submodule
+  level2:
+  - Submodule là kho mã độc lập được kho cha ghim tại một commit
+  - Vai trò của .gitmodules, gitlink và cấu hình cục bộ
+  - Thêm submodule và ghi nhận thay đổi trong kho cha
+  - Clone kèm submodule bằng --recurse-submodules
+  - Khởi tạo và cập nhật bằng git submodule update --init --recursive
+  - Trạng thái detached HEAD và cách phát triển trực tiếp trong submodule
+  - Cập nhật commit được ghim và thứ tự đẩy kho con trước kho cha
+  - Phát hiện submodule bẩn, commit chưa công bố và xung đột gitlink
+  - Đổi URL, đồng bộ cấu hình và gỡ submodule có kiểm soát
+  - Phân biệt submodule, subtree và thư mục mã nguồn thông thường
+- level1: Tệp lớn và LFS
+  level2:
+  - Vì sao tệp nhị phân lớn làm lịch sử kho mã tăng nhanh
+  - Phân biệt Git LFS với khả năng lưu trữ đối tượng của Git
+  - Pointer file, kho đối tượng LFS và vai trò của .gitattributes
+  - Cài đặt Git LFS và khai báo mẫu tệp bằng git lfs track
+  - Commit, clone, pull và push khi kho mã dùng LFS
+  - Kiểm tra tệp được theo dõi và trạng thái bằng git lfs ls-files, status
+  - Xử lý thiếu đối tượng LFS, quyền truy cập và hạn mức lưu trữ
+  - Di chuyển tệp đã có trong lịch sử sang LFS và hệ quả viết lại commit
+  - Lựa chọn LFS, kho artifact hoặc loại tệp khỏi quản lý phiên bản
+- level1: Hook và tự động hóa
+  level2:
+  - Hook phía máy người dùng và hook phía máy chủ
+  - Các thời điểm pre-commit, prepare-commit-msg và commit-msg
+  - Các thời điểm pre-push, pre-receive, update và post-receive
+  - Mã thoát, tham số, đầu vào và môi trường thực thi của hook
+  - Tổ chức hook dùng chung bằng core.hooksPath
+  - Giới hạn chia sẻ hook và lý do kiểm tra cục bộ không thay thế chính sách máy chủ
+  - Kiểm tra định dạng, thông điệp và bí mật trong luồng commit
+  - Dùng Git trong script với git status --porcelain và dấu phân cách NUL
+  - Đọc kết quả, xử lý mã thoát và tránh phân tích đầu ra dành cho người dùng
+  - Ngăn hook tự sửa lịch sử hoặc tạo tác dụng phụ ngoài ý muốn
+- level1: Bảo mật kho mã
+  level2:
+  - Phân biệt danh tính trong commit với xác thực khi truy cập remote
+  - Xác thực HTTPS bằng token và trình quản lý thông tin đăng nhập
+  - Khóa SSH, ssh-agent và kiểm tra dấu vân tay máy chủ
+  - Không đưa mật khẩu, token và khóa riêng vào URL hoặc cấu hình kho mã
+  - Thu hồi bí mật bị lộ trước khi xử lý lịch sử
+  - Xóa dữ liệu nhạy cảm khỏi lịch sử và giới hạn đối với bản sao, cache, fork
+  - Ký commit hoặc tag bằng GPG và SSH
+  - Xác minh chữ ký, nguồn tin cậy và giới hạn của chữ ký
+  - Vai trò của quyền máy chủ và bảo vệ nhánh đối với thao tác Git
+  - 'Kho mã không tin cậy: hook, filter, submodule và công cụ ngoài'
+  - Quyền sở hữu thư mục, safe.directory và rủi ro tin cậy quá rộng
+  - Bảo vệ log, bản vá và bản sao kho mã khi chứa dữ liệu riêng
+- level1: Cấu trúc bên trong
+  level2:
+  - Mô hình đối tượng blob, tree, commit và annotated tag
+  - Địa chỉ theo nội dung và vai trò mã băm đối tượng
+  - Định dạng kho SHA-1, SHA-256 và giới hạn tương thích công cụ
+  - Đồ thị commit, quan hệ cha và khả năng truy cập đối tượng
+  - Đối tượng rời, packfile, nén delta và tệp chỉ mục pack
+  - Refs, symbolic refs, packed-refs và reflog
+  - Chỉ mục biểu diễn cây dự kiến và các stage khi có xung đột
+  - Đọc đối tượng bằng git cat-file và git ls-tree
+  - Phân giải đối tượng và tham chiếu bằng git rev-parse
+  - Tạo tree và commit bằng các lệnh plumbing để hiểu cơ chế
+  - Cập nhật tham chiếu bằng git update-ref và bảo vệ tính nhất quán
+  - Vì sao mã commit đổi khi nội dung, metadata hoặc commit cha đổi
+- level1: Bảo trì và hiệu năng
+  level2:
+  - Đo kích thước và số đối tượng bằng git count-objects
+  - Thu gom rác bằng git gc và thời hạn giữ đối tượng chưa được tham chiếu
+  - Tác động của prune, reflog expire và thao tác chạy đồng thời
+  - Bảo trì định kỳ bằng git maintenance
+  - Đóng gói lại đối tượng với repack và đánh đổi dung lượng với thời gian
+  - Commit-graph, bitmap và multi-pack-index
+  - Tăng tốc kiểm tra thay đổi với untracked cache và FSMonitor
+  - Chẩn đoán thao tác chậm bằng các cơ chế trace của Git
+  - Kho bare, mirror clone và ý nghĩa của mirror push
+  - Sao lưu có kiểm chứng và phân biệt bản mirror với bản sao lưu lịch sử
+- level1: Trao đổi và di chuyển
+  level2:
+  - Xuất mã nguồn tại một mốc bằng git archive
+  - Tạo bản vá commit bằng git format-patch
+  - Phân biệt áp dụng bản vá bằng git apply và git am
+  - Kiểm tra bản vá trước khi áp dụng và xử lý lỗi ngữ cảnh
+  - Trao đổi ngoại tuyến bằng git bundle create, verify và clone
+  - Nhập lịch sử từ kho Git khác và lựa chọn giữ quan hệ lịch sử
+  - Hợp nhất hai lịch sử độc lập với --allow-unrelated-histories
+  - Viết lại lịch sử bằng công cụ lọc chuyên dụng và kế hoạch đồng bộ bản sao
+  - Lập kế hoạch di chuyển remote, refs, tag, LFS và submodule
+- level1: Công cụ và tích hợp
+  level2:
+  - Phối hợp dòng lệnh Git với giao diện đồ họa và IDE
+  - Đối chiếu thao tác giao diện với status, diff và log
+  - Hiểu các nút stage, sync, publish và discard trong công cụ
+  - Tích hợp trình so sánh và xử lý xung đột bên ngoài
+  - Phân biệt Git core, phần mở rộng và tính năng của dịch vụ lưu trữ
+  - 'Checkout trong môi trường tự động: detached HEAD và lịch sử nông'
+  - Cung cấp danh tính và thông tin xác thực cho script không tương tác
+  - Giới hạn sao chép cache .git và bảo vệ thông tin xác thực trong log
+- level1: Thực hành tổng hợp
+  level2:
+  - Khởi tạo dự án, loại tệp sinh ra và tạo chuỗi commit đầu tiên
+  - Chia một thay đổi lớn thành các commit rõ mục đích bằng chọn từng phần
+  - Làm việc với hai bản clone để quan sát fetch, pull và nhánh phân kỳ
+  - Tạo xung đột có chủ đích và kiểm chứng kết quả giải quyết
+  - So sánh đồ thị sau fast-forward, merge commit, squash và rebase
+  - Làm gọn nhánh trước khi bàn giao bằng interactive rebase
+  - Chuyển bản sửa và hoàn tác an toàn trên lịch sử đã chia sẻ
+  - Phục hồi nhánh bị xóa hoặc reset nhầm bằng reflog
+  - Tìm commit gây lỗi bằng bisect và bài kiểm thử tái hiện
+  - Thực hành worktree, sparse checkout và kho mã có submodule
+  - Trao đổi bản vá, tạo bundle và kiểm tra khả năng khôi phục ngoại tuyến
+  - Diễn tập sự cố bí mật bị commit và phối hợp thu hồi, làm sạch lịch sử
+  - Kiểm tra trạng thái sạch, nội dung đã đẩy và mốc tag trước khi bàn giao

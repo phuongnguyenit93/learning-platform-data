@@ -1,0 +1,3 @@
+menuLevel1: Auditing
+menuLevel2: Bật auditing phản ứng bằng @EnableR2dbcAuditing
+status: TRANSLATE

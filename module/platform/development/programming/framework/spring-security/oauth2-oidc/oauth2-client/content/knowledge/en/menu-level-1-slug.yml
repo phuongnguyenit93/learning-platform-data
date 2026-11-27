@@ -1,0 +1,103 @@
+menu:
+- title: 1. Tổng quan
+  slug: overview
+  index: 0
+- title: 2. Nền tảng OAuth 2.0
+  slug: oauth2-fundamentals
+  index: 1
+- title: 3. Nền tảng OIDC
+  slug: oidc-fundamentals
+  index: 2
+- title: 4. Thiết lập dự án
+  slug: project-setup
+  index: 3
+- title: 5. ClientRegistration
+  slug: client-registration
+  index: 4
+- title: 6. Cấu hình provider
+  slug: provider-configuration
+  index: 5
+- title: 7. Đăng nhập Servlet
+  slug: servlet-login
+  index: 6
+- title: 8. Authorization Request
+  slug: authorization-request
+  index: 7
+- title: 9. Callback và correlation
+  slug: callback-correlation
+  index: 8
+- title: 10. Token Endpoint
+  slug: token-endpoint
+  index: 9
+- title: 11. Kiểm tra ID Token
+  slug: id-token-validation
+  index: 10
+- title: 12. UserInfo và hồ sơ
+  slug: user-info
+  index: 11
+- title: 13. Principal và phân quyền
+  slug: principal-authorization
+  index: 12
+- title: 14. Authorized Client
+  slug: authorized-client
+  index: 13
+- title: 15. Client Manager
+  slug: client-manager
+  index: 14
+- title: 16. Client Credentials
+  slug: client-credentials
+  index: 15
+- title: 17. Refresh Token
+  slug: refresh-token
+  index: 16
+- title: 18. REST Client Servlet
+  slug: servlet-rest-client
+  index: 17
+- title: 19. WebClient trên Servlet
+  slug: servlet-web-client
+  index: 18
+- title: 20. Đăng nhập Reactive
+  slug: reactive-login
+  index: 19
+- title: 21. OAuth2 Client Reactive
+  slug: reactive-client
+  index: 20
+- title: 22. Grant mở rộng
+  slug: extension-grants
+  index: 21
+- title: 23. Lưu token và phiên
+  slug: token-session-storage
+  index: 22
+- title: 24. Đăng xuất OIDC
+  slug: oidc-logout
+  index: 23
+- title: 25. Nhiều provider
+  slug: multiple-providers
+  index: 24
+- title: 26. Đa tenant
+  slug: multitenancy
+  index: 25
+- title: 27. Bảo mật tích hợp
+  slug: integration-security
+  index: 26
+- title: 28. Lỗi và quan sát
+  slug: errors-and-observability
+  index: 27
+- title: 29. Kiểm thử Servlet
+  slug: servlet-testing
+  index: 28
+- title: 30. Kiểm thử Reactive
+  slug: reactive-testing
+  index: 29
+- title: 31. Kiểm thử tích hợp
+  slug: integration-testing
+  index: 30
+- title: 32. Triển khai và vận hành
+  slug: deployment-and-operations
+  index: 31
+- title: 33. Tương thích và nâng cấp
+  slug: compatibility-and-upgrades
+  index: 32
+- title: 34. Bài thực hành
+  slug: practical-labs
+  index: 33

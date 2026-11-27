@@ -1,0 +1,100 @@
+menu:
+- title: Nền tảng
+  slug: fundamentals
+  index: 0
+- title: Khảo sát yêu cầu
+  slug: requirements-analysis
+  index: 1
+- title: Mô hình khái niệm
+  slug: conceptual-modeling
+  index: 2
+- title: Thực thể và định danh
+  slug: entities-identifiers
+  index: 3
+- title: Thuộc tính và kiểu
+  slug: attributes-types
+  index: 4
+- title: Quan hệ
+  slug: relationships
+  index: 5
+- title: Bất biến và ràng buộc
+  slug: invariants-constraints
+  index: 6
+- title: Kế thừa và phân cấp
+  slug: inheritance-hierarchies
+  index: 7
+- title: Mô hình quan hệ
+  slug: relational-modeling
+  index: 8
+- title: Phụ thuộc dữ liệu
+  slug: functional-dependencies
+  index: 9
+- title: Chuẩn hóa
+  slug: normalization
+  index: 10
+- title: Phi chuẩn hóa
+  slug: denormalization
+  index: 11
+- title: Mô hình vật lý
+  slug: physical-modeling
+  index: 12
+- title: Mô hình Java
+  slug: java-models
+  index: 13
+- title: Mô hình miền
+  slug: domain-modeling
+  index: 14
+- title: Ánh xạ đối tượng
+  slug: object-relational-mapping
+  index: 15
+- title: Mô hình tài liệu
+  slug: document-modeling
+  index: 16
+- title: Khóa giá trị và cột rộng
+  slug: key-value-wide-column-models
+  index: 17
+- title: Mô hình đồ thị
+  slug: graph-modeling
+  index: 18
+- title: Thời gian và lịch sử
+  slug: temporal-history-modeling
+  index: 19
+- title: Sự kiện và trạng thái
+  slug: events-state
+  index: 20
+- title: Mô hình phân tích
+  slug: analytical-modeling
+  index: 21
+- title: Bảng dữ kiện
+  slug: fact-tables
+  index: 22
+- title: Bảng chiều
+  slug: dimension-tables
+  index: 23
+- title: Dữ liệu chuỗi thời gian
+  slug: time-series-data
+  index: 24
+- title: Phân tán và phân vùng
+  slug: distribution-partitioning
+  index: 25
+- title: Ranh giới và tích hợp
+  slug: boundaries-integration
+  index: 26
+- title: Bảo vệ dữ liệu
+  slug: data-protection
+  index: 27
+- title: Tiến hóa mô hình
+  slug: model-evolution
+  index: 28
+- title: Tài liệu mô hình
+  slug: model-documentation
+  index: 29
+- title: Kiểm chứng thiết kế
+  slug: design-validation
+  index: 30
+- title: Lỗi thường gặp
+  slug: common-pitfalls
+  index: 31
+- title: Thực hành tổng hợp
+  slug: integrated-exercises
+  index: 32

@@ -1,0 +1,573 @@
+# Updating References with git update-ref and Protecting Consistency
+
+Git stores commits and other objects in the object database, while branches, tags, and many other reference names are managed through **refs**. A ref points to a specific object; when a branch advances, Git updates the ref to point to the new commit. This update must be performed safely to avoid overwriting concurrent changes from another process, creating inconsistent reference states, or letting `HEAD` drift out of sync with the index and working tree.
+
+The **git update-ref** command is a low-level plumbing tool for creating, updating, verifying, and deleting refs. It is used in repository administration scripts, Git tooling, and workflows that require controlled multi-ref updates. It is not a routine substitute for `commit`, `switch`, `merge`, or `reset`. When using it directly, the operator is responsible for checking the target object, expected old value, worktree state, and blast radius.
+
+## 1. What is a ref and what does Git use it for?
+
+A ref (reference) is a name that resolves to an object in the repository. Common refs live under standard namespaces:
+
+| Namespace | Meaning | Example |
+|---|---|---|
+| `refs/heads/` | Local branch | `refs/heads/main` |
+| `refs/tags/` | Tag | `refs/tags/v2.0.0` |
+| `refs/remotes/` | Remote-tracking branch | `refs/remotes/origin/main` |
+| `refs/notes/` | Git notes | `refs/notes/commits` |
+| `refs/stash` | Special ref for stash | `refs/stash` |
+
+A branch such as `main` is not a copy of the entire history. It is a ref normally pointing to the tip commit of a line of development. When a new commit is created on the branch, Git updates that ref to point to the newly created commit. Remote-tracking refs such as `refs/remotes/origin/main` are normally managed by fetch operations; do not move them manually without a clear administrative reason.
+
+Tags are also refs, typically used to mark milestones. A lightweight tag usually points directly to a commit; an annotated tag points to a tag object, and the tag object points to the commit or labeled object.
+
+### 1.1. HEAD is a symbolic ref
+
+In a standard repository, `HEAD` is usually a symbolic ref pointing to the current branch:
+
+~~~text
+HEAD -> refs/heads/main -> <commit-id>
+~~~
+
+Verify:
+
+~~~sh
+git symbolic-ref HEAD
+git rev-parse HEAD
+~~~
+
+The first command shows the ref that `HEAD` points to, such as `refs/heads/main`. The second resolves `HEAD` to the object ID of the current commit.
+
+When checking out a commit directly instead of a branch, `HEAD` enters detached HEAD state and points directly to the commit. This differs from `HEAD` pointing to a branch.
+
+### 1.2. Refs can be stored in multiple backends
+
+In the traditional backend, refs can exist as individual files under `refs/` or be bundled into `packed-refs`. Git can also use another ref storage backend, such as `reftable` in supported environments.
+
+Because the storage backend can vary, never edit files directly inside `.git/refs` or `packed-refs`. Use Git commands such as `update-ref`, `branch`, `tag`, and `symbolic-ref` so Git manages format, locking, and consistency itself.
+
+## 2. What does git update-ref do?
+
+`git update-ref` changes a ref so it points to a specified object ID. The command can:
+
+- Create a new ref.
+- Update an existing ref.
+- Verify that a ref still holds an expected value.
+- Delete a ref.
+- Execute a group of updates inside a transaction.
+- Record an update reason in the reflog.
+
+The command only changes the association between a ref name and an object. It does not alter commit, tree, or blob contents, and does not check out new source files into the working tree.
+
+Basic command:
+
+~~~sh
+git update-ref <ref> <new-oid> [<old-oid>]
+~~~
+
+Where:
+
+- `ref` is the reference name to update, typically a full name such as `refs/heads/feature/search`.
+- `new-oid` is the new object ID that the ref will point to.
+- `old-oid` is the expected current object ID; when provided, Git updates the ref only if the current value matches.
+
+If `old-oid` does not match the current value, Git rejects the update. This is a vital mechanism to avoid overwriting a recent change the script was unaware of. If `old-oid` is omitted, the command performs no comparison against a previously read value; omit it only when an unconditional update is explicitly intended.
+
+### 2.1. Inspecting refs before updating
+
+List all refs:
+
+~~~sh
+git show-ref
+~~~
+
+Inspect a specific branch:
+
+~~~sh
+git show-ref --verify refs/heads/main
+~~~
+
+List refs with object ID and name:
+
+~~~sh
+git for-each-ref --format="%(objectname) %(refname)" refs/heads/
+~~~
+
+Get a branch's object ID:
+
+~~~sh
+git rev-parse refs/heads/main
+~~~
+
+Always use full ref names in scripts. Short names such as `main` are resolved by Git's DWIM rules; full names avoid ambiguity among branches, tags, or other refs sharing the same short name.
+
+### 2.2. Validating ref names
+
+Before creating a ref supplied by a user or generated by a script, validate the name:
+
+~~~sh
+git check-ref-format refs/heads/feature/search
+~~~
+
+The command returns a success exit code if the ref name is valid. Never concatenate untrusted input directly into a ref name and pass it through a shell; validate the input and enforce the allowed namespace for your application.
+
+## 3. Updating a ref with an expected old value
+
+A simple update:
+
+~~~sh
+git update-ref refs/heads/release <new-oid>
+~~~
+
+This instructs Git to point the ref to the new object. However, if a script read the old value and another process updated the ref before the script ran this command, the script would silently overwrite that newer change.
+
+To protect consistency, pass the expected old value as well:
+
+~~~sh
+git update-ref refs/heads/release <new-oid> <expected-old-oid>
+~~~
+
+This is a compare-and-swap (CAS) check: update only if the current ref still equals `expected-old-oid`. If the ref has moved, the command fails instead of silently overwriting.
+
+### 3.1. Example: updating a branch while checking the old value
+
+Suppose branch `release` currently points to an existing commit and needs to move to `candidate-release`:
+
+~~~sh
+old_oid=$(git rev-parse refs/heads/release)
+new_oid=$(git rev-parse 'candidate-release^{commit}')
+
+git cat-file -e "$new_oid^{commit}"
+git update-ref -m "promote release candidate" refs/heads/release "$new_oid" "$old_oid"
+~~~
+
+Explanation:
+
+1. Read the current object ID of branch `release`.
+2. Resolve `candidate-release` to a commit, even if that name is a tag.
+3. Verify the target object is an existing commit.
+4. Update the branch only if its current value still matches `old_oid`.
+
+The `-m` option records the update reason in the reflog when reflog recording is enabled for that ref. To ensure a reflog is created if one does not exist yet, add `--create-reflog`:
+
+~~~sh
+git update-ref --create-reflog -m "promote release candidate" refs/heads/release "$new_oid" "$old_oid"
+~~~
+
+### 3.2. Why does old-oid matter?
+
+Suppose a script reads that `release` points to `A`. While the script is preparing, someone else advances the branch to `B`. If the script updates the ref to `C` without checking the old value, change `B` can be lost from the branch.
+
+With `old-oid=A`, Git detects that the branch no longer points to `A` and rejects the operation. The script can re-read the new state, re-evaluate, and retry if appropriate.
+
+Do not retry blindly in an infinite loop. If the ref is changing continuously, stop and let an orchestration workflow or operator resolve the contention.
+
+## 4. Creating, verifying, and deleting refs
+
+`git update-ref` supports additional operations via `--stdin` mode. This provides an explicit way to create a ref only if it does not yet exist, or delete a ref only if its value still matches what is expected.
+
+### 4.1. Creating a new ref
+
+To create a ref while ensuring the name does not already exist, use the `create` command in stdin mode:
+
+~~~sh
+new_oid=$(git rev-parse HEAD)
+
+git update-ref --stdin <<EOF
+create refs/heads/rescue/before-maintenance $new_oid
+EOF
+~~~
+
+If the ref already exists, `create` fails. This prevents a script from accidentally moving an existing rescue branch.
+
+For ordinary branch creation, `git branch` is clearer and more appropriate. `update-ref` is useful when precise ref control is required in scripts or within a multi-ref transaction.
+
+### 4.2. Verifying a ref
+
+The `verify` command checks that a ref exists and holds the expected object ID:
+
+~~~sh
+expected_oid=$(git rev-parse refs/heads/release)
+
+git update-ref --stdin <<EOF
+verify refs/heads/release $expected_oid
+EOF
+~~~
+
+If the ref has changed, verification fails. `verify` does not move the ref.
+
+### 4.3. Deleting a ref with a check
+
+You can delete a ref using:
+
+~~~sh
+git update-ref -d refs/heads/rescue/before-maintenance <expected-old-oid>
+~~~
+
+If `expected-old-oid` is provided, Git deletes the ref only if it still points to the expected object. This is useful for cleanup scripts because it prevents accidentally deleting a ref that another process just updated.
+
+For regular tags or branches, higher-level commands such as `git tag -d` or `git branch -d` are clearer. Use `update-ref` only when explicit precondition checks or transactions are needed.
+
+## 5. Updating multiple refs in a transaction
+
+Some workflows must update multiple refs as a single logical unit. For example, when completing a release, a system might need to update two maintenance branches or move a group of related refs together.
+
+If each ref is updated with separate commands, another process can observe an intermediate state: the first ref changed while the second has not yet changed. If the second command fails, the repository can be left in a partial state unwanted by the higher-level workflow.
+
+`git update-ref --stdin` supports transactions with `start`, `prepare`, `commit`, and `abort`. A transaction groups multiple ref updates and applies them together.
+
+### 5.1. Basic transaction syntax
+
+~~~text
+start
+update <ref> <new-oid> <old-oid>
+update <ref> <new-oid> <old-oid>
+prepare
+commit
+~~~
+
+- `start` begins the transaction.
+- `update` queues a ref update request with an old-value check.
+- `prepare` asks Git to prepare the transaction and acquire necessary locks.
+- `commit` applies all prepared changes.
+- `abort` cancels an uncommitted transaction.
+
+If any update cannot be prepared, the transaction is not partially committed. Scripts must handle errors and never assume all refs were updated.
+
+### 5.2. Example: updating two branches simultaneously
+
+Suppose a system needs to move two branches, `release` and `stable`, to verified commits:
+
+~~~sh
+old_release=$(git rev-parse refs/heads/release)
+old_stable=$(git rev-parse refs/heads/stable)
+new_release=$(git rev-parse candidate-release^{commit})
+new_stable=$(git rev-parse candidate-stable^{commit})
+
+git cat-file -e "$new_release^{commit}"
+git cat-file -e "$new_stable^{commit}"
+
+git update-ref --stdin <<EOF
+start
+update refs/heads/release $new_release $old_release
+update refs/heads/stable $new_stable $old_stable
+prepare
+commit
+EOF
+~~~
+
+Both updates execute within the same transaction. If either ref no longer holds the old value that was read, `prepare` fails and the transaction does not partially apply.
+
+The object IDs in real usage come from the actual repository. In production scripts, handle exit codes, logging, and transaction failure cases explicitly.
+
+### 5.3. When a transaction fails
+
+When `prepare` or `commit` fails:
+
+1. Do not assume any ref was updated.
+2. Re-read all relevant refs using `show-ref` or `rev-parse`.
+3. Determine whether the error was caused by an old-value mismatch, invalid ref name, missing object, or storage failure.
+4. Re-run only after recomputing the expected state.
+5. Log the transaction and failure reason.
+
+Never delete `.lock` files to "fix" a transaction. Locking is part of Git's write-protection mechanism; removing a lock while a process is still active can corrupt consistency.
+
+## 6. Ref locks and consistency across concurrent processes
+
+When Git updates a ref, it uses locking to prevent two processes from overwriting each other. In the `files` backend, Git typically creates a lock file with a `.lock` suffix, writes the new value, and replaces the ref once complete. Other ref backends implement equivalent locking in their own ways.
+
+Key rules to remember:
+
+- Use Git commands to update refs; never edit internal files directly.
+- Never remove a lock file without confirming which process owns it.
+- Pass `old-oid` to detect whether a ref changed since it was read.
+- Use transactions when multiple refs must change together.
+- Handle errors and re-read state after every failed update.
+
+### 6.1. Do not confuse locking with business-rule checks
+
+Ref locks prevent conflicting writes at the storage layer. They do not automatically enforce whether a branch is allowed to move to a given commit.
+
+For example, `update-ref` can move a branch from `A` to `C` even if `C` is not a descendant of `A`, provided the `old-oid` condition matches. If policy permits fast-forward updates only, the script must check ancestry first:
+
+~~~sh
+git merge-base --is-ancestor "$old_oid" "$new_oid"
+~~~
+
+If this returns a non-zero exit code, `new_oid` is not a descendant of `old_oid` under the evaluated commit graph. In that case, reject the update when policy requires fast-forward.
+
+### 6.2. Verify target objects before moving refs
+
+A ref should point to an object that exists in the object database. For branches, the target object should normally be a commit:
+
+~~~sh
+git cat-file -e "$new_oid^{commit}"
+git cat-file -t "$new_oid"
+~~~
+
+The `^{commit}` resolution confirms the object can be resolved to a commit. `cat-file -t` reports the direct object type referenced, such as `commit` or `tag`.
+
+For annotated tags, the direct object a tag ref points to is a tag object. Therefore, do not apply a blanket rule that "every ref must point directly to a commit" across all namespaces.
+
+## 7. Protecting HEAD, the index, and the working tree
+
+This is an easy pitfall when using `update-ref`: updating a ref does not check out the new commit.
+
+Suppose you are on branch `main`:
+
+~~~text
+HEAD -> refs/heads/main -> A
+index                 = tree(A)
+working tree          = tree(A)
+~~~
+
+If you use `update-ref` to move `refs/heads/main` from `A` to `B`, `HEAD` remains a symbolic ref pointing to `main`, so `HEAD` now resolves to `B`. However, Git does not automatically update the index and working tree to `tree(B)`.
+
+The resulting state looks like a working tree full of modified changes relative to the new commit. Users can mistake those differences for freshly edited files when the real cause is that the ref moved without a checkout.
+
+### 7.1. Do not use update-ref to move a checked-out branch
+
+If a branch is currently checked out in the current worktree or another linked worktree, do not update that ref manually with `update-ref`. Use high-level commands so Git coordinates `HEAD`, the index, and the working tree:
+
+~~~sh
+git switch <branch>
+git reset --hard <commit>
+~~~
+
+Note that `reset --hard` discards uncommitted changes. Use it only after inspecting and preserving work that needs to be kept.
+
+If the goal is to switch to another branch, use `git switch`. If the goal is to move a branch to a commit and update the worktree, choose `reset` or `checkout` according to your exact intent.
+
+### 7.2. HEAD is a symbolic ref, not an ordinary branch name
+
+By default, `update-ref` dereferences symbolic refs before updating. For example, updating `HEAD` actually updates the branch `HEAD` points to, while the index and working tree are still not checked out to the new commit.
+
+The `--no-deref` option operates on the symbolic ref itself instead of dereferencing it. This is a low-level option that can alter how `HEAD` is attached to a branch. Do not use it to "fix" `HEAD` without understanding the repository state.
+
+Inspect `HEAD`:
+
+~~~sh
+git symbolic-ref -q HEAD
+git rev-parse HEAD
+git status -sb
+~~~
+
+If `HEAD` is detached, `symbolic-ref` returns a non-zero exit code because `HEAD` does not point to a branch.
+
+### 7.3. Linked worktrees share branch refs
+
+Multiple worktrees can share the object database and refs of the same repository. High-level Git commands normally prevent the same branch from being checked out in multiple worktrees, but `update-ref` is lower-level and does not automatically update the working trees of other worktrees.
+
+Before updating a branch in a script, inspect all worktrees:
+
+~~~sh
+git worktree list --porcelain
+~~~
+
+If the ref being updated is checked out in any worktree, use an appropriate workflow to update that worktree or choose another ref. Never let a branch ref and a worktree's working state diverge.
+
+## 8. Reflogs help trace ref changes
+
+The reflog records updates to refs or `HEAD` in the local repository. It can help recover a previous position after an accidental update.
+
+View a branch's reflog:
+
+~~~sh
+git reflog show refs/heads/release
+~~~
+
+Record a reason when updating:
+
+~~~sh
+git update-ref --create-reflog -m "restore approved release pointer" refs/heads/release "$new_oid" "$old_oid"
+~~~
+
+The reason logged in the reflog helps operators understand why a ref moved. The reflog is not a centralized audit log and normally exists only in the local repository; it is not automatically pushed to remotes.
+
+### 8.1. Recovering a ref from the reflog
+
+If a branch was moved by mistake, find the object ID before the operation:
+
+~~~sh
+git reflog show refs/heads/release
+~~~
+
+After identifying the old commit and inspecting its content, you can create a rescue branch:
+
+~~~sh
+git branch rescue/release-before-update <old-commit>
+~~~
+
+If the original branch itself must be restored, first read its current value, verify the branch is not checked out in any worktree, and coordinate with affected users. You can then update the ref with an `old-oid` check:
+
+~~~sh
+current_oid=$(git rev-parse refs/heads/release)
+git update-ref -m "restore release ref" refs/heads/release <old-commit> "$current_oid"
+~~~
+
+The example above is only appropriate after verifying worktree and policy conditions. If the branch is actively in use, prefer high-level commands and proper synchronization workflows.
+
+### 8.2. Reflog limitations
+
+Reflogs can expire or be deleted. They do not replace backups, remotes, or audit logs. An object no longer retained by any ref or reflog can eventually be reclaimed by garbage collection.
+
+When deep investigation is required, you can search for unreferenced objects:
+
+~~~sh
+git fsck --full --no-reflogs --unreachable
+~~~
+
+This command can take considerable time on large repositories. Use it only when investigating lost refs and preserve needed objects before any cleanup runs.
+
+## 9. Are ref updates safe from a business-rule perspective?
+
+`update-ref` protects ref writes, but does not enforce project rules automatically. Scripts must check additional conditions.
+
+| Condition | How to verify or protect |
+|---|---|
+| Valid ref name | `git check-ref-format` |
+| Ref still holds expected value | `old-oid` or `verify` |
+| Target object exists | `git cat-file -e` |
+| Branch only advances fast-forward | `git merge-base --is-ancestor` |
+| Checked-out branch is not moved | `git worktree list --porcelain` |
+| Multiple refs updated together | `git update-ref --stdin` transaction |
+| Changes remain traceable | `-m` and `--create-reflog` |
+| Ref is not deleted mistakenly | delete with expected `old-oid` |
+
+For example, a release tool might enforce:
+
+1. The release tag has been verified.
+2. The target commit is a valid commit.
+3. The current branch still sits at the initially read SHA.
+4. The branch is not checked out in any active worktree.
+5. The ref update logs a reason to the reflog.
+6. The outcome is re-verified after the transaction completes.
+
+Do not rely solely on `update-ref` returning exit code `0` to conclude an entire release workflow succeeded. The command only confirms that the ref operation itself was accepted.
+
+## 10. Comparing update-ref with high-level commands
+
+| Command | Primary purpose | Coordinates working tree/index? |
+|---|---|---|
+| `git branch` | Create, list, delete branches | Does not check out if only creating a branch |
+| `git switch` | Switch branches or commits | Yes |
+| `git reset` | Move `HEAD`/branch and optionally update index and working tree | Yes, depending on mode |
+| `git tag` | Create, list, delete tags | No |
+| `git symbolic-ref` | Read or update symbolic refs | No |
+| `git update-ref` | Create, update, verify, delete refs at the plumbing layer | Does not automatically check out or update index |
+
+Use high-level commands for routine user workflows. Use `update-ref` when building tools, administering refs, or needing transactions and explicit old-value checks.
+
+## 11. Never edit ref files or packed-refs directly
+
+In the `files` backend, you may see paths like:
+
+~~~text
+.git/refs/heads/main
+.git/refs/tags/v2.0.0
+.git/packed-refs
+~~~
+
+Never use an editor, `echo`, or ad-hoc scripts to edit these files. Doing so can:
+
+- Bypass Git's locking mechanism.
+- Overwrite updates from another process.
+- Write malformed object IDs or point to non-existent objects.
+- Leave the reflog un-updated.
+- Break compatibility with alternative ref storage backends.
+- Create inexplicable states when concurrent repository operations are running.
+
+Use `update-ref` or high-level commands. If you suspect ref corruption, use `show-ref`, `fsck`, and inspection commands rather than manually editing internal storage.
+
+## 12. Practical example: a safe release promotion tool
+
+Suppose a script needs to move branch `release` from an old commit to a tested commit. The script must reject the update if the branch changed during preparation, the target commit does not exist, or the update is not fast-forward.
+
+~~~sh
+#!/bin/sh
+set -eu
+
+ref=refs/heads/release
+candidate=candidate-release
+
+git check-ref-format "$ref"
+
+old_oid=$(git rev-parse "$ref")
+new_oid=$(git rev-parse "$candidate^{commit}")
+
+git cat-file -e "$new_oid^{commit}"
+
+if ! git merge-base --is-ancestor "$old_oid" "$new_oid"; then
+    echo "Rejected: candidate is not a fast-forward of release." >&2
+    exit 1
+fi
+
+if git worktree list --porcelain | grep -Fqx "branch $ref"; then
+    echo "Rejected: release is currently checked out in a worktree." >&2
+    exit 1
+fi
+
+git update-ref --create-reflog -m "promote candidate-release" "$ref" "$new_oid" "$old_oid"
+
+actual_oid=$(git rev-parse "$ref")
+if [ "$actual_oid" != "$new_oid" ]; then
+    echo "Error: updated ref does not match candidate." >&2
+    exit 1
+fi
+
+echo "Updated release to $actual_oid"
+~~~
+
+This script illustrates the validation steps, not a complete production release suite. In production, also account for concurrent branch/worktree changes, porcelain output parsing, execution permissions, logging, error handling, and rollback policy. Checking worktrees and then calling `update-ref` is not a single shared transaction with checkout operations; coordinate so no other process alters worktrees between those two steps. `update-ref`'s `old_oid` check remains the final safeguard against updates based on stale ref values.
+
+If branch `release` is currently checked out, the script stops instead of moving the ref and leaving the working tree/index at the old commit. Operators can switch to updating the branch via high-level commands or perform promotion inside a separately managed bare environment.
+
+## 13. Common errors when using update-ref
+
+**Ref does not exist.** Check the full name and namespace with `show-ref` or `for-each-ref`. If the goal is to create a new ref, use `create` in `--stdin` mode.
+
+**Old value mismatch.** Another process likely updated the ref. Re-read the state and recompute your decision; never drop `old-oid` just to force the command through.
+
+**Target object does not exist or has wrong type.** Check with `rev-parse` and `cat-file`. Branches should resolve to commits; tags may point to tag objects.
+
+**Invalid ref name.** Validate with `check-ref-format` and reject invalid inputs.
+
+**Moving a checked-out branch.** `update-ref` does not update the working tree/index. Use `switch`/`reset` as appropriate or abort the operation.
+
+**Can a transaction apply only partially?** When an stdin transaction is properly prepared and committed, Git applies the group of updates as a single unit. If an error occurs, re-read all refs rather than guessing the state.
+
+**Reflog not found.** Some refs do not have a reflog yet, or their reflog has expired. Use `--create-reflog` when updating and maintain proper backups.
+
+**A `.lock` file remains present.** Check whether a Git process is still running. Never delete a lock manually without determining the cause and ownership.
+
+## 14. Checklist for protecting ref consistency
+
+**Before updating**
+
+- [ ] Use full ref names and validate format.
+- [ ] Re-read the current object ID.
+- [ ] Verify the target object exists and has the expected type.
+- [ ] Check fast-forward or project policy constraints.
+- [ ] Confirm the branch is not checked out in any relevant worktree.
+- [ ] Determine whether multiple refs must be updated in a transaction.
+
+**During updating**
+
+- [ ] Pass the expected `old-oid` to prevent overwriting concurrent changes.
+- [ ] Use a transaction for groups of refs requiring atomicity.
+- [ ] Record a reason in the reflog when appropriate.
+- [ ] Never edit files directly in `.git/refs` or `packed-refs`.
+- [ ] Never delete locks without confirming which process holds them.
+
+**After updating**
+
+- [ ] Verify the ref points to the expected object.
+- [ ] Inspect the reflog if traceability is needed.
+- [ ] Check `HEAD`, the index, and the working tree.
+- [ ] Log results and handle errors explicitly.
+- [ ] Ensure higher-level workflows or related worktrees remain consistent.
+
+## 15. Conclusion
+
+`git update-ref` is a plumbing tool for controlled ref changes. The `old-oid` check detects concurrent updates, stdin commands such as `create`, `verify`, `delete`, and transactions enable precise ref management, and reflogs help trace ref movements.
+
+Ref atomicity does not automatically guarantee consistency of the entire working tree. `update-ref` does not check out the new commit and does not synchronize the index, so avoid moving checked-out branches. Use high-level commands for routine work, use `update-ref` for administrative tooling with explicit checks, and always verify refs, objects, worktrees, and state after updating.

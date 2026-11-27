@@ -1,0 +1,710 @@
+# Mapping a List and Storing Element Positions
+
+## 1. When collection order is part of the data
+
+In an aggregate, many kinds of data are represented as collections: order lines, workflow steps, trip legs, questions in an exam, or items in a priority list. If element order carries business meaning or must be preserved across application restarts, simply storing child rows with a foreign key is not enough. The database needs to know **which position each element occupies in the list**.
+
+Spring Data JDBC supports this by mapping `List<T>` to a structure equivalent to `Map<Integer, T>`. One foreign key column links each child row to the aggregate root; an additional column stores the element's index. The `@MappedCollection` annotation lets you specify the names of those two columns.
+
+Example of an order with three lines:
+
+```text
+PurchaseOrder #42
+lines:
+  index 0 -> BOOK-01, quantity 2
+  index 1 -> PEN-02,  quantity 5
+  index 2 -> BAG-03,  quantity 1
+```
+
+The database stores the child rows along with their positions:
+
+```text
+order_id | line_no | sku     | quantity
+---------+---------+---------+---------
+42       | 0       | BOOK-01 | 2
+42       | 1       | PEN-02  | 5
+42       | 2       | BAG-03  | 1
+```
+
+When reading the aggregate back, Spring Data JDBC uses the foreign key to group rows belonging to the right order and uses the position column to restore the `List` order. Thus, order does not depend on the physical order of rows in the database.
+
+In this lesson, we will explore:
+
+- How `@MappedCollection(idColumn, keyColumn)` works.
+- How to design the schema and Java model for a `List` of elements belonging to an aggregate.
+- How to add, remove, insert, and move elements while preserving order.
+- Differences between `List`, `Set`, and `Map` in Spring Data JDBC.
+- The cost of re-saving the collection when calling `save`, along with notes on keys, indexes, and consistency.
+
+## 2. How Spring Data JDBC maps a List
+
+Suppose the aggregate root is `PurchaseOrder` and the collection is `List<PurchaseOrderLine>`. Two pieces of information must be stored for each element:
+
+| Information | Role | Example column |
+| --- | --- | --- |
+| Aggregate root ID | Identifies which order the child line belongs to | `order_id` |
+| Element index in the List | Identifies the position of the line | `line_no` |
+
+`@MappedCollection` provides two corresponding attributes:
+
+```java
+@MappedCollection(
+    idColumn = "order_id",
+    keyColumn = "line_no"
+)
+private List<PurchaseOrderLine> lines = new ArrayList<>();
+```
+
+- `idColumn` is the column name in the relational table used to reference the aggregate root's primary key.
+- `keyColumn` is the column name used to store the `List` index. With `Map`, this column stores the map key.
+
+If omitted, Spring Data JDBC uses `NamingStrategy` to infer column names. Declaring them explicitly makes the schema easier to read and avoids guessing column names when working with databases that have specific naming conventions.
+
+### 2.1. Why is List mapped like Map<Integer, T>?
+
+A `List` has two characteristics: each element has a value and each element has a position. A `Set` only represents a set of elements without a stable position by collection contract. A `Map` has keys to identify elements.
+
+Spring Data JDBC uses integers as keys equivalent to element positions in the `List`:
+
+```text
+Java List                         Relational equivalent
+--------------------------------------------------------
+lines.get(0)                      map.get(0)
+lines.get(1)                      map.get(1)
+lines.get(2)                      map.get(2)
+
+keyColumn = line_no
+--------------------------------------------------------
+line_no = 0                       first element
+line_no = 1                       second element
+line_no = 2                       third element
+```
+
+Java `List` indexes start at 0, so the example uses 0, 1, 2. This column is collection mapping metadata; normally you do not need to add a `lineNo` property to each child object to store the same information.
+
+### 2.2. Spring Data JDBC does not rely on natural row order
+
+SQL does not guarantee row order unless the query has an `ORDER BY`. Spring Data JDBC cannot rely on whatever order the database happens to return rows in to build an accurate `List`. The position key in `keyColumn` is the data that tells it which element comes before or after another.
+
+Therefore, if you write SQL manually to inspect the data, add `ORDER BY line_no` when you want to view rows in `List` order:
+
+```sql
+SELECT order_id, line_no, sku, quantity
+FROM purchase_order_lines
+WHERE order_id = ?
+ORDER BY line_no;
+```
+
+## 3. Designing the schema for a List belonging to an aggregate
+
+Let's use an order with multiple order lines as an example. Each line belongs to exactly one order; an order line is not an independent aggregate root.
+
+### 3.1. Aggregate root table
+
+```sql
+CREATE TABLE "purchase_orders" (
+    "id" BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    "order_number" VARCHAR(40) NOT NULL UNIQUE,
+    "status" VARCHAR(20) NOT NULL
+);
+```
+
+### 3.2. List element table
+
+```sql
+CREATE TABLE "purchase_order_lines" (
+    "order_id" BIGINT NOT NULL,
+    "line_no" INTEGER NOT NULL,
+    "sku" VARCHAR(80) NOT NULL,
+    "quantity" INTEGER NOT NULL CHECK ("quantity" > 0),
+    "unit_price" DECIMAL(12, 2) NOT NULL CHECK ("unit_price" >= 0),
+
+    CONSTRAINT "pk_purchase_order_lines"
+        PRIMARY KEY ("order_id", "line_no"),
+
+    CONSTRAINT "fk_purchase_order_lines_order"
+        FOREIGN KEY ("order_id")
+        REFERENCES "purchase_orders" ("id")
+);
+```
+
+The composite primary key `(order_id, line_no)` guarantees that within the same order, no two elements share the same position. The same `line_no` can appear in another order because `order_id` is part of the key.
+
+This schema accurately reflects two dimensions:
+
+- `order_id` identifies the owner of the order line.
+- `line_no` identifies the position of the order line within that owner's list.
+
+**Do not use `line_no` as the business ID of an order line.** If an order line needs a stable identifier to reference in APIs, history, or audits, add a property such as `line_id` or model it as an entity with an appropriate identifier. An index only represents the current position; when inserting or moving elements, the index can change.
+
+Table/column names in the example are quoted to match lowercase name mapping in default configurations with force-quote enabled. When using PostgreSQL, H2, MySQL, or another database, verify quoting rules and migrations for the actual dialect. Do not copy DDL to every database without checking identity types and constraint syntax.
+
+## 4. Declaring the Java model
+
+The example uses Spring Boot with Spring Data JDBC and Java 21. Classes are placed in package `com.example.orders` and saved in separate files.
+
+### 4.1. Child object
+
+Create `PurchaseOrderLine.java`:
+
+```java
+package com.example.orders;
+
+import java.math.BigDecimal;
+import java.util.Objects;
+
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("purchase_order_lines")
+public record PurchaseOrderLine(
+        String sku,
+        int quantity,
+        BigDecimal unitPrice
+) {
+    public PurchaseOrderLine {
+        Objects.requireNonNull(sku, "sku is required");
+        Objects.requireNonNull(unitPrice, "unitPrice is required");
+
+        sku = sku.trim();
+        if (sku.isEmpty()) {
+            throw new IllegalArgumentException("sku must not be blank");
+        }
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("quantity must be positive");
+        }
+        if (unitPrice.signum() < 0) {
+            throw new IllegalArgumentException("unitPrice must not be negative");
+        }
+    }
+
+    public BigDecimal lineTotal() {
+        return unitPrice.multiply(BigDecimal.valueOf(quantity));
+    }
+}
+```
+
+`PurchaseOrderLine` has no `@Id` in this example. Child rows are identified in the `List` relationship by the composite key consisting of the root's foreign key and the element's position. `@Table` specifies the table holding the order lines.
+
+A record fits immutable order line data well. When quantity or price needs to change, we create a new record and replace the element at the corresponding position in the `List`. Changes still go through the aggregate root's behavior.
+
+### 4.2. Aggregate root owning the List
+
+Create `PurchaseOrder.java`:
+
+```java
+package com.example.orders;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.MappedCollection;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("purchase_orders")
+public class PurchaseOrder {
+
+    @Id
+    private Long id;
+
+    private String orderNumber;
+    private String status;
+
+    @MappedCollection(
+            idColumn = "order_id",
+            keyColumn = "line_no"
+    )
+    private List<PurchaseOrderLine> lines = new ArrayList<>();
+
+    // Used by Spring Data JDBC when materializing the aggregate.
+    protected PurchaseOrder() {
+    }
+
+    public PurchaseOrder(String orderNumber) {
+        this.orderNumber = Objects.requireNonNull(
+                orderNumber, "orderNumber is required");
+        this.status = "DRAFT";
+    }
+
+    public void addLine(PurchaseOrderLine line) {
+        requireDraft();
+        lines.add(Objects.requireNonNull(line, "line is required"));
+    }
+
+    public void insertLine(int index, PurchaseOrderLine line) {
+        requireDraft();
+        Objects.requireNonNull(line, "line is required");
+        // List.add(index, value) automatically shifts subsequent elements.
+        lines.add(index, line);
+    }
+
+    public void replaceLine(int index, PurchaseOrderLine replacement) {
+        requireDraft();
+        Objects.requireNonNull(replacement, "replacement is required");
+        lines.set(index, replacement);
+    }
+
+    public void removeLine(int index) {
+        requireDraft();
+        lines.remove(index);
+    }
+
+    public void moveLine(int fromIndex, int toIndex) {
+        requireDraft();
+        if (fromIndex == toIndex) {
+            return;
+        }
+
+        PurchaseOrderLine moved = lines.remove(fromIndex);
+        lines.add(toIndex, moved);
+    }
+
+    public List<PurchaseOrderLine> lines() {
+        return List.copyOf(lines);
+    }
+
+    public Long id() {
+        return id;
+    }
+
+    public String orderNumber() {
+        return orderNumber;
+    }
+
+    private void requireDraft() {
+        if (!"DRAFT".equals(status)) {
+            throw new IllegalStateException(
+                    "Only a draft order can change its lines");
+        }
+    }
+}
+```
+
+Key points in the model:
+
+1. `@MappedCollection` is placed on the `List` property of the aggregate root.
+2. `idColumn` points to the root's primary key in the child table.
+3. `keyColumn` stores each element's index.
+4. Methods to add, insert, replace, remove, and move all go through the root, allowing the aggregate to enforce status and rules.
+5. `lines()` returns an unmodifiable copy, preventing callers from mutating the collection directly and bypassing the root's methods.
+
+In this example, `status` uses a `String` to keep the focus on mapping. Real projects should use an enum or suitable domain status type, and clearly define when the list is allowed to change.
+
+### 4.3. Repository
+
+Create `PurchaseOrderRepository.java`:
+
+```java
+package com.example.orders;
+
+import org.springframework.data.repository.CrudRepository;
+
+public interface PurchaseOrderRepository
+        extends CrudRepository<PurchaseOrder, Long> {
+}
+```
+
+One repository manages the `PurchaseOrder` aggregate root. There is no need to create a separate repository for `PurchaseOrderLine` if lines are only accessed and modified through the order. This follows from the aggregate boundary: child rows have no independent lifecycle in this model.
+
+## 5. Creating and saving a List
+
+An example creating an order:
+
+```java
+PurchaseOrder order = new PurchaseOrder("PO-2026-001");
+
+order.addLine(new PurchaseOrderLine(
+        "BOOK-01", 2, new BigDecimal("120000.00")));
+
+order.addLine(new PurchaseOrderLine(
+        "PEN-02", 5, new BigDecimal("8000.00")));
+
+order.addLine(new PurchaseOrderLine(
+        "BAG-03", 1, new BigDecimal("250000.00")));
+
+PurchaseOrder saved = repository.save(order);
+```
+
+When the root is new, Spring Data JDBC inserts the root first to obtain its ID, then inserts the referenced elements. Illustrative SQL:
+
+```sql
+INSERT INTO "purchase_orders" ("order_number", "status")
+VALUES (?, ?);
+
+INSERT INTO "purchase_order_lines"
+    ("order_id", "line_no", "sku", "quantity", "unit_price")
+VALUES (?, ?, ?, ?, ?);
+```
+
+The child table insert is executed for each element with the same `order_id` and its corresponding position. Conceptual data after saving:
+
+| order_id | line_no | sku | quantity |
+| ---: | ---: | --- | ---: |
+| 42 | 0 | BOOK-01 | 2 |
+| 42 | 1 | PEN-02 | 5 |
+| 42 | 2 | BAG-03 | 1 |
+
+ID `42` is just an illustrative value. The database may generate a different ID.
+
+## 6. Reading back the List and restoring order
+
+When reading the aggregate:
+
+```java
+PurchaseOrder loaded = repository.findById(saved.id())
+        .orElseThrow();
+
+for (int i = 0; i < loaded.lines().size(); i++) {
+    System.out.println(i + " -> " + loaded.lines().get(i));
+}
+```
+
+Spring Data JDBC loads the child elements associated with the root and constructs the `List` according to the key column's values. Output:
+
+```text
+0 -> PurchaseOrderLine[sku=BOOK-01, quantity=2, ...]
+1 -> PurchaseOrderLine[sku=PEN-02, quantity=5, ...]
+2 -> PurchaseOrderLine[sku=BAG-03, quantity=1, ...]
+```
+
+You do not need to declare a `lineNo` property in `PurchaseOrderLine` just to hold the position. The `line_no` column belongs to the relationship mapping, not the line's own data.
+
+### Do not rely on default SELECT order
+
+If you manually run:
+
+```sql
+SELECT *
+FROM "purchase_order_lines"
+WHERE "order_id" = 42;
+```
+
+the database may return rows in any order without `ORDER BY`. When inspecting with an SQL client, use:
+
+```sql
+SELECT *
+FROM "purchase_order_lines"
+WHERE "order_id" = 42
+ORDER BY "line_no";
+```
+
+This is a general SQL rule. The position column is stored so the framework can reconstruct the collection properly; anyone writing manual queries still needs `ORDER BY` when ordered results are desired.
+
+## 7. Changing element positions
+
+Suppose the current list is:
+
+```text
+index 0: BOOK-01
+index 1: PEN-02
+index 2: BAG-03
+```
+
+### 7.1. Appending to the end
+
+```java
+order.addLine(new PurchaseOrderLine(
+        "RULER-04", 1, new BigDecimal("12000.00")));
+```
+
+The new element receives the last position in the list, e.g., index 3.
+
+### 7.2. Inserting in the middle
+
+```java
+order.insertLine(
+        1,
+        new PurchaseOrderLine(
+                "ERASER-05", 3, new BigDecimal("5000.00"))
+);
+```
+
+`List.add(1, value)` inserts the new element at index 1 and shifts existing elements from position 1 onward to the right:
+
+```text
+Before:
+0 BOOK-01
+1 PEN-02
+2 BAG-03
+
+After:
+0 BOOK-01
+1 ERASER-05
+2 PEN-02
+3 BAG-03
+```
+
+When saving the aggregate, the key column reflects the new positions of all elements.
+
+### 7.3. Removing an element
+
+```java
+order.removeLine(1);
+```
+
+The Java `List` shifts elements after the removed position to the left:
+
+```text
+Before:
+0 BOOK-01
+1 ERASER-05
+2 PEN-02
+3 BAG-03
+
+After:
+0 BOOK-01
+1 PEN-02
+2 BAG-03
+```
+
+After saving, positions in the database must match the new `List`. Do not delete an SQL row directly and leave the remaining indexes inconsistent with the collection in Java.
+
+### 7.4. Moving an element
+
+```java
+order.moveLine(2, 0);
+```
+
+The `moveLine` method in the aggregate takes the element at the old position, removes it, and inserts it at the target position. Result:
+
+```text
+Before:
+0 BOOK-01
+1 PEN-02
+2 BAG-03
+
+After moveLine(2, 0):
+0 BAG-03
+1 BOOK-01
+2 PEN-02
+```
+
+Changing the order in Java alone does not update the database. You must call `repository.save(order)` inside an appropriate transaction to persist the new state.
+
+## 8. Re-saving an aggregate with a List: what happens?
+
+This is a critical point when using Spring Data JDBC. The framework does not track per-element history like JPA's persistence context/dirty checking. It does not know exactly which element was just added, removed, or moved compared to the old state in the database.
+
+Under Spring Data JDBC's aggregate-saving mechanism:
+
+- If the aggregate root is new, the framework inserts the root and then inserts the referenced child entities.
+- If the aggregate root already exists, the referenced child entities are deleted, the root is updated, and then the child entities are re-inserted according to the current aggregate state.
+
+Therefore, even when only moving one element in the `List`, `save` may rewrite all child rows of the aggregate.
+
+Conceptual flow when saving an existing root:
+
+```sql
+DELETE FROM "purchase_order_lines"
+WHERE "order_id" = ?;
+
+UPDATE "purchase_orders"
+SET "order_number" = ?, "status" = ?
+WHERE "id" = ?;
+
+-- Then re-insert lines according to the new List
+INSERT INTO "purchase_order_lines"
+    ("order_id", "line_no", "sku", "quantity", "unit_price")
+VALUES (?, ?, ?, ?, ?);
+```
+
+This is a logical description, not a verbatim SQL log across every version/dialect. The exact number of statements and SQL details depend on mapping, dialect, and aggregate contents.
+
+### Performance and data implications
+
+1. **Large Lists have high write costs:** changing one line can cause all child rows to be deleted and re-inserted.
+2. **Triggers/audits may observe many operations:** if the database has INSERT/DELETE triggers, a single save can fire them more times than you expect.
+3. **External foreign keys pointing to order lines are a design red flag:** children belong to the aggregate and may be deleted and recreated during save.
+4. **Auto-generated child IDs may be unstable if children are deleted/re-inserted:** do not use a child row ID as an external identifier when the persistence model can recreate rows.
+5. **Transactions are required:** updating the root and synchronizing the collection must happen atomically to avoid partial state.
+
+If a collection has thousands of elements, frequently mutates a small part, or individual elements have independent lifecycles, revisit the aggregate boundaries. You can split elements into a separate aggregate and manipulate them with a dedicated repository/SQL, though you must then define consistency rules between aggregates.
+
+## 9. How do List, Set, and Map differ?
+
+Spring Data JDBC distinguishes collection types as follows:
+
+| Java collection | Relational model | Extra column | Ordering |
+| --- | --- | --- | --- |
+| `List<T>` | One-to-many, mapped equivalently to `Map<Integer, T>` | List index | Yes, stored via key column |
+| `Set<T>` | One-to-many | No key column needed for position | No order guarantee |
+| `Map<K, T>` with simple K | Keyed one-to-many | Map key value | Accessed by key, not index |
+
+### When to use List?
+
+Use `List` when position is part of the data:
+
+- Steps in a workflow that must run in order.
+- Legs of an itinerary.
+- Items in a priority list.
+- Order lines whose display order is arranged by the user.
+
+### When to use Set?
+
+Use `Set` when you only need a collection of elements without persisting position. Spring Data JDBC does not need a key column for `Set`; specifying `keyColumn` on a `Set` has no effect.
+
+### When to use Map?
+
+Use `Map` when you want to look up elements by a meaningful key, such as settings by language code or attributes by type:
+
+```java
+@MappedCollection(
+    idColumn = "product_id",
+    keyColumn = "locale_key"
+)
+private Map<String, ProductDescription> descriptions;
+```
+
+In this case, `locale_key` stores the map key, such as `vi` or `en`, rather than an integer position.
+
+### Be careful with Lists of simple types
+
+Spring Data Relational documentation also mentions arrays and collections of simple types, which can be mapped to array columns if the database supports them. That is a different mechanism from `List<some entity>` mapped as a one-to-many relationship. This lesson focuses on `List` of child objects inside an aggregate and the relationship's index column.
+
+## 10. Position is not an element's identifier
+
+A common design mistake is using the index as the order line's identifier. For example, an API returns:
+
+```json
+{
+  "orderId": 42,
+  "lineNo": 1,
+  "sku": "PEN-02"
+}
+```
+
+The client keeps `lineNo = 1` and sends a request to edit that line later. If a new line was inserted at the beginning of the `List`, `PEN-02` may have shifted from index 1 to index 2. The old client sending index 1 will target a different element.
+
+Distinguish between:
+
+- **Position:** the current place in the `List`, which can change after insert/remove/reorder.
+- **Stable identifier:** an element's ID, which stays the same even if its position changes.
+
+If business logic needs a stable identifier, add a field like `lineId`:
+
+```java
+public record PurchaseOrderLine(
+        UUID lineId,
+        String sku,
+        int quantity,
+        BigDecimal unitPrice
+) {
+}
+```
+
+`lineId` is an ordinary data property of the child row; it does not replace `line_no` if the `List` still needs to store positions. When saving the aggregate, Spring Data JDBC may still delete/re-insert child rows, so consider whether that ID remains truly stable across the persistence lifecycle. If strong history and independent references are needed, splitting the order line into a separate aggregate may be more appropriate.
+
+## 11. Do not put redundant back-references or indexes in the model
+
+Spring Data JDBC already knows:
+
+- Which root owns the element via `idColumn`.
+- Which position the element is at via `keyColumn`.
+
+Therefore, you normally do not need to add these two fields to the child:
+
+```java
+// Not needed just for List mapping:
+private Long orderId;
+private Integer lineNo;
+```
+
+If you add these fields while still letting `@MappedCollection` manage the relationship, they may be treated as regular data properties of the child requiring corresponding columns. This creates two sources of truth that can easily drift out of sync: the position determined by the `List` and the position stored in the field.
+
+If the application genuinely needs access to the index in the model, Spring Data Relational documentation recommends populating a transient field via an `AfterConvertCallback`. Only do so when business logic requires it; do not add persistence metadata to the domain model by default.
+
+## 12. Database constraints and business rules
+
+The `line_no` column is the position key, while rules such as positive quantity and preventing duplicate product lines in an order are business rules. Enforce them at the right layer:
+
+| Rule | Where to enforce |
+| --- | --- |
+| Only one line per position in an order | Primary key or unique constraint `(order_id, line_no)` |
+| Every line must belong to an existing order | Foreign key `order_id` |
+| Quantity greater than 0 | Domain model and SQL CHECK |
+| Non-negative price | Domain model and SQL CHECK |
+| Only draft orders can modify the List | Aggregate root |
+| Duplicate SKU disallowed in the same order if business forbids it | Aggregate root; optionally add constraint if schema can express it appropriately |
+
+A `PRIMARY KEY(order_id, line_no)` constraint does not prevent duplicate SKUs, because two lines with different indexes are still valid by key. If business rules forbid duplicate SKUs, consider a unique constraint `(order_id, sku)`, but only when the model allows each SKU to appear on at most one line.
+
+### Do indexes need to be contiguous?
+
+With a Java `List`, indexes are contiguous from 0 to `size() - 1`. When operating via `List`'s `add`, `remove`, or `move`, Java automatically shifts elements and produces a contiguous sequence. Spring Data JDBC uses the `List` state to persist the positions.
+
+If another program writes directly to the child table, define how indexes are updated within the same transaction. Do not arbitrarily insert a row with `line_no = 99` and assume every read path will treat it as a normal `List`. Any SQL modifications outside Spring Data JDBC must adhere to the same data contract and be tested with the framework version in use.
+
+## 13. Inserting and reordering many elements: choosing the right strategy
+
+For short lists, changing positions via Java operations is straightforward. For large lists with frequent middle insertions, shifting the indexes of many elements can be costly. Several design options exist:
+
+### Approach A — Contiguous integer indexes
+
+Suitable when:
+
+- The collection is small or medium-sized.
+- Order changes infrequently.
+- The aggregate is persisted as a single unit.
+
+The advantage is simple, readable mapping with no extra ranking logic.
+
+### Approach B — Store a separate ordering attribute
+
+If each line needs a meaningful sort value, you can store `sortOrder` or `rank` as a property column on the line. When doing so, clarify:
+
+- Is `sortOrder` business data or merely a display technique?
+- Can values have gaps?
+- When two lines share the same rank, what determines the tie-breaker order?
+- Who is responsible for updating ranks on insert/move?
+
+An ordinary `sortOrder` property **does not automatically replace the key column** of Spring Data JDBC when the property is still a `List`. If the framework uses `List`, the key column still serves as the collection index. To control order via a field yourself, use a different query/mapping approach or store the collection under a more suitable model.
+
+### Approach C — Split elements into an independent aggregate
+
+If each item is edited frequently, needs a stable ID, is accessed directly by many use cases, or has its own history, you can split it into an aggregate root. Ordering is then represented by a rank/order column and updated through a dedicated repository.
+
+In return, the application must coordinate consistency between the root and the independent elements; it no longer benefits from saving the entire collection as part of the aggregate. Split only when lifecycle and business rules truly demand it.
+
+## 14. Common pitfalls
+
+| Symptom | Possible cause | How to resolve |
+| --- | --- | --- |
+| List loaded in wrong order | Missing key column, mismatched mapping column name, or manual inspection SQL lacks ordering | Declare `keyColumn` properly, inspect position data, and use `ORDER BY` in inspection queries. |
+| Database reports missing key column | DDL has not created the column declared in `@MappedCollection` | Create an integer column for the index and the corresponding migration. |
+| Duplicate key error on child insert | Two elements share `order_id`/`line_no` or code wrote wrong index | Let mapping manage positions; check composite PK and other write paths. |
+| Child rows not saved | Collection not properly attached to aggregate or wrong table/FK mapping | Check collection property, `@MappedCollection`, `@Table`, and schema. |
+| Mapping error after adding `lineNo` field | Spring Data treats the field as a data property but schema lacks the column | Remove the redundant field or design an explicit column if it is real data; do not duplicate index mapping. |
+| Small change writes many SQL rows on save | Spring Data JDBC re-synchronizes the aggregate's child entities | Measure collection size and save frequency; revisit aggregate boundaries if needed. |
+| Client edits wrong line after reorder | Using index as a stable ID | Use a dedicated identifier for the line if the API needs long-lived references. |
+| Order lost after external SQL write | External program did not update key column | Route operations through repository/aggregate or share the position-update contract. |
+
+When encountering a mapping error, check three things first: what collection type the Java property is, which column names the annotation declares, and whether the DDL has both relationship columns. Then inspect SQL logs to see which table and columns Spring Data is actually writing to.
+
+## 15. Practice exercises
+
+**Exercise 1 — Saving an ordered list.** Create a `PurchaseOrder` with three order lines. Save the aggregate and query the `purchase_order_lines` table by `order_id`. Verify that `line_no` corresponds to the positions in the `List`.
+
+**Exercise 2 — Inserting into the middle.** Insert a line at index 1. Print the `List` in Java and re-query the database with `ORDER BY line_no`. Explain why subsequent lines change indexes.
+
+**Exercise 3 — Removing an element.** Remove the element at index 0 and save. Observe the new `List` state and the rows in the table. Verify that the old position is not left behind as a gap in the state generated from the Java `List`.
+
+**Exercise 4 — Moving an element.** Move the last line to the front. Write a `moveLine(fromIndex, toIndex)` method in the aggregate and verify the result after reloading.
+
+**Exercise 5 — Comparing List with Set.** Create another property `Set<PurchaseOrderLine>` and observe the mapping. Why does `keyColumn` have no meaning for `Set`? Which business cases call for `Set` instead of `List`?
+
+**Exercise 6 — Inspecting save cost.** Create an order with 100 lines, modify one line, and call `save`. Enable JDBC logging and observe the number of operations on the child table. Explain why this is a characteristic of aggregate saving in Spring Data JDBC.
+
+**Exercise 7 — Index vs. identifier.** Add a `lineId` to each line, reorder the list, and compare `lineId` with `line_no`. Explain why one value is an identifier and the other is a position.
+
+## 16. Takeaways
+
+Spring Data JDBC maps `List<some entity>` as a one-to-many relationship with a position key: `idColumn` stores the foreign key to the aggregate root, and `keyColumn` stores the element's index. `@MappedCollection(idColumn = "...", keyColumn = "...")` is where these two columns are explicitly declared.
+
+When the `List` changes, the index is part of the aggregate's state and must be saved together with the elements. Do not rely on SQL's default row order, do not confuse the index with a business ID, and do not add back-references/key columns to the model just to duplicate mapping metadata. Also remember that saving an existing aggregate can delete and re-insert all child entities; thus `List` works best when elements truly belong to the same aggregate and the collection size fits that persistence model.
+
+### References
+
+- [Spring Data Relational – Mapping](https://docs.spring.io/spring-data/relational/reference/jdbc/mapping.html)
+- [Spring Data Relational – Persisting Entities](https://docs.spring.io/spring-data/relational/reference/jdbc/entity-persistence.html)
+- [MappedCollection API](https://docs.spring.io/spring-data/relational/reference/api/java/org/springframework/data/relational/core/mapping/MappedCollection.html)

@@ -1,0 +1,3085 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Native Image là gì và bài toán khởi động, bộ nhớ mà nó hướng tới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt JAR chạy trên JVM với tệp thực thi native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Spring AOT, GraalVM Native Image và Native Build Tools liên hệ thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: AOT khác với JIT và không đồng nghĩa với mọi tối ưu cho JVM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Đánh đổi giữa chi phí build, mức sử dụng bộ nhớ và hiệu năng lúc chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: 'Những tình huống phù hợp: dịch vụ ngắn hạn, co giãn nhanh và tài nguyên giới hạn'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Ranh giới với container image, jlink, CDS và các cơ chế checkpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Những phần ứng dụng có thể thay đổi khi chạy và những phần bị cố định khi build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Kiến thức đầu vào và lộ trình từ ứng dụng JVM đến bản native được kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: native-image-mechanism
+  title: Cơ chế Native Image
+  childs:
+  - slug: native-image-mechanism-001
+    title: Giả định thế giới đóng và yêu cầu biết tập lớp khi build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-image-mechanism-002
+    title: Phân tích khả năng được gọi từ điểm vào của chương trình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-image-mechanism-003
+    title: Reachability và việc loại bỏ mã không cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-image-mechanism-004
+    title: Biên dịch mã Java và các thành phần runtime vào tệp thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-image-mechanism-005
+    title: Image heap và trạng thái đối tượng được tạo trong giai đoạn build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-image-mechanism-006
+    title: Phân biệt bộ nhớ của tiến trình build với bộ nhớ ứng dụng native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-image-mechanism-007
+    title: Truy cập động khiến phân tích tĩnh không suy ra đủ thông tin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-image-mechanism-008
+    title: Vai trò của metadata đối với reflection, tài nguyên, proxy và JNI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-image-mechanism-009
+    title: Phụ thuộc hệ điều hành, kiến trúc CPU và thư viện hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-image-mechanism-010
+    title: Giới hạn tương thích Java cần tra cứu theo phiên bản GraalVM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-aot
+  title: Spring AOT
+  childs:
+  - slug: spring-aot-001
+    title: Vì sao Spring cần xử lý trước khi biên dịch thành native image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-aot-002
+    title: Phân tích cấu hình và chuẩn bị BeanFactory trong giai đoạn AOT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-aot-003
+    title: Bean definition khác với bean instance và thời điểm xử lý mỗi loại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-aot-004
+    title: Sinh mã đăng ký, tạo và liên kết các bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-aot-005
+    title: Sinh proxy, tài nguyên và metadata để GraalVM tiếp tục phân tích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-aot-006
+    title: ApplicationContextInitializer được sinh và khởi tạo ApplicationContext
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-aot-007
+    title: Vai trò của BeanFactoryInitializationAotProcessor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-aot-008
+    title: Vai trò của BeanRegistrationAotProcessor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-aot-009
+    title: Phân biệt Spring AOT thành công với biên dịch native thành công
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-aot-010
+    title: Đọc mã, lớp và metadata được sinh để giải thích hành vi ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-environment
+  title: Môi trường build
+  childs:
+  - slug: build-environment-001
+    title: Chọn bộ phiên bản tương thích giữa Spring Boot, Java, GraalVM và plugin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-environment-002
+    title: Phân biệt GraalVM JDK, native-image và JDK dùng để chạy Gradle hoặc Maven
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-environment-003
+    title: Kiểm tra java, native-image, JAVA_HOME và toolchain thực sự được chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-environment-004
+    title: Công cụ C, linker và các thư viện phát triển cần có trên Linux
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-environment-005
+    title: MSVC, Visual Studio Build Tools và Windows SDK trên Windows
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-environment-006
+    title: Xcode Command Line Tools và kiến trúc CPU trên macOS
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-environment-007
+    title: Quyền truy cập Docker khi build bằng Cloud Native Buildpacks
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-environment-008
+    title: Dung lượng đĩa, RAM và CPU cho quá trình biên dịch native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-environment-009
+    title: Ảnh hưởng của proxy mạng, kho dependency và tải công cụ build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-environment-010
+    title: Tách môi trường build khỏi môi trường chạy tệp thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: first-application
+  title: Ứng dụng đầu tiên
+  childs:
+  - slug: first-application-001
+    title: Chọn một ứng dụng Spring Boot nhỏ làm mốc so sánh JVM và native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-application-002
+    title: Chạy và kiểm chứng hành vi trên JVM trước khi bật AOT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-application-003
+    title: Tạo một endpoint hoặc tác vụ có đầu vào, đầu ra dễ xác nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-application-004
+    title: Bật tích hợp Spring AOT và Native Build Tools
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-application-005
+    title: Build tệp native lần đầu và nhận diện các giai đoạn trong log
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-application-006
+    title: Chạy binary với tham số, biến môi trường và cấu hình cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-application-007
+    title: So sánh chức năng với bản JVM bằng cùng bộ yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-application-008
+    title: Ghi lại thời gian build, kích thước sản phẩm và điều kiện đo ban đầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gradle
+  title: Gradle
+  childs:
+  - slug: gradle-001
+    title: Tích hợp Spring Boot Gradle plugin với org.graalvm.buildtools.native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-002
+    title: Java toolchain và lựa chọn GraalVM dùng cho native build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-003
+    title: processAot và đầu vào cấu hình của quá trình phân tích ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-004
+    title: Các tác vụ biên dịch mã AOT và đưa tài nguyên sinh ra vào classpath
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-005
+    title: nativeCompile và quan hệ phụ thuộc với Spring AOT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-006
+    title: nativeRun, tham số ứng dụng và môi trường thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-007
+    title: Cấu hình graalvmNative, binary name và build arguments
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-008
+    title: processTestAot và nativeTest cho mã kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-009
+    title: bootBuildImage để tạo container image native bằng buildpacks
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-010
+    title: 'Dự án nhiều module: chọn đúng ứng dụng, classpath và dependency được đóng gói'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maven
+  title: Maven
+  childs:
+  - slug: maven-001
+    title: Spring Boot Maven plugin và GraalVM Native Build Tools Maven plugin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-002
+    title: Profile native khi dùng spring-boot-starter-parent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-003
+    title: spring-boot:process-aot và các execution trong vòng đời build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-004
+    title: Biên dịch native với profile và goal phù hợp cấu hình plugin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-005
+    title: Classpath gốc khác với cấu trúc Spring Boot executable JAR
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-006
+    title: Profile nativeTest và spring-boot:process-test-aot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-007
+    title: Cấu hình AOT, native test khi không dùng Spring Boot parent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-008
+    title: spring-boot:build-image để tạo container image native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-009
+    title: Truyền tham số, profile và quản lý phiên bản plugin một cách nhất quán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: buildpacks
+  title: Buildpacks
+  childs:
+  - slug: buildpacks-001
+    title: Cloud Native Buildpacks và vai trò của builder, buildpack, run image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildpacks-002
+    title: Phân biệt build executable tại máy với build container image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildpacks-003
+    title: BP_NATIVE_IMAGE và cách tích hợp của Spring Boot build plugin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildpacks-004
+    title: Chọn builder, run image và phiên bản tương thích thay vì phụ thuộc mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildpacks-005
+    title: Build bằng Docker mà không cần cài GraalVM trực tiếp trên máy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildpacks-006
+    title: Truyền cấu hình build mà không nhầm với biến môi trường lúc chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildpacks-007
+    title: Cache buildpack, lớp image và ảnh hưởng đến thời gian build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildpacks-008
+    title: Tài nguyên dành cho Docker daemon và tiến trình native-image trong build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildpacks-009
+    title: Đặt tên, gắn tag và xuất image tới registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildpacks-010
+    title: Chạy container và kiểm chứng binary, cổng, quyền người dùng, dependency hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-artifacts
+  title: Sản phẩm build
+  childs:
+  - slug: build-artifacts-001
+    title: Phân biệt source, bytecode, mã AOT và binary native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-artifacts-002
+    title: Vị trí mã nguồn, lớp và tài nguyên được sinh bởi Maven hoặc Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-artifacts-003
+    title: META-INF/native-image và cách metadata đi cùng classpath
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-artifacts-004
+    title: Spring Boot executable JAR chứa kết quả AOT để chuyển đổi ở bước sau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-artifacts-005
+    title: Chuyển JAR đã xử lý AOT bằng buildpacks hoặc native-image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-artifacts-006
+    title: Giới hạn của một JAR thông thường chưa chứa kết quả Spring AOT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-artifacts-007
+    title: Xác định hệ điều hành, kiến trúc và thư viện liên kết của binary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-artifacts-008
+    title: Quản lý checksum, báo cáo build và truy vết đầu vào của sản phẩm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: beans-and-aot
+  title: Bean và AOT
+  childs:
+  - slug: beans-and-aot-001
+    title: Định nghĩa bean phải được xác định trong giai đoạn phân tích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: beans-and-aot-002
+    title: Khai báo kiểu trả về đủ cụ thể trên phương thức @Bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: beans-and-aot-003
+    title: Generic, FactoryBean và thông tin kiểu mà AOT cần suy ra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: beans-and-aot-004
+    title: BeanDefinition có thể phân tích khác với đăng ký singleton trực tiếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: beans-and-aot-005
+    title: Đăng ký bean bằng mã và chọn API có hỗ trợ xử lý AOT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: beans-and-aot-006
+    title: BeanFactoryPostProcessor, BeanDefinitionRegistryPostProcessor và điểm cần kiểm tra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: beans-and-aot-007
+    title: BeanPostProcessor và giới hạn khi thay đổi cấu trúc bean ngoài thông tin đã biết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: beans-and-aot-008
+    title: InstanceSupplier, constructor và đường tạo bean được sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: beans-and-aot-009
+    title: '@Configuration, proxyBeanMethods và lời gọi giữa các phương thức @Bean'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: beans-and-aot-010
+    title: Giữ mã khởi tạo an toàn, không phụ thuộc dịch vụ ngoài khi đang phân tích build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: two-phase-configuration
+  title: Cấu hình hai giai đoạn
+  childs:
+  - slug: two-phase-configuration-001
+    title: Phân biệt thuộc tính quyết định cấu trúc bean với giá trị cấu hình lúc chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-phase-configuration-002
+    title: '@Profile và profile-specific configuration trong quá trình AOT'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-phase-configuration-003
+    title: '@ConditionalOnProperty và các điều kiện được đánh giá khi build'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-phase-configuration-004
+    title: Ảnh hưởng của classpath đến auto-configuration đã được chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-phase-configuration-005
+    title: Giá trị như cổng, địa chỉ dịch vụ và credentials có thể được cung cấp lúc chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-phase-configuration-006
+    title: '@ConfigurationProperties và việc binding trong ứng dụng native'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-phase-configuration-007
+    title: Thuộc tính lồng nhau và @NestedConfigurationProperty
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-phase-configuration-008
+    title: Truyền môi trường cho processAot hoặc process-aot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-phase-configuration-009
+    title: Tạo các biến thể build khi tập bean cần khác nhau theo môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-phase-configuration-010
+    title: Kiểm thử cấu hình runtime để phát hiện giả định sai về tính linh hoạt của binary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-hints
+  title: Runtime hints
+  childs:
+  - slug: runtime-hints-001
+    title: RuntimeHints và thông tin bổ sung cho các truy cập không suy ra bằng phân tích tĩnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-hints-002
+    title: RuntimeHintsRegistrar và tổ chức hints theo thành phần sở hữu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-hints-003
+    title: '@ImportRuntimeHints để đưa registrar vào ứng dụng'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-hints-004
+    title: META-INF/spring/aot.factories cho RuntimeHintsRegistrar dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-hints-005
+    title: ReflectionHints và mức truy cập MemberCategory
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-hints-006
+    title: ResourceHints cho tệp, mẫu đường dẫn và resource bundle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-hints-007
+    title: ProxyHints cho JDK dynamic proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-hints-008
+    title: SerializationHints cho Java serialization
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-hints-009
+    title: RuntimeHints.jni() và các kiểu truy cập từ mã native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-hints-010
+    title: Đăng ký có điều kiện theo classpath và giữ phạm vi metadata cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-hints-011
+    title: Phân biệt hints do Spring sinh, do dependency cung cấp và do ứng dụng tự khai báo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reflection
+  title: Reflection
+  childs:
+  - slug: reflection-001
+    title: Phân biệt gọi trực tiếp với truy cập lớp, constructor, method và field bằng reflection
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-002
+    title: Những lời gọi reflection mà GraalVM có thể hoặc không thể suy ra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-003
+    title: Đăng ký kiểu và thành viên cần truy cập qua RuntimeHints
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-004
+    title: Phân biệt xem thông tin thành viên với quyền gọi hoặc đọc, ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-005
+    title: MemberCategory và lựa chọn phạm vi khai báo phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-006
+    title: '@Reflective và các cơ chế xử lý annotation liên quan'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-007
+    title: '@RegisterReflectionForBinding cho kiểu dữ liệu được binding hoặc chuyển đổi'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-008
+    title: Generic, kiểu lồng nhau và các kiểu chỉ xuất hiện qua tên chuỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-009
+    title: Kiểm chứng đường truy cập thực tế thay vì đăng ký toàn bộ package
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resources
+  title: Tài nguyên
+  childs:
+  - slug: resources-001
+    title: Classpath resource khác với tệp bên ngoài binary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-002
+    title: ResourceHints và các mẫu đường dẫn cần đóng gói
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-003
+    title: ResourceBundle, đa ngôn ngữ và dữ liệu locale
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-004
+    title: Template, tệp SQL, tệp cấu hình và dữ liệu đọc qua ClassLoader
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-005
+    title: ServiceLoader, provider và tài nguyên META-INF/services
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-006
+    title: Quét classpath, liệt kê tài nguyên và các giới hạn cần thay đổi thiết kế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-007
+    title: Đường dẫn tương đối, thư mục làm việc và khác biệt phân biệt chữ hoa, chữ thường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-008
+    title: Đọc, ghi tệp runtime mà không giả định tài nguyên nhúng là tệp có thể sửa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-009
+    title: Kiểm tra tài nguyên bị thiếu và tránh đóng gói dữ liệu bí mật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proxies-and-aop
+  title: Proxy và AOP
+  childs:
+  - slug: proxies-and-aop-001
+    title: JDK dynamic proxy và danh sách interface phải được biết trước
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-aop-002
+    title: Thứ tự interface và sự khớp đúng của metadata proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-aop-003
+    title: Proxy dựa trên lớp và mã proxy do Spring AOT chuẩn bị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-aop-004
+    title: '@Transactional, @Async, cache và method security trong ứng dụng native'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-aop-005
+    title: Điều kiện tạo proxy phải được xác định khi phân tích bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-aop-006
+    title: Kiểu trả về, interface và thông tin target ảnh hưởng tới sinh proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-aop-007
+    title: Lời gọi nội bộ trong cùng đối tượng và các giới hạn AOP vốn có
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-aop-008
+    title: Thư viện sinh bytecode lúc chạy và yêu cầu tìm cách tích hợp tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-aop-009
+    title: Kiểm thử hành vi qua proxy thật trên JVM AOT và binary native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: binding-and-json
+  title: Binding và JSON
+  childs:
+  - slug: binding-and-json-001
+    title: '@ConfigurationProperties, constructor binding và kiểu dữ liệu lồng nhau'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-and-json-002
+    title: '@NestedConfigurationProperty khi cấu trúc lồng nhau cần được nhận diện rõ'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-and-json-003
+    title: Jackson với DTO, record, enum và các thành viên truy cập động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-and-json-004
+    title: Kiểu request, response được suy ra từ khai báo endpoint
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-and-json-005
+    title: Kiểu chỉ được chuyển đổi thông qua mã gọi chung hoặc generic bị mất thông tin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-and-json-006
+    title: Polymorphic deserialization và tập subtype cần được biết trước
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-and-json-007
+    title: Custom serializer, deserializer và module Jackson
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-and-json-008
+    title: Bean Validation, annotation và dữ liệu metadata cần có
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-and-json-009
+    title: Kiểm thử JSON, validation và cấu hình với cùng dữ liệu ở JVM và native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: serialization-and-jni
+  title: Serialization và JNI
+  childs:
+  - slug: serialization-and-jni-001
+    title: Phân biệt Java serialization với chuyển đổi JSON
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-and-jni-002
+    title: Đăng ký kiểu Serializable và giới hạn serialization của proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-and-jni-003
+    title: Định dạng dữ liệu, tương thích phiên bản và rủi ro nhận dữ liệu không tin cậy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-and-jni-004
+    title: JNI và những lớp, field, method được mã native gọi tới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-and-jni-005
+    title: Thư viện .so, .dll, .dylib và nền tảng đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-and-jni-006
+    title: Quản lý đường dẫn, cách nạp và phân phối thư viện native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-and-jni-007
+    title: Dependency dùng JNI dù ứng dụng không trực tiếp viết mã C
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-and-jni-008
+    title: Kiểm thử binary trên môi trường chạy thực để phát hiện thiếu thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-initialization
+  title: Khởi tạo lớp
+  childs:
+  - slug: class-initialization-001
+    title: Phân biệt nạp lớp, liên kết lớp và khởi tạo lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-002
+    title: Static initializer chạy ở giai đoạn build hoặc lúc ứng dụng khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-003
+    title: Image heap và các giá trị được lưu từ static field
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-004
+    title: --initialize-at-build-time và phạm vi lớp được tác động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-005
+    title: --initialize-at-run-time và lựa chọn trì hoãn khởi tạo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-006
+    title: Quan hệ khởi tạo giữa lớp cha, lớp con và các kiểu được tham chiếu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-007
+    title: Đối tượng không phù hợp để tồn tại trong image heap
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-008
+    title: Random, thời gian, biến môi trường và trạng thái gắn với máy build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-009
+    title: Theo dõi chuỗi khởi tạo để tìm nguyên nhân lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-010
+    title: Ưu tiên sửa phạm vi cụ thể thay vì áp đặt một chế độ cho mọi lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-limitations
+  title: Giới hạn động
+  childs:
+  - slug: dynamic-limitations-001
+    title: Classpath cố định và hệ quả đối với plugin được tải sau khi triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-limitations-002
+    title: Class.forName với tên lớp chỉ được biết khi chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-limitations-003
+    title: Sinh, biến đổi bytecode và tạo lớp mới lúc chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-limitations-004
+    title: Script engine, expression và thư viện dùng biên dịch động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-limitations-005
+    title: 'Java agent và instrumentation: tra cứu khả năng hỗ trợ theo phiên bản'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-limitations-006
+    title: Runtime proxy và trường hợp metadata không thể thay thế thiết kế không tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-limitations-007
+    title: Chọn cơ chế đăng ký tường minh thay cho quét hoặc phát hiện hoàn toàn động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-limitations-008
+    title: Tách thành phần chưa tương thích sang ranh giới dịch vụ khi phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-limitations-009
+    title: Phân biệt hạn chế của GraalVM với hạn chế riêng của Spring AOT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: external-libraries
+  title: Thư viện ngoài
+  childs:
+  - slug: external-libraries-001
+    title: Lập danh sách dependency và các tính năng động mà chúng sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-libraries-002
+    title: Xác định hỗ trợ native theo đúng phiên bản thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-libraries-003
+    title: Metadata đi kèm JAR và hints do Spring integration cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-libraries-004
+    title: GraalVM Reachability Metadata Repository và tích hợp Native Build Tools
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-libraries-005
+    title: Metadata có điều kiện và sự phù hợp với phiên bản dependency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-libraries-006
+    title: Đóng góp RuntimeHintsRegistrar cho thư viện dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-libraries-007
+    title: Khi nào cần nâng cấp, thay thư viện hoặc thay cách tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-libraries-008
+    title: Không xem dependency đã biên dịch thành công là bằng chứng mọi luồng đều hoạt động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-libraries-009
+    title: Kiểm thử hợp đồng cho các tích hợp có reflection, service loading hoặc JNI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tracing-agent
+  title: Tracing agent
+  childs:
+  - slug: tracing-agent-001
+    title: Native Image Tracing Agent quan sát truy cập động khi ứng dụng chạy trên JVM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-agent-002
+    title: Phân biệt GraalVM tracing agent với Spring RuntimeHints Agent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-agent-003
+    title: Chạy ứng dụng với native-image-agent và config-output-dir
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-agent-004
+    title: Thiết kế kịch bản để đi qua các endpoint, dữ liệu và nhánh tích hợp cần hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-agent-005
+    title: config-merge-dir khi kết hợp nhiều lượt thu thập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-agent-006
+    title: Caller filter, access filter và loại metadata không thuộc phạm vi ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-agent-007
+    title: Tránh ghi metadata của framework kiểm thử hoặc công cụ phát triển không cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-agent-008
+    title: Rà soát dữ liệu sinh ra và đưa phần cần thiết vào vị trí metadata
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-agent-009
+    title: 'Giới hạn bao phủ: đường đi không được thực thi có thể vẫn thiếu metadata'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-agent-010
+    title: Build lại và kiểm thử native sau khi kết hợp hints với kết quả agent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hints-testing
+  title: Kiểm thử hints
+  childs:
+  - slug: hints-testing-001
+    title: RuntimeHintsPredicates để xác nhận loại truy cập đã được khai báo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hints-testing-002
+    title: Kiểm thử reflection cho constructor, method và field thực sự dùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hints-testing-003
+    title: Kiểm thử mẫu resource, resource bundle và danh sách interface proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hints-testing-004
+    title: RuntimeHints Agent trong spring-core-test để ghi nhận truy cập cần hints
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hints-testing-005
+    title: So khớp các thao tác được ghi nhận với RuntimeHints của thành phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hints-testing-006
+    title: Kiểm thử registrar khi dependency tùy chọn có hoặc không có trên classpath
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hints-testing-007
+    title: Giữ kiểm thử gắn với hành vi cần hỗ trợ thay vì lặp lại mọi dòng cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hints-testing-008
+    title: Phân biệt kiểm thử hints đạt với bằng chứng ứng dụng native chạy đúng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aot-testing
+  title: Kiểm thử AOT
+  childs:
+  - slug: aot-testing-001
+    title: Chạy ứng dụng trên JVM với kết quả AOT đã được sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aot-testing-002
+    title: spring.aot.enabled và điều kiện classpath phải chứa kết quả AOT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aot-testing-003
+    title: Phân biệt lỗi phân tích bean với lỗi chỉ xảy ra khi biên dịch native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aot-testing-004
+    title: Kiểm thử ApplicationContext sau khi cố định profile và điều kiện build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aot-testing-005
+    title: Kiểm tra cấu hình runtime không làm thay đổi tập bean ngoài dự kiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aot-testing-006
+    title: Kiểm thử HTTP, JSON, tài nguyên và các proxy trong chế độ AOT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aot-testing-007
+    title: So sánh hành vi ứng dụng JVM thông thường với JVM AOT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aot-testing-008
+    title: Dùng JVM AOT để rút ngắn vòng lặp tìm lỗi trước native build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: native-testing
+  title: Kiểm thử native
+  childs:
+  - slug: native-testing-001
+    title: Native Build Tools và cách chạy JUnit bên trong native executable
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-002
+    title: Spring TestContext AOT phát hiện, xử lý và sinh context cho bài kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-003
+    title: processTestAot, nativeTest và các tác vụ liên quan trong Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-004
+    title: Profile nativeTest và cấu hình test AOT tương ứng trong Maven
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-005
+    title: '@SpringBootTest, test slice và lựa chọn phạm vi kiểm thử'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-006
+    title: Mocking, instrumentation và tính năng kiểm thử cần xác nhận theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-007
+    title: Phân biệt binary chứa bộ kiểm thử với binary ứng dụng dùng để triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-008
+    title: Kiểm thử hộp đen qua HTTP hoặc giao thức thực của binary đã build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-009
+    title: Giữ phần lớn kiểm thử nhanh trên JVM và chọn đường đi quan trọng cho native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-010
+    title: Thu thập kết quả, log và mã thoát để xác nhận thất bại trong CI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Spring MVC, WebFlux và các lớp dữ liệu tại biên HTTP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: Jackson, Bean Validation và xử lý lỗi với các kiểu chỉ xuất hiện lúc chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: JDBC, driver, connection pool và cấu hình kết nối runtime
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: JPA, Hibernate và các proxy, enhancement, metadata cần được kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Spring Data repository và thông tin kiểu của mô hình dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: Giao dịch, cache và xử lý bất đồng bộ qua AOP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: Spring Security với filter chain, method security và tích hợp danh tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: HTTP client, TLS, truststore và kết nối tới dịch vụ ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-009
+    title: Messaging, scheduled task và các lớp thông điệp được chuyển đổi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-010
+    title: Flyway, Liquibase hoặc tài nguyên migration theo phiên bản hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-011
+    title: Kiểm thử đường đi ít gặp như lỗi dữ liệu, retry và khôi phục kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát
+  childs:
+  - slug: observability-001
+    title: Logging và các thành phần cấu hình hoặc layout được nạp động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Actuator, health và kiểm chứng ứng dụng sẵn sàng nhận yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Micrometer, metric và tracing trong native executable
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: JFR, heap dump và khả năng giám sát theo phiên bản, nền tảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Build arguments cần thiết để bật khả năng quan sát được lựa chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Debug symbol và công cụ gỡ lỗi native theo hệ điều hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Phân biệt công cụ giám sát tiến trình JVM với công cụ dành cho binary native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Ảnh hưởng của logging, metric và tracing đến số đo hiệu năng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Bảo vệ endpoint quản trị, log chẩn đoán và dữ liệu dump
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-measurement
+  title: Đo hiệu năng
+  childs:
+  - slug: performance-measurement-001
+    title: Xác định mục tiêu trước khi so sánh JVM với native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-002
+    title: Phân biệt thời gian tiến trình khởi động với thời điểm ứng dụng thực sự sẵn sàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-003
+    title: Độ trễ yêu cầu đầu tiên, trạng thái chưa tải và trạng thái ổn định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-004
+    title: RSS, heap, bộ nhớ ngoài heap và giới hạn container
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-005
+    title: Thông lượng, các phân vị độ trễ và cùng một tải thử nghiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-006
+    title: Đo CPU, hoạt động GC và ảnh hưởng của mức tài nguyên được cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-007
+    title: Thời gian build, RAM build, kích thước binary và kích thước container image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-008
+    title: Giữ cùng dữ liệu, cấu hình, dependency và hạ tầng khi so sánh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-009
+    title: Lặp phép đo, ghi điều kiện và phân biệt sai số với thay đổi có ý nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-010
+    title: Đánh giá chi phí vận hành tổng thể thay vì chỉ nhìn thời gian khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: optimization
+  title: Tối ưu
+  childs:
+  - slug: optimization-001
+    title: Đọc báo cáo build để tìm thành phần làm tăng kích thước hoặc thời gian biên dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-002
+    title: Giảm dependency và tài nguyên không cần thiết dựa trên chức năng thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-003
+    title: Giới hạn reflection, resource và proxy metadata theo nhu cầu đã kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-004
+    title: Chọn mức tối ưu biên dịch theo yêu cầu thời gian build, kích thước và tốc độ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-005
+    title: Giới hạn RAM, số luồng build và đánh đổi khi biên dịch trong CI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-006
+    title: Garbage collector và các tùy chọn khả dụng theo distribution, phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-007
+    title: 'PGO: thu thập profile đại diện và biên dịch lại trên nền tảng được hỗ trợ'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-008
+    title: CPU target và khả năng chạy binary trên những máy có tập lệnh khác nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-009
+    title: Liên kết động, liên kết tĩnh và điều kiện dùng glibc hoặc musl
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-010
+    title: Đo lại và chạy hồi quy chức năng sau mỗi thay đổi tối ưu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: container
+  title: Container
+  childs:
+  - slug: container-001
+    title: Container image chứa native executable khác với container chạy JAR
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-002
+    title: Multi-stage Dockerfile tách môi trường biên dịch khỏi runtime image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-003
+    title: Chọn runtime base image theo libc và các thư viện binary cần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-004
+    title: Giới hạn dùng scratch hoặc distroless khi còn tài nguyên hệ thống cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-005
+    title: Chứng thư CA, DNS, timezone, locale và tệp cấu hình ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-006
+    title: Chạy bằng người dùng không có quyền root và quyền thư mục tạm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-007
+    title: Truyền tham số, biến môi trường và secret lúc container khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-008
+    title: Giới hạn CPU, RAM, health check và tín hiệu kết thúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-009
+    title: Kiến trúc amd64, arm64 và chiến lược build cho từng đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-010
+    title: Kiểm chứng image cuối cùng thay vì chỉ thử binary trên máy build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-cd
+  title: CI/CD
+  childs:
+  - slug: ci-cd-001
+    title: Tách các cổng kiểm tra JVM, AOT, native build và smoke test
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-002
+    title: Ghim phiên bản JDK, GraalVM, plugin, builder và dependency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-003
+    title: Thiết kế runner đủ RAM, CPU và dung lượng cho native compilation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-004
+    title: Cache Gradle, Maven, metadata và buildpack theo đầu vào thích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-005
+    title: Chiến lược build theo từng hệ điều hành, kiến trúc đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-006
+    title: Chuyển JAR có kết quả AOT sang native tại job chuyên biệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-007
+    title: Định danh sản phẩm bằng nguồn, toolchain, cấu hình build và checksum
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-008
+    title: Lưu log build, báo cáo kiểm thử và thông tin chẩn đoán khi thất bại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-009
+    title: Chỉ phát hành sau khi binary hoặc container cuối cùng vượt qua kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations
+  title: Vận hành
+  childs:
+  - slug: operations-001
+    title: Cung cấp cấu hình, credentials và địa chỉ dịch vụ khi ứng dụng chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-002
+    title: Timeout khởi động, readiness và cơ chế tự khởi động lại của nền tảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-003
+    title: Giới hạn bộ nhớ và quan sát hành vi khi tải tăng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-004
+    title: Kết thúc an toàn, shutdown hook và thời gian chờ hoàn tất yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-005
+    title: Chứng thư, truststore, DNS và sự khác nhau giữa máy build với môi trường chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-006
+    title: Thư mục tạm, quyền tệp và lưu trữ ngoài binary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-007
+    title: Thu thập log, metric và dữ liệu sự cố từ tiến trình native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-008
+    title: Đóng gói, cập nhật và quay lại bản trước bằng sản phẩm đã được kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-009
+    title: Theo dõi thay đổi cấu hình vượt quá những gì bản build hiện tại hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostics
+  title: Chẩn đoán
+  childs:
+  - slug: diagnostics-001
+    title: Không tìm thấy native-image hoặc chọn nhầm JDK, toolchain
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-002
+    title: Thiếu C compiler, linker, header hoặc thư viện hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-003
+    title: Build bị dừng do thiếu RAM, timeout hoặc giới hạn tài nguyên runner
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-004
+    title: Spring AOT không suy ra được kiểu bean hoặc cách tạo đối tượng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-005
+    title: Binary thiếu bean do profile, condition hoặc classpath tại thời điểm build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-006
+    title: Thiếu metadata reflection, proxy, serialization hoặc JNI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-007
+    title: Không tìm thấy resource, template, bundle hoặc tài nguyên migration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-008
+    title: Lỗi khởi tạo lớp và đối tượng không hợp lệ trong image heap
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-009
+    title: Dependency dùng sinh bytecode hoặc tải lớp động ngoài khả năng hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-010
+    title: Binary không chạy do sai kiến trúc, libc hoặc thư viện liên kết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-011
+    title: JVM chạy đúng nhưng native sai ở JSON, TLS, locale hoặc nhánh ít được thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-012
+    title: Thu nhỏ ví dụ tái hiện và xác định lỗi thuộc ứng dụng, Spring hay GraalVM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Dữ liệu đọc lúc khởi tạo build có thể trở thành một phần của image heap
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Giữ secret và dữ liệu gắn với môi trường ở giai đoạn runtime phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Binary native vẫn cần quản lý lỗ hổng và kiểm tra dependency
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: SBOM, danh mục thư viện và khả năng tạo báo cáo theo bộ công cụ sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Cập nhật JDK, GraalVM hoặc thư viện có thể yêu cầu build và phát hành binary mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Giảm thành phần được đóng gói nhưng không coi đó là thay thế kiểm tra bảo mật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Quyền tối thiểu cho builder, runner, runtime container và registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Bảo vệ metadata, log, profile PGO, debug symbol và dữ liệu chẩn đoán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Xác thực nguồn sản phẩm và kiểm tra tính toàn vẹn trước khi triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-and-upgrade
+  title: Di chuyển và nâng cấp
+  childs:
+  - slug: migration-and-upgrade-001
+    title: Kiểm kê tính năng động và đánh giá khả năng chuyển một ứng dụng JVM hiện có
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrade-002
+    title: Chọn lát cắt nhỏ để chạy AOT và native trước khi mở rộng toàn ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrade-003
+    title: Xử lý dependency chưa tương thích bằng nâng cấp, hints hoặc thay cách tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrade-004
+    title: Chuyển cách đăng ký bean, tải tài nguyên và cấu hình môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrade-005
+    title: Di chuyển từ Spring Native thử nghiệm cũ sang hỗ trợ AOT của Spring Boot phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrade-006
+    title: Đối chiếu hướng dẫn nâng cấp Spring Boot, Framework, GraalVM và Native Build Tools
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrade-007
+    title: Kiểm tra định dạng reachability metadata và các build flag theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrade-008
+    title: Duy trì so sánh chức năng, hiệu năng giữa JVM, JVM AOT và native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrade-009
+    title: Tiêu chí chấp nhận, chi phí bảo trì và trường hợp tiếp tục dùng JVM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Build cùng một ứng dụng thành JAR, native executable và container native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: So sánh chức năng và đo khởi động, RSS bằng cùng một kịch bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Tái hiện lỗi reflection rồi bổ sung RuntimeHints tối thiểu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Bổ sung template, resource bundle và tài nguyên đọc qua ClassLoader
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Kiểm chứng @Transactional hoặc @Async đi qua proxy sau AOT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Thay đổi profile và property để quan sát ranh giới build với runtime
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Thu thập metadata bằng tracing agent rồi rà soát, kiểm thử lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Tích hợp một dependency có metadata từ repository hoặc hints của ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Dựng CI với kiểm thử JVM, AOT, native và kiểm chứng container cuối cùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Lập báo cáo lựa chọn JVM hay native dựa trên chức năng, số đo và chi phí build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,2896 @@
+menu:
+- slug: cloud-compute-fundamentals
+  title: Nền tảng cloud compute
+  childs:
+  - slug: cloud-compute-fundamentals-001
+    title: Cloud compute là gì và tài nguyên tính toán được cung cấp như thế nào
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-compute-fundamentals-002
+    title: Phân biệt IaaS, PaaS, CaaS và FaaS trong thực thi ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-compute-fundamentals-003
+    title: 'Máy ảo, container và hàm serverless: mô hình thực thi và giới hạn'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-compute-fundamentals-004
+    title: Trách nhiệm của khách hàng và nhà cung cấp đối với compute
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-compute-fundamentals-005
+    title: Phân loại workload theo thời gian chạy, trạng thái và nhu cầu tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-compute-fundamentals-006
+    title: Region, availability zone và phạm vi lỗi của tài nguyên compute
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-compute-fundamentals-007
+    title: Phân biệt control plane và data plane trong dịch vụ compute
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-compute-fundamentals-008
+    title: Quy trình lựa chọn nền tảng compute theo yêu cầu workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compute-infrastructure-architecture
+  title: Kiến trúc hạ tầng tính toán
+  childs:
+  - slug: compute-infrastructure-architecture-001
+    title: Máy chủ vật lý, hypervisor và cơ chế ảo hóa máy chủ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-infrastructure-architecture-002
+    title: 'Máy ảo, bare metal và dedicated host: mức độ kiểm soát và cô lập'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-infrastructure-architecture-003
+    title: Chia sẻ tài nguyên, noisy neighbor và tác động đến workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-infrastructure-architecture-004
+    title: Instance family, machine type và cấu hình máy tùy chỉnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-infrastructure-architecture-005
+    title: 'Kiến trúc x86 và Arm: tính tương thích của ứng dụng và thư viện'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-infrastructure-architecture-006
+    title: Vị trí đặt máy, affinity và anti-affinity giữa các workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-infrastructure-architecture-007
+    title: Capacity pool, hạn mức tài nguyên và khả năng cấp phát thực tế
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-infrastructure-architecture-008
+    title: Mô hình thuê riêng phần cứng và yêu cầu giấy phép phần mềm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cpu-memory-and-instance-sizing
+  title: CPU, bộ nhớ và chọn cấu hình máy
+  childs:
+  - slug: cpu-memory-and-instance-sizing-001
+    title: vCPU, core, thread và cách diễn giải cấu hình máy ảo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-memory-and-instance-sizing-002
+    title: Xung nhịp, hiệu năng đơn luồng và mức độ song song của ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-memory-and-instance-sizing-003
+    title: Máy burstable, CPU credit và giới hạn hiệu năng duy trì
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-memory-and-instance-sizing-004
+    title: RAM, băng thông bộ nhớ và workload cần nhiều bộ nhớ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-memory-and-instance-sizing-005
+    title: NUMA, CPU pinning và tính cục bộ của bộ nhớ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-memory-and-instance-sizing-006
+    title: Phân biệt máy general purpose, compute optimized và memory optimized
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-memory-and-instance-sizing-007
+    title: Ảnh hưởng của giới hạn mạng và đĩa khi lựa chọn machine type
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-memory-and-instance-sizing-008
+    title: Ước lượng cấu hình từ lưu lượng, thời gian xử lý và lượng dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-memory-and-instance-sizing-009
+    title: Right-sizing dựa trên số liệu sử dụng và khoảng dự phòng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: gpus-and-accelerators
+  title: GPU và bộ tăng tốc
+  childs:
+  - slug: gpus-and-accelerators-001
+    title: GPU, TPU và các bộ tăng tốc chuyên dụng phục vụ compute
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gpus-and-accelerators-002
+    title: Phân biệt workload huấn luyện, suy luận và xử lý đồ họa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gpus-and-accelerators-003
+    title: VRAM, băng thông bộ nhớ và giới hạn kích thước mô hình
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gpus-and-accelerators-004
+    title: Driver, runtime và tính tương thích của thư viện tăng tốc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gpus-and-accelerators-005
+    title: Phân chia GPU và chia sẻ tài nguyên giữa nhiều workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gpus-and-accelerators-006
+    title: Liên kết nhiều GPU và truyền dữ liệu giữa các máy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gpus-and-accelerators-007
+    title: Đo mức sử dụng bộ tăng tốc và nhận diện nút thắt cấp dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gpus-and-accelerators-008
+    title: Lựa chọn máy tăng tốc theo hiệu năng, chi phí và khả năng cấp phát
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: machine-images-and-operating-systems
+  title: Ảnh máy và hệ điều hành
+  childs:
+  - slug: machine-images-and-operating-systems-001
+    title: Boot image, custom image và machine template khác nhau thế nào
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-images-and-operating-systems-002
+    title: Lựa chọn Linux hoặc Windows theo ứng dụng và khả năng vận hành
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-images-and-operating-systems-003
+    title: UEFI, Secure Boot và chuỗi khởi động máy ảo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-images-and-operating-systems-004
+    title: Thiết kế golden image với các thành phần dùng chung
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-images-and-operating-systems-005
+    title: Xây dựng image theo pipeline và quản lý phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-images-and-operating-systems-006
+    title: Kiểm tra lỗ hổng, tính toàn vẹn và nguồn gốc image
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-images-and-operating-systems-007
+    title: Loại bỏ bí mật và dữ liệu nhận dạng trước khi tạo image
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-images-and-operating-systems-008
+    title: Phân phối image qua nhiều region và nhiều tài khoản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-images-and-operating-systems-009
+    title: Quản lý vòng đời image và tương thích khi đổi dòng máy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: virtual-machine-lifecycle
+  title: Vòng đời máy ảo
+  childs:
+  - slug: virtual-machine-lifecycle-001
+    title: Tạo máy ảo và hiểu các trạng thái trong quá trình cấp phát
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-lifecycle-002
+    title: Start, stop, reboot, terminate và tác động đến dữ liệu, địa chỉ mạng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-lifecycle-003
+    title: Phân biệt stop, deallocate và hibernate giữa các mô hình dịch vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-lifecycle-004
+    title: Thay đổi CPU, bộ nhớ và loại máy trong vòng đời workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-lifecycle-005
+    title: Metadata của máy ảo và cách ứng dụng nhận biết môi trường chạy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-lifecycle-006
+    title: Khóa chống xóa và bảo vệ máy khỏi thao tác ngoài ý muốn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-lifecycle-007
+    title: Xử lý lỗi cấp phát do thiếu capacity, quota hoặc cấu hình không hợp lệ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-lifecycle-008
+    title: Tác vụ bất đồng bộ, trạng thái đích và chờ máy sẵn sàng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-lifecycle-009
+    title: Thu hồi máy và kiểm tra tài nguyên phụ thuộc còn tồn tại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: provisioning-and-automation
+  title: Cấp phát và tự động hóa
+  childs:
+  - slug: provisioning-and-automation-001
+    title: Cấp phát compute bằng console, CLI, SDK và API
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provisioning-and-automation-002
+    title: Thiết kế hạ tầng compute dưới dạng mã
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provisioning-and-automation-003
+    title: Mẫu khai báo, biến đầu vào và tái sử dụng cấu hình máy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provisioning-and-automation-004
+    title: Tính idempotent và quản lý trạng thái khi cấp phát tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provisioning-and-automation-005
+    title: Phân tách cấu hình compute theo môi trường phát triển và sản xuất
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provisioning-and-automation-006
+    title: Quản lý thứ tự phụ thuộc giữa máy, đĩa, mạng và quyền truy cập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provisioning-and-automation-007
+    title: Phát hiện configuration drift và đồng bộ với cấu hình chuẩn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provisioning-and-automation-008
+    title: Tích hợp kiểm tra và phê duyệt thay đổi trong pipeline hạ tầng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provisioning-and-automation-009
+    title: Rollback và dọn tài nguyên khi quá trình triển khai thất bại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-bootstrap-and-deployment
+  title: Khởi động và triển khai ứng dụng
+  childs:
+  - slug: application-bootstrap-and-deployment-001
+    title: User data, startup script và cloud-init trong lần khởi động đầu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-bootstrap-and-deployment-002
+    title: Thiết kế bootstrap có thể chạy lại và phục hồi sau lỗi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-bootstrap-and-deployment-003
+    title: Tách cấu hình ứng dụng khỏi image và mã nguồn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-bootstrap-and-deployment-004
+    title: Lấy secret khi chạy bằng danh tính của workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-bootstrap-and-deployment-005
+    title: Quản lý tiến trình, service và thứ tự khởi động ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-bootstrap-and-deployment-006
+    title: Truyền tín hiệu readiness sau khi ứng dụng khởi tạo xong
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-bootstrap-and-deployment-007
+    title: So sánh cập nhật tại chỗ với thay máy theo mô hình immutable
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-bootstrap-and-deployment-008
+    title: Rolling update, blue-green và canary trên nhóm máy ảo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-bootstrap-and-deployment-009
+    title: Graceful shutdown và hoàn tất tác vụ trước khi máy bị thu hồi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compute-storage
+  title: Lưu trữ phục vụ compute
+  childs:
+  - slug: compute-storage-001
+    title: Boot disk, data disk và local ephemeral disk
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-storage-002
+    title: Block storage, file storage và object storage dưới góc nhìn ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-storage-003
+    title: IOPS, throughput, latency và queue depth của đĩa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-storage-004
+    title: Lựa chọn dung lượng, loại đĩa và giới hạn I/O theo máy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-storage-005
+    title: Gắn, tháo và mở rộng volume an toàn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-storage-006
+    title: Mount, filesystem và quyền truy cập dữ liệu trong máy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-storage-007
+    title: Quản lý dữ liệu bền vững khi máy bị thay thế hoặc xóa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-storage-008
+    title: Snapshot nhất quán và phối hợp với ứng dụng đang ghi dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-storage-009
+    title: Mã hóa đĩa và quản lý quyền sử dụng khóa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: workload-networking
+  title: Kết nối mạng cho workload
+  childs:
+  - slug: workload-networking-001
+    title: VPC hoặc VNet, subnet và vị trí đặt giao diện mạng của máy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-networking-002
+    title: Địa chỉ IP riêng, IP công cộng và địa chỉ tĩnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-networking-003
+    title: Route, NAT và kết nối đi ra của máy không có IP công cộng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-networking-004
+    title: Firewall, security group và quy tắc truy cập compute
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-networking-005
+    title: DNS, hostname và phát hiện dịch vụ giữa các máy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-networking-006
+    title: Kết nối riêng từ workload đến dịch vụ cloud
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-networking-007
+    title: Thông lượng mạng, giới hạn kết nối và hiệu năng theo kích thước máy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-networking-008
+    title: Nhiều giao diện mạng, nhiều địa chỉ IP và định tuyến tại hệ điều hành
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-networking-009
+    title: MTU, packet loss và độ trễ trong giao tiếp giữa workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-networking-010
+    title: Thiết kế luồng ingress, egress và truy cập quản trị
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: machine-identity-and-access
+  title: Danh tính và truy cập máy
+  childs:
+  - slug: machine-identity-and-access-001
+    title: Phân biệt quyền quản trị tài nguyên với quyền đăng nhập hệ điều hành
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-access-002
+    title: Service account, managed identity và instance role cho workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-access-003
+    title: Cấp quyền tối thiểu để ứng dụng gọi dịch vụ cloud
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-access-004
+    title: SSH key, chứng chỉ SSH và quản lý tài khoản Linux
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-access-005
+    title: RDP và quản lý danh tính đăng nhập Windows
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-access-006
+    title: Truy cập qua bastion, proxy hoặc dịch vụ quản trị phiên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-access-007
+    title: Thông tin xác thực ngắn hạn và luân chuyển quyền truy cập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-access-008
+    title: Ghi nhật ký phiên quản trị và cơ chế truy cập khẩn cấp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compute-workload-security
+  title: Bảo mật workload compute
+  childs:
+  - slug: compute-workload-security-001
+    title: Threat modeling cho máy ảo, container và hàm serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-workload-security-002
+    title: Giảm bề mặt tấn công bằng baseline hệ điều hành tối thiểu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-workload-security-003
+    title: Bảo vệ metadata endpoint trước SSRF và đánh cắp thông tin xác thực
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-workload-security-004
+    title: Ngăn đưa khóa truy cập và secret vào image, script hoặc log
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-workload-security-005
+    title: Cô lập workload bằng mạng, danh tính và ranh giới tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-workload-security-006
+    title: Mã hóa dữ liệu trong bộ nhớ và mô hình confidential computing
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-workload-security-007
+    title: Measured boot, attestation và xác minh môi trường thực thi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-workload-security-008
+    title: Quét lỗ hổng hệ điều hành và phần mềm phụ thuộc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-workload-security-009
+    title: Bảo vệ runtime, phát hiện hành vi bất thường và phản ứng sự cố
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-workload-security-010
+    title: Thu thập bằng chứng và cô lập máy nghi bị xâm nhập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: os-and-host-maintenance
+  title: Bảo trì hệ điều hành và máy chủ
+  childs:
+  - slug: os-and-host-maintenance-001
+    title: Xây dựng baseline cấu hình và quản lý bản vá
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-and-host-maintenance-002
+    title: Lập lịch bảo trì theo mức độ quan trọng của workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-and-host-maintenance-003
+    title: Áp dụng bản vá bằng cập nhật tại chỗ hoặc thay image
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-and-host-maintenance-004
+    title: Drain lưu lượng và tác vụ trước khi khởi động lại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-and-host-maintenance-005
+    title: Sự kiện bảo trì của nhà cung cấp và tác động đến máy khách
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-and-host-maintenance-006
+    title: Live migration, reboot và host replacement trong bảo trì
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-and-host-maintenance-007
+    title: Theo dõi vòng đời hệ điều hành, kernel và phần mềm hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-and-host-maintenance-008
+    title: Xác minh sức khỏe và phục hồi sau đợt cập nhật lỗi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: monitoring-and-observability
+  title: Giám sát và khả năng quan sát
+  childs:
+  - slug: monitoring-and-observability-001
+    title: Phân biệt chỉ số từ hypervisor, hệ điều hành và ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-002
+    title: Thu thập CPU, memory, swap, disk và network bằng agent
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-003
+    title: Theo dõi sức khỏe instance và phân biệt lỗi host với lỗi guest
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-004
+    title: Thu thập system log, application log và startup log
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-005
+    title: Liên kết log, metric và trace theo workload hoặc instance
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-006
+    title: Xây dựng dashboard theo lưu lượng, lỗi, độ trễ và độ bão hòa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-007
+    title: Đặt SLI, SLO và cảnh báo theo tác động đến người dùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-008
+    title: Cảnh báo thiếu dung lượng, cạn tài nguyên và tăng chi phí bất thường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-009
+    title: Kiểm soát cardinality, thời gian lưu giữ và chi phí telemetry
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compute-troubleshooting
+  title: Chẩn đoán sự cố compute
+  childs:
+  - slug: compute-troubleshooting-001
+    title: Quy trình khoanh vùng lỗi từ cloud platform đến ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-troubleshooting-002
+    title: 'Máy không khởi động: boot log, serial console và rescue disk'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-troubleshooting-003
+    title: 'Không thể SSH hoặc RDP: kiểm tra danh tính, mạng và dịch vụ đăng nhập'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-troubleshooting-004
+    title: 'CPU cao: phân biệt tải thật, vòng lặp lỗi và tranh chấp tài nguyên'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-troubleshooting-005
+    title: 'Thiếu bộ nhớ: OOM, swap, memory leak và giới hạn tiến trình'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-troubleshooting-006
+    title: 'Đĩa đầy hoặc I/O chậm: inode, hàng đợi và giới hạn volume'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-troubleshooting-007
+    title: 'Kết nối chập chờn: route, DNS, firewall và giới hạn cổng kết nối'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-troubleshooting-008
+    title: 'Ứng dụng treo: thread dump, deadlock và thời gian chờ phụ thuộc'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-troubleshooting-009
+    title: Lỗi sau khi đổi image, driver hoặc machine type
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-troubleshooting-010
+    title: Viết runbook, timeline sự cố và hành động ngăn tái diễn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-testing-and-optimization
+  title: Đo kiểm và tối ưu hiệu năng
+  childs:
+  - slug: performance-testing-and-optimization-001
+    title: Xác định mục tiêu latency, throughput và mức sử dụng tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-testing-and-optimization-002
+    title: Thiết kế benchmark đại diện cho dữ liệu và hành vi thực tế
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-testing-and-optimization-003
+    title: Đo p50, p95, p99 và phân phối độ trễ dưới tải
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-testing-and-optimization-004
+    title: Phân biệt nút thắt CPU, bộ nhớ, I/O và dịch vụ phụ thuộc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-testing-and-optimization-005
+    title: Tối ưu số worker, thread pool và mức đồng thời
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-testing-and-optimization-006
+    title: Tối ưu JVM, heap và garbage collection trên tài nguyên cloud
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-testing-and-optimization-007
+    title: Tối ưu cấu hình hệ điều hành và giới hạn file descriptor
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-testing-and-optimization-008
+    title: Đánh giá cache, locality và chi phí truyền dữ liệu giữa máy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-testing-and-optimization-009
+    title: So sánh hiệu năng trên mỗi đơn vị chi phí giữa các cấu hình
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compute-load-balancing
+  title: Cân bằng tải cho compute
+  childs:
+  - slug: compute-load-balancing-001
+    title: Cân bằng tải lớp 4 và lớp 7 cho các nhóm workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-load-balancing-002
+    title: Backend pool, target group và đăng ký máy tự động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-load-balancing-003
+    title: Health check và ngưỡng loại máy lỗi khỏi phục vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-load-balancing-004
+    title: Thuật toán phân phối tải và giới hạn kết nối
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-load-balancing-005
+    title: TLS termination, kết nối đến backend và yêu cầu mã hóa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-load-balancing-006
+    title: Session affinity và tác động của trạng thái phiên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-load-balancing-007
+    title: Connection draining và xử lý kết nối dài khi thay máy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-load-balancing-008
+    title: Cân bằng tải theo zone hoặc region và ảnh hưởng của luồng mạng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: instance-groups-and-autoscaling
+  title: Nhóm máy và tự động co giãn
+  childs:
+  - slug: instance-groups-and-autoscaling-001
+    title: Nhóm instance có quản lý và mẫu cấu hình máy thành viên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-002
+    title: Horizontal scaling và vertical scaling theo đặc điểm workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-003
+    title: Target tracking, step scaling và lịch co giãn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-004
+    title: Lựa chọn metric theo CPU, độ trễ, độ sâu hàng đợi hoặc mức đồng thời
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-005
+    title: Warmup, cooldown và thời gian máy mới sẵn sàng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-006
+    title: Giới hạn min, max, desired capacity và dự phòng tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-007
+    title: Scale-in an toàn và bảo vệ máy đang xử lý tác vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-008
+    title: Phân phối capacity giữa nhiều zone và nhiều loại máy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-009
+    title: Phối hợp co giãn compute với giới hạn của dịch vụ phụ thuộc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-010
+    title: Phát hiện dao động co giãn và kiểm thử chính sách dưới tải biến động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: high-availability-and-fault-tolerance
+  title: Sẵn sàng cao và khả năng chịu lỗi
+  childs:
+  - slug: high-availability-and-fault-tolerance-001
+    title: Xác định failure domain ở mức tiến trình, máy, zone và region
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-and-fault-tolerance-002
+    title: Thiết kế stateless để có thể thay thế máy tự động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-and-fault-tolerance-003
+    title: Nhân bản workload qua nhiều zone và tránh điểm lỗi duy nhất
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-and-fault-tolerance-004
+    title: Auto-healing và phân biệt sửa máy với khởi động lại ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-and-fault-tolerance-005
+    title: Quorum, split-brain và ràng buộc của workload có trạng thái
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-and-fault-tolerance-006
+    title: Chọn active-active hoặc active-passive theo yêu cầu dịch vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-and-fault-tolerance-007
+    title: Capacity dự phòng và hành vi khi mất một zone
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-and-fault-tolerance-008
+    title: Thử nghiệm lỗi có kiểm soát và xác minh khả năng phục hồi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: backup-recovery-and-migration
+  title: Sao lưu, khôi phục và di chuyển
+  childs:
+  - slug: backup-recovery-and-migration-001
+    title: RPO, RTO và phạm vi bảo vệ của backup workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-and-migration-002
+    title: Phân biệt snapshot, image, backup dữ liệu và cấu hình triển khai
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-and-migration-003
+    title: Thiết kế lịch sao lưu và thời gian lưu giữ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-and-migration-004
+    title: Khôi phục máy cùng đĩa, quyền truy cập và kết nối mạng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-and-migration-005
+    title: Sao chép image và dữ liệu để khôi phục ở region khác
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-and-migration-006
+    title: Di chuyển workload theo rehost, replatform hoặc refactor
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-and-migration-007
+    title: Đánh giá tương thích trước khi đổi kiến trúc CPU hoặc nhà cung cấp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-and-migration-008
+    title: Lập kế hoạch cutover, đồng bộ dữ liệu và rollback
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-and-migration-009
+    title: Diễn tập khôi phục và đo RPO, RTO thực tế
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: interruptible-compute
+  title: Compute có thể bị thu hồi
+  childs:
+  - slug: interruptible-compute-001
+    title: Spot, preemptible và interruptible compute hoạt động như thế nào
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interruptible-compute-002
+    title: Nhận diện workload phù hợp với tài nguyên có thể bị thu hồi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interruptible-compute-003
+    title: Xử lý tín hiệu gián đoạn và thời gian dừng có giới hạn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interruptible-compute-004
+    title: Checkpoint, retry và khôi phục tiến độ tác vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interruptible-compute-005
+    title: Thiết kế tác vụ idempotent khi thực thi lại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interruptible-compute-006
+    title: Kết hợp capacity ổn định và capacity có thể bị thu hồi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interruptible-compute-007
+    title: Đa dạng hóa instance type, zone và nguồn cấp tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interruptible-compute-008
+    title: Đánh giá chi phí thực tế có tính đến gián đoạn và thời gian hoàn thành
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compute-cost-models
+  title: Mô hình chi phí compute
+  childs:
+  - slug: compute-cost-models-001
+    title: 'Các thành phần chi phí: máy, đĩa, mạng, giấy phép và dịch vụ quản lý'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-models-002
+    title: On-demand và cách đo thời gian sử dụng tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-models-003
+    title: Cam kết sử dụng và quyền lợi giảm giá theo mô hình nhà cung cấp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-models-004
+    title: Phân biệt ưu đãi giá với bảo đảm capacity
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-models-005
+    title: Tính chi phí tài nguyên nhàn rỗi, máy dừng và tài nguyên đi kèm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-models-006
+    title: Lập lịch tắt mở và loại bỏ tài nguyên không còn sử dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-models-007
+    title: Phân bổ chi phí bằng tag, owner và môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-models-008
+    title: So sánh tổng chi phí sở hữu giữa VM, container và serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-models-009
+    title: Lập ngân sách, dự báo và đo chi phí trên mỗi yêu cầu hoặc tác vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-fundamentals
+  title: Nền tảng container
+  childs:
+  - slug: container-fundamentals-001
+    title: Container image, runtime và vòng đời container
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-fundamentals-002
+    title: Namespace, cgroup và ranh giới cô lập với máy chủ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-fundamentals-003
+    title: Thiết kế image tối thiểu và tối ưu các lớp build
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-fundamentals-004
+    title: Image đa kiến trúc cho x86 và Arm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-fundamentals-005
+    title: CPU limit, memory limit và hiện tượng throttling hoặc OOM
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-fundamentals-006
+    title: Filesystem tạm thời và lưu trữ bền vững cho container
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-fundamentals-007
+    title: Truyền cấu hình, secret và danh tính vào container
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-fundamentals-008
+    title: Signal, PID 1 và dừng container đúng cách
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-fundamentals-009
+    title: Registry, quét image, chữ ký và nguồn gốc phần mềm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-hosting-services
+  title: Dịch vụ chạy container
+  childs:
+  - slug: container-hosting-services-001
+    title: Chọn container trên VM hoặc dịch vụ container có quản lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-hosting-services-002
+    title: Task, service, revision và đơn vị triển khai container
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-hosting-services-003
+    title: Lựa chọn capacity dựa trên CPU, memory và yêu cầu mạng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-hosting-services-004
+    title: Networking, cổng dịch vụ và service discovery cho container
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-hosting-services-005
+    title: Health probe và vòng đời triển khai của container service
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-hosting-services-006
+    title: Co giãn container theo yêu cầu, mức đồng thời hoặc hàng đợi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-hosting-services-007
+    title: Rolling update, phân chia lưu lượng và rollback phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-hosting-services-008
+    title: Log, metric và xử lý lỗi khi container bị khởi động lại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-hosting-services-009
+    title: Ranh giới trách nhiệm vận hành của mô hình container serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: kubernetes-compute
+  title: Compute trong Kubernetes
+  childs:
+  - slug: kubernetes-compute-001
+    title: Node, pod và phân chia trách nhiệm giữa control plane với worker
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-compute-002
+    title: Requests, limits và cơ chế scheduler bố trí pod
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-compute-003
+    title: Node pool, loại máy và phân tách workload theo nhu cầu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-compute-004
+    title: Affinity, anti-affinity và topology spread cho pod
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-compute-005
+    title: Taint, toleration và bố trí workload đặc thù
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-compute-006
+    title: Horizontal Pod Autoscaler, Vertical Pod Autoscaler và co giãn node
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-compute-007
+    title: Đồng bộ tốc độ co giãn pod với thời gian cấp phát node
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-compute-008
+    title: PodDisruptionBudget, drain và nâng cấp node an toàn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-compute-009
+    title: GPU, device plugin và lập lịch bộ tăng tốc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-compute-010
+    title: Spot node và chiến lược duy trì capacity cho workload quan trọng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: serverless-function-models
+  title: Mô hình hàm serverless
+  childs:
+  - slug: serverless-function-models-001
+    title: Function, trigger, event và môi trường thực thi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-function-models-002
+    title: Đóng gói hàm bằng source package hoặc container image
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-function-models-003
+    title: Runtime được hỗ trợ và trách nhiệm cập nhật mã ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-function-models-004
+    title: Cold start, warm execution và tái sử dụng execution environment
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-function-models-005
+    title: CPU, memory, thời gian chạy và dung lượng lưu trữ tạm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-function-models-006
+    title: Mức đồng thời, tốc độ tạo instance và giới hạn mở rộng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-function-models-007
+    title: Phân biệt gọi đồng bộ, bất đồng bộ và nhận sự kiện theo lô
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-function-models-008
+    title: Quản lý trạng thái ngoài hàm và giới hạn sử dụng dữ liệu cục bộ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-function-models-009
+    title: Thiết kế hàm theo nghiệp vụ và lựa chọn kích thước đơn vị xử lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-function-models-010
+    title: Tiêu chí lựa chọn giữa hàm serverless và dịch vụ chạy dài hạn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: serverless-operations-and-optimization
+  title: Vận hành và tối ưu serverless
+  childs:
+  - slug: serverless-operations-and-optimization-001
+    title: Cấp danh tính và quyền tối thiểu cho từng hàm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-operations-and-optimization-002
+    title: Kết nối hàm với mạng riêng và dịch vụ phụ thuộc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-operations-and-optimization-003
+    title: Timeout, retry, backoff và xử lý sự kiện trùng lặp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-operations-and-optimization-004
+    title: Dead-letter queue và phục hồi sự kiện xử lý thất bại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-operations-and-optimization-005
+    title: Giới hạn mức đồng thời để bảo vệ hệ thống phía sau
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-operations-and-optimization-006
+    title: Version, alias và phát hành hàm theo tỷ lệ lưu lượng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-operations-and-optimization-007
+    title: Tối ưu khởi tạo runtime và giảm tác động của cold start
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-operations-and-optimization-008
+    title: Log, trace và chẩn đoán lỗi trong chuỗi xử lý sự kiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-operations-and-optimization-009
+    title: Đo chi phí theo lượt gọi, thời gian chạy và tài nguyên cấp phát
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-operations-and-optimization-010
+    title: Kiểm thử tải và diễn tập lỗi cho ứng dụng serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: background-and-batch-processing
+  title: Xử lý nền và theo lô
+  childs:
+  - slug: background-and-batch-processing-001
+    title: Phân biệt background worker, batch job và dịch vụ phục vụ trực tiếp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: background-and-batch-processing-002
+    title: Hàng đợi công việc và cơ chế điều phối worker
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: background-and-batch-processing-003
+    title: Job definition, môi trường thực thi và đầu vào của tác vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: background-and-batch-processing-004
+    title: Chia nhỏ dữ liệu, array job và xử lý song song
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: background-and-batch-processing-005
+    title: Phụ thuộc giữa các job và điều phối workflow
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: background-and-batch-processing-006
+    title: Timeout, retry và phân loại lỗi có thể thử lại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: background-and-batch-processing-007
+    title: Checkpoint và bảo đảm không làm trùng tác động nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: background-and-batch-processing-008
+    title: Chọn capacity cho batch theo deadline và ngân sách
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: background-and-batch-processing-009
+    title: Theo dõi tiến độ, tỷ lệ thành công và chi phí theo job
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: high-performance-computing
+  title: Điện toán hiệu năng cao
+  childs:
+  - slug: high-performance-computing-001
+    title: Workload HPC và khác biệt với dịch vụ web thông thường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-performance-computing-002
+    title: Scale-up, scale-out và phần có thể song song hóa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-performance-computing-003
+    title: MPI, giao tiếp giữa node và yêu cầu độ trễ mạng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-performance-computing-004
+    title: RDMA, mạng tốc độ cao và bố trí cụm máy gần nhau
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-performance-computing-005
+    title: Shared filesystem, dữ liệu đầu vào và nút thắt I/O của cụm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-performance-computing-006
+    title: Scheduler, hàng đợi và cấp phát tài nguyên cho công việc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-performance-computing-007
+    title: Checkpoint và phục hồi công việc chạy dài
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-performance-computing-008
+    title: Đánh giá thời gian hoàn thành, hiệu suất song song và chi phí toàn cụm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hybrid-and-edge-computing
+  title: Compute lai và điện toán biên
+  childs:
+  - slug: hybrid-and-edge-computing-001
+    title: Phân biệt hybrid cloud, edge compute và cloud tập trung
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-edge-computing-002
+    title: Lựa chọn vị trí chạy theo độ trễ, dữ liệu và kết nối
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-edge-computing-003
+    title: Đóng gói workload để triển khai nhất quán ở nhiều môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-edge-computing-004
+    title: Quản lý danh tính, cấu hình và chính sách trên các cụm phân tán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-edge-computing-005
+    title: Vận hành khi mất kết nối và đồng bộ trạng thái trở lại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-edge-computing-006
+    title: Triển khai, cập nhật và rollback workload từ xa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-edge-computing-007
+    title: Đánh giá giới hạn phần cứng, capacity và khả năng quan sát tại biên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: workload-architecture-design
+  title: Thiết kế kiến trúc workload
+  childs:
+  - slug: workload-architecture-design-001
+    title: Thiết kế dịch vụ web nhiều tầng trên nhóm máy ảo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-architecture-design-002
+    title: Thiết kế API stateless với container có quản lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-architecture-design-003
+    title: Thiết kế hệ thống xử lý sự kiện bằng hàm serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-architecture-design-004
+    title: Thiết kế worker bất đồng bộ có co giãn theo hàng đợi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-architecture-design-005
+    title: Triển khai ứng dụng có trạng thái và quản lý danh tính máy ổn định
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-architecture-design-006
+    title: Thiết kế workload suy luận sử dụng bộ tăng tốc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-architecture-design-007
+    title: Thiết kế xử lý dữ liệu theo lô có deadline
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-architecture-design-008
+    title: Phối hợp nhiều mô hình compute trong cùng một hệ thống
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-architecture-design-009
+    title: Lập bảng quyết định theo độ trễ, độ tin cậy, chi phí và năng lực vận hành
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cross-cloud-compute-comparison
+  title: Đối chiếu compute giữa các cloud
+  childs:
+  - slug: cross-cloud-compute-comparison-001
+    title: Ánh xạ khái niệm VM giữa Amazon EC2, Azure Virtual Machines và Compute Engine
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cloud-compute-comparison-002
+    title: Đối chiếu nhóm máy có quản lý và cơ chế tự động co giãn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cloud-compute-comparison-003
+    title: Đối chiếu image, metadata, danh tính workload và startup script
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cloud-compute-comparison-004
+    title: Đối chiếu mô hình chạy container và trách nhiệm quản lý máy chủ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cloud-compute-comparison-005
+    title: Đối chiếu mô hình hàm, trigger và điều phối sự kiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cloud-compute-comparison-006
+    title: Đối chiếu tài nguyên có thể bị thu hồi, cam kết chi phí và đặt trước capacity
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cloud-compute-comparison-007
+    title: Phân tích khác biệt về vòng đời, hạn mức và phạm vi áp dụng SLA
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cloud-compute-comparison-008
+    title: Thiết kế khả năng di chuyển workload và đánh giá mức phụ thuộc nhà cung cấp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compute-resource-governance
+  title: Quản trị tài nguyên compute
+  childs:
+  - slug: compute-resource-governance-001
+    title: Quy ước đặt tên, tag và xác định chủ sở hữu workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-resource-governance-002
+    title: Tổ chức tài nguyên theo tài khoản, subscription, project và môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-resource-governance-003
+    title: Chính sách giới hạn region, machine type và nguồn image được phép
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-resource-governance-004
+    title: Quản lý quota và lập kế hoạch capacity theo tăng trưởng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-resource-governance-005
+    title: Audit log và truy vết thay đổi cấu hình compute
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-resource-governance-006
+    title: Yêu cầu lưu trú dữ liệu và kiểm soát vị trí thực thi workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-resource-governance-007
+    title: Quản lý giấy phép hệ điều hành, phần mềm và mô hình BYOL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-resource-governance-008
+    title: Chuẩn hóa template, baseline bảo mật và ngoại lệ có thời hạn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-resource-governance-009
+    title: Quy trình hết hạn, bàn giao và thu hồi tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: deployment-and-operations-labs
+  title: Thực hành triển khai và vận hành
+  childs:
+  - slug: deployment-and-operations-labs-001
+    title: Tạo máy ảo trong subnet riêng và thiết lập truy cập quản trị
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-labs-002
+    title: Bootstrap ứng dụng Java và công bố health endpoint
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-labs-003
+    title: Tạo custom image rồi triển khai lại máy từ image
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-labs-004
+    title: Gắn data disk và kiểm tra dữ liệu khi thay thế máy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-labs-005
+    title: Cấp danh tính workload để truy cập dịch vụ mà không dùng khóa tĩnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-labs-006
+    title: Đưa nhóm máy sau cân bằng tải và kiểm thử health check
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-labs-007
+    title: Cấu hình autoscaling và quan sát khi tăng, giảm tải
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-labs-008
+    title: Giả lập máy lỗi và xác minh cơ chế tự phục hồi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-labs-009
+    title: Đo hiệu năng, right-size cấu hình và tính chi phí workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-labs-010
+    title: Thu hồi tài nguyên thực hành và kiểm tra chi phí còn phát sinh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: capstone-projects-and-assessment
+  title: Dự án tổng hợp và đánh giá
+  childs:
+  - slug: capstone-projects-and-assessment-001
+    title: Xây dựng dịch vụ web nhiều zone với quy trình triển khai tự động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-and-assessment-002
+    title: Chuyển ứng dụng từ máy ảo sang container có quản lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-and-assessment-003
+    title: Xây dựng pipeline sự kiện với hàm serverless và xử lý lỗi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-and-assessment-004
+    title: Triển khai hệ thống batch trên capacity có thể bị thu hồi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-and-assessment-005
+    title: Xây dựng phương án backup, khôi phục và diễn tập cutover
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-and-assessment-006
+    title: Điều tra sự cố compute từ log, metric và dấu hiệu hệ điều hành
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-and-assessment-007
+    title: Đánh giá kiến trúc theo SLO, bảo mật, khả năng vận hành và chi phí
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-and-assessment-008
+    title: Hoàn thiện runbook và tiêu chí sẵn sàng đưa workload vào vận hành
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

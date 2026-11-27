@@ -1,0 +1,1008 @@
+# Testing Optimistic Locking, Pessimistic Locking, and Concurrency Conflicts
+
+Spring Data JDBC supports two main strategies to protect data when multiple transactions access the same aggregate concurrently:
+
+- **Optimistic locking** uses a version property to detect when a transaction writes based on stale state.
+- **Pessimistic locking** asks the database to lock rows on read so other transactions must wait or fail to acquire the conflicting lock.
+
+These two mechanisms behave differently. Optimistic locking allows multiple transactions to read concurrently, then detects conflicts at write time. Pessimistic locking holds locks inside a transaction to restrict other transactions from modifying data being processed.
+
+Concurrency tests must establish truly independent transactions and JDBC connections. A unit test calling a repository twice sequentially or mocking an exception does not prove the database actually detects conflicts or holds locks properly.
+
+This lesson covers how to test stale updates, test two concurrent transactions updating the same aggregate, test pessimistic locking with Spring Data JDBC, and structure integration tests for repeatable outcomes.
+
+## 1. Distinguishing Optimistic Locking and Pessimistic Locking
+
+Suppose a product's available inventory is 10.
+
+Two concurrent requests want to reserve 7 units each. If both read 10 and both write 3 without concurrency control, the system may record only one decrement. The database result no longer reflects total reserved stock.
+
+### 1.1. Optimistic Locking
+
+Optimistic locking assumes conflicts are infrequent. Transactions read the aggregate without holding long-lived locks. On write, Spring Data JDBC checks the version:
+
+~~~text
+Transaction A                 Transaction B
+-------------                 -------------
+Read quantity = 10            Read quantity = 10
+Read version = 5              Read version = 5
+Save with version = 5
+Success, version = 6
+                              Save with version = 5
+                              No row matches
+                              OptimisticLockingFailureException
+~~~
+
+One transaction succeeds. The other receives an optimistic locking error and must reload the data if the use case supports retrying.
+
+### 1.2. Pessimistic Locking
+
+Pessimistic locking asks the database to lock rows when reading data that will be modified:
+
+~~~text
+Transaction A                 Transaction B
+-------------                 -------------
+BEGIN
+SELECT ... FOR UPDATE
+Lock acquired
+                              BEGIN
+                              SELECT ... FOR UPDATE
+                              Wait for lock
+Update quantity
+COMMIT
+                              Lock acquired
+                              Read current row
+                              Continue or revalidate
+                              COMMIT
+~~~
+
+Transaction B must wait until A commits/rolls back or the lock wait times out. Exact behavior depends on the database, dialect, isolation level, and lock mode.
+
+### 1.3. Comparison
+
+| Criterion | Optimistic Locking | Pessimistic Locking |
+| --- | --- | --- |
+| Conflict detection/resolution timing | Version checked on write | Lock acquired before processing |
+| Locks rows on read | No long-lived locks needed | Yes |
+| On conflict | One write fails | Other transaction waits or times out |
+| Best suited for | Low contention, read-heavy workloads | High contention or short critical sections |
+| Primary cost | Retry/reload on conflict | Lock waits, deadlocks, held connections |
+| How to test | Two copies with the same version | Two transactions holding/requesting the same lock |
+
+There is no single best strategy for every use case. Choose based on conflict frequency, processing duration, invariant criticality, and retry feasibility.
+
+## 2. Enabling Optimistic Locking with @Version
+
+Spring Data JDBC supports optimistic locking through a numeric property annotated with `@Version` on the aggregate root.
+
+Example aggregate:
+
+~~~java
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("inventory_items")
+public record InventoryItem(
+        @Id Long id,
+        String sku,
+        int availableQuantity,
+        @Version Long version
+) {
+
+    public InventoryItem reserve(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException(
+                    "Quantity must be positive"
+            );
+        }
+
+        if (availableQuantity < quantity) {
+            throw new InsufficientStockException(sku);
+        }
+
+        return new InventoryItem(
+                id,
+                sku,
+                availableQuantity - quantity,
+                version
+        );
+    }
+}
+~~~
+
+Schema:
+
+~~~sql
+CREATE TABLE inventory_items (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    sku VARCHAR(80) NOT NULL UNIQUE,
+    available_quantity INTEGER NOT NULL
+        CHECK (available_quantity >= 0),
+    version BIGINT NOT NULL
+);
+~~~
+
+When saving a new aggregate, Spring Data JDBC initializes the version according to its new-entity rules. When updating an existing aggregate, the `UPDATE` statement checks the current version in the database and increments it on success.
+
+Do not increment the version manually in domain methods. Version is persistence metadata for concurrency control.
+
+### 2.1. Version Checks Apply to Updates and Deletes
+
+Spring Data JDBC checks the version when updating an aggregate root. If the database version differs from the saved object's version, the operation fails with `OptimisticLockingFailureException`.
+
+Version checks also apply when deleting a versioned aggregate. On delete, the version is checked without incrementing since the row is deleted.
+
+Therefore, tests should cover all of these:
+
+- Two objects with the same version updating the same aggregate.
+- A stale object updating after another object already saved.
+- A stale object deleting an aggregate after the aggregate was already updated.
+
+### 2.2. Version Belongs on the Aggregate Root
+
+Place `@Version` on the aggregate root that Spring Data JDBC uses for aggregate optimistic locking. Do not treat a child object's version as an independent locking mechanism for the entire aggregate.
+
+If business rules require concurrency control at the level of a child table or separate resource, define aggregate boundaries and update paths clearly.
+
+## 3. Testing Stale Updates Sequentially
+
+This is a foundational, deterministic test. It creates two copies with the same version, saves the first, then attempts to save the stale second copy.
+
+Repository:
+
+~~~java
+import java.util.Optional;
+
+import org.springframework.data.repository.CrudRepository;
+
+public interface InventoryRepository
+        extends CrudRepository<InventoryItem, Long> {
+
+    Optional<InventoryItem> findBySku(String sku);
+}
+~~~
+
+Integration test:
+
+~~~java
+@SpringBootTest
+class InventoryOptimisticLockingTest {
+
+    @Autowired
+    InventoryRepository repository;
+
+    @Test
+    void rejectsSaveUsingStaleVersion() {
+        InventoryItem created = repository.save(
+                new InventoryItem(
+                        null,
+                        "SKU-01",
+                        10,
+                        null
+                )
+        );
+
+        InventoryItem firstRead =
+                repository.findById(created.id()).orElseThrow();
+
+        InventoryItem secondRead =
+                repository.findById(created.id()).orElseThrow();
+
+        InventoryItem firstChange = firstRead.reserve(2);
+        repository.save(firstChange);
+
+        InventoryItem staleChange = secondRead.reserve(3);
+
+        assertThrows(
+                OptimisticLockingFailureException.class,
+                () -> repository.save(staleChange)
+        );
+
+        InventoryItem current =
+                repository.findById(created.id()).orElseThrow();
+
+        assertEquals(8, current.availableQuantity());
+    }
+}
+~~~
+
+The test verifies:
+
+1. Two objects are loaded from the same state.
+2. The first save increments the version.
+3. The second save uses the stale version and is rejected.
+4. The database preserves the result of the first save.
+
+This test proves optimistic locking works with stale objects. It does not yet simulate two transactions executing concurrently.
+
+### 3.1. Do Not Wrap the Entire Test in an Outer Transaction
+
+For concurrency integration tests, avoid annotating the test method or class with `@Transactional` if that keeps setup data uncommitted before worker threads read it.
+
+Spring JDBC transactions are normally bound to the current thread. A transaction opened by the test thread does not automatically propagate to executor threads. Tested transactions must be opened independently per thread or via `TransactionTemplate`.
+
+You can use the repository to seed data before launching test transactions. Repository CRUD methods complete their own transactions when returning if no outer transaction exists.
+
+## 4. Testing Optimistic Locking with Two Concurrent Transactions
+
+To test real concurrency, ensure both transactions read the same version before either writes.
+
+One deterministic coordination approach uses:
+
+- Two worker threads.
+- A shared `TransactionTemplate`.
+- `CountDownLatch` or `CyclicBarrier` to synchronize right after reading.
+- A separate JDBC connection/transaction per worker thread.
+
+### 4.1. Test Model
+
+~~~text
+Test thread
+   |
+   +-- Worker A
+   |     BEGIN transaction A
+   |     Read quantity = 10, version = 5
+   |     Wait at barrier
+   |
+   +-- Worker B
+         BEGIN transaction B
+         Read quantity = 10, version = 5
+         Wait at barrier
+
+Barrier releases both
+   |
+   +-- A saves with version 5 -> COMMIT
+   |
+   +-- B saves with version 5 -> optimistic conflict -> ROLLBACK
+~~~
+
+The barrier guarantees both transactions have read before either is permitted to write. That way the test does not rely on scheduler timing to provoke a conflict.
+
+### 4.2. Helper Executing One Attempt
+
+~~~java
+enum AttemptResult {
+    COMMITTED,
+    OPTIMISTIC_CONFLICT
+}
+~~~
+
+~~~java
+private AttemptResult reserveInTransaction(
+        String sku,
+        int quantity,
+        TransactionTemplate transactionTemplate,
+        InventoryRepository repository,
+        CyclicBarrier barrier
+) {
+    try {
+        transactionTemplate.execute(status -> {
+            InventoryItem current = repository.findBySku(sku)
+                    .orElseThrow();
+
+            awaitBarrier(barrier);
+
+            repository.save(current.reserve(quantity));
+            return null;
+        });
+
+        return AttemptResult.COMMITTED;
+    } catch (OptimisticLockingFailureException exception) {
+        return AttemptResult.OPTIMISTIC_CONFLICT;
+    }
+}
+
+private void awaitBarrier(CyclicBarrier barrier) {
+    try {
+        barrier.await(5, TimeUnit.SECONDS);
+    } catch (Exception exception) {
+        throw new IllegalStateException(
+                "Could not synchronize concurrent transactions",
+                exception
+        );
+    }
+}
+~~~
+
+In real code, this helper can live inside the test class. Required imports include `CyclicBarrier`, `TimeUnit`, and Spring's `TransactionTemplate`.
+
+### 4.3. Coordinating Two Workers in the Test
+
+~~~java
+@SpringBootTest
+class InventoryConcurrentUpdateTest {
+
+    @Autowired
+    InventoryRepository repository;
+
+    @Autowired
+    TransactionTemplate transactionTemplate;
+
+    @Test
+    void onlyOneConcurrentReservationCommits() throws Exception {
+        InventoryItem created = repository.save(
+                new InventoryItem(
+                        null,
+                        "SKU-CONCURRENT",
+                        10,
+                        null
+                )
+        );
+
+        CyclicBarrier barrier = new CyclicBarrier(2);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        try {
+            Future<AttemptResult> first = executor.submit(
+                    () -> reserveInTransaction(
+                            "SKU-CONCURRENT",
+                            1,
+                            transactionTemplate,
+                            repository,
+                            barrier
+                    )
+            );
+
+            Future<AttemptResult> second = executor.submit(
+                    () -> reserveInTransaction(
+                            "SKU-CONCURRENT",
+                            1,
+                            transactionTemplate,
+                            repository,
+                            barrier
+                    )
+            );
+
+            AttemptResult firstResult =
+                    first.get(10, TimeUnit.SECONDS);
+
+            AttemptResult secondResult =
+                    second.get(10, TimeUnit.SECONDS);
+
+            long committed = Stream.of(firstResult, secondResult)
+                    .filter(result -> result == AttemptResult.COMMITTED)
+                    .count();
+
+            long conflicts = Stream.of(firstResult, secondResult)
+                    .filter(result ->
+                            result == AttemptResult.OPTIMISTIC_CONFLICT)
+                    .count();
+
+            assertEquals(1, committed);
+            assertEquals(1, conflicts);
+
+            InventoryItem current =
+                    repository.findById(created.id()).orElseThrow();
+
+            assertEquals(9, current.availableQuantity());
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+}
+~~~
+
+This example assumes the transaction manager uses the same DataSource as the repository and the test has no outer transaction. Each call to `TransactionTemplate` on a worker thread creates an independent transaction.
+
+In real tests, include complete helpers and imports in the test class. You can swap `CyclicBarrier` for `CountDownLatch` if you want separate control over how many transactions have read and when to release them.
+
+### 4.4. Why Timeouts Are Mandatory
+
+Never let a test wait indefinitely if a worker never reaches the barrier or the database holds a lock too long.
+
+Use timeouts for:
+
+- Waiting for workers to read data.
+- Waiting on barriers.
+- `Future.get`.
+- Database lock waits.
+- Executor shutdown.
+
+If a timeout occurs, release latches/barriers in `finally` so test suite threads or connections do not hang.
+
+### 4.5. Differences by Isolation Level and Database
+
+Under certain databases or isolation levels, conflicts may surface as serialization/deadlock errors rather than the exact same optimistic locking exception type. Sequential stale-update tests are well suited for verifying `OptimisticLockingFailureException` specifically.
+
+Concurrency tests should assert the final invariant and classify concurrency failures per database/transaction configuration. Do not depend on vendor-specific error messages.
+
+## 5. Testing Optimistic Locking on Delete
+
+Spring Data JDBC also checks the version when deleting a versioned aggregate.
+
+Test:
+
+~~~java
+@Test
+void rejectsDeleteUsingStaleVersion() {
+    InventoryItem created = repository.save(
+            new InventoryItem(
+                    null,
+                    "SKU-DELETE",
+                    10,
+                    null
+            )
+    );
+
+    InventoryItem stale = repository.findById(created.id())
+            .orElseThrow();
+
+    InventoryItem current = repository.findById(created.id())
+            .orElseThrow();
+
+    repository.save(current.reserve(1));
+
+    assertThrows(
+            OptimisticLockingFailureException.class,
+            () -> repository.delete(stale)
+    );
+
+    assertTrue(repository.existsById(created.id()));
+}
+~~~
+
+A stale object must not be allowed to delete an aggregate modified after that object was loaded.
+
+If the row was already deleted by another transaction, deleting with a stale version can also fail because no matching row remains.
+
+## 6. Pessimistic Locking in Spring Data JDBC
+
+Spring Data JDBC supports pessimistic locking on **derived query methods** through the `@Lock` annotation.
+
+Two main modes:
+
+- **`PESSIMISTIC_READ`:** read lock, ensuring read data is not modified by another transaction per database semantics.
+- **`PESSIMISTIC_WRITE`:** acquires an exclusive write lock to perform modifications.
+
+Some databases do not distinguish between the two modes; both may behave equivalently to `PESSIMISTIC_WRITE`.
+
+### 6.1. Declaring the Repository Method
+
+~~~java
+import java.util.Optional;
+
+import org.springframework.data.relational.repository.Lock;
+import org.springframework.data.relational.core.sql.LockMode;
+import org.springframework.data.repository.CrudRepository;
+
+public interface InventoryLockRepository
+        extends CrudRepository<InventoryItem, Long> {
+
+    @Lock(LockMode.PESSIMISTIC_WRITE)
+    Optional<InventoryItem> findLockedBySku(String sku);
+}
+~~~
+
+The method name has the descriptive word `Locked` before `By`; the actual filtered property is `sku`.
+
+Spring Data JDBC generates a `SELECT` with a dialect-specific lock clause. You do not need to hard-code a single database's lock syntax when using derived queries with `@Lock`.
+
+### 6.2. @Lock Only Supports Derived Query Methods
+
+Spring Data Relational 4.1.2 documentation specifies that `@Lock` is currently not supported on string-based query methods.
+
+Example:
+
+~~~java
+@Lock(LockMode.PESSIMISTIC_WRITE)
+@Query("SELECT * FROM inventory_items WHERE sku = :sku")
+Optional<InventoryItem> findLocked(String sku);
+~~~
+
+Do not expect locking to be applied to this query. Spring Data JDBC ignores locking metadata and logs a warning. If custom SQL is required, implement the appropriate locking mechanism yourself and test per dialect.
+
+### 6.3. Locks Must Be Held Inside a Transaction
+
+Pessimistic locks are held for the duration of a database transaction. Therefore, place both the locking query and the update inside the same transaction:
+
+~~~java
+@Service
+public class InventoryLockingService {
+
+    private final InventoryLockRepository repository;
+
+    public InventoryLockingService(
+            InventoryLockRepository repository
+    ) {
+        this.repository = repository;
+    }
+
+    @Transactional
+    public InventoryItem reserve(
+            String sku,
+            int quantity
+    ) {
+        InventoryItem item = repository.findLockedBySku(sku)
+                .orElseThrow();
+
+        return repository.save(item.reserve(quantity));
+    }
+}
+~~~
+
+If the locking query executes in a brief transaction that commits before the service updates, the lock is released too early. The transaction boundary must cover the entire critical section.
+
+For query methods, Spring Data JDBC recommends explicit transaction configuration. Placing `@Transactional` on the orchestrating service ensures the lock is held throughout the business operation.
+
+## 7. Testing Pessimistic Locks with Two Transactions
+
+A pessimistic locking test should prove:
+
+1. Transaction A acquires the lock.
+2. Transaction B requests the same lock and must wait.
+3. A commits or rolls back.
+4. B proceeds once the lock is released.
+5. Both transactions finish within a bounded time.
+
+### 7.1. Testing Lock Hold and Confirming the Other Transaction Blocks
+
+You can use `CountDownLatch` to hold Transaction A open after acquiring the lock:
+
+~~~java
+CountDownLatch lockAcquired = new CountDownLatch(1);
+CountDownLatch releaseLock = new CountDownLatch(1);
+
+Future<?> holder = executor.submit(() ->
+        transactionTemplate.execute(status -> {
+            repository.findLockedBySku("SKU-LOCK")
+                    .orElseThrow();
+
+            lockAcquired.countDown();
+            awaitRelease(releaseLock);
+
+            return null;
+        })
+);
+~~~
+
+After A acquires the lock, launch Transaction B:
+
+~~~java
+assertTrue(lockAcquired.await(5, TimeUnit.SECONDS));
+
+Future<?> waiter = executor.submit(() ->
+        transactionTemplate.execute(status ->
+                repository.findLockedBySku("SKU-LOCK")
+                        .orElseThrow()
+        )
+);
+~~~
+
+Confirm B has not completed while A still holds the lock:
+
+~~~java
+assertThrows(
+        TimeoutException.class,
+        () -> waiter.get(200, TimeUnit.MILLISECONDS)
+);
+~~~
+
+Then release Transaction A:
+
+~~~java
+releaseLock.countDown();
+
+holder.get(5, TimeUnit.SECONDS);
+waiter.get(5, TimeUnit.SECONDS);
+~~~
+
+In a complete test, put `releaseLock.countDown()` inside `finally` so Transaction A is never held indefinitely if an assertion fails.
+
+The 200 ms interval is just a brief observation window to confirm B is waiting, not a business timeout. Choose a duration suited to your CI environment and database container.
+
+### 7.2. Using Two Independent Connections
+
+The two transactions must genuinely use two distinct connections. An imperative JDBC transaction is bound to the current thread; the same thread and transaction context cannot simulate two competing clients.
+
+Ensure:
+
+- The executor has at least two worker threads.
+- The connection pool can provide at least two connections.
+- Each worker calls `TransactionTemplate` independently.
+- No outer transaction wraps the test.
+- Setup data is committed before the test begins.
+
+### 7.3. Testing Lock Release on Rollback
+
+You can replace Transaction A with a transaction that ends via exception:
+
+~~~java
+transactionTemplate.execute(status -> {
+    repository.findLockedBySku("SKU-LOCK")
+            .orElseThrow();
+
+    throw new IllegalStateException("Force rollback");
+});
+~~~
+
+After rollback, Transaction B must be able to acquire the lock. This verifies the database releases locks when a transaction terminates, even on rollback.
+
+Do not simulate an exception outside the transaction boundary when the goal is verifying real database rollback.
+
+## 8. Testing Lock Timeouts and Deadlocks
+
+Pessimistic locking can cause transactions to wait. If another transaction holds a lock too long, the database may abort the waiting request with a lock timeout.
+
+Exceptions may be translated by Spring into concurrency/data-access exceptions such as:
+
+- `CannotAcquireLockException`.
+- `PessimisticLockingFailureException`.
+- Another `DataAccessException` subtype depending on the driver and transaction manager.
+
+Do not rely on vendor-specific exception message text. Verify the exception via Spring's exception hierarchy and the final state of data.
+
+### 8.1. Lock Timeout
+
+A timeout test should:
+
+1. Transaction A acquires and holds the lock.
+2. Transaction B requests the lock.
+3. Configure lock wait timeout appropriate for the test database.
+4. Confirm B fails within the expected timeframe.
+5. Confirm A can still commit/roll back.
+6. Verify data was not partially modified.
+
+Lock timeout configuration varies by vendor. Do not put PostgreSQL- or MySQL-specific timeout statements into shared tests without branching by database.
+
+### 8.2. Deadlocks
+
+Deadlocks can occur when two transactions acquire multiple locks in opposite orders:
+
+~~~text
+Transaction A                 Transaction B
+-------------                 -------------
+Lock row 1                    Lock row 2
+Request row 2                 Request row 1
+Wait for B                    Wait for A
+       \                      /
+        \---- DEADLOCK ------/
+~~~
+
+One way to reduce deadlock risk is always acquiring locks in a consistent order, such as sorting IDs ascending before locking multiple aggregates.
+
+Deadlock tests can be flaky because they depend on schedulers, optimizers, and database internals. When testing them, build scenarios with barriers ensuring both transactions hold their first lock before requesting their second lock, and add test timeouts.
+
+Do not write tests that merely sleep a random duration and hope a deadlock occurs.
+
+## 9. Choosing Optimistic or Pessimistic Locking per Use Case
+
+| Scenario | Usually Appropriate Strategy |
+| --- | --- |
+| Users editing profiles; rare conflicts | Optimistic locking |
+| Many requests updating a hot counter | Consider pessimistic lock or atomic SQL |
+| High-contention reservations/inventory | Evaluate pessimistic write or conditional updates |
+| Read-heavy, write-light workloads | Optimistic locking |
+| Short critical sections requiring serialization | Pessimistic locking |
+| Long tasks or HTTP calls | Avoid holding pessimistic locks throughout |
+| Updating multiple aggregates together | Design explicit lock ordering and transaction boundaries |
+
+### 9.1. Optimistic Locking Does Not Resolve Business Logic Automatically
+
+Upon receiving `OptimisticLockingFailureException`, the application must decide:
+
+- Retry in a fresh transaction after reloading the aggregate.
+- Return HTTP 409 Conflict so the caller reloads data.
+- Ask the user to resolve the conflict manually.
+- Record metrics to track contention.
+
+Do not blindly retry validation or constraint errors.
+
+### 9.2. Pessimistic Locking Does Not Replace Validation
+
+Holding a lock does not guarantee an operation is valid. After acquiring the lock, you must still validate:
+
+- Whether sufficient quantity remains.
+- Whether the aggregate state permits the transition.
+- Whether quotas or limits would be exceeded.
+- Whether the user is still authorized to perform the action.
+
+Locks only coordinate concurrent access; domain rules must still be enforced.
+
+## 10. Testing Against a Real Database
+
+H2 is useful for fast tests, yet concurrency and locking behavior must be verified against the real database the application deploys with.
+
+Differences can arise from:
+
+- Supported lock modes.
+- How `PESSIMISTIC_READ` and `PESSIMISTIC_WRITE` are interpreted.
+- Default isolation levels.
+- Lock timeouts.
+- Deadlock detection.
+- Row locks vs. range/gap locks.
+- Transaction engine and JDBC driver.
+
+If production uses PostgreSQL, run concurrency tests on a PostgreSQL Testcontainer. If production uses MySQL/InnoDB, run on a MySQL container with the same major version. If supporting both, run dedicated tests for each database.
+
+### 10.1. PostgreSQL Testcontainers
+
+Example container configuration:
+
+~~~java
+@Testcontainers
+@SpringBootTest
+class PostgreSqlLockingTest {
+
+    @Container
+    static final PostgreSQLContainer<?> postgres =
+            new PostgreSQLContainer<>("postgres:16-alpine")
+                    .withDatabaseName("shop")
+                    .withUsername("shop")
+                    .withPassword("shop");
+
+    @DynamicPropertySource
+    static void databaseProperties(
+            DynamicPropertyRegistry registry
+    ) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
+}
+~~~
+
+This test class can contain stale-update tests, concurrent update tests, and pessimistic lock tests. Use a container version close to production to test real driver and server behavior.
+
+### 10.2. MySQL Testcontainers
+
+~~~java
+@Testcontainers
+@SpringBootTest
+class MySqlLockingTest {
+
+    @Container
+    static final MySQLContainer<?> mysql =
+            new MySQLContainer<>("mysql:8.4")
+                    .withDatabaseName("shop")
+                    .withUsername("shop")
+                    .withPassword("shop");
+
+    @DynamicPropertySource
+    static void databaseProperties(
+            DynamicPropertyRegistry registry
+    ) {
+        registry.add("spring.datasource.url", mysql::getJdbcUrl);
+        registry.add("spring.datasource.username", mysql::getUsername);
+        registry.add("spring.datasource.password", mysql::getPassword);
+    }
+}
+~~~
+
+Verify table engines are InnoDB when tests rely on row-level transactional locks. MySQL behaves differently if tables use another storage engine.
+
+Do not treat MySQL and MariaDB as the same test target. If production uses MariaDB, test MariaDB separately.
+
+### 10.3. Do Not Let Test Contexts or Connection Pools Distort Results
+
+For tests running in parallel:
+
+- Use test data with unique SKUs/IDs.
+- Ensure the connection pool holds enough connections for concurrent transactions.
+- Shut down `ExecutorService` in `finally`.
+- Use timeouts for `Future` and latches.
+- Ensure containers outlive the entire `ApplicationContext` lifecycle.
+- Do not let an outer test transaction hold locks or connections.
+- Do not run tests sharing the same data row in parallel if they can interfere with each other.
+
+## 11. Testing Multiple Repositories in the Same Transaction
+
+A use case may update inventory and create an order. When the second step fails, the first step must roll back.
+
+~~~java
+@Transactional
+public PurchaseOrder placeOrder(String sku, int quantity) {
+    InventoryItem inventory = inventoryRepository
+            .findBySku(sku)
+            .orElseThrow();
+
+    inventoryRepository.save(inventory.reserve(quantity));
+
+    return orderRepository.save(
+            new PurchaseOrder(
+                    null,
+                    sku,
+                    quantity,
+                    "PLACED"
+            )
+    );
+}
+~~~
+
+Tests should confirm:
+
+1. The transaction reads inventory.
+2. Inventory update succeeds inside the transaction.
+3. A failure occurs during the order-saving step.
+4. The transaction rolls back.
+5. Inventory returns to its prior value.
+6. No order is created.
+
+If an optimistic locking conflict occurs on one aggregate, the entire transaction must roll back. Do not merely retry the final repository method inside the stale transaction.
+
+With pessimistic locking, tests should verify the lock is held until the entire use case commits/rolls back, not merely until the repository method returns.
+
+## 12. Testing Optimistic Locking and Retries
+
+If an application has a retry policy, test both conflict detection and post-conflict handling.
+
+A retry test should confirm:
+
+- The first attempt reads the stale version.
+- Another transaction updates the aggregate.
+- The first attempt fails and rolls back.
+- The next attempt opens a fresh transaction.
+- The aggregate is reloaded with the new version.
+- Domain rules are re-evaluated.
+- Only valid changes commit.
+
+Do not mock a repository to throw `OptimisticLockingFailureException` and treat that as proof of transaction rollback. Mocking only tests the exception-handling branch; integration tests prove the database and transaction manager work together properly.
+
+If retrying an entire multi-repository use case, verify all changes from the failed attempt rolled back before the new attempt begins.
+
+## 13. Testing Boundary Scenarios
+
+A thorough concurrency test suite should cover:
+
+| Scenario | What to Confirm |
+| --- | --- |
+| Two objects with same version updating | One update succeeds, stale update fails |
+| Two transactions reading then saving | No lost updates |
+| Concurrent update and delete | Stale delete does not remove newer changes |
+| Two transactions acquiring pessimistic write lock | Second transaction waits or times out |
+| Lock-holding transaction rolls back | Lock is released |
+| Deadlock | Victim transaction fails; no partial data remains |
+| Lock timeout | Failure propagated/translated properly; transaction completes |
+| Multiple repositories in one transaction | Full rollback when one step fails |
+| Retry after conflict | Reloads version and revalidates business rules |
+| Small connection pool | Tests detect pool exhaustion timeout instead of hanging forever |
+
+You do not need every scenario in every project. Prioritize write paths and invariants protecting critical data.
+
+## 14. Common Misconceptions
+
+**"`@Version` automatically locks rows on read."** No. Optimistic locking checks the version at write time; it does not hold pessimistic row locks during reads.
+
+**"Sequential stale-update tests are complete concurrency tests."** No. They confirm version checks for stale objects. To test competing transactions, you need two independent transactions/connections.
+
+**"Two threads alone prove concurrency."** No. You must synchronize to ensure both transactions read the same state before writing.
+
+**"You can put `@Transactional` on a test and use an executor to test two transactions."** Avoid this. Test transactions bind to the test thread; worker threads need their own transactions and setup data must commit beforehand.
+
+**"Pessimistic locks remain held after the repository method returns."** Only while the enclosing transaction stays open. Once the transaction ends, the database releases the lock.
+
+**"`@Lock` works with every `@Query`."** No. Spring Data JDBC 4.1.2 supports `@Lock` on derived query methods; string-based `@Query` currently ignores locking metadata and logs a warning.
+
+**"`PESSIMISTIC_READ` always differs from `PESSIMISTIC_WRITE`."** No. Several databases implement both modes identically.
+
+**"Using `SELECT FOR UPDATE` without a transaction is enough."** No. Locks must be held inside a transaction spanning the business operation.
+
+**"With a pessimistic lock, business rules no longer need checking."** No. Even after acquiring a lock, you must still enforce invariants on current data.
+
+**"Passing on H2 proves production lock behavior."** No. Test against the real database vendor and storage engine.
+
+**"Lock timeouts always have the same exception message."** No. Drivers and databases vary; assert exception abstractions and data state.
+
+**"Deadlock tests can use random `Thread.sleep`."** Unstable. Use barriers/latches to control lock acquisition order.
+
+**"Increasing the connection pool solves every lock wait."** No. It can merely mask long transactions or inconsistent lock ordering.
+
+**"Locks can be held during HTTP calls."** Avoid this. Calling external services while holding locks prolongs transactions and increases contention.
+
+## 15. Workflow for Building a Concurrency Test
+
+1. **Identify the invariant:** e.g., non-negative inventory or at most one confirmation.
+2. **Choose the strategy:** optimistic version or pessimistic lock.
+3. **Prepare versioned aggregate:** put `@Version` on the aggregate root if using optimistic locking.
+4. **Prepare repository lock method:** use `@Lock` on a derived query method if using pessimistic locking.
+5. **Commit setup data:** so test transactions can see the baseline data.
+6. **Open independent transactions:** use `TransactionTemplate` on worker threads or invoke service beans via proxy.
+7. **Control ordering:** use `CyclicBarrier`/`CountDownLatch` rather than arbitrary sleeps.
+8. **Run competing operations:** update, delete, or acquire locks.
+9. **Wait with timeouts:** prevent CI hangs.
+10. **Assert outcomes:** verify exceptions, successful transaction counts, and final database state.
+11. **Release resources:** release latches, shut down executors, and complete transactions.
+12. **Run on a real database:** use Testcontainers matching the production server version.
+13. **Monitor stability:** repeat tests multiple times and ensure no ordering dependencies across test cases.
+
+~~~mermaid
+flowchart TD
+    A["Prepare committed baseline data"] --> B["Open transactions A and B"]
+    B --> C["Synchronize after reading"]
+    C --> D{"Locking strategy?"}
+    D -->|Optimistic| E["Both save same version"]
+    D -->|Pessimistic| F["A holds lock, B requests lock"]
+    E --> G["One transaction succeeds, stale transaction fails"]
+    F --> H["B waits or times out"]
+    G --> I["Verify final state"]
+    H --> I
+    I --> J["Release executor and connections"]
+~~~
+
+## 16. Practice Exercises
+
+Create an `InventoryItem` aggregate with `id`, `sku`, `availableQuantity`, and `@Version Long version`.
+
+### Exercise 1: Testing Stale Updates
+
+1. Create an inventory row with 10 units.
+2. Read the same aggregate into two objects.
+3. Save the first object after reserving 2 units.
+4. Save the second object using the stale version.
+5. Verify `OptimisticLockingFailureException`.
+6. Reload and confirm quantity is 8.
+
+### Exercise 2: Creating Two Concurrent Transactions
+
+1. Use `TransactionTemplate`.
+2. Create an `ExecutorService` with two threads.
+3. Have each transaction read the same SKU.
+4. Use `CyclicBarrier` so both finish reading before saving.
+5. Have both reserve 1 unit.
+6. Verify only one transaction commits.
+7. Confirm final quantity is 9.
+
+### Exercise 3: Testing Pessimistic Locking
+
+1. Add a derived query method annotated with `@Lock(PESSIMISTIC_WRITE)`.
+2. Open Transaction A and acquire the lock.
+3. Hold Transaction A with a `CountDownLatch`.
+4. Open Transaction B and request the same lock.
+5. Verify B blocks.
+6. Commit or roll back A.
+7. Verify B proceeds and completes.
+
+### Exercise 4: Testing Lock Timeout
+
+1. Hold the lock in Transaction A.
+2. Configure timeout for the test database.
+3. Request the lock from Transaction B.
+4. Verify B fails within the timeout window.
+5. Verify A can still finish cleanly.
+6. Verify final data state.
+
+### Exercise 5: Testing Concurrent Update and Delete
+
+1. Read the aggregate twice.
+2. Update and save the first object.
+3. Delete using the stale second object.
+4. Confirm optimistic locking prevents deleting newer changes.
+5. Confirm the aggregate still exists.
+
+### Exercise 6: Running on Production Target Database
+
+1. Run stale-update tests on H2.
+2. Run again on PostgreSQL Testcontainer or MySQL Testcontainer.
+3. Run pessimistic lock tests on the target database.
+4. Compare wait times and exception translation.
+5. Record differences by dialect/isolation.
+6. Add critical tests to CI.
+
+## 17. Key Takeaways
+
+- Spring Data JDBC supports optimistic locking via a numeric property marked `@Version` on the aggregate root.
+- Both updates and deletes check the version; deletes do not increment the version.
+- Sequential stale-update tests confirm objects with stale versions are rejected.
+- True concurrency tests require two independent transactions and connections.
+- Use barriers/latches to ensure both transactions read the same state before writing.
+- `TransactionTemplate` on worker threads creates separate transactions when no outer transaction is active.
+- Pessimistic locking in Spring Data JDBC supports `@Lock` with `PESSIMISTIC_READ` and `PESSIMISTIC_WRITE` on derived query methods.
+- `@Lock` is not supported on string-based `@Query` in Spring Data Relational 4.1.2.
+- Pessimistic locks must be held inside a transaction enclosing the full business operation.
+- Lock behavior depends on dialect, database, storage engine, and isolation level.
+- Lock tests need timeouts, two connections, committed setup data, and guaranteed cleanup.
+- Do not use random sleeps to coordinate concurrency; use barriers/latches.
+- H2 helps for fast tests, yet does not replace integration tests against the production database.
+- Assert final data state, not just exceptions.
+- With retries, each attempt must run in a fresh transaction and reload the aggregate.
+- Keep critical sections short; avoid HTTP calls or slow processing while holding locks.
+
+**Concurrency tests must prove the database genuinely handles two independent transactions under the chosen locking strategy.** For optimistic locking, create a stale version and confirm updates are rejected. For pessimistic locking, hold the lock in one transaction and observe another transaction waiting or timing out. Run these tests on the target production database to catch differences in locking, isolation, and drivers before deployment.
+
+## References
+
+- [Spring Data Relational 4.1.2 — Persisting Entities and Optimistic Locking](https://docs.spring.io/spring-data/relational/reference/jdbc/entity-persistence.html)
+- [Spring Data Relational 4.1.2 — Transactionality and JDBC Locking](https://docs.spring.io/spring-data/relational/reference/jdbc/transactions.html)
+- [Spring Data Relational 4.1.2 — LockMode API](https://docs.spring.io/spring-data/relational/reference/api/java/org/springframework/data/relational/core/sql/LockMode.html)
+- [Spring Framework — Programmatic Transaction Management](https://docs.spring.io/spring-framework/reference/data-access/transaction/programmatic.html)
+- [Testcontainers for Java — Database Modules](https://java.testcontainers.org/modules/databases/)

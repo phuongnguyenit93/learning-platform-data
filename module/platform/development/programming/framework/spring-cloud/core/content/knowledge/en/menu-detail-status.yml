@@ -1,0 +1,2719 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Spring Cloud Core là gì trong phạm vi Spring Cloud Commons và Context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt Spring Framework Core, Spring Boot và Spring Cloud
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Những bài toán nền tảng của ứng dụng phân tán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Vai trò Spring Cloud Context đối với ApplicationContext
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vai trò Spring Cloud Commons đối với các thành phần dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Mối quan hệ giữa cấu hình, khám phá dịch vụ và gọi dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Trừu tượng dùng chung và phần triển khai theo nhà cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Trường hợp cần Spring Cloud và chi phí bổ sung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Kiến thức tiên quyết và trình tự học của module
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-foundations
+  title: Nền tảng phân tán
+  childs:
+  - slug: distributed-foundations-001
+    title: Dịch vụ, instance và ranh giới triển khai độc lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-foundations-002
+    title: Địa chỉ động và nhu cầu tìm instance theo tên dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-foundations-003
+    title: Cấu hình bên ngoài và khác biệt giữa các môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-foundations-004
+    title: Lỗi một phần, độ trễ mạng và tài nguyên phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-foundations-005
+    title: Phân biệt discovery, load balancing, retry và circuit breaker
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-foundations-006
+    title: Trạng thái cục bộ và giới hạn đồng bộ giữa nhiều instance
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-foundations-007
+    title: Phân biệt vòng đời tiến trình với vòng đời đăng ký dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-foundations-008
+    title: Nguyên tắc quan sát và kiểm chứng hành vi phân tán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versions-and-dependencies
+  title: Phiên bản và phụ thuộc
+  childs:
+  - slug: versions-and-dependencies-001
+    title: Release train, phiên bản từng dự án và service release
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-002
+    title: Chọn Spring Cloud tương thích với Java và Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-003
+    title: Quản lý phụ thuộc bằng spring-cloud-dependencies BOM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-004
+    title: Nhập BOM trong Maven và Gradle
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-005
+    title: Phân biệt starter, thư viện lõi và implementation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-006
+    title: Nhận diện spring-cloud-commons, spring-cloud-context và spring-cloud-starter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-007
+    title: Kiểm tra phiên bản thực tế bằng dependency tree
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-008
+    title: Compatibility Verifier và thông báo không tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-009
+    title: Điều kiện ghi đè phiên bản và giới hạn tắt compatibility verifier
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-010
+    title: Đọc tài liệu và trạng thái hỗ trợ đúng nhánh phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: initialization
+  title: Khởi tạo
+  childs:
+  - slug: initialization-001
+    title: Tạo ứng dụng Spring Boot tối thiểu có Spring Cloud
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-002
+    title: Chọn ứng dụng Servlet, Reactive hoặc không có web server
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-003
+    title: Đặt spring.application.name và cổng chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-004
+    title: Khai báo cấu hình cơ sở trong application.yml
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-005
+    title: Bổ sung Actuator và chỉ mở endpoint cần dùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-006
+    title: Chạy ứng dụng bằng Maven, Gradle và executable JAR
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-007
+    title: Khởi chạy nhiều instance với profile và cổng khác nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-008
+    title: Kiểm tra bean, nguồn cấu hình và điều kiện tự động cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: platform-architecture
+  title: Kiến trúc nền tảng
+  childs:
+  - slug: platform-architecture-001
+    title: Đường đi từ SpringApplication đến các thành phần Spring Cloud
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-architecture-002
+    title: Vai trò ApplicationContext, BeanFactory và Environment
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-architecture-003
+    title: Khởi tạo bean, binding thuộc tính và xử lý vòng đời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-architecture-004
+    title: Điều kiện kích hoạt theo classpath, bean và property
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-architecture-005
+    title: Cách cấu hình do ứng dụng khai báo thay thế mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-architecture-006
+    title: Phân biệt SPI, auto-configuration và thành phần triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-architecture-007
+    title: Ranh giới giữa cơ chế trong tiến trình và hạ tầng bên ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-architecture-008
+    title: Tác động của thứ tự khởi tạo đến cấu hình và logging
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-loading
+  title: Nạp cấu hình
+  childs:
+  - slug: configuration-loading-001
+    title: Tệp application.properties và application.yml
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-loading-002
+    title: Vị trí cấu hình trong JAR và bên ngoài JAR
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-loading-003
+    title: Thứ tự ưu tiên giữa tệp, biến môi trường, system property và tham số dòng lệnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-loading-004
+    title: Profile, tệp theo profile và nhóm profile
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-loading-005
+    title: spring.config.name, location và additional-location
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-loading-006
+    title: Nhập cấu hình bằng spring.config.import
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-loading-007
+    title: Nguồn bắt buộc, nguồn optional và hành vi khi không tồn tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-loading-008
+    title: Config tree cho cấu hình được gắn từ hệ thống triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-loading-009
+    title: Phân biệt Config Data với cơ chế bootstrap cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-loading-010
+    title: Vai trò Config Client khi kết nối nguồn cấu hình từ xa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-loading-011
+    title: Thực nghiệm một thuộc tính xuất hiện trong nhiều nguồn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment
+  title: Environment
+  childs:
+  - slug: environment-001
+    title: Environment, ConfigurableEnvironment và PropertySource
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-002
+    title: Đọc thuộc tính với getProperty, kiểu dữ liệu và giá trị mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-003
+    title: MutablePropertySources và thứ tự tra cứu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-004
+    title: MapPropertySource, PropertiesPropertySource và CompositePropertySource
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-005
+    title: Placeholder, giá trị tham chiếu và lỗi không phân giải được
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-006
+    title: Relaxed binding và quy tắc tên biến môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-007
+    title: Phân biệt giá trị không có, null và chuỗi rỗng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-008
+    title: Truy tìm nguồn tạo ra giá trị cấu hình hiệu lực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-009
+    title: Phân biệt thay đổi Environment với thay đổi bean đã khởi tạo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bootstrap
+  title: Bootstrap
+  childs:
+  - slug: bootstrap-001
+    title: Bootstrap context và điều kiện cần sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-002
+    title: Bật bootstrap bằng starter hoặc thuộc tính phù hợp phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-003
+    title: Vai trò bootstrap.yml so với application.yml
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-004
+    title: Nguồn bootstrap có độ ưu tiên cao và tệp bootstrap có độ ưu tiên thấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-005
+    title: spring.cloud.bootstrap.name, location và additional-location
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-006
+    title: Nạp cấu hình theo profile trong giai đoạn bootstrap
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-007
+    title: Vị trí PropertySourceLocator trong trình tự khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-008
+    title: allowOverride, overrideNone và overrideSystemProperties trong config-first bootstrap
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-009
+    title: Phạm vi áp dụng của quy tắc ghi đè từ nguồn cấu hình từ xa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-010
+    title: Nhận diện việc đồng thời bật bootstrap và Config Data gây nạp lặp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-hierarchy
+  title: Phân cấp context
+  childs:
+  - slug: context-hierarchy-001
+    title: Context cha, context con và phạm vi nhìn thấy bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-hierarchy-002
+    title: Xây dựng parent, child và sibling bằng SpringApplicationBuilder
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-hierarchy-003
+    title: Kế thừa PropertySource và profile trong hệ phân cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-hierarchy-004
+    title: Chia sẻ Environment và các trường hợp không chia sẻ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-hierarchy-005
+    title: Thuộc tính cùng tên và PropertySource cùng tên giữa các context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-hierarchy-006
+    title: Định danh ứng dụng, context ID và nguồn cấu hình riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-hierarchy-007
+    title: Vòng đời đóng context và quản lý tài nguyên phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-hierarchy-008
+    title: Tránh component scan đưa cấu hình bootstrap vào context chính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-configuration-sources
+  title: Nguồn cấu hình tùy biến
+  childs:
+  - slug: custom-configuration-sources-001
+    title: Khi nào cần PropertySourceLocator hoặc Config Data extension
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-configuration-sources-002
+    title: Triển khai PropertySourceLocator cho nguồn cấu hình riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-configuration-sources-003
+    title: Đăng ký BootstrapConfiguration qua META-INF/spring.factories
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-configuration-sources-004
+    title: Thứ tự BootstrapConfiguration và ApplicationContextInitializer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-configuration-sources-005
+    title: Sử dụng Environment đầu vào để chọn ứng dụng và profile
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-configuration-sources-006
+    title: Gộp nhiều nguồn bằng CompositePropertySource
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-configuration-sources-007
+    title: Đặt tên nguồn ổn định và kiểm soát độ ưu tiên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-configuration-sources-008
+    title: Timeout, lỗi đọc nguồn và lựa chọn dừng sớm hoặc dùng mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-configuration-sources-009
+    title: Thiết kế thao tác nạp có thể lặp lại an toàn khi refresh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-configuration-sources-010
+    title: Phân biệt extension bootstrap với EnvironmentPostProcessor của Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: typed-configuration
+  title: Cấu hình kiểu dữ liệu
+  childs:
+  - slug: typed-configuration-001
+    title: Chọn @Value, Environment hoặc @ConfigurationProperties
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: typed-configuration-002
+    title: Khai báo nhóm thuộc tính và đăng ký bean cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: typed-configuration-003
+    title: Binding đối tượng lồng nhau, danh sách và map
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: typed-configuration-004
+    title: Chuyển đổi Duration, DataSize và kiểu dữ liệu riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: typed-configuration-005
+    title: Validation cấu hình và phát hiện giá trị không hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: typed-configuration-006
+    title: Constructor binding, Java record và giới hạn làm mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: typed-configuration-007
+    title: Giá trị mặc định và xử lý khi thuộc tính bị loại bỏ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: typed-configuration-008
+    title: Configuration metadata và hỗ trợ gợi ý trong IDE
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: typed-configuration-009
+    title: Tách cấu hình hạ tầng khỏi tham số nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: refresh-scope
+  title: Refresh Scope
+  childs:
+  - slug: refresh-scope-001
+    title: Bài toán bean giữ cấu hình đã đọc tại thời điểm khởi tạo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-scope-002
+    title: Cơ chế lazy proxy và bộ nhớ đệm target của @RefreshScope
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-scope-003
+    title: Gắn @RefreshScope vào bean và quan hệ với singleton
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-scope-004
+    title: Khởi tạo target khi có lời gọi đầu tiên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-scope-005
+    title: Vô hiệu hóa target và tạo lại khi được gọi tiếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-scope-006
+    title: RefreshScope.refresh theo tên và refreshAll
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-scope-007
+    title: Vòng đời hủy target và giải phóng tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-scope-008
+    title: '@RefreshScope trên @Configuration và phạm vi các @Bean bên trong'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-scope-009
+    title: Bean phụ thuộc giữ tham chiếu cũ và giới hạn của proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-scope-010
+    title: extra-refreshable, never-refreshable và trường hợp HikariDataSource
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-scope-011
+    title: Giới hạn làm mới đối với tài nguyên có trạng thái và xử lý đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-refresh
+  title: Làm mới cấu hình
+  childs:
+  - slug: configuration-refresh-001
+    title: Phân biệt cập nhật nguồn cấu hình, Environment và bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-refresh-002
+    title: EnvironmentChangeEvent và tập khóa thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-refresh-003
+    title: Rebind @ConfigurationProperties và cập nhật logging.level
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-refresh-004
+    title: Vai trò ContextRefresher trong quy trình refresh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-refresh-005
+    title: Phân biệt rebind tại chỗ với tạo lại bean trong Refresh Scope
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-refresh-006
+    title: Hành vi thêm, đổi và xóa thuộc tính theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-refresh-007
+    title: Giới hạn cập nhật điều kiện @ConditionalOnProperty lúc chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-refresh-008
+    title: Refresh cục bộ và giới hạn lan truyền sang instance khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-refresh-009
+    title: Quan hệ với Spring Cloud Bus trong phát tán yêu cầu refresh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-refresh-010
+    title: Xử lý refresh lặp lại, lỗi giữa chừng và cấu hình không hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-refresh-011
+    title: Bảo toàn góc nhìn nhất quán khi thay nhiều thuộc tính liên quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-refresh-012
+    title: Kiểm chứng giá trị thực tế trước và sau refresh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-lifecycle
+  title: Vòng đời ứng dụng
+  childs:
+  - slug: application-lifecycle-001
+    title: Phân biệt refresh context, restart tiến trình và restart ApplicationContext
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-lifecycle-002
+    title: Các sự kiện khởi động và vị trí listener tùy biến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-lifecycle-003
+    title: Endpoint refresh và điều kiện hoạt động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-lifecycle-004
+    title: Endpoint env với thao tác POST và rebind thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-lifecycle-005
+    title: Endpoint restart và trạng thái bật tắt theo mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-lifecycle-006
+    title: Endpoint pause, resume và hành vi theo phiên bản triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-lifecycle-007
+    title: Quản lý Lifecycle, SmartLifecycle và tài nguyên cần đóng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-lifecycle-008
+    title: Ảnh hưởng của restart hoặc pause đến yêu cầu đang xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-lifecycle-009
+    title: Phân biệt trạng thái ứng dụng với trạng thái đăng ký dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-encryption
+  title: Mã hóa cấu hình
+  childs:
+  - slug: configuration-encryption-001
+    title: Giá trị dạng {cipher} và quá trình giải mã trước khi tạo bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-encryption-002
+    title: Vai trò TextEncryptor và thư viện mã hóa cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-encryption-003
+    title: Cấu hình khóa đối xứng và khóa bất đối xứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-encryption-004
+    title: Keystore, alias và mật khẩu bảo vệ khóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-encryption-005
+    title: Giải mã cục bộ và giải mã tại nguồn cấu hình từ xa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-encryption-006
+    title: Nhận diện lỗi sai khóa, thiếu khóa và thuật toán không phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-encryption-007
+    title: Vị trí lưu khóa và tránh đặt khóa cùng bản mã
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-encryption-008
+    title: Xoay vòng khóa và khả năng đọc cấu hình đã mã hóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-encryption-009
+    title: Phân biệt mã hóa cấu hình với TLS và hệ thống quản lý bí mật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-and-networking
+  title: Định danh và mạng
+  childs:
+  - slug: identity-and-networking-001
+    title: Phân biệt application name, service ID, instance ID và context ID
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-networking-002
+    title: Host, IP, port, URI và thuộc tính secure của một instance
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-networking-003
+    title: Vai trò InetUtils và HostInfo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-networking-004
+    title: Chọn địa chỉ mạng khi máy có nhiều network interface
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-networking-005
+    title: Loại interface bằng ignoredInterfaces
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-networking-006
+    title: Ưu tiên dải địa chỉ bằng preferredNetworks
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-networking-007
+    title: Giới hạn địa chỉ nội bộ với useOnlySiteLocalInterfaces
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-networking-008
+    title: Timeout phân giải hostname và địa chỉ dự phòng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-networking-009
+    title: Địa chỉ bind, địa chỉ quảng bá và khác biệt khi chạy container
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-networking-010
+    title: Kiểm tra IP và hostname được chọn bằng thực nghiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: discoveryclient
+  title: DiscoveryClient
+  childs:
+  - slug: discoveryclient-001
+    title: Hợp đồng DiscoveryClient và ReactiveDiscoveryClient
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-002
+    title: Vai trò ServiceInstance và DefaultServiceInstance
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-003
+    title: Liệt kê dịch vụ và lấy danh sách instance
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-004
+    title: Metadata instance và giới hạn diễn giải theo implementation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-005
+    title: SimpleDiscoveryClient khi dùng danh sách instance từ cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-006
+    title: Khai báo spring.cloud.discovery.client.simple.instances
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-007
+    title: Thứ tự nhiều DiscoveryClient và cơ chế tổng hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-008
+    title: Bật tắt discovery, blocking client và reactive client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-009
+    title: Vai trò hiện tại của @EnableDiscoveryClient
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-010
+    title: Giới hạn dữ liệu discovery và quan hệ với hệ đăng ký thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: serviceregistry
+  title: ServiceRegistry
+  childs:
+  - slug: serviceregistry-001
+    title: Phân biệt tra cứu dịch vụ với đăng ký dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-002
+    title: Hợp đồng ServiceRegistry và Registration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-003
+    title: Đăng ký, hủy đăng ký và thay đổi trạng thái instance
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-004
+    title: Auto-registration và vòng đời ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-005
+    title: Bật tắt đăng ký tự động bằng thuộc tính hoặc annotation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-006
+    title: InstancePreRegisteredEvent và InstanceRegisteredEvent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-007
+    title: Endpoint serviceregistry và yêu cầu có Registration bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-008
+    title: Trạng thái đăng ký và giá trị hỗ trợ theo implementation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-009
+    title: Đăng ký đúng instance và xử lý việc gọi lặp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-010
+    title: Giới hạn hợp đồng chung so với Eureka, Consul và Zookeeper
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-calls
+  title: Gọi dịch vụ
+  childs:
+  - slug: service-calls-001
+    title: Tên dịch vụ logic và địa chỉ mạng vật lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-calls-002
+    title: Vai trò LoadBalancerClient trong hợp đồng gọi dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-calls-003
+    title: Chọn instance, tái dựng URI và thực thi yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-calls-004
+    title: Ý nghĩa @LoadBalanced và phụ thuộc implementation cần có
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-calls-005
+    title: Tạo RestTemplate dùng load balancer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-calls-006
+    title: Tạo RestClient.Builder dùng load balancer theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-calls-007
+    title: Tạo WebClient.Builder với bộ lọc load balancer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-calls-008
+    title: Phân biệt lời gọi blocking và reactive
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-calls-009
+    title: Dùng đồng thời HTTP client thông thường và client theo tên dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-calls-010
+    title: Giữ cấu hình và quan sát của builder do Spring Boot cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-calls-011
+    title: Ranh giới của Commons với chính sách retry, circuit breaker và load balancing chuyên sâu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-capabilities
+  title: Khả năng hệ thống
+  childs:
+  - slug: system-capabilities-001
+    title: Endpoint features và thông tin khả năng đang hoạt động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-capabilities-002
+    title: Phân biệt abstract feature và named feature
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-capabilities-003
+    title: Khai báo HasFeatures và NamedFeature
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-capabilities-004
+    title: Đọc tên, phiên bản và nhà cung cấp của implementation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-capabilities-005
+    title: Điều kiện bật tắt khả năng theo classpath và cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-capabilities-006
+    title: Đối chiếu bean thực tế với thông tin được công bố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-capabilities-007
+    title: Vai trò HTTP client factory dùng chung và tình trạng hỗ trợ theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: random-values
+  title: Giá trị ngẫu nhiên
+  childs:
+  - slug: random-values-001
+    title: CachedRandomPropertySource và nhu cầu giữ giá trị trong bộ nhớ đệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-values-002
+    title: Cú pháp cachedrandom.<key>.<type>
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-values-003
+    title: Phân biệt cachedrandom với random của Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-values-004
+    title: Kiểu giá trị và phạm vi giá trị được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-values-005
+    title: Phạm vi ổn định qua restart context và giới hạn khi restart tiến trình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-values-006
+    title: Giới hạn sử dụng cho instance ID, khóa bảo mật và định danh bền vững
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: auto-configuration-customization
+  title: Tùy biến tự động cấu hình
+  childs:
+  - slug: auto-configuration-customization-001
+    title: Đọc điều kiện tạo bean trước khi thay thế mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-customization-002
+    title: '@ConditionalOnClass, @ConditionalOnBean và @ConditionalOnMissingBean'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-customization-003
+    title: '@ConditionalOnProperty và tác động của matchIfMissing'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-customization-004
+    title: Đăng ký auto-configuration qua AutoConfiguration.imports
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-customization-005
+    title: Phân biệt AutoConfiguration.imports với BootstrapConfiguration trong spring.factories
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-customization-006
+    title: Thứ tự định nghĩa cấu hình và thứ tự khởi tạo bean
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-customization-007
+    title: Thiết kế bean tùy biến để cấu hình mặc định tự nhường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-customization-008
+    title: Giới hạn component scan của thư viện dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-customization-009
+    title: Đóng gói starter nội bộ với thuộc tính có namespace rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-customization-010
+    title: Đọc ConditionEvaluationReport để kiểm chứng cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-configuration-customization-011
+    title: Tránh đưa phụ thuộc hạ tầng không cần thiết vào starter nền tảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Phân tầng kiểm thử thuộc tính, context và tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử auto-configuration bằng ApplicationContextRunner
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Mô phỏng classpath thiếu hoặc có implementation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử cấu hình mặc định và bean tùy biến thay thế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử thứ tự PropertySource và profile
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Cấp thuộc tính kiểm thử bằng TestPropertySource và DynamicPropertySource
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử PropertySourceLocator với nguồn dữ liệu kiểm soát được
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử rebind và Refresh Scope trước, sau thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử lỗi refresh và giải phóng target cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử nhiều instance với SimpleDiscoveryClient
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử sự kiện đăng ký và vòng đời ServiceRegistry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Cô lập context, property source và trạng thái tĩnh giữa các ca kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Kiểm thử endpoint quản trị có xác thực và phân quyền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát
+  childs:
+  - slug: observability-001
+    title: Kiểm tra cấu hình hiệu lực qua env và configprops
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Chẩn đoán auto-configuration bằng conditions và log khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Quan sát thành phần trong context bằng beans
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: DiscoveryClientHealthIndicator và DiscoveryCompositeHealthContributor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Giảm chi phí health check bằng probe thay vì liệt kê dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Phân biệt kết nối registry khỏe với instance xử lý được yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Quan sát tính năng qua features và trạng thái qua serviceregistry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Ghi nhận nguồn, thời điểm và kết quả thay đổi cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Theo dõi lỗi khởi động, lỗi refresh và thời gian lấy cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-010
+    title: Truy vết lời gọi qua client được cấu hình từ Spring Boot
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Giới hạn endpoint quản trị được bật và được công bố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Xác thực và phân quyền cho env, refresh, restart và serviceregistry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Tách management port, địa chỉ lắng nghe và đường mạng quản trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: CSRF đối với endpoint thay đổi trạng thái và lựa chọn cấu hình phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Che giá trị nhạy cảm trong env, configprops và log
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Giới hạn thuộc tính được sửa động theo khả năng phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Kiểm soát nguồn cấu hình được tin cậy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Bảo vệ thông tin xác thực khi gọi nguồn cấu hình hoặc registry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Ghi nhận lịch sử thao tác quản trị mà không lộ bí mật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Kiểm thử quyền tối thiểu đối với thao tác quản trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations
+  title: Vận hành
+  childs:
+  - slug: operations-001
+    title: Đóng gói cấu hình theo môi trường và phân tách bí mật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-002
+    title: Trình tự sẵn sàng của nguồn cấu hình, registry và ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-003
+    title: Đánh đổi giữa dừng sớm và dùng cấu hình dự phòng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-004
+    title: Chọn refresh hoặc rolling restart theo loại thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-005
+    title: Quản lý phiên bản cấu hình và khả năng quay lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-006
+    title: Triển khai thay đổi cấu hình trên nhiều instance theo từng đợt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-007
+    title: Liveness, readiness và trạng thái đăng ký dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-008
+    title: Dừng ứng dụng an toàn và hủy đăng ký trước khi kết thúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-009
+    title: Giới hạn tải do discovery, health check và làm mới cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-010
+    title: Kiểm chứng hành vi khi mất mạng, registry hoặc nguồn cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aot-and-checkpoint
+  title: AOT và checkpoint
+  childs:
+  - slug: aot-and-checkpoint-001
+    title: Khác biệt giữa JVM thông thường, Spring AOT và native image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aot-and-checkpoint-002
+    title: Giới hạn Context Refresh trong AOT và native image
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aot-and-checkpoint-003
+    title: Cấu hình spring.cloud.refresh.enabled theo chế độ chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aot-and-checkpoint-004
+    title: Kiểm tra khả năng hỗ trợ của từng implementation discovery và HTTP client
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aot-and-checkpoint-005
+    title: Checkpoint, restore và vai trò RefreshScopeLifecycle khi được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aot-and-checkpoint-006
+    title: Điều khiển refresh.on-restart.enabled và kiểm chứng khôi phục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aot-and-checkpoint-007
+    title: Quản lý socket, thread và tài nguyên bên ngoài sau restore
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades
+  title: Nâng cấp
+  childs:
+  - slug: upgrades-001
+    title: Lập bảng Java, Spring Boot, release train và phiên bản Commons
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-002
+    title: Đối chiếu tài liệu, cấu hình và mặc định của phiên bản đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-003
+    title: Chuyển bootstrap cũ sang Config Data khi phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-004
+    title: Phân biệt cơ chế đăng ký trong spring.factories và AutoConfiguration.imports
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-005
+    title: Kiểm tra thay đổi trong DiscoveryClient và HTTP client integration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-006
+    title: Loại bỏ giả định cũ về annotation bắt buộc và client tự tạo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-007
+    title: Kiểm tra thay đổi rebind, xóa thuộc tính và giới hạn Refresh Scope
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-008
+    title: Kiểm thử hồi quy thứ tự nguồn cấu hình và endpoint quản trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-009
+    title: Triển khai thử và chuẩn bị quay lại phiên bản trước
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Ứng dụng không khởi động do Boot và Cloud không tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Không tìm thấy bean dù đã thêm starter
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Bootstrap.yml không được đọc hoặc đọc sai profile
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Cùng thuộc tính có giá trị khác với tệp cấu hình dự kiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Nguồn cấu hình từ xa ghi đè giá trị cục bộ ngoài dự kiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: PropertySourceLocator chạy sai thời điểm hoặc bị gọi lặp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Refresh trả thành công nhưng bean vẫn giữ giá trị cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Bean mới không xuất hiện sau khi đổi ConditionalOnProperty
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Refresh làm mất tài nguyên hoặc gây lỗi xử lý đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Không giải mã được giá trị cipher
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: DiscoveryClient không có instance hoặc chọn sai implementation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Đăng ký sai IP, hostname, port hoặc scheme
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: HTTP client phân giải tên dịch vụ như DNS thông thường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Endpoint quản trị trả 404, 401 hoặc 403
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-015
+    title: Context khởi tạo nhiều lần hoặc bootstrap bean bị component scan nhầm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Ứng dụng nền tảng có Commons, Context và Actuator tối thiểu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Đối chiếu cùng thuộc tính từ tệp, biến môi trường và dòng lệnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Xây dựng PropertySourceLocator cho nguồn cấu hình riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Thực nghiệm context cha, con và sibling
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: So sánh @Value, ConfigurationProperties rebind và Refresh Scope
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Đổi cấu hình trên hai instance và kiểm chứng phạm vi refresh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Giải mã cấu hình cục bộ với khóa bên ngoài ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Tra cứu instance bằng SimpleDiscoveryClient
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Gọi dịch vụ theo tên bằng HTTP client có @LoadBalanced
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Thử nghiệm ServiceRegistry với implementation giả lập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-011
+    title: Đóng gói starter nền tảng và kiểm thử auto-configuration
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-012
+    title: Chẩn đoán sự cố từ bằng chứng env, conditions, health và log
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

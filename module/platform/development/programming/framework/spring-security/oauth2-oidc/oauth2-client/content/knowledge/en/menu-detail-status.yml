@@ -1,0 +1,3622 @@
+menu:
+- slug: overview
+  title: 1. Tổng quan
+  childs:
+  - slug: overview-001
+    title: 1.1. Vai trò OAuth 2.0 Client và OpenID Connect Relying Party
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-002
+    title: 1.2. Phân biệt OAuth2 Login, OAuth2 Client và Resource Server
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-003
+    title: 1.3. Use case đăng nhập liên kết và gọi API thay mặt người dùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-004
+    title: 1.4. Use case giao tiếp giữa dịch vụ với client credentials
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-005
+    title: 1.5. Kiến trúc Servlet và Reactive trong Spring Security
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-006
+    title: 1.6. Các thành phần chính và vòng đời một authorized client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-007
+    title: 1.7. Phạm vi trách nhiệm giữa ứng dụng client và nhà cung cấp định danh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-008
+    title: '1.8. Điều kiện nền tảng: HTTP, TLS, session, JWT và Spring Security'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-009
+    title: 1.9. Cách tổ chức tài liệu và các kịch bản thực hành
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: oauth2-fundamentals
+  title: 2. Nền tảng OAuth 2.0
+  childs:
+  - slug: oauth2-fundamentals-001
+    title: 2.1. Resource Owner, Client, Authorization Server và Resource Server
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth2-fundamentals-002
+    title: 2.2. Public client, confidential client và mô hình triển khai ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth2-fundamentals-003
+    title: 2.3. Authorization Endpoint, Token Endpoint và Redirect URI
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth2-fundamentals-004
+    title: 2.4. Authorization grant, authorization code, access token và refresh token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth2-fundamentals-005
+    title: 2.5. Authorization Code Grant và các bước trao đổi mã
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth2-fundamentals-006
+    title: '2.6. PKCE: code verifier, code challenge và phương thức S256'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth2-fundamentals-007
+    title: 2.7. Client Credentials Grant và danh tính của ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth2-fundamentals-008
+    title: 2.8. Refresh Token Grant và vòng đời cấp lại token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth2-fundamentals-009
+    title: 2.9. Scope, consent, audience và resource
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth2-fundamentals-010
+    title: 2.10. Bearer token, opaque token và JWT access token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth2-fundamentals-011
+    title: 2.11. Client authentication và token endpoint authentication method
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth2-fundamentals-012
+    title: 2.12. Implicit Grant, password grant và các rủi ro cần nhận diện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth2-fundamentals-013
+    title: 2.13. OAuth 2.0 hỗ trợ ủy quyền và giới hạn khi dùng để xác thực
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: oidc-fundamentals
+  title: 3. Nền tảng OIDC
+  childs:
+  - slug: oidc-fundamentals-001
+    title: 3.1. OpenID Connect bổ sung lớp xác thực cho OAuth 2.0
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-fundamentals-002
+    title: 3.2. Scope openid, profile, email, address và phone
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-fundamentals-003
+    title: '3.3. ID Token, Access Token và UserInfo: mục đích sử dụng'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-fundamentals-004
+    title: 3.4. Claims sub, iss, aud, exp, iat, auth_time, acr và amr
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-fundamentals-005
+    title: 3.5. Discovery Document và quan hệ với issuer
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-fundamentals-006
+    title: 3.6. JWKS, chữ ký số và quá trình luân chuyển khóa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-fundamentals-007
+    title: 3.7. OIDC Authorization Code Flow và quá trình thiết lập phiên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-fundamentals-008
+    title: 3.8. State, nonce và PKCE trong luồng đăng nhập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-fundamentals-009
+    title: 3.9. Consent, prompt, max_age, login_hint và lựa chọn tài khoản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-fundamentals-010
+    title: 3.10. Thông tin xác thực trong ID Token và thông tin hồ sơ từ UserInfo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-fundamentals-011
+    title: 3.11. Khái niệm đăng xuất cục bộ và đăng xuất tại nhà cung cấp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: project-setup
+  title: 4. Thiết lập dự án
+  childs:
+  - slug: project-setup-001
+    title: 4.1. Chọn Spring Boot, Spring Security và Java tương thích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-002
+    title: 4.2. Dependency OAuth2 Client cho ứng dụng Servlet
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-003
+    title: 4.3. Dependency OAuth2 Client cho ứng dụng WebFlux
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-004
+    title: 4.4. Vai trò OAuth2 JOSE trong xử lý OIDC và JWT
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-005
+    title: 4.5. Cấu trúc dự án, profile và cấu hình theo môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-006
+    title: 4.6. Đăng ký ứng dụng tại nhà cung cấp OAuth/OIDC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-007
+    title: 4.7. Khai báo client ID, client secret và phương thức xác thực client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-008
+    title: 4.8. Thiết lập Redirect URI cho local, staging và production
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-009
+    title: 4.9. Cấu hình tối thiểu bằng application.yml hoặc application.properties
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-010
+    title: 4.10. Đối chiếu auto-configuration và cấu hình Security tường minh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: client-registration
+  title: 5. ClientRegistration
+  childs:
+  - slug: client-registration-001
+    title: 5.1. ClientRegistration và thông tin đăng ký của một client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-registration-002
+    title: 5.2. Registration ID, client name và ý nghĩa trong các URL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-registration-003
+    title: 5.3. Client ID, client secret và ClientAuthenticationMethod
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-registration-004
+    title: 5.4. AuthorizationGrantType, scope và Redirect URI template
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-registration-005
+    title: 5.5. ProviderDetails và cấu hình các endpoint
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-registration-006
+    title: 5.6. ClientRegistrationRepository trong ứng dụng Servlet
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-registration-007
+    title: 5.7. InMemoryClientRegistrationRepository và cấu hình bằng Java
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-registration-008
+    title: 5.8. ReactiveClientRegistrationRepository trong ứng dụng WebFlux
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-registration-009
+    title: 5.9. InMemoryReactiveClientRegistrationRepository và cấu hình bằng Java
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-registration-010
+    title: 5.10. Ràng buộc tính hợp lệ và xử lý thiếu cấu hình
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-registration-011
+    title: 5.11. Quản lý nhiều registration trong cùng ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: provider-configuration
+  title: 6. Cấu hình provider
+  childs:
+  - slug: provider-configuration-001
+    title: 6.1. Nhóm thuộc tính spring.security.oauth2.client.registration
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provider-configuration-002
+    title: 6.2. Nhóm thuộc tính spring.security.oauth2.client.provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provider-configuration-003
+    title: 6.3. Liên kết registration với provider bằng provider ID
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provider-configuration-004
+    title: 6.4. Cấu hình issuer-uri và lấy metadata qua discovery
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provider-configuration-005
+    title: 6.5. Khai báo authorization-uri, token-uri và user-info-uri thủ công
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provider-configuration-006
+    title: 6.6. Khai báo jwk-set-uri và user-name-attribute
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provider-configuration-007
+    title: 6.7. CommonOAuth2Provider và các cấu hình provider phổ biến
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provider-configuration-008
+    title: 6.8. Provider OAuth 2.0 thuần và provider hỗ trợ OIDC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provider-configuration-009
+    title: 6.9. Giới hạn và khác biệt metadata giữa các nhà cung cấp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provider-configuration-010
+    title: 6.10. Khởi động ứng dụng khi discovery hoặc JWKS không khả dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provider-configuration-011
+    title: 6.11. Provider trong mạng nội bộ, TLS và proxy kết nối ra ngoài
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: provider-configuration-012
+    title: 6.12. Tách thông tin bí mật khỏi các thuộc tính công khai
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: servlet-login
+  title: 7. Đăng nhập Servlet
+  childs:
+  - slug: servlet-login-001
+    title: 7.1. SecurityFilterChain và cấu hình oauth2Login
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-login-002
+    title: 7.2. Endpoint khởi động đăng nhập /oauth2/authorization/{registrationId}
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-login-003
+    title: 7.3. OAuth2AuthorizationRequestRedirectFilter trong chuỗi filter
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-login-004
+    title: 7.4. Endpoint nhận callback /login/oauth2/code/{registrationId}
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-login-005
+    title: 7.5. OAuth2LoginAuthenticationFilter và quá trình tạo Authentication
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-login-006
+    title: 7.6. Lựa chọn OAuth2LoginAuthenticationProvider hoặc OidcAuthorizationCodeAuthenticationProvider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-login-007
+    title: 7.7. SecurityContext, HttpSession và principal sau đăng nhập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-login-008
+    title: 7.8. Trang đăng nhập mặc định và danh sách nhà cung cấp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-login-009
+    title: 7.9. Trang đăng nhập tùy chỉnh và đường dẫn bắt đầu xác thực
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-login-010
+    title: 7.10. AuthenticationSuccessHandler, saved request và điều hướng sau đăng nhập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-login-011
+    title: 7.11. AuthenticationFailureHandler và trải nghiệm khi người dùng từ chối cấp quyền
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-login-012
+    title: 7.12. SecurityMatcher, nhiều filter chain và lựa chọn chain cho callback
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: authorization-request
+  title: 8. Authorization Request
+  childs:
+  - slug: authorization-request-001
+    title: 8.1. OAuth2AuthorizationRequest và các tham số gửi tới provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-request-002
+    title: 8.2. OAuth2AuthorizationRequestResolver và resolver mặc định trên Servlet
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-request-003
+    title: 8.3. Tùy chỉnh authorization request theo registration
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-request-004
+    title: 8.4. Cấu hình base URI của Authorization Endpoint
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-request-005
+    title: 8.5. Quản lý state và liên kết request với phiên trình duyệt
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-request-006
+    title: 8.6. Bổ sung nonce cho yêu cầu OIDC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-request-007
+    title: 8.7. Áp dụng PKCE cho public client và confidential client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-request-008
+    title: 8.8. Tùy chỉnh scope theo nhu cầu nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-request-009
+    title: 8.9. Thêm prompt, login_hint, max_age và tham số riêng của provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-request-010
+    title: 8.10. Yêu cầu acr_values và mức xác thực mong muốn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-request-011
+    title: 8.11. Tính Redirect URI từ template và ngữ cảnh request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-request-012
+    title: 8.12. Kiểm soát URL điều hướng sau đăng nhập và nguy cơ open redirect
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-request-013
+    title: 8.13. Giới hạn dữ liệu, thông tin nhạy cảm và URL trong authorization request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: callback-correlation
+  title: 9. Callback và correlation
+  childs:
+  - slug: callback-correlation-001
+    title: 9.1. AuthorizationRequestRepository và việc lưu request ban đầu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callback-correlation-002
+    title: 9.2. HttpSessionOAuth2AuthorizationRequestRepository trong luồng Servlet
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callback-correlation-003
+    title: 9.3. Liên kết callback với state, nonce và PKCE verifier đã lưu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callback-correlation-004
+    title: 9.4. Đối chiếu Redirect URI và redirectionEndpoint base URI
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callback-correlation-005
+    title: 9.5. Xử lý callback thành công chứa authorization code
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callback-correlation-006
+    title: 9.6. Xử lý error, error_description và error_uri từ provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callback-correlation-007
+    title: 9.7. State không khớp, request thất lạc và phiên hết hạn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callback-correlation-008
+    title: 9.8. Đăng nhập đồng thời trên nhiều tab và nhiều provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callback-correlation-009
+    title: 9.9. Callback trùng lặp, mã đã dùng và giới hạn chống replay
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callback-correlation-010
+    title: '9.10. Repository tùy chỉnh: yêu cầu bảo toàn dữ liệu và thời hạn'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: callback-correlation-011
+    title: 9.11. Cookie, SameSite, session và reverse proxy trong bước callback
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: token-endpoint
+  title: 10. Token Endpoint
+  childs:
+  - slug: token-endpoint-001
+    title: 10.1. OAuth2AccessTokenResponseClient và vai trò trao đổi token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-endpoint-002
+    title: 10.2. Yêu cầu đổi authorization code lấy token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-endpoint-003
+    title: 10.3. Yêu cầu client credentials và yêu cầu refresh token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-endpoint-004
+    title: 10.4. Chọn phương thức xác thực client phù hợp với provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-endpoint-005
+    title: 10.5. Client secret basic và client secret post
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-endpoint-006
+    title: 10.6. Public client, phương thức none và điều kiện sử dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-endpoint-007
+    title: 10.7. Private key JWT, client secret JWT và yêu cầu tích hợp tương ứng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-endpoint-008
+    title: 10.8. Tùy chỉnh headers, tham số và chuyển đổi request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-endpoint-009
+    title: 10.9. Phân tích access_token, token_type, expires_in, scope và refresh_token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-endpoint-010
+    title: 10.10. Xử lý các trường mở rộng trong token response
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-endpoint-011
+    title: 10.11. Tùy chỉnh HTTP client, timeout, TLS và kết nối proxy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-endpoint-012
+    title: 10.12. Chuyển đổi OAuth2Error và xử lý response không đúng chuẩn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-endpoint-013
+    title: 10.13. Phân biệt cấu hình token client trên Servlet và Reactive
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: id-token-validation
+  title: 11. Kiểm tra ID Token
+  childs:
+  - slug: id-token-validation-001
+    title: 11.1. OidcIdToken, claims và các ranh giới tin cậy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: id-token-validation-002
+    title: 11.2. OidcIdTokenDecoderFactory và lựa chọn JwtDecoder theo registration
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: id-token-validation-003
+    title: 11.3. Lấy khóa qua JWKS và lựa chọn khóa bằng kid
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: id-token-validation-004
+    title: 11.4. Cấu hình và giới hạn thuật toán chữ ký được chấp nhận
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: id-token-validation-005
+    title: 11.5. Xác minh issuer và audience của ID Token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: id-token-validation-006
+    title: 11.6. Kiểm tra authorized party khi có claim azp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: id-token-validation-007
+    title: 11.7. Kiểm tra exp, iat, clock skew và thời gian hệ thống
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: id-token-validation-008
+    title: 11.8. Đối chiếu nonce với authorization request ban đầu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: id-token-validation-009
+    title: 11.9. Claims auth_time, acr và amr trong yêu cầu xác thực nâng cao
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: id-token-validation-010
+    title: 11.10. Các hash claim at_hash, c_hash và phạm vi áp dụng theo flow
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: id-token-validation-011
+    title: 11.11. Xử lý ID Token sai chữ ký, thiếu claims hoặc không đúng client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: id-token-validation-012
+    title: 11.12. Cache khóa, key rotation và xử lý lỗi tải JWKS
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: id-token-validation-013
+    title: 11.13. Giới hạn việc tái sử dụng ID Token trong các luồng gọi API
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: user-info
+  title: 12. UserInfo và hồ sơ
+  childs:
+  - slug: user-info-001
+    title: 12.1. OAuth2UserService và DefaultOAuth2UserService
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-info-002
+    title: 12.2. OidcUserService và quá trình tải OIDC UserInfo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-info-003
+    title: 12.3. Cấu hình UserInfo Endpoint và cách gửi access token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-info-004
+    title: 12.4. User-name-attribute và lựa chọn định danh principal
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-info-005
+    title: 12.5. OidcUser, OidcUserInfo và kết hợp thông tin ID Token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-info-006
+    title: 12.6. Đối chiếu sub giữa ID Token và UserInfo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-info-007
+    title: 12.7. Tùy chỉnh request, HTTP client và ánh xạ response UserInfo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-info-008
+    title: 12.8. Xử lý provider trả cấu trúc thuộc tính khác nhau
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-info-009
+    title: 12.9. Bổ sung dữ liệu hồ sơ từ dịch vụ người dùng nội bộ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-info-010
+    title: 12.10. Timeout, lỗi UserInfo và xử lý thất bại đăng nhập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-info-011
+    title: 12.11. Giới hạn dữ liệu cá nhân được lưu trong phiên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: principal-authorization
+  title: 13. Principal và phân quyền
+  childs:
+  - slug: principal-authorization-001
+    title: 13.1. OAuth2AuthenticationToken và cách lấy registration ID
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-authorization-002
+    title: 13.2. OAuth2User, OidcUser và truy cập attributes hoặc claims
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-authorization-003
+    title: 13.3. @AuthenticationPrincipal trong controller Servlet
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-authorization-004
+    title: 13.4. Truy cập principal trong controller và chuỗi Reactive
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-authorization-005
+    title: 13.5. OAuth2UserAuthority, OidcUserAuthority và các authority từ scope
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-authorization-006
+    title: 13.6. GrantedAuthoritiesMapper và ánh xạ quyền tập trung
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-authorization-007
+    title: 13.7. User service tùy chỉnh để bổ sung vai trò nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-authorization-008
+    title: 13.8. Liên kết tài khoản nội bộ bằng issuer và subject
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-authorization-009
+    title: 13.9. Xử lý email thay đổi, email chưa xác minh và trùng tài khoản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-authorization-010
+    title: 13.10. Đồng bộ hồ sơ, trạng thái tài khoản và quyền ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-authorization-011
+    title: 13.11. Áp dụng URL authorization và method security sau đăng nhập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-authorization-012
+    title: 13.12. Phân biệt quyền của người dùng với scope được cấp cho client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: authorized-client
+  title: 14. Authorized Client
+  childs:
+  - slug: authorized-client-001
+    title: 14.1. OAuth2AuthorizedClient và liên kết registration, principal, token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorized-client-002
+    title: 14.2. OAuth2AuthorizedClientService trong ứng dụng Servlet
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorized-client-003
+    title: 14.3. OAuth2AuthorizedClientRepository và ngữ cảnh HTTP request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorized-client-004
+    title: 14.4. InMemoryOAuth2AuthorizedClientService và vòng đời dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorized-client-005
+    title: 14.5. JdbcOAuth2AuthorizedClientService và các yêu cầu lưu trữ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorized-client-006
+    title: 14.6. HttpSessionOAuth2AuthorizedClientRepository và dữ liệu theo phiên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorized-client-007
+    title: 14.7. AuthenticatedPrincipalOAuth2AuthorizedClientRepository và chọn nơi lưu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorized-client-008
+    title: 14.8. Khóa tra cứu theo registration ID và principal name
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorized-client-009
+    title: 14.9. Lưu, tải, cập nhật và xóa một authorized client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorized-client-010
+    title: 14.10. @RegisteredOAuth2AuthorizedClient trong controller Servlet
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorized-client-011
+    title: 14.11. Khác biệt giữa trạng thái đăng nhập và trạng thái token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorized-client-012
+    title: 14.12. Repository hoặc service tùy chỉnh cho kho dữ liệu của ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: client-manager
+  title: 15. Client Manager
+  childs:
+  - slug: client-manager-001
+    title: 15.1. OAuth2AuthorizedClientManager và OAuth2AuthorizeRequest
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-manager-002
+    title: 15.2. DefaultOAuth2AuthorizedClientManager trong ngữ cảnh Servlet
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-manager-003
+    title: 15.3. AuthorizedClientServiceOAuth2AuthorizedClientManager ngoài HTTP request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-manager-004
+    title: 15.4. OAuth2AuthorizedClientProvider và cơ chế ghép provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-manager-005
+    title: 15.5. OAuth2AuthorizedClientProviderBuilder và cấu hình grant cần dùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-manager-006
+    title: 15.6. Chọn registration ID và principal khi yêu cầu authorize
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-manager-007
+    title: 15.7. Context attributes và bổ sung thông tin cho quá trình authorize
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-manager-008
+    title: 15.8. Authorization success handler và lưu authorized client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-manager-009
+    title: 15.9. Authorization failure handler và xử lý authorized client không còn hợp lệ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-manager-010
+    title: 15.10. Phân biệt authorize lần đầu, tái sử dụng token và cấp lại token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-manager-011
+    title: 15.11. Cấu hình oauth2Client và liên kết với manager tùy chỉnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-manager-012
+    title: 15.12. Thiết kế manager cho request người dùng và tác vụ nền
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: client-credentials
+  title: 16. Client Credentials
+  childs:
+  - slug: client-credentials-001
+    title: 16.1. Luồng client credentials trong Spring Security
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-credentials-002
+    title: 16.2. Cấu hình registration với grant client_credentials
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-credentials-003
+    title: 16.3. Định danh principal cho token thuộc ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-credentials-004
+    title: 16.4. Lấy authorized client cho dịch vụ backend
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-credentials-005
+    title: 16.5. Dùng AuthorizedClientServiceOAuth2AuthorizedClientManager trong job và scheduler
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-credentials-006
+    title: 16.6. Yêu cầu scope, audience hoặc resource theo provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-credentials-007
+    title: 16.7. Tái sử dụng token còn hạn và lấy token mới khi hết hạn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-credentials-008
+    title: 16.8. Quản lý token cho nhiều ứng dụng hoặc tài khoản dịch vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-credentials-009
+    title: 16.9. Xử lý invalid_client, invalid_scope và giới hạn quyền
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-credentials-010
+    title: 16.10. Tách vòng đời token của ứng dụng khỏi phiên người dùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: refresh-token
+  title: 17. Refresh Token
+  childs:
+  - slug: refresh-token-001
+    title: 17.1. Điều kiện provider cấp refresh token và scope liên quan
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refresh-token-002
+    title: 17.2. Lưu refresh token cùng authorized client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refresh-token-003
+    title: 17.3. RefreshTokenOAuth2AuthorizedClientProvider trong Servlet
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refresh-token-004
+    title: 17.4. RefreshTokenReactiveOAuth2AuthorizedClientProvider trong Reactive
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refresh-token-005
+    title: 17.5. Xác định thời điểm refresh và cấu hình clock skew
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refresh-token-006
+    title: 17.6. Refresh token rotation và cập nhật token mới an toàn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refresh-token-007
+    title: 17.7. Xử lý refresh token không được trả lại trong response
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refresh-token-008
+    title: 17.8. invalid_grant, token bị thu hồi và yêu cầu đăng nhập lại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refresh-token-009
+    title: 17.9. Nhiều request đồng thời refresh cùng một authorized client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refresh-token-010
+    title: 17.10. Refresh trong nhiều instance và điều phối cập nhật kho token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refresh-token-011
+    title: 17.11. Định nghĩa retry, backoff và giới hạn số lần thử
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refresh-token-012
+    title: 17.12. Phân biệt refresh token với gia hạn phiên đăng nhập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: servlet-rest-client
+  title: 18. REST Client Servlet
+  childs:
+  - slug: servlet-rest-client-001
+    title: 18.1. Tích hợp OAuth2 với RestClient và OAuth2ClientHttpRequestInterceptor
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-rest-client-002
+    title: 18.2. Liên kết interceptor với OAuth2AuthorizedClientManager
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-rest-client-003
+    title: 18.3. Chọn client registration theo từng request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-rest-client-004
+    title: 18.4. Chọn principal và authorized client theo ngữ cảnh gọi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-rest-client-005
+    title: 18.5. Đính kèm Bearer access token vào request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-rest-client-006
+    title: 18.6. Cấu hình một HTTP client riêng cho từng downstream
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-rest-client-007
+    title: 18.7. Xử lý lỗi ủy quyền và loại bỏ authorized client không còn hợp lệ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-rest-client-008
+    title: 18.8. Token hết hạn, phản hồi 401 và chính sách thực hiện lại request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-rest-client-009
+    title: 18.9. Phản hồi 403 và phân biệt thiếu quyền với token không hợp lệ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-rest-client-010
+    title: 18.10. Giới hạn host, redirect và nguy cơ làm lộ access token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-rest-client-011
+    title: 18.11. Tương thích API HTTP client giữa các phiên bản Spring Security
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: servlet-web-client
+  title: 19. WebClient trên Servlet
+  childs:
+  - slug: servlet-web-client-001
+    title: 19.1. ServletOAuth2AuthorizedClientExchangeFilterFunction và WebClient
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-web-client-002
+    title: 19.2. Cấu hình filter bằng authorized client manager
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-web-client-003
+    title: 19.3. Truyền OAuth2AuthorizedClient vào từng request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-web-client-004
+    title: 19.4. Lựa chọn clientRegistrationId qua request attributes
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-web-client-005
+    title: 19.5. Default authorized client và phạm vi sử dụng theo request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-web-client-006
+    title: 19.6. Gọi API thay mặt người dùng sau oauth2Login
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-web-client-007
+    title: 19.7. Gọi API bằng client credentials trong ứng dụng Servlet
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-web-client-008
+    title: 19.8. Xử lý lỗi authorize và failure handler của exchange filter
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-web-client-009
+    title: 19.9. Tích hợp timeout, retry và phân tích response từ downstream
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-web-client-010
+    title: 19.10. Tránh gửi token tới endpoint không thuộc phạm vi được phép
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reactive-login
+  title: 20. Đăng nhập Reactive
+  childs:
+  - slug: reactive-login-001
+    title: 20.1. SecurityWebFilterChain và cấu hình oauth2Login
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-login-002
+    title: 20.2. Luồng OAuth2 và OIDC Login trong WebFlux
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-login-003
+    title: 20.3. ReactiveClientRegistrationRepository và chọn registration
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-login-004
+    title: 20.4. ServerOAuth2AuthorizationRequestResolver và tùy chỉnh request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-login-005
+    title: 20.5. ServerAuthorizationRequestRepository và lưu correlation trong WebSession
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-login-006
+    title: 20.6. WebSessionOAuth2ServerAuthorizationRequestRepository
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-login-007
+    title: 20.7. Cấu hình endpoint khởi động đăng nhập và callback trên WebFlux
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-login-008
+    title: 20.8. ReactiveOAuth2UserService và OidcReactiveOAuth2UserService
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-login-009
+    title: 20.9. Kiểm tra ID Token bằng thành phần decoder Reactive
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-login-010
+    title: 20.10. ServerAuthenticationSuccessHandler và ServerAuthenticationFailureHandler
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-login-011
+    title: 20.11. ReactiveSecurityContextHolder, principal và propagation của Reactor Context
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-login-012
+    title: 20.12. Quản lý WebSession, CSRF và điều hướng sau đăng nhập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-login-013
+    title: 20.13. Tránh I/O blocking trong luồng xác thực Reactive
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reactive-client
+  title: 21. OAuth2 Client Reactive
+  childs:
+  - slug: reactive-client-001
+    title: 21.1. ReactiveOAuth2AuthorizedClientManager và OAuth2AuthorizeRequest
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-client-002
+    title: 21.2. DefaultReactiveOAuth2AuthorizedClientManager trong ServerWebExchange
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-client-003
+    title: 21.3. AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager cho tác vụ nền
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-client-004
+    title: 21.4. ReactiveOAuth2AuthorizedClientService và ServerOAuth2AuthorizedClientRepository
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-client-005
+    title: 21.5. InMemoryReactiveOAuth2AuthorizedClientService và kho lưu tùy chỉnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-client-006
+    title: 21.6. WebSessionServerOAuth2AuthorizedClientRepository
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-client-007
+    title: 21.7. ReactiveOAuth2AuthorizedClientProviderBuilder và lựa chọn grant
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-client-008
+    title: 21.8. Success handler, failure handler và cập nhật authorized client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-client-009
+    title: 21.9. ServerOAuth2AuthorizedClientExchangeFilterFunction trong WebClient
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-client-010
+    title: 21.10. Chọn authorized client hoặc registration theo từng request WebClient
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-client-011
+    title: 21.11. Client credentials, refresh token và truy cập tài nguyên qua Reactive
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-client-012
+    title: 21.12. @RegisteredOAuth2AuthorizedClient và controller WebFlux
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-client-013
+    title: 21.13. Retry, cancellation, timeout và tránh authorize lặp ngoài ý muốn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: extension-grants
+  title: 22. Grant mở rộng
+  childs:
+  - slug: extension-grants-001
+    title: 22.1. Xác định grant được Spring Security hỗ trợ theo phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-grants-002
+    title: 22.2. JWT Bearer Grant và trường hợp trao đổi assertion
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-grants-003
+    title: 22.3. Token Exchange và yêu cầu tương thích của provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-grants-004
+    title: 22.4. Phân biệt grant mở rộng với phương thức xác thực client bằng JWT
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-grants-005
+    title: 22.5. Thiết kế OAuth2AuthorizedClientProvider cho grant tùy chỉnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-grants-006
+    title: 22.6. Thiết kế ReactiveOAuth2AuthorizedClientProvider cho grant tùy chỉnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-grants-007
+    title: 22.7. Mở rộng token request, token response và xử lý lỗi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-grants-008
+    title: 22.8. Điều kiện lựa chọn thư viện bổ sung cho flow ngoài phạm vi hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-grants-009
+    title: 22.9. Kiểm thử hợp đồng và giới hạn quyền của grant mở rộng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: token-session-storage
+  title: 23. Lưu token và phiên
+  childs:
+  - slug: token-session-storage-001
+    title: 23.1. Phân chia dữ liệu giữa SecurityContext, session và authorized client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-session-storage-002
+    title: 23.2. Lựa chọn lưu token trong bộ nhớ, session hoặc cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-session-storage-003
+    title: 23.3. Mã hóa token khi lưu và quản lý khóa mã hóa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-session-storage-004
+    title: 23.4. Giới hạn truy cập vào client secret, access token và refresh token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-session-storage-005
+    title: 23.5. Vòng đời dữ liệu khi logout, tài khoản bị khóa hoặc thu hồi quyền
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-session-storage-006
+    title: 23.6. Session phân tán và đồng bộ authorized client giữa các instance
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-session-storage-007
+    title: 23.7. Serialization, TTL và dọn dữ liệu token hết hạn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-session-storage-008
+    title: 23.8. Giao dịch, optimistic locking và cập nhật token đồng thời
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-session-storage-009
+    title: 23.9. Giới hạn số phiên và xử lý đăng nhập lại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-session-storage-010
+    title: 23.10. Cookie Secure, HttpOnly, SameSite và quan hệ với OAuth callback
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-session-storage-011
+    title: 23.11. Mô hình BFF và ranh giới lưu token giữa backend với trình duyệt
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: oidc-logout
+  title: 24. Đăng xuất OIDC
+  childs:
+  - slug: oidc-logout-001
+    title: 24.1. Đăng xuất ứng dụng và xóa SecurityContext, session
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-logout-002
+    title: 24.2. OidcClientInitiatedLogoutSuccessHandler trên Servlet
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-logout-003
+    title: 24.3. OidcClientInitiatedServerLogoutSuccessHandler trên Reactive
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-logout-004
+    title: 24.4. Discovery end_session_endpoint và điều kiện provider hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-logout-005
+    title: 24.5. ID Token hint, post_logout_redirect_uri và logout state
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-logout-006
+    title: 24.6. Đăng ký và kiểm soát Redirect URI sau đăng xuất
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-logout-007
+    title: '24.7. OIDC Back-Channel Logout: khái niệm, logout token và phiên liên quan'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-logout-008
+    title: 24.8. Tích hợp Back-Channel Logout theo stack và phiên bản hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-logout-009
+    title: 24.9. Front-channel logout, session management và giới hạn tương thích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-logout-010
+    title: 24.10. Token revocation và việc xóa authorized client sau logout
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-logout-011
+    title: 24.11. Đăng xuất nhiều provider và nhiều phiên người dùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oidc-logout-012
+    title: 24.12. Kiểm thử logout khi provider lỗi hoặc phiên ứng dụng đã hết hạn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: multiple-providers
+  title: 25. Nhiều provider
+  childs:
+  - slug: multiple-providers-001
+    title: 25.1. Cấu hình nhiều registration cho OAuth 2.0 và OIDC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-providers-002
+    title: 25.2. Nhiều registration dùng chung một provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-providers-003
+    title: 25.3. Trang chọn provider và tên hiển thị cho từng client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-providers-004
+    title: 25.4. Điều hướng đăng nhập theo loại người dùng hoặc miền tổ chức
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-providers-005
+    title: 25.5. Giữ registration ID xuyên suốt login, API call và logout
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-providers-006
+    title: 25.6. Liên kết nhiều danh tính với một tài khoản nội bộ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-providers-007
+    title: 25.7. Tách authorized client theo provider và principal
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-providers-008
+    title: 25.8. Khác biệt scopes, claims, UserInfo và logout giữa các provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-providers-009
+    title: 25.9. Đổi provider hoặc đăng nhập bằng tài khoản khác
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-providers-010
+    title: 25.10. Xử lý lỗi của một provider khi các provider còn lại vẫn hoạt động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: multitenancy
+  title: 26. Đa tenant
+  childs:
+  - slug: multitenancy-001
+    title: 26.1. Phân biệt tenant của ứng dụng và tenant tại provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenancy-002
+    title: 26.2. Thiết kế registration theo tenant và issuer
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenancy-003
+    title: 26.3. Tra cứu ClientRegistration bằng repository tùy chỉnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenancy-004
+    title: 26.4. Chọn tenant từ ngữ cảnh request đã được xác minh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenancy-005
+    title: 26.5. Resolver tùy chỉnh để chọn đúng registration
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenancy-006
+    title: 26.6. Ràng buộc tenant với state, callback và principal
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenancy-007
+    title: 26.7. Ngăn nhầm lẫn issuer, client hoặc authorized client giữa các tenant
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenancy-008
+    title: 26.8. Cache metadata, JWKS và vòng đời cấu hình tenant
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenancy-009
+    title: 26.9. Đăng ký, cập nhật và vô hiệu hóa cấu hình client theo tenant
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenancy-010
+    title: 26.10. Giới hạn discovery URL và phòng ngừa SSRF
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenancy-011
+    title: 26.11. Tách secret, token, session và dữ liệu định danh theo tenant
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-security
+  title: 27. Bảo mật tích hợp
+  childs:
+  - slug: integration-security-001
+    title: 27.1. Threat model cho OAuth2 Client và OIDC Relying Party
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-002
+    title: 27.2. CSRF tại authorization endpoint, callback và logout
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-003
+    title: 27.3. PKCE, nonce, state và cơ chế chống replay tương ứng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-004
+    title: 27.4. Redirect URI matching, open redirect và proxy header giả mạo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-005
+    title: 27.5. Authorization server mix-up và kiểm soát issuer
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-006
+    title: 27.6. Rò rỉ authorization code hoặc token qua URL, log và referrer
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-007
+    title: 27.7. TLS, certificate trust và quản lý kết nối tới provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-008
+    title: 27.8. Least privilege cho scope, audience và quyền tài khoản dịch vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-009
+    title: 27.9. Quản lý consent, incremental authorization và tái xác thực
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-010
+    title: 27.10. Session fixation, session hijacking và bảo vệ cookie
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-011
+    title: 27.11. Client secret rotation và private key rotation
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-012
+    title: 27.12. Phân biệt xác thực người dùng, ủy quyền ứng dụng và bảo vệ API
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-013
+    title: 27.13. Xử lý token bị đánh cắp, quyền bị thu hồi và sự cố provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: errors-and-observability
+  title: 28. Lỗi và quan sát
+  childs:
+  - slug: errors-and-observability-001
+    title: 28.1. Phân loại lỗi ở authorization, callback, token và UserInfo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-observability-002
+    title: 28.2. OAuth2AuthenticationException, OAuth2AuthorizationException và OAuth2Error
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-observability-003
+    title: 28.3. authorization_request_not_found, state mismatch và phiên hết hạn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-observability-004
+    title: 28.4. invalid_client, invalid_grant, invalid_scope và access_denied
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-observability-005
+    title: 28.5. Redirect URI mismatch, sai issuer và sai audience
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-observability-006
+    title: 28.6. Chữ ký ID Token không hợp lệ và lỗi tải JWKS
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-observability-007
+    title: 28.7. 401, 403, 429 và lỗi 5xx từ downstream hoặc provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-observability-008
+    title: 28.8. Bật log Spring Security theo môi trường và che dữ liệu nhạy cảm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-observability-009
+    title: 28.9. Correlation ID, request tracing và theo dõi qua redirect
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-observability-010
+    title: 28.10. Metrics cho login, token acquisition, refresh và logout
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-observability-011
+    title: 28.11. Thông báo lỗi cho người dùng và dữ liệu chẩn đoán cho vận hành
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-observability-012
+    title: 28.12. Quy trình chẩn đoán lỗi theo từng bước của luồng OAuth/OIDC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: servlet-testing
+  title: 29. Kiểm thử Servlet
+  childs:
+  - slug: servlet-testing-001
+    title: 29.1. Thiết lập spring-security-test và MockMvc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-002
+    title: 29.2. oauth2Login() để mô phỏng người dùng OAuth 2.0
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-003
+    title: 29.3. oidcLogin() để mô phỏng người dùng OIDC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-004
+    title: 29.4. Tùy chỉnh attributes, ID Token claims và authorities trong test
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-005
+    title: 29.5. oauth2Client() để mô phỏng authorized client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-006
+    title: 29.6. Kiểm thử controller sử dụng @AuthenticationPrincipal
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-007
+    title: 29.7. Kiểm thử @RegisteredOAuth2AuthorizedClient và lựa chọn registration
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-008
+    title: 29.8. Kiểm thử ánh xạ quyền và URL hoặc method authorization
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-009
+    title: 29.9. Kiểm thử resolver, authorization request và repository tùy chỉnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-010
+    title: 29.10. Kiểm thử success handler, failure handler và saved request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-011
+    title: 29.11. Kiểm thử client manager, refresh và lưu authorized client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-012
+    title: 29.12. Giới hạn của mock login so với luồng redirect và trao đổi token thật
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reactive-testing
+  title: 30. Kiểm thử Reactive
+  childs:
+  - slug: reactive-testing-001
+    title: 30.1. Thiết lập spring-security-test và WebTestClient
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-testing-002
+    title: 30.2. mockOAuth2Login() cho endpoint yêu cầu người dùng OAuth 2.0
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-testing-003
+    title: 30.3. mockOidcLogin() với ID Token, UserInfo và authorities
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-testing-004
+    title: 30.4. mockOAuth2Client() cho lời gọi dùng authorized client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-testing-005
+    title: 30.5. Kiểm thử principal và security context trong Reactor
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-testing-006
+    title: 30.6. Kiểm thử ReactiveOAuth2UserService và ánh xạ claims
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-testing-007
+    title: 30.7. Kiểm thử manager, provider và kho authorized client Reactive
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-testing-008
+    title: 30.8. Kiểm thử WebClient filter và việc chọn registration
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-testing-009
+    title: 30.9. Kiểm thử timeout, refresh lỗi và failure handler
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-testing-010
+    title: 30.10. Phát hiện blocking và kiểm soát subscription trong luồng bảo mật
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-testing-011
+    title: 30.11. Giới hạn của mock authentication so với kiểm thử provider thực
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-testing
+  title: 31. Kiểm thử tích hợp
+  childs:
+  - slug: integration-testing-001
+    title: 31.1. Dựng provider thử nghiệm và tài khoản dành riêng cho test
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-002
+    title: 31.2. Mock discovery, JWKS, Token Endpoint và UserInfo Endpoint
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-003
+    title: 31.3. Kiểm thử Authorization Code Flow với PKCE và nonce
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-004
+    title: 31.4. Kiểm thử consent bị từ chối, sai state và callback trùng lặp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-005
+    title: 31.5. Kiểm thử ID Token hết hạn, sai issuer, sai audience và sai chữ ký
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-006
+    title: 31.6. Kiểm thử key rotation và cache JWKS
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-007
+    title: 31.7. Kiểm thử refresh token rotation và invalid_grant
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-008
+    title: 31.8. Kiểm thử client credentials và scope của downstream
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-009
+    title: 31.9. Kiểm thử login, token refresh và logout qua nhiều instance
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-010
+    title: 31.10. Kiểm thử reverse proxy, HTTPS và cookie SameSite
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-011
+    title: 31.11. Kiểm thử mất kết nối, rate limit và provider không sẵn sàng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-012
+    title: 31.12. Kiểm thử cô lập provider, tenant và liên kết tài khoản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: deployment-and-operations
+  title: 32. Triển khai và vận hành
+  childs:
+  - slug: deployment-and-operations-001
+    title: 32.1. HTTPS, tên miền công khai và Redirect URI theo môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-002
+    title: 32.2. Forwarded headers, reverse proxy và base URL của ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-003
+    title: 32.3. Triển khai nhiều instance với session và kho token dùng chung
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-004
+    title: 32.4. Cấp phát secrets và cấu hình từ secret manager
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-005
+    title: 32.5. Luân chuyển client secret, chứng thư và khóa client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-006
+    title: 32.6. Timeout, connection pool và kiểm soát tải tới provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-007
+    title: 32.7. Retry, backoff và circuit breaker theo đặc tính từng endpoint
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-008
+    title: 32.8. Readiness, startup và phụ thuộc vào discovery hoặc JWKS
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-009
+    title: 32.9. Đồng bộ thời gian hệ thống và xử lý clock skew
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-010
+    title: 32.10. Backup, retention và bảo vệ dữ liệu authorized client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-011
+    title: 32.11. Dashboard, cảnh báo và quy trình ứng phó sự cố đăng nhập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-012
+    title: 32.12. Quy trình thay đổi provider hoặc cấu hình client an toàn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compatibility-and-upgrades
+  title: 33. Tương thích và nâng cấp
+  childs:
+  - slug: compatibility-and-upgrades-001
+    title: 33.1. Đối chiếu tài liệu với phiên bản Spring Boot và Spring Security
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-and-upgrades-002
+    title: 33.2. Chuyển từ Spring Security OAuth cũ sang OAuth2 Client hiện tại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-and-upgrades-003
+    title: 33.3. Chuyển cấu hình adapter cũ sang SecurityFilterChain
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-and-upgrades-004
+    title: 33.4. Rà soát thay đổi DSL, auto-configuration và bean mặc định
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-and-upgrades-005
+    title: 33.5. Đối chiếu API token response client và HTTP client giữa các phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-and-upgrades-006
+    title: 33.6. Rà soát các grant hoặc API bị deprecate và phương án thay thế
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-and-upgrades-007
+    title: 33.7. Kiểm tra thay đổi mặc định của PKCE, thuật toán và xác thực token
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-and-upgrades-008
+    title: 33.8. Đánh giá tương thích provider khi nâng cấp discovery hoặc claims
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-and-upgrades-009
+    title: 33.9. Kiểm thử hồi quy login, refresh, API call và logout
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-and-upgrades-010
+    title: 33.10. Kế hoạch rollout, rollback và theo dõi sau nâng cấp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: practical-labs
+  title: 34. Bài thực hành
+  childs:
+  - slug: practical-labs-001
+    title: 34.1. Ứng dụng Servlet đăng nhập bằng một provider OIDC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-labs-002
+    title: 34.2. Đăng nhập OAuth 2.0 thuần và ánh xạ hồ sơ người dùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-labs-003
+    title: 34.3. Trang đăng nhập tùy chỉnh với nhiều provider
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-labs-004
+    title: 34.4. Gọi API thay mặt người dùng bằng RestClient
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-labs-005
+    title: 34.5. Gọi API bằng WebClient trong ứng dụng Servlet
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-labs-006
+    title: 34.6. Job nền dùng client credentials và kho authorized client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-labs-007
+    title: 34.7. Ứng dụng WebFlux đăng nhập OIDC và gọi downstream
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-labs-008
+    title: 34.8. Lưu authorized client bền vững và xử lý refresh token rotation
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-labs-009
+    title: 34.9. Đăng xuất OIDC và thu hồi dữ liệu authorized client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-labs-010
+    title: 34.10. Tích hợp provider tự triển khai trong môi trường local
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-labs-011
+    title: 34.11. Ứng dụng nhiều tenant với cấu hình client tách biệt
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-labs-012
+    title: 34.12. Bộ kiểm thử hoàn chỉnh và kịch bản chẩn đoán sự cố
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

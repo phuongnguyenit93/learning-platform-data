@@ -1,0 +1,468 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Cloud Stream là gì và giải quyết bài toán nào
+  - Từ lời gọi đồng bộ đến xử lý dựa trên sự kiện
+  - Phân biệt thông điệp, sự kiện và lệnh
+  - Vai trò bên phát, bên nhận và hệ thống môi giới thông điệp
+  - Mối quan hệ giữa hàm xử lý, binding, binder và destination
+  - Spring Cloud Stream trong hệ sinh thái Spring Boot, Spring Cloud Function và Spring Integration
+  - So sánh với Spring for Apache Kafka, Spring AMQP và Kafka Streams
+  - Trường hợp nên dùng, giới hạn trừu tượng hóa và chi phí vận hành
+  - Kiến thức tiên quyết và trình tự học từ ứng dụng đầu tiên đến vận hành
+- level1: Nền tảng truyền tin
+  level2:
+  - Hàng đợi, chủ đề và mô hình điểm tới điểm
+  - Phát hành và đăng ký nhận thông điệp (publish-subscribe)
+  - Nhận cạnh tranh trong cùng nhóm và nhận độc lập giữa các nhóm
+  - Lưu giữ thông điệp, thuê bao bền vững và thời gian tồn tại
+  - Xác nhận gửi, xác nhận nhận và hoàn tất xử lý nghiệp vụ
+  - Ngữ nghĩa giao nhận at-most-once, at-least-once và exactly-once
+  - Thứ tự thông điệp, xử lý song song và phạm vi bảo đảm
+  - Thông điệp trùng lặp, đến muộn và không đúng thứ tự
+  - Tính nhất quán cuối cùng và các điểm lỗi trên đường truyền
+- level1: Khởi tạo
+  level2:
+  - Chọn Java, Spring Boot, Spring Cloud BOM và phiên bản Stream tương thích
+  - Thiết lập Maven hoặc Gradle và quản lý phiên bản phụ thuộc
+  - Chọn thư viện lõi, binder và thư viện kiểm thử
+  - Chuẩn bị Kafka hoặc RabbitMQ cục bộ bằng Docker Compose
+  - Xây dựng ứng dụng phát, biến đổi và nhận thông điệp đầu tiên
+  - Cấu hình application.yml và chạy thử luồng đầu cuối
+  - Quan sát tài nguyên được tạo trên broker và đối chiếu kết quả
+  - Tách cấu hình theo môi trường bằng profile và biến môi trường
+  - Kiểm tra dependency tree và xử lý xung đột thư viện
+- level1: Kiến trúc
+  level2:
+  - Tách nghiệp vụ xử lý khỏi mã kết nối hệ thống truyền tin
+  - Đường đi của thông điệp qua hàm, kênh và binder
+  - Binding đầu vào, binding đầu ra và tài nguyên vật lý trên broker
+  - Vai trò Spring Messaging và MessageChannel
+  - Binder SPI, Binding và bộ phận cấp phát tài nguyên
+  - Tự động cấu hình và phát hiện binder trên classpath
+  - Vòng đời khởi tạo, liên kết, hủy liên kết và dừng ứng dụng
+  - Phân biệt cấu hình dùng chung với khả năng riêng của từng binder
+- level1: Mô hình hàm
+  level2:
+  - Khai báo Supplier, Function và Consumer bằng @Bean
+  - Xác định kiểu đầu vào, đầu ra và kiểu tham số tổng quát
+  - Chọn hàm hoạt động bằng spring.cloud.function.definition
+  - Tự phát hiện hàm và kiểm soát function.autodetect
+  - Xử lý payload trực tiếp và xử lý Message<T>
+  - Trả kết quả, thay đổi kiểu dữ liệu và xử lý không có đầu ra
+  - Gọi service nghiệp vụ từ hàm và quản lý phụ thuộc
+  - Giữ hàm không trạng thái và tránh trạng thái dùng chung không an toàn
+  - Phân biệt nhiều hàm độc lập với một chuỗi hàm xử lý
+  - Kiểm chứng hàm nghiệp vụ độc lập với Spring và broker
+- level1: Binding và cấu hình
+  level2:
+  - Quy tắc tên <function>-in-<index> và <function>-out-<index>
+  - Ánh xạ tên binding bằng spring.cloud.stream.function.bindings
+  - Phân biệt tên bean, tên binding và tên destination
+  - Cấu hình destination, group, binder và contentType
+  - Thuộc tính chung, thuộc tính producer và thuộc tính consumer
+  - Cấu hình mặc định và ghi đè theo từng binding
+  - Thuộc tính mở rộng theo namespace Kafka, RabbitMQ và Pulsar
+  - Khai báo binding tường minh bằng input-bindings và output-bindings
+  - Điều khiển autoStartup và xử lý lỗi liên kết lúc khởi động
+  - Quy tắc đặt tên và quản lý cấu hình giữa các môi trường
+  - Đọc cấu hình hiệu lực và chẩn đoán sai tên hoặc sai cấp thuộc tính
+- level1: Thông điệp và header
+  level2:
+  - 'Cấu trúc Message<T>: payload, header và tính bất biến'
+  - Tạo và sao chép thông điệp bằng MessageBuilder
+  - Header contentType, id và timestamp
+  - Mã sự kiện, mã tương quan và mã nguyên nhân
+  - Header nghiệp vụ và thông tin phiên bản sự kiện
+  - Ánh xạ header giữa Spring Messaging và giao thức broker
+  - Giữ, bổ sung và loại bỏ header khi biến đổi thông điệp
+  - Giới hạn kích thước header và tránh truyền dữ liệu nhạy cảm
+  - Phân biệt header do ứng dụng tạo với metadata do broker cung cấp
+- level1: Chuyển đổi dữ liệu
+  level2:
+  - Vai trò contentType và kiểu tham số trong chuyển đổi thông điệp
+  - Thứ tự lựa chọn contentType từ header, binding và mặc định
+  - Chuyển đổi JSON sang POJO hoặc Java record
+  - Xử lý String, byte[] và dữ liệu nhị phân
+  - Cơ chế chọn MessageConverter và đăng ký bộ chuyển đổi riêng
+  - Giới hạn suy luận kiểu với Object, collection và kiểu tổng quát
+  - Phân biệt chuyển đổi của framework với serialization của broker client
+  - Cấu hình useNativeEncoding và useNativeDecoding
+  - Đồng bộ serializer và deserializer giữa bên phát và bên nhận
+  - Nhận diện lỗi contentType, dữ liệu sai định dạng và lỗi kiểu dữ liệu
+- level1: Schema và hợp đồng
+  level2:
+  - Thiết kế hợp đồng sự kiện độc lập với mô hình lưu trữ nội bộ
+  - Chọn JSON, Avro hoặc Protobuf theo yêu cầu tương tác
+  - Vai trò Schema Registry và lựa chọn cơ chế tích hợp
+  - Đăng ký schema, định danh schema và tra cứu khi nhận
+  - Tích hợp Avro MessageConverter hoặc native Serde theo binder
+  - Tương thích ngược, tương thích xuôi và thay đổi phá vỡ hợp đồng
+  - Thêm trường, đổi tên trường và xử lý giá trị mặc định
+  - Quản lý phiên bản sự kiện và triển khai nhiều phiên bản song song
+  - Kiểm thử hợp đồng với bên phát và bên nhận khác ngôn ngữ
+- level1: Nguồn phát
+  level2:
+  - Tạo thông điệp định kỳ bằng Supplier
+  - Cấu hình fixedDelay, initialDelay, cron và maxMessagesPerPoll
+  - Cấu hình poller riêng cho từng output binding
+  - Supplier trả một phần tử và Supplier trả luồng Flux
+  - Sử dụng @PollableBean cho nguồn trả luồng hữu hạn
+  - Điều khiển tách phần tử bằng thuộc tính splittable
+  - Đọc nguồn dữ liệu ngoài và quản lý mốc đọc an toàn
+  - Xử lý nguồn không có dữ liệu và lỗi phát sinh khi lấy dữ liệu
+- level1: StreamBridge
+  level2:
+  - Vai trò StreamBridge khi phát thông điệp từ nguồn bên ngoài
+  - Phát sự kiện từ REST, lịch chạy và service nghiệp vụ
+  - Gửi POJO hoặc Message và chỉ định contentType
+  - Tạo sẵn output binding và tạo binding khi gửi lần đầu
+  - Phân biệt binding có sẵn với destination động
+  - Giới hạn bộ nhớ đệm destination động và kiểm soát số lượng đích
+  - Chọn binder khi có nhiều hệ thống truyền tin
+  - Diễn giải kết quả send và phân biệt với xác nhận của broker
+  - Chế độ gửi bất đồng bộ và truyền ngữ cảnh theo phiên bản hỗ trợ
+  - Áp dụng ChannelInterceptor và kiểm thử qua StreamOperations
+- level1: Ghép hàm và định tuyến
+  level2:
+  - Ghép hàm bằng toán tử | và khai báo nhiều hàm bằng dấu ;
+  - Tên binding và cấu hình đầu cuối của hàm ghép
+  - Phân biệt ghép trong tiến trình với nối ứng dụng qua broker
+  - Biến đổi, lọc và làm giàu dữ liệu trong chuỗi xử lý
+  - Định tuyến đến hàm bằng functionRouter và biểu thức định tuyến
+  - Giới hạn định tuyến theo từng thông điệp với mô hình phản ứng
+  - Định tuyến đầu ra bằng StreamBridge và destination động
+  - Nhiều đầu vào hoặc đầu ra với kiểu hàm được hỗ trợ
+  - Kiểm tra tương thích kiểu và header khi ghép hàm
+  - Kiểm soát đích được phép và biểu thức định tuyến từ dữ liệu bên ngoài
+- level1: Nhóm tiêu thụ
+  level2:
+  - Consumer group và cơ chế phân phối thông điệp
+  - Cùng nhóm để chia tải, khác nhóm để nhận độc lập
+  - Nhóm có tên và nhóm ẩn danh
+  - Đăng ký bền vững và hành vi khi ứng dụng tạm dừng
+  - Mở rộng nhiều instance và cấu hình concurrency
+  - Phân biệt số instance, luồng nhận và số phân vùng
+  - requiredGroups và điều kiện áp dụng theo binder
+  - Thay đổi tên nhóm, khởi động lại và nguy cơ xử lý lại
+  - Thực nghiệm phân phối thông điệp giữa nhiều nhóm
+- level1: Phân vùng
+  level2:
+  - Phân vùng để gom thông điệp theo khóa nghiệp vụ
+  - Chọn khóa theo người dùng, đơn hàng hoặc thiết bị
+  - Cấu hình partitionKeyExpression và partitionCount
+  - Tùy biến PartitionKeyExtractorStrategy và PartitionSelectorStrategy
+  - Cấu hình phía nhận với partitioned, instanceCount và instanceIndex
+  - Khác biệt phân vùng trên Kafka và RabbitMQ
+  - Phân biệt khóa phân vùng của Stream với khóa bản ghi Kafka
+  - Thứ tự theo khóa và giới hạn khi xử lý bất đồng bộ
+  - Khóa lệch tải, phân vùng nóng và chiến lược phân phối
+  - Thay đổi số phân vùng và đánh giá tác động đến ánh xạ khóa
+- level1: Xử lý phản ứng
+  level2:
+  - Phân biệt hàm xử lý từng thông điệp với hàm nối các luồng dữ liệu
+  - Xây dựng Function<Flux<T>, Flux<R>>
+  - Supplier<Flux<T>> và vòng đời đăng ký luồng
+  - Consumer<Flux<T>> và phương án Function<Flux<T>, Mono<Void>>
+  - Đánh giá áp lực ngược (backpressure) theo khả năng thực tế của binder
+  - map, flatMap và concatMap trong bảo toàn thứ tự
+  - Tách thao tác chặn luồng và chọn Scheduler phù hợp
+  - Xử lý lỗi bằng onErrorResume, retryWhen và phạm vi phục hồi
+  - Quản lý bộ đệm, tốc độ phát và giới hạn số tác vụ đồng thời
+  - Phân biệt reactive function với Reactive Kafka Binder và kiểm tra tình trạng hỗ trợ
+  - Truyền ngữ cảnh và quan sát theo từng phần tử trong luồng
+- level1: Tiêu thụ chủ động
+  level2:
+  - Phân biệt nhận do sự kiện, Supplier poller và pollable consumer
+  - Khai báo pollable-source và tạo PollableMessageSource
+  - Chủ động gọi poll và xử lý trạng thái không có thông điệp
+  - Chuyển đổi kiểu khi đọc thông điệp chủ động
+  - Xác nhận tự động và quản lý AcknowledgmentCallback
+  - Chấp nhận, từ chối hoặc đưa lại thông điệp theo khả năng binder
+  - Xử lý lỗi và kênh lỗi của nguồn pollable
+  - Quản lý lịch đọc, luồng thực thi và dừng vòng lặp an toàn
+- level1: Xử lý lỗi
+  level2:
+  - Phân loại lỗi chuyển đổi, lỗi nghiệp vụ và lỗi hạ tầng
+  - Đường đi của exception từ hàm tới binder
+  - Cấu hình maxAttempts và các khoảng chờ backoff
+  - Chọn exception được thử lại và exception không được thử lại
+  - Tùy biến RetryTemplate và gắn với binding cụ thể
+  - Consumer<ErrorMessage> và error-handler-definition
+  - Tác động của error handler riêng đến cơ chế DLQ mặc định
+  - DLQ, DLT và điều kiện cấu hình theo từng binder
+  - Giữ nguyên payload và metadata phục vụ điều tra
+  - Chặn vòng lặp thử lại và cô lập thông điệp gây lỗi lặp lại
+  - Xây dựng quy trình sửa lỗi, phát lại và đối soát thông điệp
+- level1: Độ tin cậy
+  level2:
+  - Xác định điểm hoàn tất nghiệp vụ và thời điểm xác nhận
+  - Thiết kế xử lý lặp an toàn (idempotency) bằng event ID
+  - Bảng inbox, khóa duy nhất và kiểm soát thông điệp trùng lặp
+  - Khoảng hở giữa ghi cơ sở dữ liệu và phát sự kiện
+  - Mẫu transactional outbox và tích hợp bộ chuyển tiếp sự kiện
+  - Phạm vi giao dịch broker và giới hạn exactly-once đầu cuối
+  - Xử lý sự kiện đến muộn, sai thứ tự và thiếu sự kiện
+  - Phát lại dữ liệu mà không lặp tác dụng phụ
+  - Đối soát dữ liệu và phục hồi sau lỗi một phần
+- level1: Kafka Binder
+  level2:
+  - Ánh xạ destination, group và partition sang mô hình Kafka
+  - Kết nối broker và phân cấp cấu hình Kafka Binder
+  - Cấp phát topic và kiểm soát autoCreateTopics, autoAddPartitions
+  - Cấu hình số phân vùng, hệ số sao chép và thuộc tính topic
+  - Sử dụng topic có sẵn và phân quyền quản trị tài nguyên
+  - Nhận từ nhiều topic hoặc mẫu tên topic
+  - Ánh xạ KafkaHeaders và metadata topic, partition, offset
+  - Tombstone, KafkaNull và sự kiện xóa dữ liệu
+  - Phân biệt Kafka Binder thông thường với Kafka Streams Binder
+- level1: Nhận từ Kafka
+  level2:
+  - Luồng poll, listener container và hàm consumer
+  - Consumer group, phân công partition và tái cân bằng
+  - startOffset, offset đã lưu và chính sách khi chưa có offset
+  - Reset offset và phát lại dữ liệu có kiểm soát
+  - Chế độ ackMode và thời điểm commit offset
+  - Xác nhận thủ công bằng KafkaHeaders.ACKNOWLEDGMENT
+  - Cấu hình concurrency và giới hạn theo số partition
+  - Nhận theo lô với batch-mode và List payload
+  - Đối chiếu header theo phần tử trong lô
+  - max.poll.records, max.poll.interval.ms và thời gian xử lý
+  - Tạm dừng, tiếp tục nhận và theo dõi consumer nhàn rỗi
+- level1: Phát tới Kafka
+  level2:
+  - Chọn khóa bản ghi bằng messageKeyExpression hoặc Kafka header
+  - Chọn topic và partition cho từng thông điệp
+  - Cấu hình serializer với native encoding
+  - acks, retries, idempotence và giới hạn bảo đảm của producer
+  - Gửi đồng bộ, gửi bất đồng bộ và timeout
+  - Nhận kết quả gửi, metadata bản ghi và lỗi gửi bất đồng bộ
+  - Batching, linger, compression và kích thước bản ghi
+  - Header mapper và tương tác với ứng dụng Kafka ngoài Spring
+  - Tùy biến ProducerFactory và Kafka client theo nhu cầu
+- level1: Giao dịch Kafka
+  level2:
+  - Bật transactional binder bằng transactionIdPrefix
+  - Giao dịch trong chuỗi nhận, xử lý và phát thông điệp
+  - Commit offset cùng kết quả phát trong một giao dịch Kafka
+  - Producer chỉ phát và cách xác định ranh giới giao dịch
+  - isolation.level và đọc dữ liệu đã commit
+  - Mã giao dịch duy nhất giữa các instance và lỗi producer fencing
+  - Rollback, AfterRollbackProcessor và thử lại sau rollback
+  - Phân biệt giao dịch Kafka với giao dịch cơ sở dữ liệu
+  - Giới hạn exactly-once khi gọi dịch vụ hoặc tạo tác dụng phụ ngoài Kafka
+- level1: Khôi phục Kafka
+  level2:
+  - Cấu hình enableDlq, dlqName và yêu cầu consumer group
+  - Chọn destination và partition cho bản ghi lỗi
+  - Serializer của DLT khi sử dụng native decoding
+  - Phân biệt lỗi deserialization với lỗi trong hàm nghiệp vụ
+  - Chọn xử lý lỗi tại binder hoặc listener container
+  - Giới hạn thử lại và đưa DLT khi nhận theo lô
+  - Lưu metadata lỗi và truy vết bản ghi gốc
+  - Phát lại DLT có giới hạn số lần và nơi cách ly cuối cùng
+  - Reset offset để phục hồi và đánh giá phạm vi ảnh hưởng
+  - Thực nghiệm lỗi tiến trình trước và sau commit offset
+- level1: RabbitMQ Binder
+  level2:
+  - Ánh xạ destination sang exchange và group sang queue
+  - Kết nối RabbitMQ, virtual host và cấu hình ConnectionFactory
+  - Tên exchange, tên queue và các tiền tố tài nguyên
+  - Exchange type, binding routing key và routingKeyExpression
+  - Hàng đợi bền vững, nhóm ẩn danh và auto-delete
+  - Sử dụng exchange hoặc queue có sẵn
+  - Quorum queue và lựa chọn kiểu queue theo nhu cầu
+  - TTL, thời hạn queue, giới hạn độ dài và overflow
+  - Listener container, concurrency và prefetch
+  - Nhận theo lô, phát theo lô và giới hạn kích thước thông điệp
+  - Phân vùng ứng dụng và single-active-consumer
+- level1: Độ tin cậy RabbitMQ
+  level2:
+  - Chế độ xác nhận AUTO, MANUAL và NONE
+  - Phân biệt ack, nack, reject và requeue
+  - Publisher confirms, publisher returns và thông điệp không có đích nhận
+  - Delivery mode và điều kiện lưu thông điệp bền vững
+  - Giao dịch AMQP và giới hạn khi phối hợp cơ sở dữ liệu
+  - autoBindDlq, dead-letter exchange và dead-letter routing key
+  - republishToDlq và metadata exception
+  - Tương tác giữa maxAttempts, requeueRejected và republishToDlq
+  - Giới hạn header lỗi và frameMaxHeadroom
+  - Phát lại qua TTL, hàng đợi thử lại và hàng đợi cách ly
+  - Xử lý mất kết nối, khôi phục consumer và giới hạn redelivery
+- level1: Kafka Streams
+  level2:
+  - Khi nào cần Kafka Streams Binder thay cho Kafka Binder
+  - Topology xử lý và vai trò applicationId
+  - Binding cho KStream, KTable và GlobalKTable
+  - Function, Consumer, BiFunction và hàm nhiều đầu vào
+  - Hàm curried cho topology có nhiều hơn hai đầu vào
+  - Nhiều đầu ra bằng KStream[] và phân nhánh dữ liệu
+  - Ghép hàm được hỗ trợ và tên binding của topology ghép
+  - Suy luận Serde và cấu hình keySerde, valueSerde
+  - Phân biệt native Serde với chuyển đổi của framework
+  - Liên kết tham số hàm với đúng destination và applicationId
+- level1: Trạng thái và cửa sổ
+  level2:
+  - Biến đổi không trạng thái trong topology Kafka Streams
+  - Đổi khóa, repartition và yêu cầu đồng phân vùng
+  - Gom nhóm, đếm và tổng hợp theo khóa
+  - Phép nối KStream, KTable và GlobalKTable
+  - Event time, processing time và TimestampExtractor
+  - Cửa sổ tumbling, hopping, sliding và session
+  - Grace period, dữ liệu đến muộn và kết quả cửa sổ
+  - Khai báo state store và materializedAs
+  - Changelog, bộ nhớ đệm và khôi phục trạng thái
+  - InteractiveQueryService và giới hạn truy vấn trạng thái cục bộ
+  - Định tuyến truy vấn đến instance giữ state store phù hợp
+- level1: Vận hành Kafka Streams
+  level2:
+  - Cấu hình StreamsBuilderFactoryBean và Kafka Streams client
+  - Số luồng xử lý, task, standby replica và phạm vi mở rộng
+  - Thư mục trạng thái, dung lượng đĩa và thời gian phục hồi
+  - Xử lý lỗi deserialization, processing và production
+  - Cấu hình DLQ và xác định phạm vi bảo vệ của từng loại lỗi
+  - processing.guarantee và bảo đảm trong topology
+  - Khởi động, dừng binding và giới hạn điều khiển vòng đời
+  - Theo dõi topology, trạng thái luồng và chỉ số state store
+  - Đổi applicationId, reset ứng dụng và nâng cấp topology an toàn
+  - Kiểm thử topology bằng TopologyTestDriver
+- level1: Pulsar Binder
+  level2:
+  - Chọn artifact và phiên bản Pulsar Binder tương thích
+  - Kết nối Pulsar service URL và administration URL
+  - Ánh xạ destination, group và subscription
+  - Kiểu subscription và ảnh hưởng đến chia tải, thứ tự
+  - Tự cấp phát topic và cấu hình số partition
+  - Chuyển đổi của framework và native Pulsar Schema
+  - Cấu hình schema-type, message-type và kiểu khóa, giá trị
+  - Ánh xạ header và tùy biến PulsarHeaderMapper
+  - Thứ tự ưu tiên cấu hình Spring Boot, binder và binding
+  - Kiểm tra cơ chế ack, redelivery và DLQ theo phiên bản binder
+- level1: Nhiều binder
+  level2:
+  - Nhiều loại binder trên classpath và lựa chọn defaultBinder
+  - Khai báo tên cấu hình binder và gắn binder cho từng binding
+  - Nhiều Kafka cluster hoặc nhiều RabbitMQ virtual host
+  - Binder environment, ngữ cảnh riêng và kế thừa cấu hình
+  - Luồng nhận từ Kafka và phát sang RabbitMQ
+  - Chọn binder khi gửi StreamBridge đến destination động
+  - Chuyển đổi định dạng, khóa và header giữa các hệ thống
+  - Giới hạn giao dịch và bảo đảm giao nhận khi bắc cầu broker
+  - Đánh giá binder đối tác như Azure Event Hubs, Pub/Sub và Solace
+- level1: Kiểm thử
+  level2:
+  - Phân tầng kiểm thử hàm, binding và broker thực
+  - Thiết lập spring-cloud-stream-test-binder và @EnableTestBinder
+  - Đưa dữ liệu vào bằng InputDestination
+  - Đọc và kiểm tra kết quả bằng OutputDestination
+  - Chỉ định destination khi kiểm thử nhiều hàm hoặc nhiều binding
+  - Kiểm thử JSON, contentType, header và lỗi chuyển đổi
+  - Kiểm thử ghép hàm, định tuyến và StreamBridge
+  - Kiểm thử thử lại, error handler và đường đưa thông điệp lỗi
+  - Giới hạn Test Binder với giao dịch, broker metadata và Kafka Streams
+  - Kiểm thử tích hợp Kafka, RabbitMQ hoặc Pulsar bằng Testcontainers
+  - Kiểm thử trùng lặp, sai thứ tự và hợp đồng schema
+  - Kiểm thử khởi động lại, lỗi mạng và phục hồi sau sự cố
+  - Đồng bộ kiểm thử bất đồng bộ bằng điều kiện và timeout hữu hạn
+- level1: Quan sát
+  level2:
+  - Bật Actuator và kiểm tra sức khỏe binder
+  - Phân biệt sức khỏe kết nối với khả năng xử lý nghiệp vụ
+  - Quan sát binding bằng endpoint bindings
+  - Điều khiển STARTED, STOPPED, PAUSED và RESUMED theo khả năng binder
+  - Đo tốc độ, độ trễ xử lý, số lỗi và số lần thử lại
+  - Theo dõi Kafka consumer lag, RabbitMQ queue depth và DLQ
+  - Micrometer Observation và theo dõi hàm xử lý
+  - Truyền trace context qua header và ranh giới luồng thực thi
+  - Quan sát reactive function theo phạm vi phần tử hoặc đoạn luồng
+  - Log có cấu trúc với event ID, correlation ID và metadata broker
+  - Giới hạn nhãn metric có độ đa dạng cao
+  - Xây dựng cảnh báo và bảng theo dõi tình trạng luồng
+- level1: Bảo mật
+  level2:
+  - Xác thực và mã hóa kết nối Kafka bằng SASL, SSL và TLS
+  - Xác thực RabbitMQ, virtual host và TLS
+  - Xác thực và TLS cho kết nối Pulsar
+  - Phân quyền tối thiểu cho phát, nhận và cấp phát tài nguyên
+  - Tách tài khoản quản trị khỏi tài khoản chạy ứng dụng
+  - Quản lý mật khẩu, khóa và chứng chỉ bằng cấu hình bên ngoài
+  - Bảo vệ Actuator và thao tác điều khiển binding
+  - Kiểm soát dữ liệu đầu vào, kiểu deserialization và header tin cậy
+  - Giới hạn destination động và biểu thức có thể bị điều khiển
+  - Che dữ liệu nhạy cảm trong payload log, trace và DLQ
+- level1: Hiệu năng
+  level2:
+  - Xác lập mục tiêu thông lượng, độ trễ và độ tin cậy
+  - Đo điểm nghẽn tại broker, consumer và dịch vụ phụ thuộc
+  - Tính số partition, instance và concurrency theo tải
+  - Tối ưu batching, prefetch và giới hạn poll
+  - Đánh giá compression, kích thước payload và chi phí serialization
+  - Giới hạn hàng đợi nội bộ, bộ nhớ và số tác vụ đang xử lý
+  - Giữ thứ tự khi tăng mức xử lý song song
+  - Giảm khóa lệch tải và xử lý phân vùng nóng
+  - Thiết kế kiểm thử tải với dữ liệu và lỗi đại diện
+  - So sánh cấu hình bằng số đo thay vì chỉ tăng số luồng
+- level1: Triển khai
+  level2:
+  - Đóng gói ứng dụng Spring Boot và image container
+  - Quản lý tài nguyên broker theo môi trường
+  - Trình tự sẵn sàng của broker, binding và ứng dụng
+  - Liveness, readiness và ảnh hưởng của lỗi broker
+  - Graceful shutdown và xử lý thông điệp đang thực thi
+  - Rolling update với cùng nhóm và tái cân bằng consumer
+  - Tương thích hợp đồng khi triển khai producer và consumer lệch thời điểm
+  - Tự động mở rộng theo lag hoặc độ sâu hàng đợi
+  - Phục hồi khi mất broker, mất instance hoặc đầy đĩa
+  - Vai trò triển khai pipeline của Spring Cloud Data Flow và giới hạn phạm vi
+- level1: Mở rộng
+  level2:
+  - Tùy biến listener container bằng ListenerContainerCustomizer
+  - Tùy biến nguồn pollable bằng MessageSourceCustomizer
+  - Áp dụng ChannelInterceptor và GlobalChannelInterceptor đúng binding
+  - Tùy biến binder trong ứng dụng nhiều binder
+  - Đăng ký converter, header mapper và chiến lược phân vùng riêng
+  - Binder SPI và hợp đồng bindConsumer, bindProducer
+  - ProvisioningProvider và vòng đời tài nguyên của custom binder
+  - Đăng ký binder qua META-INF/spring.binders
+  - Khi nào nên viết binder và khi nào nên dùng thư viện broker trực tiếp
+- level1: Nâng cấp
+  level2:
+  - Đọc tài liệu đúng phiên bản và ma trận tương thích Spring Cloud
+  - Nhận diện mã cũ dùng @EnableBinding, @StreamListener, Source, Processor và Sink
+  - Chuyển mô hình annotation cũ sang Supplier, Function và Consumer
+  - Chuyển tên input, output cũ sang tên binding theo hàm
+  - Đối chiếu thuộc tính đổi tên, hết khuyến nghị hoặc đã bị loại bỏ
+  - Đánh giá thay đổi serialization, header mapper và error handler
+  - Kiểm tra tình trạng hỗ trợ Reactive Kafka Binder và lựa chọn thay thế
+  - Kiểm thử hồi quy hợp đồng, offset, DLQ và giao dịch khi nâng cấp
+  - Triển khai thử, theo dõi chỉ số và lập phương án quay lại phiên bản trước
+- level1: Chẩn đoán sự cố
+  level2:
+  - Ứng dụng khởi động nhưng hàm không được liên kết
+  - Không tìm thấy binder hoặc không xác định được binder mặc định
+  - Gửi thành công cục bộ nhưng broker hoặc consumer chưa nhận dữ liệu
+  - Consumer không nhận do sai destination, group hoặc routing key
+  - JSON không chuyển đổi được, sai kiểu hoặc mất contentType
+  - Header, khóa hoặc metadata biến mất khi qua broker
+  - Consumer bị rebalance liên tục hoặc chậm commit offset
+  - Thông điệp lặp lại, sai thứ tự hoặc dồn vào một partition
+  - Thử lại vô hạn, DLQ không có dữ liệu hoặc phát lại tạo vòng lặp
+  - Giao dịch bị rollback, timeout hoặc producer fencing
+  - Reactive pipeline ngừng xử lý hoặc không có subscriber
+  - Xung đột khai báo RabbitMQ queue, exchange hoặc thuộc tính tài nguyên
+  - Kafka Streams thiếu Serde, state store chưa sẵn sàng hoặc lỗi phục hồi
+  - Phân biệt lỗi ứng dụng, cấu hình, broker và mạng bằng bằng chứng
+- level1: Thực hành tổng hợp
+  level2:
+  - Luồng chuẩn hóa dữ liệu với Supplier, Function và Consumer
+  - Phát sự kiện đơn hàng từ REST bằng StreamBridge
+  - Hai nhóm thanh toán và thông báo nhận sự kiện độc lập
+  - Xử lý đơn hàng đúng thứ tự theo khóa với nhiều instance
+  - Consumer lặp an toàn với inbox và ràng buộc duy nhất
+  - Phối hợp cơ sở dữ liệu và sự kiện bằng transactional outbox
+  - Đưa sự kiện lỗi vào DLQ và phát lại có kiểm soát
+  - Bắc cầu Kafka và RabbitMQ với hợp đồng dữ liệu thống nhất
+  - Tổng hợp dữ liệu thiết bị theo cửa sổ bằng Kafka Streams Binder
+  - Tích hợp Pulsar Binder với schema và subscription phù hợp
+  - Đo tải, theo dõi lag và kiểm chứng phục hồi sau lỗi
+  - Đánh giá lựa chọn binder và bảo đảm giao nhận cho một bài toán thực tế

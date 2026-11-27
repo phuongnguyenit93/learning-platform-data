@@ -1,0 +1,3 @@
+menuLevel1: Chuỗi xử lý Servlet
+menuLevel2: Giữ logic xác thực trong cơ chế Resource Server thay vì viết filter JWT song song
+status: TRANSLATE

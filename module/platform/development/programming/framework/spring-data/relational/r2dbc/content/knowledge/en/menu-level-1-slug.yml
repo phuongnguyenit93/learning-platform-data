@@ -1,0 +1,112 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến thức nền
+  slug: fundamentals
+  index: 1
+- title: Kiến trúc
+  slug: architecture
+  index: 2
+- title: Khởi tạo
+  slug: setup
+  index: 3
+- title: Kết nối
+  slug: connections
+  index: 4
+- title: Pool kết nối
+  slug: connection-pool
+  index: 5
+- title: Mô hình dữ liệu
+  slug: data-model
+  index: 6
+- title: Ánh xạ
+  slug: mapping
+  index: 7
+- title: Định danh
+  slug: identity
+  index: 8
+- title: Chuyển đổi kiểu
+  slug: type-conversion
+  index: 9
+- title: Thao tác thực thể
+  slug: entity-operations
+  index: 10
+- title: Truy vấn động
+  slug: dynamic-queries
+  index: 11
+- title: Repository
+  slug: repository
+  index: 12
+- title: Truy vấn khai báo
+  slug: declared-queries
+  index: 13
+- title: Kết quả truy vấn
+  slug: query-results
+  index: 14
+- title: Quan hệ dữ liệu
+  slug: data-relationships
+  index: 15
+- title: Phân trang
+  slug: pagination
+  index: 16
+- title: SQL trực tiếp
+  slug: direct-sql
+  index: 17
+- title: Ghi nhiều bản ghi
+  slug: batch-writes
+  index: 18
+- title: Giao dịch
+  slug: transactions
+  index: 19
+- title: Nhất quán dữ liệu
+  slug: consistency-data
+  index: 20
+- title: Luồng thực thi
+  slug: execution-flow
+  index: 21
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 22
+- title: Vòng đời thực thể
+  slug: entity-lifecycle
+  index: 23
+- title: Auditing
+  slug: auditing
+  index: 24
+- title: Schema
+  slug: schema
+  index: 25
+- title: Nhiều cơ sở dữ liệu
+  slug: multiple-databases
+  index: 26
+- title: Khác biệt hệ quản trị
+  slug: database-dialect-differences
+  index: 27
+- title: Tích hợp WebFlux
+  slug: webflux-integration
+  index: 28
+- title: Kiểm thử
+  slug: testing
+  index: 29
+- title: Hiệu năng
+  slug: performance
+  index: 30
+- title: Quan sát
+  slug: observability
+  index: 31
+- title: Bảo mật
+  slug: security
+  index: 32
+- title: Triển khai
+  slug: deployment
+  index: 33
+- title: Chuyển đổi
+  slug: migration
+  index: 34
+- title: Thực hành
+  slug: practice
+  index: 35
+- title: Chẩn đoán
+  slug: diagnostics
+  index: 36

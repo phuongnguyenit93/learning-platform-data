@@ -1,0 +1,399 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Spring Integration runtime là gì và chịu trách nhiệm nào
+  - Message flow từ lúc producer phát message đến khi handler hoàn tất
+  - ApplicationContext, IntegrationContext và các bean tích hợp liên hệ
+  - Channel, endpoint, dispatcher và executor trong thời gian chạy
+  - Phân biệt cấu hình flow với trạng thái runtime
+  - Event-driven, polling và reactive runtime
+  - Điểm mở rộng của runtime và ranh giới với adapter
+  - Lộ trình học từ vòng đời bean đến vận hành flow production
+- level1: Message runtime
+  level2:
+  - Message immutable và dữ liệu được truyền qua runtime
+  - MessageHeaders, message id và timestamp
+  - Payload type và chuyển đổi tại handler boundary
+  - Reply message, null reply và one-way handler
+  - ErrorMessage và exception trong flow
+  - Sequence, correlation và group state
+  - Message history và trace đường đi
+  - Header propagation và header mapping
+  - Thiết kế message contract ổn định khi flow thay đổi
+- level1: Application context
+  level2:
+  - Spring ApplicationContext khởi tạo integration bean
+  - IntegrationContext và lifecycle của thành phần tích hợp
+  - IntegrationObjectSupport và component name
+  - Bean name, managed name và định danh runtime
+  - BeanFactoryAware, ApplicationContextAware và dependency
+  - IntegrationObjectSupport logger và resource name
+  - Thứ tự khởi tạo giữa channel, endpoint và handler
+  - Context refresh, start, stop và close
+  - Không tạo vòng phụ thuộc giữa các integration component
+- level1: IntegrationFlowContext
+  level2:
+  - IntegrationFlowContext đăng ký flow động
+  - Đăng ký IntegrationFlow bằng flow name
+  - Registration và lifecycle của flow runtime
+  - Unregister flow và dọn bean liên quan
+  - Dynamic flow với input channel hoặc gateway
+  - Chọn lúc đăng ký flow trong ứng dụng
+  - Tránh duplicate flow name và rò rỉ registration
+  - Quản lý flow động trong multi-tenant hoặc plugin
+  - Kiểm thử register, start, stop và unregister
+- level1: Endpoint lifecycle
+  level2:
+  - AbstractEndpoint và lifecycle contract
+  - SmartLifecycle, phase và autoStartup
+  - start, stop, stop callback và shutdown
+  - Endpoint chạy trước hoặc sau các dependency
+  - EventDrivenConsumer và PollingConsumer
+  - SourcePollingChannelAdapter và nguồn tạo message
+  - Endpoint bị dừng khi handler lỗi
+  - Restart endpoint sau lỗi hoặc sau maintenance
+  - Đảm bảo dọn executor, scheduler và resource khi context đóng
+- level1: Consumer runtime
+  level2:
+  - Event-driven consumer nhận message từ SubscribableChannel
+  - Polling consumer đọc message từ PollableChannel
+  - PollerMetadata và DefaultPollerMetadata
+  - fixedDelay, fixedRate và cron trigger
+  - maxMessagesPerPoll và giới hạn một lượt polling
+  - receiveTimeout và chờ message
+  - Transaction trong poller
+  - Poller task executor và concurrent polling
+  - Chọn polling hay event-driven theo nguồn message
+- level1: Task scheduler
+  level2:
+  - TaskScheduler và các công việc theo thời gian
+  - Poller scheduler với thread pool
+  - Trigger fixed rate, fixed delay và cron
+  - TaskScheduler lifecycle và shutdown
+  - Scheduled task bị trễ khi công việc chạy lâu
+  - Pool size và giới hạn scheduler
+  - Error handler của scheduled task
+  - Clock, time zone và kiểm thử lịch
+  - Không dùng scheduler thay cho queue điều phối công việc
+- level1: Task executor
+  level2:
+  - TaskExecutor và chuyển xử lý sang thread khác
+  - ExecutorChannel với async dispatch
+  - PublishSubscribeChannel với task executor
+  - SimpleAsyncTaskExecutor và giới hạn tạo thread
+  - ThreadPoolTaskExecutor và bounded queue
+  - Core pool, max pool và queue capacity
+  - RejectedExecutionHandler khi executor đầy
+  - Thread naming, uncaught exception và shutdown
+  - Chọn executor theo CPU, I/O và latency
+- level1: Threading model
+  level2:
+  - Thread boundary giữa channel và endpoint
+  - Đồng bộ trong DirectChannel
+  - Bất đồng bộ qua ExecutorChannel
+  - Polling thread và handler thread
+  - Thread context, MDC và propagation
+  - Thread safety của handler và stateful component
+  - Không giữ request thread qua flow không giới hạn
+  - Race condition khi nhiều consumer xử lý cùng channel
+  - Đo context switch, queue wait và handler time
+- level1: Channel runtime
+  level2:
+  - SubscribableChannel và subscription của consumer
+  - PollableChannel và receive semantics
+  - DirectChannel dispatcher và subscriber
+  - ExecutorChannel dispatcher và async handoff
+  - PublishSubscribeChannel broadcast message
+  - QueueChannel và queue state trong memory
+  - PriorityChannel và Comparator
+  - RendezvousChannel và synchronous handoff
+  - FluxMessageChannel và reactive subscription
+- level1: Dispatcher
+  level2:
+  - MessageDispatcher và nhiệm vụ chọn handler
+  - UnicastingDispatcher với một handler được chọn
+  - BroadcastingDispatcher phát đến nhiều handler
+  - RoundRobinLoadBalancingStrategy
+  - FailoverLoadBalancingStrategy
+  - Load balancing key và thứ tự handler
+  - Failover khi handler throw exception
+  - Subscription thay đổi trong runtime
+  - Phân biệt dispatcher với router
+- level1: Channel interceptor
+  level2:
+  - ChannelInterceptor trước và sau send
+  - preSend, postSend, afterSendCompletion
+  - preReceive, postReceive và afterReceiveCompletion
+  - Logging, metrics và tracing bằng interceptor
+  - WireTap và quan sát message qua channel
+  - Interceptor order và nhiều interceptor
+  - Không làm thay đổi payload ngoài hợp đồng
+  - Interceptor exception và ảnh hưởng đến send
+  - Giới hạn chi phí interceptor trên đường nóng
+- level1: Message producer
+  level2:
+  - MessageProducerSupport và output channel
+  - MessageProducer tạo message từ nguồn bên ngoài
+  - Lifecycle của producer và source resource
+  - Output channel không có subscriber
+  - Send timeout và lỗi khi channel đầy
+  - Error channel của message producer
+  - Producer retry và reconnect
+  - Source message id và duplicate detection
+  - Đóng producer đúng khi context dừng
+- level1: Message handler
+  level2:
+  - MessageHandler và handleMessage contract
+  - AbstractMessageHandler và component metadata
+  - AbstractReplyProducingMessageEndpoint
+  - Reply message và output channel
+  - Null reply, reply timeout và one-way handler
+  - MessageHandlerChain và chuỗi handler trong một endpoint
+  - Handler có state và thread safety
+  - Handler throw exception và error flow
+  - Tách runtime handler khỏi service nghiệp vụ
+- level1: Handler adapter
+  level2:
+  - MessageHandlerMethodFactory và method invocation
+  - MessageHandlerMethodFactoryResolver
+  - '@ServiceActivator và method handler'
+  - '@Transformer, @Filter và @Router method'
+  - '@Aggregator, @Resequencer và method endpoint'
+  - MessageHandlerMethodArgumentResolver
+  - Payload, Message và header argument
+  - Return value và reply channel
+  - Method signature không hợp lệ và lỗi khởi tạo
+- level1: Conversion
+  level2:
+  - ConversionService tại message boundary
+  - Payload type converter và handler input
+  - MessageConverter và chuyển đổi message
+  - GenericMessage với payload đã chuyển đổi
+  - Conversion lỗi trước khi handler chạy
+  - Header type và header mapper
+  - Custom converter và registration
+  - Giới hạn implicit conversion
+  - Kiểm thử converter theo payload type và null
+- level1: Error runtime
+  level2:
+  - ErrorMessage và ErrorChannel
+  - Default error channel và PublishSubscribeChannel
+  - Header errorChannel cho message cụ thể
+  - MessagePublishingErrorHandler
+  - Error flow và handler xử lý exception
+  - Original message trong ErrorMessage
+  - Reply failure qua gateway
+  - Error channel không có subscriber
+  - Không nuốt exception hoặc mất correlation
+- level1: Retry và recovery
+  level2:
+  - Retry advice quanh message handler
+  - RetryTemplate, RetryPolicy và BackOffPolicy
+  - Số lần thử và phân loại exception
+  - RecoveryCallback sau khi retry thất bại
+  - ErrorMessageSendingRecoverer
+  - Dead-letter channel và lưu message lỗi
+  - Retry với transaction và rollback
+  - Idempotency khi message được xử lý lại
+  - Tránh retry lồng nhiều tầng
+- level1: Advice chain
+  level2:
+  - Advice chain của endpoint
+  - RequestHandlerRetryAdvice
+  - ExpressionEvaluatingRequestHandlerAdvice
+  - TransactionInterceptor trong advice chain
+  - Circuit breaker advice và trạng thái mở
+  - Rate limiting advice
+  - Before, after và exception advice
+  - Thứ tự nhiều advice
+  - Advice tác động đến metrics và error flow
+  - Kiểm thử advice với handler giả lập
+- level1: Transaction runtime
+  level2:
+  - Transaction boundary tại poller
+  - TransactionInterceptor và PlatformTransactionManager
+  - TransactionSynchronizationFactory
+  - Commit khi handler và downstream thành công
+  - Rollback khi handler throw exception
+  - Transaction timeout và resource binding
+  - Message redelivery sau rollback
+  - Không mở transaction qua hệ thống ngoài quá rộng
+  - Kiểm thử commit, rollback và recovery
+- level1: Message store
+  level2:
+  - MessageStore và lưu message theo key
+  - SimpleMessageStore và giới hạn memory
+  - Persistent MessageStore cho restart
+  - MessageGroupStore và trạng thái nhóm
+  - MessageGroup metadata và message release
+  - StoreTimeout và dọn message cũ
+  - Serialization payload và compatibility
+  - Store transaction và consistency
+  - Chọn store theo kích thước message và khả năng khôi phục
+- level1: Correlation runtime
+  level2:
+  - CorrelationStrategy và correlation key
+  - Correlation trong aggregator, resequencer và barrier
+  - Header correlation id và expression
+  - Custom CorrelationStrategy
+  - Group state khi nhiều thread cập nhật
+  - LockRegistry và đồng bộ group
+  - Message group orphan và timeout
+  - Correlation key collision
+  - Kiểm thử message đến lệch thứ tự hoặc thiếu
+- level1: Metadata store
+  level2:
+  - MetadataStore và trạng thái nhỏ cần tồn tại
+  - SimpleMetadataStore và memory lifecycle
+  - ConcurrentMetadataStore cho nhiều thread hoặc instance
+  - Metadata key expression
+  - Idempotent receiver dựa trên MetadataStore
+  - Accept-once pattern và trạng thái đã xử lý
+  - TTL và cleanup metadata
+  - Atomic put-if-absent và race condition
+  - Chọn store bền vững cho scale out
+- level1: Lock registry
+  level2:
+  - LockRegistry và lock theo key
+  - DefaultLockRegistry trong cùng JVM
+  - JdbcLockRegistry hoặc distributed lock
+  - Lock timeout và tryLock
+  - Lock quanh message group
+  - Deadlock và thứ tự lấy lock
+  - Giải phóng lock khi exception hoặc shutdown
+  - Độ trễ lock và ảnh hưởng throughput
+  - Không dùng lock để che giấu thiết kế state sai
+- level1: Persistence và restart
+  level2:
+  - State runtime nào cần tồn tại qua restart
+  - Message store, group store và metadata store
+  - Khôi phục delayed message và pending group
+  - Version schema của dữ liệu lưu trữ
+  - Poison message sau khi khởi động lại
+  - Duplicate message do crash sau khi side effect
+  - Atomicity giữa lưu trạng thái và business resource
+  - Cleanup state không còn owner
+  - Kiểm thử crash, restart và recovery
+- level1: Reactive runtime
+  level2:
+  - FluxMessageChannel và Publisher message
+  - Reactive Streams backpressure
+  - Reactive handler và async return type
+  - Bridge giữa imperative channel và reactive flow
+  - Scheduler trong reactive pipeline
+  - Cancellation và cleanup subscription
+  - Error signal khác với ErrorMessage
+  - Context propagation trong reactive execution
+  - Chọn reactive runtime khi downstream hỗ trợ backpressure
+- level1: Dynamic runtime
+  level2:
+  - Đăng ký channel, endpoint và flow khi ứng dụng đang chạy
+  - IntegrationFlowContext với flow theo tenant
+  - Thay đổi route hoặc handler runtime
+  - Start và stop một phần flow
+  - Registry của integration component
+  - Tránh race khi thay đổi topology
+  - Version hóa dynamic flow
+  - Cleanup resource khi tenant bị xóa
+  - Kiểm thử topology trước và sau thay đổi
+- level1: Control và quản trị
+  level2:
+  - Control Bus và điều khiển lifecycle bằng message
+  - IntegrationGraphServer và đồ thị runtime
+  - IntegrationMBeanExporter và JMX
+  - Managed endpoint và các thuộc tính runtime
+  - Start, stop và restart qua management interface
+  - Quyền truy cập tới control operation
+  - Audit thao tác quản trị
+  - Không expose control bus không kiểm soát
+  - Runbook cho endpoint bị treo hoặc bị dừng
+- level1: Observability
+  level2:
+  - IntegrationManagement và managed component
+  - MetricsCaptor và bộ đo metrics
+  - Micrometer timer, counter và distribution
+  - Metrics channel send, receive và handler
+  - Tracing message qua correlation id
+  - Message history và giới hạn kích thước history
+  - Wire tap cho chẩn đoán có kiểm soát
+  - Log payload, header và redaction
+  - Phân biệt metric runtime với log debug
+- level1: Testing runtime
+  level2:
+  - Khởi tạo IntegrationTestUtils với context tối thiểu
+  - Test channel và message handler
+  - MessageCollector nhận message trong test
+  - Test event-driven endpoint
+  - Test polling endpoint và scheduler giả lập
+  - Test retry, error channel và recovery
+  - Test message store và group state
+  - Test start, stop và dynamic registration
+  - Test concurrency, ordering và backpressure
+  - Test integration graph và observability hook
+- level1: Debugging
+  level2:
+  - Đọc component name và endpoint chain
+  - Khoanh vùng channel không có subscriber
+  - Chẩn đoán message bị queue nhưng không được poll
+  - Chẩn đoán executor đầy hoặc bị reject
+  - Chẩn đoán handler throw exception
+  - Kiểm tra errorChannel và recovery flow
+  - Kiểm tra correlation group không được release
+  - Phân biệt lỗi runtime với lỗi adapter
+  - Thu nhỏ flow để tạo testcase tái hiện
+- level1: Hiệu năng
+  level2:
+  - Đo thời gian send, queue wait và handler execution
+  - Throughput theo channel và số consumer
+  - Executor pool, queue capacity và rejection
+  - Batching và payload size
+  - Message history, logging và chi phí quan sát
+  - Message store persistence và latency
+  - Aggregator lock và group contention
+  - Reactive backpressure với downstream chậm
+  - Benchmark trên workload và topology đại diện
+- level1: Vận hành
+  level2:
+  - Health indicator cho integration flow
+  - Readiness khi channel, adapter và endpoint sẵn sàng
+  - Graceful shutdown và drain message
+  - Shutdown timeout và message còn trong queue
+  - Restart endpoint và reconnect producer
+  - Metrics, alert và ngưỡng lỗi
+  - Redaction credential, payload và header
+  - Configuration drift giữa các môi trường
+  - Runbook cho queue đầy, executor reject và error spike
+- level1: Bảo mật runtime
+  level2:
+  - Ranh giới tin cậy giữa message producer và handler
+  - Xác thực và authorization tại gateway
+  - Bảo vệ control bus và JMX
+  - Không đưa secret vào message header hoặc log
+  - Expression evaluation và quyền truy cập runtime
+  - Payload encryption và TLS ở adapter boundary
+  - Chống replay và duplicate command
+  - Audit thay đổi topology hoặc route
+  - Kiểm thử quyền và dữ liệu nhạy cảm trong flow
+- level1: Thiết kế runtime
+  level2:
+  - Đặt thread boundary có chủ đích
+  - Chọn state store theo failure mode
+  - Phân tách flow stateless và stateful
+  - Thiết kế retry cùng idempotency và dead-letter
+  - Giới hạn queue và backpressure
+  - Đặt correlation boundary và timeout
+  - Đảm bảo lifecycle start, stop và cleanup
+  - Thiết kế observability ngay từ topology
+  - Rà soát runtime failure mode trước production
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây flow event-driven với DirectChannel và handler
+  - Chuyển một bước sang ExecutorChannel và đo thread boundary
+  - Thêm polling source với fixed delay và transaction
+  - Thiết kế error flow, retry và dead-letter
+  - Lưu aggregator state qua restart
+  - Đăng ký flow động theo tenant và cleanup khi dừng
+  - Đo queue depth, handler latency và executor rejection
+  - Kiểm thử graceful shutdown với message đang chờ
+  - Thêm metrics, message history và control operation
+  - 'Hồ sơ hoàn chỉnh: topology, lifecycle, state, recovery và vận hành'

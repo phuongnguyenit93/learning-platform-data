@@ -1,0 +1,2149 @@
+# Approximate, Exact Nearest Neighbor Search, and Supported Metadata Filtering in MongoDB Vector Search
+
+## 1. The Problem: Finding Intent-Aligned Products Under Business Constraints
+
+A rental apartment platform has hundreds of thousands of listings. A user types:
+
+> “Quiet apartment near my office, with a desk and suitable for remote work.”
+
+Matching listings may use different phrasing: “good soundproofing”, “dedicated workspace”, “stable internet”, “home office”. Pure keyword search can miss several **semantically** relevant results.
+
+The application can convert listing descriptions and the query into an **embedding**: a sequence of numbers representing semantic features in a multi-dimensional space. The system then searches for vectors **close** to the question's vector.
+
+However, you cannot simply find the “nearest” vectors while ignoring real-world constraints. The user also requires:
+
+- Belonging to an **authorized tenant**.
+- **Active** listing status.
+- City **HCM**.
+- Rent **at most 20 million VND/month**.
+
+If you find the nearest neighbors across the entire system and only then discard apartments with the wrong tenant, wrong city, or over budget, very few—or even zero—results may remain. Moreover, with multi-tenant data, failing to enforce access boundaries before querying is a serious design flaw.
+
+MongoDB Vector Search lets you combine:
+
+1. **Approximate Nearest Neighbor (ANN):** searches approximately to balance speed and coverage on large vector sets.
+2. **Exact Nearest Neighbor (ENN):** searches exhaustively according to the configured similarity metric over eligible vectors at query time.
+3. **Metadata pre-filter:** restricts the vector pool considered using metadata fields declared as **filter** in the Vector Search index.
+
+Flow diagram:
+
+~~~text
+User enters query
+           |
+           v
+Embedding model -> queryVector
+           |
+           +------------------------------+
+           |                              |
+           v                              v
+Business constraints                 Vector query
+tenant, active, city, price          ANN or ENN
+           |                              |
+           +--------------+---------------+
+                          |
+                          v
+                 $vectorSearch stage
+                  metadata pre-filter
+                          |
+                   Top-K by score
+                          |
+                          v
+              $project / $match / response
+~~~
+
+**Key takeaway:** ANN and ENN are **nearest-neighbor search methods**, whereas metadata filters determine **which documents are eligible to participate in search**. They must be designed together, yet they are not a single binary choice.
+
+### After This Lesson, You Will Be Able To
+
+- Understand **embeddings**, **distance/similarity**, **top-K**, and metadata constraints.
+- Distinguish **ANN** from **ENN**, when to use each, and recall/latency trade-offs.
+- Use **$vectorSearch** with **numCandidates**, **limit**, **exact**, and **filter**.
+- Create a **Vector Search index** containing the vector field and filter fields.
+- Distinguish **prefiltering inside $vectorSearch** from **$match after $vectorSearch**.
+- Build an example **finding listings matching tenant, status, location, and budget**.
+- Evaluate **Recall@K**, p95/p99 latency, filter selectivity, and the effect of `numCandidates`.
+- Handle newly written unindexed data, mismatched dimensions, model changes, and unsupported operator errors.
+- Run a mongosh lab with three-dimensional vectors verifiable via pure JavaScript arithmetic.
+- Choose configurations suited for RAG, recommendations, product search, and workloads with varying precision needs.
+
+> **Support scope:** MongoDB Vector Search and ANN/ENN capabilities depend on **deployment type, MongoDB version, search service version, and enabled features**. Examples use **$vectorSearch** and **Vector Search index** syntax from MongoDB deployments supporting these capabilities, commonly MongoDB Atlas. An **ordinary standalone mongod** or a MongoDB server without Vector Search will not run these automatically merely because a collection stores numeric arrays.
+
+## 2. What Is a Vector, and Why Must Models Be Consistent?
+
+### 2.1. Embedding
+
+An embedding is a numeric vector, for example:
+
+~~~javascript
+{
+  _id: "listing-1001",
+  title: "Apartment with workspace",
+  embedding: [0.82, 0.12, -0.21, 0.35]
+}
+~~~
+
+In real applications, vectors typically have hundreds or thousands of dimensions depending on the model. This lab intentionally uses **three dimensions** so learners can verify the math by hand.
+
+An embedding model turns content into a vector:
+
+~~~text
+Text / image / document
+           |
+     Embedding model
+           |
+           v
+  [v1, v2, ..., vd]
+~~~
+
+A query vector must be generated using a **model and preprocessing pipeline compatible** with the indexed data vectors. You cannot mix arbitrarily:
+
+- Document embeddings generated by model A, 768 dimensions.
+- Query embedding generated by model B, 1,536 dimensions.
+
+Even when **two models output the same dimensionality**, their semantic coordinate systems are not inherently compatible. A query may run and return results, yet the ranking will be meaningless.
+
+### 2.2. Dimension
+
+If a Vector Search index declares:
+
+~~~javascript
+numDimensions: 3
+~~~
+
+then every indexed vector and corresponding query vector must match **three dimensions**. A vector with two or four values is not a valid three-dimensional vector under that configuration.
+
+A vector field must also satisfy the data type and numeric requirements of your MongoDB Vector Search version. Reject **NaN**, **Infinity**, missing values, malformed nested arrays, and meaningless vectors before writing.
+
+### 2.3. Cosine Similarity
+
+For two nonzero vectors:
+
+\[
+\operatorname{cosine}(a,b)
+=\frac{\sum_{i=1}^{d}a_i b_i}
+{\sqrt{\sum_{i=1}^{d}a_i^2}\,\sqrt{\sum_{i=1}^{d}b_i^2}}
+\]
+
+Two vectors pointing in the same direction have cosine near **1**, orthogonal vectors near **0**, and opposite vectors near **-1**.
+
+The lab uses:
+
+~~~javascript
+const queryVector = [1, 0, 0];
+
+const vectorA = [1, 0, 0];
+const vectorB = [0.9, 0.1, 0];
+const vectorC = [0, 1, 0];
+~~~
+
+Cosine(query, A) = **1**; cosine(query, B) is near **0.994**; cosine(query, C) = **0**.
+
+**Important:** scores returned by MongoDB via **vectorSearchScore** may be normalized/transformed per metric. Never assume **score === raw cosine** or that all metrics yield scores on the same interpretive scale.
+
+### 2.4. Dot Product
+
+Dot product:
+
+\[
+a\cdot b=\sum_{i=1}^{d}a_i b_i
+\]
+
+depends on both direction and vector magnitude. If a model recommends normalizing embeddings and using dotProduct, make sure normalization is applied consistently. Do not pick dotProduct merely thinking it computes faster while ignoring magnitude semantics.
+
+### 2.5. Euclidean Distance
+
+Euclidean distance:
+
+\[
+d(a,b)=\sqrt{\sum_{i=1}^{d}(a_i-b_i)^2}
+\]
+
+Vectors with a **smaller** distance are considered closer. When MongoDB computes `vectorSearchScore` for Euclidean, how distance maps to score must be understood from version docs; never compare this score directly against a cosine score from another index.
+
+### 2.6. Choosing a Metric for Your Model
+
+| Metric | Property | Design question |
+| --- | --- | --- |
+| **cosine** | Focuses on vector direction | Was the model trained/evaluated with cosine? |
+| **dotProduct** | Depends on direction and magnitude | Are embeddings normalized per model instructions? |
+| **euclidean** | Focuses on geometric distance | Is Euclidean distance meaningful for this representation? |
+
+**No single metric is best for every model.** Start with the embedding provider's recommendation and evaluate offline on your own domain dataset.
+
+## 3. Top-K and the Difference Between “Close” and “Right”
+
+### 3.1. Top-K
+
+For the question:
+
+~~~text
+Find the 5 apartments closest to queryVector.
+~~~
+
+K = **5**. MongoDB ranks matching vectors and returns at most the count requested by **limit**.
+
+With a filter:
+
+~~~text
+Only consider tenant=t001, active=true, city=HCM, price <= 20.
+From this set, pick at most the 5 best-matching vectors.
+~~~
+
+Top-K is now the top of the **eligible set**, not the top of the entire collection.
+
+### 3.2. Two Ways to Return Wrong Results
+
+**Failure mode 1 — vector-accurate but business-invalid:**
+
+A listing from another tenant has a very high cosine score. Without a tenant filter, it can appear in the top-K even though the user is not authorized to see it.
+
+**Failure mode 2 — valid data missing from the global top-K:**
+
+Suppose the global top 20 across the whole system all come from another city. If you fetch top 20 first and then filter city=HCM, the result may be empty even though the system holds thousands of matching HCM listings.
+
+Therefore, separate **retrieval** and **filtering** responsibilities cleanly in the pipeline.
+
+### 3.3. Four Common Scenarios
+
+| Scenario | Need | Approach |
+| --- | --- | --- |
+| Similar items in a huge catalog | Low latency, small recall trade-off acceptable | **ANN + metadata pre-filter** |
+| Exact results on a small subset | No approximation error | **ENN**, if supported by deployment |
+| Evaluating ANN index quality | Ground truth for same filter/query | Compare ANN against **ENN** |
+| Tenant, active, price constraints | Mandatory conditions before ranking | **Filter in $vectorSearch**, when operators/fields are supported |
+
+## 4. ANN — Approximate Nearest Neighbor
+
+### 4.1. What Does “Approximate” Mean?
+
+ANN uses index structures and retrieval algorithms to locate **vectors very close** to the query vector without evaluating every single vector in the dataset.
+
+Some vector search engines, including corresponding MongoDB Vector Search deployments, use approximate structures like **HNSW** or service-optimized variants/strategies. Implementation details and quantization modes can vary across versions.
+
+Mental model:
+
+~~~text
+Very large vector set:
+  V1 V2 V3 V4 ... V1,000,000
+
+ENN:
+  Measure/compare all eligible vectors
+  -> exact top-K
+
+ANN:
+  Use index structure to find promising candidates
+  -> score/rank candidates
+  -> approximate top-K
+~~~
+
+**Approximate does not mean MongoDB computes scores sloppily.** It means the algorithm **may skip evaluating every eligible vector**, occasionally missing a neighbor that truly belonged in the top-K.
+
+### 4.2. Advantages
+
+- Usually well suited to large vector datasets.
+- Lower latency than ENN on many workloads.
+- Tunable search effort to balance **recall** and **cost**.
+- Supports metadata pre-filters for supported operators.
+
+### 4.3. Limitations
+
+- Does not guarantee finding 100% of the metric's true top-K.
+- Results can shift when the index, algorithm, data, or search parameters change.
+- Highly selective metadata filters can affect how ANN gathers candidates.
+- Quality remains bounded by embedding quality; ANN cannot fix a weak model.
+
+### 4.4. `numCandidates`
+
+In **$vectorSearch** ANN mode, **numCandidates** controls how many candidates the algorithm considers when searching for neighbors. Example:
+
+~~~javascript
+{
+  $vectorSearch: {
+    index: "vec314_listing_index",
+    path: "embedding",
+    queryVector: [1, 0, 0],
+    numCandidates: 60,
+    limit: 3
+  }
+}
+~~~
+
+In this example:
+
+- **limit = 3**: return at most three results.
+- **numCandidates = 60**: candidate search budget for ANN, **not 60 returned results**.
+
+Many MongoDB guides suggest starting with **numCandidates around 20 times limit**, then measuring and tuning. This is a **benchmarking starting point**, not a rule guaranteeing recall or optimality across every filter/dataset.
+
+### 4.5. Trade-Offs
+
+~~~text
+Small numCandidates
+    -> usually less work
+    -> potentially faster
+    -> higher risk of missing true top-K
+
+Large numCandidates
+    -> evaluates more candidates
+    -> can improve recall
+    -> latency/CPU may increase
+~~~
+
+This relationship is **not necessarily linear** on every dataset. Doubling `numCandidates` does not mean doubling recall or latency. Measure on a representative query set.
+
+## 5. ENN — Exact Nearest Neighbor
+
+### 5.1. Meaning
+
+ENN finds the exact top-K under the configured metric **across eligible vectors present in the index/query scope**. It serves as a useful baseline for measuring ANN coverage.
+
+Example:
+
+~~~javascript
+{
+  $vectorSearch: {
+    index: "vec314_listing_index",
+    path: "embedding",
+    queryVector: [1, 0, 0],
+    exact: true,
+    limit: 3
+  }
+}
+~~~
+
+When **exact: true** is set, do not specify **numCandidates** as in ANN mode; service versions may enforce distinct parameter sets, so check supported syntax.
+
+### 5.2. “Exact” Within What Scope?
+
+ENN does not turn every document in MongoDB into a candidate unconditionally:
+
+- Only vectors that are **validly indexed** and inside the **eligible set** participate.
+- **Metadata filters** narrow the scope before computing top-K.
+- Search indexes can update **asynchronously**, so newly written documents may not appear immediately.
+- Vectors with mismatched dimensions or unindexed fields cannot appear in top-K.
+- Exactness is relative to the **metric** and **data at the queried index state**, not an absolute human semantic truth.
+
+Hence, **ENN is exact nearest neighbor in the vector space of eligible indexed data**, not a guarantee of “results matching human intent 100%”.
+
+### 5.3. When to Use ENN?
+
+- **Small** datasets or very selective filters.
+- Strict requirement for exact nearest ranking under the metric.
+- Serving as **ground truth** to measure ANN Recall@K.
+- Debugging queries where ANN behaves unexpectedly.
+- Offline workflows requiring deterministic metric rankings.
+
+### 5.4. Trade-Offs
+
+When evaluating many high-dimensional vectors, ENN can consume significantly more CPU and latency. Do not enable `exact:true` for every production request just to feel “higher quality”, especially on millions of documents with tens-of-milliseconds latency budgets.
+
+### 5.5. Version Support
+
+ENN mode in MongoDB Vector Search is available in **versions/deployments supporting exact vector search**; not every cluster with ANN enabled automatically includes ENN.
+
+If running **exact: true** throws an unsupported option error:
+
+1. Check MongoDB version, Search service, and deployment type.
+2. Consult MongoDB Vector Search docs for your **exact version**.
+3. Never substitute a huge `numCandidates` for `exact:true` and claim the results are “exact”.
+4. On small lab datasets, **pure JavaScript arithmetic** can serve as an illustrative baseline when ENN is unavailable.
+
+## 6. Defining a Vector Search Index with Vector and Filter Fields
+
+### 6.1. Vector Indexes Differ from B-Tree Indexes
+
+An ordinary index:
+
+~~~javascript
+db.listings.createIndex({ tenantId: 1, city: 1 });
+~~~
+
+does not turn the embedding field into a vector search index. To run **$vectorSearch**, the collection needs a **Vector Search index** defined using the schema for your deployment's vector search feature.
+
+Definition example:
+
+~~~javascript
+{
+  fields: [
+    {
+      type: "vector",
+      path: "embedding",
+      numDimensions: 3,
+      similarity: "cosine"
+    },
+    {
+      type: "filter",
+      path: "tenantId"
+    },
+    {
+      type: "filter",
+      path: "city"
+    },
+    {
+      type: "filter",
+      path: "isActive"
+    },
+    {
+      type: "filter",
+      path: "rentMillion"
+    }
+  ]
+}
+~~~
+
+Explanation:
+
+- **vector/path**: field holding embeddings.
+- **numDimensions**: dimensionality expected by the index.
+- **similarity**: comparison metric.
+- **type:"filter"**: metadata fields permitted inside **$vectorSearch.filter** per supported semantics.
+
+**A field existing in a document does not make it usable in $vectorSearch.filter.** It must be declared per Vector Search index rules.
+
+### 6.2. Why Must Filter Fields Be Declared Explicitly?
+
+Suppose a document has:
+
+~~~javascript
+{
+  tenantId: "t001",
+  city: "HCM",
+  isActive: true,
+  rentMillion: 12,
+  embedding: [1, 0, 0]
+}
+~~~
+
+If the Vector Search index only declares `embedding`, a query with:
+
+~~~javascript
+filter: {
+  tenantId: "t001",
+  city: "HCM"
+}
+~~~
+
+may fail or behave unexpectedly because **tenantId/city are not in the index's filter definition**. Add those fields to the index definition and wait until the index reaches ready state.
+
+A **B-tree index on tenantId** does not substitute for **type:"filter"** in a Vector Search index.
+
+### 6.3. Filter Data Types
+
+Vector Search deployments support a corresponding group of metadata types, typically including **string, boolean, numeric, date, ObjectId, or others depending on version**.
+
+Never assume:
+
+- Any deeply nested metadata object filters just like `find()`.
+- Regex, text search, `$expr`, arbitrary JavaScript, or any aggregation expression works inside `filter`.
+- Arrays/nested arrays behave identically to standard queries.
+- Null/missing and mixed-type data are handled identically across every version.
+
+To avoid subtle bugs, keep metadata types **consistent**:
+
+~~~javascript
+tenantId: "t001"      // String
+city: "HCM"           // String
+isActive: true        // Boolean
+rentMillion: 12       // Number
+~~~
+
+**Avoid** storing `rentMillion` sometimes as String `"12"` and other times as Number `12`. Numeric comparisons, range filters, and indexing may behave unexpectedly or fail.
+
+### 6.4. Creating the Search Index
+
+On mongosh/driver versions and deployments supporting Search index management, create the index with the corresponding command:
+
+~~~javascript
+const lab = db.getSiblingDB("mongo_vector_lab_314");
+const listings = lab.getCollection("lab_listings");
+
+listings.createSearchIndex({
+  name: "vec314_listing_index",
+  type: "vectorSearch",
+  definition: {
+    fields: [
+      {
+        type: "vector",
+        path: "embedding",
+        numDimensions: 3,
+        similarity: "cosine"
+      },
+      { type: "filter", path: "tenantId" },
+      { type: "filter", path: "city" },
+      { type: "filter", path: "isActive" },
+      { type: "filter", path: "rentMillion" }
+    ]
+  }
+});
+~~~
+
+**Prerequisites:**
+
+- Deployment supports creating and using Vector Search indexes.
+- Sufficient privileges to manage Search indexes.
+- Collection exists and embeddings follow the schema.
+- No conflicting index with the same name exists.
+
+On MongoDB Atlas, you can also create a **Vector Search index** via the UI/JSON definition. Never pass the JSON index definition into a **B-tree createIndex()** call expecting `$vectorSearch` to use it.
+
+### 6.5. Asynchronous Index Builds
+
+After requesting creation or updates to a Vector Search index, the index needs time to build and sync. Thus:
+
+~~~text
+createSearchIndex() call returns
+             |
+             v
+    Index is building
+             |
+             v
+    Index transitions to ready state
+             |
+             v
+        $vectorSearch
+~~~
+
+On supported mongosh versions:
+
+~~~javascript
+printjson(listings.getSearchIndexes());
+~~~
+
+Inspect the index name, definition, and status. Output status fields may vary by service version. **Never assume `createSearchIndex` returning means the index is immediately queryable.**
+
+## 7. `$vectorSearch`: Core Parameters
+
+### 7.1. ANN
+
+~~~javascript
+db.lab_listings.aggregate([
+  {
+    $vectorSearch: {
+      index: "vec314_listing_index",
+      path: "embedding",
+      queryVector: [1, 0, 0],
+      numCandidates: 60,
+      limit: 5
+    }
+  },
+  {
+    $project: {
+      _id: 1,
+      title: 1,
+      city: 1,
+      rentMillion: 1,
+      score: { $meta: "vectorSearchScore" }
+    }
+  }
+]);
+~~~
+
+Fields:
+
+| Field | Meaning |
+| --- | --- |
+| **index** | Name of the Vector Search index to query |
+| **path** | Field holding the vector; must match the index definition |
+| **queryVector** | Query embedding, matching dimensions and type |
+| **numCandidates** | ANN candidate budget |
+| **limit** | Maximum number of neighbors to return |
+| **filter** | Supported metadata pre-filter conditions |
+| **exact** | Enables exact mode when supported |
+
+### 7.2. ENN
+
+~~~javascript
+db.lab_listings.aggregate([
+  {
+    $vectorSearch: {
+      index: "vec314_listing_index",
+      path: "embedding",
+      queryVector: [1, 0, 0],
+      exact: true,
+      limit: 5
+    }
+  },
+  {
+    $project: {
+      _id: 1,
+      title: 1,
+      score: { $meta: "vectorSearchScore" }
+    }
+  }
+]);
+~~~
+
+**Do not include `numCandidates` in ENN examples.** In ANN, `numCandidates` is a key parameter; in ENN, `exact:true` selects a different search mode.
+
+### 7.3. `$vectorSearch` Must Be in a Supported Position
+
+In a standard **aggregate** pipeline, **$vectorSearch must be the first stage** per the rules for this feature.
+
+**Incorrect:**
+
+~~~javascript
+db.lab_listings.aggregate([
+  { $match: { tenantId: "t001" } },
+  {
+    $vectorSearch: {
+      index: "vec314_listing_index",
+      path: "embedding",
+      queryVector: [1, 0, 0],
+      numCandidates: 60,
+      limit: 5
+    }
+  }
+]);
+~~~
+
+**Better:** place supported metadata conditions inside **filter** within `$vectorSearch`.
+
+~~~javascript
+db.lab_listings.aggregate([
+  {
+    $vectorSearch: {
+      index: "vec314_listing_index",
+      path: "embedding",
+      queryVector: [1, 0, 0],
+      numCandidates: 60,
+      limit: 5,
+      filter: { tenantId: "t001" }
+    }
+  }
+]);
+~~~
+
+Support for `$vectorSearch` inside other pipeline combinations varies by version; never assume you can drop it into arbitrary `$facet`/`$lookup` subpipelines.
+
+### 7.4. Score
+
+Retrieve the score with:
+
+~~~javascript
+{
+  $project: {
+    title: 1,
+    score: { $meta: "vectorSearchScore" }
+  }
+}
+~~~
+
+Read scores in order: **higher generally means better match** under the current Vector Search metric and scoring. Do not conclude:
+
+- A score of 0.85 means **85% probability the user likes the product**.
+- A score of 0.85 is equivalent across two different embedding models.
+- A cosine score can be compared directly with a Euclidean score.
+- A single fixed score threshold works for every query type.
+
+Score is a **ranking signal** that requires task-specific calibration and evaluation.
+
+## 8. Metadata Pre-Filtering: Scoping Data Before Ranking
+
+### 8.1. Multi-Condition Example
+
+~~~javascript
+const filter = {
+  $and: [
+    { tenantId: "t001" },
+    { city: "HCM" },
+    { isActive: true },
+    { rentMillion: { $lte: 20 } }
+  ]
+};
+~~~
+
+This filter combines:
+
+- Tenant equality.
+- City equality.
+- Active boolean.
+- Price range.
+
+Each field must have **type:"filter"** in the Vector Search index, and the operators must be supported by your deployment.
+
+### 8.2. Combining ANN and Pre-Filter
+
+~~~javascript
+const results = listings.aggregate([
+  {
+    $vectorSearch: {
+      index: "vec314_listing_index",
+      path: "embedding",
+      queryVector: [1, 0, 0],
+      numCandidates: 60,
+      limit: 3,
+      filter: {
+        $and: [
+          { tenantId: "t001" },
+          { city: "HCM" },
+          { isActive: true },
+          { rentMillion: { $lte: 20 } }
+        ]
+      }
+    }
+  },
+  {
+    $project: {
+      _id: 1,
+      title: 1,
+      tenantId: 1,
+      city: 1,
+      rentMillion: 1,
+      score: { $meta: "vectorSearchScore" }
+    }
+  }
+]).toArray();
+
+printjson(results);
+~~~
+
+**Projection note:** `$project` above lists the fields to return and computes **score**; the `embedding` field is omitted so it does not appear in output. Avoid mixing inclusion and non-`_id` exclusion in a standard `$project`.
+
+### 8.3. Pre-Filter Does Not Mean Running a B-Tree `find` First
+
+When using **filter inside $vectorSearch**, metadata is handled within the vector search/index mechanism. It does **not** mean MongoDB literally executes:
+
+~~~javascript
+db.listings.find({ tenantId: "t001" })
+~~~
+
+on an independent B-tree index and then runs a separate vector scan like two chained application queries. Internal execution depends on the Vector Search engine and index structures.
+
+### 8.4. Not All `find()` Operators Work Inside `filter`
+
+Commonly supported operators in applicable versions include equality, range comparisons, set membership like **$in**, and logical **$and/$or/$not** within documented syntax.
+
+Never assume these work inside **$vectorSearch.filter**:
+
+~~~javascript
+// Examples NOT to assume are supported pre-filters:
+{ title: { $regex: "studio" } }
+{ $expr: { $gt: ["$rentMillion", "$depositMillion"] } }
+{ description: { $text: { $search: "quiet" } } }
+~~~
+
+For regex/full-text search or computed expressions, consider:
+
+1. Precomputing into validly indexed metadata fields.
+2. Another search pipeline if the deployment supports hybrid/search features.
+3. **Post-filtering** after Vector Search while accounting for reduced top-K count.
+4. Designing precomputed read-model fields rather than evaluating complex expressions at search time.
+
+### 8.5. Filtering When Values May Be Missing
+
+Suppose some listings lack `city`. Filter:
+
+~~~javascript
+{ city: "HCM" }
+~~~
+
+only selects documents matching this equality per Vector Search index semantics. Do not assume it extends to documents missing `city`.
+
+For nullable/missing metadata, decide whether records should:
+
+- Stay invisible until metadata is populated.
+- Carry an explicitly managed sentinel value.
+- Live in a separate index/workflow.
+
+**Never use wildcards or `$exists` in filters without verifying operator support**, especially when access control depends on it.
+
+## 9. Pre-Filter vs. Post-Filter: The Classic Top-K Pitfall
+
+### 9.1. Post-Filtering After Vector Retrieval
+
+Example:
+
+~~~javascript
+listings.aggregate([
+  {
+    $vectorSearch: {
+      index: "vec314_listing_index",
+      path: "embedding",
+      queryVector: [1, 0, 0],
+      numCandidates: 60,
+      limit: 3
+    }
+  },
+  {
+    $match: {
+      tenantId: "t001",
+      city: "HCM",
+      isActive: true,
+      rentMillion: { $lte: 20 }
+    }
+  }
+]);
+~~~
+
+Here, **$vectorSearch finds the top 3 across the entire corpus**, and `$match` only afterward removes results failing metadata checks.
+
+If the global top 3 all belong to another tenant or inactive listings, the count after `$match` can drop to **0**, even though plenty of eligible listings exist in the collection.
+
+### 9.2. Targeted Pre-Filter
+
+~~~javascript
+listings.aggregate([
+  {
+    $vectorSearch: {
+      index: "vec314_listing_index",
+      path: "embedding",
+      queryVector: [1, 0, 0],
+      numCandidates: 60,
+      limit: 3,
+      filter: {
+        tenantId: "t001",
+        city: "HCM",
+        isActive: true,
+        rentMillion: { $lte: 20 }
+      }
+    }
+  }
+]);
+~~~
+
+The goal here is **ranking neighbors within the eligible listing set**.
+
+### 9.3. Can Over-Fetching and Post-Filtering Fix It?
+
+A common workaround is:
+
+~~~text
+Find global top 100
+Filter tenant/city/budget
+Return 5
+~~~
+
+This can lower empty-result rates on some workloads, yet **does not guarantee the true top 5** if eligible results sit outside the global top 100. It also wastes compute and complicates multi-tenant safety.
+
+Whenever the filter is supported, **prefiltering is semantically correct**. Use post-filtering only for conditions genuinely unsupported by Vector Search filters, with explicit handling for shrunk result sets.
+
+### 9.4. Multi-Tenant Security
+
+The condition:
+
+~~~javascript
+tenantId: "t001"
+~~~
+
+must come from a **server-authenticated identity/security context**, never verbatim from an untrusted query parameter.
+
+A secure design also needs:
+
+- Scoped database/collection privileges.
+- Access checks before generating queries.
+- Leakage tests across query variants.
+- Keeping other tenants' data out of rerankers and service logs.
+- Avoiding pulling unfiltered results into the app just to discard them when filtering can happen in the query.
+
+**Metadata filters are part of policy enforcement, not a standalone authorization engine.** If the application holds read access to the entire collection and accidentally omits `tenantId`, MongoDB does not know which end user is logged into the application.
+
+## 10. mongosh Lab: 10 Listings and Three-Dimensional Vectors
+
+### 10.1. Learning Outcomes
+
+This lab aims to:
+
+1. Create ten documents with **three-dimensional** embeddings.
+2. Create a Vector Search index with one vector field and four metadata filters.
+3. Run ANN and ENN on the same query and filter.
+4. Compute exact top-K in pure JavaScript to verify exact ordering.
+5. Compare filtering inside versus outside `$vectorSearch`.
+
+### 10.2. Prerequisites
+
+- A MongoDB deployment **with Vector Search** matching the lesson syntax.
+- Privileges to insert/update in the lab database and manage Vector Search indexes.
+- Index in **READY/usable** state before running vector queries.
+- Embeddings are **toy vectors**, not produced by a real AI model and carrying no real textual semantics.
+- Never run against production collections or delete unrelated search indexes.
+
+### 10.3. Fixed Dataset
+
+All vectors have the form `[x, y, 0]`; query vector is `[1, 0, 0]`.
+
+| ID | Tenant | City | Active | Price (M/month) | Embedding |
+| --- | --- | --- | --- | ---: | --- |
+| **v314-a** | t001 | HCM | true | 12 | [1,0,0] |
+| **v314-b** | t001 | HCM | true | 16 | [0.9,0.1,0] |
+| **v314-c** | t001 | HCM | true | 25 | [0.98,0.02,0] |
+| **v314-d** | t001 | HN | true | 14 | [0.99,0.01,0] |
+| **v314-e** | t002 | HCM | true | 11 | [1,0,0] |
+| **v314-f** | t001 | HCM | false | 10 | [0.999,0.001,0] |
+| **v314-g** | t001 | HCM | true | 18 | [0.7,0.3,0] |
+| **v314-h** | t001 | HCM | true | 9 | [0,1,0] |
+| **v314-i** | t001 | HCM | true | 12 | [0.4,0.6,0] |
+| **v314-j** | t001 | HCM | true | 20 | [0.2,0.8,0] |
+
+Search criteria:
+
+~~~javascript
+{
+  tenantId: "t001",
+  city: "HCM",
+  isActive: true,
+  rentMillion: { $lte: 20 }
+}
+~~~
+
+The **eligible set** is **a, b, g, h, i, j**.
+
+**c** is excluded by price; **d** wrong city; **e** wrong tenant; **f** inactive.
+
+### 10.4. Controlled Idempotent Seed
+
+~~~javascript
+(() => {
+  const lab = db.getSiblingDB("mongo_vector_lab_314");
+  const listings = lab.getCollection("lab_listings");
+  const tag = "vector314-v1";
+
+  const records = [
+    ["v314-a", "t001", "HCM", true, 12, [1, 0, 0], "Home office A"],
+    ["v314-b", "t001", "HCM", true, 16, [0.9, 0.1, 0], "Quiet B"],
+    ["v314-c", "t001", "HCM", true, 25, [0.98, 0.02, 0], "Premium C"],
+    ["v314-d", "t001", "HN", true, 14, [0.99, 0.01, 0], "Hanoi D"],
+    ["v314-e", "t002", "HCM", true, 11, [1, 0, 0], "Other tenant E"],
+    ["v314-f", "t001", "HCM", false, 10, [0.999, 0.001, 0], "Inactive F"],
+    ["v314-g", "t001", "HCM", true, 18, [0.7, 0.3, 0], "Work corner G"],
+    ["v314-h", "t001", "HCM", true, 9, [0, 1, 0], "Garden H"],
+    ["v314-i", "t001", "HCM", true, 12, [0.4, 0.6, 0], "Balcony I"],
+    ["v314-j", "t001", "HCM", true, 20, [0.2, 0.8, 0], "Studio J"]
+  ];
+
+  for (const r of records) {
+    listings.updateOne(
+      { _id: r[0], labTag: tag },
+      {
+        $set: {
+          labTag: tag,
+          tenantId: r[1],
+          city: r[2],
+          isActive: r[3],
+          rentMillion: r[4],
+          embedding: r[5],
+          title: r[6],
+          embeddingModel: "toy-3d-v1"
+        }
+      },
+      { upsert: true }
+    );
+  }
+
+  printjson({
+    count: listings.countDocuments({ labTag: tag }),
+    sample: listings.find(
+      { labTag: tag },
+      { _id: 1, city: 1, rentMillion: 1, embedding: 1 }
+    ).sort({ _id: 1 }).limit(3).toArray()
+  });
+})();
+~~~
+
+**Expected output:** count = **10**.
+
+The script uses **updateOne/upsert** with fixed IDs so it can be re-run to reset sample fields. It does not drop the database or collection. However, if the same database already has unrelated documents with colliding `_id` values lacking the matching `labTag`, upsert will hit a duplicate key error: stop and investigate rather than altering unrelated data.
+
+### 10.5. Creating the Vector Search Index
+
+After seeding:
+
+~~~javascript
+const lab = db.getSiblingDB("mongo_vector_lab_314");
+const listings = lab.getCollection("lab_listings");
+
+listings.createSearchIndex({
+  name: "vec314_listing_index",
+  type: "vectorSearch",
+  definition: {
+    fields: [
+      {
+        type: "vector",
+        path: "embedding",
+        numDimensions: 3,
+        similarity: "cosine"
+      },
+      { type: "filter", path: "tenantId" },
+      { type: "filter", path: "city" },
+      { type: "filter", path: "isActive" },
+      { type: "filter", path: "rentMillion" }
+    ]
+  }
+});
+~~~
+
+If an index with the same name already exists, do not create another duplicate or delete existing indexes recklessly. Inspect the definition with:
+
+~~~javascript
+printjson(listings.getSearchIndexes());
+~~~
+
+Only run `$vectorSearch` after the index is ready. Some versions expose different Search index management helpers/commands; if `createSearchIndex` is absent in mongosh, use the Atlas UI or the index management API supported by your deployment.
+
+### 10.6. Computing Exact Top-K in Pure JavaScript
+
+This part runs even if your lab cluster does not support Vector Search yet, because it only uses **find()** and JavaScript arithmetic over ten documents:
+
+~~~javascript
+const queryVector = [1, 0, 0];
+const tag = "vector314-v1";
+
+function cosineSimilarity(a, b) {
+  if (!Array.isArray(a) ||
+      !Array.isArray(b) ||
+      a.length !== b.length ||
+      a.length === 0) {
+    throw new Error("Vectors do not share valid matching dimensions.");
+  }
+
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    const x = a[i];
+    const y = b[i];
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      throw new Error("Vector contains non-finite values.");
+    }
+    dot += x * y;
+    normA += x * x;
+    normB += y * y;
+  }
+
+  if (normA === 0 || normB === 0) {
+    throw new Error("Cosine is undefined for a zero vector.");
+  }
+
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+const candidates = listings.find({
+  labTag: tag,
+  tenantId: "t001",
+  city: "HCM",
+  isActive: true,
+  rentMillion: { $lte: 20 }
+}).toArray();
+
+const ranked = candidates.map(d => ({
+  _id: d._id,
+  title: d.title,
+  rawCosine: cosineSimilarity(queryVector, d.embedding)
+})).sort((a, b) => {
+  const scoreDifference = b.rawCosine - a.rawCosine;
+  return scoreDifference !== 0
+    ? scoreDifference
+    : a._id.localeCompare(b._id);
+});
+
+printjson(ranked);
+printjson({
+  exactTop3: ranked.slice(0, 3).map(d => d._id)
+});
+~~~
+
+**Expected top 3:**
+
+~~~text
+v314-a
+v314-b
+v314-g
+~~~
+
+Remaining order by raw cosine:
+
+~~~text
+v314-i
+v314-j
+v314-h
+~~~
+
+Explanation:
+
+- `a` aligns completely with `queryVector`.
+- `b` is very close to the query.
+- `g` is closer than `i`/`j`/`h`.
+- `c`/`d`/`e`/`f` may be even closer, yet are **excluded by the filter**.
+
+This is an **exact reference calculation over ten lab documents**, not a replacement for the server's optimized ENN algorithm on large datasets.
+
+### 10.7. ANN with Pre-Filter
+
+~~~javascript
+const ann = listings.aggregate([
+  {
+    $vectorSearch: {
+      index: "vec314_listing_index",
+      path: "embedding",
+      queryVector: [1, 0, 0],
+      numCandidates: 60,
+      limit: 3,
+      filter: {
+        tenantId: "t001",
+        city: "HCM",
+        isActive: true,
+        rentMillion: { $lte: 20 }
+      }
+    }
+  },
+  {
+    $project: {
+      _id: 1,
+      title: 1,
+      rentMillion: 1,
+      score: { $meta: "vectorSearchScore" }
+    }
+  }
+]).toArray();
+
+printjson(ann);
+~~~
+
+With ten vectors and `numCandidates` large relative to the corpus, **ANN will usually find the same top 3 as the baseline**, though this is not a mathematical guarantee of ANN. If results differ, verify index readiness, filters, `queryVector`, version, and approximate retrieval behavior.
+
+### 10.8. ENN with the Same Pre-Filter
+
+~~~javascript
+const enn = listings.aggregate([
+  {
+    $vectorSearch: {
+      index: "vec314_listing_index",
+      path: "embedding",
+      queryVector: [1, 0, 0],
+      exact: true,
+      limit: 3,
+      filter: {
+        tenantId: "t001",
+        city: "HCM",
+        isActive: true,
+        rentMillion: { $lte: 20 }
+      }
+    }
+  },
+  {
+    $project: {
+      _id: 1,
+      title: 1,
+      score: { $meta: "vectorSearchScore" }
+    }
+  }
+]).toArray();
+
+printjson(enn);
+~~~
+
+**If the deployment supports ENN and the Search index has synced all ten records**, the top 3 should be **v314-a, v314-b, v314-g**, matching the baseline raw cosine order. Minor score differences may occur due to score transformation or numeric representation; compare **top-K IDs and ordering** before comparing raw score values.
+
+### 10.9. Comparing Post-Filter
+
+~~~javascript
+const afterFilter = listings.aggregate([
+  {
+    $vectorSearch: {
+      index: "vec314_listing_index",
+      path: "embedding",
+      queryVector: [1, 0, 0],
+      exact: true,
+      limit: 3
+    }
+  },
+  {
+    $match: {
+      tenantId: "t001",
+      city: "HCM",
+      isActive: true,
+      rentMillion: { $lte: 20 }
+    }
+  },
+  {
+    $project: {
+      _id: 1,
+      title: 1,
+      score: { $meta: "vectorSearchScore" }
+    }
+  }
+]).toArray();
+
+printjson(afterFilter);
+~~~
+
+**Lab objective:** observe that the **cluster-wide** top 3 can be occupied by `a`/`e`/`f`/`d`/`c` because their vectors point close to `[1,0,0]`, yet several of those documents are **ineligible**. Consequently, only a few results may survive `$match`—not the best three documents within the valid subset.
+
+If your environment does not support ENN, replace **exact:true** with valid ANN parameters to observe the post-filter issue conceptually, without calling ANN results “ground truth”.
+
+### 10.10. Why a Small Lab Is Not a Benchmark
+
+Ten three-dimensional vectors:
+
+- Do not measure performance across one million 1,536-dimensional vectors.
+- Do not reflect real-world metadata distributions.
+- Do not prove which `numCandidates` fits production.
+- Do not reflect index build costs, quantization, or continuous updates.
+
+The lab teaches **semantics**. Choosing production settings requires a dedicated query and evaluation suite.
+
+## 11. Measuring ANN Recall Using ENN
+
+### 11.1. Recall@K
+
+Given:
+
+- **E_K**: set of top-K IDs returned by ENN for the same filter/query.
+- **A_K**: set of top-K IDs returned by ANN for the same filter/query.
+
+When both return K results:
+
+\[
+\operatorname{Recall@K}
+=\frac{|A_K\cap E_K|}{K}
+\]
+
+Example:
+
+~~~text
+ENN top 5 = [A, B, C, D, E]
+ANN top 5 = [A, B, X, D, Y]
+
+Intersection = [A, B, D] -> Recall@5 = 3/5 = 0.6
+~~~
+
+If the eligible set has fewer than K documents, define the denominator by the number of available exact results or report this case separately; never label ANN “missing K” as a retrieval failure when the corpus itself holds only two candidates.
+
+### 11.2. Evaluating Across Many Queries
+
+A single test query can get lucky. Build a suite covering:
+
+- Short and long queries.
+- Common and rare queries.
+- Different metadata selectivity levels.
+- Small and large tenants.
+- Different price/budget ranges.
+- Highly similar, near-synonymous, or densely clustered products.
+
+Then:
+
+~~~text
+For each query:
+  1. Generate a fixed query embedding.
+  2. Fix the filter.
+  3. Fetch ENN top-K.
+  4. Fetch ANN top-K across numCandidates values.
+  5. Compute Recall@K.
+  6. Measure latency and resources.
+
+Aggregate:
+  mean recall, p10 recall,
+  p50/p95/p99 latency,
+  under-filled queries, timeout rate.
+~~~
+
+### 11.3. Code Comparing Top-K IDs
+
+~~~javascript
+function recallAtK(annIds, exactIds, k) {
+  const exact = exactIds.slice(0, k);
+  const approximate = annIds.slice(0, k);
+  const denominator = Math.min(k, exact.length);
+  if (denominator === 0) return 1;
+
+  const annSet = new Set(approximate);
+  const hits = exact.filter(id => annSet.has(id)).length;
+  return hits / denominator;
+}
+
+print(recallAtK(
+  ["A", "B", "X", "D", "Y"],
+  ["A", "B", "C", "D", "E"],
+  5
+)); // 0.6
+~~~
+
+This function measures **set overlap**, ignoring ranking order. If the business cares about top-1 or top-3 placement, add metrics such as **MRR, nDCG, or human-judged precision**, not Recall@K alone.
+
+### 11.4. High Recall Does Not Guarantee a Good Product
+
+An ANN setup may achieve Recall@10 = 0.98 against ENN while both return irrelevant apartments due to a weak embedding model or poor corpus data. **Recall against ENN measures how closely the retrieval algorithm matches exact vector ranking**, not user satisfaction.
+
+Real product quality requires:
+
+- Relevance labels judged by humans or domain teams.
+- CTR, conversion, and save/contact rates.
+- Latency and empty-result rates.
+- Controlled online/offline experiments.
+
+## 12. Choosing `numCandidates` in ANN
+
+### 12.1. Experiment Matrix
+
+For `limit=10`, you might start benchmarking:
+
+| Experiment | limit | numCandidates | Question |
+| --- | ---: | ---: | --- |
+| A | 10 | 50 | Fast, or is recall too low? |
+| B | 10 | 100 | What is the trade-off? |
+| C | 10 | 200 | Does recall improve enough for the latency? |
+| D | 10 | 400 | Are we hitting diminishing returns? |
+
+Values must **respect the limits of your MongoDB Vector Search version**, especially the valid relationship between `numCandidates`/`limit` and service maximums. This is an illustrative benchmark table, not a universal production recommendation.
+
+### 12.2. Filter Selectivity
+
+Suppose:
+
+~~~text
+Corpus: 1,000,000 vectors
+
+Filter A:
+  city=HCM -> 200,000 vectors
+
+Filter B:
+  tenantId=t001, city=HCM, active=true, budget<=20
+  -> 350 vectors
+~~~
+
+ANN behaves differently on those two subsets in performance and recall. With an ultra-narrow filter, **ENN over a few hundred vectors** can be sensible. With a broad filter, ANN is usually preferable.
+
+**Do not** look only at total collection size; know the **eligible vector count after metadata filtering** and data distribution.
+
+### 12.3. Trying ENN When the Filtered Subset Is Tiny
+
+An engineering policy might be:
+
+~~~text
+Application expects very small candidate count
+  -> test exact:true and measure latency.
+
+Application has a large candidate pool
+  -> ANN + tune numCandidates.
+~~~
+
+However, deciding **ENN vs. ANN per request** should not rely on a rough candidate-count guess without telemetry. Measure by tenant/query category and maintain a fallback if ENN is unsupported.
+
+### 12.4. When Raising `numCandidates` Stops Helping
+
+If recall fails to rise despite large `numCandidates`:
+
+- Inspect the filter and index definition.
+- Check vector dimensions and model alignment.
+- Verify ENN ground truth uses the exact same filter, metric, and corpus.
+- Check whether index data is fresh and ready.
+- Check ANN parameters and runtime caps.
+- Evaluate quantization/index settings if enabled.
+
+Never conclude “vector search is broken” when the two runs are querying **two different datasets**.
+
+## 13. ANN, ENN, and Search Index Consistency
+
+### 13.1. Indexing Can Be Asynchronous
+
+Application timeline:
+
+~~~text
+T0: insert listing L into MongoDB
+T1: receive write acknowledgment
+T2: Vector Search index receives/indexes L's embedding
+T3: $vectorSearch sees L
+~~~
+
+Depending on deployment and indexing load, **T1 can precede T2/T3**. Therefore:
+
+- Vector search does not automatically provide **immediate read-your-writes** under the same assumptions as a standard `find`.
+- Both ANN and ENN may omit a newly written listing until it is indexed.
+- `exact:true` does not make asynchronous indexing synchronous.
+
+### 13.2. Never Use `exact` to Verify Write Durability
+
+Write concern and vector search index freshness are **two separate concerns**. A majority-acknowledged write does not mean the vector search replica/index reflects it immediately; conversely, vector search returning a result does not substitute for write concern verification.
+
+If the UI needs “newly posted listings appear right away”:
+
+- Use a **direct read-after-write by ID** to display the newly created listing.
+- Surface an “indexing for search” status.
+- Track index progress and freshness.
+- Do not promise absolute real-time freshness from vector search without a real SLA.
+
+### 13.3. Deletions and Access Rights
+
+A hidden/deleted document or changed permission may take time to propagate into the Search index. For sensitive data, design **application-level authorization, appropriate metadata filters, and safeguards against returning revoked data**.
+
+If policy demands **immediate** permission revocation, you cannot rely solely on an eventually consistent Search index. Validate results against an authoritative source before displaying content, or adopt a matching authorization architecture.
+
+### 13.4. Re-Embedding and Model Migration
+
+When changing embedding models:
+
+~~~text
+Model A -> embeddings_A -> vector index A
+Model B -> embeddings_B -> vector index B
+~~~
+
+Never overwrite half the corpus with model B and keep querying the same index with model A expecting valid rankings.
+
+A safe migration workflow can include:
+
+1. Adding field **embeddingV2**.
+2. Backfilling `embeddingsV2`.
+3. Creating Vector Search index v2 with matching `numDimensions`/metric.
+4. Evaluating ANN vs. ENN and relevance on v2.
+5. Shifting traffic gradually to v2.
+6. Monitoring quality and rollback readiness.
+7. Cleaning up v1 only once no consumers depend on it.
+
+## 14. Metadata Filter Limitations
+
+### 14.1. Filter Path Must Match Schema and Index
+
+If the index definition has:
+
+~~~javascript
+{ type: "filter", path: "metadata.city" }
+~~~
+
+the query must use the matching field path:
+
+~~~javascript
+filter: { "metadata.city": "HCM" }
+~~~
+
+Do not arbitrarily write `city` if the document has no top-level `city` field.
+
+### 14.2. Mixed Value Types
+
+If data contains:
+
+~~~javascript
+// Document A:
+rentMillion: 12
+
+// Document B:
+rentMillion: "12"
+~~~
+
+then:
+
+~~~javascript
+filter: { rentMillion: { $lte: 20 } }
+~~~
+
+does not guarantee both documents are treated identically. Comparison rules, type support, and index semantics depend on the MongoDB Vector Search version. Normalize types before indexing.
+
+### 14.3. Computed Values
+
+If a user requests:
+
+~~~text
+Rent + management fee <= 20 million
+~~~
+
+do not assume you can write:
+
+~~~javascript
+filter: {
+  $expr: {
+    $lte: [
+      { $add: ["$rentMillion", "$feeMillion"] },
+      20
+    ]
+  }
+}
+~~~
+
+and expect `$vectorSearch.filter` to support arbitrary `$expr`. Instead, create a precomputed/normalized field **effectiveMonthlyCost**:
+
+~~~javascript
+{
+  rentMillion: 18,
+  feeMillion: 1.5,
+  effectiveMonthlyCost: 19.5
+}
+~~~
+
+Then declare **effectiveMonthlyCost** as `type:"filter"` and use supported range filters, keeping the field updated consistently.
+
+### 14.4. Array Membership
+
+A listing has:
+
+~~~javascript
+amenities: ["desk", "wifi", "parking"]
+~~~
+
+You may want to filter for `desk`/`wifi`. **Never assume every `find()` array operator works inside Vector Search pre-filters**. Verify support for **$in**, array values, or nested fields in your running version. When unsuitable, use normalized scalar fields like **hasDesk: true**, **hasWifi: true**, or another search design.
+
+### 14.5. Text + Vector
+
+Users want both keyword matching for “studio” and semantic similarity. Metadata pre-filtering is not a full replacement for **full-text search** or hybrid search.
+
+A system can combine:
+
+- Atlas Search / text search.
+- MongoDB Vector Search.
+- Version-supported rank fusion/reranking.
+- Unified filtering and authorization.
+
+Never pass **$regex inside $vectorSearch.filter** to “enable keyword search” if that operator is outside the supported set.
+
+## 15. Reranking and Score Thresholds
+
+### 15.1. Two-Stage Retrieval
+
+A common architecture:
+
+~~~text
+Query + metadata
+       |
+       v
+ANN fetches top 100 (candidate retrieval)
+       |
+       v
+Reranker scores 100 candidates in detail
+       |
+       v
+Return final top 10
+~~~
+
+The reranker can be another model or a composite score combining text relevance, distance, recency, and business rules.
+
+### 15.2. Never Drop Access Controls Before Reranking
+
+If ANN returns the wrong tenant upfront and sends 100 documents to an external reranker, data may already leak **before the API filters the final response**. Resolve tenant/authorization at the very start, rather than thinking “hiding it in the response is enough”.
+
+### 15.3. Score Thresholds
+
+After `$vectorSearch`, an application might project:
+
+~~~javascript
+{
+  $project: {
+    title: 1,
+    score: { $meta: "vectorSearchScore" }
+  }
+}
+~~~
+
+and apply:
+
+~~~javascript
+{ $match: { score: { $gte: 0.75 } } }
+~~~
+
+**0.75 is only an example**. Thresholds must be **calibrated per embedding model, metric, query category, and product goal**. A high threshold can drop valid results on hard queries, whereas a low threshold admits noise.
+
+Because score is computed after retrieval, thresholding can also return fewer than `limit` results. This is a relevance-quality decision, distinct from metadata pre-filtering on permissions, price, or city.
+
+### 15.4. Reranking Cannot Recover Missing Candidates
+
+If ANN fails to put a good document into the candidate pool, the reranker **cannot pick it**. Measure **candidate recall** before tuning the reranker.
+
+## 16. Node.js: Building a Clean Vector Query Pipeline
+
+### 16.1. ANN Query Function
+
+Example using the MongoDB Node.js Driver; **queryVector is generated externally**:
+
+~~~javascript
+import { MongoClient } from "mongodb";
+
+function validateQueryVector(vector, dimensions = 3) {
+  if (!Array.isArray(vector) ||
+      vector.length !== dimensions ||
+      !vector.every(
+        value => typeof value === "number" &&
+                 Number.isFinite(value)
+      )) {
+    throw new Error("queryVector has wrong dimensions or invalid values");
+  }
+
+  const lengthSquared = vector.reduce(
+    (sum, value) => sum + value * value, 0
+  );
+  if (lengthSquared === 0) {
+    throw new Error("Do not use zero vector with cosine");
+  }
+}
+
+async function searchListings({
+  uri,
+  queryVector,
+  authorizedTenantId,
+  city,
+  maxRentMillion,
+  limit = 10,
+  numCandidates = 200
+}) {
+  validateQueryVector(queryVector, 3);
+
+  if (!authorizedTenantId ||
+      !["HCM", "HN"].includes(city) ||
+      !Number.isFinite(maxRentMillion) ||
+      maxRentMillion <= 0 ||
+      !Number.isInteger(limit) ||
+      limit < 1 ||
+      limit > 50 ||
+      !Number.isInteger(numCandidates) ||
+      numCandidates < limit) {
+    throw new Error("Invalid filter or retrieval parameters");
+  }
+
+  const client = new MongoClient(uri);
+  await client.connect();
+
+  try {
+    const collection = client
+      .db("mongo_vector_lab_314")
+      .collection("lab_listings");
+
+    const pipeline = [
+      {
+        $vectorSearch: {
+          index: "vec314_listing_index",
+          path: "embedding",
+          queryVector,
+          numCandidates,
+          limit,
+          filter: {
+            tenantId: authorizedTenantId,
+            city,
+            isActive: true,
+            rentMillion: { $lte: maxRentMillion }
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          title: 1,
+          city: 1,
+          rentMillion: 1,
+          score: { $meta: "vectorSearchScore" }
+        }
+      }
+    ];
+
+    return await collection.aggregate(
+      pipeline, { maxTimeMS: 5000 }
+    ).toArray();
+  } finally {
+    await client.close();
+  }
+}
+
+// const hits = await searchListings({
+//   uri: process.env.MONGODB_URI,
+//   queryVector: [1, 0, 0],
+//   authorizedTenantId: "t001",
+//   city: "HCM",
+//   maxRentMillion: 20
+// });
+~~~
+
+This snippet caps **limit<=50** and **maxTimeMS=5000** to illustrate bounding overly broad requests. These are application policies, not fixed MongoDB limits. In production, use a **shared/pooled MongoClient** rather than creating a new client per HTTP request as in this standalone example.
+
+**authorizedTenantId** must come from the server-side authentication context, not a user-selectable field. `embeddingModel` and 3 dimensions are strictly for the toy lab; production must use a real model.
+
+### 16.2. ENN Function for Evaluation
+
+~~~javascript
+async function exactSearch(collection, queryVector, filter, limit) {
+  return collection.aggregate([
+    {
+      $vectorSearch: {
+        index: "vec314_listing_index",
+        path: "embedding",
+        queryVector,
+        exact: true,
+        limit,
+        filter
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        score: { $meta: "vectorSearchScore" }
+      }
+    }
+  ]).toArray();
+}
+~~~
+
+Use only when the cluster supports ENN. When comparing against ANN, ensure **identical `queryVector`, `filter`, `limit`, metric, index, and consistent data snapshot/freshness**.
+
+### 16.3. Errors the Application Must Catch
+
+- Wrong vector dimensions, non-finite numbers, or zero vector.
+- Vector Search index missing or not ready.
+- Filter field not declared with `type:"filter"`.
+- Unsupported filter operator.
+- Invalid `numCandidates`/`limit` parameters.
+- Timeouts or query cancellation.
+- Search index update lag.
+- Zero results due to overly tight filters or missing embeddings.
+
+Never collapse all errors into “No apartments found”, because cases where the system **failed to execute search** are distinct from succeeding with zero matches.
+
+## 17. Multi-Tenancy and Access-Control Filters
+
+### 17.1. Filters Must Be Non-Overridable
+
+API:
+
+~~~text
+POST /search
+Body:
+  query: "quiet apartment with desk"
+  city: "HCM"
+  maxRentMillion: 20
+
+Security context:
+  authorizedTenantId = "t001"
+~~~
+
+Backend:
+
+~~~text
+1. Authenticate user.
+2. Resolve effective tenant and permissions.
+3. Generate embedding from query.
+4. Use $vectorSearch.filter enforcing tenantId + isActive.
+5. Record safe audit/query logs.
+6. Return projected results after extra permission checks if needed.
+~~~
+
+### 17.2. Never Let API Clients Override Filters
+
+Flawed design:
+
+~~~javascript
+const filter = {
+  tenantId: authorizedTenantId,
+  ...req.body.filter
+};
+~~~
+
+If `req.body.filter` includes `tenantId`, the trailing spread **overwrites the authenticated tenantId**.
+
+Safer:
+
+~~~javascript
+const filter = {
+  city: validatedCity,
+  rentMillion: { $lte: validatedBudget },
+  isActive: true,
+  tenantId: authorizedTenantId
+};
+~~~
+
+Alternatively, construct a filter AST from whitelisted fields and **apply mandatory security constraints last in a non-overridable way**. Test adversarial inputs and never allow clients to submit arbitrary aggregation pipelines unless authorized.
+
+### 17.3. Filter Scope and Auditing
+
+When an internal service queries across tenants for reporting, that is a **distinct privileged use case**, never a reason to omit tenant filters in user-facing APIs.
+
+For personal or sensitive data:
+
+- Minimize fields in projection.
+- Avoid sending raw content externally unnecessarily.
+- Enforce data residency and retention policies.
+- Audit privileged cross-scope searches.
+- Verify results when document permissions were revoked before Search index convergence.
+
+## 18. When a Desired Metadata Filter Is Unsupported
+
+### 18.1. Classifying Conditions
+
+| Condition | Example | Handling |
+| --- | --- | --- |
+| Scalar equality | `tenantId`, `city`, `isActive` | Prefer Vector Search pre-filter if supported |
+| Numeric/date range | `price <= 20`, `publishedAt >= date` | Pre-filter when field/operator is indexed and supported |
+| Full-text | `title` contains exact word | Atlas Search / hybrid pipeline per capability |
+| Computed expression | `rent + fee <= 20` | Denormalize numeric field or post-process |
+| Geospatial | within 2 km of train station | Vector + geospatial / reranking per architecture |
+| Complex authorization | Group/user ACLs | Normalize to indexable filter, or enforce at authoritative layer |
+
+### 18.2. Do Not “Unlock” Filters with a Preceding `$match`
+
+Because `$vectorSearch` must sit in its supported position, prepending:
+
+~~~javascript
+{ $match: { ... } }
+~~~
+
+is not valid. Metadata filters belong inside Vector Search syntax or an alternative architecture.
+
+### 18.3. Intentional Post-Filtering
+
+If a condition truly can only run after retrieval:
+
+1. Push all **mandatory and supported** conditions into the prefilter first.
+2. Size the retrieval limit large enough for the candidate pool.
+3. Accept that fewer than K results may come back.
+4. Track **post-filter rejection rates** by query category.
+5. Never expose unauthorized documents to rerankers or external services.
+6. Consider adding a read-model/metadata field if rejection rates are excessive.
+
+### 18.4. Two-Phase Queries
+
+When ACLs or business rules are very complex, you might construct an **authorized candidate set** in the application layer or a secondary collection, accounting for:
+
+- ID lists potentially growing too large for `$in`.
+- Filter operator/type support and command size limits.
+- Cost of the second query.
+- Race conditions when permissions change.
+- Sensitive data exposure if permissions are checked too late.
+
+Never treat two-phase queries as automatically safer than metadata prefilters; evaluate against your threat model.
+
+## 19. RAG: Finding Documents for the Right Tenant and Validity Window
+
+### 19.1. Example
+
+An internal Q&A system stores document chunks:
+
+~~~javascript
+{
+  _id: "chunk-001",
+  tenantId: "t001",
+  docId: "policy-2026",
+  isActive: true,
+  validFrom: ISODate("2026-01-01T00:00:00Z"),
+  validTo: ISODate("2027-01-01T00:00:00Z"),
+  text: "Refund policy ...",
+  embedding: [/* real model vector */]
+}
+~~~
+
+A RAG query needs to:
+
+- Filter tenant.
+- Filter active documents.
+- Filter validity window if the metadata filter supports the corresponding date/range operators.
+- Retrieve top-K chunks by embedding.
+- Pass only authorized chunk text to the LLM.
+
+### 19.2. A Correct Answer Must Rely on Authorized Documents
+
+ANN may retrieve chunks closely matching the question from an **expired policy**. With proper metadata prefiltering, those chunks never enter the result set.
+
+If you only post-filter after top-K, the system may lack enough chunks to answer—or worse, a step before post-filtering may have already sent expired or cross-tenant text to the model.
+
+### 19.3. Retrieval Recall@K Differs from Answer Faithfulness
+
+Even when ENN returns the exact top-K by vector metric, the LLM can still:
+
+- Misread the text.
+- Conflate two documents with different validity dates.
+- Answer when sources are incomplete.
+- Omit citations or violate permissions.
+
+RAG additionally requires **citations, source metadata, prompt constraints, an “insufficient data” fallback, and answer-quality evaluation**, not just `numCandidates` tuning.
+
+## 20. Recommendations and Rapidly Changing Catalogs
+
+### 20.1. Many Nearly Identical Listings
+
+A catalog with dozens of near-duplicate listings can fill the entire top-K. MongoDB Vector Search ranks by vector metric and does not automatically ensure **diversity** across landlords, developments, unit types, or neighborhoods.
+
+You may need:
+
+- Grouping/deduplicating by `propertyId` after retrieval.
+- Diversity-aware reranking.
+- Capping results per landlord.
+- Up-to-date availability/active checks.
+
+### 20.2. Rapidly Changing Prices and Statuses
+
+Metadata fields like **rentMillion** and **isActive** change frequently. On updates:
+
+- The Search index needs time to sync updated filter fields.
+- The UI should never promise prices or deposits solely from stale vector results.
+- Before critical actions, verify authoritative data by `_id`.
+
+Vector search is a **candidate suggestion/retrieval system**, not a replacement for transactional booking checks.
+
+### 20.3. Product Freshness
+
+If an application creates a listing and immediately cannot find it:
+
+- Check whether a valid embedding was generated.
+- Check whether the index has finished building/syncing.
+- Check whether filters exclude it due to `isActive=false` or a different city.
+- Check `embeddingModel`/version.
+- Never conclude ANN missed it before confirming the record is indexed.
+
+## 21. Monitoring and Performance Optimization
+
+### 21.1. Key Metrics
+
+| Metric | Meaning |
+| --- | --- |
+| **ANN latency p50/p95/p99** | Actual search latency |
+| **ENN latency** | Exact search / baseline cost |
+| **Recall@K ANN vs. ENN** | Rate of missing exact neighbors |
+| **numCandidates** | ANN candidate budget in use |
+| **limit / top-K** | Requested result count |
+| **Eligible candidate count** | Subset size after metadata filters |
+| **Empty-result rate** | Zero-result rate; may signal filters or indexing issues |
+| **Post-filter rejection rate** | Fraction dropped after retrieval |
+| **Index build/sync status** | Vector index health |
+| **Embedding coverage** | Fraction of docs with valid matching-model vectors |
+| **Embedding age/version** | Whether corpus uses consistent models |
+| **Timeout/error rate** | Overload or unsupported index/operator issues |
+| **Resource usage** | CPU, RAM, storage, index footprint |
+
+### 21.2. Segment Metrics by Query Category
+
+Do not monitor system-wide average latency alone. Break down by:
+
+~~~text
+Query category:
+  small tenant + very narrow filter
+  large tenant + narrow filter
+  large tenant + broad filter
+  RAG 10-K
+  recommendation 100 candidates
+~~~
+
+A `numCandidates` suited for category A may perform poorly on category B. Tuning purely on global p95 hides low-recall query segments.
+
+### 21.3. Monitor Scores Without Treating Them as Probabilities
+
+Track score distributions per model/query category to catch drift, but never display “98% match” to users unless you have a calibrated methodology proving what that percentage means.
+
+### 21.4. Explain and Profiling
+
+MongoDB Vector Search explain, profiling, and diagnostics capabilities vary by version. Use deployment-supported APIs to inspect candidate counts, execution plans/timings, and index status.
+
+Never assume:
+
+~~~javascript
+db.collection.find({ embedding: ... }).explain()
+~~~
+
+shows ANN internals, because **$vectorSearch is a dedicated aggregation/search stage**, not a standard B-tree equality/range query.
+
+### 21.5. Benchmarking Properly
+
+A useful benchmark should:
+
+1. Fix the embedding dataset and index definitions.
+2. Prepare a representative suite of query vectors.
+3. Fix metadata filters.
+4. Wait until the index is ready and data is synced.
+5. Run warmups and multiple iterations.
+6. Measure ANN across `numCandidates` settings.
+7. Compare ENN on the same corpus/filter when supported.
+8. Report recall, p95/p99, error rates, and cost.
+9. Re-run whenever models, dimensions, quantization, or index settings change.
+
+**A single run on 10 documents proves nothing about production latency or recall.**
+
+## 22. Failure Scenarios and Troubleshooting
+
+| Symptom | Possible cause | Resolution |
+| --- | --- | --- |
+| `$vectorSearch` unrecognized | Unsupported deployment/version | Verify feature availability |
+| Index not found | Wrong index name or not created | Check `getSearchIndexes`/definition |
+| Index not usable | Asynchronous build/sync in progress | Inspect index status |
+| `queryVector` dimension mismatch | Wrong model or missing values | Validate length and model version |
+| Error with cosine | Zero vector or invalid values | Validate inputs and embeddings |
+| Filter path error | `type:"filter"` not declared | Add field to index definition properly |
+| Filter operator error | Unsupported operator used | Simplify metadata or change architecture |
+| Query returns 0 after `$match` | Post-filter discarded global top-K | Move filter to prefilter |
+| Fewer results than `limit` | Small eligible corpus or post-filter/threshold | Check selectivity and each stage |
+| ANN differs from ENN | ANN approximation; `numCandidates`/quantization | Measure Recall@K and tune |
+| ENN is slow | Eligible vector set is too large | Switch to ANN or narrower filters |
+| Search misses newly written doc | Asynchronous indexing | Check sync/freshness, authoritative fallback |
+| Cross-tenant data leaked | Missing or overridden tenant filter | Enforce server-side security context |
+| Scores differ between models A/B | Different embedding spaces/metrics | Never compare scores cross-model |
+| Model changed and rankings degraded | Corpus/query migrated out of sync | Dual-index rollout |
+| Timeouts on broad prefilters | Large candidate pool / high `numCandidates` | Optimize filters, index, compute, deadlines |
+| Raising `numCandidates` doesn't help | Model/corpus/filter issue or plateau | Check ground truth and relevance |
+| Price filter behaves wrongly | `rentMillion` mixed String and Number | Normalize types and units |
+| RAG returns expired documents | Missing `validFrom`/`validTo` filter | Index/filter validity metadata |
+| RAG answers wrongly despite exact ENN | Retrieval accuracy differs from answer faithfulness | Evaluate answers, citations, policy |
+| High score yet irrelevant product | Model/metric misaligned with business relevance | Relevance evaluation, reranking |
+
+## 23. Pre-Production Design Checklist
+
+### 23.1. Embeddings
+
+- Use **one compatible model/version** for corpus and queries.
+- Match **numDimensions** exactly.
+- Finite numeric values; handle zero vectors per metric.
+- Define chunking and normalization rules.
+- Maintain re-embedding and index migration workflows.
+- Protect sensitive data in text and embeddings.
+
+### 23.2. Vector Search Index
+
+- Vector field path is exact.
+- Metric matches the model.
+- Mandatory metadata fields declared as **type:"filter"**.
+- Verify supported data types, nested paths, and operators.
+- Confirm index build/sync is ready.
+- Establish observability and rollback plans.
+
+### 23.3. Queries
+
+- Choose ANN or ENN based on workload and feature support.
+- For ANN, tune **numCandidates** via benchmarks.
+- Keep **limit** bounded and aligned with reranking.
+- Put tenant/active/budget/city into **prefilter** when supported.
+- Never allow clients to override permission conditions.
+- Use projection to restrict returned fields.
+- Configure `maxTimeMS`/deadlines and distinguish errors from empty results.
+
+### 23.4. Evaluation
+
+- Establish ENN or a valid exact baseline.
+- Compare on **identical filters, metric, and index/corpus**.
+- Track Recall@K, relevance labels, and latency.
+- Test both ultra-narrow and broad filter cases.
+- Measure freshness/indexing lag.
+- Test multi-tenant isolation and recently revoked permissions.
+
+### 23.5. Operations
+
+- Never mix embeddings from different models in one index.
+- Never assume vector search provides synchronous read-after-write.
+- Monitor search index status, size, CPU, and RAM.
+- Maintain rebuild procedures if an index fails.
+- Enforce access control and data retention.
+- Never treat raw scores as business probabilities without calibration.
+
+## 24. Practice Exercises
+
+### Exercise 1 — ANN and ENN
+
+Explain the difference between ANN and ENN: how many vectors each may evaluate, latency and recall trade-offs, and when ENN is a useful ground truth.
+
+### Exercise 2 — `numCandidates` vs. `limit`
+
+A pipeline specifies **numCandidates: 200** and **limit: 10**. At most how many documents does it return? Is `numCandidates` the number of records sent back to the application?
+
+### Exercise 3 — Cosine Metric
+
+For query `[1,0,0]`, compute raw cosine for `[1,0,0]`, `[0.9,0.1,0]`, and `[0,1,0]`. Why doesn't `vectorSearchScore` necessarily equal raw cosine?
+
+### Exercise 4 — Model Version
+
+Document embeddings are 768-dimensional from model A; query embeddings are 768-dimensional from model B. The query may execute, yet why can rankings be wrong? Design a safe model-swap workflow.
+
+### Exercise 5 — Create Index
+
+Write a Vector Search index definition for 3-dimensional/cosine embeddings plus filters on `tenantId`, `city`, `isActive`, and `rentMillion`. Distinguish **type:"filter"** inside a Vector Search index from a B-tree index on `tenantId`.
+
+### Exercise 6 — Seed
+
+Run the ten-record seed from Section 10. Verify `_id`, dimensions, document count, and metadata values. Why must you wait until the Vector Search index is usable before evaluating?
+
+### Exercise 7 — Exact Top 3
+
+Apply the `t001`/`HCM`/active/`price <= 20` filter and compute cosine. Predict the top 3 and explain why `c`, `d`, `e`, and `f` are excluded even though their embeddings may be very close to the query.
+
+### Exercise 8 — Test ANN
+
+Run `$vectorSearch` ANN on the lab with `limit=3`, `numCandidates=60`. Compare IDs and order against the JavaScript baseline and (if supported) ENN. If they differ, what factors would you check?
+
+### Exercise 9 — Test ENN
+
+Run `exact:true` with the same filter. Without ENN support, how do you establish a rigorous baseline on ten vectors without calling a large-`numCandidates` ANN run “exact”?
+
+### Exercise 10 — Post-Filter
+
+Fetch top 3 across the whole corpus, then `$match` `tenantId`/`city`/`active`/`budget`. Why might only 0–2 records remain even though at least three eligible documents exist? Rewrite it as a prefilter.
+
+### Exercise 11 — Security
+
+An API accepts a filter JSON from the client. A developer merges `{tenantId:authorizedTenantId, ...clientFilter}`. Point out the bug and write code ensuring tenant cannot be overridden.
+
+### Exercise 12 — Unsupported Regex
+
+Users want `title` regex matching combined with vector similarity. Why shouldn't you blindly put `$regex` inside `$vectorSearch.filter`? Propose two alternatives and their trade-offs.
+
+### Exercise 13 — Compound Price Condition
+
+The rule **rentMillion + feeMillion <= 20** cannot be expressed directly via arbitrary filter expressions. Propose a denormalized field, how to keep it updated, and how to test it.
+
+### Exercise 14 — Metadata Selectivity
+
+One filter leaves 200 candidates while another leaves 300,000 candidates. When should you test ENN, and when prefer ANN? Why must you measure latency/recall instead of relying solely on total collection size?
+
+### Exercise 15 — Recall@5
+
+ENN top 5 = `[A,B,C,D,E]`, ANN top 5 = `[A,B,X,D,Y]`. Compute Recall@5. If top-1 ordering is wrong even though Recall@5 is high, what additional metric do you need?
+
+### Exercise 16 — Tuning
+
+Design a benchmark across `numCandidates` 50/100/200/400 with `limit=10`. Specify query set selection, metadata filters, p95 latency, Recall@10, and error handling.
+
+### Exercise 17 — Search Freshness
+
+A listing was just inserted with majority ACK, yet does not appear in `$vectorSearch` `exact:true`. Explain possible causes and how to build UX that does not falsely alarm users that data was lost.
+
+### Exercise 18 — Deletion and Permissions
+
+A listing just switched to `isActive=false`, yet the Search index has not synced yet. What strategy do you need if policy forbids users from seeing it immediately?
+
+### Exercise 19 — Reranking
+
+ANN selects top 100, and a reranker picks top 10. If the best document is missing from the top 100, can the reranker recover it? Which layer do you improve first?
+
+### Exercise 20 — RAG
+
+Write an internal document query policy covering `tenantId`, `isActive`, and `validFrom`/`validTo`. Explain why the LLM's answer can still be wrong even when ENN finds the exact top-K vectors.
+
+### Exercise 21 — Nested Metadata
+
+Documents contain `metadata.city` and `metadata.tenantId`. The index declares filters on dotted paths. Write a query using the exact paths and list risks if clients send mismatched paths or inconsistent field types.
+
+### Exercise 22 — Vector Index vs. B-Tree
+
+The app already has `createIndex({tenantId:1,city:1})`, yet `$vectorSearch.filter` throws an error. Why doesn't that index automatically provide metadata filtering for Vector Search?
+
+### Exercise 23 — Empty Results
+
+A search request returns empty results. Propose a diagnostic sequence covering authorization, metadata filters, embedding coverage, index sync, `queryVector`/model, unsupported operators, ANN candidates, and post-filters.
+
+### Exercise 24 — Score Thresholds
+
+A system only returns results with `score >= 0.80`. Why can this threshold drop valid results for certain query types? How do you evaluate and calibrate thresholds?
+
+### Exercise 25 — Same K, Different Filters
+
+Compare ANN and ENN on the same query, where ANN filters city=HCM while ENN omits the city filter. Is the resulting Recall@K meaningful? Explain why the eligibility set must stay fixed.
+
+### Exercise 26 — Zero Vector
+
+Why is cosine undefined for `[0,0,0]`? How should you validate vectors on both the ingestion and query paths?
+
+### Exercise 27 — Swapping Embeddings
+
+Model A outputs 768 dimensions; Model B outputs 1,024 dimensions. Design a dual-index migration, backfill, quality evaluation, rollback, and cleanup plan.
+
+### Exercise 28 — Approximate vs. Relevant
+
+ANN achieves Recall@10 of 0.99, yet users rate results poorly. What issues with the model, chunking, input data, metric, diversity, or business rules could explain this?
+
+### Exercise 29 — Designing Monitoring
+
+Design a vector search dashboard tracking p95/p99 latency, Recall@K, `numCandidates`, empty-result rate, post-filter rejections, index freshness, embedding coverage, and errors by tenant/query category.
+
+### Exercise 30 — End-to-End Multi-Tenant
+
+Design an API searching listings from natural-language descriptions with requirements: at most 20 million, in HCM, tenant t001, active only, returning 10 results within a latency budget. Describe embeddings, index definition, prefilter, ANN tuning, fallback during index sync lag, authorization, and evaluation.
+
+## 25. MongoDB References
+
+- MongoDB Atlas — [MongoDB Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/).
+- MongoDB Atlas — [How to Index Fields for Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/).
+- MongoDB Atlas — [Run Vector Search Queries](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-stage/).
+- MongoDB Atlas — [Pre-Filter Data for Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-stage/#filter).
+- MongoDB Atlas — [Vector Search Index Definition](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/#fields).
+- MongoDB Atlas — [Exact Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-stage/#exact).
+- MongoDB Atlas — [Vector Search Score](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-stage/#score).
+- MongoDB Manual — [Search Index Management](https://www.mongodb.com/docs/manual/reference/method/db.collection.createSearchIndex/).
+- MongoDB Node.js Driver — [Run an Atlas Vector Search Query](https://www.mongodb.com/docs/drivers/node/current/atlas-vector-search/).
+- MongoDB Manual — [Aggregation Pipeline](https://www.mongodb.com/docs/manual/core/aggregation-pipeline/).
+
+**Conclusion:** **ANN** is valuable when fast nearest-neighbor retrieval is needed over a large corpus and trading a bit of recall for lower latency is acceptable; **ENN** finds the exact top-K under the metric over eligible indexed vectors and serves as a solid baseline for evaluating ANN where supported. **Metadata pre-filtering** inside **$vectorSearch.filter** governs which documents participate in search—vital for **tenant, status, city, budget, and validity windows**. Never replace a prefilter with `$match` after top-K expecting to keep finding the best neighbors. For reliable systems, align **embedding model/dimensions/metric**, index **type:"filter"** on the right metadata, measure **Recall@K alongside latency**, monitor **index freshness**, and enforce **authorization** server-side. “Closest by vector” is only one layer; a correct product result must also be **business-eligible and authorized to display**.

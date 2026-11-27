@@ -1,0 +1,151 @@
+menu:
+- title: Khái niệm adapter
+  slug: adapter-concepts
+  index: 0
+- title: Kiểu endpoint
+  slug: endpoint-types
+  index: 1
+- title: Tạo integration flow
+  slug: integration-flow-creation
+  index: 2
+- title: Poller
+  slug: poller
+  index: 3
+- title: Adapter file
+  slug: adapter-file
+  index: 4
+- title: Adapter FTP
+  slug: adapter-ftp
+  index: 5
+- title: Adapter SFTP
+  slug: adapter-sftp
+  index: 6
+- title: Adapter SMB
+  slug: adapter-smb
+  index: 7
+- title: Adapter HTTP
+  slug: adapter-http
+  index: 8
+- title: Adapter WebFlux
+  slug: adapter-webflux
+  index: 9
+- title: Adapter WebSocket
+  slug: adapter-websocket
+  index: 10
+- title: Adapter TCP
+  slug: adapter-tcp
+  index: 11
+- title: Adapter UDP
+  slug: adapter-udp
+  index: 12
+- title: Adapter JMS
+  slug: adapter-jms
+  index: 13
+- title: Adapter AMQP
+  slug: adapter-amqp
+  index: 14
+- title: Adapter Kafka
+  slug: adapter-kafka
+  index: 15
+- title: Adapter MQTT
+  slug: adapter-mqtt
+  index: 16
+- title: Adapter STOMP
+  slug: adapter-stomp
+  index: 17
+- title: Adapter XMPP
+  slug: adapter-xmpp
+  index: 18
+- title: Adapter ZeroMQ
+  slug: adapter-zeromq
+  index: 19
+- title: Adapter Mail
+  slug: adapter-mail
+  index: 20
+- title: Adapter Feed
+  slug: adapter-feed
+  index: 21
+- title: Adapter Syslog
+  slug: adapter-syslog
+  index: 22
+- title: Adapter JDBC
+  slug: adapter-jdbc
+  index: 23
+- title: Adapter JPA
+  slug: adapter-jpa
+  index: 24
+- title: Adapter R2DBC
+  slug: adapter-r2dbc
+  index: 25
+- title: Adapter MongoDB
+  slug: adapter-mongodb
+  index: 26
+- title: Adapter Cassandra
+  slug: adapter-cassandra
+  index: 27
+- title: Adapter Redis
+  slug: adapter-redis
+  index: 28
+- title: Adapter sự kiện
+  slug: event-adapter
+  index: 29
+- title: Adapter JMX
+  slug: adapter-jmx
+  index: 30
+- title: Adapter Resource
+  slug: adapter-resource
+  index: 31
+- title: Adapter Stream
+  slug: adapter-stream
+  index: 32
+- title: Adapter RSocket
+  slug: adapter-rsocket
+  index: 33
+- title: Adapter Web Services
+  slug: adapter-web-services
+  index: 34
+- title: Adapter GraphQL
+  slug: adapter-graphql
+  index: 35
+- title: Adapter Cloud
+  slug: adapter-cloud
+  index: 36
+- title: Adapter Debezium
+  slug: adapter-debezium
+  index: 37
+- title: Adapter POJO
+  slug: adapter-pojo
+  index: 38
+- title: Mapping message
+  slug: message-mapping
+  index: 39
+- title: Header message
+  slug: message-headers
+  index: 40
+- title: Chuyển đổi dữ liệu
+  slug: data-transformation
+  index: 41
+- title: Reliability
+  slug: reliability
+  index: 42
+- title: Error handling
+  slug: error-handling
+  index: 43
+- title: Transactions
+  slug: transactions
+  index: 44
+- title: Observability
+  slug: observability
+  index: 45
+- title: Testing
+  slug: testing
+  index: 46
+- title: Spring Boot
+  slug: spring-boot
+  index: 47
+- title: Design patterns
+  slug: design-patterns
+  index: 48
+- title: Production
+  slug: production
+  index: 49

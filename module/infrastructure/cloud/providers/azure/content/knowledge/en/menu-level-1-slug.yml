@@ -1,0 +1,115 @@
+menu:
+  - title: "Nền tảng Azure"
+    slug: azure-fundamentals
+    index: 0
+  - title: "Tài khoản và công cụ"
+    slug: accounts-and-tools
+    index: 1
+  - title: "Tổ chức và quản trị tài nguyên"
+    slug: resource-organization-and-governance
+    index: 2
+  - title: "Danh tính với Microsoft Entra ID"
+    slug: entra-id-identity
+    index: 3
+  - title: "Bảo mật và tuân thủ"
+    slug: security-and-compliance
+    index: 4
+  - title: "Mạng ảo và phân giải tên"
+    slug: virtual-networks-and-dns
+    index: 5
+  - title: "Kết nối và bảo vệ mạng"
+    slug: network-connectivity-and-security
+    index: 6
+  - title: "Cân bằng tải và phân phối ứng dụng"
+    slug: load-balancing-and-app-delivery
+    index: 7
+  - title: "Nền tảng Azure Storage"
+    slug: storage-fundamentals
+    index: 8
+  - title: "Lưu trữ đối tượng với Blob Storage"
+    slug: blob-storage
+    index: 9
+  - title: "Lưu trữ tệp và đĩa"
+    slug: file-and-disk-storage
+    index: 10
+  - title: "Máy ảo Azure"
+    slug: virtual-machines
+    index: 11
+  - title: "Compute co giãn và xử lý theo lô"
+    slug: elastic-compute-and-batch-processing
+    index: 12
+  - title: "Ứng dụng web với App Service"
+    slug: app-service
+    index: 13
+  - title: "Container Registry và Container Apps"
+    slug: container-registry-and-container-apps
+    index: 14
+  - title: "Nền tảng Azure Kubernetes Service"
+    slug: aks-fundamentals
+    index: 15
+  - title: "Vận hành AKS"
+    slug: aks-operations
+    index: 16
+  - title: "Serverless với Azure Functions"
+    slug: serverless-functions
+    index: 17
+  - title: "Hàng đợi và thông điệp"
+    slug: queues-and-messaging
+    index: 18
+  - title: "Sự kiện và dữ liệu streaming"
+    slug: events-and-streaming
+    index: 19
+  - title: "API và tích hợp quy trình"
+    slug: api-and-workflow-integration
+    index: 20
+  - title: "Cơ sở dữ liệu quan hệ"
+    slug: relational-databases
+    index: 21
+  - title: "Dữ liệu NoSQL với Cosmos DB"
+    slug: nosql-and-cosmos-db
+    index: 22
+  - title: "Cache và giao tiếp thời gian thực"
+    slug: caching-and-realtime-communication
+    index: 23
+  - title: "Nền tảng dữ liệu và phân tích"
+    slug: data-platforms-and-analytics
+    index: 24
+  - title: "AI và học máy trên Azure"
+    slug: ai-and-machine-learning
+    index: 25
+  - title: "IoT và xử lý tại biên"
+    slug: iot-and-edge-computing
+    index: 26
+  - title: "Azure SDK cho Java"
+    slug: java-sdk
+    index: 27
+  - title: "Spring Boot trên Azure"
+    slug: spring-boot
+    index: 28
+  - title: "Secret, khóa và chứng chỉ"
+    slug: secrets-keys-and-certificates
+    index: 29
+  - title: "Giám sát và quan sát hệ thống"
+    slug: monitoring-and-observability
+    index: 30
+  - title: "CI/CD và chuỗi cung ứng phần mềm"
+    slug: ci-cd-and-software-supply-chain
+    index: 31
+  - title: "Hạ tầng dưới dạng mã"
+    slug: infrastructure-as-code
+    index: 32
+  - title: "Độ tin cậy và khôi phục thảm họa"
+    slug: reliability-and-disaster-recovery
+    index: 33
+  - title: "Hiệu năng và vận hành"
+    slug: performance-and-operations
+    index: 34
+  - title: "Quản lý chi phí"
+    slug: cost-management
+    index: 35
+  - title: "Hybrid cloud và di chuyển lên Azure"
+    slug: hybrid-cloud-and-migration
+    index: 36
+  - title: "Kiến trúc và thực hành tổng hợp"
+    slug: architecture-and-capstone-labs
+    index: 37

@@ -1,0 +1,3043 @@
+menu:
+- slug: fundamentals
+  title: Nền tảng
+  childs:
+  - slug: fundamentals-001
+    title: Mô hình hóa dữ liệu (data modeling) là gì và giải quyết vấn đề nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-002
+    title: Phân biệt dữ liệu thực tế, khái niệm nghiệp vụ và cách biểu diễn trong hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-003
+    title: 'Ba mức mô hình: khái niệm, logic và vật lý'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-004
+    title: Phân biệt mô hình dữ liệu, mô hình miền, lược đồ lưu trữ và hợp đồng trao đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-005
+    title: Vòng đời từ yêu cầu nghiệp vụ đến mô hình, triển khai và phản hồi sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-006
+    title: Đánh đổi giữa tính đúng, khả năng thay đổi, hiệu năng và độ phức tạp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-007
+    title: 'Ví dụ xuyên suốt: khách hàng, danh mục, đơn hàng, thanh toán và tồn kho'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-008
+    title: Lộ trình học và tiêu chí đánh giá một mô hình dữ liệu tốt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-analysis
+  title: Khảo sát yêu cầu
+  childs:
+  - slug: requirements-analysis-001
+    title: Xác định mục tiêu hệ thống, đối tượng sử dụng và câu hỏi cần trả lời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-002
+    title: Thu thập quy trình nghiệp vụ, dữ liệu mẫu và trường hợp ngoại lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-003
+    title: Xác định thuật ngữ, từ đồng nghĩa và cùng một tên nhưng khác ý nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-004
+    title: Phân biệt yêu cầu hiện tại, giả định thiết kế và khả năng mở rộng chưa được xác nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-005
+    title: Liệt kê thao tác đọc, ghi, tìm kiếm, tổng hợp và tần suất thực hiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-006
+    title: Ước lượng khối lượng, tốc độ tăng trưởng, độ trễ và thời gian lưu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-007
+    title: Yêu cầu về tính nhất quán, lịch sử, truy vết và bảo vệ dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-008
+    title: Xác định hệ thống nguồn, người sở hữu và bên sử dụng dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-009
+    title: Ghi lại câu hỏi chưa rõ, quyết định cần xác nhận và tiêu chí chấp nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conceptual-modeling
+  title: Mô hình khái niệm
+  childs:
+  - slug: conceptual-modeling-001
+    title: Nhận diện khái niệm cốt lõi từ tình huống và ngôn ngữ nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conceptual-modeling-002
+    title: Phân biệt thực thể, thuộc tính, quan hệ và sự kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conceptual-modeling-003
+    title: Xác định phạm vi mô hình và loại bỏ chi tiết triển khai quá sớm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conceptual-modeling-004
+    title: 'Độ hạt (grain): một đối tượng hoặc bản ghi đại diện cho điều gì'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conceptual-modeling-005
+    title: Biểu diễn thực thể và quan hệ bằng sơ đồ ER
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conceptual-modeling-006
+    title: Bội số, tính bắt buộc và ký pháp chân quạ (crow's foot)
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conceptual-modeling-007
+    title: So sánh sơ đồ ER với sơ đồ lớp UML theo mục đích sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conceptual-modeling-008
+    title: Rà soát mô hình bằng các tình huống tạo mới, thay đổi và kết thúc vòng đời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conceptual-modeling-009
+    title: Chuyển từ mô hình khái niệm sang mô hình logic mà vẫn giữ đúng ý nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: entities-identifiers
+  title: Thực thể và định danh
+  childs:
+  - slug: entities-identifiers-001
+    title: Tiêu chí để một khái niệm có định danh và vòng đời riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entities-identifiers-002
+    title: Thực thể mạnh, thực thể yếu và sự phụ thuộc vào thực thể sở hữu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entities-identifiers-003
+    title: Phân biệt định danh, tên hiển thị và thuộc tính có thể thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entities-identifiers-004
+    title: Khóa tự nhiên, khóa thay thế và tiêu chí lựa chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entities-identifiers-005
+    title: Khóa đơn, khóa ghép và phạm vi duy nhất theo ngữ cảnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entities-identifiers-006
+    title: Định danh nội bộ, mã nghiệp vụ và mã từ hệ thống bên ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entities-identifiers-007
+    title: Định danh trong nhiều tổ chức và không gian tên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entities-identifiers-008
+    title: Tính ổn định khi đổi tên, hợp nhất hoặc tách chủ thể
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entities-identifiers-009
+    title: Phân biệt bản ghi trùng với hai thực thể có thuộc tính giống nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entities-identifiers-010
+    title: Định danh chủ thể hiện tại và định danh một phiên bản lịch sử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: attributes-types
+  title: Thuộc tính và kiểu
+  childs:
+  - slug: attributes-types-001
+    title: Thuộc tính đơn, thuộc tính phức hợp và thuộc tính nhiều giá trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-types-002
+    title: Thuộc tính gốc, thuộc tính suy ra và kết quả tổng hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-types-003
+    title: Miền giá trị và lựa chọn kiểu theo ý nghĩa nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-types-004
+    title: Số nguyên, số thập phân, độ chính xác và thang số
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-types-005
+    title: Tiền tệ, đại lượng đo và yêu cầu gắn đơn vị với giá trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-types-006
+    title: Văn bản, mã kỹ thuật, độ dài và quy tắc Unicode
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-types-007
+    title: Ngày lịch, giờ địa phương, thời điểm và múi giờ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-types-008
+    title: Null, dữ liệu vắng mặt, giá trị rỗng và giá trị mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-types-009
+    title: Enum, bảng danh mục và miền giá trị có thể mở rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-types-010
+    title: Nhóm thuộc tính lặp lại và dấu hiệu cần tách thành cấu trúc riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: relationships
+  title: Quan hệ
+  childs:
+  - slug: relationships-001
+    title: Quan hệ một với một, một với nhiều và nhiều với nhiều
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-002
+    title: Bội số tối thiểu, tối đa và tính tùy chọn ở từng đầu quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-003
+    title: Vai trò của hai đầu quan hệ và cách đặt tên rõ nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-004
+    title: Quan hệ nhận diện và quan hệ không nhận diện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-005
+    title: Thực thể liên kết khi quan hệ có thuộc tính hoặc vòng đời riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-006
+    title: Quan hệ tự tham chiếu và nhiều vai trò giữa cùng một loại thực thể
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-007
+    title: Quan hệ ba ngôi và nguy cơ mất ý nghĩa khi tách thành các quan hệ đôi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-008
+    title: Quan hệ có hướng, có thứ tự hoặc có giới hạn số lượng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-009
+    title: Quyền sở hữu, vòng đời phụ thuộc và ý nghĩa khi xóa thực thể liên quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-010
+    title: Quan hệ theo thời gian và các điều kiện có hiệu lực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: invariants-constraints
+  title: Bất biến và ràng buộc
+  childs:
+  - slug: invariants-constraints-001
+    title: Bất biến (invariant) mô tả điều luôn phải đúng trong một mô hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invariants-constraints-002
+    title: Ràng buộc miền giá trị, duy nhất, tham chiếu và liên hệ nhiều thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invariants-constraints-003
+    title: Quy tắc trong một bản ghi, trong một nhóm và giữa nhiều nhóm dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invariants-constraints-004
+    title: Trạng thái hợp lệ khác với chuyển trạng thái hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invariants-constraints-005
+    title: Ranh giới giao dịch cần thiết để bảo vệ từng bất biến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invariants-constraints-006
+    title: Phân chia ràng buộc giữa kiểu Java, mô hình miền, ứng dụng và cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invariants-constraints-007
+    title: Kiểm tra trước khi ghi và tranh chấp khi nhiều thao tác xảy ra đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invariants-constraints-008
+    title: Tài liệu hóa ngoại lệ có thời hạn thay vì ngầm bỏ qua ràng buộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inheritance-hierarchies
+  title: Kế thừa và phân cấp
+  childs:
+  - slug: inheritance-hierarchies-001
+    title: Tổng quát hóa, chuyên biệt hóa và tiêu chí chia kiểu con
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-hierarchies-002
+    title: Kiểu con loại trừ nhau hoặc có thể chồng lấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-hierarchies-003
+    title: Chuyên biệt hóa toàn phần hoặc một phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-hierarchies-004
+    title: Phân biệt quan hệ là một, có một và đóng vai trò
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-hierarchies-005
+    title: Mô hình cây bằng danh sách kề (adjacency list)
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-hierarchies-006
+    title: Mô hình đường dẫn vật chất hóa, tập lồng nhau và bảng bao đóng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-hierarchies-007
+    title: So sánh chi phí đọc tổ tiên, đọc cây con, di chuyển và cập nhật nút
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-hierarchies-008
+    title: Phát hiện chu trình, nhiều cha và trường hợp phải dùng đồ thị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-hierarchies-009
+    title: Tránh dùng quan hệ kế thừa chỉ để tái sử dụng vài thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: relational-modeling
+  title: Mô hình quan hệ
+  childs:
+  - slug: relational-modeling-001
+    title: Quan hệ, bộ và thuộc tính trong mô hình logic quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-modeling-002
+    title: Phân biệt quan hệ toán học với bảng SQL có phần tử trùng hoặc NULL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-modeling-003
+    title: Khóa ứng viên, khóa chính, khóa ứng viên không được chọn và khóa ngoại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-modeling-004
+    title: Chuyển thực thể mạnh và thực thể yếu thành bảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-modeling-005
+    title: Chuyển quan hệ một với một hoặc một với nhiều thành khóa ngoại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-modeling-006
+    title: Chuyển quan hệ nhiều với nhiều thành bảng liên kết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-modeling-007
+    title: Biểu diễn thuộc tính nhiều giá trị và thuộc tính phức hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-modeling-008
+    title: Chuyển cấu trúc kiểu cha, kiểu con sang các phương án bảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-modeling-009
+    title: Thiết kế bảng danh mục và ràng buộc tham chiếu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-modeling-010
+    title: Quy định hành vi cập nhật, xóa và tính toàn vẹn dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-modeling-011
+    title: Đọc sơ đồ logic mà chưa gắn chặt với một hệ quản trị cụ thể
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: functional-dependencies
+  title: Phụ thuộc dữ liệu
+  childs:
+  - slug: functional-dependencies-001
+    title: Phụ thuộc hàm (functional dependency) và cách suy ra từ quy tắc nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-dependencies-002
+    title: Phụ thuộc tầm thường, đầy đủ, bộ phận và bắc cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-dependencies-003
+    title: Bao đóng tập thuộc tính và xác định khóa ứng viên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-dependencies-004
+    title: Phủ tối thiểu và vai trò khi phân rã lược đồ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-dependencies-005
+    title: Không suy luận quy tắc phụ thuộc chỉ từ vài dòng dữ liệu mẫu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-dependencies-006
+    title: Phụ thuộc đa trị và những tập giá trị độc lập trong cùng một quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-dependencies-007
+    title: Phụ thuộc nối và giới hạn khi phân rã thành nhiều quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-dependencies-008
+    title: Phân rã nối không mất mát và tiêu chí khôi phục đúng dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-dependencies-009
+    title: Bảo toàn phụ thuộc và đánh đổi với mức chuẩn hóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: normalization
+  title: Chuẩn hóa
+  childs:
+  - slug: normalization-001
+    title: Bất thường khi thêm, sửa hoặc xóa và nguồn gốc từ dữ liệu dư thừa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: normalization-002
+    title: Dạng chuẩn thứ nhất và ý nghĩa tính nguyên tử theo miền dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: normalization-003
+    title: Dạng chuẩn thứ hai và loại bỏ phụ thuộc bộ phận vào khóa ứng viên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: normalization-004
+    title: Dạng chuẩn thứ ba và các phụ thuộc cần tách
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: normalization-005
+    title: Dạng chuẩn Boyce–Codd (BCNF) và vai trò của siêu khóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: normalization-006
+    title: Phân biệt 3NF với BCNF bằng ví dụ có nhiều khóa ứng viên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: normalization-007
+    title: Dạng chuẩn thứ tư và loại bỏ phụ thuộc đa trị không phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: normalization-008
+    title: Dạng chuẩn thứ năm và phân rã theo phụ thuộc nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: normalization-009
+    title: Quy trình chuẩn hóa từng bước từ bảng đơn hàng chưa hợp lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: normalization-010
+    title: Kiểm tra nối không mất mát và bảo toàn phụ thuộc sau phân rã
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: normalization-011
+    title: Khi nào chuẩn hóa là đủ và cách tránh chia bảng thiếu mục đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: normalization-012
+    title: Chuẩn hóa cấu trúc không thay thế định nghĩa đúng thuật ngữ và quy tắc nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: denormalization
+  title: Phi chuẩn hóa
+  childs:
+  - slug: denormalization-001
+    title: Phi chuẩn hóa có chủ đích khác với thiết kế dư thừa ngoài kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: denormalization-002
+    title: Chọn phương án theo mẫu truy cập và bằng chứng đo lường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: denormalization-003
+    title: Sao chép thuộc tính hiển thị để giảm phép nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: denormalization-004
+    title: Bảng tổng hợp, bộ đếm và kết quả tính sẵn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: denormalization-005
+    title: Ảnh chụp giá hoặc địa chỉ tại thời điểm giao dịch khác với bản sao để tăng tốc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: denormalization-006
+    title: Nguồn dữ liệu chuẩn, dữ liệu dẫn xuất và trách nhiệm đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: denormalization-007
+    title: Nhất quán tức thời, nhất quán cuối cùng và chi phí cập nhật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: denormalization-008
+    title: Tái tạo dữ liệu dẫn xuất, đối soát và xử lý sai lệch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: denormalization-009
+    title: Giới hạn dư thừa để mô hình vẫn giải thích và bảo trì được
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: physical-modeling
+  title: Mô hình vật lý
+  childs:
+  - slug: physical-modeling-001
+    title: Chuyển mô hình logic sang kiểu dữ liệu và giới hạn của hệ quản trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-modeling-002
+    title: Thiết kế cột bắt buộc, giá trị mặc định và ràng buộc kiểm tra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-modeling-003
+    title: Chọn khóa tuần tự, định danh phân tán hoặc khóa nghiệp vụ theo yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-modeling-004
+    title: Khóa ghép, độ rộng khóa và ảnh hưởng đến tham chiếu hoặc chỉ mục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-modeling-005
+    title: Chỉ mục đơn, chỉ mục ghép và thứ tự cột theo mẫu truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-modeling-006
+    title: Tính chọn lọc, chi phí ghi và giới hạn của việc thêm chỉ mục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-modeling-007
+    title: Phân vùng bảng theo thời gian, miền dữ liệu hoặc khóa phân phối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-modeling-008
+    title: Phân biệt ràng buộc logic với cơ chế thực thi riêng của hệ quản trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-modeling-009
+    title: Cột JSON, mảng hoặc kiểu đặc thù và các đánh đổi về truy vấn với ràng buộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-modeling-010
+    title: Chính sách xóa, lưu trữ dài hạn và dung lượng tăng theo thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-modeling-011
+    title: Đánh giá thiết kế bằng kế hoạch truy vấn và dữ liệu có quy mô phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-models
+  title: Mô hình Java
+  childs:
+  - slug: java-models-001
+    title: Chọn class, record hoặc enum theo ý nghĩa và vòng đời dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-models-002
+    title: Tạo đối tượng giá trị cho định danh, tiền tệ, đại lượng và khoảng thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-models-003
+    title: Constructor, factory và điều kiện để đối tượng tồn tại hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-models-004
+    title: Thiết kế bất biến và sao chép phòng vệ cho dữ liệu có thể sửa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-models-005
+    title: equals và hashCode theo ngữ nghĩa của thực thể hoặc giá trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-models-006
+    title: List, Set và Map theo thứ tự, tính duy nhất và kiểu quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-models-007
+    title: Biểu diễn phần tử tùy chọn mà không đánh đồng thiếu với giá trị mặc định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-models-008
+    title: Sealed class và hệ phân cấp cho các biến thể dữ liệu hữu hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-models-009
+    title: Generic và giới hạn kiểu để tránh trộn những loại dữ liệu khác nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-models-010
+    title: Tách mô hình miền, DTO trao đổi và đối tượng phục vụ lưu trữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-modeling
+  title: Mô hình miền
+  childs:
+  - slug: domain-modeling-001
+    title: Ngữ cảnh giới hạn và phạm vi nhất quán của một mô hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-002
+    title: Thực thể, đối tượng giá trị và dịch vụ miền trong mô hình dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-003
+    title: Cụm nhất quán (aggregate) và đối tượng gốc kiểm soát thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-004
+    title: Chọn ranh giới aggregate từ bất biến thay vì sao chép cấu trúc bảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-005
+    title: Tham chiếu bằng định danh giữa các aggregate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-006
+    title: Vòng đời, quyền sở hữu và thao tác làm thay đổi trạng thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-007
+    title: Sự kiện miền để biểu diễn thay đổi có ý nghĩa nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-008
+    title: Đánh đổi giữa aggregate lớn, tranh chấp và yêu cầu giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-009
+    title: Tránh mô hình chỉ có getter, setter khi quy tắc nghiệp vụ cần được bảo vệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-relational-mapping
+  title: Ánh xạ đối tượng
+  childs:
+  - slug: object-relational-mapping-001
+    title: Độ lệch giữa mô hình đối tượng và mô hình quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-relational-mapping-002
+    title: Phân biệt định danh đối tượng Java với khóa của bản ghi lưu trữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-relational-mapping-003
+    title: Ánh xạ đối tượng giá trị vào nhiều cột hoặc bảng thành phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-relational-mapping-004
+    title: Ánh xạ quan hệ và phân biệt bên quản lý liên kết với chủ sở hữu nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-relational-mapping-005
+    title: 'Lựa chọn bảng cho kế thừa: một bảng, bảng nối hoặc bảng theo lớp cụ thể'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-relational-mapping-006
+    title: Thiết kế khóa ghép và danh tính phụ thuộc theo yêu cầu mô hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-relational-mapping-007
+    title: Xóa lan truyền, phần tử mồ côi và vòng đời cần giữ lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-relational-mapping-008
+    title: Trường phiên bản cho kiểm soát cập nhật đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-relational-mapping-009
+    title: Lựa chọn dữ liệu cần nạp và nguy cơ đồ thị đối tượng quá lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-relational-mapping-010
+    title: Giữ mô hình miền độc lập với chi tiết ORM trong phạm vi hợp lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-modeling
+  title: Mô hình tài liệu
+  childs:
+  - slug: document-modeling-001
+    title: Mô hình tài liệu và cách tổ chức dữ liệu theo đơn vị đọc hoặc ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-002
+    title: Nhúng dữ liệu hay tham chiếu sang tài liệu khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-003
+    title: Bội số, kích thước và tần suất thay đổi khi chọn ranh giới tài liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-004
+    title: Dữ liệu lồng nhau, mảng và nguy cơ tăng kích thước không giới hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-005
+    title: Trùng lặp có chủ đích và nguồn chịu trách nhiệm cập nhật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-006
+    title: Tính nguyên tử của thao tác và giới hạn giao dịch theo hệ lưu trữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-007
+    title: Chọn khóa tài liệu, chỉ mục và các trường cần truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-008
+    title: Tài liệu nhiều phiên bản và quy tắc đọc dữ liệu có cấu trúc khác nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-009
+    title: Cấu trúc linh hoạt không có nghĩa là dữ liệu không cần lược đồ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-010
+    title: Chuyển mô hình đơn hàng quan hệ sang mô hình tài liệu và đối chiếu đánh đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-value-wide-column-models
+  title: Khóa giá trị và cột rộng
+  childs:
+  - slug: key-value-wide-column-models-001
+    title: Mô hình khóa–giá trị và lựa chọn đơn vị dữ liệu được truy cập nguyên khối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-wide-column-models-002
+    title: Thiết kế không gian khóa, khóa ghép và quy ước định danh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-wide-column-models-003
+    title: Biểu diễn cấu trúc bên trong giá trị và trách nhiệm của ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-wide-column-models-004
+    title: Giới hạn truy vấn khi thông tin cần tìm không nằm trong khóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-wide-column-models-005
+    title: Mô hình cột rộng và thiết kế bắt đầu từ câu truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-wide-column-models-006
+    title: Khóa phân vùng, khóa sắp xếp và dữ liệu cùng được truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-wide-column-models-007
+    title: Một bảng theo mẫu truy cập và nhu cầu nhân bản dữ liệu có kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-wide-column-models-008
+    title: Phân vùng quá lớn, khóa nóng và dữ liệu phân bố lệch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-wide-column-models-009
+    title: Thời hạn sống, xóa dữ liệu và ý nghĩa của bản ghi đánh dấu xóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-wide-column-models-010
+    title: Phân biệt mô hình cột rộng với lưu trữ cột phục vụ phân tích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graph-modeling
+  title: Mô hình đồ thị
+  childs:
+  - slug: graph-modeling-001
+    title: Khi nào quan hệ giữa các đối tượng là trọng tâm của mô hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-002
+    title: Đỉnh, cạnh, nhãn và thuộc tính trong mô hình đồ thị thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-003
+    title: Chọn thực thể làm đỉnh, quan hệ làm cạnh hay làm đỉnh trung gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-004
+    title: Chiều cạnh, bội số và quan hệ có thuộc tính hoặc thời gian hiệu lực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-005
+    title: Định danh, ràng buộc duy nhất và tránh tạo đỉnh trùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-006
+    title: Đường đi, lân cận và kiểu truy vấn chi phối thiết kế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-007
+    title: Quan hệ nhiều vai trò và cách giữ rõ ý nghĩa các đầu liên kết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-008
+    title: Phân biệt đồ thị thuộc tính với mô hình bộ ba RDF
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-009
+    title: Mô hình mạng quan hệ khách hàng, sản phẩm hoặc quyền truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-010
+    title: So sánh mô hình đồ thị với bảng liên kết quan hệ theo yêu cầu truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: temporal-history-modeling
+  title: Thời gian và lịch sử
+  childs:
+  - slug: temporal-history-modeling-001
+    title: Chọn lưu trạng thái hiện tại, lịch sử thay đổi hay cả hai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-history-modeling-002
+    title: Thời điểm có hiệu lực nghiệp vụ và thời điểm hệ thống ghi nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-history-modeling-003
+    title: Bản ghi theo phiên bản với khoảng hiệu lực rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-history-modeling-004
+    title: Biên đóng, biên mở và quy tắc ngăn khoảng hiệu lực chồng lấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-history-modeling-005
+    title: Lưu lịch sử thuộc tính và lịch sử quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-history-modeling-006
+    title: Mô hình hai chiều thời gian để xử lý điều chỉnh hồi tố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-history-modeling-007
+    title: Ảnh chụp định kỳ và truy vấn dữ liệu tại một thời điểm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-history-modeling-008
+    title: Phân biệt bảng ghi dấu thao tác, lịch sử nghiệp vụ và nhật ký sự kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-history-modeling-009
+    title: Xóa mềm, trạng thái ngừng hiệu lực và chính sách lưu lịch sử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-history-modeling-010
+    title: Giữ đúng ngữ nghĩa khi danh mục hoặc thông tin tham chiếu thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: events-state
+  title: Sự kiện và trạng thái
+  childs:
+  - slug: events-state-001
+    title: Mô hình sự kiện cho sự việc đã xảy ra thay vì chỉ lưu trạng thái cuối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-state-002
+    title: Chọn tên sự kiện, chủ thể, dữ liệu và thời điểm có ý nghĩa nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-state-003
+    title: Phân biệt sự kiện miền, sự kiện tích hợp và bản ghi thay đổi lưu trữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-state-004
+    title: Lưu sự kiện làm nguồn dữ liệu (event sourcing) và giới hạn áp dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-state-005
+    title: Định danh luồng, thứ tự phiên bản và cập nhật đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-state-006
+    title: Sự kiện bất biến, sửa sai và hành động bù trừ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-state-007
+    title: Chiếu sự kiện thành mô hình đọc và khả năng tái tạo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-state-008
+    title: Ảnh chụp trạng thái để hỗ trợ đọc lại lịch sử dài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-state-009
+    title: Tiến hóa cấu trúc sự kiện và cách hiểu dữ liệu cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-state-010
+    title: Chọn mô hình trạng thái hoặc mô hình sự kiện theo yêu cầu thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: analytical-modeling
+  title: Mô hình phân tích
+  childs:
+  - slug: analytical-modeling-001
+    title: Phân biệt nhu cầu giao dịch OLTP với nhu cầu phân tích OLAP
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-modeling-002
+    title: Bắt đầu từ câu hỏi phân tích, quy trình nghiệp vụ và độ hạt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-modeling-003
+    title: Số đo, chiều phân tích và quan hệ giữa chúng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-modeling-004
+    title: Lược đồ hình sao, bông tuyết và nhiều bảng dữ kiện dùng chung chiều
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-modeling-005
+    title: Mô hình chiều so với mô hình quan hệ chuẩn hóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-modeling-006
+    title: Vai trò của lớp tiếp nhận, dữ liệu chuẩn hóa và dữ liệu phục vụ phân tích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-modeling-007
+    title: Chiều dùng chung và định nghĩa nhất quán giữa các quy trình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-modeling-008
+    title: Tổng quan Data Vault với hub, link và satellite
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-modeling-009
+    title: Khi nào chọn mô hình chiều, Data Vault hoặc cách kết hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-modeling-010
+    title: 'Giới hạn phạm vi: mô hình dữ liệu phân tích khác với triển khai toàn bộ luồng ETL'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fact-tables
+  title: Bảng dữ kiện
+  childs:
+  - slug: fact-tables-001
+    title: Tuyên bố độ hạt trước khi chọn khóa và số đo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fact-tables-002
+    title: Bảng dữ kiện giao dịch, ảnh chụp định kỳ và ảnh chụp tích lũy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fact-tables-003
+    title: Số đo cộng được, cộng được theo một số chiều và không cộng được
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fact-tables-004
+    title: Bảng dữ kiện không có số đo để mô tả sự tham gia hoặc sự xuất hiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fact-tables-005
+    title: Khóa chiều, thời điểm và định danh giao dịch trong bảng dữ kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fact-tables-006
+    title: Lưu số dư, tỷ lệ, đơn giá và quy tắc tổng hợp đúng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fact-tables-007
+    title: Số đo gốc so với số đo suy ra hoặc tính sẵn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fact-tables-008
+    title: Dữ kiện đến trễ, điều chỉnh và bản ghi bù trừ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fact-tables-009
+    title: Dữ kiện có nhiều tiền tệ, đơn vị hoặc mức chi tiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fact-tables-010
+    title: Phát hiện nhân đôi số đo khi nối nhiều bảng dữ kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dimension-tables
+  title: Bảng chiều
+  childs:
+  - slug: dimension-tables-001
+    title: Khóa nghiệp vụ, khóa thay thế và thuộc tính mô tả của chiều
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimension-tables-002
+    title: 'Chiều thay đổi chậm kiểu 1: ghi đè giá trị'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimension-tables-003
+    title: 'Chiều thay đổi chậm kiểu 2: tạo phiên bản và khoảng hiệu lực'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimension-tables-004
+    title: 'Chiều thay đổi chậm kiểu 3: giữ một phần giá trị trước'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimension-tables-005
+    title: Chọn cách lưu lịch sử theo từng thuộc tính và yêu cầu phân tích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimension-tables-006
+    title: Chiều ngày, chiều thời gian và một chiều đóng nhiều vai trò
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimension-tables-007
+    title: Định danh giao dịch làm chiều suy biến (degenerate dimension)
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimension-tables-008
+    title: Gom các cờ hoặc mã ít giá trị thành chiều phụ (junk dimension)
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimension-tables-009
+    title: Chiều nhiều giá trị và bảng cầu để giữ đúng độ hạt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimension-tables-010
+    title: Thành viên chưa biết, không áp dụng và chiều đến trễ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimension-tables-011
+    title: Phân cấp phân tích và chiều dùng chung giữa nhiều bảng dữ kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-series-data
+  title: Dữ liệu chuỗi thời gian
+  childs:
+  - slug: time-series-data-001
+    title: Phân biệt dữ liệu đo theo thời gian, sự kiện và ảnh chụp trạng thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-data-002
+    title: Khóa chuỗi, thời điểm và các chiều dùng để xác định một phép đo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-data-003
+    title: Giá trị đo tức thời, bộ đếm tích lũy và giá trị biến thiên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-data-004
+    title: Tần suất lấy mẫu, độ chính xác và giá trị bị thiếu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-data-005
+    title: Chia khoảng thời gian để tổ chức lưu trữ và truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-data-006
+    title: Dữ liệu đến trễ, trùng thời điểm và điều chỉnh phép đo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-data-007
+    title: Lưu dữ liệu thô, tổng hợp nhiều mức và giảm độ phân giải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-data-008
+    title: Thời gian lưu theo từng mức chi tiết và yêu cầu truy vết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-data-009
+    title: Số lượng tổ hợp nhãn và rủi ro bùng nổ số chuỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-data-010
+    title: Mô hình nhiệt độ thiết bị hoặc chỉ số vận hành theo nhu cầu đọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distribution-partitioning
+  title: Phân tán và phân vùng
+  childs:
+  - slug: distribution-partitioning-001
+    title: Thiết kế theo ranh giới dữ liệu thường được đọc hoặc ghi cùng nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-partitioning-002
+    title: Chọn khóa phân vùng theo phân bố dữ liệu và mẫu truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-partitioning-003
+    title: Phân vùng theo khoảng, theo hàm băm hoặc theo thư mục định tuyến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-partitioning-004
+    title: Khóa nóng, khách hàng quá lớn và nguy cơ phân bố lệch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-partitioning-005
+    title: Định danh duy nhất khi dữ liệu được tạo tại nhiều nơi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-partitioning-006
+    title: Ràng buộc duy nhất trong một phân vùng so với toàn hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-partitioning-007
+    title: Dữ liệu nhiều tổ chức với bảng dùng chung hoặc vùng lưu trữ tách biệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-partitioning-008
+    title: Nhân bản dữ liệu và xác định nguồn chịu trách nhiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-partitioning-009
+    title: Truy vấn xuyên phân vùng, giao dịch phân tán và chi phí phối hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-partitioning-010
+    title: Thiết kế lại ranh giới khi bất biến không thể được bảo vệ hợp lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: boundaries-integration
+  title: Ranh giới và tích hợp
+  childs:
+  - slug: boundaries-integration-001
+    title: Mô hình dữ liệu riêng cho từng ngữ cảnh thay vì một mô hình dùng cho mọi hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-integration-002
+    title: Quan hệ giữa mô hình miền, mô hình lưu trữ và mô hình trao đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-integration-003
+    title: Hợp đồng API hoặc sự kiện như phép chiếu có mục đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-integration-004
+    title: Chọn dữ liệu cần công bố và tránh lộ cấu trúc lưu trữ nội bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-integration-005
+    title: Đối chiếu định danh, thuật ngữ và dữ liệu danh mục giữa các nguồn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-integration-006
+    title: Mô hình chuẩn dùng chung và nguy cơ trở thành điểm phụ thuộc quá lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-integration-007
+    title: Lớp chuyển đổi để bảo vệ mô hình khỏi cách hiểu bên ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-integration-008
+    title: Tách mô hình đọc với mô hình ghi theo CQRS khi nhu cầu khác biệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-integration-009
+    title: Quyền sở hữu dữ liệu giữa dịch vụ và tránh chia sẻ bảng ngoài kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-integration-010
+    title: Theo dõi nguồn gốc của dữ liệu được sao chép hoặc tổng hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-protection
+  title: Bảo vệ dữ liệu
+  childs:
+  - slug: data-protection-001
+    title: Nhận diện dữ liệu cá nhân, dữ liệu nhạy cảm và thuộc tính suy ra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-002
+    title: Chỉ mô hình hóa dữ liệu cần thiết cho mục đích đã xác định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-003
+    title: Tách thông tin định danh khỏi dữ liệu nghiệp vụ khi phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-004
+    title: Mã thay thế, mã hóa và ảnh hưởng đến truy vấn với ràng buộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-005
+    title: Mô hình quyền truy cập theo chủ thể, tài nguyên, vai trò hoặc thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-006
+    title: Ranh giới tổ chức và nguy cơ liên kết dữ liệu chéo phạm vi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-007
+    title: Thời hạn lưu, điều kiện xóa và dữ liệu còn nằm trong bản sao hoặc lịch sử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-008
+    title: Cân bằng truy vết nghiệp vụ với yêu cầu hạn chế dữ liệu nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-009
+    title: Biểu diễn trạng thái đồng ý, mục đích sử dụng và thời gian hiệu lực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-evolution
+  title: Tiến hóa mô hình
+  childs:
+  - slug: model-evolution-001
+    title: Phân biệt đổi tên, đổi cấu trúc và đổi ý nghĩa dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-002
+    title: Thêm thuộc tính, đổi kiểu, siết ràng buộc và đánh giá dữ liệu hiện có
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-003
+    title: Phiên bản lược đồ và quản lý các trạng thái trung gian khi triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-004
+    title: Mở rộng trước, chuyển đổi dần rồi thu hẹp cấu trúc cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-005
+    title: Điền bổ sung dữ liệu lịch sử với khả năng tiếp tục và đối soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-006
+    title: Chuyển khóa chính, tách thực thể và hợp nhất thực thể
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-007
+    title: Đọc hoặc ghi nhiều phiên bản trong giai đoạn chuyển đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-008
+    title: Kiểm tra khả năng quay về phiên bản cũ và giới hạn khi mất thông tin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-009
+    title: Đồng bộ thay đổi giữa mô hình Java, lưu trữ, sự kiện và báo cáo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-010
+    title: Đánh giá tác động đến bên sử dụng và dữ liệu dẫn xuất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-documentation
+  title: Tài liệu mô hình
+  childs:
+  - slug: model-documentation-001
+    title: Chọn mức chi tiết sơ đồ theo đối tượng đọc và mục đích trao đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-documentation-002
+    title: Từ điển dữ liệu cho bảng, trường, kiểu, đơn vị và miền giá trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-documentation-003
+    title: Định nghĩa khóa, quan hệ, bội số và hành vi vòng đời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-documentation-004
+    title: Tài liệu hóa độ hạt, nguồn dữ liệu và thời điểm có hiệu lực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-documentation-005
+    title: Quy ước đặt tên nhất quán mà vẫn giữ đúng ngôn ngữ nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-documentation-006
+    title: Lưu ví dụ hợp lệ, phản ví dụ và quy tắc không thể hiện hết trên sơ đồ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-documentation-007
+    title: Ghi quyết định kiến trúc, phương án đã cân nhắc và lý do đánh đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-documentation-008
+    title: Sơ đồ được sinh từ triển khai và giới hạn khi thiếu ý nghĩa nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-documentation-009
+    title: Quản lý mô hình trong kiểm soát phiên bản và rà soát cùng thay đổi mã
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-validation
+  title: Kiểm chứng thiết kế
+  childs:
+  - slug: design-validation-001
+    title: Rà soát mô hình bằng tình huống nghiệp vụ từ đầu đến cuối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-validation-002
+    title: Kiểm tra độ hạt, định danh, tính tùy chọn và vòng đời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-validation-003
+    title: Kiểm tra bất biến với dữ liệu biên, dữ liệu thiếu và trạng thái không hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-validation-004
+    title: Chứng minh phân rã không mất mát và kiểm tra phụ thuộc cần bảo toàn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-validation-005
+    title: Kiểm thử tính đúng của phép nối, tổng hợp và lịch sử theo thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-validation-006
+    title: Kiểm thử equals, hashCode và tính bất biến của mô hình Java
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-validation-007
+    title: Kiểm tra ràng buộc khi có thao tác đồng thời hoặc dữ liệu đến trễ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-validation-008
+    title: Đo truy vấn đọc, chi phí ghi và dung lượng trên dữ liệu đại diện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-validation-009
+    title: Kiểm thử chuyển đổi lược đồ, đối soát và khả năng khôi phục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-validation-010
+    title: Rà soát quyền truy cập, phạm vi tổ chức và yêu cầu xóa dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-validation-011
+    title: Danh sách tiêu chí để chấp nhận một mô hình trước khi triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-pitfalls
+  title: Lỗi thường gặp
+  childs:
+  - slug: common-pitfalls-001
+    title: Vẽ bảng trước khi thống nhất khái niệm và độ hạt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-002
+    title: Đồng nhất lớp Java, bảng lưu trữ và DTO thành một mô hình duy nhất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-003
+    title: Một bảng hoặc một tài liệu chứa quá nhiều khái niệm khác vòng đời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-004
+    title: Tạo quá nhiều bảng hoặc kiểu chỉ để thể hiện khác biệt rất nhỏ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-005
+    title: Danh sách phân cách bằng dấu phẩy và nhóm cột lặp như item1, item2
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-006
+    title: Mô hình thực thể–thuộc tính–giá trị (EAV) và chi phí của cấu trúc quá tổng quát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-007
+    title: Khóa ngoại đa hình không có cách kiểm soát tham chiếu rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-008
+    title: Lạm dụng cột JSON để né xác định cấu trúc dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-009
+    title: Dư thừa dữ liệu nhưng không có nguồn chuẩn hoặc quy tắc đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-010
+    title: Xóa lan truyền làm mất lịch sử cần giữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-011
+    title: Thiết kế cho mọi khả năng tương lai mà không có yêu cầu hoặc bằng chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-exercises-001
+    title: Khảo sát quy trình bán hàng và xây dựng bảng thuật ngữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-002
+    title: Vẽ mô hình khái niệm cho khách hàng, sản phẩm, đơn hàng và thanh toán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-003
+    title: Xác định khóa, quan hệ, thuộc tính và bất biến của từng phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-004
+    title: Chuẩn hóa mô hình quan hệ và kiểm tra các phương án phân rã
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-005
+    title: Thiết kế mô hình Java với đối tượng giá trị và ranh giới aggregate
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-006
+    title: Chọn mô hình vật lý và chỉ mục từ các truy vấn thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-007
+    title: So sánh biểu diễn đơn hàng bằng bảng quan hệ với tài liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-008
+    title: Lưu giá bán tại giao dịch và lịch sử thay đổi thông tin khách hàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-009
+    title: Thiết kế mô hình đọc, sự kiện và hợp đồng trao đổi phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-010
+    title: Xây dựng bảng dữ kiện bán hàng cùng các chiều phân tích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-011
+    title: Thực hiện một thay đổi mô hình có chuyển đổi dữ liệu và đối soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-012
+    title: Hoàn thiện sơ đồ, từ điển dữ liệu, quyết định thiết kế và bộ kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

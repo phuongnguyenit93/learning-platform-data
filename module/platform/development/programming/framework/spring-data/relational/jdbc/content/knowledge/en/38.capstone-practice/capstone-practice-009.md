@@ -1,0 +1,788 @@
+# Design Review, Error Handling, and Production Readiness Criteria
+
+A Spring Data JDBC application is ready for deployment only when its aggregate model, schema, transactions, error handling, and operations work together properly in a real environment. Passing repository tests is necessary evidence, yet insufficient by itself to conclude that a system can handle load, recover from failures, or deploy safely.
+
+This capstone review lesson outlines how to evaluate a Spring Data JDBC application prior to release. Coverage spans from aggregate boundaries and mapping to concurrency, transactions, exception handling, observability, security, migrations, and rollbacks. The goal is to turn design decisions into verifiable artifacts through tests, metrics, migration rehearsals, and runbooks.
+
+## 1. Reviewing the system by use case
+
+Start by selecting the most critical use cases, such as:
+
+- Creating an order along with its order lines.
+- Paying for or changing the status of an order.
+- Updating customer information.
+- Searching orders across multiple filters.
+- Running batch imports.
+- Processing messages or scheduled jobs.
+
+For each use case, document:
+
+1. Which aggregate root is read and written?
+2. Which repository or query adapter is invoked?
+3. Where does the transaction begin and end?
+4. Which business invariants must always hold?
+5. What database or external system failures can occur?
+6. When retried, is the operation safe and idempotent?
+7. Which metrics/logs prove the use case is operating normally?
+
+A use-case table helps expose gaps:
+
+| Use case | Aggregate/adapter | Transaction | Key risks | Required evidence |
+|---|---|---|---|---|
+| Create order | `PurchaseOrderRepository` | One write transaction | FK, generated ID, duplicate requests | Integration tests and idempotency tests |
+| Approve order | `PurchaseOrderRepository` | One write transaction | Stale version, invalid transition | Optimistic locking tests |
+| Search orders | Read query adapter | Read-only if appropriate | Pagination, query latency | Query contracts and execution plans |
+| Batch import | Application service + JDBC | Per chunk or per item | Retries, malformed data, long transactions | Batch recovery tests |
+| Send notification | Outbox + worker | Write outbox with aggregate | Duplicate sends or lost messages | Outbox delivery/retry tests |
+
+Do not evaluate the system merely by counting repositories. Evaluate it by tracing data paths and every potential failure point in a real use case.
+
+## 2. Reviewing aggregate boundaries
+
+Spring Data JDBC persists data by aggregate root. An aggregate should contain the entities that must be modified and protected together under business invariants.
+
+When reviewing an aggregate, ask:
+
+- Is there a clear single root?
+- Do children truly belong to the root's lifecycle?
+- Are there any unboundedly growing child collections?
+- Are there use cases that frequently update children independently?
+- Do external tables directly reference child rows?
+- Must any transaction update multiple aggregates simultaneously?
+- Are there invariants that can only be checked by holding the whole aggregate in a single transaction?
+
+Example:
+
+~~~java
+@Table("purchase_orders")
+public record PurchaseOrder(
+        @Id Long id,
+        @Version Long version,
+        String orderNumber,
+        String status,
+        BigDecimal total,
+        @MappedCollection(idColumn = "order_id", keyColumn = "line_no")
+        List<OrderLine> lines
+) {}
+~~~
+
+If `OrderLine` is part of an order, changing a line may require checking the total amount, quantities, and order status. Keeping lines inside the aggregate keeps domain rules centralized.
+
+If a collection contains tens of thousands of elements and is updated independently, revisit the boundary. Splitting a child into its own aggregate reduces root save overhead, while shifting consistency coordination to an application service or transaction coordination.
+
+Do not split aggregates solely to reduce SQL statements. Decisions must be grounded in domain invariants and lifecycles.
+
+## 3. Reviewing mappings and schemas
+
+Every persistent property needs compatible mapping and schema definitions.
+
+Review these checkpoints:
+
+- `@Table` and `@Column` match table and column names.
+- `@Id` aligns with the generated or assigned ID strategy.
+- `@Version` has a corresponding column and is tested.
+- `@MappedCollection` specifies the right `idColumn`/`keyColumn`.
+- `@Embedded` uses appropriate prefixes and null semantics.
+- Custom converters handle both reading and writing directions where needed.
+- Java types match JDBC/database types.
+- Entity nullability aligns with `NOT NULL` and defaults.
+- Primary keys, unique constraints, foreign keys, and indexes reflect invariants.
+- Actual migrations produce the same schema used in integration tests.
+
+Example schema:
+
+~~~sql
+CREATE TABLE purchase_orders (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    version BIGINT NOT NULL,
+    order_number VARCHAR(40) NOT NULL UNIQUE,
+    status VARCHAR(30) NOT NULL,
+    total DECIMAL(18, 2) NOT NULL,
+    created_at TIMESTAMP NOT NULL
+);
+
+CREATE TABLE order_lines (
+    order_id BIGINT NOT NULL,
+    line_no INTEGER NOT NULL,
+    sku VARCHAR(80) NOT NULL,
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    unit_price DECIMAL(18, 2) NOT NULL,
+    PRIMARY KEY (order_id, line_no),
+    CONSTRAINT fk_order_lines_order
+        FOREIGN KEY (order_id) REFERENCES purchase_orders(id)
+);
+~~~
+
+Database constraints are the final line of defense for data integrity. Java-level validation produces friendly error messages, yet cannot replace unique/FK/check constraints when multiple requests or applications write to the database concurrently.
+
+## 4. Evaluating aggregate saves and child collection costs
+
+When saving an existing aggregate, Spring Data JDBC may delete referenced entities, update the root, and re-insert referenced entities according to the current collection state. The framework does not keep a prior snapshot to diff individual child rows.
+
+This must be factored into performance evaluations when aggregates hold large collections.
+
+With N child rows, the number of deleted and inserted child rows can approach 2N even if only one child changed. This is an estimate of row changes; the actual number of SQL statements or batches depends on dialect, driver, and mapping.
+
+Measure separately:
+
+- Saves changing only root properties.
+- Saves changing a single child.
+- Saves changing part of the collection.
+- Saves replacing the entire collection.
+- Custom targeted updates where business rules permit.
+
+Monitor p50/p95/p99 latencies, affected rows, transaction duration, database CPU/I/O, lock waits, and transaction logs. Never redesign solely on a hunch that a query is slow; identify the exact use case and cardinality driving the cost.
+
+If using custom SQL to update child rows, keep `version`, invariants, audit fields, transactions, and in-memory object state consistent.
+
+## 5. Transaction boundaries must be explicit
+
+Transactions should typically sit on the application service wrapping a business use case:
+
+~~~java
+@Service
+public class OrderCommandService {
+
+    private final PurchaseOrderRepository orders;
+
+    public OrderCommandService(PurchaseOrderRepository orders) {
+        this.orders = orders;
+    }
+
+    @Transactional
+    public PurchaseOrder approve(Long id) {
+        PurchaseOrder current = orders.findById(id).orElseThrow();
+        PurchaseOrder approved = current.approve();
+        return orders.save(approved);
+    }
+}
+~~~
+
+Verify:
+
+- Methods are invoked through a Spring proxy.
+- Repositories and `JdbcTemplate` share the same `DataSource` when the same transaction is required.
+- The transaction manager manages the intended `DataSource`.
+- No code manually opens an independent connection and commits separately.
+- Transactions are never held open during HTTP calls or long-waiting operations.
+- Isolation and timeouts match the use case.
+- Operations requiring atomicity execute within the same physical transaction.
+
+Do not slap `@Transactional` on every method "just to be safe." Overly broad transactions hold connections and locks longer, increasing contention and lowering throughput.
+
+## 6. Reviewing rollback and exception rules
+
+By default, Spring transactions typically roll back when a `RuntimeException` or `Error` escapes the transaction boundary. Checked exceptions do not automatically trigger rollback under all default configurations.
+
+If business logic requires rolling back on a checked exception, declare it explicitly:
+
+~~~java
+@Transactional(rollbackFor = ImportValidationException.class)
+public void importOrder(ImportCommand command)
+        throws ImportValidationException {
+    // Modify data within the transaction.
+}
+~~~
+
+If an exception is caught and not rethrown out of the transactional method, the transaction interceptor may not know the use case failed. Whenever catching exceptions, decide explicitly:
+
+- Can it recover and continue?
+- Should it rethrow to trigger rollback?
+- Should the transaction be marked rollback-only?
+- Should a partial failure result be returned for a batch?
+
+Never swallow a database exception and return success. If an error is handled locally, establish an explicit outcome state and ensure proper transaction semantics.
+
+## 7. Classifying persistence errors
+
+Spring translates many JDBC errors into the `DataAccessException` hierarchy. Classifying them helps the application layer decide whether to retry, return a client error, or alert operations.
+
+| Error category | Examples | Handling approach |
+|---|---|---|
+| Invalid data | `NOT NULL`, `CHECK` violation | Return an appropriate validation/domain error |
+| Duplicate data | Unique constraint violation | Identify conflict or idempotent duplicate |
+| Not found | Repository `findById` returns `Optional.empty` | Handle not-found per use case |
+| Optimistic locking | Version mismatch | Report conflict or ask caller to reload |
+| Deadlock/serialization | Database aborts transaction due to conflict | Retry with bounds only if operation is safe |
+| Connection failure | Lost database connectivity | Fail fast, emit circuit/health signals, and recover connections |
+| Timeout | Query or transaction exceeds deadline | Investigate queries, locks, and timeout settings |
+| Mapping/conversion | Cannot convert JDBC type | Fix mapping/converter and data |
+
+Never leak stack traces or internal SQL to clients. Log exceptions server-side with a correlation ID and return API errors matching your contract.
+
+## 8. Optimistic locking and concurrent conflicts
+
+For aggregates with `@Version`, Spring Data JDBC uses the version to detect updates based on stale state.
+
+Example where two requests both read version 4:
+
+1. Request A updates and commits; version becomes 5.
+2. Request B still holds the object at version 4.
+3. Request B saves; the update fails to match the current version.
+4. Spring Data JDBC reports an optimistic locking failure.
+
+This is a business/concurrency conflict, not a system failure that should always be automatically retried.
+
+Handling options:
+
+- Return HTTP 409 Conflict when the client needs to reload data.
+- Reload the aggregate and ask the user to confirm the change.
+- Merge automatically only when domain rules allow it.
+- Retry with bounds only when the operation can be safely recomputed.
+
+Do not catch every exception and blindly retry. If a business decision depended on values a user reviewed, automatic retries can overwrite changes based on stale assumptions.
+
+## 9. Deadlocks, lock waits, and retries
+
+Deadlocks commonly happen when transactions acquire locks in different orders. The database picks a victim transaction and rolls it back.
+
+Mitigation measures:
+
+- Keep transactions short.
+- Access tables and rows in a consistent order.
+- Maintain indexes supporting `UPDATE`/`DELETE` predicates.
+- Avoid non-database work inside transactions.
+- Reduce batch/chunk sizes if transactions are too large.
+- Monitor lock waits and deadlocks at the DBMS level.
+
+When retrying transient errors:
+
+- Retry only exceptions explicitly classified as retryable.
+- Cap the maximum number of attempts.
+- Use exponential backoff with jitter.
+- Enforce an overall timeout.
+- Ensure commands are idempotent or protected by an idempotency key.
+- Never repeat external side effects outside the database.
+
+Example pseudocode:
+
+~~~java
+for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+        return transactionTemplate.execute(status ->
+                orderWriter.apply(command)
+        );
+    } catch (TransientDataAccessException ex) {
+        if (attempt == maxAttempts) {
+            throw ex;
+        }
+        backoff(attempt);
+    }
+}
+~~~
+
+This is a conceptual sketch. In a real application, a fresh transaction must be created for each attempt; never retry inside a transaction already marked rollback-only. Use a proper retry abstraction or `TransactionTemplate` correctly.
+
+## 10. Idempotency for requests and messages
+
+A request might be resent due to a client timeout even after the database committed. Message brokers can also redeliver messages. If reprocessing is unsafe, the application could create duplicate orders or charge payments multiple times.
+
+You can use an idempotency key:
+
+~~~sql
+CREATE TABLE processed_commands (
+    command_id VARCHAR(80) PRIMARY KEY,
+    processed_at TIMESTAMP NOT NULL
+);
+~~~
+
+Within the same transaction:
+
+1. Attempt to insert the command ID.
+2. If the ID already exists, recognize the command as already processed and return the stored outcome or corresponding result.
+3. If the insert succeeds, apply the aggregate changes.
+4. Store the processed result if the API must return a deterministic response.
+5. Commit both the marker and aggregate together.
+
+Idempotency keys should be scoped appropriately to the user/tenant and command type. Do not use an unscoped global key if unrelated requests might accidentally collide.
+
+## 11. External side effects and the transactional outbox
+
+Sending emails, making HTTP requests, publishing messages, or charging payment providers do not automatically roll back with a JDBC transaction.
+
+Dangerous example:
+
+~~~java
+@Transactional
+public void approve(Long id) {
+    PurchaseOrder order = orders.findById(id).orElseThrow();
+    orders.save(order.approve());
+    emailClient.sendApproval(order);
+}
+~~~
+
+If the email succeeds but the database transaction rolls back, the external system received a notification while the database never recorded the approval.
+
+A transactional outbox solves this by recording an event in an outbox table in the same transaction as the aggregate:
+
+~~~sql
+CREATE TABLE outbox_events (
+    id UUID PRIMARY KEY,
+    aggregate_type VARCHAR(80) NOT NULL,
+    aggregate_id VARCHAR(80) NOT NULL,
+    event_type VARCHAR(120) NOT NULL,
+    payload TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    published_at TIMESTAMP
+);
+~~~
+
+The transaction saves both the aggregate and the outbox row. A separate worker reads unpublished events, forwards them to the broker, and marks them published. The worker must tolerate duplicate deliveries via event IDs/idempotency.
+
+An outbox does not magically create exactly-once delivery; it provides a reliable guarantee against losing events between database commit and publishing. Consumers still need to be idempotent.
+
+## 12. Batches and long-running transactions
+
+Importing thousands of records inside one transaction can:
+
+- Hold connections open for a long time.
+- Extend lock durations.
+- Generate large transaction logs.
+- Make retries hard if an error occurs near the end of the batch.
+- Increase rollback duration.
+- Degrade online traffic workloads.
+
+Batches can be split into chunks:
+
+~~~java
+for (List<ImportRow> chunk : chunks(rows, chunkSize)) {
+    importChunkService.persist(chunk);
+}
+~~~
+
+If `importChunkService` is a Spring bean with `@Transactional`, each chunk runs in its own transaction. That enables per-chunk retries or error reporting, while changing semantics: earlier chunks remain committed if a later chunk fails.
+
+Pick the strategy suited to the business:
+
+- All-or-nothing: a single large transaction if data size and duration allow.
+- Chunk commit: accept partial results and track progress.
+- Staging table: load raw data first, validate, then promote to main tables.
+- Asynchronous job: return a job ID, track progress, and surface errors.
+
+Do not place `@Transactional` on a self-invoked internal method on the same object expecting the proxy to open a new transaction per chunk; self-invocation bypasses the Spring proxy by default.
+
+## 13. Schema migrations and compatible deployments
+
+Schema migrations are part of production readiness. Modifying an entity without a matching migration will break the application on deployment.
+
+For breaking changes, use an expand-and-contract strategy:
+
+1. **Expand**: add new columns/tables/indexes in a way that old code still runs.
+2. Deploy code capable of reading/writing compatibly with both old and new schemas as needed.
+3. Backfill data in observable, retryable batches.
+4. Switch reads/writes to the new structure.
+5. Verify data and metrics are stable.
+6. **Contract**: drop old columns or structures in a later release.
+
+Do not drop or rename columns in the same release while older instances are still running and accessing those columns.
+
+Migrations must be rehearsed against a representative schema/data copy, measuring duration, locks, and storage growth. Index creation on large tables may have DBMS-specific online/concurrent options.
+
+## 14. Application rollback and data rollback
+
+Rolling back a binary does not automatically roll back schema changes or transformed data.
+
+Before deploying, determine:
+
+- Can old code run against the new schema?
+- Is the migration destructive?
+- Can the backfill be re-run safely?
+- Is data transformation reversible?
+- If irreversible, is a forward-fix migration prepared?
+- Before which step are backups/snapshots needed?
+- Who decides to roll back, and what are the trigger conditions?
+
+For destructive migrations, you may need to keep legacy columns for one or more releases. A safe rollback often means deploying code compatible with the new schema, or applying a forward-fix rather than attempting to restore an old schema after data has changed.
+
+## 15. Observability: logs, metrics, and tracing
+
+Production readiness means being able to answer:
+
+- Which request caused an error?
+- Which repository/query is slow?
+- Is the database saturating the connection pool?
+- Are deadlocks, timeouts, or optimistic conflicts rising?
+- What is the status of migrations or batch jobs?
+
+### Logging
+
+Structured logs should contain:
+
+- Correlation ID/trace ID.
+- Use case or operation name.
+- Aggregate ID when appropriate and non-sensitive.
+- Success/failure outcome.
+- Exception class and internal error code.
+- Execution duration.
+
+Do not log passwords, tokens, session secrets, or full personal data. SQL bind parameters can expose sensitive data; enable detailed parameter logging only in controlled environments.
+
+### Metrics
+
+Useful metrics:
+
+| Metric | Meaning |
+|---|---|
+| Request latency p50/p95/p99 | Response quality |
+| Repository/query duration | Slow queries or use cases |
+| DataSource active connections | Connections currently in use |
+| DataSource pending threads | Requests waiting for a connection |
+| Transaction duration | Long-running transactions |
+| Optimistic locking failures | Update contention |
+| Deadlocks/lock waits | Database contention |
+| Query timeout/error count | Persistence failures |
+| Batch processed/failed rows | Import progress |
+| Outbox backlog/age | Unpublished events |
+
+Set alerts based on SLOs and real baselines. A single metric spiking does not automatically signal an outage; evaluate latency, error rate, and saturation together.
+
+### Tracing
+
+Distributed tracing tracks requests across controllers, application services, repositories, query adapters, and external services. Avoid creating overly granular spans for every individual row in a large batch; focus on meaningful operations.
+
+## 16. Connection pools and timeouts
+
+An application can have valid queries yet still fail under load because its connection pool is undersized or transactions hold connections too long.
+
+Configure and monitor:
+
+- Maximum pool size.
+- Connection acquisition timeout.
+- Idle/minimum connections.
+- Connection lifetime/max lifetime.
+- Validation/keepalive settings per driver/database.
+- Transaction timeout.
+- Query/statement timeout.
+- Network/socket timeout.
+
+Do not raise pool size indefinitely to eliminate pending threads. Databases have finite concurrency limits; too many connections increase context switching, lock contention, and memory consumption.
+
+Measure active/pending connections alongside database CPU and latency to find the right balance. Transactions should finish promptly before performing non-database tasks.
+
+## 17. Health checks and resilience
+
+Readiness probes should determine whether an instance can accept traffic. Liveness probes should determine whether the process is alive and able to recover on its own.
+
+Do not let a flaky dependency cause liveness probes to continuously restart every instance when restarting does not fix the issue. Separate health indicators by dependency and configure sensible timeouts.
+
+Failure scenarios to rehearse:
+
+- Temporary database disconnection.
+- Connection pool exhaustion.
+- Query timeouts.
+- Database failover.
+- Message broker disconnection.
+- Replica lag.
+- Migration failure.
+- Growing outbox backlog.
+
+The application should fail clearly, emit metrics, and recover once dependencies come back. Do not keep accepting writes if required transaction or consistency guarantees cannot be met.
+
+## 18. Security and database access privileges
+
+Use database accounts following least privilege:
+
+- Runtime users have only the required permissions on schemas/tables.
+- Migration users hold separate DDL privileges if required by the deployment process.
+- Never use a DBA account for the application.
+- Retrieve secrets from a secret manager or protected environment; never commit them to source control.
+- Use TLS for network connections per infrastructure policy.
+- Restrict read access to sensitive data.
+- Enforce tenant isolation and authorization at the application/query layer.
+- Bind all parameter values and whitelist dynamic SQL structures.
+
+Separating migration and runtime privileges limits blast radius if the application is compromised. Runtime accounts rarely need permission to create or drop tables in production.
+
+## 19. Backups, restores, and data integrity
+
+Backups are only valuable once restores have been tested. Before shipping major data changes:
+
+- Confirm the latest backup succeeded.
+- Define RPO/RTO targets.
+- Rehearse restoring into an isolated environment.
+- Verify integrity after restore.
+- Verify how sequences/identities, indexes, and constraints recover.
+- Inspect outbox/batch/import data.
+- Establish a procedure for handling data generated after the backup timestamp.
+
+Do not treat snapshot creation as proof that a system can recover. A restore rehearsal is the real verification step.
+
+## 20. Pre-deployment testing
+
+A solid test suite spans multiple layers:
+
+| Layer | Purpose |
+|---|---|
+| Domain unit tests | Invariants and state transitions |
+| Converter unit tests | Domain type conversions |
+| Repository integration tests | Mappings, SQL, generated IDs, versions |
+| Database integration tests | Dialects, drivers, constraints, and migrations |
+| Transaction tests | Commit, rollback, isolation, and concurrency |
+| API/service tests | Authorization, error mapping, idempotency |
+| Performance tests | Latency, throughput, and database saturation |
+| Migration rehearsal | Duration, locking, backfill, and rollback |
+| Recovery tests | Retries, reconnects, outbox, and restore |
+
+H2 can be helpful for fast feedback, but tests depending on dialect, generated keys, JSON, timezones, or locking must run on a production-like DBMS. Testcontainers is a strong option for running real databases in CI.
+
+## 21. Testing concurrency with two independent transactions
+
+To verify optimistic locking, you need two reads of the same version and two independent transactions. Pattern:
+
+~~~text
+Transaction A: reads aggregate version 3
+Transaction B: reads aggregate version 3
+Transaction A: updates and commits version 4
+Transaction B: attempts to update object version 3
+Expected: B receives an optimistic locking failure
+~~~
+
+Do not simulate concurrency using two objects inside the same transaction. Use two independent connections/transactions and synchronize timing to trigger the race condition.
+
+For deadlocks or lock waits, use a test database and controlled statements to reproduce them. Tests should never rely on arbitrary timing; use barriers/latches and bounded timeouts to coordinate the two transactions.
+
+## 22. Testing transaction rollback across multiple operations
+
+A use case may save an aggregate and then write an audit/outbox record. Verify that a failure in the later step rolls back all database work when running in the same transaction:
+
+~~~java
+@Test
+void rollsBackAggregateWhenOutboxInsertFails() {
+    assertThrows(RuntimeException.class, () ->
+            orderCommandService.createAndFailOutbox(command)
+    );
+
+    assertFalse(orderRepository.existsByOrderNumber(command.orderNumber()));
+    assertEquals(
+            0,
+            jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM outbox_events WHERE aggregate_id = ?",
+                    Integer.class,
+                    command.orderNumber()
+            )
+    );
+}
+~~~
+
+Tests must run through the Spring proxy and against a real database or test container. If the test framework wraps the test method in its own transaction, understand how that transaction affects observing data after rollback.
+
+## 23. Error handling at the API boundary
+
+Never let persistence exceptions leak directly as HTTP 500 with stack traces. Map errors according to contract:
+
+| Internal error | Appropriate response |
+|---|---|
+| Entity not found | 404 Not Found |
+| Validation/domain rule failure | 400 or 422 |
+| Optimistic locking conflict | 409 Conflict |
+| Unique constraint conflict | 409 Conflict or validation response |
+| Rate/size limit | 429 or 413 depending on contract |
+| Database unavailable | 503 Service Unavailable |
+| Unknown error | 500 Internal Server Error |
+
+Do not map every `DataIntegrityViolationException` to 400 when it could represent a schema or programming bug. Distinguish expected business constraints from unexpected data errors.
+
+Responses should include a stable error code, user-appropriate message, and correlation ID. Internal SQL/constraint details belong only in protected server logs.
+
+## 24. Runbook for persistence incidents
+
+A runbook should help on-call engineers determine the first steps without reading the entire codebase.
+
+Examples:
+
+### Database unavailable
+
+1. Check database health and network connectivity.
+2. Check connection pool active/pending counts and acquisition timeouts.
+3. Inspect driver errors and start timestamp.
+4. Assess read/write impact.
+5. Do not retry indefinitely.
+6. Once the database recovers, verify whether requests/messages can be safely replayed.
+
+### Rising optimistic locking failures
+
+1. Identify which aggregate/use case is experiencing conflicts.
+2. Check concurrent request rates and transaction durations.
+3. Check whether any writer is bypassing version checks via direct SQL.
+4. Determine whether conflicts reflect normal business contention or a bug.
+5. Modify retry policies or aggregate boundaries only after understanding invariants.
+
+### Rising query latency
+
+1. Identify the slow query/mapper via traces or metrics.
+2. Inspect execution plans and indexes.
+3. Check row counts, cardinality, and lock waits.
+4. Check connection pool and DB saturation.
+5. Compare against recent deployments or migrations.
+6. Roll back or apply a forward-fix per runbook if SLOs are breached.
+
+Runbooks must specify an owner, dashboards, alerts, protected internal commands/URLs, and escalation criteria. Never store secrets or sensitive credentials inside runbooks.
+
+## 25. Risk-reducing deployment strategies
+
+For major changes, consider:
+
+- Canary: deploy to a subset of instances/traffic first.
+- Blue-green: prepare a new environment and shift traffic over.
+- Feature flags: enable new use cases for targeted user cohorts.
+- Shadow reads: run new queries in parallel to compare outputs without producing side effects.
+- Gradual rollout: ramp up traffic incrementally while monitoring SLOs.
+
+Shadow reads are only safe when the new query performs no writes and load can be capped. Do not double heavy query load in production without evaluating capacity impact.
+
+Each phase requires clear stop conditions: error rate, p95 latency, database saturation, mismatch rate, or backlog exceeding thresholds.
+
+## 26. Production readiness criteria
+
+A Spring Data JDBC release can be considered ready when evidence exists across these areas:
+
+| Area | Criteria |
+|---|---|
+| Domain | Aggregate boundaries and invariants defined and covered by unit tests |
+| Mapping | Entities, converters, embeddeds, collections, and IDs tested |
+| Schema | Migrations succeed cleanly; constraints and indexes verified |
+| Transactions | Boundaries, rollback rules, isolation, and timeouts confirmed |
+| Concurrency | `@Version` or locking tested with independent transactions |
+| Failure handling | Data, conflict, transient, and connection errors classified |
+| Idempotency | Request/message retries do not produce duplicate side effects |
+| External effects | Outbox/after-commit strategies tested where required |
+| Performance | p95/p99, throughput, and DB resources within SLOs |
+| Security | Least privilege, secret management, authorization, and SQL binding |
+| Observability | Logs, metrics, tracing, dashboards, and alerts ready |
+| Operations | Health checks, runbooks, backup/restore, and escalation clear |
+| Deployment | Compatible migrations, rollout, and rollback/forward-fix plans in place |
+
+No single numeric threshold fits every application. SLOs, load profiles, RPO/RTO, and risk tolerance must be defined per product. The key criterion is that every requirement has verification evidence and an assigned owner.
+
+## 27. Go-live checklist
+
+Before enabling production traffic, use a checklist:
+
+- [ ] Repositories and query adapters use the right DataSource and transaction manager.
+- [ ] Every aggregate has a clear root and explicit invariants.
+- [ ] Generated IDs, assigned IDs, and `@Version` have been tested.
+- [ ] Embedded/collection/converter mappings have been tested on the target DBMS.
+- [ ] Migrations have been rehearsed against representative data.
+- [ ] Unique/FK/check constraints and indexes have been verified.
+- [ ] Transaction rollback and checked-exception policies are explicit.
+- [ ] Optimistic locking and concurrency tests have been executed.
+- [ ] Retries are bounded and applied only to appropriate transient errors.
+- [ ] Critical commands/messages have an idempotency strategy.
+- [ ] External side effects have an appropriate after-commit or outbox strategy.
+- [ ] Query timeouts, transaction timeouts, and pool timeouts are configured.
+- [ ] Dashboards and alerts for latency, errors, pools, locks, and backlogs are ready.
+- [ ] Secrets and database privileges have been audited.
+- [ ] Backups and restores have been rehearsed.
+- [ ] Runbooks, owners, and escalation paths are defined.
+- [ ] Rollout steps, stop conditions, and rollback/forward-fix plans are agreed upon.
+
+A checklist is only useful if every item is backed by tests, logs, configuration, or owned documentation. Never mark an item complete merely because a class was written.
+
+## 28. Consolidated example of a production-ready use case
+
+An order approval use case can be structured as follows:
+
+~~~java
+@Service
+public class OrderApprovalService {
+
+    private final PurchaseOrderRepository orders;
+    private final OutboxRepository outbox;
+
+    public OrderApprovalService(
+            PurchaseOrderRepository orders,
+            OutboxRepository outbox
+    ) {
+        this.orders = orders;
+        this.outbox = outbox;
+    }
+
+    @Transactional
+    public PurchaseOrder approve(Long orderId, String commandId) {
+        if (outbox.wasCommandProcessed(commandId)) {
+            return orders.findById(orderId).orElseThrow();
+        }
+
+        PurchaseOrder current = orders.findById(orderId).orElseThrow();
+        PurchaseOrder approved = current.approve();
+
+        PurchaseOrder saved = orders.save(approved);
+
+        outbox.record(
+                commandId,
+                "PurchaseOrderApproved",
+                saved.id(),
+                saved.version()
+        );
+
+        return saved;
+    }
+}
+~~~
+
+This example illustrates the boundaries. A real implementation must protect the idempotency key with a unique constraint and check/insert the command marker in the same transaction to prevent race conditions. `OutboxRepository` must share the same `DataSource` and transaction manager.
+
+When reviewing this use case, verify:
+
+- `approve()` checks valid state transitions.
+- `@Version` detects concurrent updates.
+- Saving the aggregate and outbox is atomic.
+- Duplicate commands do not emit new events.
+- The worker dispatches events idempotently.
+- If the outbox insert fails, the aggregate update rolls back.
+- Metrics track outbox backlog and delivery failures.
+- Tests use two independent transactions for concurrency and idempotency.
+
+A use case is ready only when these properties are verified in tests and operations, not simply because the method carries `@Transactional`.
+
+## 29. Capstone review exercise
+
+Choose a real aggregate from your project, such as `PurchaseOrder`, and follow these steps in order:
+
+1. Diagram the aggregate root, children, and references to other aggregates.
+2. List invariants and state transitions.
+3. Reconcile entity mappings against DDL/migrations.
+4. Write unit tests for domain behavior.
+5. Write repository integration tests against a production-like DBMS.
+6. Test generated IDs, assigned IDs, converters, embeddeds, and collections.
+7. Test optimistic locking using two independent transactions.
+8. Test rollback when writing audit/outbox records fails.
+9. Test duplicate commands/messages.
+10. Measure saving large aggregates and primary read queries.
+11. Configure pool, query, and transaction timeouts.
+12. Add logs, metrics, tracing, and alerts.
+13. Simulate database unavailability, deadlocks, or query timeouts in a test environment.
+14. Run a migration rehearsal and check duration and locking.
+15. Rehearse restore and confirm RPO/RTO targets.
+16. Write a runbook and define rollout stop conditions.
+17. Complete the go-live checklist with evidence and owners.
+
+Document remaining assumptions such as database version, driver version, expected load, and aggregate size limits. Revisit these assumptions whenever infrastructure or business requirements change.
+
+## 30. Principles to remember
+
+- Readiness is a property of the whole use case and operating environment, not just repository tests.
+- Aggregate roots must reflect domain invariants and lifecycles; measure large collections before optimizing.
+- Entity mappings, converters, ID strategies, and migrations must match the real database.
+- Place transactions at the application service layer around use cases and keep transactions short.
+- Understand rollback rules, `DataAccessException`, optimistic locking, deadlocks, and timeouts.
+- Retry only appropriate transient failures, with bounds, backoff, and idempotency.
+- External side effects require after-commit listeners or a transactional outbox when reliability matters.
+- Batches need chunking and recovery strategies aligned with business semantics.
+- Schema migrations must remain compatible during rollout and have a rollback/forward-fix plan.
+- Observability must cover latency, errors, connection pools, locks, queries, and backlogs.
+- Security encompasses least privilege, secret handling, authorization, and parameter binding.
+- Backups must be validated with restore rehearsals.
+- Runbooks, owners, alerts, and escalation paths must be ready before ramping traffic.
+- Every go-live criterion requires verifiable evidence.
+
+Design and readiness reviews help teams uncover risks before they surface under production load. Walk from aggregates and schemas to transactions, errors, concurrency, security, and operations; then verify each decision with integration tests, benchmarks, migration rehearsals, and runbooks. With evidence backing these criteria, Spring Data JDBC deployments stand on solid footing, and operations teams know how to detect, handle, and recover when incidents occur.
+
+## References
+
+- [Spring Data Relational — JDBC Reference](https://docs.spring.io/spring-data/relational/reference/jdbc.html)
+- [Spring Framework — Transaction Management](https://docs.spring.io/spring-framework/reference/data-access/transaction.html)
+- [Spring Framework — Data Access Exception Hierarchy](https://docs.spring.io/spring-framework/reference/data-access/dao.html)
+- [Spring Boot — Actuator and Observability](https://docs.spring.io/spring-boot/reference/actuator/observability.html)
+- [Testcontainers for Java](https://java.testcontainers.org/)
+- [OWASP — Database Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Database_Security_Cheat_Sheet.html)

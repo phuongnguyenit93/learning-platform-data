@@ -1,0 +1,3166 @@
+menu:
+- slug: neo4j-overview
+  title: Tổng quan Neo4j
+  childs:
+  - slug: neo4j-overview-001
+    title: Cơ sở dữ liệu đồ thị là gì và bài toán Neo4j giải quyết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4j-overview-002
+    title: 'Mô hình đồ thị thuộc tính: nút, quan hệ, nhãn và thuộc tính'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4j-overview-003
+    title: Cách nhìn dữ liệu qua các mối liên hệ thay vì bảng và phép nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4j-overview-004
+    title: 'Hệ sinh thái Neo4j: máy chủ, công cụ truy vấn, thư viện và dịch vụ quản lý'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4j-overview-005
+    title: So sánh Neo4j với cơ sở dữ liệu quan hệ, tài liệu và kho khóa–giá trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4j-overview-006
+    title: Dấu hiệu bài toán phù hợp với đồ thị và trường hợp nên chọn hệ lưu trữ khác
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4j-overview-007
+    title: Lộ trình học từ mô hình dữ liệu đến truy vấn, ứng dụng và vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-setup
+  title: Khởi tạo môi trường
+  childs:
+  - slug: environment-setup-001
+    title: Lựa chọn môi trường cục bộ, Docker và dịch vụ Neo4j Aura
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-002
+    title: Cài đặt Neo4j và kiểm tra yêu cầu hệ thống theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-003
+    title: Khởi chạy bằng Docker Compose với dữ liệu lưu bền và cấu hình riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-004
+    title: Cổng kết nối, URI, giao thức Bolt và truy cập qua trình duyệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-005
+    title: Tạo tài khoản ban đầu, đổi mật khẩu và kiểm tra kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-006
+    title: Cấu trúc thư mục cấu hình, dữ liệu, nhật ký và phần mở rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-007
+    title: Phân biệt phiên bản máy chủ, ngôn ngữ Cypher và phiên bản trình điều khiển
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-008
+    title: Phân biệt khả năng của Community, Enterprise và gói dịch vụ đang sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: developer-tools
+  title: Công cụ làm việc
+  childs:
+  - slug: developer-tools-001
+    title: 'Neo4j Browser: chạy truy vấn và xem kết quả dạng bảng hoặc đồ thị'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-tools-002
+    title: 'Cypher Shell: truy vấn, truyền tham số và thực thi tập lệnh'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-tools-003
+    title: Neo4j Desktop và cách tổ chức môi trường phát triển khi sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-tools-004
+    title: 'Neo4j Aura: tạo cơ sở dữ liệu và quản lý thông tin kết nối'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-tools-005
+    title: Công cụ khám phá và trực quan hóa đồ thị trong hệ sinh thái Neo4j
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-tools-006
+    title: Lưu truy vấn mẫu, quản lý tập lệnh và tái tạo bộ dữ liệu thực hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-tools-007
+    title: Đọc thông báo lỗi, cảnh báo và kết quả thống kê sau truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graph-elements
+  title: Thành phần đồ thị
+  childs:
+  - slug: graph-elements-001
+    title: Nút, nhãn và thuộc tính trong mô hình đồ thị thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-elements-002
+    title: Quan hệ có hướng, loại quan hệ và hai nút đầu–cuối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-elements-003
+    title: Nhiều nhãn trên một nút và ý nghĩa phân loại thực thể
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-elements-004
+    title: Quan hệ song song, vòng tự nối và những trường hợp mô hình cần lưu ý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-elements-005
+    title: Phân biệt thuộc tính của nút với thuộc tính của quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-elements-006
+    title: Khóa nghiệp vụ, định danh bên ngoài và giới hạn của định danh nội bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-elements-007
+    title: Nhận diện đường đi, chu trình, thành phần liên thông và nút có bậc cao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-types
+  title: Kiểu dữ liệu
+  childs:
+  - slug: data-types-001
+    title: Kiểu giá trị trong Cypher và kiểu có thể lưu làm thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-002
+    title: Chuỗi, số, giá trị luận lý và chuyển đổi kiểu dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-003
+    title: Giá trị null, thuộc tính không tồn tại và logic ba giá trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-004
+    title: Danh sách, bản đồ và cấu trúc giá trị trả về từ truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-005
+    title: Ngày, giờ, ngày giờ, múi giờ và khoảng thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-006
+    title: Tọa độ không gian, hệ quy chiếu và giá trị điểm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-007
+    title: Giới hạn khi lưu danh sách, bản đồ và cấu trúc lồng nhau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-008
+    title: Quy ước kiểu dữ liệu, đơn vị đo và chuẩn hóa giá trị đầu vào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graph-modeling
+  title: Thiết kế mô hình
+  childs:
+  - slug: graph-modeling-001
+    title: Đi từ câu hỏi nghiệp vụ và mẫu truy vấn đến mô hình đồ thị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-002
+    title: Chọn thực thể làm nút, quan hệ hay thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-003
+    title: Đặt tên nhãn, loại quan hệ và thuộc tính nhất quán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-004
+    title: Thiết kế hướng quan hệ theo ngữ nghĩa nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-005
+    title: Mô hình hóa quan hệ nhiều–nhiều và quan hệ có thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-006
+    title: Nút trung gian cho sự kiện hoặc quan hệ có nhiều bên tham gia
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-007
+    title: Mô hình hóa phân cấp, mạng lưới và dữ liệu có thứ tự
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-008
+    title: Biểu diễn thời gian hiệu lực, lịch sử và phiên bản thực thể
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-009
+    title: Xử lý nút có bậc quá cao và tránh mô hình làm truy vấn bùng nổ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-modeling-010
+    title: Đánh giá mô hình bằng truy vấn mẫu, tính toàn vẹn và chi phí cập nhật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cypher-basics
+  title: Nền tảng Cypher
+  childs:
+  - slug: cypher-basics-001
+    title: Cấu trúc câu truy vấn Cypher và cách các mệnh đề phối hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-basics-002
+    title: Khai báo biến cho nút, quan hệ và đường đi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-basics-003
+    title: Đọc và viết mẫu đồ thị bằng dấu ngoặc, mũi tên và nhãn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-basics-004
+    title: Luồng bảng trung gian, số hàng kết quả và phạm vi biến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-basics-005
+    title: Tham số truy vấn và phân biệt dữ liệu đầu vào với cấu trúc câu lệnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-basics-006
+    title: Biểu thức, toán tử, độ ưu tiên và cách viết điều kiện rõ nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-basics-007
+    title: Đặt bí danh, chú thích và định dạng truy vấn dễ bảo trì
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-basics-008
+    title: Kiểm tra tính tương thích cú pháp trước khi dùng tính năng Cypher mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: read-queries
+  title: Truy vấn đọc
+  childs:
+  - slug: read-queries-001
+    title: MATCH để tìm nút theo nhãn và thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-queries-002
+    title: MATCH để tìm quan hệ có hướng hoặc không chỉ định hướng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-queries-003
+    title: Kết hợp nhiều mẫu liên thông và nhận diện tích Descartes ngoài ý muốn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-queries-004
+    title: WHERE để lọc thuộc tính, nhãn, kiểu quan hệ và sự tồn tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-queries-005
+    title: RETURN để chọn trường, trả về thực thể và đặt bí danh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-queries-006
+    title: DISTINCT để xử lý giá trị lặp và hiểu ảnh hưởng đến kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-queries-007
+    title: ORDER BY, SKIP và LIMIT để sắp xếp và chia trang
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-queries-008
+    title: OPTIONAL MATCH, giá trị null và vị trí điều kiện lọc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-queries-009
+    title: Viết truy vấn chỉ trả dữ liệu cần thiết cho phía ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: expressions-functions
+  title: Biểu thức và hàm
+  childs:
+  - slug: expressions-functions-001
+    title: Biểu thức số học, so sánh, chuỗi và giá trị luận lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-functions-002
+    title: Xử lý null bằng kiểm tra tường minh và hàm coalesce
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-functions-003
+    title: CASE để biểu diễn rẽ nhánh trong kết quả truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-functions-004
+    title: Hàm chuỗi, biểu thức chính quy và chuẩn hóa văn bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-functions-005
+    title: Hàm số, làm tròn và chuyển đổi giữa các kiểu dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-functions-006
+    title: Hàm kiểm tra nhãn, loại quan hệ và thuộc tính thực thể
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-functions-007
+    title: 'Hàm điều kiện trên danh sách: all, any, none và single'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-functions-008
+    title: Xử lý dữ liệu sai kiểu hoặc thiếu thuộc tính mà vẫn giữ đúng ngữ nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lists-data-pipelines
+  title: Danh sách và luồng dữ liệu
+  childs:
+  - slug: lists-data-pipelines-001
+    title: WITH để chuyển tiếp, đổi tên và giới hạn phạm vi biến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-data-pipelines-002
+    title: UNWIND để biến danh sách thành các hàng dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-data-pipelines-003
+    title: Truy cập phần tử, cắt danh sách và tạo dãy giá trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-data-pipelines-004
+    title: Biểu thức tạo danh sách và phép lọc phần tử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-data-pipelines-005
+    title: Map projection để tạo cấu trúc kết quả theo nhu cầu ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-data-pipelines-006
+    title: reduce để tích lũy giá trị từ danh sách
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-data-pipelines-007
+    title: Kết hợp WITH, ORDER BY và LIMIT theo từng giai đoạn xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-data-pipelines-008
+    title: Theo dõi số hàng khi mở rộng danh sách và ghép nhiều mẫu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aggregation
+  title: Tổng hợp dữ liệu
+  childs:
+  - slug: aggregation-001
+    title: count, sum, avg, min và max trong truy vấn đồ thị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-002
+    title: Khóa nhóm ngầm định và cách nhận diện mức tổng hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-003
+    title: Phân biệt đếm hàng, đếm giá trị khác null và đếm giá trị duy nhất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-004
+    title: collect để gom dữ liệu và quản lý kích thước danh sách
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-005
+    title: Lọc trước tổng hợp và lọc sau tổng hợp bằng WITH
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-006
+    title: Kết hợp nhiều phép tổng hợp mà không nhân đôi số liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-007
+    title: Thống kê quan hệ, bậc nút và phân bố theo nhóm nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-008
+    title: Kiểm chứng kết quả tổng hợp bằng bộ dữ liệu nhỏ có đáp án
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: subqueries
+  title: Truy vấn con
+  childs:
+  - slug: subqueries-001
+    title: CALL với truy vấn con và cách truyền biến theo phiên bản Cypher
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subqueries-002
+    title: EXISTS để kiểm tra sự tồn tại của mẫu hoặc kết quả con
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subqueries-003
+    title: Truy vấn con COUNT và COLLECT khi phiên bản hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subqueries-004
+    title: Truy vấn con có tương quan và ảnh hưởng đến số lần thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subqueries-005
+    title: UNION và UNION ALL để hợp nhất các tập kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subqueries-006
+    title: Cô lập bước tổng hợp để tránh nhân số hàng ngoài ý muốn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subqueries-007
+    title: Phân chia truy vấn phức tạp thành các khối có thể kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subqueries-008
+    title: Thực thi theo lô với CALL { ... } IN TRANSACTIONS và điều kiện sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: create-update
+  title: Tạo và cập nhật
+  childs:
+  - slug: create-update-001
+    title: CREATE để tạo nút, quan hệ và thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: create-update-002
+    title: MERGE để tìm hoặc tạo dữ liệu theo mẫu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: create-update-003
+    title: Phân biệt MERGE toàn mẫu với MERGE từng thực thể và quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: create-update-004
+    title: ON CREATE SET và ON MATCH SET khi đồng bộ dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: create-update-005
+    title: SET để cập nhật thuộc tính, bổ sung bản đồ và quản lý nhãn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: create-update-006
+    title: REMOVE để bỏ thuộc tính hoặc nhãn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: create-update-007
+    title: DELETE và DETACH DELETE cùng tác động đến quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: create-update-008
+    title: FOREACH và các lựa chọn cập nhật có điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: create-update-009
+    title: Thiết kế cập nhật có tính lũy đẳng và ngăn dữ liệu trùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: create-update-010
+    title: Kiểm tra thống kê cập nhật và xác minh trạng thái sau khi ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: paths-traversal
+  title: Đường đi và duyệt đồ thị
+  childs:
+  - slug: paths-traversal-001
+    title: Độ dài đường đi, số bước nhảy và chiều duyệt quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-traversal-002
+    title: Mẫu quan hệ có độ dài biến thiên và giới hạn độ sâu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-traversal-003
+    title: Quantified path patterns khi phiên bản Cypher hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-traversal-004
+    title: Lấy danh sách nút, quan hệ và độ dài từ một đường đi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-traversal-005
+    title: Điều kiện lọc trên nút và quan hệ trong quá trình tìm đường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-traversal-006
+    title: Chu trình, quan hệ lặp và ngữ nghĩa khớp đường đi theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-traversal-007
+    title: Tìm đường đi ngắn nhất và lựa chọn cú pháp phù hợp phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-traversal-008
+    title: Phân biệt đường ngắn nhất theo số cạnh với đường có tổng trọng số nhỏ nhất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-traversal-009
+    title: Giới hạn tập kết quả để tránh số đường đi tăng theo cấp số nhân
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-traversal-010
+    title: Phân biệt truy vấn đường đi bằng Cypher với thuật toán đồ thị chuyên dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-constraints
+  title: Ràng buộc dữ liệu
+  childs:
+  - slug: data-constraints-001
+    title: Vai trò của ràng buộc trong bảo vệ tính toàn vẹn đồ thị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-constraints-002
+    title: Ràng buộc duy nhất trên khóa nghiệp vụ của nút
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-constraints-003
+    title: Ràng buộc tồn tại thuộc tính theo khả năng của phiên bản và edition
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-constraints-004
+    title: Ràng buộc khóa và ràng buộc kiểu thuộc tính khi được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-constraints-005
+    title: Ràng buộc trên quan hệ theo phiên bản và edition
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-constraints-006
+    title: Ràng buộc ghép nhiều thuộc tính và lựa chọn khóa phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-constraints-007
+    title: Tạo, liệt kê, triển khai và xóa ràng buộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-constraints-008
+    title: Phát hiện dữ liệu vi phạm trước khi áp dụng ràng buộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-constraints-009
+    title: Phối hợp ràng buộc với MERGE để hạn chế trùng lặp khi ghi đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lookup-indexes
+  title: Chỉ mục tra cứu
+  childs:
+  - slug: lookup-indexes-001
+    title: Chỉ mục giải quyết chi phí tìm điểm bắt đầu của truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexes-002
+    title: Phân biệt chỉ mục với ràng buộc và chỉ mục phục vụ ràng buộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexes-003
+    title: Range index và điều kiện lọc hoặc sắp xếp phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexes-004
+    title: Text index và các mẫu tìm kiếm chuỗi được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexes-005
+    title: Point index và truy vấn dữ liệu không gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexes-006
+    title: Token lookup index cho nhãn và loại quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexes-007
+    title: Chỉ mục ghép và thứ tự thuộc tính theo mẫu truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexes-008
+    title: Tạo, xem trạng thái, chờ sẵn sàng và xóa chỉ mục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexes-009
+    title: Cân đối tốc độ đọc với chi phí ghi, dung lượng và bảo trì chỉ mục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-search
+  title: Tìm kiếm nâng cao
+  childs:
+  - slug: advanced-search-001
+    title: Full-text index cho tìm kiếm văn bản trên nút và quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-002
+    title: Bộ phân tích văn bản, điểm liên quan và giới hạn tìm kiếm toàn văn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-003
+    title: Phân biệt chỉ mục văn bản thông thường với chỉ mục toàn văn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-004
+    title: Biểu diễn dữ liệu bằng vector và ý nghĩa của độ tương đồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-005
+    title: 'Vector index: cấu hình, truy vấn và khả năng theo phiên bản'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-006
+    title: Kết hợp kết quả tìm kiếm với điều kiện và quan hệ trong đồ thị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-007
+    title: Đánh giá chất lượng kết quả, độ trễ và chi phí tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-008
+    title: Quản lý cập nhật chỉ mục và tính nhất quán theo loại chỉ mục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions
+  title: Giao dịch
+  childs:
+  - slug: transactions-001
+    title: Tính nguyên tử, nhất quán, cô lập và bền vững trong Neo4j
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-002
+    title: Giao dịch ngầm định và giao dịch tường minh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-003
+    title: Ranh giới commit, rollback và vòng đời kết quả truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-004
+    title: Mức cô lập mặc định và các bất thường cần hiểu theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-005
+    title: Khóa khi cập nhật nút, quan hệ và thuộc tính
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-006
+    title: Xung đột ghi, deadlock và chiến lược giảm tranh chấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-007
+    title: Thời gian chờ, giới hạn tài nguyên và hủy giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-008
+    title: Chia lô ghi dữ liệu theo dung lượng và thời gian giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-009
+    title: Kiểm thử rollback và bảo toàn bất biến nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-plans
+  title: Kế hoạch thực thi
+  childs:
+  - slug: execution-plans-001
+    title: EXPLAIN để xem kế hoạch mà không thực thi truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-002
+    title: PROFILE để đo thực thi và lưu ý với truy vấn ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-003
+    title: Đọc cây toán tử, hướng luồng dữ liệu và điểm bắt đầu truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-004
+    title: Estimated Rows, Rows, DB Hits và giới hạn diễn giải số liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-005
+    title: Nhận diện quét dữ liệu, tìm bằng chỉ mục và mở rộng quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-006
+    title: Phát hiện CartesianProduct, Eager, Sort và tập trung gian lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-007
+    title: Thống kê dữ liệu, lựa chọn kế hoạch và tác động của phân bố lệch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-008
+    title: Bộ nhớ, page cache và khác biệt giữa lần chạy nguội với chạy nóng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-009
+    title: So sánh kế hoạch trước và sau thay đổi bằng cùng bộ dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-optimization
+  title: Tối ưu truy vấn
+  childs:
+  - slug: query-optimization-001
+    title: Thu hẹp điểm bắt đầu bằng nhãn, thuộc tính và chỉ mục thích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-002
+    title: Đẩy điều kiện lọc đến vị trí có ngữ nghĩa đúng và giảm số hàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-003
+    title: Giới hạn độ sâu, hướng và loại quan hệ khi duyệt đồ thị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-004
+    title: Tránh tích Descartes và tổng hợp trên dữ liệu đã bị nhân hàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-005
+    title: Giảm collect lớn, sắp xếp không cần thiết và dữ liệu trả về
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-006
+    title: Chia trang ổn định và lựa chọn chiến lược cho tập dữ liệu lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-007
+    title: Tham số hóa để tái sử dụng kế hoạch và giảm chi phí biên dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-008
+    title: Sử dụng gợi ý chỉ mục hoặc kế hoạch sau khi có bằng chứng đo đạc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-009
+    title: Đo độ trễ, thông lượng và mức dùng tài nguyên theo tải thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-010
+    title: Nhận diện giới hạn do mô hình dữ liệu thay vì chỉ sửa câu truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-import
+  title: Nhập dữ liệu
+  childs:
+  - slug: data-import-001
+    title: Lập ánh xạ từ CSV, JSON và nguồn quan hệ sang mô hình đồ thị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-import-002
+    title: 'LOAD CSV: đọc tiêu đề, chuyển kiểu và xử lý giá trị thiếu'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-import-003
+    title: Quyền truy cập tệp, URL và thư mục nhập dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-import-004
+    title: Nhập nút trước quan hệ bằng khóa nghiệp vụ ổn định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-import-005
+    title: Phân lô nhập bằng giao dịch và theo dõi tiến độ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-import-006
+    title: Neo4j Admin Import và điều kiện sử dụng cho khối lượng lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-import-007
+    title: Phân biệt nhập ban đầu, nhập tăng dần và cập nhật trên cơ sở dữ liệu đang chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-import-008
+    title: Chuẩn hóa dữ liệu trùng, dữ liệu lỗi và quan hệ thiếu đầu mút
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-import-009
+    title: Thiết kế nhập lại an toàn, tiếp tục sau lỗi và đối soát kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-import-010
+    title: Đo tốc độ nhập và xác định nút thắt ở nguồn, mạng hoặc máy chủ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-integration
+  title: Tích hợp dữ liệu
+  childs:
+  - slug: data-integration-001
+    title: Thiết kế luồng ETL hoặc ELT đưa dữ liệu nghiệp vụ vào đồ thị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integration-002
+    title: Đồng bộ toàn phần so với đồng bộ thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integration-003
+    title: Ánh xạ thao tác tạo, cập nhật và xóa từ hệ thống nguồn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integration-004
+    title: Tính lũy đẳng, thứ tự sự kiện và xử lý sự kiện trùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integration-005
+    title: Neo4j CDC và điều kiện hỗ trợ theo phiên bản hoặc edition
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integration-006
+    title: Tích hợp luồng sự kiện và connector khi có yêu cầu nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integration-007
+    title: Kiểm soát độ trễ đồng bộ và lựa chọn nguồn dữ liệu chuẩn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integration-008
+    title: Đối soát, xử lý sai lệch và khôi phục luồng đồng bộ sau sự cố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: apoc-extensions
+  title: APOC và phần mở rộng
+  childs:
+  - slug: apoc-extensions-001
+    title: APOC là gì và khi nào cần mở rộng ngoài Cypher
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apoc-extensions-002
+    title: Phân biệt gói APOC, khả năng hỗ trợ và tương thích phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apoc-extensions-003
+    title: Cài đặt, cấu hình danh sách cho phép và giới hạn quyền thủ tục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apoc-extensions-004
+    title: Gọi procedure, function và đọc chữ ký đầu vào–đầu ra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apoc-extensions-005
+    title: Các nhóm tiện ích chuyển đổi, cấu trúc dữ liệu và xử lý đồ thị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apoc-extensions-006
+    title: Mở rộng đường đi bằng APOC với điều kiện giới hạn rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apoc-extensions-007
+    title: Nhập hoặc xuất dữ liệu bằng APOC khi môi trường cho phép
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apoc-extensions-008
+    title: Đánh giá rủi ro của thủ tục không giới hạn và truy cập hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apoc-extensions-009
+    title: Tiêu chí chọn APOC, Cypher thuần hoặc phần xử lý ở ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graph-algorithms
+  title: Thuật toán đồ thị
+  childs:
+  - slug: graph-algorithms-001
+    title: Phân biệt dữ liệu nghiệp vụ trong Neo4j với đồ thị dùng để tính toán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-algorithms-002
+    title: Neo4j Graph Data Science và điều kiện cài đặt hoặc sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-algorithms-003
+    title: Chiếu đồ thị vào bộ nhớ và quản lý graph catalog
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-algorithms-004
+    title: Chế độ stream, stats, mutate và write của thuật toán khi được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-algorithms-005
+    title: Ước lượng bộ nhớ trước khi chạy thuật toán trên dữ liệu lớn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-algorithms-006
+    title: Độ trung tâm với PageRank và các thước đo mức độ ảnh hưởng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-algorithms-007
+    title: Phát hiện cộng đồng và thành phần liên thông
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-algorithms-008
+    title: Thuật toán đường đi có trọng số và bài toán khoảng cách
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-algorithms-009
+    title: Độ tương đồng, gợi ý liên kết và biểu diễn nút bằng vector
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-algorithms-010
+    title: Đánh giá kết quả thuật toán theo ý nghĩa nghiệp vụ và dữ liệu kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-algorithms-011
+    title: Quản lý vòng đời đồ thị chiếu và cập nhật kết quả về dữ liệu nguồn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-driver
+  title: Java Driver
+  childs:
+  - slug: java-driver-001
+    title: Thêm Neo4j Java Driver và chọn phiên bản tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-002
+    title: Tạo Driver, cấu hình URI, xác thực và kiểm tra kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-003
+    title: Vòng đời Driver, session và lựa chọn cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-004
+    title: Giao dịch được trình điều khiển quản lý cho thao tác đọc và ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-005
+    title: Thực thi truy vấn có tham số và ánh xạ Record hoặc Value
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-006
+    title: Đọc kết quả theo luồng và quản lý thời điểm tiêu thụ kết quả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-007
+    title: Connection pool, thời gian chờ và giới hạn tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-008
+    title: Phân loại lỗi trình điều khiển, lỗi máy chủ và lỗi tạm thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-009
+    title: Retry tự động, tính lũy đẳng và tác dụng phụ ngoài cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-010
+    title: Bookmarks, nhất quán nhân quả và định tuyến khi kết nối cụm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-driver-011
+    title: Lựa chọn API đồng bộ, bất đồng bộ hoặc reactive theo nhu cầu ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-data-neo4j
+  title: Spring Data Neo4j
+  childs:
+  - slug: spring-data-neo4j-001
+    title: Spring Data Neo4j giải quyết ánh xạ đối tượng–đồ thị như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-neo4j-002
+    title: Cấu hình kết nối trong Spring Boot và quản lý bí mật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-neo4j-003
+    title: Ánh xạ nút, nhãn, định danh và thuộc tính thực thể
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-neo4j-004
+    title: Ánh xạ quan hệ có thuộc tính và kiểm soát hướng quan hệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-neo4j-005
+    title: Repository, truy vấn khai báo và truy vấn Cypher tùy chỉnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-neo4j-006
+    title: DTO, projection và kiểm soát độ rộng đồ thị được tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-neo4j-007
+    title: Ranh giới @Transactional và phối hợp với Neo4jClient
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-neo4j-008
+    title: Lưu đồ thị đối tượng, cập nhật quan hệ và tránh ghi ngoài ý muốn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-neo4j-009
+    title: Khóa lạc quan và xử lý cập nhật đồng thời khi sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-neo4j-010
+    title: Phân trang, tải dữ liệu và nhận diện truy vấn lặp không cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-neo4j-011
+    title: Kiểm thử tích hợp và xác minh Cypher thực tế do ứng dụng thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-design
+  title: Thiết kế ứng dụng
+  childs:
+  - slug: application-design-001
+    title: Phân chia trách nhiệm giữa mô hình miền, lớp truy cập dữ liệu và API
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-002
+    title: Thiết kế truy vấn theo ca sử dụng thay vì tải toàn bộ đồ thị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-003
+    title: Ranh giới giao dịch theo thao tác nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-004
+    title: Định danh ổn định, tính lũy đẳng và kiểm soát trùng lặp yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-005
+    title: Chuyển kết quả đồ thị thành DTO mà không tạo tham chiếu vòng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-006
+    title: Giới hạn độ sâu, số hàng và thời gian xử lý từ đầu vào người dùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-007
+    title: Xử lý lỗi, timeout, hủy yêu cầu và suy giảm dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-008
+    title: Phối hợp Neo4j với kho dữ liệu khác và quản lý nhất quán liên hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-009
+    title: Cân nhắc GraphQL khi cần API trên đồ thị và kiểm soát chi phí truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Bộ dữ liệu mẫu nhỏ thể hiện đầy đủ quan hệ và trường hợp biên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử Cypher với kết quả mong đợi và thứ tự xác định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Neo4j Harness và phạm vi phù hợp cho kiểm thử trong tiến trình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Testcontainers cho kiểm thử tích hợp với máy chủ Neo4j
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử ràng buộc, dữ liệu trùng và thuộc tính bị thiếu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử commit, rollback, xung đột ghi và retry
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử ánh xạ Java Driver và Spring Data Neo4j
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử tải với phân bố quan hệ gần dữ liệu thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Tái tạo lỗi và chạy kiểm thử hồi quy sau đổi mô hình hoặc phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Xác thực, quản lý tài khoản và vòng đời thông tin đăng nhập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Phân quyền theo vai trò và khả năng của edition hoặc gói dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Giới hạn quyền đọc, ghi, quản trị và thực thi thủ tục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Mã hóa kết nối, chứng chỉ TLS và kiểm tra danh tính máy chủ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Ngăn Cypher injection bằng tham số và kiểm soát thành phần động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Bảo vệ đường dẫn tệp, truy cập URL và cấu hình phần mở rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Giới hạn mạng, cổng công khai và truy cập từ ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Quản lý bí mật cho phát triển, CI/CD và môi trường triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Nhật ký kiểm toán và bảo vệ dữ liệu nhạy cảm khi được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Rà soát quyền tối thiểu và thử nghiệm các tình huống truy cập bị từ chối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-configuration
+  title: Cấu hình tài nguyên
+  childs:
+  - slug: resource-configuration-001
+    title: Quan hệ giữa heap, page cache, bộ nhớ giao dịch và bộ nhớ hệ điều hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-configuration-002
+    title: Lập dung lượng theo số nút, số quan hệ, thuộc tính và chỉ mục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-configuration-003
+    title: Đặc điểm ổ đĩa, độ trễ I/O và yêu cầu lưu trữ bền vững
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-configuration-004
+    title: Cấu hình kết nối mạng, địa chỉ lắng nghe và địa chỉ công bố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-configuration-005
+    title: Cấu hình thời gian chờ, giới hạn giao dịch và khả năng theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-configuration-006
+    title: Quản lý transaction log, checkpoint và chính sách giữ nhật ký
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-configuration-007
+    title: Giới hạn CPU, RAM và volume khi triển khai bằng container
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-configuration-008
+    title: Kiểm chứng thay đổi cấu hình bằng số liệu thay vì tăng tài nguyên tùy ý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring
+  title: Giám sát
+  childs:
+  - slug: monitoring-001
+    title: Theo dõi sức khỏe máy chủ, khả năng kết nối và tính sẵn sàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-002
+    title: Nhật ký máy chủ, nhật ký truy vấn và phạm vi hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-003
+    title: Theo dõi truy vấn hoặc giao dịch đang chạy và xử lý truy vấn kéo dài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-004
+    title: Các chỉ số bộ nhớ, page cache, garbage collection và I/O
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-005
+    title: Các chỉ số độ trễ, thông lượng, khóa và giao dịch lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-006
+    title: Theo dõi dung lượng dữ liệu, chỉ mục và transaction log
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-007
+    title: Kết hợp số liệu máy chủ với connection pool và độ trễ phía ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-008
+    title: Thiết lập ngưỡng cảnh báo theo tải nền và mục tiêu dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-009
+    title: Ẩn dữ liệu nhạy cảm trong log, tham số truy vấn và công cụ giám sát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backup-recovery
+  title: Sao lưu và phục hồi
+  childs:
+  - slug: backup-recovery-001
+    title: Phân biệt sao lưu, dump, snapshot và bản sao phục vụ sẵn sàng cao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-002
+    title: Đặt mục tiêu RPO, RTO và chính sách lưu giữ bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-003
+    title: Dump và load ngoại tuyến theo công cụ của phiên bản đang dùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-004
+    title: Sao lưu trực tuyến khi edition hoặc dịch vụ hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-005
+    title: Kiểm tra tính nhất quán và khả năng sử dụng của bản sao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-006
+    title: Thực hành khôi phục vào môi trường tách biệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-007
+    title: Bảo vệ cấu hình, bí mật, chứng chỉ và thành phần ngoài tệp dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-008
+    title: Tự động hóa lịch sao lưu, lưu trữ ngoài máy chủ và kiểm tra định kỳ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-009
+    title: Xử lý mất dữ liệu hoặc hỏng lưu trữ theo quy trình đã diễn tập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment
+  title: Triển khai
+  childs:
+  - slug: deployment-001
+    title: Chọn tự quản lý hay dịch vụ quản lý theo yêu cầu vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-002
+    title: Triển khai một máy chủ với lưu trữ bền vững và cấu hình tái tạo được
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-003
+    title: Kiểm tra readiness, liveness và trình tự khởi động ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-004
+    title: Quản lý cấu hình và bí mật theo từng môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-005
+    title: Triển khai sau proxy, DNS hoặc mạng riêng với địa chỉ kết nối đúng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-006
+    title: Đánh giá Kubernetes và hệ lưu trữ trước khi triển khai có trạng thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-007
+    title: Giới hạn tài nguyên, cập nhật an toàn và kế hoạch quay lui
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-008
+    title: Kiểm tra kết nối, dữ liệu và chỉ mục sau triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: clustering-scaling
+  title: Cụm và mở rộng
+  childs:
+  - slug: clustering-scaling-001
+    title: Mục tiêu sẵn sàng cao và giới hạn mở rộng của một máy chủ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-scaling-002
+    title: Kiến trúc cụm Neo4j theo phiên bản và edition được sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-scaling-003
+    title: Vai trò máy chủ, cơ chế đồng thuận và quyền ghi dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-scaling-004
+    title: Định tuyến truy vấn đọc hoặc ghi và cân bằng tải phía trình điều khiển
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-scaling-005
+    title: Bookmarks và nhất quán nhân quả trong ứng dụng có nhiều phiên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-scaling-006
+    title: Lỗi máy chủ, bầu chọn và hành vi kết nối khi chuyển vai trò
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-scaling-007
+    title: Mở rộng khả năng đọc và nhận diện nút thắt ở đường ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-scaling-008
+    title: Độ trễ mạng, phân vùng mạng và ảnh hưởng đến khả năng phục vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-scaling-009
+    title: Giám sát, sao lưu và diễn tập sự cố trong cụm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-scaling-010
+    title: Đánh giá đa cơ sở dữ liệu và cách ly khách hàng theo khả năng hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-migration
+  title: Nâng cấp và di trú
+  childs:
+  - slug: upgrades-migration-001
+    title: Đọc ma trận tương thích máy chủ, driver, Cypher và phần mở rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-002
+    title: Lập kế hoạch nâng cấp theo đường đi được nhà cung cấp hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-003
+    title: Sao lưu và diễn tập khôi phục trước khi nâng cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-004
+    title: Kiểm tra cú pháp, thủ tục và cấu hình đã ngừng khuyến nghị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-005
+    title: Đánh giá thay đổi chỉ mục, định dạng dữ liệu và kế hoạch truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-006
+    title: Quản lý thay đổi mô hình bằng tập lệnh có phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-007
+    title: Di trú nhãn, thuộc tính và quan hệ mà vẫn giữ định danh nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-008
+    title: Triển khai thay đổi tương thích từng bước giữa ứng dụng và dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-009
+    title: Đối soát dữ liệu, đo hiệu năng và xác định điều kiện quay lui
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Lỗi kết nối Bolt, DNS, TLS và địa chỉ định tuyến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Lỗi xác thực, phân quyền và không tìm thấy cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Lỗi cú pháp, phạm vi biến và kiểu dữ liệu trong Cypher
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Dữ liệu trùng, vi phạm ràng buộc và MERGE không như mong đợi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Truy vấn không có kết quả do hướng quan hệ hoặc điều kiện null
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Truy vấn chậm vì thiếu chỉ mục, tích Descartes hoặc duyệt quá rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Deadlock, hết thời gian giao dịch và cạn connection pool
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Thiếu bộ nhớ, ổ đĩa đầy và transaction log tăng bất thường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Chỉ mục chưa sẵn sàng hoặc không được bộ lập kế hoạch lựa chọn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Thu thập bằng chứng, khoanh vùng nguyên nhân và xác minh sau khắc phục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graph-applications
+  title: Ứng dụng đồ thị
+  childs:
+  - slug: graph-applications-001
+    title: 'Mạng xã hội: kết nối, bạn chung và khoảng cách quan hệ'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-applications-002
+    title: Gợi ý sản phẩm hoặc nội dung dựa trên quan hệ và hành vi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-applications-003
+    title: Phát hiện gian lận qua liên kết tài khoản, thiết bị và giao dịch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-applications-004
+    title: Quản lý phân quyền và đường kế thừa quyền trong tổ chức
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-applications-005
+    title: Phân tích phụ thuộc hệ thống, tài sản và tác động thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-applications-006
+    title: Định tuyến và mạng lưới khi có dữ liệu trọng số hoặc không gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-applications-007
+    title: 'Đồ thị tri thức: thực thể, quan hệ, nguồn gốc và định danh'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-applications-008
+    title: Kết hợp tìm kiếm vector với đồ thị cho truy xuất tăng cường sinh nội dung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-applications-009
+    title: Lựa chọn mô hình và thước đo thành công cho từng ca sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-project
+  title: Đồ án thực hành
+  childs:
+  - slug: capstone-project-001
+    title: Xác định bài toán, giới hạn phạm vi và câu hỏi nghiệp vụ cần trả lời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-project-002
+    title: Thiết kế mô hình đồ thị và bộ dữ liệu có trường hợp biên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-project-003
+    title: Tạo ràng buộc, chỉ mục và quy trình nạp dữ liệu lũy đẳng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-project-004
+    title: Xây dựng bộ truy vấn đọc, ghi, tổng hợp và tìm đường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-project-005
+    title: Tích hợp Java hoặc Spring Boot với giao dịch và xử lý lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-project-006
+    title: Bổ sung kiểm thử tích hợp, kiểm thử tải và hồ sơ hiệu năng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-project-007
+    title: Cấu hình bảo mật, giám sát và giới hạn tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-project-008
+    title: Thực hành sao lưu, phục hồi và một tình huống sự cố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-project-009
+    title: Đánh giá mô hình theo tính đúng, độ trễ, dung lượng và khả năng vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

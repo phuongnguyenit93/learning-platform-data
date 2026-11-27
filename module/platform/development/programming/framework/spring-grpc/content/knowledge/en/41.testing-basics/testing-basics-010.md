@@ -1,0 +1,372 @@
+# Testing client interceptors
+
+A client interceptor is a processing layer on grpc-java's client call pipeline. It can attach metadata such as request IDs, bearer tokens, or tracing headers; normalize headers; record method names and call durations; or wrap callbacks to observe results. When testing, verify that the interceptor is applied to the right calls, sends the expected metadata, preserves methods and CallOptions, does not leak data across requests, and does not alter statuses outside the contract.
+
+In Spring gRPC, client interceptors are typically attached to a ManagedChannel or shared channel bean used to create generated stubs. A test that only invokes the interceptor directly does not prove Spring registered it on the real channel. Therefore, combine unit tests for interceptor logic, in-process tests to verify metadata reaches the server, and Spring context/TCP/TLS tests for wiring and transport.
+
+## 1. Where do client interceptors sit?
+
+When a generated stub invokes an RPC, grpc-java creates a ClientCall from the channel. A client interceptor can wrap that call before the request is sent:
+
+```text
+Generated stub
+    |
+    | method(request)
+    v
+ClientInterceptor.interceptCall(...)
+    |
+    | wrap ClientCall
+    v
+ClientCall.start(responseListener, headers)
+    |
+    | add/validate metadata
+    v
+ManagedChannel and transport
+    |
+    v
+gRPC server
+```
+
+ClientInterceptor has one main method: interceptCall(method, callOptions, next). It receives the MethodDescriptor, CallOptions, and the next Channel, and returns a ClientCall that can be wrapped to intercept start, request, sendMessage, halfClose, or cancel.
+
+Typically, metadata is added inside ClientCall.start because that is when the interceptor receives the headers prepared by the caller. Do not modify Protobuf payloads inside an interceptor if that belongs to the contract or business logic; keep interceptors focused on cross-cutting concerns.
+
+## 2. Lifecycle of interceptCall and ClientCall
+
+A typical implementation creates the delegate call and wraps it with ForwardingClientCall:
+
+```java
+import io.grpc.CallOptions;
+import io.grpc.Channel;
+import io.grpc.ClientCall;
+import io.grpc.ClientInterceptor;
+import io.grpc.ForwardingClientCall;
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor;
+import java.util.function.Supplier;
+
+final class RequestIdClientInterceptor implements ClientInterceptor {
+    static final Metadata.Key<String> REQUEST_ID =
+        Metadata.Key.of(
+            "x-request-id",
+            Metadata.ASCII_STRING_MARSHALLER);
+
+    private final Supplier<String> requestIdSupplier;
+
+    RequestIdClientInterceptor(Supplier<String> requestIdSupplier) {
+        this.requestIdSupplier = requestIdSupplier;
+    }
+
+    @Override
+    public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
+            MethodDescriptor<ReqT, RespT> method,
+            CallOptions callOptions,
+            Channel next) {
+
+        ClientCall<ReqT, RespT> delegate =
+            next.newCall(method, callOptions);
+
+        return new ForwardingClientCall
+                .SimpleForwardingClientCall<ReqT, RespT>(delegate) {
+            @Override
+            public void start(
+                    Listener<RespT> responseListener,
+                    Metadata headers) {
+                if (headers.get(REQUEST_ID) == null) {
+                    headers.put(REQUEST_ID, requestIdSupplier.get());
+                }
+                super.start(responseListener, headers);
+            }
+        };
+    }
+}
+```
+
+The Supplier generates a request ID per call instead of creating one fixed ID in the constructor. If the caller already provided a request ID, you might preserve it to correlate traces across multiple services. If policy requires the server to trust only gateway-generated IDs, verify the header's origin before preserving it; never trust arbitrary values from external clients.
+
+The implementation must call super.start exactly once. Never keep a call's Metadata or Listener in a shared field. A single interceptor bean can serve many concurrent RPCs.
+
+## 3. Metadata keys and header propagation rules
+
+Metadata keys must use valid names and appropriate marshallers:
+
+| Data type | Key/marshaller | Notes |
+| --- | --- | --- |
+| Request ID | ASCII string | Must not contain sensitive data |
+| Authorization | ASCII string | Never log the token |
+| Trace context | Per active tracing standard | Maintain consistent formatting |
+| Binary metadata | Key ending with -bin and binary marshaller | Do not use ASCII marshaller for bytes |
+
+Metadata key names are normally lowercase. For a defined key, share the same Metadata.Key between client and server to prevent mismatches in name or marshaller.
+
+Decisions when a header already exists must be explicit:
+
+- Preserve: keep the caller-supplied request ID if the caller sits within the right trust boundary.
+- Replace: remove the old value and set an ID generated by the interceptor/gateway.
+- Reject: fail the call if the header violates format or policy.
+
+Do not accidentally append another value to a header designed to be single-valued. To replace, call headers.removeAll(KEY) before headers.put(KEY, value). To preserve, check headers.get(KEY) before putting.
+
+## 4. Preserving method descriptors and CallOptions
+
+An interceptor should not alter the method or options configured by the caller. Always call next.newCall(method, callOptions) with the exact two arguments received, unless an explicitly designed policy adds an option.
+
+CallOptions can hold deadlines, executors, compressors, credentials, or client call options. For example, a stub configured with a deadline:
+
+```java
+GreeterGrpc.GreeterBlockingStub boundedStub =
+    stub.withDeadlineAfter(250, TimeUnit.MILLISECONDS);
+
+HelloReply reply = boundedStub.sayHello(request);
+```
+
+The client interceptor receives CallOptions containing the configured deadline. Tests must verify the interceptor does not accidentally issue a new call with CallOptions.DEFAULT or drop the deadline. If the interceptor attaches a custom CallOptions.Key, preserve existing options.
+
+MethodDescriptor supplies the full method name and request/response types. It can be used to apply per-method policies, but avoid hardcoding a single method if the interceptor is shared across services.
+
+## 5. Unit testing interceptors with a fake channel
+
+You can test interceptCall logic independently with a fake Channel that records the method, CallOptions, and metadata passed to ClientCall. Channel tests require no server:
+
+```java
+final class CapturingChannel extends Channel {
+    private MethodDescriptor<?, ?> observedMethod;
+    private CallOptions observedOptions;
+    private Metadata observedHeaders;
+
+    @Override
+    public String authority() {
+        return "test-authority";
+    }
+
+    @Override
+    public <ReqT, RespT> ClientCall<ReqT, RespT> newCall(
+            MethodDescriptor<ReqT, RespT> method,
+            CallOptions callOptions) {
+        observedMethod = method;
+        observedOptions = callOptions;
+
+        return new ClientCall<>() {
+            @Override
+            public void start(
+                    Listener<RespT> listener,
+                    Metadata headers) {
+                observedHeaders = headers;
+            }
+
+            @Override public void request(int numMessages) {}
+            @Override public void cancel(String message, Throwable cause) {}
+            @Override public void halfClose() {}
+            @Override public void sendMessage(ReqT message) {}
+        };
+    }
+}
+```
+
+Use CapturingChannel as the interceptor's next channel, create a call with a test method and CallOptions, invoke start with Metadata, and assert:
+
+- The full method name is forwarded intact.
+- CallOptions/deadlines are preserved.
+- A request ID is added when the header is absent.
+- Caller-provided headers are preserved or replaced according to policy.
+- The Supplier is invoked the expected number of times per call.
+
+This is a unit test for call-wrapping logic. It does not verify that metadata traversed the transport or reached the server; use an in-process test in the next section.
+
+## 6. In-process tests to verify metadata reaches the server
+
+To test end-to-end inside the JVM, create a server interceptor that records headers, then call the service using a generated stub wrapped with the client interceptor:
+
+```java
+import io.grpc.ServerInterceptors;
+import io.grpc.ServerServiceDefinition;
+import java.util.concurrent.atomic.AtomicReference;
+
+AtomicReference<String> receivedRequestId = new AtomicReference<>();
+
+ServerInterceptor captureHeader = new ServerInterceptor() {
+    @Override
+    public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
+            ServerCall<ReqT, RespT> call,
+            Metadata headers,
+            ServerCallHandler<ReqT, RespT> next) {
+        receivedRequestId.set(headers.get(
+            RequestIdClientInterceptor.REQUEST_ID));
+        return next.startCall(call, headers);
+    }
+};
+
+ServerServiceDefinition observedService =
+    ServerInterceptors.intercept(
+        new GreeterService().bindService(),
+        captureHeader);
+
+String serverName = InProcessServerBuilder.generateName();
+Server server = InProcessServerBuilder.forName(serverName)
+    .addService(observedService)
+    .build()
+    .start();
+ManagedChannel channel = InProcessChannelBuilder
+    .forName(serverName)
+    .build();
+
+Channel intercepted = ClientInterceptors.intercept(
+    channel,
+    new RequestIdClientInterceptor(() -> "req-test-42"));
+GreeterGrpc.GreeterBlockingStub stub =
+    GreeterGrpc.newBlockingStub(intercepted);
+
+HelloReply reply = stub.sayHello(
+    HelloRequest.newBuilder().setName("An").build());
+
+assertEquals("req-test-42", receivedRequestId.get());
+```
+
+This illustrates the core body of the test; remember to close the channel and server in try/finally or @AfterEach with a finite shutdown timeout. The server interceptor observes metadata before the service handler runs, so the assertion proves the header traveled through the gRPC call pipeline to the server.
+
+When testing multiple concurrent calls, do not use a single AtomicReference to assert request ordering; use a queue or a map keyed by request ID. Tests must verify each call receives its own header without leaking IDs from previous calls.
+
+## 7. Preserve, replace, and validation tests
+
+A request-ID interceptor should have tests for all three scenarios:
+
+| Input headers | Policy | Expected outcome |
+| --- | --- | --- |
+| No request ID | Generate | Interceptor adds a new ID |
+| Valid ID from trusted caller | Preserve | Server receives original ID |
+| Invalid ID | Reject or replace | Behavior follows policy unambiguously |
+| Two concurrent calls | Generate per call | Each call gets an independent ID |
+
+Preserve/replace tests should verify the count of header values, not only the first value. If a key is designed to be single-valued, remove old values before putting a new value.
+
+Never use a request ID as a credential. Request IDs are solely for correlation; authentication must rely on verified tokens/certificates.
+
+## 8. Deadlines, errors, and cancellation
+
+A client interceptor can record the method or call duration, but should never swallow errors. When the delegate finishes via onClose with an error status, the wrapper must forward the original status/trailers to the caller's listener.
+
+An observing interceptor can wrap ClientCall.Listener:
+
+```java
+import io.grpc.ForwardingClientCallListener;
+import io.grpc.Status;
+
+return new ForwardingClientCall
+        .SimpleForwardingClientCall<ReqT, RespT>(delegate) {
+    @Override
+    public void start(
+            Listener<RespT> responseListener,
+            Metadata headers) {
+        super.start(new ForwardingClientCallListener
+                .SimpleForwardingClientCallListener<RespT>(
+                    responseListener) {
+            @Override
+            public void onClose(Status status, Metadata trailers) {
+                // Record method, status and elapsed time.
+                super.onClose(status, trailers);
+            }
+        }, headers);
+    }
+};
+```
+
+Tests must verify:
+
+- Deadlines from the stub remain effective after attaching the interceptor.
+- Statuses like DEADLINE_EXCEEDED, UNAVAILABLE, or UNAUTHENTICATED are forwarded intact.
+- Required trailers are not lost.
+- Caller cancellation reaches the delegate.
+- The interceptor does not emit extra callbacks or invoke terminal callbacks twice.
+
+Never perform blocking I/O inside start or onClose. Interceptors run on the call path; slow work increases latency or exhausts executors.
+
+## 9. Ordering multiple client interceptors
+
+A channel can attach multiple interceptors for tracing, metrics, authentication, and request metadata. Wrappers nest around each other; ordering determines which headers each layer sees or records.
+
+Example logical order:
+
+1. Trace context: read or create trace/span metadata.
+2. Authentication: attach credentials supplied by the credential provider.
+3. Request ID: preserve or generate correlation ID.
+4. Metrics/logging: record method and outcome, with sensitive data redacted.
+5. Transport channel: send the call.
+
+Never infer actual order solely from bean ordering in the Spring context. Interceptor registration APIs and helpers can define specific wrapper ordering; write tests using interceptors that push events into a queue to verify both request-side and response-side order.
+
+In particular, logging interceptors must never log authorization tokens. If a redaction interceptor runs after the logger, secrets may already be logged before being masked.
+
+## 10. Thread safety and interceptor lifecycle
+
+Client interceptors are typically shared across many calls and threads. Guidelines:
+
+- Avoid mutable fields holding per-call metadata, request IDs, or listeners.
+- Use local variables inside interceptCall/start for per-call data.
+- Suppliers/token providers must be thread-safe and have clear timeouts.
+- Never block inside an interceptor to call an identity service or tracing backend.
+- Never store a Metadata object and reuse it across multiple calls.
+- Ensure cancellation and deadlines still propagate to the delegate.
+
+If an interceptor relies on token refresh, use a credential provider with managed caching and refresh concurrency. Do not let every concurrent RPC trigger a thundering herd of token refreshes.
+
+Concurrency tests can issue multiple RPCs with distinct request IDs and check that the server receives every ID exactly once. Use a bounded executor and deadlines so tests do not hang if an interceptor misbehaves.
+
+## 11. Registering interceptors in Spring gRPC
+
+In Spring applications, client channels are typically created via beans/configuration or a starter-specific client factory. Verify that the interceptor is attached to the channel actually used to build the stub:
+
+1. Declare an interceptor bean or configure the interceptor via the active starter's extension point.
+2. Create the ManagedChannel/client channel via Spring configuration.
+3. Attach the interceptor to the channel before creating generated stubs, or use the starter-supported mechanism.
+4. Inject the stub/client into service beans.
+5. Invoke an RPC in a Spring context test and verify the server receives the metadata.
+6. Close the channel when the context stops if the application owns the channel lifecycle.
+
+Property names and extension points depend on the Spring gRPC starter version. Never assume every bean implementing ClientInterceptor is automatically attached to every channel. Context tests must verify the active channel/stub genuinely passes through the interceptor.
+
+In-process tests prove interceptor logic and metadata propagation inside the JVM. TCP/TLS integration tests are required to verify headers over HTTP/2, proxies, ingress, service meshes, TLS/mTLS, and certificate configurations.
+
+## 12. Test matrix and practice exercise
+
+| Group | Test case | PASS condition |
+| --- | --- | --- |
+| Method propagation | Call multiple generated methods | MethodDescriptor forwarded accurately |
+| CallOptions | Stub with deadline | Deadline is not lost |
+| Metadata generate | Caller sends no request ID | Server receives interceptor-generated ID |
+| Metadata preserve | Caller sends valid ID | Server receives exact ID per policy |
+| Metadata replace | Caller sends invalid ID | Old header handled per policy |
+| Authentication | Token provider supplies credential | Header sent properly, secrets not logged |
+| Server capture | In-process server interceptor | Observes actual received metadata |
+| Error propagation | Server returns error status | Caller receives original status/trailers |
+| Cancellation | Caller cancels | Delegate receives cancellation |
+| Ordering | Multiple interceptors | Request/response order matches design |
+| Concurrency | Multiple concurrent calls | No metadata leaked between calls |
+| Spring wiring | Client channel bean | Actual stub passes through interceptor |
+| Transport | TCP/TLS | HTTP/2, proxies, and certificates work |
+
+**Exercise:** OrderClient uses a generated OrderServiceStub. Every call must carry x-request-id; bearer tokens come from a credential provider; deadlines are set per use case. Some internal callers already have a request ID from a gateway that must be preserved.
+
+1. Write RequestIdClientInterceptor so it generates an ID only when the header is missing.
+2. Write unit tests with CapturingChannel to verify method, CallOptions, and headers.
+3. Build an in-process server with a server interceptor that records the request ID.
+4. Test generate, preserve, replace/reject, and two concurrent calls.
+5. Verify deadlines and status/trailers are not lost by the interceptor.
+6. Attach an authentication interceptor/credential provider and verify secrets never appear in logs.
+7. Verify ordering of tracing, authentication, request ID, and metrics interceptors.
+8. Write a Spring context test verifying the channel/stub bean actually uses the interceptor.
+9. Add TCP/TLS tests for HTTP/2, proxies, and certificates if the system uses them.
+
+**Self-check questions:**
+
+- Which parameters does ClientInterceptor receive in interceptCall?
+- Why is metadata usually modified inside ClientCall.start?
+- How do you preserve CallOptions and deadlines?
+- When should you preserve versus replace a request ID?
+- Why should Metadata not be stored in fields of a singleton interceptor?
+- How do you prove a header actually reached the server?
+- Why should status tests verify trailers and cancellation?
+- How does client interceptor order affect redaction?
+- Why must Spring context tests verify the actual channel instead of just checking that a bean exists?
+- What requires TCP/TLS integration tests beyond in-process tests?
+
+**Remember:** Testing client interceptors must verify that methods and CallOptions are preserved, metadata is generated/preserved/replaced per policy, and headers actually reach the server. Use CapturingChannel for isolated logic, an in-process server to test propagation, Spring context tests for channel wiring, and TCP/TLS tests for real transport. Keep interceptors thread-safe, never log secrets, and never drop deadlines, statuses, or cancellations.

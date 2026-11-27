@@ -1,0 +1,2473 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: CI/CD là gì và vai trò trong vòng đời phát triển phần mềm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: 'Tích hợp liên tục (Continuous Integration): mục tiêu và cách làm'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Phân phối liên tục (Continuous Delivery): luôn sẵn sàng đưa thay đổi đến người dùng'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: 'Triển khai liên tục (Continuous Deployment): tự động triển khai thay đổi đạt điều kiện'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt build, kiểm thử, triển khai và phát hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Mối liên hệ giữa DevOps, CI/CD và phản hồi từ vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Nhận diện commit, pipeline, job, runner, artifact và môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học từ thay đổi mã nguồn đến kiểm chứng trên môi trường đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: principles
+  title: Nguyên lý
+  childs:
+  - slug: principles-001
+    title: Tích hợp thay đổi nhỏ và thường xuyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principles-002
+    title: Giữ nhánh chính ở trạng thái có thể phát hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principles-003
+    title: Tự động hóa quy trình có thể lặp lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principles-004
+    title: Phát hiện lỗi sớm và ưu tiên sửa luồng tích hợp bị hỏng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principles-005
+    title: Dựng một lần và sử dụng cùng artifact qua các môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principles-006
+    title: Thiết kế kiểm tra theo rủi ro và thời gian phản hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principles-007
+    title: Chia sẻ trách nhiệm về chất lượng, triển khai và phục hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principles-008
+    title: Phân biệt mục tiêu giao phần mềm với số lượng công cụ được sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: software-delivery-flow
+  title: Luồng giao phần mềm
+  childs:
+  - slug: software-delivery-flow-001
+    title: Mô tả luồng từ commit đến kết quả người dùng quan sát được
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-flow-002
+    title: Xác định đầu vào, đầu ra và điều kiện qua từng giai đoạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-flow-003
+    title: Phân biệt thời gian thực hiện với thời gian chờ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-flow-004
+    title: Nhận diện điểm bàn giao và thao tác thủ công dễ sai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-flow-005
+    title: Phân biệt kiểm tra trước khi tích hợp với kiểm tra sau khi tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-flow-006
+    title: Theo dõi một thay đổi qua mã nguồn, artifact và bản triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-flow-007
+    title: Thiết kế pipeline tối thiểu trước khi mở rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-integration
+  title: Tích hợp mã nguồn
+  childs:
+  - slug: source-integration-001
+    title: Quản lý mã ứng dụng, kiểm thử và cấu hình pipeline bằng hệ thống phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-integration-002
+    title: Phân biệt kiểm tra trên nhánh với thực hành tích hợp liên tục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-integration-003
+    title: Giữ nhánh ngắn hạn và giảm độ lớn của lần tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-integration-004
+    title: Vai trò của pull request, rà soát mã và kiểm tra bắt buộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-integration-005
+    title: Kiểm tra đúng phiên bản sẽ được hợp nhất hoặc triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-integration-006
+    title: Xử lý thay đổi mới làm kết quả kiểm tra trước đó mất hiệu lực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-integration-007
+    title: Giữ nhánh chính hoạt động và thống nhất cách sửa build lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-integration-008
+    title: Tách chiến lược nhánh chi tiết khỏi nguyên lý CI/CD
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-architecture
+  title: Kiến trúc pipeline
+  childs:
+  - slug: pipeline-architecture-001
+    title: Phân biệt pipeline, giai đoạn, công việc và bước thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-architecture-002
+    title: Mô tả phụ thuộc giữa các công việc bằng đồ thị có hướng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-architecture-003
+    title: Chọn công việc tuần tự và công việc có thể chạy song song
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-architecture-004
+    title: Truyền đầu ra giữa các công việc bằng cơ chế rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-architecture-005
+    title: Phân biệt trạng thái thành công, thất bại, bỏ qua và hủy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-architecture-006
+    title: Xác định mã thoát và điều kiện để một bước được coi là đạt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-architecture-007
+    title: Tách kiểm tra nhanh với kiểm tra cần nhiều tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-architecture-008
+    title: Đặt cổng kiểm soát trước tác động lên môi trường dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-architecture-009
+    title: Nhận diện khác biệt thuật ngữ giữa các nền tảng CI/CD
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-as-code
+  title: Pipeline bằng mã
+  childs:
+  - slug: pipeline-as-code-001
+    title: Lưu định nghĩa pipeline cùng lịch sử thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-as-code-002
+    title: Đọc cấu trúc YAML hoặc DSL ở mức khái niệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-as-code-003
+    title: Phân biệt điều kiện của nền tảng với lệnh chạy trong shell
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-as-code-004
+    title: Tổ chức script có thể chạy cả cục bộ và trong CI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-as-code-005
+    title: Rà soát thay đổi pipeline như thay đổi mã ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-as-code-006
+    title: Tái sử dụng cấu hình có kiểm soát và tránh sao chép khó bảo trì
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-as-code-007
+    title: Ghim phiên bản thành phần tái sử dụng và công cụ thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-as-code-008
+    title: Kiểm tra cấu hình trước khi chạy lên môi trường thật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trigger-events
+  title: Sự kiện kích hoạt
+  childs:
+  - slug: trigger-events-001
+    title: Kích hoạt theo push, pull request, nhãn phiên bản và lịch định kỳ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-002
+    title: Kích hoạt thủ công với đầu vào được kiểm tra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-003
+    title: Chọn nhánh, đường dẫn và phạm vi thay đổi cần xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-004
+    title: Phân biệt sự kiện từ nguồn tin cậy với đóng góp bên ngoài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-005
+    title: Tránh chạy trùng cùng một kiểm tra do nhiều sự kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-006
+    title: Hiểu giới hạn của bộ lọc thay đổi với phụ thuộc dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-007
+    title: Liên kết sự kiện kích hoạt với đúng commit hoặc artifact
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-008
+    title: Ngăn vòng lặp khi pipeline tự tạo commit, nhãn hoặc sự kiện mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-environments
+  title: Môi trường thực thi
+  childs:
+  - slug: execution-environments-001
+    title: Vai trò của runner, agent hoặc worker trong việc chạy công việc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-environments-002
+    title: Phân biệt máy chạy do nền tảng cung cấp với máy tự quản lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-environments-003
+    title: Thiết kế vùng làm việc sạch và cách ly các lần chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-environments-004
+    title: Ghim hệ điều hành, toolchain và phiên bản công cụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-environments-005
+    title: Sử dụng container làm môi trường công việc khi phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-environments-006
+    title: Chuẩn bị dịch vụ phụ trợ cho kiểm thử tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-environments-007
+    title: Quản lý tài nguyên, thời gian chờ và giới hạn kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-environments-008
+    title: Kiểm soát quyền của máy chạy và khả năng truy cập mạng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-environments-009
+    title: Dọn tiến trình, tệp tạm và dữ liệu sau khi kết thúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reproducible-builds
+  title: Build tái lập
+  childs:
+  - slug: reproducible-builds-001
+    title: Tự động hóa build bằng một lệnh rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-002
+    title: Sử dụng wrapper và toolchain để giảm khác biệt môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-003
+    title: Phân biệt build chạy lại được với đầu ra tái lập từng byte
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-004
+    title: Kiểm soát phụ thuộc vào thời gian, ngẫu nhiên và đường dẫn máy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-005
+    title: Xác định đầu vào cần ghim và dữ liệu cần ghi nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-006
+    title: Build từ mã nguồn sạch thay vì dựa vào tệp có sẵn trên máy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-007
+    title: Ví dụ luồng biên dịch, kiểm thử và đóng gói một dự án Java
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-008
+    title: Kiểm tra artifact độc lập với môi trường vừa tạo ra nó
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependencies-caching
+  title: Phụ thuộc và cache
+  childs:
+  - slug: dependencies-caching-001
+    title: Phân biệt phụ thuộc trực tiếp, phụ thuộc bắc cầu và công cụ build
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-caching-002
+    title: Ghim phiên bản và quản lý tệp khóa khi hệ sinh thái hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-caching-003
+    title: Tải phụ thuộc từ nguồn được kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-caching-004
+    title: Phân biệt cache tăng tốc với artifact cần bàn giao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-caching-005
+    title: Thiết kế khóa cache theo đầu vào và môi trường phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-caching-006
+    title: Xử lý cache cũ, cache hỏng và kết quả không nhất quán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-caching-007
+    title: Ngăn dữ liệu từ nguồn không tin cậy làm nhiễm cache dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-caching-008
+    title: Đảm bảo pipeline vẫn đúng khi cache không có sẵn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-strategy
+  title: Chiến lược kiểm thử
+  childs:
+  - slug: testing-strategy-001
+    title: Phân biệt kiểm thử đơn vị, tích hợp, hợp đồng và đầu cuối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-002
+    title: Chọn lớp kiểm thử theo loại rủi ro cần phát hiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-003
+    title: Đưa kiểm tra nhanh và có giá trị phản hồi cao lên sớm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-004
+    title: Tách kiểm thử chức năng với hiệu năng và bảo mật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-005
+    title: Quản lý dữ liệu kiểm thử và trạng thái ban đầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-006
+    title: Kiểm thử với dịch vụ thật, môi trường cô lập hoặc đối tượng thay thế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-007
+    title: Giữ kết quả độc lập với thứ tự và mức song song
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-008
+    title: Nhận diện kiểm thử chập chờn và điều tra nguyên nhân
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-009
+    title: Lưu báo cáo đủ để xác định lỗi mà không chỉ nhìn trạng thái đỏ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-010
+    title: Hiểu giới hạn của tỷ lệ bao phủ mã và kết quả kiểm thử đạt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-gates
+  title: Cổng chất lượng
+  childs:
+  - slug: quality-gates-001
+    title: Xác định điều kiện đạt cho từng giai đoạn pipeline
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-002
+    title: Kiểm tra định dạng, quy tắc mã và lỗi phân tích tĩnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-003
+    title: Đặt kiểm tra bảo mật theo mức độ ảnh hưởng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-004
+    title: Phân biệt kiểm tra bắt buộc với kết quả chỉ mang tính tham khảo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-005
+    title: Thiết kế phê duyệt thủ công dựa trên rủi ro và trách nhiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-006
+    title: Kiểm tra lại artifact hoặc cấu hình nếu có thay đổi sau phê duyệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-007
+    title: Quản lý ngoại lệ có thời hạn và bằng chứng giải thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-008
+    title: Tránh cho phép bỏ qua lỗi làm pipeline thành công giả
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: artifacts
+  title: Artifact
+  childs:
+  - slug: artifacts-001
+    title: Phân biệt sản phẩm build với mã nguồn và tệp tạm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-002
+    title: Định danh artifact bằng phiên bản, checksum hoặc digest
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-003
+    title: Lưu artifact trong kho phù hợp thay vì phụ thuộc vùng làm việc CI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-004
+    title: Bàn giao đúng artifact đã qua kiểm tra cho bước triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-005
+    title: Phân biệt promotion artifact với dựng lại cho môi trường tiếp theo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-006
+    title: Lưu thông tin commit, lần build và phụ thuộc liên quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-007
+    title: Kiểm tra tính toàn vẹn trước khi sử dụng artifact
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-008
+    title: Quản lý thời gian lưu để hỗ trợ kiểm chứng và quay lui
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-009
+    title: Giới thiệu bằng chứng nguồn gốc build và danh mục thành phần phần mềm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-configuration
+  title: Cấu hình môi trường
+  childs:
+  - slug: environment-configuration-001
+    title: Phân biệt mã ứng dụng, cấu hình và thông tin bí mật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-002
+    title: Tổ chức môi trường phát triển, kiểm thử, tiền sản xuất và sản xuất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-003
+    title: Giữ tương đồng cần thiết mà không sao chép dữ liệu nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-004
+    title: Truyền cấu hình tại thời điểm triển khai hoặc chạy ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-005
+    title: Quản lý phiên bản và kiểm tra tính hợp lệ của cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-006
+    title: Nhận diện cấu hình lệch giữa mô tả mong muốn và trạng thái thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-007
+    title: Giới thiệu hạ tầng bằng mã và môi trường tạm thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-008
+    title: Liên kết bản triển khai với đúng phiên bản cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secrets-identity
+  title: Bí mật và danh tính
+  childs:
+  - slug: secrets-identity-001
+    title: Lưu thông tin bí mật trong hệ thống chuyên dụng của môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identity-002
+    title: Phân biệt danh tính người dùng với danh tính pipeline
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identity-003
+    title: Cấp quyền tối thiểu theo công việc và môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identity-004
+    title: Dùng thông tin xác thực ngắn hạn khi nền tảng hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identity-005
+    title: Giới thiệu OIDC và liên kết danh tính với dịch vụ đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identity-006
+    title: Ngăn bí mật xuất hiện trong mã nguồn, nhật ký, cache và artifact
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identity-007
+    title: Giới hạn quyền đối với pipeline của pull request không tin cậy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identity-008
+    title: Luân chuyển, thu hồi và kiểm chứng thông tin xác thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identity-009
+    title: Xác định ranh giới truy cập vào môi trường sản xuất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-security
+  title: Bảo mật pipeline
+  childs:
+  - slug: pipeline-security-001
+    title: Nhận diện pipeline là một phần của chuỗi cung ứng phần mềm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-002
+    title: Bảo vệ nhánh chính, cấu hình pipeline và thành phần tái sử dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-003
+    title: Kiểm tra mã hoặc tham số đầu vào trước khi đưa vào lệnh shell
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-004
+    title: Kiểm soát action, plugin, image và script từ bên thứ ba
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-005
+    title: Cách ly mã không tin cậy với runner và thông tin xác thực đặc quyền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-006
+    title: Tích hợp kiểm tra phụ thuộc, mã nguồn và thông tin bí mật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-007
+    title: Xác minh artifact và bằng chứng build trước khi triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-008
+    title: Phân tách quyền phê duyệt, xuất bản và triển khai khi cần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-009
+    title: Ghi nhận hoạt động thay đổi pipeline và sử dụng quyền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-010
+    title: Giữ quy trình kiểm soát có thể kiểm chứng mà không tạo thành thủ tục hình thức
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automated-deployment
+  title: Triển khai tự động
+  childs:
+  - slug: automated-deployment-001
+    title: Xác định đầu vào gồm artifact, cấu hình và môi trường đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-deployment-002
+    title: Tự động hóa cùng một quy trình triển khai cho các môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-deployment-003
+    title: Thiết kế script có kiểm tra lỗi và trạng thái hoàn tất rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-deployment-004
+    title: Phân biệt chạy lệnh thành công với ứng dụng thực sự sẵn sàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-deployment-005
+    title: Kiểm tra điều kiện trước khi triển khai và quyền truy cập đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-deployment-006
+    title: Giảm gián đoạn bằng khởi động, chuyển lưu lượng và dừng có kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-deployment-007
+    title: Lặp lại thao tác an toàn khi tiến trình bị ngắt hoặc kết quả chưa rõ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-deployment-008
+    title: Lưu định danh bản triển khai để kiểm chứng và phục hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-strategies
+  title: Chiến lược triển khai
+  childs:
+  - slug: deployment-strategies-001
+    title: Hiểu triển khai thay thế toàn bộ và khoảng gián đoạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-strategies-002
+    title: Hiểu triển khai cuốn chiếu và điều kiện tương thích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-strategies-003
+    title: Hiểu blue-green và thời điểm chuyển lưu lượng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-strategies-004
+    title: Hiểu canary và cách tăng dần phạm vi ảnh hưởng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-strategies-005
+    title: Phân biệt chiến lược triển khai với thử nghiệm A/B
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-strategies-006
+    title: Chọn tín hiệu và điều kiện dừng triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-strategies-007
+    title: Đánh giá chi phí hạ tầng và mức rủi ro của từng chiến lược
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-strategies-008
+    title: Xác định khả năng hỗ trợ của nền tảng trước khi áp dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: feature-releases
+  title: Phát hành tính năng
+  childs:
+  - slug: feature-releases-001
+    title: Phân biệt triển khai phần mềm với mở tính năng cho người dùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-releases-002
+    title: Giới thiệu cờ tính năng và cách che thay đổi chưa hoàn tất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-releases-003
+    title: Mở tính năng theo nhóm người dùng hoặc từng giai đoạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-releases-004
+    title: Kiểm tra hành vi khi cờ bật và khi cờ tắt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-releases-005
+    title: Xác định trách nhiệm, vòng đời và thời điểm gỡ cờ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-releases-006
+    title: Phân biệt quyết định phát hành nghiệp vụ với kiểm tra kỹ thuật
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-releases-007
+    title: Nhận diện trường hợp cần phân phối liên tục mà chưa triển khai liên tục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-changes
+  title: Thay đổi dữ liệu
+  childs:
+  - slug: data-changes-001
+    title: Đưa thay đổi lược đồ cơ sở dữ liệu vào quy trình phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-002
+    title: Phối hợp phiên bản ứng dụng với phiên bản lược đồ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-003
+    title: Giới thiệu mở rộng, chuyển đổi rồi thu gọn lược đồ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-004
+    title: Giữ tương thích khi nhiều phiên bản ứng dụng cùng chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-005
+    title: Tách đổi lược đồ với chuyển đổi dữ liệu tốn nhiều thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-006
+    title: Kiểm soát khóa, thời lượng và khả năng chạy lại tác vụ dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-007
+    title: Phân biệt quay lui mã ứng dụng với phục hồi dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-008
+    title: Kiểm thử nâng cấp cùng dữ liệu đại diện trước khi triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: post-deployment-validation
+  title: Kiểm chứng sau triển khai
+  childs:
+  - slug: post-deployment-validation-001
+    title: Xác nhận đúng phiên bản đã chạy trên môi trường đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-validation-002
+    title: Phân biệt tiến trình còn sống với dịch vụ sẵn sàng nhận lưu lượng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-validation-003
+    title: Thực hiện kiểm tra khói cho các luồng quan trọng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-validation-004
+    title: Kiểm tra kết nối, cấu hình và phụ thuộc tại môi trường đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-validation-005
+    title: Theo dõi lỗi, độ trễ và tín hiệu nghiệp vụ sau thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-validation-006
+    title: Đối chiếu với mức nền trước khi triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-validation-007
+    title: Chọn khoảng quan sát và tiêu chí chấp nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-validation-008
+    title: Dừng mở rộng hoặc chuyển sang phục hồi khi có tín hiệu xấu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-validation-009
+    title: Lưu bằng chứng xác nhận kết quả triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rollback-recovery
+  title: Quay lui và phục hồi
+  childs:
+  - slug: rollback-recovery-001
+    title: Xác định điều kiện quay lui trước khi triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-recovery-002
+    title: Chọn quay về artifact cũ hoặc sửa tiến về phiên bản mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-recovery-003
+    title: Giữ sẵn artifact và cấu hình đã được xác minh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-recovery-004
+    title: Phục hồi lưu lượng khi dùng blue-green hoặc canary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-recovery-005
+    title: Kiểm tra tương thích dữ liệu khi chạy lại phiên bản ứng dụng cũ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-recovery-006
+    title: Phân biệt tắt tính năng với quay lui bản triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-recovery-007
+    title: Diễn tập quy trình phục hồi trong điều kiện có sự cố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-recovery-008
+    title: Kiểm chứng dịch vụ và tác động người dùng sau phục hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failures-retries
+  title: Thất bại và thử lại
+  childs:
+  - slug: failures-retries-001
+    title: Phân loại lỗi mã nguồn, kiểm thử, hạ tầng và cấu hình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-retries-002
+    title: Dừng sớm khi lỗi đã đủ để loại bỏ một thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-retries-003
+    title: Chọn phạm vi chạy lại mà vẫn giữ bằng chứng kiểm tra hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-retries-004
+    title: Chỉ tự thử lại lỗi tạm thời với số lần và thời gian chờ hữu hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-retries-005
+    title: Tránh thử lại thao tác xuất bản hoặc triển khai gây tác động lặp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-retries-006
+    title: Xử lý hết thời gian chờ khi chưa biết thao tác đích đã hoàn tất hay chưa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-retries-007
+    title: Dọn tài nguyên bằng cơ chế luôn được thực hiện khi kết thúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-retries-008
+    title: Phân công người xử lý và làm rõ trạng thái pipeline chưa hoàn tất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-coordination
+  title: Điều phối đồng thời
+  childs:
+  - slug: concurrency-coordination-001
+    title: Phân biệt chạy song song công việc với chạy đồng thời nhiều pipeline
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-coordination-002
+    title: Tuần tự hóa thay đổi vào cùng một môi trường dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-coordination-003
+    title: Ngăn pipeline cũ ghi đè phiên bản mới hơn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-coordination-004
+    title: Hủy công việc lỗi thời khi chưa gây tác động cần giữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-coordination-005
+    title: Kiểm soát hai lần xuất bản cùng một phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-coordination-006
+    title: Thiết kế khóa và thời gian chờ với khả năng giải phóng khi lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-coordination-007
+    title: Xử lý sự kiện được giao nhiều lần mà không triển khai trùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-coordination-008
+    title: Giới hạn mức song song theo tài nguyên và dịch vụ phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fast-feedback
+  title: Tối ưu phản hồi
+  childs:
+  - slug: fast-feedback-001
+    title: Đo thời gian chờ máy chạy và thời gian từng công việc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fast-feedback-002
+    title: Tối ưu phần nằm trên đường phụ thuộc dài nhất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fast-feedback-003
+    title: Chạy kiểm thử độc lập song song và phân chia bộ kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fast-feedback-004
+    title: Tận dụng cache mà vẫn bảo toàn tính đúng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fast-feedback-005
+    title: Chọn ma trận hệ điều hành và phiên bản theo nhu cầu hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fast-feedback-006
+    title: Giảm công việc không cần thiết bằng phân tích phạm vi thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fast-feedback-007
+    title: Chuyển kiểm tra tốn thời gian sang giai đoạn phù hợp với rủi ro
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fast-feedback-008
+    title: Cân bằng tốc độ, độ tin cậy và chi phí thực thi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-evidence
+  title: Quan sát và bằng chứng
+  childs:
+  - slug: observability-evidence-001
+    title: Đọc nhật ký theo từng bước và giữ thông báo lỗi có ý nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-evidence-002
+    title: Thu thập báo cáo kiểm thử, kết quả phân tích và thông tin triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-evidence-003
+    title: Liên kết commit, pipeline, artifact và môi trường trong cùng dấu vết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-evidence-004
+    title: Phân biệt thông báo lỗi cần hành động với cập nhật trạng thái thông thường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-evidence-005
+    title: Giới hạn dữ liệu nhạy cảm trong báo cáo và nhật ký
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-evidence-006
+    title: Đặt thời gian lưu bằng chứng theo nhu cầu điều tra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-evidence-007
+    title: Theo dõi tình trạng dịch vụ CI và runner
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-evidence-008
+    title: Lưu lịch sử thay đổi và phê duyệt đối với môi trường quan trọng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-project-pipelines
+  title: Nhiều dự án
+  childs:
+  - slug: multi-project-pipelines-001
+    title: Phân biệt pipeline cho một ứng dụng với nhiều thành phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-pipelines-002
+    title: Nhận diện ảnh hưởng của mã và thư viện dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-pipelines-003
+    title: Chọn phạm vi build trong monorepo mà không bỏ sót phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-pipelines-004
+    title: Phối hợp artifact và hợp đồng giữa nhiều kho mã
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-pipelines-005
+    title: Thiết kế pipeline dùng lại mà vẫn cho phép cấu hình rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-pipelines-006
+    title: Giảm phụ thuộc triển khai đồng thời giữa các dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-pipelines-007
+    title: Giữ khả năng kiểm thử và phát hành độc lập khi kiến trúc cho phép
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-pipelines-008
+    title: Đánh giá độ phức tạp trước khi thêm điều phối nhiều pipeline
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-patterns
+  title: Công cụ và mô hình
+  childs:
+  - slug: tools-patterns-001
+    title: Đặt GitHub Actions, GitLab CI và Jenkins vào cùng mô hình khái niệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-patterns-002
+    title: Phân biệt dịch vụ quản lý sẵn với hệ thống CI tự vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-patterns-003
+    title: Chọn công cụ theo hệ sinh thái, quyền truy cập và năng lực vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-patterns-004
+    title: Phân biệt pipeline điều khiển trực tiếp với triển khai kiểu GitOps
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-patterns-005
+    title: Hiểu mô hình đẩy thay đổi với tác nhân kéo trạng thái mong muốn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-patterns-006
+    title: Xác định phần nguyên lý dùng chung trước khi học cú pháp từng nền tảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-patterns-007
+    title: Tránh phụ thuộc công cụ khi thiết kế lệnh build và kiểm thử cốt lõi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: team-collaboration
+  title: Phối hợp nhóm
+  childs:
+  - slug: team-collaboration-001
+    title: Thống nhất trách nhiệm giữa phát triển, kiểm thử, bảo mật và vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-002
+    title: Thiết kế tiêu chí hoàn tất gồm khả năng triển khai và quan sát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-003
+    title: Ưu tiên sửa nhánh chính hoặc pipeline hỏng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-004
+    title: Rà soát thay đổi nhỏ để giảm thời gian chờ tích hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-005
+    title: Quản lý quyền phê duyệt và quy trình xử lý khẩn cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-006
+    title: Ghi nhận sự cố để cải tiến quy trình thay vì chỉ chạy lại cho thành công
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-007
+    title: Tài liệu hóa cách chạy cục bộ, điều tra lỗi và phục hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-improvement
+  title: Đo lường và cải tiến
+  childs:
+  - slug: metrics-improvement-001
+    title: Đo thời gian từ thay đổi đến khi sử dụng được trên môi trường đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-improvement-002
+    title: Phân biệt tần suất triển khai với số lần chạy pipeline
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-improvement-003
+    title: Theo dõi tỷ lệ thay đổi gây lỗi và khả năng phục hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-improvement-004
+    title: Đo thời gian phản hồi, độ ổn định kiểm thử và thời gian chờ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-improvement-005
+    title: Phân biệt chỉ số của pipeline với kết quả giao phần mềm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-improvement-006
+    title: Giới thiệu cách dùng chỉ số DORA theo bối cảnh nhóm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-improvement-007
+    title: Tìm điểm nghẽn bằng dữ liệu thay vì tăng số bước tự động hóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-improvement-008
+    title: Chọn một cải tiến nhỏ và kiểm tra ảnh hưởng sau khi áp dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: thinking-pitfalls
+  title: Lỗi tư duy
+  childs:
+  - slug: thinking-pitfalls-001
+    title: Cho rằng có máy chủ CI đồng nghĩa đã thực hành tích hợp liên tục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thinking-pitfalls-002
+    title: Đồng nhất Continuous Delivery với Continuous Deployment
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thinking-pitfalls-003
+    title: Cho rằng build thành công chứng minh đủ điều kiện phát hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thinking-pitfalls-004
+    title: Dựng lại artifact riêng cho mỗi môi trường rồi coi là cùng bản đã kiểm thử
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thinking-pitfalls-005
+    title: Lưu bí mật trong cấu hình pipeline hoặc cấp toàn quyền cho runner
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thinking-pitfalls-006
+    title: Bỏ qua kiểm thử lỗi hoặc thử lại vô hạn để đạt trạng thái xanh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thinking-pitfalls-007
+    title: Triển khai mà không kiểm chứng dịch vụ sau thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thinking-pitfalls-008
+    title: Mặc định quay lui ứng dụng cũng quay lui an toàn dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thinking-pitfalls-009
+    title: Tối ưu thời gian pipeline mà bỏ qua thời gian chờ và độ tin cậy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-lab
+  title: Thực hành
+  childs:
+  - slug: hands-on-lab-001
+    title: Vẽ luồng một thay đổi từ commit đến kiểm chứng triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-002
+    title: Thiết kế pipeline tối thiểu gồm build, kiểm thử và đóng gói
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-003
+    title: Chạy cùng lệnh kiểm tra cục bộ và trên runner sạch
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-004
+    title: Lưu artifact rồi bàn giao đúng artifact cho môi trường tiếp theo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-005
+    title: Thêm cổng chất lượng và kiểm tra quyền theo mức tin cậy nguồn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-006
+    title: Truyền cấu hình cùng bí mật bằng cơ chế tách biệt
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-007
+    title: Tự động triển khai lên môi trường thử nghiệm và chạy kiểm tra khói
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-008
+    title: Mô phỏng build lỗi, mất kết nối và hai lần triển khai đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-009
+    title: Diễn tập quay lui và xác nhận dịch vụ phục hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-010
+    title: Tự đánh giá khả năng tích hợp thường xuyên, phản hồi nhanh và phát hành an toàn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

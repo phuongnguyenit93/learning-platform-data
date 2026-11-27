@@ -1,0 +1,3076 @@
+menu:
+- slug: architecture-overview
+  title: Tổng quan kiến trúc
+  childs:
+  - slug: architecture-overview-001
+    title: Kiến trúc đám mây là gì và những quyết định kiến trúc cần giải quyết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-overview-002
+    title: Vai trò kiến trúc sư và sự phối hợp với phát triển, bảo mật, vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-overview-003
+    title: Phân biệt kiến trúc nghiệp vụ, ứng dụng, dữ liệu và hạ tầng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-overview-004
+    title: Mối quan hệ giữa kiến trúc hệ thống, nền tảng đám mây và dịch vụ được quản lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-overview-005
+    title: Đọc một kiến trúc tham chiếu từ yêu cầu đến luồng xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-overview-006
+    title: Lộ trình thiết kế và đánh giá kiến trúc đám mây
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-requirements
+  title: Yêu cầu kiến trúc
+  childs:
+  - slug: architecture-requirements-001
+    title: Xác định mục tiêu nghiệp vụ, bên liên quan và phạm vi hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-requirements-002
+    title: Phân tích hành trình người dùng và các luồng nghiệp vụ trọng yếu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-requirements-003
+    title: Thu thập yêu cầu chức năng và yêu cầu chất lượng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-requirements-004
+    title: Ước lượng người dùng, lưu lượng, dung lượng dữ liệu và tốc độ tăng trưởng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-requirements-005
+    title: Xác định ràng buộc về ngân sách, nhân lực, công nghệ và thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-requirements-006
+    title: Phân loại dữ liệu, vị trí lưu trữ và yêu cầu tuân thủ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-requirements-007
+    title: Chuyển yêu cầu thành kịch bản chất lượng có tiêu chí đo lường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-requirements-008
+    title: Ưu tiên yêu cầu và xử lý xung đột giữa các bên liên quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-principles
+  title: Nguyên lý thiết kế
+  childs:
+  - slug: design-principles-001
+    title: Thiết kế theo trách nhiệm chia sẻ giữa khách hàng và nhà cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-002
+    title: Thiết kế cho lỗi, thay đổi và nhu cầu tăng trưởng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-003
+    title: Giảm phụ thuộc chặt và tăng tính gắn kết trong từng thành phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-004
+    title: Ưu tiên tự động hóa, khả năng tái tạo và hạ tầng bất biến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-005
+    title: Quản lý trạng thái và lựa chọn thành phần không lưu trạng thái
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-006
+    title: Thiết kế theo khả năng phục hồi thay vì giả định hạ tầng luôn hoạt động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-007
+    title: Đánh đổi giữa độ tin cậy, bảo mật, hiệu năng, chi phí và vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-008
+    title: Đánh giá ràng buộc nhà cung cấp và mức độ di chuyển thực sự cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-009
+    title: Đơn giản hóa kiến trúc và kiểm soát độ phức tạp phát sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-models
+  title: Mô hình triển khai
+  childs:
+  - slug: deployment-models-001
+    title: Lựa chọn IaaS, PaaS, SaaS và dịch vụ được quản lý theo trách nhiệm vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-002
+    title: 'Đám mây công cộng, riêng và lai: điều kiện lựa chọn'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-003
+    title: Một vùng, nhiều vùng sẵn sàng và nhiều khu vực địa lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-004
+    title: Kiến trúc tại biên và phân chia xử lý giữa biên với đám mây
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-005
+    title: 'Một nhà cung cấp và nhiều nhà cung cấp: lợi ích, giới hạn và chi phí'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-006
+    title: Triển khai riêng cho khách hàng và triển khai dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-007
+    title: Phân biệt tính sẵn sàng, phân bố địa lý và chủ quyền dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-organization
+  title: Tổ chức tài nguyên
+  childs:
+  - slug: resource-organization-001
+    title: Thiết kế landing zone và các năng lực nền tảng tối thiểu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-organization-002
+    title: Phân cấp tổ chức, tài khoản, subscription và project
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-organization-003
+    title: Tách môi trường phát triển, kiểm thử, thử nghiệm và sản xuất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-organization-004
+    title: Tách tài nguyên theo sản phẩm, nhóm sở hữu và mức độ nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-organization-005
+    title: Quy hoạch định danh tài nguyên, nhãn và quyền sở hữu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-organization-006
+    title: Tài khoản dùng chung cho bảo mật, kết nối và ghi nhật ký
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-organization-007
+    title: Áp dụng giới hạn dịch vụ, ngân sách và chính sách tổ chức
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-organization-008
+    title: Quy trình cấp phát, tiếp nhận và thu hồi môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-models
+  title: Mô hình ứng dụng
+  childs:
+  - slug: application-models-001
+    title: Kiến trúc nguyên khối có mô đun và điều kiện phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-models-002
+    title: Kiến trúc phân lớp, N tầng và giới hạn của việc tách tầng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-models-003
+    title: Kiến trúc hướng dịch vụ và kiến trúc vi dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-models-004
+    title: Thiết kế theo miền nghiệp vụ và ranh giới bounded context
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-models-005
+    title: Quyền sở hữu dữ liệu và hợp đồng giữa các dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-models-006
+    title: Kiến trúc lục giác và cách cô lập phụ thuộc nền tảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-models-007
+    title: Phân chia thành phần theo khả năng mở rộng và chu kỳ thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-models-008
+    title: Nhận diện nguyên khối phân tán và tách dịch vụ quá sớm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagrams-decisions
+  title: Sơ đồ và quyết định
+  childs:
+  - slug: diagrams-decisions-001
+    title: 'Mô hình C4: bối cảnh, container và thành phần'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-decisions-002
+    title: Sơ đồ triển khai và ánh xạ thành phần lên tài nguyên đám mây
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-decisions-003
+    title: Sơ đồ luồng dữ liệu, luồng yêu cầu và ranh giới tin cậy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-decisions-004
+    title: Sơ đồ trình tự cho luồng thành công, lỗi và phục hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-decisions-005
+    title: 'Ghi quyết định kiến trúc bằng ADR: bối cảnh, lựa chọn và hệ quả'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-decisions-006
+    title: Mô tả hợp đồng API, sự kiện và quyền sở hữu thành phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-decisions-007
+    title: Quản lý giả định, rủi ro và nợ kiến trúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-decisions-008
+    title: Giữ tài liệu và sơ đồ đồng bộ với hệ thống triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-architecture
+  title: Kiến trúc mạng
+  childs:
+  - slug: network-architecture-001
+    title: Quy hoạch không gian địa chỉ và tránh chồng lấn mạng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-architecture-002
+    title: Thiết kế VPC hoặc VNet, subnet và ranh giới cách ly
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-architecture-003
+    title: Tách luồng bắc–nam và đông–tây trong hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-architecture-004
+    title: Hub-and-spoke, mạng tập trung và mạng phân tán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-architecture-005
+    title: Định tuyến, kết nối ngang hàng và transit trong hệ thống nhiều mạng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-architecture-006
+    title: Thiết kế DNS công cộng, DNS nội bộ và phân giải tên lai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-architecture-007
+    title: Private endpoint, dịch vụ nội bộ và kiểm soát đường ra
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-architecture-008
+    title: Kết nối trung tâm dữ liệu qua VPN và đường truyền riêng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-architecture-009
+    title: Kiểm soát lưu lượng, nhật ký mạng và xử lý sự cố kết nối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-entry-points
+  title: Điểm vào hệ thống
+  childs:
+  - slug: system-entry-points-001
+    title: Thiết kế tên miền, chứng chỉ và chấm dứt kết nối TLS
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-entry-points-002
+    title: Cân bằng tải lớp vận chuyển và lớp ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-entry-points-003
+    title: Định tuyến theo máy chủ, đường dẫn, vị trí và độ trễ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-entry-points-004
+    title: CDN, bộ nhớ đệm tại biên và phân phối tài nguyên tĩnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-entry-points-005
+    title: 'API Gateway: xác thực, định tuyến, hạn mức và chuyển đổi giao thức'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-entry-points-006
+    title: Phòng vệ DDoS, WAF và giới hạn tác động tại điểm vào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-entry-points-007
+    title: Health check, loại bỏ đích lỗi và điều phối lưu lượng dự phòng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-entry-points-008
+    title: Thiết kế truy cập quản trị và truy cập dịch vụ nội bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compute-architecture
+  title: Kiến trúc tính toán
+  childs:
+  - slug: compute-architecture-001
+    title: Lựa chọn máy ảo, container, serverless và nền tảng ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-architecture-002
+    title: Chọn kích thước tài nguyên theo CPU, bộ nhớ, I/O và đặc tính tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-architecture-003
+    title: Thiết kế nhóm máy ảo và ảnh máy chuẩn hóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-architecture-004
+    title: Vòng đời tiến trình, trạng thái phiên và lưu trữ tạm thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-architecture-005
+    title: Thiết kế xử lý nền, tác vụ định kỳ và công việc theo lô
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-architecture-006
+    title: Sử dụng tài nguyên có thể bị thu hồi cho tải chịu gián đoạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-architecture-007
+    title: Đặt giới hạn tài nguyên và kiểm soát nhiễu giữa các tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-architecture-008
+    title: Lập kế hoạch dung lượng và dự phòng tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: container-architecture
+  title: Kiến trúc container
+  childs:
+  - slug: container-architecture-001
+    title: Phân vai cụm, node, workload và dịch vụ trong nền tảng container
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-architecture-002
+    title: Lựa chọn nền tảng container được quản lý và Kubernetes
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-architecture-003
+    title: Thiết kế ranh giới cụm, namespace và môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-architecture-004
+    title: Lập lịch, phân bố workload và chống tập trung vào một miền lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-architecture-005
+    title: Service discovery, ingress và kết nối dịch vụ nội bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-architecture-006
+    title: Quản lý cấu hình, bí mật và định danh của workload
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-architecture-007
+    title: Thiết kế workload có trạng thái và lưu trữ bền vững
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-architecture-008
+    title: 'Service mesh: điều kiện sử dụng, lợi ích và chi phí vận hành'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-architecture-009
+    title: Nâng cấp nền tảng, thay thế node và khả năng di chuyển workload
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: serverless-architecture
+  title: Kiến trúc serverless
+  childs:
+  - slug: serverless-architecture-001
+    title: Phân chia hàm, sự kiện kích hoạt và đơn vị triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-architecture-002
+    title: Thiết kế hàm không lưu trạng thái và quản lý phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-architecture-003
+    title: Độ trễ khởi động, giới hạn thực thi và giới hạn đồng thời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-architecture-004
+    title: Điều phối quy trình bằng dịch vụ workflow
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-architecture-005
+    title: Thiết kế API đồng bộ và xử lý sự kiện bất đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-architecture-006
+    title: Retry, hàng đợi lỗi và xử lý sự kiện trùng lặp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-architecture-007
+    title: Quản lý kết nối cơ sở dữ liệu trong tải serverless
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-architecture-008
+    title: Đánh giá chi phí, khả năng quan sát và ràng buộc nền tảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-architecture
+  title: Kiến trúc API
+  childs:
+  - slug: api-architecture-001
+    title: Thiết kế hợp đồng API và lựa chọn REST, gRPC hoặc GraphQL
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-architecture-002
+    title: Giao tiếp đồng bộ, bất đồng bộ và lựa chọn theo luồng nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-architecture-003
+    title: Phiên bản API và khả năng tương thích khi thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-architecture-004
+    title: Timeout, deadline và lan truyền hủy yêu cầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-architecture-005
+    title: Giới hạn tốc độ, hạn ngạch và phân bổ công bằng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-architecture-006
+    title: Idempotency key và xử lý yêu cầu lặp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-architecture-007
+    title: API tổng hợp, Backend for Frontend và giảm số lần gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-architecture-008
+    title: Xác thực dịch vụ, phân quyền và bảo vệ API công khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-architecture-009
+    title: Kiểm thử hợp đồng và quản lý vòng đời API
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-architecture
+  title: Kiến trúc sự kiện
+  childs:
+  - slug: event-architecture-001
+    title: Phân biệt lệnh, sự kiện và thông báo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-architecture-002
+    title: Hàng đợi, publish–subscribe, event bus và luồng sự kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-architecture-003
+    title: Thiết kế chủ đề, partition và khóa phân vùng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-architecture-004
+    title: Ngữ nghĩa giao nhận, trùng lặp và giới hạn của exactly-once
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-architecture-005
+    title: Thứ tự sự kiện, thời gian sự kiện và sự kiện đến muộn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-architecture-006
+    title: Hợp đồng sự kiện, schema và tương thích khi tiến hóa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-architecture-007
+    title: Nhóm tiêu thụ, checkpoint và phát lại sự kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-architecture-008
+    title: Backpressure, vùng đệm và kiểm soát tốc độ tiêu thụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-architecture-009
+    title: Dead-letter queue và quy trình xử lý sự kiện lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consistency
+  title: Tính nhất quán
+  childs:
+  - slug: consistency-001
+    title: Nhất quán mạnh, nhất quán cuối cùng và yêu cầu nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-002
+    title: CAP và hành vi hệ thống khi xảy ra phân hoạch mạng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-003
+    title: Giao dịch cục bộ và giới hạn giao dịch phân tán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-004
+    title: Saga với điều phối tập trung và phối hợp qua sự kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-005
+    title: Transactional outbox, inbox và đồng bộ bằng CDC
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-006
+    title: Thao tác bù, xung đột cập nhật và khóa lạc quan
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-007
+    title: Đồng hồ, thứ tự nhân quả và giới hạn đồng bộ thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-008
+    title: CQRS và tách mô hình đọc khỏi mô hình ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-009
+    title: 'Event sourcing: phát lại, snapshot và điều kiện áp dụng'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-architecture
+  title: Kiến trúc lưu trữ
+  childs:
+  - slug: storage-architecture-001
+    title: Chọn lưu trữ đối tượng, khối và tệp theo kiểu truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-architecture-002
+    title: Thiết kế namespace, khóa đối tượng và phân vùng dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-architecture-003
+    title: Độ bền dữ liệu, mức sẵn sàng và phạm vi sao chép
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-architecture-004
+    title: Phân tầng dữ liệu, vòng đời và chính sách lưu giữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-architecture-005
+    title: Tải lên dung lượng lớn, tải tiếp và truy cập có thời hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-architecture-006
+    title: Phiên bản đối tượng, tính bất biến và chống xóa nhầm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-architecture-007
+    title: Mã hóa lưu trữ và kiểm soát truy cập dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-architecture-008
+    title: Ảnh hưởng của độ trễ, băng thông và phí truyền dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-architecture
+  title: Kiến trúc cơ sở dữ liệu
+  childs:
+  - slug: database-architecture-001
+    title: Lựa chọn quan hệ, key–value, tài liệu, đồ thị và chuỗi thời gian
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-architecture-002
+    title: Chọn dịch vụ được quản lý và xác định trách nhiệm còn lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-architecture-003
+    title: Thiết kế lược đồ, khóa truy cập và chỉ mục theo mẫu truy vấn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-architecture-004
+    title: Phân vùng, sharding và xử lý điểm nóng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-architecture-005
+    title: Sao chép, read replica và định tuyến đọc ghi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-architecture-006
+    title: Mở rộng kết nối và sử dụng connection pool hoặc proxy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-architecture-007
+    title: Nâng cấp lược đồ tương thích với triển khai liên tục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-architecture-008
+    title: Thiết kế đa khu vực và đánh đổi độ trễ với tính nhất quán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-architecture-009
+    title: Tách kho tìm kiếm khỏi cơ sở dữ liệu nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-architecture-010
+    title: Di chuyển dữ liệu, đối soát và xác minh toàn vẹn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching
+  title: Bộ nhớ đệm
+  childs:
+  - slug: caching-001
+    title: Xác định dữ liệu phù hợp và mục tiêu của bộ nhớ đệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-002
+    title: Cache-aside, read-through, write-through và write-behind
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-003
+    title: TTL, vô hiệu hóa và yêu cầu về độ mới dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-004
+    title: Thiết kế khóa, phân vùng và phân bố tải bộ nhớ đệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-005
+    title: Cache stampede, hot key và biện pháp giảm tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-006
+    title: Cache penetration, dữ liệu không tồn tại và negative caching
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-007
+    title: 'Đồng bộ nhiều tầng đệm: trình duyệt, CDN, ứng dụng và dữ liệu'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-008
+    title: Xử lý khi bộ nhớ đệm lỗi và tránh phụ thuộc sẵn sàng ngược
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-platform
+  title: Nền tảng dữ liệu
+  childs:
+  - slug: data-platform-001
+    title: Tách xử lý giao dịch khỏi phân tích dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-platform-002
+    title: Luồng thu nhận theo lô, CDC và luồng thời gian thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-platform-003
+    title: Data lake, data warehouse và lakehouse
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-platform-004
+    title: Phân tầng dữ liệu thô, dữ liệu chuẩn hóa và dữ liệu phục vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-platform-005
+    title: Orchestration pipeline, phụ thuộc và khả năng chạy lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-platform-006
+    title: Chất lượng dữ liệu, danh mục, nguồn gốc và quyền sở hữu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-platform-007
+    title: Phục vụ phân tích, báo cáo và truy vấn liên miền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-platform-008
+    title: Quản lý dữ liệu nhạy cảm và vòng đời dữ liệu phân tích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-platform-009
+    title: Đánh giá kiến trúc phục vụ mô hình máy học và suy luận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multitenant-architecture
+  title: Kiến trúc đa khách hàng
+  childs:
+  - slug: multitenant-architecture-001
+    title: Lựa chọn silo, pool và mô hình kết hợp cho nhiều tenant
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenant-architecture-002
+    title: Thiết kế định danh tenant và truyền ngữ cảnh xuyên hệ thống
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenant-architecture-003
+    title: Cách ly dữ liệu theo hàng, schema, cơ sở dữ liệu hoặc tài khoản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenant-architecture-004
+    title: Phân quyền và ngăn truy cập chéo giữa các tenant
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenant-architecture-005
+    title: Ngăn noisy neighbor bằng hạn mức và phân bổ tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenant-architecture-006
+    title: Tiếp nhận, cấu hình, di chuyển và xóa tenant
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenant-architecture-007
+    title: Tùy biến theo tenant và quản lý phiên bản sản phẩm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenant-architecture-008
+    title: Đo mức sử dụng, chi phí và chất lượng dịch vụ theo tenant
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-scaling
+  title: Mở rộng hệ thống
+  childs:
+  - slug: system-scaling-001
+    title: Mở rộng dọc, ngang và các giới hạn kiến trúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-002
+    title: Chọn tín hiệu autoscaling theo lưu lượng, độ trễ và độ dài hàng đợi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-003
+    title: Độ trễ mở rộng, dung lượng tối thiểu và khoảng ổn định
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-004
+    title: Phân phối tải, skew và xử lý điểm nghẽn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-005
+    title: Phân vùng theo nghiệp vụ, khách hàng hoặc địa lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-006
+    title: Mẫu cell-based và deployment stamp để giới hạn quy mô mỗi đơn vị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-007
+    title: Kiểm soát tải vào, load shedding và suy giảm có kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-008
+    title: Tính dung lượng dự phòng khi mất một miền lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliability
+  title: Độ tin cậy
+  childs:
+  - slug: reliability-001
+    title: Xác định SLI, SLO, SLA và ngân sách lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-002
+    title: Thiết kế miền lỗi và giới hạn bán kính ảnh hưởng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-003
+    title: Triển khai đa vùng sẵn sàng và tránh phụ thuộc dùng chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-004
+    title: Bulkhead, circuit breaker và cô lập lỗi dây chuyền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-005
+    title: Retry có backoff, jitter và ngân sách thử lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-006
+    title: Timeout nhiều tầng và kiểm soát retry storm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-007
+    title: Thiết kế health check, tự phục hồi và graceful shutdown
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-008
+    title: Đường dự phòng, chế độ suy giảm và phụ thuộc không trọng yếu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-009
+    title: Phân tích độ sẵn sàng đầu cuối theo chuỗi phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: disaster-recovery
+  title: Phục hồi thảm họa
+  childs:
+  - slug: disaster-recovery-001
+    title: Phân tích tác động nghiệp vụ và lựa chọn RTO, RPO
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-002
+    title: Phân biệt sao lưu, sẵn sàng cao và phục hồi thảm họa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-003
+    title: Chiến lược backup–restore, pilot light, warm standby và active–active
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-004
+    title: Sao lưu dữ liệu, cấu hình, khóa và phụ thuộc cần phục hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-005
+    title: Bảo vệ bản sao lưu trước xóa nhầm và mã độc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-006
+    title: Thiết kế chuyển vùng, định tuyến và điều phối khôi phục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-007
+    title: Phục hồi dữ liệu, xử lý phân kỳ và ngăn split-brain
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-008
+    title: Failback sau sự cố và khôi phục trạng thái vận hành bình thường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-009
+    title: Diễn tập phục hồi và kiểm chứng RTO, RPO thực tế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-architecture
+  title: Kiến trúc bảo mật
+  childs:
+  - slug: security-architecture-001
+    title: Mô hình đe dọa theo tài sản, luồng dữ liệu và ranh giới tin cậy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-architecture-002
+    title: Zero Trust và phòng vệ nhiều lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-architecture-003
+    title: Liên kết danh tính, SSO và quyền truy cập tối thiểu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-architecture-004
+    title: Định danh workload và truy cập ngắn hạn không dùng khóa tĩnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-architecture-005
+    title: Phân đoạn mạng và kiểm soát giao tiếp giữa dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-architecture-006
+    title: Quản lý bí mật, chứng chỉ, khóa mã hóa và luân chuyển
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-architecture-007
+    title: Mã hóa khi truyền, khi lưu và quản lý quyền giải mã
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-architecture-008
+    title: Chuỗi cung ứng phần mềm, ảnh container và nguồn triển khai đáng tin
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-architecture-009
+    title: Ghi nhật ký kiểm toán, phát hiện và ứng phó sự cố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-architecture-010
+    title: Truy cập khẩn cấp và giới hạn quyền quản trị
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: governance-compliance
+  title: Quản trị và tuân thủ
+  childs:
+  - slug: governance-compliance-001
+    title: Chuyển yêu cầu tuân thủ thành kiểm soát kiến trúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-compliance-002
+    title: Chủ quyền, vị trí và chuyển dữ liệu xuyên biên giới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-compliance-003
+    title: Chính sách lưu giữ, xóa dữ liệu và quyền riêng tư
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-compliance-004
+    title: Policy as code và guardrail ở cấp tổ chức
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-compliance-005
+    title: Phân tách nhiệm vụ và phê duyệt thay đổi nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-compliance-006
+    title: Quản lý cấu hình, phát hiện drift và tài nguyên ngoài chuẩn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-compliance-007
+    title: Thu thập bằng chứng kiểm toán và truy vết thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-compliance-008
+    title: Quản lý ngoại lệ, thời hạn khắc phục và chấp nhận rủi ro
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Khả năng quan sát
+  childs:
+  - slug: observability-001
+    title: Thiết kế log, metric, trace và sự kiện vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Correlation ID và truyền ngữ cảnh qua API, hàng đợi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Đo chỉ số nghiệp vụ cùng chỉ số hạ tầng và ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Thiết kế telemetry cho luồng phân tán và bất đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Chính sách lấy mẫu, cardinality và chi phí dữ liệu quan sát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Dashboard theo hành trình người dùng và mục tiêu dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Cảnh báo theo triệu chứng và tốc độ tiêu thụ ngân sách lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Che dữ liệu nhạy cảm trong log và phân quyền truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Quan sát xuyên tài khoản, khu vực và môi trường lai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-operations
+  title: Vận hành hệ thống
+  childs:
+  - slug: system-operations-001
+    title: Phân định quyền sở hữu dịch vụ và mô hình trực vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-operations-002
+    title: Thiết kế runbook và quy trình xử lý sự cố
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-operations-003
+    title: Quản lý cấu hình động và thay đổi cấu hình an toàn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-operations-004
+    title: Bảo trì, vá lỗi và vòng đời tài nguyên nền tảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-operations-005
+    title: Quản lý hạn ngạch dịch vụ và kế hoạch tăng dung lượng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-operations-006
+    title: Tự động hóa thao tác lặp và giảm gánh nặng vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-operations-007
+    title: Phân tích sự cố, hành động phòng ngừa và theo dõi khắc phục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-operations-008
+    title: Quản lý chứng chỉ, tên miền và các phụ thuộc có thời hạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: infrastructure-as-code
+  title: Hạ tầng dưới dạng mã
+  childs:
+  - slug: infrastructure-as-code-001
+    title: Khai báo hạ tầng và thiết kế cấu trúc mã nguồn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-as-code-002
+    title: Phân chia module tái sử dụng và phạm vi sở hữu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-as-code-003
+    title: Quản lý state, khóa đồng thời và phục hồi state
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-as-code-004
+    title: Tách biến môi trường khỏi bí mật và cấu hình nhạy cảm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-as-code-005
+    title: Quy trình plan, review, apply và quản lý thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-as-code-006
+    title: Kiểm tra chính sách, bảo mật và chi phí trước khi cấp phát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-as-code-007
+    title: Phát hiện drift và tiếp nhận tài nguyên đã tồn tại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-as-code-008
+    title: Thiết kế hạ tầng bất biến và thay thế tài nguyên an toàn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-as-code-009
+    title: Khởi tạo môi trường có thể tái tạo và thu hồi tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: software-delivery
+  title: Phân phối phần mềm
+  childs:
+  - slug: software-delivery-001
+    title: Thiết kế pipeline CI/CD và ranh giới tin cậy khi triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-002
+    title: Build một lần và chuyển cùng artifact qua các môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-003
+    title: Rolling update, blue–green và canary
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-004
+    title: Feature flag, triển khai tối và kiểm soát phát hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-005
+    title: Thay đổi cơ sở dữ liệu theo expand–contract
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-006
+    title: Rollback ứng dụng, roll-forward dữ liệu và giới hạn phục hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-007
+    title: Kiểm chứng sau triển khai và tự động dừng phát hành lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-008
+    title: Tách chu kỳ triển khai của các dịch vụ phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-009
+    title: GitOps và đồng bộ trạng thái mong muốn với môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Xây dựng ngân sách độ trễ cho luồng đầu cuối
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Thông lượng, mức đồng thời, độ trễ và quan hệ hàng đợi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Độ trễ đuôi và ảnh hưởng của chuỗi gọi phân tán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Tối ưu vị trí xử lý, dữ liệu và khoảng cách địa lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: 'Tối ưu giao tiếp: giảm số lần gọi, batching và nén'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Đo điểm nghẽn CPU, bộ nhớ, mạng và lưu trữ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Thiết kế thử nghiệm tải thường, tải đỉnh và tải kéo dài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: So sánh hiệu năng với chi phí và mục tiêu chất lượng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cost-sustainability
+  title: Chi phí và bền vững
+  childs:
+  - slug: cost-sustainability-001
+    title: Mô hình hóa TCO và chi phí theo đơn vị nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-sustainability-002
+    title: Chi phí tài nguyên, yêu cầu, lưu trữ, bản sao và truyền dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-sustainability-003
+    title: Phân bổ chi phí theo sản phẩm, môi trường và tenant
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-sustainability-004
+    title: Rightsizing, lịch bật tắt và tự động thu hồi tài nguyên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-sustainability-005
+    title: Đánh đổi tài nguyên cam kết, theo nhu cầu và có thể bị thu hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-sustainability-006
+    title: So sánh chi phí dịch vụ được quản lý với chi phí tự vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-sustainability-007
+    title: Dự toán nhiều phương án kiến trúc và phân tích độ nhạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-sustainability-008
+    title: Ngân sách, phát hiện bất thường và vòng phản hồi FinOps
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-sustainability-009
+    title: Tối ưu mức sử dụng tài nguyên và tác động môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: global-architecture
+  title: Kiến trúc toàn cầu
+  childs:
+  - slug: global-architecture-001
+    title: Định tuyến toàn cầu theo vị trí, độ trễ và tình trạng dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: global-architecture-002
+    title: Thiết kế active–passive và active–active nhiều khu vực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: global-architecture-003
+    title: Phân bố quyền ghi và quyền sở hữu dữ liệu theo khu vực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: global-architecture-004
+    title: Sao chép xuyên khu vực và độ trễ đồng bộ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: global-architecture-005
+    title: Quản lý phiên, danh tính và trải nghiệm khi chuyển khu vực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: global-architecture-006
+    title: Phân vùng theo địa lý và yêu cầu lưu trú dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: global-architecture-007
+    title: Phát hành theo khu vực và giới hạn lỗi lan rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: global-architecture-008
+    title: Đánh giá phụ thuộc toàn cầu có thể trở thành điểm lỗi chung
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hybrid-multicloud
+  title: Đám mây lai và đa đám mây
+  childs:
+  - slug: hybrid-multicloud-001
+    title: Xác định lý do nghiệp vụ trước khi chọn mô hình lai hoặc đa đám mây
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-multicloud-002
+    title: Thiết kế kết nối, DNS và định tuyến giữa các môi trường
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-multicloud-003
+    title: Liên kết danh tính và quản lý chính sách xuyên nền tảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-multicloud-004
+    title: Phân chia workload theo phụ thuộc, dữ liệu và độ trễ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-multicloud-005
+    title: Đồng bộ dữ liệu và vận hành khi kết nối bị gián đoạn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-multicloud-006
+    title: Chuẩn hóa hợp đồng ứng dụng và các phần cần khả năng di chuyển
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-multicloud-007
+    title: Giới hạn của lớp trừu tượng chung giữa nhiều nhà cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-multicloud-008
+    title: Quan sát, vận hành và ứng phó sự cố xuyên nền tảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-multicloud-009
+    title: Chiến lược thoát nhà cung cấp và kiểm chứng khả năng di chuyển
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-modernization
+  title: Di chuyển và hiện đại hóa
+  childs:
+  - slug: migration-modernization-001
+    title: Khảo sát danh mục ứng dụng và lập bản đồ phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-modernization-002
+    title: Đánh giá mức sẵn sàng, rủi ro và phương án di chuyển
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-modernization-003
+    title: Retain, retire, relocate, rehost, replatform, repurchase và refactor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-modernization-004
+    title: Phân chia đợt di chuyển theo phụ thuộc và giá trị nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-modernization-005
+    title: Strangler Fig, anti-corruption layer và chuyển đổi từng phần
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-modernization-006
+    title: Đồng bộ dữ liệu trong giai đoạn chạy song song
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-modernization-007
+    title: Thiết kế cutover, đối soát và phương án quay lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-modernization-008
+    title: Kiểm chứng sau di chuyển và tối ưu kiến trúc mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-modernization-009
+    title: Thu hồi hệ thống cũ và xử lý dữ liệu còn lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reference-architecture-patterns
+  title: Mẫu kiến trúc tham chiếu
+  childs:
+  - slug: reference-architecture-patterns-001
+    title: Website tĩnh và nội dung phân phối qua CDN
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-patterns-002
+    title: Ứng dụng web nhiều tầng với dịch vụ và cơ sở dữ liệu được quản lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-patterns-003
+    title: Cổng API cho ứng dụng web và thiết bị di động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-patterns-004
+    title: Xử lý tệp tải lên theo sự kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-patterns-005
+    title: Hệ thống đơn hàng với saga và transactional outbox
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-patterns-006
+    title: Xử lý luồng dữ liệu và phân tích gần thời gian thực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-patterns-007
+    title: Nền tảng SaaS đa tenant có cách ly dữ liệu và hạn mức
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-patterns-008
+    title: Tác vụ theo lô quy mô lớn và xử lý song song
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-patterns-009
+    title: Thu thập dữ liệu IoT kết hợp xử lý tại biên
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-patterns-010
+    title: Phục vụ mô hình máy học và truy xuất dữ liệu cho ứng dụng AI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-patterns-011
+    title: Đối chiếu dịch vụ tương đương giữa AWS, Azure và Google Cloud
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-antipatterns
+  title: Phản mẫu kiến trúc
+  childs:
+  - slug: architecture-antipatterns-001
+    title: Lift-and-shift mà không xem lại mạng, vận hành và chi phí
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-antipatterns-002
+    title: Tách vi dịch vụ khi chưa rõ ranh giới nghiệp vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-antipatterns-003
+    title: Chuỗi gọi đồng bộ dài và phụ thuộc vòng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-antipatterns-004
+    title: Nhiều dịch vụ cùng ghi một cơ sở dữ liệu không có quyền sở hữu rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-antipatterns-005
+    title: Retry không giới hạn, timeout thiếu nhất quán và lỗi dây chuyền
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-antipatterns-006
+    title: Sử dụng đa khu vực khi chưa giải quyết quyền ghi và xung đột dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-antipatterns-007
+    title: Coi bản sao dữ liệu là bản sao lưu và bỏ qua diễn tập phục hồi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-antipatterns-008
+    title: Cấp quyền rộng, dùng bí mật tĩnh và điểm truy cập công khai ngoài ý muốn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-antipatterns-009
+    title: Lạm dụng đa đám mây, service mesh và lớp trừu tượng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-antipatterns-010
+    title: Thiết kế vượt nhu cầu và thiếu người chịu trách nhiệm vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-assessment
+  title: Đánh giá kiến trúc
+  childs:
+  - slug: architecture-assessment-001
+    title: Xây dựng checklist theo các thuộc tính chất lượng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-assessment-002
+    title: Rà soát yêu cầu, giả định và phương án thay thế
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-assessment-003
+    title: Phân tích điểm lỗi đơn, miền lỗi và luồng lỗi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-assessment-004
+    title: Proof of concept để kiểm chứng giả định rủi ro cao
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-assessment-005
+    title: Kiểm thử tải, soak test và kiểm tra giới hạn mở rộng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-assessment-006
+    title: Kiểm thử lỗi, chaos engineering và game day
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-assessment-007
+    title: Kiểm chứng bảo mật, phân quyền và ranh giới tenant
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-assessment-008
+    title: Kiểm thử phục hồi dữ liệu và chuyển khu vực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-assessment-009
+    title: Đánh giá chi phí thực tế, khả năng vận hành và rủi ro còn lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-assessment-010
+    title: Chốt tiêu chí chấp nhận và kế hoạch cải tiến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-design-exercises
+  title: Thực hành thiết kế
+  childs:
+  - slug: architecture-design-exercises-001
+    title: 'Thiết kế từ đầu: yêu cầu, giả định, phương án và quyết định'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-exercises-002
+    title: Xây dựng sơ đồ bối cảnh, triển khai và luồng dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-exercises-003
+    title: Thiết kế ứng dụng web từ một khu vực đến nhiều vùng sẵn sàng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-exercises-004
+    title: Bổ sung xử lý bất đồng bộ và kiểm soát tải đột biến
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-exercises-005
+    title: Chuyển hệ thống đơn tenant thành SaaS đa tenant
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-exercises-006
+    title: Lập phương án phục hồi và diễn tập tình huống mất khu vực
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-exercises-007
+    title: So sánh ba phương án theo độ tin cậy, hiệu năng, chi phí và vận hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-exercises-008
+    title: Xây dựng kế hoạch di chuyển một hệ thống đang hoạt động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-exercises-009
+    title: Hoàn thiện hồ sơ kiến trúc, ADR và bằng chứng kiểm chứng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-design-exercises-010
+    title: Bảo vệ phương án và điều chỉnh khi yêu cầu nghiệp vụ thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

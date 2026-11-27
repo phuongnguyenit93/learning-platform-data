@@ -1,0 +1,3 @@
+menuLevel1: Auditing
+menuLevel2: Kích hoạt kiểm toán với @EnableJpaAuditing
+status: TRANSLATE

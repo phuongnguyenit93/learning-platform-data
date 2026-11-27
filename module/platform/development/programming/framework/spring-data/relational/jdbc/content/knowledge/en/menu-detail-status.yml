@@ -1,0 +1,3112 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Spring Data JDBC là gì và giải quyết vấn đề lưu trữ dữ liệu nào?
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-002
+    title: Vai trò của Spring Data Relational, Spring Data Commons và Spring Data JDBC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-003
+    title: 'Bản đồ khái niệm: entity, value object, aggregate, repository và bảng dữ liệu'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-004
+    title: Luồng xử lý từ lời gọi repository đến SQL và đối tượng trả về
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-005
+    title: So sánh JDBC thuần, Spring JDBC, Spring Data JDBC, JPA và R2DBC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-006
+    title: 'Triết lý đơn giản: không persistence context, dirty checking hay lazy loading'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-007
+    title: Khi nào nên chọn Spring Data JDBC và khi nào nên chọn giải pháp khác
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-008
+    title: Lộ trình học và mô hình đơn hàng dùng xuyên suốt tài liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: fundamentals
+  title: Kiến thức nền
+  childs:
+  - slug: fundamentals-001
+    title: 'Ôn SQL: SELECT, JOIN, GROUP BY, INSERT, UPDATE và DELETE'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fundamentals-002
+    title: Khóa chính, khóa ngoại, ràng buộc duy nhất và toàn vẹn tham chiếu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fundamentals-003
+    title: Connection, PreparedStatement, ResultSet và JDBC driver
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fundamentals-004
+    title: DataSource, connection pool và chi phí truy cập cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fundamentals-005
+    title: Vai trò của JdbcTemplate và NamedParameterJdbcTemplate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fundamentals-006
+    title: Ôn Spring IoC, cấu hình bean, proxy và quản lý giao dịch
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: setup
+  title: Khởi tạo
+  childs:
+  - slug: setup-001
+    title: Chọn tổ hợp Java, Spring Boot, Spring Data và JDBC driver tương thích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-002
+    title: Khai báo spring-boot-starter-data-jdbc và quản lý dependency bằng BOM
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-003
+    title: Cấu hình spring.datasource cho môi trường phát triển và kiểm thử
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-004
+    title: Chuẩn bị PostgreSQL hoặc MySQL và dữ liệu mẫu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-005
+    title: Khởi tạo schema bằng SQL script và kiểm soát thứ tự nạp dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-006
+    title: Tạo aggregate root và repository đầu tiên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-007
+    title: Thực hiện vòng CRUD đầu tiên và quan sát SQL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-008
+    title: Phân chia cấu hình theo profile và giữ bí mật kết nối ngoài mã nguồn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: configuration-architecture
+  title: Cấu hình và kiến trúc
+  childs:
+  - slug: configuration-architecture-001
+    title: Auto-configuration của Spring Boot cho Spring Data JDBC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-architecture-002
+    title: Kích hoạt repository bằng @EnableJdbcRepositories và giới hạn vùng quét
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-architecture-003
+    title: Cấu hình thủ công bằng AbstractJdbcConfiguration
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-architecture-004
+    title: Trách nhiệm của JdbcMappingContext, JdbcConverter và DataAccessStrategy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-architecture-005
+    title: Quan hệ giữa SimpleJdbcRepository, JdbcAggregateOperations và JDBC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-architecture-006
+    title: Đăng ký NamedParameterJdbcOperations và transaction manager
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-architecture-007
+    title: Phối hợp nhiều Spring Data module và tránh nhận diện repository sai
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aggregate-design
+  title: Thiết kế aggregate
+  childs:
+  - slug: aggregate-design-001
+    title: Thực thể, đối tượng giá trị và tính bất biến của mô hình nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-design-002
+    title: Aggregate và aggregate root trong thiết kế hướng miền
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-design-003
+    title: Xác định ranh giới aggregate từ quy tắc nghiệp vụ và tính nhất quán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-design-004
+    title: Phân biệt quan hệ sở hữu bên trong aggregate và tham chiếu giữa các aggregate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-design-005
+    title: Thiết kế Order và OrderItem như một đơn vị lưu trữ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-design-006
+    title: Thiết kế repository cho aggregate root thay vì cho mọi bảng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-design-007
+    title: Đặt quy tắc nghiệp vụ ở mô hình và điều phối ở tầng dịch vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-design-008
+    title: Tránh aggregate quá lớn, tham chiếu vòng và đồ thị đối tượng tùy ý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-design-009
+    title: Từ yêu cầu nghiệp vụ đến sơ đồ aggregate và schema quan hệ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: basic-mapping
+  title: Ánh xạ cơ bản
+  childs:
+  - slug: basic-mapping-001
+    title: Quy ước ánh xạ tên lớp, thuộc tính, bảng và cột
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-mapping-002
+    title: Sử dụng đúng annotation Spring Data thay cho annotation JPA
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-mapping-003
+    title: Định nghĩa bảng và schema bằng @Table
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-mapping-004
+    title: Định nghĩa cột và khóa chính bằng @Column, @Id
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-mapping-005
+    title: Loại trừ dữ liệu không lưu bằng @Transient
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-mapping-006
+    title: Tùy chỉnh NamingStrategy cho schema có sẵn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-mapping-007
+    title: Quoting, chữ hoa chữ thường và tên trùng từ khóa SQL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-mapping-008
+    title: Đối chiếu metadata ánh xạ với DDL và câu SQL thực tế
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-types
+  title: Kiểu dữ liệu
+  childs:
+  - slug: data-types-001
+    title: Ánh xạ kiểu nguyên thủy, kiểu bao và giá trị SQL NULL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-002
+    title: Chuỗi, Unicode, độ dài cột và dữ liệu rỗng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-003
+    title: BigDecimal, precision và scale cho dữ liệu tiền tệ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-004
+    title: Enum, tên enum và tính tương thích khi đổi tên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-005
+    title: LocalDate, LocalTime, LocalDateTime và quy ước múi giờ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-006
+    title: UUID và sự khác biệt biểu diễn giữa các JDBC driver
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-007
+    title: Mảng, dữ liệu nhị phân và giới hạn hỗ trợ theo cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-008
+    title: 'JSON và kiểu đặc thù: lựa chọn converter cùng kiểu cột phù hợp'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: object-creation
+  title: Khởi tạo đối tượng
+  childs:
+  - slug: object-creation-001
+    title: Spring Data tạo đối tượng từ hàng dữ liệu như thế nào?
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-creation-002
+    title: Lựa chọn constructor và factory bằng @PersistenceCreator
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-creation-003
+    title: Tên tham số constructor và tùy chọn biên dịch -parameters
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-creation-004
+    title: Ánh xạ field, constructor, setter và phương thức wither
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-creation-005
+    title: Thiết kế entity bất biến và Java record
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-creation-006
+    title: Nhận lại ID và version trên đối tượng được trả về sau save
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-creation-007
+    title: Ảnh hưởng của kế thừa, thuộc tính bị che khuất và Lombok đến ánh xạ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-creation-008
+    title: Nullability và lỗi không dựng được đối tượng từ ResultSet
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: keys-and-state
+  title: Khóa và trạng thái
+  childs:
+  - slug: keys-and-state-001
+    title: Vai trò của định danh trong aggregate root và entity con
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-state-002
+    title: Phát hiện đối tượng mới từ @Id và @Version
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-state-003
+    title: Phân biệt ID null, giá trị 0 và ID đã được gán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-state-004
+    title: ID tự tăng, generated keys và giá trị trả về sau insert
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-state-005
+    title: Tự cấp UUID hoặc mã nghiệp vụ và nguy cơ save chọn nhầm update
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-state-006
+    title: Điều khiển isNew bằng Persistable
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-state-007
+    title: Chọn thời điểm cấp ID bằng callback và kiểm tra quyết định insert/update
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-state-008
+    title: Khóa nghiệp vụ, khóa thay thế và ràng buộc duy nhất
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-state-009
+    title: Giới hạn khóa ghép và chiến lược tương thích theo phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: embedded-objects
+  title: Đối tượng nhúng
+  childs:
+  - slug: embedded-objects-001
+    title: Phân biệt đối tượng nhúng cùng bảng và entity ở bảng riêng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: embedded-objects-002
+    title: Mô hình hóa địa chỉ hoặc số tiền bằng value object
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: embedded-objects-003
+    title: Ánh xạ @Embedded và tùy chọn prefix
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: embedded-objects-004
+    title: Quy tắc USE_NULL, USE_EMPTY, @Embedded.Nullable và @Embedded.Empty
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: embedded-objects-005
+    title: Nhúng nhiều thuộc tính cùng kiểu mà không trùng tên cột
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: embedded-objects-006
+    title: Xử lý null toàn bộ, null một phần và đối tượng nhúng lồng nhau
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: embedded-objects-007
+    title: Lưu ý đối tượng nhúng chứa collection và lựa chọn ranh giới aggregate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aggregate-relationships
+  title: Quan hệ nội bộ
+  childs:
+  - slug: aggregate-relationships-001
+    title: Ánh xạ quan hệ một-một có sở hữu trong aggregate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-relationships-002
+    title: Ánh xạ Set cho tập entity con
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-relationships-003
+    title: Ánh xạ List và lưu vị trí phần tử
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-relationships-004
+    title: Ánh xạ Map với khóa đơn giản và entity làm giá trị
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-relationships-005
+    title: Cấu hình @MappedCollection với idColumn và keyColumn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-relationships-006
+    title: Cột tham chiếu ngược và quan hệ khóa ngoại trên bảng con
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-relationships-007
+    title: Entity con có ID và không có ID
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-relationships-008
+    title: Quan hệ sở hữu nhiều tầng và thứ tự thao tác trên bảng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-relationships-009
+    title: Thêm, thay thế, bỏ phần tử con và vòng đời dữ liệu tương ứng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-relationships-010
+    title: Phân biệt cơ chế xóa con của Spring Data JDBC và ON DELETE CASCADE
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aggregate-references
+  title: Tham chiếu aggregate
+  childs:
+  - slug: aggregate-references-001
+    title: Tham chiếu bằng ID thay vì nhúng toàn bộ aggregate khác
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-references-002
+    title: Sử dụng AggregateReference để biểu diễn tham chiếu có kiểu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-references-003
+    title: Mô hình hóa quan hệ nhiều-một giữa Order và Customer
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-references-004
+    title: Mô hình hóa nhiều-nhiều bằng aggregate liên kết hoặc bảng nối phù hợp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-references-005
+    title: Tải dữ liệu liên quan tường minh qua repository hoặc truy vấn đọc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-references-006
+    title: Giữ toàn vẹn khóa ngoại khi aggregate được sửa hoặc xóa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-references-007
+    title: Ranh giới giao dịch và lựa chọn nhất quán giữa nhiều aggregate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: repository-crud
+  title: Repository CRUD
+  childs:
+  - slug: repository-crud-001
+    title: Khai báo Repository, CrudRepository và ListCrudRepository
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-crud-002
+    title: Kết hợp giao diện CRUD với PagingAndSortingRepository
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-crud-003
+    title: Thiết kế giao diện cơ sở bằng @NoRepositoryBean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-crud-004
+    title: 'save và saveAll: kết quả trả về cùng phạm vi thao tác'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-crud-005
+    title: findById, findAll và findAllById
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-crud-006
+    title: existsById và count trong kiểm tra dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-crud-007
+    title: delete, deleteById, deleteAllById và deleteAll
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-crud-008
+    title: Optional, tập rỗng và quy ước kết quả không tồn tại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-crud-009
+    title: Chọn tập phương thức được công khai và tránh repository quá rộng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: write-mechanism
+  title: Cơ chế ghi
+  childs:
+  - slug: write-mechanism-001
+    title: Luồng insert aggregate root rồi ghi entity con
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: write-mechanism-002
+    title: Luồng cập nhật aggregate theo mô hình lưu toàn bộ trạng thái
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: write-mechanism-003
+    title: Vì sao cập nhật có thể xóa và chèn lại các hàng con?
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: write-mechanism-004
+    title: Thứ tự lệnh SQL và tác động của ràng buộc khóa ngoại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: write-mechanism-005
+    title: Phân biệt save với merge và dirty checking của JPA
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: write-mechanism-006
+    title: Nguy cơ mất dữ liệu khi save aggregate chỉ được tải một phần
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: write-mechanism-007
+    title: '@ReadOnlyProperty cho dữ liệu chỉ đọc từ cơ sở dữ liệu'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: write-mechanism-008
+    title: '@InsertOnlyProperty và phạm vi hỗ trợ trên aggregate root'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: write-mechanism-009
+    title: Tải lại dữ liệu được trigger hoặc giá trị mặc định sinh ra
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: write-mechanism-010
+    title: Phân biệt saveAll với JDBC batch và đánh giá chi phí ghi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aggregate-loading
+  title: Tải aggregate
+  childs:
+  - slug: aggregate-loading-001
+    title: Luồng đọc aggregate root và các entity thuộc quyền sở hữu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-loading-002
+    title: Số lượt truy vấn khi đọc một aggregate hoặc một danh sách
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-loading-003
+    title: Đối tượng đã tải và vòng đời tách rời khỏi kết nối
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-loading-004
+    title: 'Single Query Loading: mục tiêu và cách kích hoạt'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-loading-005
+    title: Giới hạn Single Query Loading theo phiên bản, dialect và cấu trúc aggregate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-loading-006
+    title: Trường hợp quay về cách tải thông thường và cách xác minh bằng SQL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-loading-007
+    title: Đánh đổi giữa tải đầy đủ aggregate và mô hình đọc chuyên biệt
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: derived-queries
+  title: Truy vấn suy diễn
+  childs:
+  - slug: derived-queries-001
+    title: Cấu trúc tên phương thức và cơ chế sinh truy vấn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-002
+    title: Truy vấn bằng thuộc tính trực tiếp của aggregate root
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-003
+    title: Kết hợp And, Or và cách hiểu độ ưu tiên điều kiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-004
+    title: So sánh Equals, Not, LessThan, GreaterThan và Between
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-005
+    title: Điều kiện IsNull, IsNotNull, True và False
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-006
+    title: In, NotIn và xử lý tập tham số rỗng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-007
+    title: Like, StartingWith, EndingWith và Containing
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-008
+    title: OrderBy, First, Top và giới hạn kết quả theo phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-009
+    title: find, count, exists và delete theo điều kiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-010
+    title: Phạm vi từ khóa được JDBC hỗ trợ và giới hạn truy cập quan hệ lồng nhau
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: derived-queries-011
+    title: Nhận diện lỗi tên thuộc tính hoặc tên phương thức khi khởi động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: custom-sql
+  title: SQL tùy chỉnh
+  childs:
+  - slug: custom-sql-001
+    title: Khai báo @Query bằng SQL của cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-sql-002
+    title: Liên kết tham số có tên bằng @Param và thông tin tên tham số
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-sql-003
+    title: Named query và tệp META-INF/jdbc-named-queries.properties
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-sql-004
+    title: Chọn cột, alias và dữ liệu bắt buộc để ánh xạ kết quả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-sql-005
+    title: JOIN, truy vấn con, tổng hợp và window function trong SQL tự viết
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-sql-006
+    title: Truy vấn entity có thành phần con và kiểm tra SQL tải bổ sung
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-sql-007
+    title: SpEL và EvaluationContextExtension trong phạm vi được hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-sql-008
+    title: Phân biệt tham số giá trị với tên bảng, tên cột và cấu trúc SQL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-sql-009
+    title: Giới hạn phân trang, Sort và Limit với truy vấn SQL khai báo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-sql-010
+    title: Chọn truy vấn suy diễn, @Query hoặc triển khai tùy chỉnh theo bài toán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pagination-results
+  title: Phân trang và kết quả
+  childs:
+  - slug: pagination-results-001
+    title: Phân biệt List, Iterable, Optional và kết quả đơn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-results-002
+    title: Phân trang bằng Pageable và PageRequest
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-results-003
+    title: Page, truy vấn count và tổng số kết quả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-results-004
+    title: Slice và cách xác định còn trang tiếp theo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-results-005
+    title: Sort nhiều cột và thứ tự ổn định khi trùng giá trị
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-results-006
+    title: Phân trang SQL tự viết bằng limit/offset theo dialect
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-results-007
+    title: Keyset pagination bằng truy vấn tùy chỉnh cho dữ liệu lớn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-results-008
+    title: Stream kết quả và đóng tài nguyên bằng try-with-resources
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-results-009
+    title: Lựa chọn fetch size, giới hạn kết quả và phạm vi giao dịch khi đọc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: projection-dto
+  title: Projection và DTO
+  childs:
+  - slug: projection-dto-001
+    title: Tách mô hình đọc khỏi aggregate dùng cho cập nhật
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projection-dto-002
+    title: Projection interface đóng và các thuộc tính được chọn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projection-dto-003
+    title: Projection mở, biểu thức và chi phí xử lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projection-dto-004
+    title: DTO constructor và Java record cho kết quả truy vấn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projection-dto-005
+    title: Projection động và phạm vi hỗ trợ của phương thức
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projection-dto-006
+    title: Alias cột, tên tham số và kiểu dữ liệu trên projection
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projection-dto-007
+    title: RowMapper tùy chỉnh cho kết quả JOIN và báo cáo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projection-dto-008
+    title: ResultSetExtractor và gom nhiều hàng thành một kết quả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projection-dto-009
+    title: Tránh dùng projection hoặc aggregate thiếu cột làm đầu vào save
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: direct-write-queries
+  title: Truy vấn ghi trực tiếp
+  childs:
+  - slug: direct-write-queries-001
+    title: Kết hợp @Modifying với @Query cho UPDATE và DELETE
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-write-queries-002
+    title: Kiểu trả về và số hàng bị ảnh hưởng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-write-queries-003
+    title: Đặt ranh giới giao dịch cho phương thức sửa dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-write-queries-004
+    title: Khác biệt giữa xóa suy diễn, xóa qua CRUD và SQL DELETE trực tiếp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-write-queries-005
+    title: Callback, auditing và optimistic locking khi bỏ qua quy trình lưu aggregate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-write-queries-006
+    title: Cập nhật nguyên tử một cột bằng điều kiện SQL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-write-queries-007
+    title: Đảm bảo toàn vẹn dữ liệu con khi xóa trực tiếp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-write-queries-008
+    title: Thiết kế xóa mềm bằng SQL tùy chỉnh và điều kiện đọc nhất quán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aggregate-template
+  title: Aggregate Template
+  childs:
+  - slug: aggregate-template-001
+    title: Khi nào dùng JdbcAggregateTemplate thay cho repository?
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-template-002
+    title: Lập trình với giao diện JdbcAggregateOperations
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-template-003
+    title: Phân biệt save, insert và update tường minh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-template-004
+    title: Thao tác insertAll, updateAll và saveAll
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-template-005
+    title: Tìm, đếm, kiểm tra tồn tại và xóa aggregate bằng template
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-template-006
+    title: Kết hợp Query, Sort và Pageable với template
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-template-007
+    title: Quản lý giao dịch, callback và sự kiện khi gọi template
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregate-template-008
+    title: Chọn template hay JDBC trực tiếp cho thao tác ngoài mô hình aggregate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dynamic-queries
+  title: Truy vấn động
+  childs:
+  - slug: dynamic-queries-001
+    title: Biểu diễn bộ lọc bằng Query và Criteria
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-002
+    title: Điều kiện so sánh, khoảng giá trị, IN và NULL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-003
+    title: Nhóm điều kiện AND/OR theo yêu cầu tìm kiếm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-004
+    title: Thêm bộ lọc tùy chọn mà không nối chuỗi giá trị SQL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-005
+    title: Chọn cột, sắp xếp, giới hạn và phân trang trong Query
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-006
+    title: count và exists từ cùng một bộ điều kiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-007
+    title: Giới hạn Criteria với JOIN và quan hệ trong aggregate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-008
+    title: Phân biệt Criteria của Spring Data Relational với JPA Criteria, Specification và Querydsl
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-009
+    title: Thiết kế bộ lọc hợp lệ và kiểm soát tên trường do người dùng cung cấp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: extended-repository
+  title: Repository mở rộng
+  childs:
+  - slug: extended-repository-001
+    title: Thiết kế repository fragment và lớp triển khai
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-repository-002
+    title: Quy ước đặt tên, phát hiện triển khai và thứ tự ghép fragment
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-repository-003
+    title: Tái sử dụng fragment giữa nhiều repository
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-repository-004
+    title: Kết hợp JdbcAggregateOperations với NamedParameterJdbcTemplate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-repository-005
+    title: Viết truy vấn JOIN và lệnh ghi đặc thù trong fragment
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-repository-006
+    title: Đưa JdbcClient hoặc thư viện SQL khác vào đúng ranh giới trách nhiệm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-repository-007
+    title: Tùy chỉnh lớp repository cơ sở khi có nhu cầu dùng chung
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-repository-008
+    title: Giữ đồng bộ quy tắc mapping và giao dịch giữa mã sinh tự động và SQL tự viết
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-conversion
+  title: Chuyển đổi dữ liệu
+  childs:
+  - slug: data-conversion-001
+    title: Khi nào cần converter thay vì đối tượng nhúng?
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-002
+    title: Viết @ReadingConverter và @WritingConverter
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-003
+    title: Đăng ký converter qua userConverters hoặc JdbcCustomConversions
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-004
+    title: Phân biệt kiểu đơn giản, kiểu miền và hướng chuyển đổi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-005
+    title: Ánh xạ mã giá trị, enum đặc thù và kiểu định danh riêng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-006
+    title: JdbcValue và khai báo JDBCType tường minh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-007
+    title: Chuyển đổi JSON, UUID hoặc kiểu đặc thù của driver
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-008
+    title: Giới hạn một thuộc tính–một giá trị và dữ liệu nhiều cột
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-009
+    title: Kiểm thử đọc–ghi đối xứng, null và tương thích dữ liệu cũ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transactions
+  title: Giao dịch
+  childs:
+  - slug: transactions-001
+    title: Vì sao thao tác nhiều bảng của một aggregate cần giao dịch?
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-002
+    title: Giao dịch mặc định của phương thức CRUD và phương thức truy vấn khai báo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-003
+    title: Chọn ranh giới @Transactional ở tầng dịch vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-004
+    title: Phối hợp nhiều repository trong cùng một giao dịch
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-005
+    title: JdbcTransactionManager, DataSourceTransactionManager và kết nối dùng chung
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-006
+    title: Rollback, checked exception và rollbackFor
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-007
+    title: 'Propagation: REQUIRED, REQUIRES_NEW và NESTED'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-008
+    title: Isolation, readOnly, timeout và giới hạn phụ thuộc driver
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-009
+    title: Proxy, self-invocation và nguyên nhân @Transactional không có hiệu lực
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-010
+    title: Quản lý giao dịch lập trình bằng TransactionTemplate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-011
+    title: Giao dịch khi trộn repository, template và JDBC trực tiếp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: concurrency-control
+  title: Kiểm soát đồng thời
+  childs:
+  - slug: concurrency-control-001
+    title: Lost update và hai người dùng cùng sửa một aggregate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-control-002
+    title: Optimistic locking bằng @Version trên aggregate root
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-control-003
+    title: Giá trị version lúc thêm mới, cập nhật và xóa
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-control-004
+    title: Xử lý OptimisticLockingFailureException và chính sách thử lại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-control-005
+    title: Khóa bi quan bằng @Lock và các LockMode được hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-control-006
+    title: Giới hạn @Lock với @Query và lựa chọn khóa bằng SQL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-control-007
+    title: Thời gian giữ khóa, deadlock và thứ tự truy cập dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-control-008
+    title: Cập nhật có điều kiện và kiểm tra số hàng thay đổi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-control-009
+    title: Idempotency và ràng buộc duy nhất cho yêu cầu ghi lặp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: lifecycle-and-events
+  title: Vòng đời và sự kiện
+  childs:
+  - slug: lifecycle-and-events-001
+    title: Các giai đoạn chuyển đổi, lưu, đọc và xóa aggregate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-events-002
+    title: BeforeConvertCallback và thời điểm quyết định insert/update
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-events-003
+    title: BeforeSaveCallback, AfterSaveCallback và AggregateChange
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-events-004
+    title: AfterConvertCallback cho dữ liệu dẫn xuất sau khi tải
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-events-005
+    title: BeforeDeleteCallback và AfterDeleteCallback
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-events-006
+    title: Phân biệt EntityCallback với ApplicationEvent và thứ tự thực thi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-events-007
+    title: Phạm vi callback trên aggregate root và xử lý thành phần con
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-events-008
+    title: Callback với entity bất biến và thứ tự ưu tiên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-events-009
+    title: '@DomainEvents và @AfterDomainEventPublication'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-events-010
+    title: '@TransactionalEventListener, xử lý sau commit và độ tin cậy của sự kiện'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-events-011
+    title: Giới hạn callback khi dùng RowMapper hoặc SQL ghi tùy chỉnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: auditing
+  title: Auditing
+  childs:
+  - slug: auditing-001
+    title: Mục đích và ranh giới của thông tin tạo/sửa dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-002
+    title: Kích hoạt auditing bằng @EnableJdbcAuditing
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-003
+    title: '@CreatedDate, @LastModifiedDate, @CreatedBy và @LastModifiedBy'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-004
+    title: Cung cấp người thao tác bằng AuditorAware
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-005
+    title: Điều khiển thời gian bằng DateTimeProvider và quy ước múi giờ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-006
+    title: Auditing với entity bất biến, đối tượng mới và nhiều nguồn ghi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-007
+    title: Phân biệt auditing mặc định với lịch sử thay đổi đầy đủ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-008
+    title: Kiểm thử thời gian và người thao tác một cách xác định
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: schema-and-migrations
+  title: Schema và migration
+  childs:
+  - slug: schema-and-migrations-001
+    title: Thiết kế DDL từ aggregate và ánh xạ collection
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-and-migrations-002
+    title: Đặt khóa ngoại, chỉ mục, unique và check constraint
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-and-migrations-003
+    title: Phân biệt SQL initialization với migration có phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-and-migrations-004
+    title: Quản lý thay đổi schema bằng Flyway hoặc Liquibase
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-and-migrations-005
+    title: Sinh Liquibase change set bằng LiquibaseChangeSetWriter
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-and-migrations-006
+    title: 'Giới hạn sinh chênh lệch schema: đổi tên và chuyển đổi dữ liệu'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-and-migrations-007
+    title: Kiểm soát schema cũ, giá trị mặc định và backfill dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-and-migrations-008
+    title: Triển khai thay đổi schema tương thích nhiều phiên bản ứng dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dialects-and-connections
+  title: Dialect và kết nối
+  childs:
+  - slug: dialects-and-connections-001
+    title: Vai trò của Dialect trong SQL sinh tự động và khả năng cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dialects-and-connections-002
+    title: Phát hiện dialect từ metadata của kết nối
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dialects-and-connections-003
+    title: Khác biệt quoting, limit/offset, generated keys và kiểu dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dialects-and-connections-004
+    title: Tùy chỉnh hoặc đăng ký dialect theo SPI của phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dialects-and-connections-005
+    title: 'Cấu hình pool: kích thước, thời gian chờ và vòng đời kết nối'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dialects-and-connections-006
+    title: 'Nhiều DataSource: tách repository, template và transaction manager'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dialects-and-connections-007
+    title: Định tuyến tenant hoặc nguồn đọc/ghi và ranh giới nhất quán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dialects-and-connections-008
+    title: Kiểm chứng tính tương thích trên H2, PostgreSQL và MySQL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: my-batis-integration
+  title: Tích hợp MyBatis
+  childs:
+  - slug: my-batis-integration-001
+    title: Khi nào cần phối hợp Spring Data JDBC với MyBatis?
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: my-batis-integration-002
+    title: Cấu hình MyBatisJdbcConfiguration và SqlSessionFactory
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: my-batis-integration-003
+    title: Quy ước namespace, statement và MyBatisContext
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: my-batis-integration-004
+    title: Ủy quyền từng bước CRUD và xử lý generated keys
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: my-batis-integration-005
+    title: Ánh xạ kết quả và xử lý quan hệ bằng statement tùy chỉnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: my-batis-integration-006
+    title: Dùng chung DataSource, giao dịch và kiểm thử tính nhất quán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: my-batis-integration-007
+    title: Đánh đổi giữa khả năng tùy biến SQL và chi phí bảo trì
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: version-specific-features
+  title: Tính năng theo phiên bản
+  childs:
+  - slug: version-specific-features-001
+    title: Đọc release train, release notes và ma trận tương thích Spring Boot
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-specific-features-002
+    title: Đối chiếu API đang dùng với tài liệu đúng phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-specific-features-003
+    title: Hỗ trợ sequence, @Sequence và dialect trong phiên bản có tính năng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-specific-features-004
+    title: Khóa ghép bằng @Id kết hợp @Embedded trong phiên bản hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-specific-features-005
+    title: 'Upsert bằng JdbcAggregateTemplate: yêu cầu dialect và giới hạn version'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-specific-features-006
+    title: 'AOT và native image: cấu hình, tối ưu repository và giới hạn'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-specific-features-007
+    title: Nhận diện tính năng thử nghiệm và kiểm chứng trước khi đưa vào tài liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-specific-features-008
+    title: Lập kiểm thử hồi quy khi nâng phiên bản Spring Data hoặc driver
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo số câu SQL, số lượt kết nối, thời gian và dung lượng kết quả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-002
+    title: Nhận diện truy vấn lặp khi tải danh sách aggregate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-003
+    title: Đo chi phí xóa–chèn lại entity con trong aggregate lớn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-004
+    title: Chọn projection, SQL JOIN hoặc Single Query Loading theo số đo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-005
+    title: Đọc execution plan và thiết kế chỉ mục theo điều kiện truy vấn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-006
+    title: Tối ưu count query và phân trang sâu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-007
+    title: Phân biệt saveAll, batch insert và batch update qua JDBC trực tiếp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-008
+    title: Xử lý dữ liệu lớn theo lô và giữ giao dịch có kích thước phù hợp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-009
+    title: Bộ nhớ, fetch size và thời gian giữ connection khi streaming
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-010
+    title: Cache ở tầng ứng dụng và chiến lược vô hiệu hóa khi ghi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Chọn unit test, repository test và integration test theo mục tiêu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-002
+    title: Kiểm thử quy tắc aggregate không cần cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-003
+    title: Cấu hình @DataJdbcTest và phạm vi bean được nạp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-004
+    title: Phân biệt @DataJdbcTest, @JdbcTest và @SpringBootTest
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-005
+    title: Testcontainers và cơ sở dữ liệu cùng loại với môi trường triển khai
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-006
+    title: '@AutoConfigureTestDatabase và kiểm soát thay thế DataSource'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-007
+    title: Dữ liệu kiểm thử bằng migration, @Sql và fixture
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-008
+    title: Kiểm thử mapping, embedded, collection, converter và ID
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-009
+    title: Kiểm thử truy vấn suy diễn, @Query, projection và phân trang
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-010
+    title: Kiểm thử rollback giữa các bảng và nhiều repository
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-011
+    title: Kiểm thử optimistic locking, khóa bi quan và xung đột đồng thời
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-012
+    title: Kiểm thử callback, auditing và SQL ghi trực tiếp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-013
+    title: Đo truy vấn và phát hiện hồi quy hiệu năng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-014
+    title: Phân biệt rollback trong test với hành vi sau commit thực tế
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: errors-diagnostics
+  title: Lỗi và chẩn đoán
+  childs:
+  - slug: errors-diagnostics-001
+    title: Phân loại DataAccessException và exception được dịch từ JDBC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-diagnostics-002
+    title: Không tìm thấy repository, quét sai package hoặc trùng bean
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-diagnostics-003
+    title: Không nhận diện dialect và lỗi mở kết nối lúc khởi động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-diagnostics-004
+    title: Sai tên bảng/cột, quoting và schema search path
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-diagnostics-005
+    title: Lỗi constructor, alias cột, null và kiểu dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-diagnostics-006
+    title: save chọn sai insert/update hoặc không lấy được generated key
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-diagnostics-007
+    title: Vi phạm khóa ngoại, unique constraint và dữ liệu con ngoài dự kiến
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-diagnostics-008
+    title: Kết quả đơn trả nhiều hàng hoặc truy vấn không có kết quả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-diagnostics-009
+    title: Giao dịch không rollback, kết nối cạn và truy vấn bị treo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-diagnostics-010
+    title: Phân biệt lỗi cú pháp SQL, lỗi mapping và xung đột đồng thời
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-diagnostics-011
+    title: Quy trình tái hiện lỗi tối thiểu bằng SQL log và integration test
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: operations-and-security
+  title: Vận hành và bảo mật
+  childs:
+  - slug: operations-and-security-001
+    title: Bật SQL log, bind log và bảo vệ dữ liệu nhạy cảm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-security-002
+    title: Quan sát connection pool, truy vấn chậm và lỗi cơ sở dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-security-003
+    title: Đặt timeout cho kết nối, truy vấn và giao dịch
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-security-004
+    title: Bind tham số để phòng SQL injection và kiểm soát SQL động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-security-005
+    title: Cấp quyền tài khoản cơ sở dữ liệu theo nhu cầu tối thiểu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-security-006
+    title: Quản lý thông tin đăng nhập, TLS và cấu hình theo môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-security-007
+    title: Retry lỗi tạm thời với thao tác an toàn và ranh giới giao dịch rõ ràng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-security-008
+    title: Giới hạn auditing, log và sự kiện đối với yêu cầu truy vết nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-migration
+  title: Chuyển đổi ứng dụng
+  childs:
+  - slug: application-migration-001
+    title: Chuyển từ JdbcTemplate sang repository theo từng ca sử dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-002
+    title: 'Chuyển từ JPA: thay đổi tư duy về aggregate và vòng đời đối tượng'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-003
+    title: Thay annotation JPA bằng metadata Spring Data JDBC phù hợp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-004
+    title: Thiết kế lại quan hệ hai chiều, cascade và lazy loading
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-005
+    title: Thay dirty checking, flush và entity manager bằng thao tác ghi tường minh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-006
+    title: Giữ mô hình đọc phức tạp bằng SQL hoặc thư viện chuyên dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-007
+    title: Tiếp nhận schema có sẵn mà không thay đổi dữ liệu ngoài ý muốn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-008
+    title: So sánh hành vi, SQL và hiệu năng trước và sau chuyển đổi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Phân tích bài toán quản lý đơn hàng và xác định ranh giới aggregate
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-practice-002
+    title: Xây schema Order, OrderItem và Customer cùng migration
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-practice-003
+    title: Triển khai repository, converter và quy tắc nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-practice-004
+    title: Tạo bộ lọc đơn hàng, phân trang và projection báo cáo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-practice-005
+    title: Thực nghiệm lưu entity con và quan sát SQL thực tế
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-practice-006
+    title: Mô phỏng hai giao dịch cập nhật cùng đơn hàng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-practice-007
+    title: Bổ sung auditing và sự kiện sau commit
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-practice-008
+    title: Kiểm thử với Testcontainers và đo chi phí truy vấn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-practice-009
+    title: Đánh giá thiết kế, xử lý lỗi và tiêu chí sẵn sàng triển khai
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-practice-010
+    title: 'Bài tập mở rộng: xóa mềm, nhiều nguồn dữ liệu và nhập dữ liệu theo lô'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

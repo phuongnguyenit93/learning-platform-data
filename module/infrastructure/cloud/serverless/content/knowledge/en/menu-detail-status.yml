@@ -1,0 +1,2902 @@
+menu:
+- slug: serverless-foundations
+  title: Nền tảng serverless
+  childs:
+  - slug: serverless-foundations-001
+    title: Serverless là gì và trách nhiệm của nhà cung cấp cloud
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-foundations-002
+    title: Phân biệt FaaS, BaaS và container serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-foundations-003
+    title: So sánh serverless với máy ảo, container và Kubernetes
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-foundations-004
+    title: Các thành phần của một ứng dụng serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-foundations-005
+    title: Mô hình tính phí theo lượt gọi và tài nguyên sử dụng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-foundations-006
+    title: Giới hạn thời gian, bộ nhớ, payload và tài nguyên tạm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-foundations-007
+    title: Trách nhiệm chia sẻ khi vận hành serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-foundations-008
+    title: Lựa chọn workload phù hợp và nhận diện trường hợp không phù hợp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: serverless-architecture
+  title: Thiết kế kiến trúc serverless
+  childs:
+  - slug: serverless-architecture-001
+    title: Phân rã nghiệp vụ thành function và dịch vụ có ranh giới rõ ràng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-architecture-002
+    title: Thiết kế function đơn nhiệm và hạn chế phụ thuộc chéo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-architecture-003
+    title: Kiến trúc đồng bộ, bất đồng bộ và xử lý theo lịch
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-architecture-004
+    title: Kết hợp API gateway, function, kho dữ liệu và event bus
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-architecture-005
+    title: Áp dụng kiến trúc hướng sự kiện cho nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-architecture-006
+    title: Phân biệt orchestration và choreography
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-architecture-007
+    title: Thiết kế luồng dữ liệu và xác định ranh giới tin cậy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-architecture-008
+    title: Đánh giá độ phức tạp, vendor lock-in và khả năng chuyển nền tảng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-architecture-009
+    title: Ghi lại quyết định kiến trúc và tiêu chí đánh đổi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: function-execution-lifecycle
+  title: Vòng đời thực thi function
+  childs:
+  - slug: function-execution-lifecycle-001
+    title: 'Anatomy của function: handler, event, context và response'
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: function-execution-lifecycle-002
+    title: Các bước khởi tạo, thực thi và kết thúc môi trường chạy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: function-execution-lifecycle-003
+    title: Cold start, warm start và tái sử dụng môi trường thực thi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: function-execution-lifecycle-004
+    title: Biến toàn cục, bộ nhớ cục bộ và thư mục tạm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: function-execution-lifecycle-005
+    title: Mô hình xử lý nhiều yêu cầu trong một instance
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: function-execution-lifecycle-006
+    title: Thời hạn xử lý và hành vi khi function bị timeout
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: function-execution-lifecycle-007
+    title: Hủy tác vụ, kết thúc tiến trình và công việc chạy nền
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: function-execution-lifecycle-008
+    title: Phiên bản runtime, dependency và vòng đời hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: function-execution-lifecycle-009
+    title: Phân loại lỗi khởi tạo, lỗi handler và lỗi nền tảng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: events-and-data-contracts
+  title: Sự kiện và hợp đồng dữ liệu
+  childs:
+  - slug: events-and-data-contracts-001
+    title: Cấu trúc sự kiện và các trường định danh cần thiết
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-data-contracts-002
+    title: CloudEvents và chuẩn hóa envelope sự kiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-data-contracts-003
+    title: Thiết kế schema JSON và quy tắc kiểm tra dữ liệu đầu vào
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-data-contracts-004
+    title: Phân biệt command, domain event và integration event
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-data-contracts-005
+    title: Quản lý phiên bản schema và tương thích producer với consumer
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-data-contracts-006
+    title: Correlation ID, causation ID và truy vết chuỗi sự kiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-data-contracts-007
+    title: Event time, processing time và sự kiện đến muộn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-data-contracts-008
+    title: Truyền tham chiếu thay cho payload lớn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-data-contracts-009
+    title: Bảo vệ dữ liệu nhạy cảm trong nội dung sự kiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: http-apis-and-webhooks
+  title: HTTP API và webhook
+  childs:
+  - slug: http-apis-and-webhooks-001
+    title: Thiết kế REST API cho backend serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-apis-and-webhooks-002
+    title: Ánh xạ request, response, header và mã trạng thái HTTP
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-apis-and-webhooks-003
+    title: Routing, validation và chuyển đổi dữ liệu tại API gateway
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-apis-and-webhooks-004
+    title: Xác thực API bằng OAuth 2.0, OpenID Connect và JWT
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-apis-and-webhooks-005
+    title: CORS, cookie và phiên người dùng trong API serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-apis-and-webhooks-006
+    title: Thiết kế phân trang, lọc dữ liệu và phiên bản API
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-apis-and-webhooks-007
+    title: Rate limiting, quota và bảo vệ endpoint công khai
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-apis-and-webhooks-008
+    title: Tiếp nhận webhook và xác minh chữ ký nhà cung cấp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-apis-and-webhooks-009
+    title: Xử lý tác vụ dài qua HTTP 202 và endpoint theo dõi trạng thái
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-apis-and-webhooks-010
+    title: WebSocket và cập nhật trạng thái tác vụ cho client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: queues-and-event-streams
+  title: Hàng đợi và luồng sự kiện
+  childs:
+  - slug: queues-and-event-streams-001
+    title: Lựa chọn queue, topic, event bus và stream
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-event-streams-002
+    title: Push trigger, pull consumer và cơ chế polling
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-event-streams-003
+    title: Ngữ nghĩa giao nhận at-most-once và at-least-once
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-event-streams-004
+    title: Acknowledgment, visibility timeout và thời gian giữ thông điệp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-event-streams-005
+    title: Xử lý theo batch và xác nhận từng phần thất bại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-event-streams-006
+    title: Ordering, partition và message group
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-event-streams-007
+    title: Dead-letter queue và phân loại thông điệp không xử lý được
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-event-streams-008
+    title: Lọc sự kiện và định tuyến đến nhiều consumer
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-event-streams-009
+    title: Consumer lag, checkpoint và tiếp tục đọc stream
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-event-streams-010
+    title: Lập lịch tác vụ, múi giờ và xử lý lịch bị chạy trùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: state-and-storage
+  title: Trạng thái và lưu trữ
+  childs:
+  - slug: state-and-storage-001
+    title: Thiết kế stateless function và lưu trạng thái bên ngoài
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-storage-002
+    title: Chọn object storage, cơ sở dữ liệu quan hệ và NoSQL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-storage-003
+    title: Mô hình truy cập dữ liệu và thiết kế khóa cho NoSQL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-storage-004
+    title: Kết nối cơ sở dữ liệu từ function và rủi ro cạn kết nối
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-storage-005
+    title: Connection pooling, database proxy và dịch vụ dữ liệu serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-storage-006
+    title: Cache bên ngoài và quy tắc vô hiệu hóa cache
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-storage-007
+    title: Upload trực tiếp vào object storage bằng URL ký sẵn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-storage-008
+    title: Trigger từ object storage và phòng tránh vòng lặp xử lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-storage-009
+    title: TTL, vòng đời dữ liệu và dọn tài nguyên tạm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: workflows-and-orchestration
+  title: Workflow và điều phối
+  childs:
+  - slug: workflows-and-orchestration-001
+    title: Mô hình state machine cho quy trình nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflows-and-orchestration-002
+    title: Thiết kế bước tuần tự, nhánh điều kiện và xử lý song song
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflows-and-orchestration-003
+    title: Phân biệt lỗi kỹ thuật có thể retry và lỗi nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflows-and-orchestration-004
+    title: Thiết lập retry, timeout và nhánh bắt lỗi của workflow
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflows-and-orchestration-005
+    title: Tạm dừng workflow để chờ callback hoặc phê duyệt
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflows-and-orchestration-006
+    title: Theo dõi workflow dài hạn và lưu trạng thái bền vững
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflows-and-orchestration-007
+    title: Điều phối fan-out, fan-in và giới hạn số tác vụ con
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflows-and-orchestration-008
+    title: Thiết kế tác vụ bù theo mẫu Saga
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflows-and-orchestration-009
+    title: Nâng cấp định nghĩa workflow khi còn phiên đang chạy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-on-serverless
+  title: Java trên serverless
+  childs:
+  - slug: java-on-serverless-001
+    title: Thiết kế handler Java và phân tách mã nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-on-serverless-002
+    title: Ánh xạ event thành DTO và kiểm soát serialization
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-on-serverless-003
+    title: Quản lý dependency, classpath và kích thước gói Java
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-on-serverless-004
+    title: Khởi tạo và tái sử dụng cloud SDK client an toàn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-on-serverless-005
+    title: Cấu hình HTTP client, connection timeout và request timeout
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-on-serverless-006
+    title: Quản lý thread, executor và CompletableFuture trong function
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-on-serverless-007
+    title: Tối ưu khởi tạo JVM, class loading và bộ nhớ heap
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-on-serverless-008
+    title: Xử lý ngoại lệ và bảo toàn nguyên nhân lỗi trong Java handler
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-on-serverless-009
+    title: Quản lý đồng thời và tính an toàn của trạng thái dùng chung
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-on-serverless-010
+    title: Đóng gói ứng dụng Java thành archive hoặc container image
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-frameworks-and-runtimes
+  title: Framework và runtime Java
+  childs:
+  - slug: java-frameworks-and-runtimes-001
+    title: Xây dựng function bằng Java thuần và adapter nền tảng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-frameworks-and-runtimes-002
+    title: Mô hình Function, Consumer và Supplier trong Spring Cloud Function
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-frameworks-and-runtimes-003
+    title: Đưa ứng dụng Spring Boot lên môi trường serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-frameworks-and-runtimes-004
+    title: Tối ưu function với Quarkus và Micronaut
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-frameworks-and-runtimes-005
+    title: GraalVM Native Image và yêu cầu cấu hình reflection
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-frameworks-and-runtimes-006
+    title: So sánh JVM và native executable cho workload thực tế
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-frameworks-and-runtimes-007
+    title: Snapshot và restore JVM với AWS Lambda SnapStart
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-frameworks-and-runtimes-008
+    title: Tái khởi tạo kết nối, dữ liệu ngẫu nhiên và trạng thái sau restore
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aws-lambda-fundamentals
+  title: AWS Lambda căn bản
+  childs:
+  - slug: aws-lambda-fundamentals-001
+    title: Cấu trúc ứng dụng và mô hình tài nguyên AWS Lambda
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-lambda-fundamentals-002
+    title: Tạo Java handler, execution role và cấu hình function Lambda
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-lambda-fundamentals-003
+    title: Đóng gói Lambda bằng ZIP, JAR, layer và container image
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-lambda-fundamentals-004
+    title: So sánh lời gọi đồng bộ, bất đồng bộ và event source mapping
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-lambda-fundamentals-005
+    title: Cấu hình memory, timeout, ephemeral storage và kiến trúc CPU
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-lambda-fundamentals-006
+    title: Reserved concurrency và provisioned concurrency trên Lambda
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-lambda-fundamentals-007
+    title: Quản lý version, alias và quyền gọi function Lambda
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-lambda-fundamentals-008
+    title: Cấu hình Lambda destinations và dead-letter queue
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-lambda-fundamentals-009
+    title: Sử dụng Lambda extensions và custom runtime
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-lambda-fundamentals-010
+    title: Truy cập riêng tư từ Lambda với VPC và VPC endpoint
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aws-serverless-integrations
+  title: Tích hợp serverless trên AWS
+  childs:
+  - slug: aws-serverless-integrations-001
+    title: Xây dựng HTTP endpoint bằng API Gateway và Lambda Function URL
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-serverless-integrations-002
+    title: Xử lý sự kiện S3 và quản lý quyền giữa bucket với Lambda
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-serverless-integrations-003
+    title: Kết nối SQS với Lambda và báo lỗi theo từng message
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-serverless-integrations-004
+    title: Fan-out bằng SNS và định tuyến sự kiện bằng EventBridge
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-serverless-integrations-005
+    title: Lập lịch function bằng EventBridge Scheduler
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-serverless-integrations-006
+    title: Đọc DynamoDB Streams và Kinesis bằng Lambda consumer
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-serverless-integrations-007
+    title: Điều phối Lambda bằng AWS Step Functions
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-serverless-integrations-008
+    title: Truy cập RDS qua RDS Proxy từ Lambda
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-serverless-integrations-009
+    title: Kết hợp Cognito, Secrets Manager và Parameter Store
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-serverless-integrations-010
+    title: Theo dõi Lambda bằng CloudWatch, X-Ray và Lambda Insights
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: azure-functions
+  title: Azure Functions
+  childs:
+  - slug: azure-functions-001
+    title: Function App, function và các lựa chọn hosting của Azure Functions
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-functions-002
+    title: Lập trình Java function với trigger và binding
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-functions-003
+    title: Cấu hình HTTP trigger và kiểm soát quyền truy cập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-functions-004
+    title: Xử lý Timer trigger, Storage Queue trigger và Blob trigger
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-functions-005
+    title: Tích hợp Service Bus và Event Hubs trong Azure Functions
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-functions-006
+    title: Điều phối quy trình bằng Durable Functions
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-functions-007
+    title: Managed Identity, Key Vault và cấu hình Function App
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-functions-008
+    title: Kết nối riêng tư và lựa chọn mạng cho Azure Functions
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-functions-009
+    title: Phát hành function và sử dụng deployment slot khi được hỗ trợ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-functions-010
+    title: Quan sát và chẩn đoán với Application Insights
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: google-cloud-serverless
+  title: Serverless trên Google Cloud
+  childs:
+  - slug: google-cloud-serverless-001
+    title: Phân biệt Cloud Run services, jobs và Cloud Run functions
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-serverless-002
+    title: Xây dựng Java function với Functions Framework
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-serverless-003
+    title: Triển khai HTTP function và kiểm soát quyền gọi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-serverless-004
+    title: Nhận sự kiện Cloud Storage và Pub/Sub qua Eventarc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-serverless-005
+    title: Cấu hình concurrency, min instances và max instances
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-serverless-006
+    title: Thực thi container theo yêu cầu với Cloud Run services
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-serverless-007
+    title: Chạy batch job bằng Cloud Run jobs
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-serverless-008
+    title: Điều phối bằng Workflows, Cloud Tasks và Cloud Scheduler
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-serverless-009
+    title: Service account, Secret Manager và kết nối VPC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-serverless-010
+    title: Theo dõi bằng Cloud Logging, Cloud Monitoring và Cloud Trace
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: edge-and-open-platforms
+  title: Edge và nền tảng mở
+  childs:
+  - slug: edge-and-open-platforms-001
+    title: Phân biệt regional serverless và edge function
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: edge-and-open-platforms-002
+    title: Giới hạn runtime, vị trí dữ liệu và độ trễ tại edge
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: edge-and-open-platforms-003
+    title: Thiết kế edge middleware với Cloudflare Workers
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: edge-and-open-platforms-004
+    title: Lựa chọn function cho ứng dụng web trên Vercel và Netlify
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: edge-and-open-platforms-005
+    title: Mô hình serving và eventing trong Knative
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: edge-and-open-platforms-006
+    title: Mô hình function và gateway trong OpenFaaS
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: edge-and-open-platforms-007
+    title: Đánh giá chi phí vận hành serverless trên hạ tầng tự quản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: edge-and-open-platforms-008
+    title: Thiết kế adapter để giảm phụ thuộc nền tảng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: infrastructure-as-code
+  title: Hạ tầng dưới dạng mã
+  childs:
+  - slug: infrastructure-as-code-001
+    title: Mô hình hóa function, trigger, quyền và tài nguyên phụ thuộc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-002
+    title: Quản lý hạ tầng serverless bằng Terraform
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-003
+    title: Mô tả ứng dụng Lambda bằng AWS SAM
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-004
+    title: Xây dựng hạ tầng AWS bằng AWS CDK với Java
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-005
+    title: Khai báo ứng dụng bằng Serverless Framework
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-006
+    title: Khai báo Azure Functions và tài nguyên liên quan bằng Bicep
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-007
+    title: Tổ chức module hạ tầng và tham số theo môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-008
+    title: Quản lý state hạ tầng, phát hiện drift và rà soát thay đổi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-009
+    title: Xử lý thứ tự triển khai, phụ thuộc vòng và xóa stack an toàn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: configuration-and-environments
+  title: Cấu hình và môi trường
+  childs:
+  - slug: configuration-and-environments-001
+    title: Phân tách môi trường phát triển, kiểm thử và production
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-environments-002
+    title: Tách cấu hình khỏi mã và kiểm tra cấu hình lúc khởi động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-environments-003
+    title: Biến môi trường, cấu hình động và bộ nhớ đệm cấu hình
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-environments-004
+    title: Nạp secret an toàn và xoay vòng thông tin xác thực
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-environments-005
+    title: Feature flag và bật tính năng theo nhóm người dùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-environments-006
+    title: Quản lý tài nguyên dùng chung giữa nhiều service
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-environments-007
+    title: Môi trường tạm cho từng nhánh và quy tắc tự động thu hồi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-environments-008
+    title: Đặt tên tài nguyên, gắn nhãn và truy nguyên nguồn triển khai
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-security
+  title: Bảo mật ứng dụng
+  childs:
+  - slug: application-security-001
+    title: Lập threat model cho API, trigger và pipeline sự kiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-002
+    title: Kiểm tra đầu vào và ngăn injection trong function
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-003
+    title: Phòng chống SSRF khi function gọi dịch vụ bên ngoài
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-004
+    title: Chống replay attack và giới hạn thời gian hợp lệ của request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-005
+    title: Xử lý tệp upload, nội dung độc hại và archive bomb
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-006
+    title: Mã hóa dữ liệu và quản lý khóa bằng KMS
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-007
+    title: Che dữ liệu nhạy cảm trong log, trace và thông báo lỗi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-008
+    title: Bảo vệ dependency, tạo SBOM và quét image
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-009
+    title: Ký artifact và xác minh nguồn gốc gói triển khai
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: identity-and-networking
+  title: Danh tính và mạng
+  childs:
+  - slug: identity-and-networking-001
+    title: Thiết kế quyền tối thiểu cho từng function
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-networking-002
+    title: Phân biệt execution identity và quyền kích hoạt function
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-networking-003
+    title: Xác thực giữa các dịch vụ bằng danh tính workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-networking-004
+    title: Cấp thông tin xác thực tạm thời thay cho khóa tĩnh
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-networking-005
+    title: Giới hạn truy cập giữa account, project và subscription
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-networking-006
+    title: Private endpoint, egress và kiểm soát đường ra Internet
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-networking-007
+    title: DNS, TLS và chứng chỉ cho endpoint serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-networking-008
+    title: Cô lập tenant ở lớp định danh, dữ liệu và tài nguyên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-networking-009
+    title: Rà soát IAM, access log và phát hiện quyền vượt nhu cầu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: serverless-testing
+  title: Kiểm thử serverless
+  childs:
+  - slug: serverless-testing-001
+    title: Thiết kế chiến lược unit, integration, contract và end-to-end test
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-testing-002
+    title: Unit test nghiệp vụ Java độc lập với cloud runtime
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-testing-003
+    title: Kiểm thử handler bằng event mẫu và context giả lập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-testing-004
+    title: Contract test cho HTTP API và schema sự kiện
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-testing-005
+    title: Giả lập cloud service và nhận diện giới hạn emulator
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-testing-006
+    title: Integration test trên môi trường cloud cô lập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-testing-007
+    title: Kiểm thử batch lỗi một phần, retry và thông điệp trùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-testing-008
+    title: Kiểm thử workflow với timeout, callback và tác vụ bù
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-testing-009
+    title: Load test cho cold start, concurrency và giới hạn downstream
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-testing-010
+    title: Quản lý test data và dọn tài nguyên sau kiểm thử
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ci-cd-and-releases
+  title: CI/CD và phát hành
+  childs:
+  - slug: ci-cd-and-releases-001
+    title: Thiết kế pipeline từ mã nguồn đến artifact và môi trường đích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-releases-002
+    title: Đóng gói artifact bất biến và thăng cấp giữa các môi trường
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-releases-003
+    title: Xác thực pipeline với cloud bằng OIDC federation
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-releases-004
+    title: Kiểm tra mã, dependency và cấu hình hạ tầng trong pipeline
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-releases-005
+    title: Triển khai canary và chuyển traffic theo tỷ lệ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-releases-006
+    title: Blue-green deployment cho API và function
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-releases-007
+    title: Phối hợp phát hành producer, consumer và schema tương thích
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-releases-008
+    title: Rollback mã, cấu hình và tài nguyên có trạng thái
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-releases-009
+    title: Smoke test, kiểm tra sau phát hành và tự động chặn bản lỗi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: Thiết kế log có cấu trúc cho function và workflow
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-002
+    title: Kết nối log bằng request ID và correlation ID
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-003
+    title: Các metric về lượt gọi, lỗi, thời gian xử lý và throttling
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-004
+    title: Đo cold start, độ tuổi thông điệp và backlog
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-005
+    title: Truyền trace context qua HTTP và sự kiện bất đồng bộ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-006
+    title: Instrument ứng dụng Java bằng OpenTelemetry
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-007
+    title: Lựa chọn sampling và kiểm soát cardinality telemetry
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-008
+    title: Xây dựng SLI, SLO và error budget cho hành trình người dùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-009
+    title: Thiết kế dashboard theo luồng nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-010
+    title: Cảnh báo có ngưỡng hành động và liên kết runbook
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-optimization
+  title: Tối ưu hiệu năng
+  childs:
+  - slug: performance-optimization-001
+    title: Đo latency percentile và phân rã thời gian toàn luồng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-002
+    title: Lập benchmark riêng cho cold start và warm invocation
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-003
+    title: Điều chỉnh bộ nhớ, CPU và timeout dựa trên số đo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-004
+    title: Giảm dependency, kích thước artifact và chi phí khởi tạo
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-005
+    title: Tối ưu serialization, nén dữ liệu và kích thước payload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-006
+    title: Tái sử dụng kết nối HTTP và giảm số lượt gọi mạng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-007
+    title: Áp dụng cache theo nhu cầu nhất quán của nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-008
+    title: Chọn batch size và batch window theo độ trễ mục tiêu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-009
+    title: So sánh kiến trúc CPU và lựa chọn runtime bằng benchmark
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-010
+    title: Đánh giá provisioned capacity và snapshot theo workload
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: scaling-and-load-control
+  title: Mở rộng và điều tiết tải
+  childs:
+  - slug: scaling-and-load-control-001
+    title: Ước lượng concurrency từ lưu lượng và thời gian xử lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-load-control-002
+    title: Hiểu autoscaling, burst traffic và tốc độ cấp instance
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-load-control-003
+    title: Phân bổ quota giữa function quan trọng và tác vụ nền
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-load-control-004
+    title: Áp dụng backpressure để bảo vệ hệ thống phía sau
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-load-control-005
+    title: Giới hạn consumer concurrency và tốc độ xử lý queue
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-load-control-006
+    title: Load leveling bằng hàng đợi và chính sách ưu tiên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-load-control-007
+    title: Ngăn hot partition, hot key và mất cân bằng tải
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-load-control-008
+    title: Điều phối fan-out lớn mà không gây bão lời gọi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-load-control-009
+    title: Xử lý downstream throttling và phân bổ retry budget
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reliability-and-recovery
+  title: Độ tin cậy và phục hồi
+  childs:
+  - slug: reliability-and-recovery-001
+    title: Nhận diện điểm lỗi và phạm vi ảnh hưởng trong kiến trúc serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-002
+    title: Thiết kế timeout budget xuyên suốt chuỗi dịch vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-003
+    title: Retry với exponential backoff, jitter và giới hạn số lần
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-004
+    title: Circuit breaker, bulkhead và fallback trong function
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-005
+    title: Ngăn retry storm và vòng lặp sự kiện vô hạn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-006
+    title: Quarantine, redrive và replay sự kiện sau sự cố
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-007
+    title: Phân tích khả năng chịu lỗi vùng sẵn sàng và vùng địa lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-008
+    title: Thiết kế disaster recovery theo RTO và RPO
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-009
+    title: Sao lưu trạng thái, cấu hình và dữ liệu phục vụ khôi phục
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-010
+    title: Chaos testing và diễn tập chuyển vùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-correctness
+  title: Tính đúng đắn của dữ liệu
+  childs:
+  - slug: data-correctness-001
+    title: Xây dựng idempotency key theo ý nghĩa nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-correctness-002
+    title: Lưu trạng thái xử lý idempotent và thời hạn chống trùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-correctness-003
+    title: Xử lý hai invocation đồng thời với cùng idempotency key
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-correctness-004
+    title: Conditional write, optimistic locking và kiểm soát phiên bản
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-correctness-005
+    title: Xử lý cạnh tranh dữ liệu và lost update giữa các function
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-correctness-006
+    title: Đồng bộ thay đổi dữ liệu với sự kiện bằng transactional outbox
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-correctness-007
+    title: Consumer inbox và ghi nhận sự kiện đã xử lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-correctness-008
+    title: Nhận diện giới hạn bảo đảm exactly-once trong toàn luồng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-correctness-009
+    title: Thiết kế eventual consistency và đối soát trạng thái
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-correctness-010
+    title: Backfill, replay và tương thích với dữ liệu lịch sử
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: costs-and-finops
+  title: Chi phí và FinOps
+  childs:
+  - slug: costs-and-finops-001
+    title: Lập mô hình chi phí function theo lưu lượng và thời gian chạy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-002
+    title: Tính chi phí API gateway, workflow, queue và lưu trữ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-003
+    title: Nhận diện chi phí NAT, truyền dữ liệu và gọi liên vùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-004
+    title: Đánh giá chi phí log, metric và distributed tracing
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-005
+    title: So sánh chi phí serverless với container theo điểm hòa vốn
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-006
+    title: Đo chi phí trên mỗi request và mỗi giao dịch nghiệp vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-007
+    title: Tối ưu batch, thời gian thực thi và dung lượng được cấp
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-008
+    title: Đánh giá chi phí giữ ấm và capacity dự phòng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-009
+    title: Thiết lập ngân sách, cảnh báo bất thường và hạn mức bảo vệ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-010
+    title: Phân bổ chi phí theo service, môi trường và tenant
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: governance-and-compliance
+  title: Quản trị và tuân thủ
+  childs:
+  - slug: governance-and-compliance-001
+    title: Xây dựng danh mục function, owner và phụ thuộc dịch vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-and-compliance-002
+    title: Áp dụng policy as code cho hạ tầng serverless
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-and-compliance-003
+    title: Quy định region và vị trí lưu dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-and-compliance-004
+    title: Chính sách lưu giữ, xóa và phân loại dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-and-compliance-005
+    title: Lưu audit log và bằng chứng thay đổi cấu hình
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-and-compliance-006
+    title: Quản lý quota và yêu cầu tăng hạn mức trước khi mở rộng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-and-compliance-007
+    title: Theo dõi vòng đời runtime và kế hoạch nâng cấp dependency
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-and-compliance-008
+    title: Chuẩn hóa quy trình bàn giao và trách nhiệm vận hành
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: serverless-migration
+  title: Di chuyển sang serverless
+  childs:
+  - slug: serverless-migration-001
+    title: Đánh giá ứng dụng hiện tại và chọn phần việc di chuyển trước
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-migration-002
+    title: Tách logic nghiệp vụ khỏi framework và hạ tầng hiện có
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-migration-003
+    title: Áp dụng strangler pattern để thay thế từng endpoint
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-migration-004
+    title: Chuyển cron job và tác vụ nền sang function hoặc serverless job
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-migration-005
+    title: Chuyển xử lý đồng bộ sang hàng đợi theo từng bước
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-migration-006
+    title: Đồng bộ dữ liệu, đối soát và chuyển nguồn ghi
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-migration-007
+    title: Chạy song song, shadow traffic và đánh giá kết quả
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-migration-008
+    title: Lập kế hoạch cutover, rollback và thu hồi hạ tầng cũ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-patterns
+  title: Mẫu ứng dụng thực tế
+  childs:
+  - slug: application-patterns-001
+    title: Thiết kế pipeline xử lý ảnh, video và tài liệu tải lên
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-patterns-002
+    title: Thiết kế ETL serverless và kiểm tra chất lượng dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-patterns-003
+    title: Thu nhận dữ liệu IoT và tổng hợp theo cửa sổ thời gian
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-patterns-004
+    title: Xây dựng dịch vụ thông báo qua email và push notification
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-patterns-005
+    title: Đồng bộ dữ liệu SaaS bằng webhook và lịch định kỳ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-patterns-006
+    title: Xây dựng backend serverless cho ứng dụng web và di động
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-patterns-007
+    title: Tạo báo cáo và xuất tệp cho tác vụ chạy dài
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-patterns-008
+    title: Kích hoạt suy luận AI qua API và điều phối tác vụ nền
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-patterns-009
+    title: Xây dựng bộ lập chỉ mục tìm kiếm từ sự kiện thay đổi dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-serverless-api-project
+  title: Dự án API Java serverless
+  childs:
+  - slug: java-serverless-api-project-001
+    title: Xác định yêu cầu, API contract và SLO cho dịch vụ quản lý công việc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-serverless-api-project-002
+    title: Thiết kế mô hình dữ liệu và quyền truy cập theo người dùng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-serverless-api-project-003
+    title: Cài đặt Java handler cho thao tác tạo, đọc và cập nhật công việc
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-serverless-api-project-004
+    title: Thêm validation, phân trang và ánh xạ lỗi HTTP
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-serverless-api-project-005
+    title: Tích hợp xác thực và kiểm tra quyền sở hữu dữ liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-serverless-api-project-006
+    title: Khai báo hạ tầng và cấu hình môi trường cho dự án API
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-serverless-api-project-007
+    title: Tạo pipeline triển khai API và smoke test sau phát hành
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-serverless-api-project-008
+    title: Bổ sung telemetry và đánh giá chi phí trên mỗi request
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-serverless-api-project-009
+    title: Kiểm thử tải, tinh chỉnh cấu hình và bàn giao dịch vụ API
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: event-processing-project
+  title: Dự án xử lý sự kiện
+  childs:
+  - slug: event-processing-project-001
+    title: Thiết kế pipeline xử lý tài liệu với storage, queue và Java worker
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-processing-project-002
+    title: Xây dựng bước tiếp nhận tệp và phát sự kiện xử lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-processing-project-003
+    title: Cài đặt worker kiểm tra tệp và cập nhật trạng thái xử lý
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-processing-project-004
+    title: Chống xử lý trùng và kiểm soát số worker đồng thời
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-processing-project-005
+    title: Báo lỗi từng phần trong batch và chuyển tệp lỗi sang quarantine
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-processing-project-006
+    title: Thiết kế dead-letter queue và công cụ redrive có kiểm soát
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-processing-project-007
+    title: Theo dõi tiến độ xử lý và thông báo kết quả cho client
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-processing-project-008
+    title: Kiểm thử sự kiện trùng, sai thứ tự và gián đoạn downstream
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-processing-project-009
+    title: Đo throughput, độ trễ hàng đợi và chi phí trên mỗi tài liệu
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: business-workflow-project
+  title: Dự án workflow nghiệp vụ
+  childs:
+  - slug: business-workflow-project-001
+    title: Mô hình hóa quy trình đặt hàng bằng state machine
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-workflow-project-002
+    title: Xây dựng bước giữ tồn kho, xác nhận thanh toán và giao hàng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-workflow-project-003
+    title: Triển khai callback và thời hạn chờ xác nhận thanh toán
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-workflow-project-004
+    title: Thiết kế idempotency cho từng bước xử lý đơn hàng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-workflow-project-005
+    title: Cài đặt tác vụ bù khi thanh toán hoặc giao hàng thất bại
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-workflow-project-006
+    title: Theo dõi phiên workflow và đối soát trạng thái đơn hàng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-workflow-project-007
+    title: Kiểm thử workflow bị hủy, retry và hết hạn chờ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-workflow-project-008
+    title: Phát hành phiên bản workflow mới và xử lý phiên đang chạy
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: troubleshooting-and-operations
+  title: Chẩn đoán và vận hành thực chiến
+  childs:
+  - slug: troubleshooting-and-operations-001
+    title: Điều tra API chậm do cold start và downstream latency
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-and-operations-002
+    title: Chẩn đoán lỗi timeout, hết bộ nhớ và cạn thư mục tạm
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-and-operations-003
+    title: Điều tra function không được kích hoạt hoặc thiếu quyền truy cập
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-and-operations-004
+    title: Khắc phục queue backlog, poison message và throttling
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-and-operations-005
+    title: Tìm nguyên nhân log bị thiếu và trace bị đứt giữa các dịch vụ
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-and-operations-006
+    title: Xử lý connection exhaustion, lỗi DNS và lỗi kết nối VPC
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-and-operations-007
+    title: Khoanh vùng vòng lặp trigger và chi phí tăng đột biến
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-and-operations-008
+    title: Viết postmortem và cập nhật runbook từ một sự cố mô phỏng
+    status: TRANSLATE
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

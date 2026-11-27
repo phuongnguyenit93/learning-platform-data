@@ -1,0 +1,448 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring REST Docs là gì và giải quyết vấn đề tài liệu REST nào
+  - Mục tiêu tài liệu chính xác, dễ đọc và có thể kiểm chứng
+  - Mối liên hệ giữa tài liệu viết tay và snippet sinh tự động
+  - Vì sao kiểm thử tạo tài liệu giúp phát hiện tài liệu lỗi thời
+  - Phân biệt tài liệu API với tài liệu chi tiết triển khai nội bộ
+  - Spring REST Docs và giới hạn của tài liệu sinh hoàn toàn từ mã
+  - Mối liên hệ với Spring MVC, WebFlux, REST Assured và Asciidoctor
+  - Kiến thức HTTP, REST, JSON, kiểm thử và build cần chuẩn bị
+- level1: Mô hình tài liệu
+  level2:
+  - Tài nguyên REST, request và response trong một operation
+  - Operation là đơn vị kết hợp lời gọi, snippet và phần mô tả
+  - Test là nguồn tạo bằng chứng cho request và response
+  - Snippet là mảnh tài liệu có thể nhúng vào tài liệu lớn
+  - Tài liệu viết tay giải thích ý nghĩa nghiệp vụ của tài nguyên
+  - Phân biệt dữ liệu thực tế của response và mô tả hợp đồng
+  - Định danh operation và tổ chức thư mục snippet
+  - Luồng từ test đến snippet, Asciidoctor hoặc Markdown
+  - Thiết kế tài liệu để thay đổi implementation ít ảnh hưởng
+- level1: Thiết lập dự án
+  level2:
+  - Yêu cầu Java, Spring Framework và phiên bản Spring REST Docs
+  - Chọn module spring-restdocs-mockmvc
+  - Chọn module spring-restdocs-webtestclient
+  - Chọn module spring-restdocs-restassured
+  - Dependency test và phạm vi chỉ dùng khi kiểm thử
+  - Cấu hình plugin Asciidoctor cho Gradle
+  - Cấu hình asciidoctor-maven-plugin cho Maven
+  - Định nghĩa thư mục generated-snippets
+  - Đảm bảo tác vụ tạo tài liệu phụ thuộc tác vụ test
+  - Quản lý phiên bản thư viện và khả năng tương thích
+- level1: JUnit và lifecycle
+  level2:
+  - RestDocumentationExtension trong JUnit 5
+  - SpringExtension và kết hợp với kiểm thử Spring
+  - '@RegisterExtension và thư mục output tùy chỉnh'
+  - JUnitRestDocumentation trong JUnit 4
+  - ManualRestDocumentation khi không dùng JUnit
+  - beforeTest và afterTest cho lifecycle thủ công
+  - JUnit 5 được khuyến nghị và các framework khác
+  - Phạm vi context, test fixture và isolation giữa các operation
+  - Đặt tên test và operation để dễ truy tìm snippet
+- level1: MockMvc
+  level2:
+  - Cấu hình MockMvc với documentationConfiguration
+  - Khởi tạo MockMvc từ WebApplicationContext
+  - MockMvc standalone setup và giới hạn ngữ cảnh
+  - Thực hiện request bằng MockMvc
+  - Xác nhận status, header và body trước khi document
+  - document(operation) để sinh snippet
+  - RestDocumentationResultHandler và tái sử dụng handler
+  - Document nhiều operation trong một test
+  - Đặt tên thư mục operation ổn định
+  - Tiền xử lý request và response của MockMvc
+  - Xử lý lỗi khi snippet thiếu hoặc request không đạt
+- level1: WebTestClient
+  level2:
+  - Cấu hình WebTestClient với documentationConfiguration
+  - Bind WebTestClient vào ApplicationContext
+  - Bind trực tiếp vào controller hoặc router
+  - Exchange request và xác nhận response
+  - consumeWith(document(...)) để sinh snippet
+  - Reactive response và thời điểm tạo snippet
+  - Chuỗi expectStatus, expectHeader và expectBody
+  - Tiền xử lý URI, header và body trong WebTestClient
+  - Document endpoint WebFlux và endpoint MVC tương thích
+  - Đọc lỗi khi filter tài liệu chưa được gắn
+- level1: REST Assured
+  level2:
+  - Thêm dependency spring-restdocs-restassured
+  - Cấu hình RequestSpecification với documentationConfiguration
+  - RestAssured filter(document(...))
+  - Đặt request, assertion và document trong đúng thứ tự
+  - Document request và response của endpoint thật
+  - Thiết lập host, port và scheme cho tài liệu
+  - REST Assured 5 và yêu cầu tương thích
+  - Tiền xử lý request response trong filter
+  - Phân biệt kiểm thử tích hợp và kiểm thử qua MockMvc
+  - Xử lý lỗi snippet khi assertion thất bại
+- level1: Spring Boot
+  level2:
+  - '@AutoConfigureRestDocs và tự cấu hình trong test'
+  - Tích hợp Spring Boot Test với Spring REST Docs
+  - Cấu hình MockMvc hoặc WebTestClient do Boot cung cấp
+  - Thư mục snippet mặc định theo Gradle và Maven
+  - Cấu hình output directory trong test slice
+  - Khởi động ứng dụng đầy đủ khi cần kiểm tra routing thật
+  - Test slice và đánh đổi giữa tốc độ với bằng chứng
+  - Cấu hình profile, port và base URI theo môi trường
+  - Đặt thuộc tính tài liệu trong build thay vì mã nghiệp vụ
+  - Kiểm tra khác biệt giữa phiên bản Spring Boot
+- level1: HTTP operation
+  level2:
+  - Snippet http-request và thông tin phương thức HTTP
+  - Snippet http-response và status code trả về
+  - Snippet curl-request để tái hiện request
+  - Snippet httpie-request và lựa chọn công cụ dòng lệnh
+  - URI, query string và header trong request
+  - Status, header và body trong response
+  - Content-Type và Accept trong tài liệu
+  - Định dạng request response khi có body
+  - Xác nhận thông tin tài liệu không che mất chi tiết cần thiết
+  - Đọc snippet thô trước khi đưa vào tài liệu cuối
+- level1: Request payload
+  level2:
+  - Document request payload bằng requestFields
+  - Mô tả trường JSON bắt buộc và tùy chọn
+  - fieldWithPath và đường dẫn trường lồng nhau
+  - Trường mảng, phần tử mảng và chỉ số động
+  - Trường object tùy chọn và absent()
+  - Trường có thể null và nullability
+  - ignore và trường không cần mô tả trong operation
+  - requestFieldWithPath và mô tả ngắn gọn
+  - Thiếu mô tả trường làm test tài liệu thất bại
+  - Đối chiếu payload thực tế với field descriptors
+- level1: Response payload
+  level2:
+  - Document response payload bằng responseFields
+  - Mô tả trường JSON trong response
+  - Trường lồng nhau, mảng và phần tử lặp
+  - Phân biệt trường bắt buộc, tùy chọn và có thể null
+  - Liên kết response field với ý nghĩa nghiệp vụ
+  - Xử lý response rỗng hoặc không có body
+  - ignore trường response có chủ đích
+  - Xác nhận mọi trường xuất hiện trong payload đã được xử lý
+  - Thiết kế mô tả không phụ thuộc thứ tự trường JSON
+  - Kiểm tra thay đổi schema làm test tài liệu thất bại
+- level1: Subsection
+  level2:
+  - Document một phần request payload
+  - Document một phần response payload
+  - subsectionWithPath cho object con
+  - subsectionWithPath cho danh sách hoặc cấu trúc lồng nhau
+  - Trường hợp phần còn lại được mô tả ở tài liệu khác
+  - Phân biệt subsection với field documentation
+  - Chỉ rõ ý nghĩa của fragment được tách riêng
+  - Đặt tên subsection snippet theo operation
+  - Tránh mô tả thiếu khi subsection thay đổi cấu trúc
+  - Tái sử dụng subsection trong nhiều operation
+- level1: Query parameters
+  level2:
+  - Document query parameters bằng queryParameters
+  - parameterWithName và mô tả tham số
+  - Tham số bắt buộc, tùy chọn và absent
+  - Tham số nhiều giá trị và cách biểu diễn
+  - Giá trị mặc định và điều kiện áp dụng
+  - Tham số phân trang, sắp xếp và lọc
+  - Encoding giá trị query và ký tự đặc biệt
+  - Xác nhận query parameter xuất hiện đúng trong request
+  - Phân biệt query parameter với path parameter
+  - Liên kết tham số với quy tắc validation
+- level1: Form parameters
+  level2:
+  - Document form parameters bằng formParameters
+  - Content type application/x-www-form-urlencoded
+  - Form field bắt buộc và tùy chọn
+  - Biểu diễn giá trị nhiều phần trong form
+  - Phân biệt form parameter với request body JSON
+  - Document lỗi validation của form
+  - Đặt tên snippet và phần mô tả form
+  - Xác nhận request thực sự gửi form parameter
+  - Không dùng form documentation cho multipart part
+- level1: Path parameters
+  level2:
+  - Document path parameters bằng pathParameters
+  - parameterWithName cho biến trong URI
+  - Path parameter bắt buộc theo bản chất định tuyến
+  - Phân biệt path parameter với query parameter
+  - Giá trị số, UUID và chuỗi trong path
+  - Encoding path segment và ký tự đặc biệt
+  - URI template và path parameter lồng nhau
+  - Xác nhận tên parameter khớp route thực tế
+  - Document lỗi khi resource id không tồn tại
+- level1: Request parts
+  level2:
+  - Document multipart request bằng requestParts
+  - partWithName và mô tả request part
+  - Part bắt buộc, tùy chọn và absent
+  - Headers của request part
+  - Content type của từng part
+  - File upload và metadata đi kèm
+  - Phân biệt request part với form parameter
+  - Xác nhận multipart request bằng MockMvc
+  - Document lỗi kích thước hoặc loại file
+  - Tổ chức snippet multipart dễ đọc
+- level1: Part payload
+  level2:
+  - Document body của một request part
+  - RequestPartFields cho các trường trong part JSON
+  - partBody và dữ liệu thô của part
+  - partFields và mô tả cấu trúc part
+  - Subsection bên trong request part
+  - File part và phần dữ liệu nhị phân
+  - Phân biệt body của request với body của part
+  - Đối chiếu Content-Disposition và tên part
+  - Xác nhận phần payload biến đổi theo operation
+  - Xử lý nhiều request part cùng loại
+- level1: Headers
+  level2:
+  - Document request headers bằng requestHeaders
+  - Document response headers bằng responseHeaders
+  - headerWithName và mô tả header
+  - Header bắt buộc, tùy chọn và giá trị mặc định
+  - Authorization, correlation id và header nghiệp vụ
+  - Content-Type, Location, ETag và Cache-Control
+  - Header lặp hoặc có nhiều giá trị
+  - Header không nên đưa nguyên giá trị nhạy cảm vào tài liệu
+  - Xác nhận header được gửi và trả về đúng
+  - Tiền xử lý để che hoặc thay header
+- level1: Cookies
+  level2:
+  - Document request cookies bằng requestCookies
+  - Document response cookies bằng responseCookies
+  - cookieWithName và mô tả cookie
+  - Cookie bắt buộc, tùy chọn và giá trị mặc định
+  - HttpOnly, Secure, SameSite và ý nghĩa tài liệu
+  - Che giá trị session hoặc token trong snippet
+  - Cookie nhiều giá trị và encoding
+  - Phân biệt cookie với Authorization header
+  - Kiểm tra cookie trong MockMvc hoặc REST Assured
+- level1: Hypermedia
+  level2:
+  - Document liên kết HATEOAS trong response
+  - links và linkWithRel để mô tả quan hệ
+  - Link relation, href và thuộc tính của liên kết
+  - Liên kết bắt buộc, tùy chọn và ignored
+  - Content type HAL, Atom và dạng hypermedia khác
+  - Document embedded resources và liên kết lồng nhau
+  - Link descriptors cho collection và resource đơn
+  - Phân biệt link contract với field contract
+  - Kiểm tra liên kết thực tế bằng snippet
+  - Document hành động tiếp theo qua hypermedia
+- level1: Constraints
+  level2:
+  - Vì sao mô tả constraint làm tài liệu hữu ích hơn
+  - ConstraintResolver và cách tìm ràng buộc
+  - ValidationConstraints tìm constraint từ Bean Validation
+  - ConstraintDescriptionResolver và mô tả constraint
+  - '@NotNull, @NotBlank, @Size, @Pattern và @Email'
+  - Constraint trên request field và path/query parameter
+  - Constraint trên nested object và collection
+  - Mô tả tùy chỉnh cho constraint
+  - Dùng constraint descriptions trong generated snippets
+  - Đồng bộ validation runtime và tài liệu
+- level1: Snippets mặc định
+  level2:
+  - Danh sách snippet mặc định của Spring REST Docs
+  - http-request, http-response và curl-request
+  - httpie-request và các snippet request tương ứng
+  - request-body và response-body
+  - request-fields và response-fields
+  - path-parameters, query-parameters và form-parameters
+  - request-parts, request-part-name và request-part-body
+  - request-part-fields và response-headers
+  - request-cookies và response-cookies
+  - links và các snippet hypermedia
+  - liên kết snippet theo operation directory
+- level1: Thư mục output
+  level2:
+  - Thư mục generated-snippets mặc định của Gradle
+  - Thư mục target/generated-snippets của Maven
+  - Output directory tùy chỉnh cho extension hoặc rule
+  - Parameterized output directories
+  - Định danh test class và test method trong đường dẫn
+  - Tránh ghi đè snippet giữa các test
+  - Xóa output cũ trước khi xác nhận tài liệu
+  - Đưa snippet vào artifact hoặc tài liệu phát hành
+  - Kiểm tra encoding và quyền ghi thư mục
+  - Quản lý output không thuộc source code
+- level1: Preprocessors
+  level2:
+  - Preprocessor là gì và xử lý ở thời điểm nào
+  - RequestPreprocessor và ResponsePreprocessor
+  - Preprocess request trước khi sinh snippet
+  - Preprocess response trước khi sinh snippet
+  - Pretty printing cho request và response
+  - Masking links để loại bỏ host hoặc token
+  - Modifying headers và che dữ liệu nhạy cảm
+  - Replacing patterns trong URI hoặc body
+  - Modifying URIs và documented URI
+  - Kết hợp nhiều preprocessor theo thứ tự
+  - Viết preprocessor tùy biến
+  - Kiểm tra preprocessor không làm sai bằng chứng
+- level1: URI configuration
+  level2:
+  - Documented URI và URI dùng trong tài liệu
+  - Đặt scheme, host và port cố định
+  - Tránh đưa localhost vào tài liệu công khai
+  - MockMvc URI customization
+  - REST Assured URI customization
+  - WebTestClient URI customization
+  - Base path, context path và servlet path
+  - Xử lý proxy, gateway và forwarded headers
+  - Masking host hoặc thay thế pattern URI
+  - Xác nhận URI sinh ra phù hợp môi trường triển khai
+- level1: Snippet customization
+  level2:
+  - Customizing generated snippets
+  - Snippet template format và engine mặc định
+  - Định dạng tên trường và tiêu đề bảng
+  - Thêm extra information vào snippet
+  - Tùy chỉnh template cho request và response
+  - Tùy chỉnh template cho fields và parameters
+  - Tạo snippet mới từ operation context
+  - Đặt template trong src/test/resources
+  - Giữ template tương thích khi nâng cấp
+  - Kiểm thử template với payload thực tế
+  - Phân biệt custom snippet với tài liệu viết tay
+- level1: Asciidoctor
+  level2:
+  - Vì sao Asciidoctor là định dạng mặc định
+  - Định nghĩa thuộc tính snippets trong tài liệu
+  - Include snippet bằng đường dẫn tương đối
+  - operation block macro của Spring REST Docs
+  - Nhúng một operation gồm nhiều snippet
+  - Nhúng từng snippet riêng lẻ
+  - Đặt tiêu đề, anchor và liên kết tới operation
+  - spring-restdocs-asciidoctor extension
+  - Tùy chỉnh bảng trong Asciidoctor
+  - Định dạng cột và tránh lỗi bảng
+  - Kiểm tra output HTML hoặc PDF
+- level1: Markdown
+  level2:
+  - Cấu hình Spring REST Docs để dùng Markdown
+  - Giới hạn của Markdown so với Asciidoctor
+  - Include snippet trong tài liệu Markdown
+  - Đường dẫn tương đối tới generated snippets
+  - Nhúng request, response và field table
+  - Tổ chức nhiều operation trong một file Markdown
+  - Xử lý bảng Markdown và nội dung JSON
+  - Đảm bảo output Markdown dễ đọc trên nền tảng đích
+  - Phân biệt khả năng định dạng của Asciidoctor và Markdown
+- level1: Packaging
+  level2:
+  - Chạy tạo tài liệu trước khi đóng gói
+  - Copy generated documentation vào static resources
+  - bootJar phụ thuộc asciidoctor trong Gradle
+  - prepare-package và process-asciidoc trong Maven
+  - Đưa tài liệu vào JAR của Spring Boot
+  - Phục vụ tài liệu tĩnh từ ứng dụng
+  - Đặt đường dẫn tài liệu và cache headers
+  - Phân biệt artifact tài liệu với artifact ứng dụng
+  - Kiểm tra JAR chứa đủ HTML, Markdown và asset
+  - Đóng gói tài liệu theo môi trường phát hành
+- level1: Tái sử dụng
+  level2:
+  - Tái sử dụng request field descriptors
+  - Tái sử dụng response field descriptors
+  - Tái sử dụng parameter descriptors
+  - Tái sử dụng header và cookie descriptors
+  - Tái sử dụng link descriptors
+  - Tái sử dụng preprocessor chung
+  - Chia sẻ snippet configuration giữa các test
+  - Đặt factory cho bộ descriptor thường dùng
+  - Tránh tái sử dụng descriptor làm sai ngữ nghĩa
+  - Giữ mô tả chung và mô tả riêng tách biệt
+- level1: Kiểm thử tài liệu
+  level2:
+  - Test tài liệu phải kiểm tra cả hành vi endpoint
+  - Assertion status, header và body trước document
+  - Thiếu field descriptor làm test thất bại
+  - Phát hiện field thừa trong request hoặc response
+  - Kiểm tra operation name và thư mục snippet
+  - Kiểm tra lỗi validation và response error
+  - Test endpoint thành công, thất bại và biên
+  - Test bảo mật không để token lọt vào snippet
+  - Test hypermedia link và quan hệ tài nguyên
+  - Test tài liệu reactive và bất đồng bộ
+  - Đảm bảo test chạy ổn định giữa các môi trường
+- level1: Tài liệu lỗi
+  level2:
+  - Document cấu trúc lỗi và mã lỗi
+  - Response fields cho error payload
+  - Status code và header trong response lỗi
+  - Validation errors theo field và theo object
+  - Correlation id để truy tìm lỗi
+  - Ẩn stack trace và dữ liệu nội bộ
+  - Phân biệt lỗi kỹ thuật và lỗi nghiệp vụ
+  - Document lỗi xác thực, phân quyền và không tìm thấy
+  - Đồng bộ error contract với exception handler
+  - Kiểm thử tài liệu cho nhiều loại lỗi
+- level1: Bảo mật
+  level2:
+  - Che Authorization, cookie session và token
+  - Masking links có tham số nhạy cảm
+  - Replacing patterns trong body hoặc header
+  - Không ghi secret vào generated snippets
+  - Kiểm soát thư mục output và artifact tài liệu
+  - Phân biệt dữ liệu test giả với dữ liệu thật
+  - Review tài liệu trước khi công bố
+  - Ẩn định danh người dùng và thông tin môi trường
+  - Xử lý log test và báo cáo thất bại an toàn
+- level1: CI và phát hành
+  level2:
+  - Chạy test tạo snippet trong CI
+  - Chạy Asciidoctor sau khi test hoàn tất
+  - Kiểm tra tài liệu trong pull request
+  - Đưa tài liệu generated vào artifact
+  - Đồng bộ commit mã và tài liệu được tạo
+  - Không phát hành tài liệu nếu test tài liệu thất bại
+  - Cache dependency nhưng không dùng snippet cũ
+  - Kiểm tra đường dẫn và encoding trên runner
+  - Đăng tải tài liệu HTML hoặc Markdown
+  - Versioning tài liệu theo phiên bản API
+  - Phân biệt tài liệu preview và tài liệu production
+- level1: Chẩn đoán lỗi
+  level2:
+  - Không sinh snippet do test không chạy
+  - Không tìm thấy output directory
+  - Snippet rỗng hoặc thiếu trường mô tả
+  - Operation name sai và ghi đè thư mục
+  - URI chứa localhost hoặc port không mong muốn
+  - Header hoặc cookie nhạy cảm bị lộ
+  - Asciidoctor không tìm thấy snippet
+  - Plugin build không chạy đúng thứ tự dependency
+  - Markdown include sai đường dẫn
+  - Khác biệt hành vi giữa MockMvc và WebTestClient
+  - Lỗi encoding hoặc ký tự Unicode trong tài liệu
+  - Không tương thích phiên bản Spring Framework hoặc REST Assured
+- level1: Nâng cấp
+  level2:
+  - Đọc yêu cầu phiên bản Spring REST Docs
+  - Đối chiếu Spring Boot và Spring Framework tương thích
+  - Chuyển giữa MockMvc, WebTestClient và REST Assured
+  - Thay đổi API cấu hình hoặc package
+  - Kiểm tra template và snippet sau khi nâng cấp
+  - Kiểm tra output directory và plugin Asciidoctor
+  - Đối chiếu URI, header và payload sau nâng cấp
+  - Giữ tài liệu cũ có thể tái tạo trong giai đoạn chuyển tiếp
+  - Xử lý thay đổi định dạng snippet
+  - Chạy bộ test hồi quy trước khi phát hành
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết lập dự án Spring MVC tạo tài liệu bằng MockMvc
+  - Document CRUD resource với request và response fields
+  - Document tìm kiếm với query parameters và phân trang
+  - Document resource có path parameters và header
+  - Document upload multipart bằng request parts
+  - Document HATEOAS links và embedded resources
+  - Document validation constraints từ Bean Validation
+  - Che token và host bằng preprocessors
+  - Build tài liệu Asciidoctor rồi đóng gói vào JAR
+  - Viết tài liệu Markdown với nhiều operation
+  - Tích hợp kiểm tra tài liệu vào CI
+  - Đánh giá giải pháp bằng độ chính xác, khả năng đọc và tính tái tạo
