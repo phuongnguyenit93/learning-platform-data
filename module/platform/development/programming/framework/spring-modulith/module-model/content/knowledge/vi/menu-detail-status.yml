@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: mental-model-001
     title: Spring Modulith mô hình hóa phần nào của ứng dụng Spring Boot?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: mental-model-002
     title: Application module là ranh giới chức năng hay chỉ là một thư mục?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: mental-model-003
     title: API cung cấp, API yêu cầu và phần triển khai nội bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: mental-model-004
     title: Quan hệ giữa package, bean Spring, application event và module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: mental-model-005
     title: Từ cách sắp xếp mã đến mô hình module trong bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: mental-model-006
     title: Mô hình module hỗ trợ verification, documentation và testing ra sao?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: mental-model-007
     title: Phân biệt module logic trong một ứng dụng với module Gradle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: mental-model-008
     title: Khi nào một package nên trở thành module?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -76,7 +76,7 @@ menu:
     summary: ''
   - slug: mental-model-009
     title: Đánh đổi giữa mô-đun hóa, tốc độ thay đổi và độ phức tạp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
   childs:
   - slug: application-module-001
     title: Cấu trúc cơ bản của một application module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: application-module-002
     title: Base package và các package con của module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: application-module-003
     title: API package và cách module khác được phép truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: application-module-004
     title: Internal package và mục đích che giấu triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: application-module-005
     title: Provided interface và required interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: application-module-006
     title: Spring bean được module cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: application-module-007
     title: Application event được module phát ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -151,7 +151,7 @@ menu:
     summary: ''
   - slug: application-module-008
     title: Dependency tới bean, event listener và configuration property
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -160,7 +160,7 @@ menu:
     summary: ''
   - slug: application-module-009
     title: Đọc module như một đơn vị trách nhiệm nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
   childs:
   - slug: application-modules-001
     title: ApplicationModules là mô hình tổng của các module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: application-modules-002
     title: Khởi tạo bằng ApplicationModules.of(Application.class)
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: application-modules-003
     title: Khởi tạo theo tên package gốc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: application-modules-004
     title: Quét classpath và suy ra cấu trúc package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: application-modules-005
     title: Duyệt ApplicationModule bằng stream
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: application-modules-006
     title: Đọc system name và metadata toàn ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -226,7 +226,7 @@ menu:
     summary: ''
   - slug: application-modules-007
     title: withinRootPackages và nhận diện type thuộc root package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -235,7 +235,7 @@ menu:
     summary: ''
   - slug: application-modules-008
     title: Comparator sắp xếp type theo quan hệ phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -244,7 +244,7 @@ menu:
     summary: ''
   - slug: application-modules-009
     title: Giữ model trong test để kiểm tra lặp lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
   childs:
   - slug: application-module-api-001
     title: ApplicationModule đại diện cho một module cụ thể
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -265,7 +265,7 @@ menu:
     summary: ''
   - slug: application-module-api-002
     title: Module base package, display name và identifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
     summary: ''
   - slug: application-module-api-003
     title: Đọc named interfaces của module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
     summary: ''
   - slug: application-module-api-004
     title: Đọc direct dependencies và all dependencies
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: application-module-api-005
     title: Kiểm tra type có được module expose hay không
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -301,7 +301,7 @@ menu:
     summary: ''
   - slug: application-module-api-006
     title: Truy tìm type theo tên đơn giản hoặc tên đầy đủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -310,7 +310,7 @@ menu:
     summary: ''
   - slug: application-module-api-007
     title: Phân biệt metadata module với bean instance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -319,7 +319,7 @@ menu:
     summary: ''
   - slug: application-module-api-008
     title: Giữ tên module ổn định khi refactor package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -331,7 +331,7 @@ menu:
   childs:
   - slug: package-organization-001
     title: Package của lớp ứng dụng chính làm root package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -340,7 +340,7 @@ menu:
     summary: ''
   - slug: package-organization-002
     title: Module nằm trong direct sub-package theo quy ước mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -349,7 +349,7 @@ menu:
     summary: ''
   - slug: package-organization-003
     title: Vì sao package phẳng làm boundary khó nhìn?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -358,7 +358,7 @@ menu:
     summary: ''
   - slug: package-organization-004
     title: Đặt package theo capability thay vì technical layer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -367,7 +367,7 @@ menu:
     summary: ''
   - slug: package-organization-005
     title: API ở root package và implementation ở sub-package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -376,7 +376,7 @@ menu:
     summary: ''
   - slug: package-organization-006
     title: internal, spi và các package có ý nghĩa khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -385,7 +385,7 @@ menu:
     summary: ''
   - slug: package-organization-007
     title: Tránh component scan phá vỡ ý định đóng gói
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -394,7 +394,7 @@ menu:
     summary: ''
   - slug: package-organization-008
     title: Package dùng chung và rủi ro tạo phụ thuộc ngầm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -403,7 +403,7 @@ menu:
     summary: ''
   - slug: package-organization-009
     title: Đọc package tree trước khi khai báo annotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -415,7 +415,7 @@ menu:
   childs:
   - slug: module-boundaries-001
     title: Ranh giới logic được suy ra từ package base
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -424,7 +424,7 @@ menu:
     summary: ''
   - slug: module-boundaries-002
     title: Incoming dependency và outgoing dependency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -433,7 +433,7 @@ menu:
     summary: ''
   - slug: module-boundaries-003
     title: Access trực tiếp vào internal package bị xem là vi phạm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -442,7 +442,7 @@ menu:
     summary: ''
   - slug: module-boundaries-004
     title: Dependency qua API package so với named interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -451,7 +451,7 @@ menu:
     summary: ''
   - slug: module-boundaries-005
     title: Module phụ thuộc vào type chưa thuộc module nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -460,7 +460,7 @@ menu:
     summary: ''
   - slug: module-boundaries-006
     title: Shared kernel và phạm vi nên được kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -469,7 +469,7 @@ menu:
     summary: ''
   - slug: module-boundaries-007
     title: Phân biệt compile dependency với dependency nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -478,7 +478,7 @@ menu:
     summary: ''
   - slug: module-boundaries-008
     title: Ranh giới module không thay thế ranh giới database
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -487,7 +487,7 @@ menu:
     summary: ''
   - slug: module-boundaries-009
     title: Kiểm tra boundary bằng ví dụ hợp lệ và không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -499,7 +499,7 @@ menu:
   childs:
   - slug: named-interfaces-001
     title: Named interface là vùng API bổ sung của module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -508,7 +508,7 @@ menu:
     summary: ''
   - slug: named-interfaces-002
     title: '@NamedInterface trên package-info.java'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -517,7 +517,7 @@ menu:
     summary: ''
   - slug: named-interfaces-003
     title: '@PackageInfo khi cần biểu diễn metadata'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -526,7 +526,7 @@ menu:
     summary: ''
   - slug: named-interfaces-004
     title: Đặt tên named interface theo capability
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -535,7 +535,7 @@ menu:
     summary: ''
   - slug: named-interfaces-005
     title: Cho phép module khác truy cập package được expose
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -544,7 +544,7 @@ menu:
     summary: ''
   - slug: named-interfaces-006
     title: Module root package và named interface khác nhau thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -553,7 +553,7 @@ menu:
     summary: ''
   - slug: named-interfaces-007
     title: SPI package và API package trong cùng module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -562,7 +562,7 @@ menu:
     summary: ''
   - slug: named-interfaces-008
     title: Kiểm tra type thuộc named interface nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -571,7 +571,7 @@ menu:
     summary: ''
   - slug: named-interfaces-009
     title: Giữ named interface ổn định khi thay implementation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -583,7 +583,7 @@ menu:
   childs:
   - slug: allowed-dependencies-001
     title: '@ApplicationModule(allowedDependencies = …) là hợp đồng phụ thuộc'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -592,7 +592,7 @@ menu:
     summary: ''
   - slug: allowed-dependencies-002
     title: Dependency tới module bằng identifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -601,7 +601,7 @@ menu:
     summary: ''
   - slug: allowed-dependencies-003
     title: 'Dependency tới named interface bằng module :: interface'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -610,7 +610,7 @@ menu:
     summary: ''
   - slug: allowed-dependencies-004
     title: Wildcard * cho các named interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -619,7 +619,7 @@ menu:
     summary: ''
   - slug: allowed-dependencies-005
     title: Module không khai báo allowedDependencies có hành vi gì?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -628,7 +628,7 @@ menu:
     summary: ''
   - slug: allowed-dependencies-006
     title: Allowed dependency là whitelist hay tài liệu?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -637,7 +637,7 @@ menu:
     summary: ''
   - slug: allowed-dependencies-007
     title: Phát hiện dependency ngoài danh sách cho phép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -646,7 +646,7 @@ menu:
     summary: ''
   - slug: allowed-dependencies-008
     title: Đổi module identifier và tác động tới cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -655,7 +655,7 @@ menu:
     summary: ''
   - slug: allowed-dependencies-009
     title: Kiểm thử hợp đồng sau khi thêm module mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -667,7 +667,7 @@ menu:
   childs:
   - slug: open-modules-001
     title: '@ApplicationModule(type = Type.OPEN) dùng khi nào?'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -676,7 +676,7 @@ menu:
     summary: ''
   - slug: open-modules-002
     title: Open module cho phép truy cập internal ở mức nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -685,7 +685,7 @@ menu:
     summary: ''
   - slug: open-modules-003
     title: Unnamed named interface trong open module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -694,7 +694,7 @@ menu:
     summary: ''
   - slug: open-modules-004
     title: Named interface tường minh trong open module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -703,7 +703,7 @@ menu:
     summary: ''
   - slug: open-modules-005
     title: Open module hữu ích khi di chuyển ứng dụng legacy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -712,7 +712,7 @@ menu:
     summary: ''
   - slug: open-modules-006
     title: Open module khác module đóng gói tốt ra sao?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -721,7 +721,7 @@ menu:
     summary: ''
   - slug: open-modules-007
     title: Rủi ro dùng open module trong ứng dụng mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -730,7 +730,7 @@ menu:
     summary: ''
   - slug: open-modules-008
     title: Đọc ảnh hưởng của Type.OPEN lên verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -739,7 +739,7 @@ menu:
     summary: ''
   - slug: open-modules-009
     title: Thu hẹp open module theo từng bước
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -751,7 +751,7 @@ menu:
   childs:
   - slug: module-detection-001
     title: Chiến lược phát hiện module mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -760,7 +760,7 @@ menu:
     summary: ''
   - slug: module-detection-002
     title: Direct sub-packages và điều kiện được coi là module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -769,7 +769,7 @@ menu:
     summary: ''
   - slug: module-detection-003
     title: Module package không có annotation được nhận diện ra sao?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -778,7 +778,7 @@ menu:
     summary: ''
   - slug: module-detection-004
     title: Detection dựa trên package của lớp Spring Boot chính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -787,7 +787,7 @@ menu:
     summary: ''
   - slug: module-detection-005
     title: Đổi package làm thay đổi module model thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -796,7 +796,7 @@ menu:
     summary: ''
   - slug: module-detection-006
     title: Kiểm tra module được phát hiện bằng ApplicationModules
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -805,7 +805,7 @@ menu:
     summary: ''
   - slug: module-detection-007
     title: Module rỗng và package chỉ chứa technical class
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -814,7 +814,7 @@ menu:
     summary: ''
   - slug: module-detection-008
     title: Phát hiện nhầm package thành module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -823,7 +823,7 @@ menu:
     summary: ''
   - slug: module-detection-009
     title: Đặt quy ước package trước khi bật verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -835,7 +835,7 @@ menu:
   childs:
   - slug: explicit-module-detection-001
     title: Detection strategy explicitly-annotated
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -844,7 +844,7 @@ menu:
     summary: ''
   - slug: explicit-module-detection-002
     title: '@ApplicationModule để đánh dấu package tường minh'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -853,7 +853,7 @@ menu:
     summary: ''
   - slug: explicit-module-detection-003
     title: jMolecules @Module và quan hệ với Modulith
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -862,7 +862,7 @@ menu:
     summary: ''
   - slug: explicit-module-detection-004
     title: Thiết lập spring.modulith.detection-strategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -871,7 +871,7 @@ menu:
     summary: ''
   - slug: explicit-module-detection-005
     title: Module annotation trong package-info.java
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -880,7 +880,7 @@ menu:
     summary: ''
   - slug: explicit-module-detection-006
     title: Biểu diễn metadata khi ngôn ngữ thiếu package-info.java
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -889,7 +889,7 @@ menu:
     summary: ''
   - slug: explicit-module-detection-007
     title: Phân biệt module được đánh dấu với package thông thường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -898,7 +898,7 @@ menu:
     summary: ''
   - slug: explicit-module-detection-008
     title: Migration từ detection mặc định sang explicit detection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -907,7 +907,7 @@ menu:
     summary: ''
   - slug: explicit-module-detection-009
     title: Kiểm tra thiếu annotation sau khi đổi chiến lược
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -919,7 +919,7 @@ menu:
   childs:
   - slug: custom-module-detection-001
     title: ApplicationModuleDetectionStrategy giải quyết bài toán nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -928,7 +928,7 @@ menu:
     summary: ''
   - slug: custom-module-detection-002
     title: getModuleBasePackages(JavaPackage) và đầu vào strategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -937,7 +937,7 @@ menu:
     summary: ''
   - slug: custom-module-detection-003
     title: Chọn module theo quy ước tên package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -946,7 +946,7 @@ menu:
     summary: ''
   - slug: custom-module-detection-004
     title: Chọn module theo annotation riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -955,7 +955,7 @@ menu:
     summary: ''
   - slug: custom-module-detection-005
     title: Đăng ký strategy trong test sources
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -964,7 +964,7 @@ menu:
     summary: ''
   - slug: custom-module-detection-006
     title: Đồng bộ strategy giữa verification và documentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -973,7 +973,7 @@ menu:
     summary: ''
   - slug: custom-module-detection-007
     title: Đưa strategy vào production khi runtime cần dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -982,7 +982,7 @@ menu:
     summary: ''
   - slug: custom-module-detection-008
     title: Kiểm thử strategy với package tree đại diện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -991,7 +991,7 @@ menu:
     summary: ''
   - slug: custom-module-detection-009
     title: Đánh giá chi phí bảo trì của detection tùy biến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1003,7 +1003,7 @@ menu:
   childs:
   - slug: excluded-packages-001
     title: Loại trừ class hoặc package khỏi module inspection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1012,7 +1012,7 @@ menu:
     summary: ''
   - slug: excluded-packages-002
     title: ApplicationModules.of với predicate bỏ qua type
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1021,7 +1021,7 @@ menu:
     summary: ''
   - slug: excluded-packages-003
     title: JavaClass.Predicates.resideInAPackage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1030,7 +1030,7 @@ menu:
     summary: ''
   - slug: excluded-packages-004
     title: Match package chính và match các package con
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1039,7 +1039,7 @@ menu:
     summary: ''
   - slug: excluded-packages-005
     title: Loại trừ package database khỏi model
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1048,7 +1048,7 @@ menu:
     summary: ''
   - slug: excluded-packages-006
     title: Loại trừ generated code có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1057,7 +1057,7 @@ menu:
     summary: ''
   - slug: excluded-packages-007
     title: Rủi ro che vi phạm bằng exclusion quá rộng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1066,7 +1066,7 @@ menu:
     summary: ''
   - slug: excluded-packages-008
     title: Kiểm tra model trước và sau exclusion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1075,7 +1075,7 @@ menu:
     summary: ''
   - slug: excluded-packages-009
     title: Không dùng exclusion để thay việc sửa boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1087,7 +1087,7 @@ menu:
   childs:
   - slug: module-dependencies-001
     title: Dependency graph giữa các ApplicationModule
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1096,7 +1096,7 @@ menu:
     summary: ''
   - slug: module-dependencies-002
     title: Direct dependency và transitive dependency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1105,7 +1105,7 @@ menu:
     summary: ''
   - slug: module-dependencies-003
     title: Dependency từ field, parameter và return type
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1114,7 +1114,7 @@ menu:
     summary: ''
   - slug: module-dependencies-004
     title: Dependency từ Spring bean injection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1123,7 +1123,7 @@ menu:
     summary: ''
   - slug: module-dependencies-005
     title: Dependency từ application event listener
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1132,7 +1132,7 @@ menu:
     summary: ''
   - slug: module-dependencies-006
     title: Dependency từ configuration property
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1141,7 +1141,7 @@ menu:
     summary: ''
   - slug: module-dependencies-007
     title: Dependency tới root package và named interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1150,7 +1150,7 @@ menu:
     summary: ''
   - slug: module-dependencies-008
     title: Đọc nguồn gốc dependency qua API model
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1159,7 +1159,7 @@ menu:
     summary: ''
   - slug: module-dependencies-009
     title: Static model khác hành vi runtime ra sao?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1171,7 +1171,7 @@ menu:
   childs:
   - slug: dependency-types-001
     title: Ý nghĩa của DependencyType trong module model
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1180,7 +1180,7 @@ menu:
     summary: ''
   - slug: dependency-types-002
     title: Class dependency được thu nhận thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1189,7 +1189,7 @@ menu:
     summary: ''
   - slug: dependency-types-003
     title: Spring bean dependency trong ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1198,7 +1198,7 @@ menu:
     summary: ''
   - slug: dependency-types-004
     title: Event publication và event listener tạo liên hệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1207,7 +1207,7 @@ menu:
     summary: ''
   - slug: dependency-types-005
     title: Configuration property như một required interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1216,7 +1216,7 @@ menu:
     summary: ''
   - slug: dependency-types-006
     title: Nhóm nhiều loại dependency khi phân tích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1225,7 +1225,7 @@ menu:
     summary: ''
   - slug: dependency-types-007
     title: Đọc dependency source thay vì chỉ nhìn mũi tên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1234,7 +1234,7 @@ menu:
     summary: ''
   - slug: dependency-types-008
     title: Dependency cùng module và dependency ra ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1243,7 +1243,7 @@ menu:
     summary: ''
   - slug: dependency-types-009
     title: Giới hạn của static inspection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1255,7 +1255,7 @@ menu:
   childs:
   - slug: acyclic-dependency-graph-001
     title: Vì sao module graph nên là directed acyclic graph?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1264,7 +1264,7 @@ menu:
     summary: ''
   - slug: acyclic-dependency-graph-002
     title: Chu kỳ trực tiếp giữa hai module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1273,7 +1273,7 @@ menu:
     summary: ''
   - slug: acyclic-dependency-graph-003
     title: Chu kỳ dài qua ba hoặc nhiều module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1282,7 +1282,7 @@ menu:
     summary: ''
   - slug: acyclic-dependency-graph-004
     title: Chu kỳ do event listener tạo ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1291,7 +1291,7 @@ menu:
     summary: ''
   - slug: acyclic-dependency-graph-005
     title: Chu kỳ do interface dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1300,7 +1300,7 @@ menu:
     summary: ''
   - slug: acyclic-dependency-graph-006
     title: Chia module khi phát hiện vòng phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1309,7 +1309,7 @@ menu:
     summary: ''
   - slug: acyclic-dependency-graph-007
     title: Đưa dependency về abstraction hoặc named interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1318,7 +1318,7 @@ menu:
     summary: ''
   - slug: acyclic-dependency-graph-008
     title: Đảo chiều dependency bằng event hoặc port
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1327,7 +1327,7 @@ menu:
     summary: ''
   - slug: acyclic-dependency-graph-009
     title: Không phá chu kỳ bằng cách mở toàn bộ module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1339,7 +1339,7 @@ menu:
   childs:
   - slug: public-api-and-internals-001
     title: API package là cổng truy cập mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1348,7 +1348,7 @@ menu:
     summary: ''
   - slug: public-api-and-internals-002
     title: Internal sub-package bị chặn trong module đóng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1357,7 +1357,7 @@ menu:
     summary: ''
   - slug: public-api-and-internals-003
     title: Reference tới class internal bị báo vi phạm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1366,7 +1366,7 @@ menu:
     summary: ''
   - slug: public-api-and-internals-004
     title: Expose một type qua named interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1375,7 +1375,7 @@ menu:
     summary: ''
   - slug: public-api-and-internals-005
     title: Đưa interface ra API và giữ implementation bên trong
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1384,7 +1384,7 @@ menu:
     summary: ''
   - slug: public-api-and-internals-006
     title: Trả về kiểu internal trong API public có rủi ro gì?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1393,7 +1393,7 @@ menu:
     summary: ''
   - slug: public-api-and-internals-007
     title: Generic type làm lộ internal thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1402,7 +1402,7 @@ menu:
     summary: ''
   - slug: public-api-and-internals-008
     title: Đọc vị trí nguyên nhân của access violation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1411,7 +1411,7 @@ menu:
     summary: ''
   - slug: public-api-and-internals-009
     title: Thiết kế API đủ nhỏ để boundary có ý nghĩa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1423,7 +1423,7 @@ menu:
   childs:
   - slug: module-identifiers-001
     title: ApplicationModuleIdentifier biểu diễn tên logic
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1432,7 +1432,7 @@ menu:
     summary: ''
   - slug: module-identifiers-002
     title: Identifier mặc định từ package hoặc tên module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1441,7 +1441,7 @@ menu:
     summary: ''
   - slug: module-identifiers-003
     title: Display name và identifier khác nhau ra sao?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1450,7 +1450,7 @@ menu:
     summary: ''
   - slug: module-identifiers-004
     title: Identifier trong allowedDependencies
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1459,7 +1459,7 @@ menu:
     summary: ''
   - slug: module-identifiers-005
     title: Identifier trong tài liệu và biểu đồ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1468,7 +1468,7 @@ menu:
     summary: ''
   - slug: module-identifiers-006
     title: Giữ identifier ổn định khi đổi display name
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1477,7 +1477,7 @@ menu:
     summary: ''
   - slug: module-identifiers-007
     title: Đổi package nhưng bảo toàn hợp đồng module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1486,7 +1486,7 @@ menu:
     summary: ''
   - slug: module-identifiers-008
     title: Tránh identifier trùng hoặc mơ hồ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1495,7 +1495,7 @@ menu:
     summary: ''
   - slug: module-identifiers-009
     title: Đặt quy tắc tên module cho toàn ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1507,7 +1507,7 @@ menu:
   childs:
   - slug: applicationmodule-annotation-001
     title: '@ApplicationModule và các thuộc tính chính'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1516,7 +1516,7 @@ menu:
     summary: ''
   - slug: applicationmodule-annotation-002
     title: allowedDependencies trong annotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1525,7 +1525,7 @@ menu:
     summary: ''
   - slug: applicationmodule-annotation-003
     title: type OPEN và mô hình open module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1534,7 +1534,7 @@ menu:
     summary: ''
   - slug: applicationmodule-annotation-004
     title: systemName ở cấp ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1543,7 +1543,7 @@ menu:
     summary: ''
   - slug: applicationmodule-annotation-005
     title: additionalPackages làm root package bổ sung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1552,7 +1552,7 @@ menu:
     summary: ''
   - slug: applicationmodule-annotation-006
     title: sharedModules cho kiểm thử module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1561,7 +1561,7 @@ menu:
     summary: ''
   - slug: applicationmodule-annotation-007
     title: Đặt annotation trên package-info.java
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1570,7 +1570,7 @@ menu:
     summary: ''
   - slug: applicationmodule-annotation-008
     title: Đặt metadata trên type trong trường hợp đặc biệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1579,7 +1579,7 @@ menu:
     summary: ''
   - slug: applicationmodule-annotation-009
     title: Đối chiếu annotation với model thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1591,7 +1591,7 @@ menu:
   childs:
   - slug: package-metadata-001
     title: package-info.java và vai trò trong module model
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1600,7 +1600,7 @@ menu:
     summary: ''
   - slug: package-metadata-002
     title: '@PackageInfo cung cấp metadata rõ ràng'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1609,7 +1609,7 @@ menu:
     summary: ''
   - slug: package-metadata-003
     title: '@NamedInterface trên package metadata'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1618,7 +1618,7 @@ menu:
     summary: ''
   - slug: package-metadata-004
     title: '@ApplicationModule trên package metadata'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1627,7 +1627,7 @@ menu:
     summary: ''
   - slug: package-metadata-005
     title: Package metadata khác Java module system thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1636,7 +1636,7 @@ menu:
     summary: ''
   - slug: package-metadata-006
     title: Quản lý metadata khi đổi tên package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1645,7 +1645,7 @@ menu:
     summary: ''
   - slug: package-metadata-007
     title: Kiểm tra compiler và IDE nhận annotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1654,7 +1654,7 @@ menu:
     summary: ''
   - slug: package-metadata-008
     title: Giữ metadata gần boundary được mô tả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1663,7 +1663,7 @@ menu:
     summary: ''
   - slug: package-metadata-009
     title: Tránh tách metadata khỏi cấu trúc package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1675,7 +1675,7 @@ menu:
   childs:
   - slug: module-verification-001
     title: ApplicationModules.verify() kiểm tra những gì?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1684,7 +1684,7 @@ menu:
     summary: ''
   - slug: module-verification-002
     title: Không có cycle ở cấp module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1693,7 +1693,7 @@ menu:
     summary: ''
   - slug: module-verification-003
     title: Chỉ truy cập module khác qua API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1702,7 +1702,7 @@ menu:
     summary: ''
   - slug: module-verification-004
     title: Allowed dependencies được tôn trọng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1711,7 +1711,7 @@ menu:
     summary: ''
   - slug: module-verification-005
     title: verify() ném exception khi có vi phạm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1720,7 +1720,7 @@ menu:
     summary: ''
   - slug: module-verification-006
     title: detectViolations() trả về tập vi phạm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1729,7 +1729,7 @@ menu:
     summary: ''
   - slug: module-verification-007
     title: throwIfPresent() và thời điểm làm pipeline thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1738,7 +1738,7 @@ menu:
     summary: ''
   - slug: module-verification-008
     title: verify() chạy một lần so với detectViolations()
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1747,7 +1747,7 @@ menu:
     summary: ''
   - slug: module-verification-009
     title: Đọc thông báo vi phạm và vị trí nguyên nhân
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1756,7 +1756,7 @@ menu:
     summary: ''
   - slug: module-verification-010
     title: Đưa verification vào test build
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1768,7 +1768,7 @@ menu:
   childs:
   - slug: verification-options-001
     title: VerificationOptions điều khiển việc kiểm tra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1777,7 +1777,7 @@ menu:
     summary: ''
   - slug: verification-options-002
     title: Verification mặc định và verification bổ sung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1786,7 +1786,7 @@ menu:
     summary: ''
   - slug: verification-options-003
     title: Tắt hoặc thay đổi verification tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1795,7 +1795,7 @@ menu:
     summary: ''
   - slug: verification-options-004
     title: Đăng ký additional verifications
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1804,7 +1804,7 @@ menu:
     summary: ''
   - slug: verification-options-005
     title: jMolecules architecture rules trong options
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1813,7 +1813,7 @@ menu:
     summary: ''
   - slug: verification-options-006
     title: VerificationDepth và mức nghiêm ngặt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1822,7 +1822,7 @@ menu:
     summary: ''
   - slug: verification-options-007
     title: Chọn options theo mục tiêu dự án
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1831,7 +1831,7 @@ menu:
     summary: ''
   - slug: verification-options-008
     title: Giữ options dùng chung giữa các test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1840,7 +1840,7 @@ menu:
     summary: ''
   - slug: verification-options-009
     title: Không tắt verification chỉ để build xanh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1852,7 +1852,7 @@ menu:
   childs:
   - slug: additional-architecture-rules-001
     title: Spring Modulith tích hợp jMolecules ở mức nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1861,7 +1861,7 @@ menu:
     summary: ''
   - slug: additional-architecture-rules-002
     title: DDD architecture rules khi thư viện có trên classpath
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1870,7 +1870,7 @@ menu:
     summary: ''
   - slug: additional-architecture-rules-003
     title: Hexagonal architecture rules và verification depth
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1879,7 +1879,7 @@ menu:
     summary: ''
   - slug: additional-architecture-rules-004
     title: Phân biệt rule Modulith với rule jMolecules
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1888,7 +1888,7 @@ menu:
     summary: ''
   - slug: additional-architecture-rules-005
     title: Chỉ bật rule phù hợp với mô hình ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1897,7 +1897,7 @@ menu:
     summary: ''
   - slug: additional-architecture-rules-006
     title: Đọc lỗi do rule bổ sung gây ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1906,7 +1906,7 @@ menu:
     summary: ''
   - slug: additional-architecture-rules-007
     title: Giữ test kiến trúc độc lập và dễ chẩn đoán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1915,7 +1915,7 @@ menu:
     summary: ''
   - slug: additional-architecture-rules-008
     title: Đánh giá chi phí chạy rule bổ sung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1927,7 +1927,7 @@ menu:
   childs:
   - slug: model-and-spring-beans-001
     title: Bean được module cung cấp được nhận diện ra sao?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1936,7 +1936,7 @@ menu:
     summary: ''
   - slug: model-and-spring-beans-002
     title: SpringBean dependency và component scan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1945,7 +1945,7 @@ menu:
     summary: ''
   - slug: model-and-spring-beans-003
     title: Bean interface ở API package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1954,7 +1954,7 @@ menu:
     summary: ''
   - slug: model-and-spring-beans-004
     title: Bean implementation trong internal package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1963,7 +1963,7 @@ menu:
     summary: ''
   - slug: model-and-spring-beans-005
     title: Injection trực tiếp vào module khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1972,7 +1972,7 @@ menu:
     summary: ''
   - slug: model-and-spring-beans-006
     title: Event listener tạo required interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1981,7 +1981,7 @@ menu:
     summary: ''
   - slug: model-and-spring-beans-007
     title: Configuration property như hợp đồng module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1990,7 +1990,7 @@ menu:
     summary: ''
   - slug: model-and-spring-beans-008
     title: Bean proxy và ảnh hưởng tới static inspection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1999,7 +1999,7 @@ menu:
     summary: ''
   - slug: model-and-spring-beans-009
     title: Kiểm tra bean dependency bằng ví dụ thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2011,7 +2011,7 @@ menu:
   childs:
   - slug: model-and-events-001
     title: Application event là kênh giao tiếp giữa module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2020,7 +2020,7 @@ menu:
     summary: ''
   - slug: model-and-events-002
     title: Module phát event và module khác lắng nghe
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2029,7 +2029,7 @@ menu:
     summary: ''
   - slug: model-and-events-003
     title: Event listener tạo dependency không qua import
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2038,7 +2038,7 @@ menu:
     summary: ''
   - slug: model-and-events-004
     title: Event type ở API package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2047,7 +2047,7 @@ menu:
     summary: ''
   - slug: model-and-events-005
     title: Event payload không lộ type internal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2056,7 +2056,7 @@ menu:
     summary: ''
   - slug: model-and-events-006
     title: Event publication có tạo cycle hay không?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2065,7 +2065,7 @@ menu:
     summary: ''
   - slug: model-and-events-007
     title: Static dependency khác choreography runtime
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2074,7 +2074,7 @@ menu:
     summary: ''
   - slug: model-and-events-008
     title: Thiết kế event giảm coupling nhưng giữ ngữ nghĩa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2083,7 +2083,7 @@ menu:
     summary: ''
   - slug: model-and-events-009
     title: Kiểm thử graph khi thêm subscriber
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2095,7 +2095,7 @@ menu:
   childs:
   - slug: model-and-documentation-001
     title: ApplicationModules làm nguồn cho tài liệu module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2104,7 +2104,7 @@ menu:
     summary: ''
   - slug: model-and-documentation-002
     title: Biểu diễn module graph và quan hệ phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2113,7 +2113,7 @@ menu:
     summary: ''
   - slug: model-and-documentation-003
     title: Module canvas và thông tin cần hiển thị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2122,7 +2122,7 @@ menu:
     summary: ''
   - slug: model-and-documentation-004
     title: API package, named interface và internal trong tài liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2131,7 +2131,7 @@ menu:
     summary: ''
   - slug: model-and-documentation-005
     title: systemName giúp tài liệu dễ hiểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2140,7 +2140,7 @@ menu:
     summary: ''
   - slug: model-and-documentation-006
     title: Biểu đồ không thay thế hợp đồng access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2149,7 +2149,7 @@ menu:
     summary: ''
   - slug: model-and-documentation-007
     title: Kiểm tra tài liệu sau khi đổi package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2158,7 +2158,7 @@ menu:
     summary: ''
   - slug: model-and-documentation-008
     title: Giữ display name ổn định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2167,7 +2167,7 @@ menu:
     summary: ''
   - slug: model-and-documentation-009
     title: Đối chiếu tài liệu với package tree
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2179,7 +2179,7 @@ menu:
   childs:
   - slug: model-and-tests-001
     title: Application module integration test dựa trên model
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2188,7 +2188,7 @@ menu:
     summary: ''
   - slug: model-and-tests-002
     title: Chọn module test và phạm vi context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2197,7 +2197,7 @@ menu:
     summary: ''
   - slug: model-and-tests-003
     title: sharedModules và module luôn được đưa vào test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2206,7 +2206,7 @@ menu:
     summary: ''
   - slug: model-and-tests-004
     title: Kiểm tra phụ thuộc module trong test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2215,7 +2215,7 @@ menu:
     summary: ''
   - slug: model-and-tests-005
     title: Test module dùng API module khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2224,7 +2224,7 @@ menu:
     summary: ''
   - slug: model-and-tests-006
     title: Phát hiện test truy cập internal package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2233,7 +2233,7 @@ menu:
     summary: ''
   - slug: model-and-tests-007
     title: Test model khác test runtime ra sao?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2242,7 +2242,7 @@ menu:
     summary: ''
   - slug: model-and-tests-008
     title: Đưa verify vào test suite
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2251,7 +2251,7 @@ menu:
     summary: ''
   - slug: model-and-tests-009
     title: Giữ test kiến trúc ổn định trong CI
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2263,7 +2263,7 @@ menu:
   childs:
   - slug: runtime-verification-001
     title: spring-modulith-runtime cung cấp thành phần nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2272,7 +2272,7 @@ menu:
     summary: ''
   - slug: runtime-verification-002
     title: ApplicationModulesRuntime và model lúc chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2281,7 +2281,7 @@ menu:
     summary: ''
   - slug: runtime-verification-003
     title: RuntimeApplicationModuleVerifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2290,7 +2290,7 @@ menu:
     summary: ''
   - slug: runtime-verification-004
     title: Bật spring.modulith.runtime.verification-enabled
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2299,7 +2299,7 @@ menu:
     summary: ''
   - slug: runtime-verification-005
     title: Kiểm tra model lúc startup
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2308,7 +2308,7 @@ menu:
     summary: ''
   - slug: runtime-verification-006
     title: Verification test khác verification runtime
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2317,7 +2317,7 @@ menu:
     summary: ''
   - slug: runtime-verification-007
     title: Custom detection trong production sources
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2326,7 +2326,7 @@ menu:
     summary: ''
   - slug: runtime-verification-008
     title: ApplicationModuleInitializer và khởi tạo module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2335,7 +2335,7 @@ menu:
     summary: ''
   - slug: runtime-verification-009
     title: Rủi ro ứng dụng không khởi động vì violation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2344,7 +2344,7 @@ menu:
     summary: ''
   - slug: runtime-verification-010
     title: Đọc log startup để khoanh vùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2356,7 +2356,7 @@ menu:
   childs:
   - slug: legacy-modularization-001
     title: Nhận diện module trong ứng dụng legacy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2365,7 +2365,7 @@ menu:
     summary: ''
   - slug: legacy-modularization-002
     title: Khi nào dùng open module để bắt đầu di chuyển?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2374,7 +2374,7 @@ menu:
     summary: ''
   - slug: legacy-modularization-003
     title: Chia technical layer thành capability module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2383,7 +2383,7 @@ menu:
     summary: ''
   - slug: legacy-modularization-004
     title: Đưa API ra root package từng bước
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2392,7 +2392,7 @@ menu:
     summary: ''
   - slug: legacy-modularization-005
     title: Đặt named interface cho vùng dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2401,7 +2401,7 @@ menu:
     summary: ''
   - slug: legacy-modularization-006
     title: Giảm dependency trực tiếp vào internal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2410,7 +2410,7 @@ menu:
     summary: ''
   - slug: legacy-modularization-007
     title: Chuyển dần sang allowedDependencies
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2419,7 +2419,7 @@ menu:
     summary: ''
   - slug: legacy-modularization-008
     title: Đo tiến bộ bằng số violation và độ rõ graph
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2428,7 +2428,7 @@ menu:
     summary: ''
   - slug: legacy-modularization-009
     title: Giữ hệ thống chạy được trong từng bước
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2437,7 +2437,7 @@ menu:
     summary: ''
   - slug: legacy-modularization-010
     title: Xác định điểm kết thúc migration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2449,7 +2449,7 @@ menu:
   childs:
   - slug: configuration-and-versions-001
     title: Chọn artifact Modulith theo tính năng cần dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2458,7 +2458,7 @@ menu:
     summary: ''
   - slug: configuration-and-versions-002
     title: Quản lý version bằng Spring Modulith BOM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2467,7 +2467,7 @@ menu:
     summary: ''
   - slug: configuration-and-versions-003
     title: Đối chiếu Spring Boot compatibility matrix
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2476,7 +2476,7 @@ menu:
     summary: ''
   - slug: configuration-and-versions-004
     title: spring.modulith.detection-strategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2485,7 +2485,7 @@ menu:
     summary: ''
   - slug: configuration-and-versions-005
     title: spring.modulith.runtime.verification-enabled
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2494,7 +2494,7 @@ menu:
     summary: ''
   - slug: configuration-and-versions-006
     title: Tham số test và production khác nhau thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2503,7 +2503,7 @@ menu:
     summary: ''
   - slug: configuration-and-versions-007
     title: Kiểm tra thay đổi package khi nâng version
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2512,7 +2512,7 @@ menu:
     summary: ''
   - slug: configuration-and-versions-008
     title: Đọc appendix để phát hiện thuộc tính deprecated
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2521,7 +2521,7 @@ menu:
     summary: ''
   - slug: configuration-and-versions-009
     title: Không suy diễn API từ tài liệu phiên bản khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2530,7 +2530,7 @@ menu:
     summary: ''
   - slug: configuration-and-versions-010
     title: Khóa version để model tái lập trong CI
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2542,7 +2542,7 @@ menu:
   childs:
   - slug: troubleshooting-001
     title: Không phát hiện được module mong đợi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2551,7 +2551,7 @@ menu:
     summary: ''
   - slug: troubleshooting-002
     title: Package gốc của lớp ứng dụng chính bị chọn sai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2560,7 +2560,7 @@ menu:
     summary: ''
   - slug: troubleshooting-003
     title: Module biến mất sau khi đổi detection strategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2569,7 +2569,7 @@ menu:
     summary: ''
   - slug: troubleshooting-004
     title: Type API bị báo là internal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2578,7 +2578,7 @@ menu:
     summary: ''
   - slug: troubleshooting-005
     title: Named interface không được nhận diện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2587,7 +2587,7 @@ menu:
     summary: ''
   - slug: troubleshooting-006
     title: allowedDependencies không khớp identifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2596,7 +2596,7 @@ menu:
     summary: ''
   - slug: troubleshooting-007
     title: Cycle xuất hiện sau khi thêm event listener
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2605,7 +2605,7 @@ menu:
     summary: ''
   - slug: troubleshooting-008
     title: Runtime verification lỗi nhưng test verification không chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2614,7 +2614,7 @@ menu:
     summary: ''
   - slug: troubleshooting-009
     title: Rule bổ sung tạo lỗi ngoài dự kiến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2623,7 +2623,7 @@ menu:
     summary: ''
   - slug: troubleshooting-010
     title: Thu thập package tree, config và version để tái hiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2635,7 +2635,7 @@ menu:
   childs:
   - slug: hands-on-exercises-001
     title: Tạo ứng dụng Spring Boot có ba module chức năng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2644,7 +2644,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-002
     title: Khởi tạo ApplicationModules và in module model
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2653,7 +2653,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-003
     title: Đặt API package và internal package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2662,7 +2662,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-004
     title: Thêm @NamedInterface cho một SPI package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2671,7 +2671,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-005
     title: Khai báo allowedDependencies bằng identifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2680,7 +2680,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-006
     title: Kích hoạt explicitly-annotated detection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2689,7 +2689,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-007
     title: Viết custom ApplicationModuleDetectionStrategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2698,7 +2698,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-008
     title: Chạy ApplicationModules.verify() trong test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2707,7 +2707,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-009
     title: Lọc violation bằng detectViolations()
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2716,7 +2716,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-010
     title: Bật runtime verification trong ứng dụng mẫu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2725,7 +2725,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-011
     title: Thêm event listener và quan sát dependency graph
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2734,7 +2734,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-012
     title: Migration một package legacy thành open module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2743,7 +2743,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-013
     title: Kiểm thử model sau khi đổi package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2755,7 +2755,7 @@ menu:
   childs:
   - slug: design-review-001
     title: Xác định module boundary từ trách nhiệm nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2764,7 +2764,7 @@ menu:
     summary: ''
   - slug: design-review-002
     title: Kiểm tra API, internal và named interface
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2773,7 +2773,7 @@ menu:
     summary: ''
   - slug: design-review-003
     title: Đánh giá graph có cycle hoặc dependency thừa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2782,7 +2782,7 @@ menu:
     summary: ''
   - slug: design-review-004
     title: Đối chiếu allowedDependencies với nhu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2791,7 +2791,7 @@ menu:
     summary: ''
   - slug: design-review-005
     title: Chọn detection strategy dễ hiểu và tái lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2800,7 +2800,7 @@ menu:
     summary: ''
   - slug: design-review-006
     title: Quyết định có nên dùng open module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2809,7 +2809,7 @@ menu:
     summary: ''
   - slug: design-review-007
     title: Đánh giá static verification và runtime verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2818,7 +2818,7 @@ menu:
     summary: ''
   - slug: design-review-008
     title: Kiểm tra ảnh hưởng tới docs, tests và events
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2827,7 +2827,7 @@ menu:
     summary: ''
   - slug: design-review-009
     title: Đánh giá refactor mà không phá hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2836,7 +2836,7 @@ menu:
     summary: ''
   - slug: design-review-010
     title: Tự đánh giá bằng package tree và verification evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
