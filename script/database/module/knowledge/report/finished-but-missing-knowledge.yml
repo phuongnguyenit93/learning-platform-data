@@ -1,0 +1,12 @@
+generatedAt: '2026-11-26T09:38:50+00:00'
+language: vi
+sourceFinishedReport: script/module-generate/status-report/report/knowledge-finished.yml
+sourceMissingReport: script/database/module/knowledge/report/missing-knowledge.yml
+note: Compares vi Menu/Knowledge structure and status only; excludes en; does not compare full Markdown bytes or QA metadata.
+summary:
+  finished: 179
+  finishedWithOracleIssuesVi: 0
+  finishedOracleCompleteVi: 179
+  oracleReportErrors: 0
+  importedOnThisRun: 17
+modules: []

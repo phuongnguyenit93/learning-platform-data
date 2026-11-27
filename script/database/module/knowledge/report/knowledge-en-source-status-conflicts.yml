@@ -1,0 +1,589 @@
+generatedAt: '2026-11-26T10:18:54+00:00'
+language: en
+note: Read-only check of EN consolidated menu-detail-status.yml vs per-lesson YAML status. No status files were changed.
+summary:
+  modules: 23
+  lessonsChecked: 6260
+  statusConflicts: 6257
+  statusPairs:
+    WRITTEN vs TRANSLATE: 5385
+    TRANSLATE vs WRITTEN: 446
+    <empty> vs WRITTEN: 426
+  errors: 0
+modules:
+- serviceName: JAVA_ABSTRACT_INTERFACE
+  totalLessons: 227
+  statusConflicts: 227
+  nonemptyMarkdownFiles: 227
+  statusPairs:
+    WRITTEN vs TRANSLATE: 227
+  examples:
+  - lessonSlug: overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_ADVANCE_COMPATIBILITY_MIGRATION
+  totalLessons: 283
+  statusConflicts: 283
+  nonemptyMarkdownFiles: 283
+  statusPairs:
+    WRITTEN vs TRANSLATE: 283
+  examples:
+  - lessonSlug: compatibility-migration-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: compatibility-migration-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: compatibility-migration-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: compatibility-migration-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: compatibility-migration-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: compatibility-migration-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_ADVANCE_COMPILATION
+  totalLessons: 172
+  statusConflicts: 172
+  nonemptyMarkdownFiles: 172
+  statusPairs:
+    WRITTEN vs TRANSLATE: 172
+  examples:
+  - lessonSlug: java-compilation-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: java-compilation-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: java-compilation-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: java-compilation-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: java-compilation-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: java-compilation-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_ADVANCE_CRAC
+  totalLessons: 241
+  statusConflicts: 241
+  nonemptyMarkdownFiles: 241
+  statusPairs:
+    WRITTEN vs TRANSLATE: 241
+  examples:
+  - lessonSlug: crac-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: crac-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: crac-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: crac-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: crac-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: crac-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_ANNOTATION
+  totalLessons: 166
+  statusConflicts: 166
+  nonemptyMarkdownFiles: 166
+  statusPairs:
+    WRITTEN vs TRANSLATE: 166
+  examples:
+  - lessonSlug: annotation-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: annotation-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: annotation-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: annotation-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: annotation-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: annotation-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_CLASSLOADER
+  totalLessons: 266
+  statusConflicts: 266
+  nonemptyMarkdownFiles: 266
+  statusPairs:
+    WRITTEN vs TRANSLATE: 266
+  examples:
+  - lessonSlug: overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_CLASS_OBJECT
+  totalLessons: 250
+  statusConflicts: 250
+  nonemptyMarkdownFiles: 250
+  statusPairs:
+    WRITTEN vs TRANSLATE: 250
+  examples:
+  - lessonSlug: class-object-fundamentals-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: class-object-fundamentals-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: class-object-fundamentals-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: class-object-fundamentals-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: class-object-fundamentals-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: class-object-fundamentals-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_COLLECTION
+  totalLessons: 261
+  statusConflicts: 261
+  nonemptyMarkdownFiles: 261
+  statusPairs:
+    WRITTEN vs TRANSLATE: 261
+  examples:
+  - lessonSlug: overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_CORE_CONCURRENCY
+  totalLessons: 350
+  statusConflicts: 350
+  nonemptyMarkdownFiles: 350
+  statusPairs:
+    WRITTEN vs TRANSLATE: 350
+  examples:
+  - lessonSlug: overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_CORE_JDK_TOOLING
+  totalLessons: 437
+  statusConflicts: 437
+  nonemptyMarkdownFiles: 437
+  statusPairs:
+    WRITTEN vs TRANSLATE: 437
+  examples:
+  - lessonSlug: jdk-tooling-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: jdk-tooling-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: jdk-tooling-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: jdk-tooling-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: jdk-tooling-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: jdk-tooling-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_CORE_LOGGING
+  totalLessons: 447
+  statusConflicts: 447
+  nonemptyMarkdownFiles: 447
+  statusPairs:
+    WRITTEN vs TRANSLATE: 447
+  examples:
+  - lessonSlug: logging-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: logging-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: logging-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: logging-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: logging-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: logging-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_CORE_PATTERN_MATCHING
+  totalLessons: 383
+  statusConflicts: 383
+  nonemptyMarkdownFiles: 383
+  statusPairs:
+    WRITTEN vs TRANSLATE: 383
+  examples:
+  - lessonSlug: pattern-matching-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: pattern-matching-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: pattern-matching-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: pattern-matching-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: pattern-matching-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: pattern-matching-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_DATE_TIME
+  totalLessons: 238
+  statusConflicts: 238
+  nonemptyMarkdownFiles: 238
+  statusPairs:
+    WRITTEN vs TRANSLATE: 238
+  examples:
+  - lessonSlug: date-time-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: date-time-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: date-time-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: date-time-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: date-time-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: date-time-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_DYNAMIC_RUNTIME
+  totalLessons: 162
+  statusConflicts: 162
+  nonemptyMarkdownFiles: 162
+  statusPairs:
+    WRITTEN vs TRANSLATE: 162
+  examples:
+  - lessonSlug: dynamic-runtime-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: dynamic-runtime-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: dynamic-runtime-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: dynamic-runtime-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: dynamic-runtime-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: dynamic-runtime-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_EXCEPTION
+  totalLessons: 265
+  statusConflicts: 265
+  nonemptyMarkdownFiles: 265
+  statusPairs:
+    WRITTEN vs TRANSLATE: 265
+  examples:
+  - lessonSlug: exception-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: exception-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: exception-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: exception-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: exception-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: exception-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_FUNCTIONAL_PROGRAMMING
+  totalLessons: 262
+  statusConflicts: 262
+  nonemptyMarkdownFiles: 262
+  statusPairs:
+    WRITTEN vs TRANSLATE: 262
+  examples:
+  - lessonSlug: functional-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: functional-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: functional-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: functional-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: functional-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: functional-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_GENERICS
+  totalLessons: 216
+  statusConflicts: 216
+  nonemptyMarkdownFiles: 216
+  statusPairs:
+    WRITTEN vs TRANSLATE: 216
+  examples:
+  - lessonSlug: generics-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: generics-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: generics-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: generics-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: generics-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: generics-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_INSTRUMENTATION
+  totalLessons: 202
+  statusConflicts: 202
+  nonemptyMarkdownFiles: 202
+  statusPairs:
+    TRANSLATE vs WRITTEN: 202
+  examples:
+  - lessonSlug: instrumentation-overview-001
+    menuDetailStatus: TRANSLATE
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: instrumentation-overview-002
+    menuDetailStatus: TRANSLATE
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: instrumentation-overview-003
+    menuDetailStatus: TRANSLATE
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: instrumentation-overview-004
+    menuDetailStatus: TRANSLATE
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: instrumentation-overview-005
+    menuDetailStatus: TRANSLATE
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: instrumentation-overview-006
+    menuDetailStatus: TRANSLATE
+    lessonYamlStatus: WRITTEN
+- serviceName: JAVA_IO
+  totalLessons: 369
+  statusConflicts: 369
+  nonemptyMarkdownFiles: 369
+  statusPairs:
+    WRITTEN vs TRANSLATE: 369
+  examples:
+  - lessonSlug: io-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: io-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: io-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: io-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: io-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: io-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_JVM
+  totalLessons: 163
+  statusConflicts: 163
+  nonemptyMarkdownFiles: 163
+  statusPairs:
+    WRITTEN vs TRANSLATE: 163
+  examples:
+  - lessonSlug: jvm-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: jvm-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: jvm-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: jvm-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: jvm-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: jvm-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_NATIVE_INTEROPERABILITY
+  totalLessons: 227
+  statusConflicts: 227
+  nonemptyMarkdownFiles: 227
+  statusPairs:
+    WRITTEN vs TRANSLATE: 227
+  examples:
+  - lessonSlug: native-interop-overview-001
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: native-interop-overview-002
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: native-interop-overview-003
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: native-interop-overview-004
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: native-interop-overview-005
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+  - lessonSlug: native-interop-overview-006
+    menuDetailStatus: WRITTEN
+    lessonYamlStatus: TRANSLATE
+- serviceName: JAVA_NETWORKING
+  totalLessons: 247
+  statusConflicts: 244
+  nonemptyMarkdownFiles: 247
+  statusPairs:
+    TRANSLATE vs WRITTEN: 244
+  examples:
+  - lessonSlug: network-overview-001
+    menuDetailStatus: TRANSLATE
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: network-overview-002
+    menuDetailStatus: TRANSLATE
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: network-overview-003
+    menuDetailStatus: TRANSLATE
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: network-overview-004
+    menuDetailStatus: TRANSLATE
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: network-overview-005
+    menuDetailStatus: TRANSLATE
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: network-overview-006
+    menuDetailStatus: TRANSLATE
+    lessonYamlStatus: WRITTEN
+- serviceName: SPRING_KAFKA_MESSAGING
+  totalLessons: 426
+  statusConflicts: 426
+  nonemptyMarkdownFiles: 426
+  statusPairs:
+    <empty> vs WRITTEN: 426
+  examples:
+  - lessonSlug: messaging-foundations-001
+    menuDetailStatus: ''
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: messaging-foundations-002
+    menuDetailStatus: ''
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: messaging-foundations-003
+    menuDetailStatus: ''
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: messaging-foundations-004
+    menuDetailStatus: ''
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: messaging-foundations-005
+    menuDetailStatus: ''
+    lessonYamlStatus: WRITTEN
+  - lessonSlug: messaging-foundations-006
+    menuDetailStatus: ''
+    lessonYamlStatus: WRITTEN
+errors: []

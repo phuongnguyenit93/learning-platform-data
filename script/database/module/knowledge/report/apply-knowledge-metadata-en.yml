@@ -1,0 +1,26 @@
+generatedAt: '2026-11-26T10:15:46+00:00'
+language: en
+batchSize: 100
+summary:
+  total: 3
+  applied: 3
+  failed: 0
+  updatedRows: 680
+  updatedFields: 1344
+  missingTranslations: 0
+modules:
+- serviceName: JAVA_NUMBERS
+  status: APPLIED
+  updatedRows: 352
+  updatedFields: 352
+  missingTranslations: 0
+- serviceName: JAVA_SECURITY_CRYPTOGRAPHY
+  status: APPLIED
+  updatedRows: 162
+  updatedFields: 162
+  missingTranslations: 0
+- serviceName: SPRING_CONCURRENCY
+  status: APPLIED
+  updatedRows: 166
+  updatedFields: 830
+  missingTranslations: 0

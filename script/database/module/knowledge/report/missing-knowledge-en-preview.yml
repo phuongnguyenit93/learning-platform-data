@@ -1,0 +1,2957 @@
+generatedAt: '2026-11-26T09:42:05+00:00'
+mode: READ_ONLY_STRUCTURAL_CHECK
+language: en
+note: Read-only Oracle comparison for modules with en source. Checks structure/status/content presence, not Markdown bytes
+  or QA metadata.
+summary:
+  finishedModules: 179
+  finishedEnSourceAvailable: 69
+  finishedWithoutEnSource: 110
+  enComplete: 1
+  enNotSynced: 0
+  enPartial: 68
+  enOutdated: 0
+  errors: 0
+  expectedChapters: 2036
+  expectedLessons: 19953
+  missingTotals:
+    chapters: 0
+    sections: 0
+    menu_languages: 21776
+    knowledge: 0
+    knowledge_languages: 19761
+  mismatchTotals:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+completeServiceNames:
+- OBJECT_ORIENTED_PROGRAMMING
+modules:
+- module: module/platform/development/programming/language/java/core/abstract-interface
+  serviceName: JAVA_ABSTRACT_INTERFACE
+  moduleId: 175
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 27
+    sections: 227
+    menuLanguages: 254
+    knowledgeLanguages: 227
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 254
+    knowledge: 0
+    knowledge_languages: 227
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/language/java/advance/compatibility-migration
+  serviceName: JAVA_ADVANCE_COMPATIBILITY_MIGRATION
+  moduleId: 176
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 28
+    sections: 283
+    menuLanguages: 311
+    knowledgeLanguages: 283
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 311
+    knowledge: 0
+    knowledge_languages: 283
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/compatibility-migration-overview
+    - en/compatibility-migration-overview/compatibility-migration-overview-001
+    - en/compatibility-migration-overview/compatibility-migration-overview-002
+    - en/compatibility-migration-overview/compatibility-migration-overview-003
+    - en/compatibility-migration-overview/compatibility-migration-overview-004
+    - en/compatibility-migration-overview/compatibility-migration-overview-005
+    - en/compatibility-migration-overview/compatibility-migration-overview-006
+    - en/compatibility-migration-overview/compatibility-migration-overview-007
+    knowledge_languages:
+    - en/compatibility-migration-overview/compatibility-migration-overview-001
+    - en/compatibility-migration-overview/compatibility-migration-overview-002
+    - en/compatibility-migration-overview/compatibility-migration-overview-003
+    - en/compatibility-migration-overview/compatibility-migration-overview-004
+    - en/compatibility-migration-overview/compatibility-migration-overview-005
+    - en/compatibility-migration-overview/compatibility-migration-overview-006
+    - en/compatibility-migration-overview/compatibility-migration-overview-007
+    - en/compatibility-migration-overview/compatibility-migration-overview-008
+- module: module/platform/development/programming/language/java/advance/compilation
+  serviceName: JAVA_ADVANCE_COMPILATION
+  moduleId: 177
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 20
+    sections: 172
+    menuLanguages: 192
+    knowledgeLanguages: 172
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 192
+    knowledge: 0
+    knowledge_languages: 172
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/java-compilation-overview
+    - en/java-compilation-overview/java-compilation-overview-001
+    - en/java-compilation-overview/java-compilation-overview-002
+    - en/java-compilation-overview/java-compilation-overview-003
+    - en/java-compilation-overview/java-compilation-overview-004
+    - en/java-compilation-overview/java-compilation-overview-005
+    - en/java-compilation-overview/java-compilation-overview-006
+    - en/java-compilation-overview/java-compilation-overview-007
+    knowledge_languages:
+    - en/java-compilation-overview/java-compilation-overview-001
+    - en/java-compilation-overview/java-compilation-overview-002
+    - en/java-compilation-overview/java-compilation-overview-003
+    - en/java-compilation-overview/java-compilation-overview-004
+    - en/java-compilation-overview/java-compilation-overview-005
+    - en/java-compilation-overview/java-compilation-overview-006
+    - en/java-compilation-overview/java-compilation-overview-007
+    - en/java-compilation-overview/java-compilation-overview-008
+- module: module/platform/development/programming/language/java/advance/crac
+  serviceName: JAVA_ADVANCE_CRAC
+  moduleId: 178
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 25
+    sections: 241
+    menuLanguages: 266
+    knowledgeLanguages: 241
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 266
+    knowledge: 0
+    knowledge_languages: 241
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/crac-overview
+    - en/crac-overview/crac-overview-001
+    - en/crac-overview/crac-overview-002
+    - en/crac-overview/crac-overview-003
+    - en/crac-overview/crac-overview-004
+    - en/crac-overview/crac-overview-005
+    - en/crac-overview/crac-overview-006
+    - en/crac-overview/crac-overview-007
+    knowledge_languages:
+    - en/crac-overview/crac-overview-001
+    - en/crac-overview/crac-overview-002
+    - en/crac-overview/crac-overview-003
+    - en/crac-overview/crac-overview-004
+    - en/crac-overview/crac-overview-005
+    - en/crac-overview/crac-overview-006
+    - en/crac-overview/crac-overview-007
+    - en/crac-overview/crac-overview-008
+- module: module/platform/development/programming/language/java/core/annotation
+  serviceName: JAVA_ANNOTATION
+  moduleId: 179
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 21
+    sections: 166
+    menuLanguages: 187
+    knowledgeLanguages: 166
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 187
+    knowledge: 0
+    knowledge_languages: 166
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/annotation-overview
+    - en/annotation-overview/annotation-overview-001
+    - en/annotation-overview/annotation-overview-002
+    - en/annotation-overview/annotation-overview-003
+    - en/annotation-overview/annotation-overview-004
+    - en/annotation-overview/annotation-overview-005
+    - en/annotation-overview/annotation-overview-006
+    - en/annotation-overview/annotation-overview-007
+    knowledge_languages:
+    - en/annotation-overview/annotation-overview-001
+    - en/annotation-overview/annotation-overview-002
+    - en/annotation-overview/annotation-overview-003
+    - en/annotation-overview/annotation-overview-004
+    - en/annotation-overview/annotation-overview-005
+    - en/annotation-overview/annotation-overview-006
+    - en/annotation-overview/annotation-overview-007
+    - en/annotation-syntax/annotation-syntax-001
+- module: module/platform/development/programming/language/java/core/classloader
+  serviceName: JAVA_CLASSLOADER
+  moduleId: 180
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 28
+    sections: 266
+    menuLanguages: 294
+    knowledgeLanguages: 266
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 294
+    knowledge: 0
+    knowledge_languages: 266
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/language/java/core/class-object
+  serviceName: JAVA_CLASS_OBJECT
+  moduleId: 181
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 29
+    sections: 250
+    menuLanguages: 279
+    knowledgeLanguages: 250
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 279
+    knowledge: 0
+    knowledge_languages: 250
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/class-object-fundamentals
+    - en/class-object-fundamentals/class-object-fundamentals-001
+    - en/class-object-fundamentals/class-object-fundamentals-002
+    - en/class-object-fundamentals/class-object-fundamentals-003
+    - en/class-object-fundamentals/class-object-fundamentals-004
+    - en/class-object-fundamentals/class-object-fundamentals-005
+    - en/class-object-fundamentals/class-object-fundamentals-006
+    - en/class-object-fundamentals/class-object-fundamentals-007
+    knowledge_languages:
+    - en/class-object-fundamentals/class-object-fundamentals-001
+    - en/class-object-fundamentals/class-object-fundamentals-002
+    - en/class-object-fundamentals/class-object-fundamentals-003
+    - en/class-object-fundamentals/class-object-fundamentals-004
+    - en/class-object-fundamentals/class-object-fundamentals-005
+    - en/class-object-fundamentals/class-object-fundamentals-006
+    - en/class-object-fundamentals/class-object-fundamentals-007
+    - en/class-object-fundamentals/class-object-fundamentals-008
+- module: module/platform/development/programming/language/java/core/collection
+  serviceName: JAVA_COLLECTION
+  moduleId: 182
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 32
+    sections: 261
+    menuLanguages: 293
+    knowledgeLanguages: 261
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 293
+    knowledge: 0
+    knowledge_languages: 261
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/language/java/core/concurrency
+  serviceName: JAVA_CORE_CONCURRENCY
+  moduleId: 183
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 25
+    sections: 350
+    menuLanguages: 375
+    knowledgeLanguages: 350
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 375
+    knowledge: 0
+    knowledge_languages: 350
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/language/java/core/jdk-tooling
+  serviceName: JAVA_CORE_JDK_TOOLING
+  moduleId: 184
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 44
+    sections: 437
+    menuLanguages: 481
+    knowledgeLanguages: 437
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 481
+    knowledge: 0
+    knowledge_languages: 437
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/jdk-tooling-overview
+    - en/jdk-tooling-overview/jdk-tooling-overview-001
+    - en/jdk-tooling-overview/jdk-tooling-overview-002
+    - en/jdk-tooling-overview/jdk-tooling-overview-003
+    - en/jdk-tooling-overview/jdk-tooling-overview-004
+    - en/jdk-tooling-overview/jdk-tooling-overview-005
+    - en/jdk-tooling-overview/jdk-tooling-overview-006
+    - en/jdk-tooling-overview/jdk-tooling-overview-007
+    knowledge_languages:
+    - en/jdk-tooling-overview/jdk-tooling-overview-001
+    - en/jdk-tooling-overview/jdk-tooling-overview-002
+    - en/jdk-tooling-overview/jdk-tooling-overview-003
+    - en/jdk-tooling-overview/jdk-tooling-overview-004
+    - en/jdk-tooling-overview/jdk-tooling-overview-005
+    - en/jdk-tooling-overview/jdk-tooling-overview-006
+    - en/jdk-tooling-overview/jdk-tooling-overview-007
+    - en/jdk-tooling-overview/jdk-tooling-overview-008
+- module: module/platform/development/programming/language/java/core/logging
+  serviceName: JAVA_CORE_LOGGING
+  moduleId: 185
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 45
+    sections: 447
+    menuLanguages: 492
+    knowledgeLanguages: 447
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 492
+    knowledge: 0
+    knowledge_languages: 447
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/logging-overview
+    - en/logging-overview/logging-overview-001
+    - en/logging-overview/logging-overview-002
+    - en/logging-overview/logging-overview-003
+    - en/logging-overview/logging-overview-004
+    - en/logging-overview/logging-overview-005
+    - en/logging-overview/logging-overview-006
+    - en/logging-overview/logging-overview-007
+    knowledge_languages:
+    - en/logging-overview/logging-overview-001
+    - en/logging-overview/logging-overview-002
+    - en/logging-overview/logging-overview-003
+    - en/logging-overview/logging-overview-004
+    - en/logging-overview/logging-overview-005
+    - en/logging-overview/logging-overview-006
+    - en/logging-overview/logging-overview-007
+    - en/logging-overview/logging-overview-008
+- module: module/platform/development/programming/language/java/core/module-system
+  serviceName: JAVA_CORE_MODULE_SYSTEM
+  moduleId: 186
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 36
+    sections: 305
+    menuLanguages: 341
+    knowledgeLanguages: 305
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 341
+    knowledge: 0
+    knowledge_languages: 305
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/module-overview
+    - en/module-overview/module-overview-001
+    - en/module-overview/module-overview-002
+    - en/module-overview/module-overview-003
+    - en/module-overview/module-overview-004
+    - en/module-overview/module-overview-005
+    - en/module-overview/module-overview-006
+    - en/module-overview/module-overview-007
+    knowledge_languages:
+    - en/module-overview/module-overview-001
+    - en/module-overview/module-overview-002
+    - en/module-overview/module-overview-003
+    - en/module-overview/module-overview-004
+    - en/module-overview/module-overview-005
+    - en/module-overview/module-overview-006
+    - en/module-overview/module-overview-007
+    - en/module-overview/module-overview-008
+- module: module/platform/development/programming/language/java/core/pattern-matching
+  serviceName: JAVA_CORE_PATTERN_MATCHING
+  moduleId: 187
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 38
+    sections: 383
+    menuLanguages: 421
+    knowledgeLanguages: 383
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 421
+    knowledge: 0
+    knowledge_languages: 383
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/pattern-matching-overview
+    - en/pattern-matching-overview/pattern-matching-overview-001
+    - en/pattern-matching-overview/pattern-matching-overview-002
+    - en/pattern-matching-overview/pattern-matching-overview-003
+    - en/pattern-matching-overview/pattern-matching-overview-004
+    - en/pattern-matching-overview/pattern-matching-overview-005
+    - en/pattern-matching-overview/pattern-matching-overview-006
+    - en/pattern-matching-overview/pattern-matching-overview-007
+    knowledge_languages:
+    - en/pattern-matching-overview/pattern-matching-overview-001
+    - en/pattern-matching-overview/pattern-matching-overview-002
+    - en/pattern-matching-overview/pattern-matching-overview-003
+    - en/pattern-matching-overview/pattern-matching-overview-004
+    - en/pattern-matching-overview/pattern-matching-overview-005
+    - en/pattern-matching-overview/pattern-matching-overview-006
+    - en/pattern-matching-overview/pattern-matching-overview-007
+    - en/pattern-matching-overview/pattern-matching-overview-008
+- module: module/platform/development/programming/language/java/core/date-time
+  serviceName: JAVA_DATE_TIME
+  moduleId: 188
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 27
+    sections: 238
+    menuLanguages: 265
+    knowledgeLanguages: 238
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 265
+    knowledge: 0
+    knowledge_languages: 238
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/date-time-overview
+    - en/date-time-overview/date-time-overview-001
+    - en/date-time-overview/date-time-overview-002
+    - en/date-time-overview/date-time-overview-003
+    - en/date-time-overview/date-time-overview-004
+    - en/date-time-overview/date-time-overview-005
+    - en/date-time-overview/date-time-overview-006
+    - en/date-time-overview/date-time-overview-007
+    knowledge_languages:
+    - en/date-time-overview/date-time-overview-001
+    - en/date-time-overview/date-time-overview-002
+    - en/date-time-overview/date-time-overview-003
+    - en/date-time-overview/date-time-overview-004
+    - en/date-time-overview/date-time-overview-005
+    - en/date-time-overview/date-time-overview-006
+    - en/date-time-overview/date-time-overview-007
+    - en/date-time-overview/date-time-overview-008
+- module: module/platform/development/programming/language/java/advance/dynamic-runtime
+  serviceName: JAVA_DYNAMIC_RUNTIME
+  moduleId: 189
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 19
+    sections: 162
+    menuLanguages: 181
+    knowledgeLanguages: 162
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 181
+    knowledge: 0
+    knowledge_languages: 162
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/dynamic-runtime-overview
+    - en/dynamic-runtime-overview/dynamic-runtime-overview-001
+    - en/dynamic-runtime-overview/dynamic-runtime-overview-002
+    - en/dynamic-runtime-overview/dynamic-runtime-overview-003
+    - en/dynamic-runtime-overview/dynamic-runtime-overview-004
+    - en/dynamic-runtime-overview/dynamic-runtime-overview-005
+    - en/dynamic-runtime-overview/dynamic-runtime-overview-006
+    - en/dynamic-runtime-overview/dynamic-runtime-overview-007
+    knowledge_languages:
+    - en/dynamic-runtime-overview/dynamic-runtime-overview-001
+    - en/dynamic-runtime-overview/dynamic-runtime-overview-002
+    - en/dynamic-runtime-overview/dynamic-runtime-overview-003
+    - en/dynamic-runtime-overview/dynamic-runtime-overview-004
+    - en/dynamic-runtime-overview/dynamic-runtime-overview-005
+    - en/dynamic-runtime-overview/dynamic-runtime-overview-006
+    - en/dynamic-runtime-overview/dynamic-runtime-overview-007
+    - en/runtime-types/runtime-types-001
+- module: module/platform/development/programming/language/java/core/exception
+  serviceName: JAVA_EXCEPTION
+  moduleId: 190
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 28
+    sections: 265
+    menuLanguages: 293
+    knowledgeLanguages: 265
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 293
+    knowledge: 0
+    knowledge_languages: 265
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/exception-overview
+    - en/exception-overview/exception-overview-001
+    - en/exception-overview/exception-overview-002
+    - en/exception-overview/exception-overview-003
+    - en/exception-overview/exception-overview-004
+    - en/exception-overview/exception-overview-005
+    - en/exception-overview/exception-overview-006
+    - en/exception-overview/exception-overview-007
+    knowledge_languages:
+    - en/exception-overview/exception-overview-001
+    - en/exception-overview/exception-overview-002
+    - en/exception-overview/exception-overview-003
+    - en/exception-overview/exception-overview-004
+    - en/exception-overview/exception-overview-005
+    - en/exception-overview/exception-overview-006
+    - en/exception-overview/exception-overview-007
+    - en/exception-overview/exception-overview-008
+- module: module/platform/development/programming/language/java/core/functional-programming
+  serviceName: JAVA_FUNCTIONAL_PROGRAMMING
+  moduleId: 191
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 30
+    sections: 262
+    menuLanguages: 292
+    knowledgeLanguages: 262
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 292
+    knowledge: 0
+    knowledge_languages: 262
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/functional-overview
+    - en/functional-overview/functional-overview-001
+    - en/functional-overview/functional-overview-002
+    - en/functional-overview/functional-overview-003
+    - en/functional-overview/functional-overview-004
+    - en/functional-overview/functional-overview-005
+    - en/functional-overview/functional-overview-006
+    - en/functional-overview/functional-overview-007
+    knowledge_languages:
+    - en/functional-overview/functional-overview-001
+    - en/functional-overview/functional-overview-002
+    - en/functional-overview/functional-overview-003
+    - en/functional-overview/functional-overview-004
+    - en/functional-overview/functional-overview-005
+    - en/functional-overview/functional-overview-006
+    - en/functional-overview/functional-overview-007
+    - en/functional-overview/functional-overview-008
+- module: module/platform/development/programming/language/java/core/generics
+  serviceName: JAVA_GENERICS
+  moduleId: 192
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 27
+    sections: 216
+    menuLanguages: 243
+    knowledgeLanguages: 216
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 243
+    knowledge: 0
+    knowledge_languages: 216
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/generics-overview
+    - en/generics-overview/generics-overview-001
+    - en/generics-overview/generics-overview-002
+    - en/generics-overview/generics-overview-003
+    - en/generics-overview/generics-overview-004
+    - en/generics-overview/generics-overview-005
+    - en/generics-overview/generics-overview-006
+    - en/generics-overview/generics-overview-007
+    knowledge_languages:
+    - en/generics-overview/generics-overview-001
+    - en/generics-overview/generics-overview-002
+    - en/generics-overview/generics-overview-003
+    - en/generics-overview/generics-overview-004
+    - en/generics-overview/generics-overview-005
+    - en/generics-overview/generics-overview-006
+    - en/generics-overview/generics-overview-007
+    - en/generics-overview/generics-overview-008
+- module: module/platform/development/programming/language/java/advance/instrumentation
+  serviceName: JAVA_INSTRUMENTATION
+  moduleId: 193
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 19
+    sections: 202
+    menuLanguages: 221
+    knowledgeLanguages: 202
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 221
+    knowledge: 0
+    knowledge_languages: 202
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/instrumentation-overview
+    - en/instrumentation-overview/instrumentation-overview-001
+    - en/instrumentation-overview/instrumentation-overview-002
+    - en/instrumentation-overview/instrumentation-overview-003
+    - en/instrumentation-overview/instrumentation-overview-004
+    - en/instrumentation-overview/instrumentation-overview-005
+    - en/instrumentation-overview/instrumentation-overview-006
+    - en/instrumentation-overview/instrumentation-overview-007
+    knowledge_languages:
+    - en/instrumentation-overview/instrumentation-overview-001
+    - en/instrumentation-overview/instrumentation-overview-002
+    - en/instrumentation-overview/instrumentation-overview-003
+    - en/instrumentation-overview/instrumentation-overview-004
+    - en/instrumentation-overview/instrumentation-overview-005
+    - en/instrumentation-overview/instrumentation-overview-006
+    - en/instrumentation-overview/instrumentation-overview-007
+    - en/instrumentation-overview/instrumentation-overview-008
+- module: module/platform/development/programming/language/java/core/io
+  serviceName: JAVA_IO
+  moduleId: 194
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 36
+    sections: 369
+    menuLanguages: 405
+    knowledgeLanguages: 369
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 405
+    knowledge: 0
+    knowledge_languages: 369
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/io-overview
+    - en/io-overview/io-overview-001
+    - en/io-overview/io-overview-002
+    - en/io-overview/io-overview-003
+    - en/io-overview/io-overview-004
+    - en/io-overview/io-overview-005
+    - en/io-overview/io-overview-006
+    - en/io-overview/io-overview-007
+    knowledge_languages:
+    - en/io-overview/io-overview-001
+    - en/io-overview/io-overview-002
+    - en/io-overview/io-overview-003
+    - en/io-overview/io-overview-004
+    - en/io-overview/io-overview-005
+    - en/io-overview/io-overview-006
+    - en/io-overview/io-overview-007
+    - en/io-overview/io-overview-008
+- module: module/platform/development/programming/language/java/advance/jvm
+  serviceName: JAVA_JVM
+  moduleId: 195
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 18
+    sections: 163
+    menuLanguages: 181
+    knowledgeLanguages: 163
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 181
+    knowledge: 0
+    knowledge_languages: 163
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/jvm-overview
+    - en/jvm-overview/jvm-overview-001
+    - en/jvm-overview/jvm-overview-002
+    - en/jvm-overview/jvm-overview-003
+    - en/jvm-overview/jvm-overview-004
+    - en/jvm-overview/jvm-overview-005
+    - en/jvm-overview/jvm-overview-006
+    - en/jvm-overview/jvm-overview-007
+    knowledge_languages:
+    - en/jvm-overview/jvm-overview-001
+    - en/jvm-overview/jvm-overview-002
+    - en/jvm-overview/jvm-overview-003
+    - en/jvm-overview/jvm-overview-004
+    - en/jvm-overview/jvm-overview-005
+    - en/jvm-overview/jvm-overview-006
+    - en/jvm-overview/jvm-overview-007
+    - en/jvm-overview/jvm-overview-008
+- module: module/platform/development/programming/language/java/core/language-basics
+  serviceName: JAVA_LANGUAGE_BASICS
+  moduleId: 196
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 32
+    sections: 289
+    menuLanguages: 321
+    knowledgeLanguages: 289
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 321
+    knowledge: 0
+    knowledge_languages: 289
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/language-overview
+    - en/language-overview/language-overview-001
+    - en/language-overview/language-overview-002
+    - en/language-overview/language-overview-003
+    - en/language-overview/language-overview-004
+    - en/language-overview/language-overview-005
+    - en/language-overview/language-overview-006
+    - en/language-overview/language-overview-007
+    knowledge_languages:
+    - en/language-overview/language-overview-001
+    - en/language-overview/language-overview-002
+    - en/language-overview/language-overview-003
+    - en/language-overview/language-overview-004
+    - en/language-overview/language-overview-005
+    - en/language-overview/language-overview-006
+    - en/language-overview/language-overview-007
+    - en/language-overview/language-overview-008
+- module: module/platform/development/programming/language/java/core/localization
+  serviceName: JAVA_LOCALIZATION
+  moduleId: 197
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 29
+    sections: 235
+    menuLanguages: 264
+    knowledgeLanguages: 235
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 264
+    knowledge: 0
+    knowledge_languages: 235
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/localization-overview
+    - en/localization-overview/localization-overview-001
+    - en/localization-overview/localization-overview-002
+    - en/localization-overview/localization-overview-003
+    - en/localization-overview/localization-overview-004
+    - en/localization-overview/localization-overview-005
+    - en/localization-overview/localization-overview-006
+    - en/localization-overview/localization-overview-007
+    knowledge_languages:
+    - en/localization-overview/localization-overview-001
+    - en/localization-overview/localization-overview-002
+    - en/localization-overview/localization-overview-003
+    - en/localization-overview/localization-overview-004
+    - en/localization-overview/localization-overview-005
+    - en/localization-overview/localization-overview-006
+    - en/localization-overview/localization-overview-007
+    - en/localization-overview/localization-overview-008
+- module: module/platform/development/programming/language/java/advance/native-interoperability
+  serviceName: JAVA_NATIVE_INTEROPERABILITY
+  moduleId: 198
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 28
+    sections: 227
+    menuLanguages: 255
+    knowledgeLanguages: 227
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 255
+    knowledge: 0
+    knowledge_languages: 227
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/native-interop-overview
+    - en/native-interop-overview/native-interop-overview-001
+    - en/native-interop-overview/native-interop-overview-002
+    - en/native-interop-overview/native-interop-overview-003
+    - en/native-interop-overview/native-interop-overview-004
+    - en/native-interop-overview/native-interop-overview-005
+    - en/native-interop-overview/native-interop-overview-006
+    - en/native-interop-overview/native-interop-overview-007
+    knowledge_languages:
+    - en/native-interop-overview/native-interop-overview-001
+    - en/native-interop-overview/native-interop-overview-002
+    - en/native-interop-overview/native-interop-overview-003
+    - en/native-interop-overview/native-interop-overview-004
+    - en/native-interop-overview/native-interop-overview-005
+    - en/native-interop-overview/native-interop-overview-006
+    - en/native-interop-overview/native-interop-overview-007
+    - en/c-and-abi/c-and-abi-001
+- module: module/platform/development/programming/language/java/advance/networking
+  serviceName: JAVA_NETWORKING
+  moduleId: 199
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 23
+    sections: 247
+    menuLanguages: 270
+    knowledgeLanguages: 247
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 270
+    knowledge: 0
+    knowledge_languages: 247
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/network-overview
+    - en/network-overview/network-overview-001
+    - en/network-overview/network-overview-002
+    - en/network-overview/network-overview-003
+    - en/network-overview/network-overview-004
+    - en/network-overview/network-overview-005
+    - en/network-overview/network-overview-006
+    - en/network-overview/network-overview-007
+    knowledge_languages:
+    - en/network-overview/network-overview-001
+    - en/network-overview/network-overview-002
+    - en/network-overview/network-overview-003
+    - en/network-overview/network-overview-004
+    - en/network-overview/network-overview-005
+    - en/network-overview/network-overview-006
+    - en/network-overview/network-overview-007
+    - en/network-overview/network-overview-008
+- module: module/platform/development/programming/language/java/core/numbers
+  serviceName: JAVA_NUMBERS
+  moduleId: 200
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 33
+    sections: 352
+    menuLanguages: 385
+    knowledgeLanguages: 352
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 385
+    knowledge: 0
+    knowledge_languages: 352
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/language/java/core/object-contract
+  serviceName: JAVA_OBJECT_CONTRACT
+  moduleId: 201
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 28
+    sections: 240
+    menuLanguages: 268
+    knowledgeLanguages: 240
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 268
+    knowledge: 0
+    knowledge_languages: 240
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/language/java/core/reflection
+  serviceName: JAVA_REFLECTION
+  moduleId: 202
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 32
+    sections: 320
+    menuLanguages: 352
+    knowledgeLanguages: 320
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 352
+    knowledge: 0
+    knowledge_languages: 320
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/reflection-overview
+    - en/reflection-overview/reflection-overview-001
+    - en/reflection-overview/reflection-overview-002
+    - en/reflection-overview/reflection-overview-003
+    - en/reflection-overview/reflection-overview-004
+    - en/reflection-overview/reflection-overview-005
+    - en/reflection-overview/reflection-overview-006
+    - en/reflection-overview/reflection-overview-007
+    knowledge_languages:
+    - en/reflection-overview/reflection-overview-001
+    - en/reflection-overview/reflection-overview-002
+    - en/reflection-overview/reflection-overview-003
+    - en/reflection-overview/reflection-overview-004
+    - en/reflection-overview/reflection-overview-005
+    - en/reflection-overview/reflection-overview-006
+    - en/reflection-overview/reflection-overview-007
+    - en/reflection-overview/reflection-overview-008
+- module: module/platform/development/programming/language/java/advance/runtime-diagnostics
+  serviceName: JAVA_RUNTIME_DIAGNOSTICS
+  moduleId: 203
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 22
+    sections: 201
+    menuLanguages: 223
+    knowledgeLanguages: 201
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 223
+    knowledge: 0
+    knowledge_languages: 201
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/runtime-diagnostics-model
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-001
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-002
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-003
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-004
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-005
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-006
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-007
+    knowledge_languages:
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-001
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-002
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-003
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-004
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-005
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-006
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-007
+    - en/runtime-diagnostics-model/runtime-diagnostics-model-008
+- module: module/platform/development/programming/language/java/advance/runtime-extensibility
+  serviceName: JAVA_RUNTIME_EXTENSIBILITY
+  moduleId: 204
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 24
+    sections: 188
+    menuLanguages: 212
+    knowledgeLanguages: 188
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 212
+    knowledge: 0
+    knowledge_languages: 188
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/extension-contracts/extension-contracts-001
+- module: module/platform/development/programming/language/java/advance/security-cryptography
+  serviceName: JAVA_SECURITY_CRYPTOGRAPHY
+  moduleId: 205
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 19
+    sections: 162
+    menuLanguages: 181
+    knowledgeLanguages: 162
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 181
+    knowledge: 0
+    knowledge_languages: 162
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/security-fundamentals
+    - en/security-fundamentals/security-fundamentals-001
+    - en/security-fundamentals/security-fundamentals-002
+    - en/security-fundamentals/security-fundamentals-003
+    - en/security-fundamentals/security-fundamentals-004
+    - en/security-fundamentals/security-fundamentals-005
+    - en/security-fundamentals/security-fundamentals-006
+    - en/security-fundamentals/security-fundamentals-007
+    knowledge_languages:
+    - en/security-fundamentals/security-fundamentals-001
+    - en/security-fundamentals/security-fundamentals-002
+    - en/security-fundamentals/security-fundamentals-003
+    - en/security-fundamentals/security-fundamentals-004
+    - en/security-fundamentals/security-fundamentals-005
+    - en/security-fundamentals/security-fundamentals-006
+    - en/security-fundamentals/security-fundamentals-007
+    - en/security-fundamentals/security-fundamentals-008
+- module: module/platform/development/programming/language/java/core/stream-api
+  serviceName: JAVA_STREAM_API
+  moduleId: 206
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 30
+    sections: 260
+    menuLanguages: 290
+    knowledgeLanguages: 260
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 290
+    knowledge: 0
+    knowledge_languages: 260
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/stream-api-overview
+    - en/stream-api-overview/stream-api-overview-001
+    - en/stream-api-overview/stream-api-overview-002
+    - en/stream-api-overview/stream-api-overview-003
+    - en/stream-api-overview/stream-api-overview-004
+    - en/stream-api-overview/stream-api-overview-005
+    - en/stream-api-overview/stream-api-overview-006
+    - en/stream-api-overview/stream-api-overview-007
+    knowledge_languages:
+    - en/stream-api-overview/stream-api-overview-001
+    - en/stream-api-overview/stream-api-overview-002
+    - en/stream-api-overview/stream-api-overview-003
+    - en/stream-api-overview/stream-api-overview-004
+    - en/stream-api-overview/stream-api-overview-005
+    - en/stream-api-overview/stream-api-overview-006
+    - en/stream-api-overview/stream-api-overview-007
+    - en/pipeline-contracts-and-lifecycle/pipeline-contracts-and-lifecycle-001
+- module: module/platform/development/programming/language/java/core/string
+  serviceName: JAVA_STRING
+  moduleId: 207
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 30
+    sections: 249
+    menuLanguages: 279
+    knowledgeLanguages: 249
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 279
+    knowledge: 0
+    knowledge_languages: 249
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/string-overview
+    - en/string-overview/string-overview-001
+    - en/string-overview/string-overview-002
+    - en/string-overview/string-overview-003
+    - en/string-overview/string-overview-004
+    - en/string-overview/string-overview-005
+    - en/string-overview/string-overview-006
+    - en/string-overview/string-overview-007
+    knowledge_languages:
+    - en/string-overview/string-overview-001
+    - en/string-overview/string-overview-002
+    - en/string-overview/string-overview-003
+    - en/string-overview/string-overview-004
+    - en/string-overview/string-overview-005
+    - en/string-overview/string-overview-006
+    - en/string-overview/string-overview-007
+    - en/string-overview/string-overview-008
+- module: module/platform/development/programming/framework/springdoc/openapi
+  serviceName: SPRINGDOC_OPENAPI
+  moduleId: 438
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 33
+    sections: 397
+    menuLanguages: 430
+    knowledgeLanguages: 397
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 430
+    knowledge: 0
+    knowledge_languages: 397
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/framework/spring-framework/aspect
+  serviceName: SPRING_AOP
+  moduleId: 447
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 17
+    sections: 164
+    menuLanguages: 181
+    knowledgeLanguages: 164
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 181
+    knowledge: 0
+    knowledge_languages: 164
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/spring-aop-scope
+    - en/spring-aop-scope/spring-aop-scope-001
+    - en/spring-aop-scope/spring-aop-scope-002
+    - en/spring-aop-scope/spring-aop-scope-003
+    - en/spring-aop-scope/spring-aop-scope-004
+    - en/spring-aop-scope/spring-aop-scope-005
+    - en/spring-aop-scope/spring-aop-scope-006
+    - en/spring-aop-scope/spring-aop-scope-007
+    knowledge_languages:
+    - en/spring-aop-scope/spring-aop-scope-001
+    - en/spring-aop-scope/spring-aop-scope-002
+    - en/spring-aop-scope/spring-aop-scope-003
+    - en/spring-aop-scope/spring-aop-scope-004
+    - en/spring-aop-scope/spring-aop-scope-005
+    - en/spring-aop-scope/spring-aop-scope-006
+    - en/spring-aop-scope/spring-aop-scope-007
+    - en/spring-aop-scope/spring-aop-scope-008
+- module: module/platform/development/programming/framework/spring-batch/core-processing
+  serviceName: SPRING_BATCH_CORE_PROCESSING
+  moduleId: 448
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 55
+    sections: 654
+    menuLanguages: 709
+    knowledgeLanguages: 654
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 709
+    knowledge: 0
+    knowledge_languages: 654
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/introduction
+    - en/introduction/introduction-001
+    - en/introduction/introduction-002
+    - en/introduction/introduction-003
+    - en/introduction/introduction-004
+    - en/introduction/introduction-005
+    - en/introduction/introduction-006
+    - en/introduction/introduction-007
+    knowledge_languages:
+    - en/introduction/introduction-001
+    - en/introduction/introduction-002
+    - en/introduction/introduction-003
+    - en/introduction/introduction-004
+    - en/introduction/introduction-005
+    - en/introduction/introduction-006
+    - en/introduction/introduction-007
+    - en/introduction/introduction-008
+- module: module/platform/development/programming/framework/spring-boot/actuator
+  serviceName: SPRING_BOOT_ACTUATOR
+  moduleId: 450
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 29
+    sections: 293
+    menuLanguages: 322
+    knowledgeLanguages: 293
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 322
+    knowledge: 0
+    knowledge_languages: 293
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/framework/spring-boot/application-runtime
+  serviceName: SPRING_BOOT_APPLICATION_RUNTIME
+  moduleId: 451
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 25
+    sections: 254
+    menuLanguages: 279
+    knowledgeLanguages: 254
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 279
+    knowledge: 0
+    knowledge_languages: 254
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/framework/spring-boot/auto-configuration
+  serviceName: SPRING_BOOT_AUTO_CONFIGURATION
+  moduleId: 452
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 29
+    sections: 297
+    menuLanguages: 326
+    knowledgeLanguages: 297
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 326
+    knowledge: 0
+    knowledge_languages: 297
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/auto-configuration-overview
+    - en/auto-configuration-overview/auto-configuration-overview-001
+    - en/auto-configuration-overview/auto-configuration-overview-002
+    - en/auto-configuration-overview/auto-configuration-overview-003
+    - en/auto-configuration-overview/auto-configuration-overview-004
+    - en/auto-configuration-overview/auto-configuration-overview-005
+    - en/auto-configuration-overview/auto-configuration-overview-006
+    - en/auto-configuration-overview/auto-configuration-overview-007
+    knowledge_languages:
+    - en/auto-configuration-overview/auto-configuration-overview-001
+    - en/auto-configuration-overview/auto-configuration-overview-002
+    - en/auto-configuration-overview/auto-configuration-overview-003
+    - en/auto-configuration-overview/auto-configuration-overview-004
+    - en/auto-configuration-overview/auto-configuration-overview-005
+    - en/auto-configuration-overview/auto-configuration-overview-006
+    - en/auto-configuration-overview/auto-configuration-overview-007
+    - en/auto-configuration-overview/auto-configuration-overview-008
+- module: module/platform/development/programming/framework/spring-boot/build-tooling-packaging
+  serviceName: SPRING_BOOT_BUILD_TOOLING_PACKAGING
+  moduleId: 453
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 27
+    sections: 255
+    menuLanguages: 282
+    knowledgeLanguages: 255
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 282
+    knowledge: 0
+    knowledge_languages: 255
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/framework/spring-boot/externalized-configuration
+  serviceName: SPRING_BOOT_EXTERNALIZED_CONFIGURATION
+  moduleId: 454
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 25
+    sections: 243
+    menuLanguages: 268
+    knowledgeLanguages: 243
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 268
+    knowledge: 0
+    knowledge_languages: 243
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/framework/spring-boot/fundamentals
+  serviceName: SPRING_BOOT_FUNDAMENTALS
+  moduleId: 455
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 32
+    sections: 350
+    menuLanguages: 382
+    knowledgeLanguages: 350
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 382
+    knowledge: 0
+    knowledge_languages: 350
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/spring-boot-overview
+    - en/spring-boot-overview/spring-boot-overview-001
+    - en/spring-boot-overview/spring-boot-overview-002
+    - en/spring-boot-overview/spring-boot-overview-003
+    - en/spring-boot-overview/spring-boot-overview-004
+    - en/spring-boot-overview/spring-boot-overview-005
+    - en/spring-boot-overview/spring-boot-overview-006
+    - en/spring-boot-overview/spring-boot-overview-007
+    knowledge_languages:
+    - en/spring-boot-overview/spring-boot-overview-001
+    - en/spring-boot-overview/spring-boot-overview-002
+    - en/spring-boot-overview/spring-boot-overview-003
+    - en/spring-boot-overview/spring-boot-overview-004
+    - en/spring-boot-overview/spring-boot-overview-005
+    - en/spring-boot-overview/spring-boot-overview-006
+    - en/spring-boot-overview/spring-boot-overview-007
+    - en/spring-boot-overview/spring-boot-overview-008
+- module: module/platform/development/programming/framework/spring-boot/integration
+  serviceName: SPRING_BOOT_INTEGRATION
+  moduleId: 456
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 44
+    sections: 494
+    menuLanguages: 538
+    knowledgeLanguages: 494
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 538
+    knowledge: 0
+    knowledge_languages: 494
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/integration-overview
+    - en/integration-overview/integration-overview-001
+    - en/integration-overview/integration-overview-002
+    - en/integration-overview/integration-overview-003
+    - en/integration-overview/integration-overview-004
+    - en/integration-overview/integration-overview-005
+    - en/integration-overview/integration-overview-006
+    - en/integration-overview/integration-overview-007
+    knowledge_languages:
+    - en/integration-overview/integration-overview-001
+    - en/integration-overview/integration-overview-002
+    - en/integration-overview/integration-overview-003
+    - en/integration-overview/integration-overview-004
+    - en/integration-overview/integration-overview-005
+    - en/integration-overview/integration-overview-006
+    - en/integration-overview/integration-overview-007
+    - en/integration-overview/integration-overview-008
+- module: module/platform/development/programming/framework/spring-boot/testing
+  serviceName: SPRING_BOOT_TESTING
+  moduleId: 459
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 38
+    sections: 422
+    menuLanguages: 460
+    knowledgeLanguages: 422
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 460
+    knowledge: 0
+    knowledge_languages: 422
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/testing-overview
+    - en/testing-overview/testing-overview-001
+    - en/testing-overview/testing-overview-002
+    - en/testing-overview/testing-overview-003
+    - en/testing-overview/testing-overview-004
+    - en/testing-overview/testing-overview-005
+    - en/testing-overview/testing-overview-006
+    - en/testing-overview/testing-overview-007
+    knowledge_languages:
+    - en/testing-overview/testing-overview-001
+    - en/testing-overview/testing-overview-002
+    - en/testing-overview/testing-overview-003
+    - en/testing-overview/testing-overview-004
+    - en/testing-overview/testing-overview-005
+    - en/testing-overview/testing-overview-006
+    - en/testing-overview/testing-overview-007
+    - en/testing-overview/testing-overview-008
+- module: module/platform/development/programming/framework/spring-boot/web-runtime
+  serviceName: SPRING_BOOT_WEB_RUNTIME
+  moduleId: 460
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 36
+    sections: 384
+    menuLanguages: 420
+    knowledgeLanguages: 384
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 420
+    knowledge: 0
+    knowledge_languages: 384
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/runtime-overview
+    - en/runtime-overview/runtime-overview-001
+    - en/runtime-overview/runtime-overview-002
+    - en/runtime-overview/runtime-overview-003
+    - en/runtime-overview/runtime-overview-004
+    - en/runtime-overview/runtime-overview-005
+    - en/runtime-overview/runtime-overview-006
+    - en/runtime-overview/runtime-overview-007
+    knowledge_languages:
+    - en/runtime-overview/runtime-overview-001
+    - en/runtime-overview/runtime-overview-002
+    - en/runtime-overview/runtime-overview-003
+    - en/runtime-overview/runtime-overview-004
+    - en/runtime-overview/runtime-overview-005
+    - en/runtime-overview/runtime-overview-006
+    - en/runtime-overview/runtime-overview-007
+    - en/runtime-overview/runtime-overview-008
+- module: module/platform/development/programming/framework/spring-framework/cache
+  serviceName: SPRING_CACHE
+  moduleId: 461
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 20
+    sections: 161
+    menuLanguages: 181
+    knowledgeLanguages: 161
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 181
+    knowledge: 0
+    knowledge_languages: 161
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/cache-overview
+    - en/cache-overview/cache-overview-001
+    - en/cache-overview/cache-overview-002
+    - en/cache-overview/cache-overview-003
+    - en/cache-overview/cache-overview-004
+    - en/cache-overview/cache-overview-005
+    - en/cache-overview/cache-overview-006
+    - en/cache-overview/cache-overview-007
+    knowledge_languages:
+    - en/cache-overview/cache-overview-001
+    - en/cache-overview/cache-overview-002
+    - en/cache-overview/cache-overview-003
+    - en/cache-overview/cache-overview-004
+    - en/cache-overview/cache-overview-005
+    - en/cache-overview/cache-overview-006
+    - en/cache-overview/cache-overview-007
+    - en/cache-overview/cache-overview-008
+- module: module/platform/development/programming/framework/spring-framework/concurrency
+  serviceName: SPRING_CONCURRENCY
+  moduleId: 475
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 19
+    sections: 166
+    menuLanguages: 185
+    knowledgeLanguages: 166
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 185
+    knowledge: 0
+    knowledge_languages: 166
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/framework/spring-framework/core-container
+  serviceName: SPRING_CORE_CONTAINER
+  moduleId: 476
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 19
+    sections: 162
+    menuLanguages: 181
+    knowledgeLanguages: 162
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 181
+    knowledge: 0
+    knowledge_languages: 162
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/framework/spring-framework/application-events
+  serviceName: SPRING_FRAMEWORK_APPLICATION_EVENTS
+  moduleId: 490
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 30
+    sections: 298
+    menuLanguages: 328
+    knowledgeLanguages: 298
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 328
+    knowledge: 0
+    knowledge_languages: 298
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/app-events-fundamentals
+    - en/app-events-fundamentals/app-events-fundamentals-001
+    - en/app-events-fundamentals/app-events-fundamentals-002
+    - en/app-events-fundamentals/app-events-fundamentals-003
+    - en/app-events-fundamentals/app-events-fundamentals-004
+    - en/app-events-fundamentals/app-events-fundamentals-005
+    - en/app-events-fundamentals/app-events-fundamentals-006
+    - en/app-events-event-model
+    knowledge_languages:
+    - en/app-events-fundamentals/app-events-fundamentals-001
+    - en/app-events-fundamentals/app-events-fundamentals-002
+    - en/app-events-fundamentals/app-events-fundamentals-003
+    - en/app-events-fundamentals/app-events-fundamentals-004
+    - en/app-events-fundamentals/app-events-fundamentals-005
+    - en/app-events-fundamentals/app-events-fundamentals-006
+    - en/app-events-event-model/app-events-event-model-001
+    - en/app-events-event-model/app-events-event-model-002
+- module: module/platform/development/programming/framework/spring-framework/data-access
+  serviceName: SPRING_FRAMEWORK_DATA_ACCESS
+  moduleId: 491
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 18
+    sections: 163
+    menuLanguages: 181
+    knowledgeLanguages: 163
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 181
+    knowledge: 0
+    knowledge_languages: 163
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/data-access-overview
+    - en/data-access-overview/data-access-overview-001
+    - en/data-access-overview/data-access-overview-002
+    - en/data-access-overview/data-access-overview-003
+    - en/data-access-overview/data-access-overview-004
+    - en/data-access-overview/data-access-overview-005
+    - en/data-access-overview/data-access-overview-006
+    - en/data-access-overview/data-access-overview-007
+    knowledge_languages:
+    - en/data-access-overview/data-access-overview-001
+    - en/data-access-overview/data-access-overview-002
+    - en/data-access-overview/data-access-overview-003
+    - en/data-access-overview/data-access-overview-004
+    - en/data-access-overview/data-access-overview-005
+    - en/data-access-overview/data-access-overview-006
+    - en/data-access-overview/data-access-overview-007
+    - en/data-access-overview/data-access-overview-008
+- module: module/platform/development/programming/framework/spring-framework/expression-language
+  serviceName: SPRING_FRAMEWORK_EXPRESSION_LANGUAGE
+  moduleId: 492
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 37
+    sections: 326
+    menuLanguages: 363
+    knowledgeLanguages: 326
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 363
+    knowledge: 0
+    knowledge_languages: 326
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/spel-overview
+    - en/spel-overview/spel-overview-001
+    - en/spel-overview/spel-overview-002
+    - en/spel-overview/spel-overview-003
+    - en/spel-overview/spel-overview-004
+    - en/spel-overview/spel-overview-005
+    - en/spel-overview/spel-overview-006
+    - en/spel-overview/spel-overview-007
+    knowledge_languages:
+    - en/spel-overview/spel-overview-001
+    - en/spel-overview/spel-overview-002
+    - en/spel-overview/spel-overview-003
+    - en/spel-overview/spel-overview-004
+    - en/spel-overview/spel-overview-005
+    - en/spel-overview/spel-overview-006
+    - en/spel-overview/spel-overview-007
+    - en/spel-overview/spel-overview-008
+- module: module/platform/development/programming/framework/spring-framework/jmx
+  serviceName: SPRING_FRAMEWORK_JMX
+  moduleId: 493
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 32
+    sections: 326
+    menuLanguages: 358
+    knowledgeLanguages: 326
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 358
+    knowledge: 0
+    knowledge_languages: 326
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/jmx-mental-model
+    - en/jmx-mental-model/jmx-mental-model-001
+    - en/jmx-mental-model/jmx-mental-model-002
+    - en/jmx-mental-model/jmx-mental-model-003
+    - en/jmx-mental-model/jmx-mental-model-004
+    - en/jmx-mental-model/jmx-mental-model-005
+    - en/jmx-mental-model/jmx-mental-model-006
+    - en/jmx-mental-model/jmx-mental-model-007
+    knowledge_languages:
+    - en/jmx-mental-model/jmx-mental-model-001
+    - en/jmx-mental-model/jmx-mental-model-002
+    - en/jmx-mental-model/jmx-mental-model-003
+    - en/jmx-mental-model/jmx-mental-model-004
+    - en/jmx-mental-model/jmx-mental-model-005
+    - en/jmx-mental-model/jmx-mental-model-006
+    - en/jmx-mental-model/jmx-mental-model-007
+    - en/jmx-mental-model/jmx-mental-model-008
+- module: module/platform/development/programming/framework/spring-framework/mail
+  serviceName: SPRING_FRAMEWORK_MAIL
+  moduleId: 494
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 34
+    sections: 429
+    menuLanguages: 463
+    knowledgeLanguages: 429
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 463
+    knowledge: 0
+    knowledge_languages: 429
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/mail-intro
+    - en/mail-intro/mail-intro-001
+    - en/mail-intro/mail-intro-002
+    - en/mail-intro/mail-intro-003
+    - en/mail-intro/mail-intro-004
+    - en/mail-intro/mail-intro-005
+    - en/mail-intro/mail-intro-006
+    - en/mail-intro/mail-intro-007
+    knowledge_languages:
+    - en/mail-intro/mail-intro-001
+    - en/mail-intro/mail-intro-002
+    - en/mail-intro/mail-intro-003
+    - en/mail-intro/mail-intro-004
+    - en/mail-intro/mail-intro-005
+    - en/mail-intro/mail-intro-006
+    - en/mail-intro/mail-intro-007
+    - en/mail-intro/mail-intro-008
+- module: module/platform/development/programming/framework/spring-framework/testing
+  serviceName: SPRING_FRAMEWORK_TESTING
+  moduleId: 495
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 34
+    sections: 350
+    menuLanguages: 384
+    knowledgeLanguages: 350
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 384
+    knowledge: 0
+    knowledge_languages: 350
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/testing-overview
+    - en/testing-overview/testing-overview-001
+    - en/testing-overview/testing-overview-002
+    - en/testing-overview/testing-overview-003
+    - en/testing-overview/testing-overview-004
+    - en/testing-overview/testing-overview-005
+    - en/testing-overview/testing-overview-006
+    - en/testing-overview/testing-overview-007
+    knowledge_languages:
+    - en/testing-overview/testing-overview-001
+    - en/testing-overview/testing-overview-002
+    - en/testing-overview/testing-overview-003
+    - en/testing-overview/testing-overview-004
+    - en/testing-overview/testing-overview-005
+    - en/testing-overview/testing-overview-006
+    - en/testing-overview/testing-overview-007
+    - en/testing-overview/testing-overview-008
+- module: module/platform/development/programming/framework/spring-framework/jms
+  serviceName: SPRING_JMS
+  moduleId: 503
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 16
+    sections: 165
+    menuLanguages: 181
+    knowledgeLanguages: 165
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 181
+    knowledge: 0
+    knowledge_languages: 165
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/jms-overview
+    - en/jms-overview/jms-overview-001
+    - en/jms-overview/jms-overview-002
+    - en/jms-overview/jms-overview-003
+    - en/jms-overview/jms-overview-004
+    - en/jms-overview/jms-overview-005
+    - en/jms-overview/jms-overview-006
+    - en/jms-overview/jms-overview-007
+    knowledge_languages:
+    - en/jms-overview/jms-overview-001
+    - en/jms-overview/jms-overview-002
+    - en/jms-overview/jms-overview-003
+    - en/jms-overview/jms-overview-004
+    - en/jms-overview/jms-overview-005
+    - en/jms-overview/jms-overview-006
+    - en/jms-overview/jms-overview-007
+    - en/jms-overview/jms-overview-008
+- module: module/platform/development/programming/framework/spring-kafka/messaging
+  serviceName: SPRING_KAFKA_MESSAGING
+  moduleId: 504
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 39
+    sections: 426
+    menuLanguages: 465
+    knowledgeLanguages: 426
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 465
+    knowledge: 0
+    knowledge_languages: 426
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/messaging-foundations
+    - en/messaging-foundations/messaging-foundations-001
+    - en/messaging-foundations/messaging-foundations-002
+    - en/messaging-foundations/messaging-foundations-003
+    - en/messaging-foundations/messaging-foundations-004
+    - en/messaging-foundations/messaging-foundations-005
+    - en/messaging-foundations/messaging-foundations-006
+    - en/messaging-foundations/messaging-foundations-007
+    knowledge_languages:
+    - en/messaging-foundations/messaging-foundations-001
+    - en/messaging-foundations/messaging-foundations-002
+    - en/messaging-foundations/messaging-foundations-003
+    - en/messaging-foundations/messaging-foundations-004
+    - en/messaging-foundations/messaging-foundations-005
+    - en/messaging-foundations/messaging-foundations-006
+    - en/messaging-foundations/messaging-foundations-007
+    - en/messaging-foundations/messaging-foundations-008
+- module: module/platform/development/programming/framework/spring-kafka/reliability-operations
+  serviceName: SPRING_KAFKA_RELIABILITY_OPERATIONS
+  moduleId: 505
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 34
+    sections: 433
+    menuLanguages: 467
+    knowledgeLanguages: 433
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 467
+    knowledge: 0
+    knowledge_languages: 433
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/operations-scope
+    - en/operations-scope/operations-scope-001
+    - en/operations-scope/operations-scope-002
+    - en/operations-scope/operations-scope-003
+    - en/operations-scope/operations-scope-004
+    - en/operations-scope/operations-scope-005
+    - en/operations-scope/operations-scope-006
+    - en/operations-scope/operations-scope-007
+    knowledge_languages:
+    - en/operations-scope/operations-scope-001
+    - en/operations-scope/operations-scope-002
+    - en/operations-scope/operations-scope-003
+    - en/operations-scope/operations-scope-004
+    - en/operations-scope/operations-scope-005
+    - en/operations-scope/operations-scope-006
+    - en/operations-scope/operations-scope-007
+    - en/operations-scope/operations-scope-008
+- module: module/platform/development/programming/framework/spring-framework/messaging
+  serviceName: SPRING_MESSAGING
+  moduleId: 507
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 37
+    sections: 375
+    menuLanguages: 412
+    knowledgeLanguages: 375
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 412
+    knowledge: 0
+    knowledge_languages: 375
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/framework/spring-framework/reactive
+  serviceName: SPRING_REACTIVE
+  moduleId: 512
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 37
+    sections: 328
+    menuLanguages: 365
+    knowledgeLanguages: 328
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 365
+    knowledge: 0
+    knowledge_languages: 328
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/reactive-overview
+    - en/reactive-overview/reactive-overview-001
+    - en/reactive-overview/reactive-overview-002
+    - en/reactive-overview/reactive-overview-003
+    - en/reactive-overview/reactive-overview-004
+    - en/reactive-overview/reactive-overview-005
+    - en/reactive-overview/reactive-overview-006
+    - en/reactive-overview/reactive-overview-007
+    knowledge_languages:
+    - en/reactive-overview/reactive-overview-001
+    - en/reactive-overview/reactive-overview-002
+    - en/reactive-overview/reactive-overview-003
+    - en/reactive-overview/reactive-overview-004
+    - en/reactive-overview/reactive-overview-005
+    - en/reactive-overview/reactive-overview-006
+    - en/reactive-overview/reactive-overview-007
+    - en/reactive-overview/reactive-overview-008
+- module: module/platform/development/programming/framework/spring-security/authentication
+  serviceName: SPRING_SECURITY_AUTHENTICATION
+  moduleId: 514
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 40
+    sections: 373
+    menuLanguages: 413
+    knowledgeLanguages: 373
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 413
+    knowledge: 0
+    knowledge_languages: 373
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/framework/spring-security/authorization
+  serviceName: SPRING_SECURITY_AUTHORIZATION
+  moduleId: 515
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 34
+    sections: 360
+    menuLanguages: 394
+    knowledgeLanguages: 360
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 394
+    knowledge: 0
+    knowledge_languages: 360
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/authorization-overview
+    - en/authorization-overview/authorization-overview-001
+    - en/authorization-overview/authorization-overview-002
+    - en/authorization-overview/authorization-overview-003
+    - en/authorization-overview/authorization-overview-004
+    - en/authorization-overview/authorization-overview-005
+    - en/authorization-overview/authorization-overview-006
+    - en/authorization-overview/authorization-overview-007
+    knowledge_languages:
+    - en/authorization-overview/authorization-overview-001
+    - en/authorization-overview/authorization-overview-002
+    - en/authorization-overview/authorization-overview-003
+    - en/authorization-overview/authorization-overview-004
+    - en/authorization-overview/authorization-overview-005
+    - en/authorization-overview/authorization-overview-006
+    - en/authorization-overview/authorization-overview-007
+    - en/authorization-overview/authorization-overview-008
+- module: module/platform/development/programming/framework/spring-security/federation
+  serviceName: SPRING_SECURITY_FEDERATION
+  moduleId: 516
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 31
+    sections: 326
+    menuLanguages: 357
+    knowledgeLanguages: 326
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 357
+    knowledge: 0
+    knowledge_languages: 326
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/federation-overview
+    - en/federation-overview/federation-overview-001
+    - en/federation-overview/federation-overview-002
+    - en/federation-overview/federation-overview-003
+    - en/federation-overview/federation-overview-004
+    - en/federation-overview/federation-overview-005
+    - en/federation-overview/federation-overview-006
+    - en/federation-overview/federation-overview-007
+    knowledge_languages:
+    - en/federation-overview/federation-overview-001
+    - en/federation-overview/federation-overview-002
+    - en/federation-overview/federation-overview-003
+    - en/federation-overview/federation-overview-004
+    - en/federation-overview/federation-overview-005
+    - en/federation-overview/federation-overview-006
+    - en/federation-overview/federation-overview-007
+    - en/federation-overview/federation-overview-008
+- module: module/platform/development/programming/framework/spring-security/fundamentals
+  serviceName: SPRING_SECURITY_FUNDAMENTALS
+  moduleId: 517
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 31
+    sections: 301
+    menuLanguages: 332
+    knowledgeLanguages: 301
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 332
+    knowledge: 0
+    knowledge_languages: 301
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/security-overview
+    - en/security-overview/security-overview-001
+    - en/security-overview/security-overview-002
+    - en/security-overview/security-overview-003
+    - en/security-overview/security-overview-004
+    - en/security-overview/security-overview-005
+    - en/security-overview/security-overview-006
+    - en/security-overview/security-overview-007
+    knowledge_languages:
+    - en/security-overview/security-overview-001
+    - en/security-overview/security-overview-002
+    - en/security-overview/security-overview-003
+    - en/security-overview/security-overview-004
+    - en/security-overview/security-overview-005
+    - en/security-overview/security-overview-006
+    - en/security-overview/security-overview-007
+    - en/security-overview/security-overview-008
+- module: module/platform/development/programming/framework/spring-security/reactive
+  serviceName: SPRING_SECURITY_REACTIVE
+  moduleId: 522
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 30
+    sections: 316
+    menuLanguages: 346
+    knowledgeLanguages: 316
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 346
+    knowledge: 0
+    knowledge_languages: 316
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/framework/spring-security/servlet
+  serviceName: SPRING_SECURITY_SERVLET
+  moduleId: 523
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 37
+    sections: 365
+    menuLanguages: 402
+    knowledgeLanguages: 365
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 402
+    knowledge: 0
+    knowledge_languages: 365
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/overview
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    knowledge_languages:
+    - en/overview/overview-001
+    - en/overview/overview-002
+    - en/overview/overview-003
+    - en/overview/overview-004
+    - en/overview/overview-005
+    - en/overview/overview-006
+    - en/overview/overview-007
+    - en/overview/overview-008
+- module: module/platform/development/programming/framework/spring-framework/transaction-management
+  serviceName: SPRING_TRANSACTION_MANAGEMENT
+  moduleId: 527
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 19
+    sections: 162
+    menuLanguages: 181
+    knowledgeLanguages: 162
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 181
+    knowledge: 0
+    knowledge_languages: 162
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/transaction-overview
+    - en/transaction-overview/transaction-overview-001
+    - en/transaction-overview/transaction-overview-002
+    - en/transaction-overview/transaction-overview-003
+    - en/transaction-overview/transaction-overview-004
+    - en/transaction-overview/transaction-overview-005
+    - en/transaction-overview/transaction-overview-006
+    - en/transaction-overview/transaction-overview-007
+    knowledge_languages:
+    - en/transaction-overview/transaction-overview-001
+    - en/transaction-overview/transaction-overview-002
+    - en/transaction-overview/transaction-overview-003
+    - en/transaction-overview/transaction-overview-004
+    - en/transaction-overview/transaction-overview-005
+    - en/transaction-overview/transaction-overview-006
+    - en/transaction-overview/transaction-overview-007
+    - en/transaction-overview/transaction-overview-008
+- module: module/platform/development/programming/framework/spring-framework/validation-data-binding
+  serviceName: SPRING_VALIDATION_DATA_BINDING
+  moduleId: 528
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 35
+    sections: 363
+    menuLanguages: 398
+    knowledgeLanguages: 363
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 398
+    knowledge: 0
+    knowledge_languages: 363
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/validation-overview
+    - en/validation-overview/validation-overview-001
+    - en/validation-overview/validation-overview-002
+    - en/validation-overview/validation-overview-003
+    - en/validation-overview/validation-overview-004
+    - en/validation-overview/validation-overview-005
+    - en/validation-overview/validation-overview-006
+    - en/validation-overview/validation-overview-007
+    knowledge_languages:
+    - en/validation-overview/validation-overview-001
+    - en/validation-overview/validation-overview-002
+    - en/validation-overview/validation-overview-003
+    - en/validation-overview/validation-overview-004
+    - en/validation-overview/validation-overview-005
+    - en/validation-overview/validation-overview-006
+    - en/validation-overview/validation-overview-007
+    - en/validation-overview/validation-overview-008
+- module: module/platform/development/programming/framework/spring-framework/web
+  serviceName: SPRING_WEB
+  moduleId: 530
+  state: PARTIAL
+  languages:
+  - en
+  expected:
+    chapters: 30
+    sections: 245
+    menuLanguages: 275
+    knowledgeLanguages: 245
+  missing:
+    chapters: 0
+    sections: 0
+    menu_languages: 275
+    knowledge: 0
+    knowledge_languages: 245
+  mismatched:
+    menu_order: 0
+    menu_titles: 0
+    knowledge_status: 0
+    empty_content: 0
+    difficulty: 0
+    activation: 0
+  examples:
+    menu_languages:
+    - en/web-overview
+    - en/web-overview/web-overview-001
+    - en/web-overview/web-overview-002
+    - en/web-overview/web-overview-003
+    - en/web-overview/web-overview-004
+    - en/web-overview/web-overview-005
+    - en/web-overview/web-overview-006
+    - en/http-fundamentals
+    knowledge_languages:
+    - en/web-overview/web-overview-001
+    - en/web-overview/web-overview-002
+    - en/web-overview/web-overview-003
+    - en/web-overview/web-overview-004
+    - en/web-overview/web-overview-005
+    - en/web-overview/web-overview-006
+    - en/http-fundamentals/http-fundamentals-001
+    - en/http-fundamentals/http-fundamentals-002
+errors: []

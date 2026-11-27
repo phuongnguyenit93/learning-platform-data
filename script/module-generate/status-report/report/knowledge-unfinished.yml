@@ -1,0 +1,18 @@
+unfinishedKnowledge:
+- location: learning-platform-data/module/infrastructure/system/security/identity-access-management/privileged-access-management
+  CURRENT_STEP: '3'
+  SERVICE_NAME: SECURITY_IDENTITY_ACCESS_MANAGEMENT_PRIVILEGED_ACCESS_MANAGEMENT
+  totalFiles: 500
+  blankFiles: 218
+  filledFiles: 282
+summary:
+  totalModules: 569
+  unfinishedModules: 1
+  blankModules: 384
+  finishedModules: 184
+  modulesWithoutMarkdown: 0
+  missingMetadataModules: 0
+  totalMarkdownFiles: 200517
+  blankMarkdownFiles: 116279
+  filledMarkdownFiles: 84238
+  generatedAt: '2026-11-27T00:11:02+07:00'

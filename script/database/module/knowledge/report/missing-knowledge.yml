@@ -1,0 +1,1964 @@
+generatedAt: '2026-11-26T09:38:50+00:00'
+mode: READ_ONLY_STRUCTURAL_CHECK
+note: Compares source Menu/Knowledge keys, titles, ordering, lesson status and presence of published content. Does not compare
+  full Markdown text or optional QA metadata.
+summary:
+  scanned: 569
+  missingModules: 390
+  notSynced: 390
+  partial: 0
+  outdated: 0
+  complete: 179
+  errors: 0
+modules:
+- module: module/infrastructure/cloud/core-services/networking
+  serviceName: CLOUD_CORE_SERVICES_NETWORKING
+  moduleId: 11
+  languages:
+  - vi
+- module: module/infrastructure/cloud/core-services/storage
+  serviceName: CLOUD_CORE_SERVICES_STORAGE
+  moduleId: 12
+  languages:
+  - vi
+- module: module/infrastructure/cloud/cost-management
+  serviceName: CLOUD_COST_MANAGEMENT
+  moduleId: 13
+  languages:
+  - vi
+- module: module/infrastructure/cloud/fundamentals
+  serviceName: CLOUD_FUNDAMENTALS
+  moduleId: 14
+  languages:
+  - vi
+- module: module/infrastructure/cloud/operations
+  serviceName: CLOUD_OPERATIONS
+  moduleId: 15
+  languages:
+  - vi
+- module: module/infrastructure/cloud/providers/alibaba
+  serviceName: CLOUD_PROVIDERS_ALIBABA
+  moduleId: 16
+  languages:
+  - vi
+- module: module/infrastructure/cloud/providers/ibm
+  serviceName: CLOUD_PROVIDERS_IBM
+  moduleId: 20
+  languages:
+  - vi
+- module: module/infrastructure/cloud/security-governance
+  serviceName: CLOUD_SECURITY_GOVERNANCE
+  moduleId: 22
+  languages:
+  - vi
+- module: module/infrastructure/devops/delivery-automation/artifact-management/container-registry
+  serviceName: DEVOPS_CONTAINER_REGISTRY
+  moduleId: 99
+  languages:
+  - vi
+- module: module/infrastructure/devops/delivery-automation/artifact-management/fundamentals
+  serviceName: DEVOPS_ARTIFACT_MANAGEMENT_FUNDAMENTALS
+  moduleId: 92
+  languages:
+  - vi
+- module: module/infrastructure/devops/delivery-automation/artifact-management/maven-central
+  serviceName: DEVOPS_DELIVERY_AUTOMATION_ARTIFACT_MANAGEMENT_MAVEN_CENTRAL
+  moduleId: 100
+  languages:
+  - vi
+- module: module/infrastructure/devops/delivery-automation/artifact-management/nexus
+  serviceName: DEVOPS_DELIVERY_AUTOMATION_ARTIFACT_MANAGEMENT_NEXUS
+  moduleId: 101
+  languages:
+  - vi
+- module: module/infrastructure/devops/delivery-automation/ci-cd/github-actions
+  serviceName: DEVOPS_DELIVERY_AUTOMATION_CI_CD_GITHUB_ACTIONS
+  moduleId: 102
+  languages:
+  - vi
+- module: module/infrastructure/devops/delivery-automation/ci-cd/gitlab-ci
+  serviceName: DEVOPS_DELIVERY_AUTOMATION_CI_CD_GITLAB_CI
+  moduleId: 103
+  languages:
+  - vi
+- module: module/infrastructure/devops/delivery-automation/ci-cd/jenkins
+  serviceName: DEVOPS_DELIVERY_AUTOMATION_CI_CD_JENKINS
+  moduleId: 104
+  languages:
+  - vi
+- module: module/infrastructure/devops/delivery-automation/delivery-performance
+  serviceName: DEVOPS_DELIVERY_AUTOMATION_DELIVERY_PERFORMANCE
+  moduleId: 105
+  languages:
+  - vi
+- module: module/infrastructure/devops/delivery-automation/release-management
+  serviceName: DEVOPS_DELIVERY_AUTOMATION_RELEASE_MANAGEMENT
+  moduleId: 106
+  languages:
+  - vi
+- module: module/infrastructure/devops/delivery-automation/versioning
+  serviceName: DEVOPS_VERSIONING
+  moduleId: 130
+  languages:
+  - vi
+- module: module/infrastructure/devops/devsecops/container-security
+  serviceName: DEVSECOPS_CONTAINER_SECURITY
+  moduleId: 131
+  languages:
+  - vi
+- module: module/infrastructure/devops/devsecops/dependency-scanning
+  serviceName: DEVSECOPS_DEPENDENCY_SCANNING
+  moduleId: 132
+  languages:
+  - vi
+- module: module/infrastructure/devops/devsecops/fundamentals
+  serviceName: DEVSECOPS_FUNDAMENTALS
+  moduleId: 133
+  languages:
+  - vi
+- module: module/infrastructure/devops/devsecops/infrastructure-security
+  serviceName: DEVSECOPS_INFRASTRUCTURE_SECURITY
+  moduleId: 134
+  languages:
+  - vi
+- module: module/infrastructure/devops/devsecops/pipeline-security
+  serviceName: DEVSECOPS_PIPELINE_SECURITY
+  moduleId: 135
+  languages:
+  - vi
+- module: module/infrastructure/devops/devsecops/sast-dast
+  serviceName: DEVSECOPS_SAST_DAST
+  moduleId: 136
+  languages:
+  - vi
+- module: module/infrastructure/devops/devsecops/secret-scanning
+  serviceName: DEVSECOPS_SECRET_SCANNING
+  moduleId: 137
+  languages:
+  - vi
+- module: module/infrastructure/devops/devsecops/software-supply-chain
+  serviceName: DEVSECOPS_SOFTWARE_SUPPLY_CHAIN
+  moduleId: 138
+  languages:
+  - vi
+- module: module/infrastructure/devops/fundamentals
+  serviceName: DEVOPS_FUNDAMENTALS
+  moduleId: 110
+  languages:
+  - vi
+- module: module/infrastructure/devops/infrastructure-management/configuration-management/ansible
+  serviceName: DEVOPS_INFRASTRUCTURE_MANAGEMENT_CONFIGURATION_MANAGEMENT_ANSIBLE
+  moduleId: 115
+  languages:
+  - vi
+- module: module/infrastructure/devops/infrastructure-management/configuration-management/fundamentals
+  serviceName: DEVOPS_CONFIGURATION_MANAGEMENT_FUNDAMENTALS
+  moduleId: 97
+  languages:
+  - vi
+- module: module/infrastructure/devops/infrastructure-management/environment-management
+  serviceName: DEVOPS_INFRASTRUCTURE_MANAGEMENT_ENVIRONMENT_MANAGEMENT
+  moduleId: 116
+  languages:
+  - vi
+- module: module/infrastructure/devops/infrastructure-management/fundamentals
+  serviceName: DEVOPS_INFRASTRUCTURE_MANAGEMENT_FUNDAMENTALS
+  moduleId: 117
+  languages:
+  - vi
+- module: module/infrastructure/devops/infrastructure-management/infrastructure-as-code/fundamentals
+  serviceName: DEVOPS_IAC_FUNDAMENTALS
+  moduleId: 113
+  languages:
+  - vi
+- module: module/infrastructure/devops/infrastructure-management/infrastructure-as-code/terraform
+  serviceName: DEVOPS_INFRASTRUCTURE_MANAGEMENT_INFRASTRUCTURE_AS_CODE_TERRAFORM
+  moduleId: 118
+  languages:
+  - vi
+- module: module/infrastructure/devops/platform-engineering/fundamentals
+  serviceName: DEVOPS_PLATFORM_ENGINEERING_FUNDAMENTALS
+  moduleId: 122
+  languages:
+  - vi
+- module: module/infrastructure/devops/platform-engineering/internal-developer-platform
+  serviceName: DEVOPS_INTERNAL_DEVELOPER_PLATFORM
+  moduleId: 119
+  languages:
+  - vi
+- module: module/infrastructure/devops/platform-engineering/tool/backstage
+  serviceName: DEVOPS_BACKSTAGE
+  moduleId: 93
+  languages:
+  - vi
+- module: module/infrastructure/devops/reliability-operations/alerting-strategy
+  serviceName: DEVOPS_ALERTING_STRATEGY
+  moduleId: 90
+  languages:
+  - vi
+- module: module/infrastructure/devops/reliability-operations/capacity-planning
+  serviceName: DEVOPS_CAPACITY_PLANNING
+  moduleId: 95
+  languages:
+  - vi
+- module: module/infrastructure/devops/reliability-operations/disaster-recovery
+  serviceName: DEVOPS_DISASTER_RECOVERY
+  moduleId: 108
+  languages:
+  - vi
+- module: module/infrastructure/devops/reliability-operations/fundamentals
+  serviceName: DEVOPS_RELIABILITY_OPERATIONS_FUNDAMENTALS
+  moduleId: 123
+  languages:
+  - vi
+- module: module/infrastructure/devops/reliability-operations/incident-management
+  serviceName: DEVOPS_INCIDENT_MANAGEMENT
+  moduleId: 114
+  languages:
+  - vi
+- module: module/infrastructure/devops/reliability-operations/operational-readiness
+  serviceName: DEVOPS_RELIABILITY_OPERATIONS_OPERATIONAL_READINESS
+  moduleId: 124
+  languages:
+  - vi
+- module: module/infrastructure/devops/reliability-operations/sli-slo-sla
+  serviceName: DEVOPS_SLI_SLO_SLA
+  moduleId: 128
+  languages:
+  - vi
+- module: module/infrastructure/devops/runtime-delivery/containerization/docker
+  serviceName: DEVOPS_RUNTIME_DELIVERY_CONTAINERIZATION_DOCKER
+  moduleId: 125
+  languages:
+  - vi
+- module: module/infrastructure/devops/runtime-delivery/containerization/docker-compose
+  serviceName: DEVOPS_DOCKER_COMPOSE
+  moduleId: 109
+  languages:
+  - vi
+- module: module/infrastructure/devops/runtime-delivery/containerization/fundamentals
+  serviceName: DEVOPS_CONTAINERIZATION_FUNDAMENTALS
+  moduleId: 98
+  languages:
+  - vi
+- module: module/infrastructure/devops/runtime-delivery/deployment/deployment-strategy
+  serviceName: DEVOPS_RUNTIME_DELIVERY_DEPLOYMENT_DEPLOYMENT_STRATEGY
+  moduleId: 126
+  languages:
+  - vi
+- module: module/infrastructure/devops/runtime-delivery/deployment/fundamentals
+  serviceName: DEVOPS_DEPLOYMENT_FUNDAMENTALS
+  moduleId: 107
+  languages:
+  - vi
+- module: module/infrastructure/devops/runtime-delivery/deployment/gitops/argo-cd
+  serviceName: DEVOPS_ARGO_CD
+  moduleId: 91
+  languages:
+  - vi
+- module: module/infrastructure/devops/runtime-delivery/deployment/gitops/fundamentals
+  serviceName: DEVOPS_GITOPS_FUNDAMENTALS
+  moduleId: 111
+  languages:
+  - vi
+- module: module/infrastructure/devops/runtime-delivery/orchestration/fundamentals
+  serviceName: DEVOPS_ORCHESTRATION_FUNDAMENTALS
+  moduleId: 121
+  languages:
+  - vi
+- module: module/infrastructure/devops/runtime-delivery/orchestration/helm
+  serviceName: DEVOPS_HELM
+  moduleId: 112
+  languages:
+  - vi
+- module: module/infrastructure/devops/runtime-delivery/orchestration/kubernetes
+  serviceName: DEVOPS_RUNTIME_DELIVERY_ORCHESTRATION_KUBERNETES
+  moduleId: 127
+  languages:
+  - vi
+- module: module/infrastructure/devops/source-management/collaboration-platform/azure-devops
+  serviceName: COLLABORATION_AZURE_DEVOPS
+  moduleId: 37
+  languages:
+  - vi
+- module: module/infrastructure/devops/source-management/collaboration-platform/bitbucket
+  serviceName: COLLABORATION_BITBUCKET
+  moduleId: 38
+  languages:
+  - vi
+- module: module/infrastructure/devops/source-management/collaboration-platform/github
+  serviceName: COLLABORATION_GITHUB
+  moduleId: 39
+  languages:
+  - vi
+- module: module/infrastructure/devops/source-management/collaboration-platform/gitlab
+  serviceName: COLLABORATION_GITLAB
+  moduleId: 40
+  languages:
+  - vi
+- module: module/infrastructure/devops/source-management/fundamentals
+  serviceName: DEVOPS_SOURCE_MANAGEMENT_FUNDAMENTALS
+  moduleId: 129
+  languages:
+  - vi
+- module: module/infrastructure/devops/source-management/repository-strategy/branching-strategy
+  serviceName: DEVOPS_BRANCHING_STRATEGY
+  moduleId: 94
+  languages:
+  - vi
+- module: module/infrastructure/devops/source-management/repository-strategy/monorepo-polyrepo
+  serviceName: DEVOPS_MONOREPO_POLYREPO
+  moduleId: 120
+  languages:
+  - vi
+- module: module/infrastructure/system/database/connection-management/fundamentals
+  serviceName: DATABASE_CONNECTION_MANAGEMENT_FUNDAMENTALS
+  moduleId: 52
+  languages:
+  - vi
+- module: module/infrastructure/system/database/connection-management/hikari-cp
+  serviceName: HIKARI_CP
+  moduleId: 154
+  languages:
+  - vi
+- module: module/infrastructure/system/database/engine/analytical/clickhouse
+  serviceName: DATABASE_ENGINE_ANALYTICAL_CLICKHOUSE
+  moduleId: 54
+  languages:
+  - vi
+- module: module/infrastructure/system/database/engine/key-value/redis
+  serviceName: DATABASE_ENGINE_KEY_VALUE_REDIS
+  moduleId: 56
+  languages:
+  - vi
+- module: module/infrastructure/system/database/engine/search/elasticsearch
+  serviceName: DATABASE_ENGINE_SEARCH_ELASTICSEARCH
+  moduleId: 57
+  languages:
+  - vi
+- module: module/infrastructure/system/database/engine/time-series/influxdb
+  serviceName: DATABASE_ENGINE_TIME_SERIES_INFLUXDB
+  moduleId: 58
+  languages:
+  - vi
+- module: module/infrastructure/system/database/fundamentals
+  serviceName: DATABASE_FUNDAMENTALS
+  moduleId: 60
+  languages:
+  - vi
+- module: module/infrastructure/system/database/operations
+  serviceName: DATABASE_OPERATIONS
+  moduleId: 64
+  languages:
+  - vi
+- module: module/infrastructure/system/database/replication-distribution
+  serviceName: DATABASE_REPLICATION_DISTRIBUTION
+  moduleId: 68
+  languages:
+  - vi
+- module: module/infrastructure/system/database/schema-migration/flyway
+  serviceName: DATABASE_SCHEMA_MIGRATION_FLYWAY
+  moduleId: 69
+  languages:
+  - vi
+- module: module/infrastructure/system/database/schema-migration/fundamentals
+  serviceName: DATABASE_SCHEMA_MIGRATION_FUNDAMENTALS
+  moduleId: 70
+  languages:
+  - vi
+- module: module/infrastructure/system/network/api-gateway/fundamentals
+  serviceName: NETWORK_API_GATEWAY_FUNDAMENTALS
+  moduleId: 234
+  languages:
+  - vi
+- module: module/infrastructure/system/network/api-gateway/kong
+  serviceName: NETWORK_API_GATEWAY_KONG
+  moduleId: 235
+  languages:
+  - vi
+- module: module/infrastructure/system/network/connectivity
+  serviceName: NETWORK_CONNECTIVITY
+  moduleId: 236
+  languages:
+  - vi
+- module: module/infrastructure/system/network/fundamentals
+  serviceName: NETWORK_FUNDAMENTALS
+  moduleId: 237
+  languages:
+  - vi
+- module: module/infrastructure/system/network/protocol/dns
+  serviceName: NETWORK_PROTOCOL_DNS
+  moduleId: 238
+  languages:
+  - vi
+- module: module/infrastructure/system/network/protocol/http
+  serviceName: NETWORK_PROTOCOL_HTTP
+  moduleId: 239
+  languages:
+  - vi
+- module: module/infrastructure/system/network/protocol/tcp-udp
+  serviceName: NETWORK_PROTOCOL_TCP_UDP
+  moduleId: 240
+  languages:
+  - vi
+- module: module/infrastructure/system/network/protocol/tls
+  serviceName: NETWORK_PROTOCOL_TLS
+  moduleId: 241
+  languages:
+  - vi
+- module: module/infrastructure/system/network/proxy/fundamentals
+  serviceName: NETWORK_PROXY_FUNDAMENTALS
+  moduleId: 242
+  languages:
+  - vi
+- module: module/infrastructure/system/network/proxy/haproxy
+  serviceName: NETWORK_PROXY_HAPROXY
+  moduleId: 243
+  languages:
+  - vi
+- module: module/infrastructure/system/network/proxy/nginx
+  serviceName: NETWORK_PROXY_NGINX
+  moduleId: 244
+  languages:
+  - vi
+- module: module/infrastructure/system/network/service-discovery
+  serviceName: NETWORK_SERVICE_DISCOVERY
+  moduleId: 245
+  languages:
+  - vi
+- module: module/infrastructure/system/network/service-mesh/fundamentals
+  serviceName: NETWORK_SERVICE_MESH_FUNDAMENTALS
+  moduleId: 246
+  languages:
+  - vi
+- module: module/infrastructure/system/network/service-mesh/istio
+  serviceName: NETWORK_SERVICE_MESH_ISTIO
+  moduleId: 247
+  languages:
+  - vi
+- module: module/infrastructure/system/network/service-mesh/linkerd
+  serviceName: NETWORK_SERVICE_MESH_LINKERD
+  moduleId: 248
+  languages:
+  - vi
+- module: module/infrastructure/system/network/traffic-management
+  serviceName: NETWORK_TRAFFIC_MANAGEMENT
+  moduleId: 249
+  languages:
+  - vi
+- module: module/infrastructure/system/network/troubleshooting
+  serviceName: NETWORK_TROUBLESHOOTING
+  moduleId: 250
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/alerting/alertmanager
+  serviceName: SYSTEM_OBSERVABILITY_ALERTMANAGER
+  moduleId: 549
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/alerting/fundamentals
+  serviceName: SYSTEM_OBSERVABILITY_ALERTING_FUNDAMENTALS
+  moduleId: 548
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/alerting/prometheus-rules
+  serviceName: OBSERVABILITY_ALERTING_PROMETHEUS_RULES
+  moduleId: 253
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/diagnostic
+  serviceName: OBSERVABILITY_DIAGNOSTIC
+  moduleId: 254
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/fundamentals
+  serviceName: SYSTEM_OBSERVABILITY_FUNDAMENTALS
+  moduleId: 550
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/instrumentation/context-propagation
+  serviceName: OBSERVABILITY_INSTRUMENTATION_CONTEXT_PROPAGATION
+  moduleId: 255
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/instrumentation/opentelemetry
+  serviceName: OBSERVABILITY_INSTRUMENTATION_OPENTELEMETRY
+  moduleId: 257
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/logging/fundamentals
+  serviceName: OBSERVABILITY_LOGGING_FUNDAMENTALS
+  moduleId: 258
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/logging/log-types
+  serviceName: OBSERVABILITY_LOGGING_LOG_TYPES
+  moduleId: 259
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/logging/storage-analysis/elk-stack
+  serviceName: OBSERVABILITY_LOGGING_STORAGE_ANALYSIS_ELK_STACK
+  moduleId: 260
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/logging/storage-analysis/loki-stack
+  serviceName: OBSERVABILITY_LOGGING_STORAGE_ANALYSIS_LOKI_STACK
+  moduleId: 261
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/management-console/hawtio
+  serviceName: HAWTIO
+  moduleId: 152
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/metrics/fundamentals
+  serviceName: OBSERVABILITY_METRICS_FUNDAMENTALS
+  moduleId: 262
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/metrics/prometheus
+  serviceName: OBSERVABILITY_METRICS_PROMETHEUS
+  moduleId: 263
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/platforms/datadog
+  serviceName: OBSERVABILITY_PLATFORMS_DATADOG
+  moduleId: 264
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/telemetry-governance/access-control
+  serviceName: OBSERVABILITY_TELEMETRY_GOVERNANCE_ACCESS_CONTROL
+  moduleId: 265
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/telemetry-governance/compliance
+  serviceName: OBSERVABILITY_TELEMETRY_GOVERNANCE_COMPLIANCE
+  moduleId: 266
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/telemetry-governance/data-classification
+  serviceName: OBSERVABILITY_TELEMETRY_GOVERNANCE_DATA_CLASSIFICATION
+  moduleId: 267
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/telemetry-governance/data-minimization
+  serviceName: OBSERVABILITY_TELEMETRY_GOVERNANCE_DATA_MINIMIZATION
+  moduleId: 268
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/telemetry-governance/retention
+  serviceName: OBSERVABILITY_TELEMETRY_GOVERNANCE_RETENTION
+  moduleId: 269
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/telemetry-governance/sanitization/filtering
+  serviceName: OBSERVABILITY_TELEMETRY_GOVERNANCE_SANITIZATION_FILTERING
+  moduleId: 270
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/telemetry-governance/sanitization/masking
+  serviceName: OBSERVABILITY_TELEMETRY_GOVERNANCE_SANITIZATION_MASKING
+  moduleId: 271
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/telemetry-governance/sanitization/redaction
+  serviceName: OBSERVABILITY_TELEMETRY_GOVERNANCE_SANITIZATION_REDACTION
+  moduleId: 272
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/telemetry-pipeline/fundamentals
+  serviceName: OBSERVABILITY_TELEMETRY_PIPELINE_FUNDAMENTALS
+  moduleId: 273
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/telemetry-pipeline/tool/fluentd
+  serviceName: OBSERVABILITY_TELEMETRY_PIPELINE_TOOL_FLUENTD
+  moduleId: 274
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/telemetry-pipeline/tool/grafana-alloy
+  serviceName: OBSERVABILITY_TELEMETRY_PIPELINE_TOOL_GRAFANA_ALLOY
+  moduleId: 275
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/telemetry-pipeline/tool/logstash
+  serviceName: OBSERVABILITY_TELEMETRY_PIPELINE_TOOL_LOGSTASH
+  moduleId: 276
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/telemetry-pipeline/tool/opentelemetry-collector
+  serviceName: OBSERVABILITY_TELEMETRY_PIPELINE_TOOL_OPENTELEMETRY_COLLECTOR
+  moduleId: 277
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/tracing/fundamentals
+  serviceName: OBSERVABILITY_TRACING_FUNDAMENTALS
+  moduleId: 278
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/tracing/tooling/jaeger
+  serviceName: OBSERVABILITY_TRACING_TOOLING_JAEGER
+  moduleId: 279
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/tracing/tooling/tempo
+  serviceName: OBSERVABILITY_TRACING_TOOLING_TEMPO
+  moduleId: 280
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/tracing/tooling/zipkin
+  serviceName: OBSERVABILITY_TRACING_TOOLING_ZIPKIN
+  moduleId: 281
+  languages:
+  - vi
+- module: module/infrastructure/system/observability/visualization/grafana
+  serviceName: OBSERVABILITY_VISUALIZATION_GRAFANA
+  moduleId: 282
+  languages:
+  - vi
+- module: module/infrastructure/system/operating-system/file-system
+  serviceName: OPERATING_SYSTEM_FILE_SYSTEM
+  moduleId: 283
+  languages:
+  - vi
+- module: module/infrastructure/system/operating-system/fundamentals
+  serviceName: OPERATING_SYSTEM_FUNDAMENTALS
+  moduleId: 284
+  languages:
+  - vi
+- module: module/infrastructure/system/operating-system/memory-and-io
+  serviceName: OPERATING_SYSTEM_MEMORY_AND_IO
+  moduleId: 285
+  languages:
+  - vi
+- module: module/infrastructure/system/operating-system/process-and-thread
+  serviceName: OPERATING_SYSTEM_PROCESS_AND_THREAD
+  moduleId: 286
+  languages:
+  - vi
+- module: module/infrastructure/system/operating-system/service-management
+  serviceName: OPERATING_SYSTEM_SERVICE_MANAGEMENT
+  moduleId: 287
+  languages:
+  - vi
+- module: module/infrastructure/system/operating-system/shell-and-environment
+  serviceName: OPERATING_SYSTEM_SHELL_AND_ENVIRONMENT
+  moduleId: 288
+  languages:
+  - vi
+- module: module/infrastructure/system/operating-system/troubleshooting
+  serviceName: OPERATING_SYSTEM_TROUBLESHOOTING
+  moduleId: 289
+  languages:
+  - vi
+- module: module/infrastructure/system/operating-system/users-and-permissions
+  serviceName: OPERATING_SYSTEM_USERS_AND_PERMISSIONS
+  moduleId: 290
+  languages:
+  - vi
+- module: module/infrastructure/system/runtime/application-server
+  serviceName: RUNTIME_APPLICATION_SERVER
+  moduleId: 295
+  languages:
+  - vi
+- module: module/infrastructure/system/runtime/fundamentals
+  serviceName: RUNTIME_FUNDAMENTALS
+  moduleId: 296
+  languages:
+  - vi
+- module: module/infrastructure/system/runtime/jvm-runtime
+  serviceName: RUNTIME_JVM_RUNTIME
+  moduleId: 297
+  languages:
+  - vi
+- module: module/infrastructure/system/runtime/native-image
+  serviceName: RUNTIME_NATIVE_IMAGE
+  moduleId: 298
+  languages:
+  - vi
+- module: module/infrastructure/system/runtime/network-engine/netty
+  serviceName: RUNTIME_NETWORK_ENGINE_NETTY
+  moduleId: 299
+  languages:
+  - vi
+- module: module/infrastructure/system/runtime/network-engine/reactor-netty
+  serviceName: RUNTIME_NETWORK_ENGINE_REACTOR_NETTY
+  moduleId: 300
+  languages:
+  - vi
+- module: module/infrastructure/system/runtime/packaging-and-lauching
+  serviceName: RUNTIME_PACKAGING_AND_LAUNCHING
+  moduleId: 301
+  languages:
+  - vi
+- module: module/infrastructure/system/runtime/resource-management
+  serviceName: RUNTIME_RESOURCE_MANAGEMENT
+  moduleId: 302
+  languages:
+  - vi
+- module: module/infrastructure/system/runtime/servlet-container/fundamentals
+  serviceName: RUNTIME_SERVLET_CONTAINER_FUNDAMENTALS
+  moduleId: 303
+  languages:
+  - vi
+- module: module/infrastructure/system/runtime/servlet-container/jetty
+  serviceName: RUNTIME_SERVLET_CONTAINER_JETTY
+  moduleId: 304
+  languages:
+  - vi
+- module: module/infrastructure/system/runtime/servlet-container/tomcat
+  serviceName: RUNTIME_SERVLET_CONTAINER_TOMCAT
+  moduleId: 305
+  languages:
+  - vi
+- module: module/infrastructure/system/security/application-security/file-parser-security
+  serviceName: SECURITY_APPLICATION_SECURITY_FILE_PARSER_SECURITY
+  moduleId: 309
+  languages:
+  - vi
+- module: module/infrastructure/system/security/application-security/injection-prevention
+  serviceName: SECURITY_APPLICATION_SECURITY_INJECTION_PREVENTION
+  moduleId: 310
+  languages:
+  - vi
+- module: module/infrastructure/system/security/application-security/input-output-security
+  serviceName: SECURITY_APPLICATION_SECURITY_INPUT_OUTPUT_SECURITY
+  moduleId: 311
+  languages:
+  - vi
+- module: module/infrastructure/system/security/application-security/outbound-request-security
+  serviceName: SECURITY_APPLICATION_SECURITY_OUTBOUND_REQUEST_SECURITY
+  moduleId: 312
+  languages:
+  - vi
+- module: module/infrastructure/system/security/authentication/api-key-authentication
+  serviceName: SECURITY_AUTHENTICATION_API_KEY_AUTHENTICATION
+  moduleId: 314
+  languages:
+  - vi
+- module: module/infrastructure/system/security/authentication/authentication-abuse-prevention
+  serviceName: SECURITY_AUTHENTICATION_AUTHENTICATION_ABUSE_PREVENTION
+  moduleId: 315
+  languages:
+  - vi
+- module: module/infrastructure/system/security/authentication/certificate-authentication
+  serviceName: SECURITY_AUTHENTICATION_CERTIFICATE_AUTHENTICATION
+  moduleId: 316
+  languages:
+  - vi
+- module: module/infrastructure/system/security/authentication/hmac-request-authentication
+  serviceName: SECURITY_AUTHENTICATION_HMAC_REQUEST_AUTHENTICATION
+  moduleId: 318
+  languages:
+  - vi
+- module: module/infrastructure/system/security/authentication/multi-factor-authentication
+  serviceName: SECURITY_AUTHENTICATION_MULTI_FACTOR_AUTHENTICATION
+  moduleId: 319
+  languages:
+  - vi
+- module: module/infrastructure/system/security/authentication/passkeys-webauthn
+  serviceName: SECURITY_AUTHENTICATION_PASSKEYS_WEBAUTHN
+  moduleId: 320
+  languages:
+  - vi
+- module: module/infrastructure/system/security/authentication/password-authentication
+  serviceName: SECURITY_AUTHENTICATION_PASSWORD_AUTHENTICATION
+  moduleId: 321
+  languages:
+  - vi
+- module: module/infrastructure/system/security/authentication/session-security
+  serviceName: SECURITY_AUTHENTICATION_SESSION_SECURITY
+  moduleId: 322
+  languages:
+  - vi
+- module: module/infrastructure/system/security/authentication/token-based-authentication
+  serviceName: SECURITY_AUTHENTICATION_TOKEN_BASED_AUTHENTICATION
+  moduleId: 323
+  languages:
+  - vi
+- module: module/infrastructure/system/security/authorization/abac
+  serviceName: SECURITY_AUTHORIZATION_ABAC
+  moduleId: 324
+  languages:
+  - vi
+- module: module/infrastructure/system/security/authorization/fundamentals
+  serviceName: SECURITY_AUTHORIZATION_FUNDAMENTALS
+  moduleId: 325
+  languages:
+  - vi
+- module: module/infrastructure/system/security/authorization/object-level-authorization
+  serviceName: SECURITY_AUTHORIZATION_OBJECT_LEVEL_AUTHORIZATION
+  moduleId: 326
+  languages:
+  - vi
+- module: module/infrastructure/system/security/authorization/policy-based-access-control
+  serviceName: SECURITY_AUTHORIZATION_POLICY_BASED_ACCESS_CONTROL
+  moduleId: 327
+  languages:
+  - vi
+- module: module/infrastructure/system/security/authorization/rbac
+  serviceName: SECURITY_AUTHORIZATION_RBAC
+  moduleId: 328
+  languages:
+  - vi
+- module: module/infrastructure/system/security/cryptography/encryption
+  serviceName: SECURITY_CRYPTOGRAPHY_ENCRYPTION
+  moduleId: 329
+  languages:
+  - vi
+- module: module/infrastructure/system/security/cryptography/fundamentals
+  serviceName: SECURITY_CRYPTOGRAPHY_FUNDAMENTALS
+  moduleId: 330
+  languages:
+  - vi
+- module: module/infrastructure/system/security/cryptography/hashing-mac-signatures
+  serviceName: SECURITY_CRYPTOGRAPHY_HASHING_MAC_SIGNATURES
+  moduleId: 331
+  languages:
+  - vi
+- module: module/infrastructure/system/security/cryptography/password-hashing
+  serviceName: SECURITY_CRYPTOGRAPHY_PASSWORD_HASHING
+  moduleId: 332
+  languages:
+  - vi
+- module: module/infrastructure/system/security/cryptography/secure-randomness
+  serviceName: SECURITY_CRYPTOGRAPHY_SECURE_RANDOMNESS
+  moduleId: 333
+  languages:
+  - vi
+- module: module/infrastructure/system/security/data-protection/classification-minimization
+  serviceName: SECURITY_DATA_PROTECTION_CLASSIFICATION_MINIMIZATION
+  moduleId: 334
+  languages:
+  - vi
+- module: module/infrastructure/system/security/data-protection/encryption-at-rest
+  serviceName: SECURITY_DATA_PROTECTION_ENCRYPTION_AT_REST
+  moduleId: 335
+  languages:
+  - vi
+- module: module/infrastructure/system/security/data-protection/masking-redaction
+  serviceName: SECURITY_DATA_PROTECTION_MASKING_REDACTION
+  moduleId: 336
+  languages:
+  - vi
+- module: module/infrastructure/system/security/data-protection/privacy
+  serviceName: SECURITY_DATA_PROTECTION_PRIVACY
+  moduleId: 337
+  languages:
+  - vi
+- module: module/infrastructure/system/security/data-protection/retention-deletion
+  serviceName: SECURITY_DATA_PROTECTION_RETENTION_DELETION
+  moduleId: 338
+  languages:
+  - vi
+- module: module/infrastructure/system/security/fundamentals
+  serviceName: SECURITY_FUNDAMENTALS
+  moduleId: 339
+  languages:
+  - vi
+- module: module/infrastructure/system/security/governance-risk
+  serviceName: SECURITY_GOVERNANCE_RISK
+  moduleId: 340
+  languages:
+  - vi
+- module: module/infrastructure/system/security/identity-access-management/fundamentals
+  serviceName: SECURITY_IDENTITY_ACCESS_MANAGEMENT_FUNDAMENTALS
+  moduleId: 341
+  languages:
+  - vi
+- module: module/infrastructure/system/security/identity-access-management/keycloak
+  serviceName: SECURITY_IDENTITY_ACCESS_MANAGEMENT_KEYCLOAK
+  moduleId: 343
+  languages:
+  - vi
+- module: module/infrastructure/system/security/identity-access-management/oauth2-oidc
+  serviceName: SECURITY_IDENTITY_ACCESS_MANAGEMENT_OAUTH2_OIDC
+  moduleId: 344
+  languages:
+  - vi
+- module: module/infrastructure/system/security/identity-access-management/privileged-access-management
+  serviceName: SECURITY_IDENTITY_ACCESS_MANAGEMENT_PRIVILEGED_ACCESS_MANAGEMENT
+  moduleId: 345
+  languages:
+  - vi
+- module: module/infrastructure/system/security/identity-access-management/scim-provisioning
+  serviceName: SECURITY_IDENTITY_ACCESS_MANAGEMENT_SCIM_PROVISIONING
+  moduleId: 346
+  languages:
+  - vi
+- module: module/infrastructure/system/security/identity-access-management/service-account
+  serviceName: SECURITY_IDENTITY_ACCESS_MANAGEMENT_SERVICE_ACCOUNT
+  moduleId: 347
+  languages:
+  - vi
+- module: module/infrastructure/system/security/identity-access-management/spiffe-spire
+  serviceName: SECURITY_IDENTITY_ACCESS_MANAGEMENT_SPIFFE_SPIRE
+  moduleId: 348
+  languages:
+  - vi
+- module: module/infrastructure/system/security/identity-access-management/sso-saml
+  serviceName: SECURITY_IDENTITY_ACCESS_MANAGEMENT_SSO_SAML
+  moduleId: 349
+  languages:
+  - vi
+- module: module/infrastructure/system/security/identity-access-management/workload-identity-federation
+  serviceName: SECURITY_IDENTITY_ACCESS_MANAGEMENT_WORKLOAD_IDENTITY_FEDERATION
+  moduleId: 350
+  languages:
+  - vi
+- module: module/infrastructure/system/security/key-management/fundamentals
+  serviceName: SECURITY_KEY_MANAGEMENT_FUNDAMENTALS
+  moduleId: 351
+  languages:
+  - vi
+- module: module/infrastructure/system/security/key-management/key-lifecycle
+  serviceName: SECURITY_KEY_MANAGEMENT_KEY_LIFECYCLE
+  moduleId: 352
+  languages:
+  - vi
+- module: module/infrastructure/system/security/key-management/kms-hsm
+  serviceName: SECURITY_KEY_MANAGEMENT_KMS_HSM
+  moduleId: 353
+  languages:
+  - vi
+- module: module/infrastructure/system/security/key-management/pki-certificate-lifecycle
+  serviceName: SECURITY_KEY_MANAGEMENT_PKI_CERTIFICATE_LIFECYCLE
+  moduleId: 354
+  languages:
+  - vi
+- module: module/infrastructure/system/security/network-security
+  serviceName: SECURITY_NETWORK_SECURITY
+  moduleId: 355
+  languages:
+  - vi
+- module: module/infrastructure/system/security/platform-security
+  serviceName: SECURITY_PLATFORM_SECURITY
+  moduleId: 356
+  languages:
+  - vi
+- module: module/infrastructure/system/security/secrets-management/fundamentals
+  serviceName: SECURITY_SECRETS_MANAGEMENT_FUNDAMENTALS
+  moduleId: 357
+  languages:
+  - vi
+- module: module/infrastructure/system/security/secrets-management/hashicorp-vault
+  serviceName: SECURITY_SECRETS_MANAGEMENT_HASHICORP_VAULT
+  moduleId: 358
+  languages:
+  - vi
+- module: module/infrastructure/system/security/secrets-management/secret-lifecycle
+  serviceName: SECURITY_SECRETS_MANAGEMENT_SECRET_LIFECYCLE
+  moduleId: 359
+  languages:
+  - vi
+- module: module/infrastructure/system/security/secrets-management/windows-dpapi
+  serviceName: SECURITY_SECRETS_MANAGEMENT_WINDOWS_DPAPI
+  moduleId: 360
+  languages:
+  - vi
+- module: module/infrastructure/system/security/security-assurance
+  serviceName: SECURITY_SECURITY_ASSURANCE
+  moduleId: 361
+  languages:
+  - vi
+- module: module/infrastructure/system/security/security-design/attack-surface
+  serviceName: SECURITY_SECURITY_DESIGN_ATTACK_SURFACE
+  moduleId: 362
+  languages:
+  - vi
+- module: module/infrastructure/system/security/security-design/secure-design-principles
+  serviceName: SECURITY_SECURITY_DESIGN_SECURE_DESIGN_PRINCIPLES
+  moduleId: 363
+  languages:
+  - vi
+- module: module/infrastructure/system/security/security-design/security-requirements
+  serviceName: SECURITY_SECURITY_DESIGN_SECURITY_REQUIREMENTS
+  moduleId: 364
+  languages:
+  - vi
+- module: module/infrastructure/system/security/security-design/threat-modeling
+  serviceName: SECURITY_SECURITY_DESIGN_THREAT_MODELING
+  moduleId: 365
+  languages:
+  - vi
+- module: module/infrastructure/system/security/security-operations
+  serviceName: SECURITY_SECURITY_OPERATIONS
+  moduleId: 366
+  languages:
+  - vi
+- module: module/infrastructure/system/security/token-security/opaque-token
+  serviceName: SECURITY_TOKEN_SECURITY_OPAQUE_TOKEN
+  moduleId: 369
+  languages:
+  - vi
+- module: module/infrastructure/system/security/token-security/token-lifecycle
+  serviceName: SECURITY_TOKEN_SECURITY_TOKEN_LIFECYCLE
+  moduleId: 370
+  languages:
+  - vi
+- module: module/infrastructure/system/security/zero-trust
+  serviceName: SECURITY_ZERO_TRUST
+  moduleId: 371
+  languages:
+  - vi
+- module: module/integration/api/fundamentals
+  serviceName: INTEGRATION_API_FUNDAMENTALS
+  moduleId: 156
+  languages:
+  - vi
+- module: module/integration/api/graphql
+  serviceName: INTEGRATION_API_GRAPHQL
+  moduleId: 157
+  languages:
+  - vi
+- module: module/integration/api/soap
+  serviceName: INTEGRATION_API_SOAP
+  moduleId: 159
+  languages:
+  - vi
+- module: module/integration/contracts
+  serviceName: INTEGRATION_CONTRACTS
+  moduleId: 160
+  languages:
+  - vi
+- module: module/integration/data-integration
+  serviceName: INTEGRATION_DATA_INTEGRATION
+  moduleId: 161
+  languages:
+  - vi
+- module: module/integration/fundamentals
+  serviceName: INTEGRATION_FUNDAMENTALS
+  moduleId: 162
+  languages:
+  - vi
+- module: module/integration/http/request-response/client
+  serviceName: INTEGRATION_HTTP_REQUEST_RESPONSE_CLIENT
+  moduleId: 163
+  languages:
+  - vi
+- module: module/integration/http/request-response/fundamentals
+  serviceName: INTEGRATION_HTTP_REQUEST_RESPONSE_FUNDAMENTALS
+  moduleId: 164
+  languages:
+  - vi
+- module: module/integration/http/server-sent-events
+  serviceName: INTEGRATION_HTTP_SERVER_SENT_EVENTS
+  moduleId: 165
+  languages:
+  - vi
+- module: module/integration/http/webhook
+  serviceName: INTEGRATION_HTTP_WEBHOOK
+  moduleId: 166
+  languages:
+  - vi
+- module: module/integration/messaging/fundamentals
+  serviceName: INTEGRATION_MESSAGING_FUNDAMENTALS
+  moduleId: 167
+  languages:
+  - vi
+- module: module/integration/messaging/message-broker/rabbitmq
+  serviceName: INTEGRATION_MESSAGING_MESSAGE_BROKER_RABBITMQ
+  moduleId: 169
+  languages:
+  - vi
+- module: module/integration/messaging/patterns
+  serviceName: INTEGRATION_MESSAGING_PATTERNS
+  moduleId: 170
+  languages:
+  - vi
+- module: module/integration/messaging/reliability
+  serviceName: INTEGRATION_MESSAGING_RELIABILITY
+  moduleId: 171
+  languages:
+  - vi
+- module: module/integration/realtime/websocket
+  serviceName: INTEGRATION_REALTIME_WEBSOCKET
+  moduleId: 173
+  languages:
+  - vi
+- module: module/integration/rpc/grpc
+  serviceName: INTEGRATION_RPC_GRPC
+  moduleId: 174
+  languages:
+  - vi
+- module: module/platform/code-quality/coding-standards
+  serviceName: CODE_QUALITY_CODING_STANDARDS
+  moduleId: 24
+  languages:
+  - vi
+- module: module/platform/code-quality/continuous-inspection/fundamentals
+  serviceName: CODE_QUALITY_CONTINUOUS_INSPECTION_FUNDAMENTALS
+  moduleId: 25
+  languages:
+  - vi
+- module: module/platform/code-quality/continuous-inspection/sonarqube
+  serviceName: CODE_QUALITY_CONTINUOUS_INSPECTION_SONARQUBE
+  moduleId: 26
+  languages:
+  - vi
+- module: module/platform/code-quality/formatting/fundamentals
+  serviceName: CODE_QUALITY_FORMATTING_FUNDAMENTALS
+  moduleId: 27
+  languages:
+  - vi
+- module: module/platform/code-quality/formatting/spotless
+  serviceName: CODE_QUALITY_FORMATTING_SPOTLESS
+  moduleId: 28
+  languages:
+  - vi
+- module: module/platform/code-quality/static-analysis/architecture-rules
+  serviceName: CODE_QUALITY_STATIC_ANALYSIS_ARCHITECTURE_RULES
+  moduleId: 30
+  languages:
+  - vi
+- module: module/platform/code-quality/static-analysis/bug-patterns
+  serviceName: CODE_QUALITY_STATIC_ANALYSIS_BUG_PATTERNS
+  moduleId: 31
+  languages:
+  - vi
+- module: module/platform/code-quality/static-analysis/dependency-analysis
+  serviceName: CODE_QUALITY_STATIC_ANALYSIS_DEPENDENCY_ANALYSIS
+  moduleId: 32
+  languages:
+  - vi
+- module: module/platform/code-quality/static-analysis/fundamentals
+  serviceName: CODE_QUALITY_STATIC_ANALYSIS_FUNDAMENTALS
+  moduleId: 33
+  languages:
+  - vi
+- module: module/platform/code-quality/static-analysis/tool/checkstyle
+  serviceName: CHECKSTYLE
+  moduleId: 8
+  languages:
+  - vi
+- module: module/platform/code-quality/static-analysis/tool/error-prone
+  serviceName: CODE_QUALITY_STATIC_ANALYSIS_TOOL_ERROR_PRONE
+  moduleId: 34
+  languages:
+  - vi
+- module: module/platform/code-quality/static-analysis/tool/pmd
+  serviceName: CODE_QUALITY_STATIC_ANALYSIS_TOOL_PMD
+  moduleId: 35
+  languages:
+  - vi
+- module: module/platform/code-quality/static-analysis/tool/spotbugs
+  serviceName: CODE_QUALITY_STATIC_ANALYSIS_TOOL_SPOTBUGS
+  moduleId: 36
+  languages:
+  - vi
+- module: module/platform/development/computer-science/algorithm-analysis
+  serviceName: COMPUTER_SCIENCE_ALGORITHM_ANALYSIS
+  moduleId: 42
+  languages:
+  - vi
+- module: module/platform/development/computer-science/concurrency-fundamentals
+  serviceName: COMPUTER_SCIENCE_CONCURRENCY_FUNDAMENTALS
+  moduleId: 43
+  languages:
+  - vi
+- module: module/platform/development/computer-science/data-structures
+  serviceName: COMPUTER_SCIENCE_DATA_STRUCTURES
+  moduleId: 44
+  languages:
+  - vi
+- module: module/platform/development/computer-science/fundamentals
+  serviceName: COMPUTER_SCIENCE_FUNDAMENTALS
+  moduleId: 45
+  languages:
+  - vi
+- module: module/platform/development/computer-science/mathematical-foundations
+  serviceName: COMPUTER_SCIENCE_MATHEMATICAL_FOUNDATIONS
+  moduleId: 46
+  languages:
+  - vi
+- module: module/platform/development/computer-science/programming-language-concepts
+  serviceName: COMPUTER_SCIENCE_PROGRAMMING_LANGUAGE_CONCEPTS
+  moduleId: 47
+  languages:
+  - vi
+- module: module/platform/development/computer-science/system-foundations
+  serviceName: COMPUTER_SCIENCE_SYSTEM_FOUNDATIONS
+  moduleId: 48
+  languages:
+  - vi
+- module: module/platform/development/computer-science/theory-of-computation
+  serviceName: COMPUTER_SCIENCE_THEORY_OF_COMPUTATION
+  moduleId: 49
+  languages:
+  - vi
+- module: module/platform/development/data/caching
+  serviceName: DATA_CACHING
+  moduleId: 75
+  languages:
+  - vi
+- module: module/platform/development/data/contracts-and-validation
+  serviceName: DATA_CONTRACTS_AND_VALIDATION
+  moduleId: 76
+  languages:
+  - vi
+- module: module/platform/development/data/data-quality
+  serviceName: DATA_QUALITY
+  moduleId: 83
+  languages:
+  - vi
+- module: module/platform/development/data/data-semantics
+  serviceName: DATA_SEMANTICS
+  moduleId: 84
+  languages:
+  - vi
+- module: module/platform/development/data/import-export
+  serviceName: DATA_IMPORT_EXPORT
+  moduleId: 77
+  languages:
+  - vi
+- module: module/platform/development/data/mapping/object-mapping
+  serviceName: OBJECT_TO_OBJECT_MAPPING
+  moduleId: 252
+  languages:
+  - vi
+- module: module/platform/development/data/persistence/file-persistence
+  serviceName: DATA_PERSISTENCE_FILE_PERSISTENCE
+  moduleId: 79
+  languages:
+  - vi
+- module: module/platform/development/data/persistence/non-relational-access
+  serviceName: DATA_PERSISTENCE_NON_RELATIONAL_ACCESS
+  moduleId: 81
+  languages:
+  - vi
+- module: module/platform/development/data/persistence/relational-access/mybatis
+  serviceName: MYBATIS
+  moduleId: 233
+  languages:
+  - vi
+- module: module/platform/development/data/processing
+  serviceName: DATA_PROCESSING
+  moduleId: 82
+  languages:
+  - vi
+- module: module/platform/development/data/serialization/fundamentals
+  serviceName: DATA_SERIALIZATION_FUNDAMENTALS
+  moduleId: 85
+  languages:
+  - vi
+- module: module/platform/development/engineering/developer-tooling
+  serviceName: DEVELOPER_TOOLING
+  moduleId: 89
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/benchmark
+  serviceName: VALIDATION_BENCHMARK
+  moduleId: 552
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/execution-and-maintenance
+  serviceName: VALIDATION_TESTING_EXECUTION_AND_MAINTENANCE
+  moduleId: 555
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/fundamentals
+  serviceName: VALIDATION_TESTING_FUNDAMENTALS
+  moduleId: 556
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/scope/e2e-test
+  serviceName: VALIDATION_TESTING_SCOPE_E2E_TEST
+  moduleId: 557
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/scope/integration-test
+  serviceName: VALIDATION_TESTING_SCOPE_INTEGRATION_TEST
+  moduleId: 558
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/scope/unit-test
+  serviceName: VALIDATION_TESTING_SCOPE_UNIT_TEST
+  moduleId: 559
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/test-design
+  serviceName: VALIDATION_TESTING_TEST_DESIGN
+  moduleId: 562
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/testing-type/compatibility-test
+  serviceName: VALIDATION_TESTING_TYPE_COMPATIBILITY_TEST
+  moduleId: 563
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/testing-type/contract-test
+  serviceName: VALIDATION_TESTING_TYPE_CONTRACT_TEST
+  moduleId: 564
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/testing-type/functional-test
+  serviceName: VALIDATION_TESTING_TYPE_FUNCTIONAL_TEST
+  moduleId: 565
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/testing-type/performance-test
+  serviceName: VALIDATION_TESTING_TYPE_PERFORMANCE_TEST
+  moduleId: 566
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/testing-type/reliability-test
+  serviceName: VALIDATION_TESTING_TYPE_RELIABILITY_TEST
+  moduleId: 567
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/testing-type/security-test
+  serviceName: VALIDATION_TESTING_TYPE_SECURITY_TEST
+  moduleId: 568
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/testing-type/usability-test
+  serviceName: VALIDATION_TESTING_TYPE_USABILITY_TEST
+  moduleId: 569
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/tool/assertion
+  serviceName: VALIDATION_TESTING_ASSERTIONS
+  moduleId: 554
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/tool/code-coverage
+  serviceName: ENGINEERING_VALIDATION_TESTING_TOOL_CODE_COVERAGE
+  moduleId: 141
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/tool/contract-testing
+  serviceName: ENGINEERING_VALIDATION_TESTING_TOOL_CONTRACT_TESTING
+  moduleId: 142
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/tool/http-testing
+  serviceName: ENGINEERING_VALIDATION_TESTING_TOOL_HTTP_TESTING
+  moduleId: 143
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/tool/integration-testing
+  serviceName: ENGINEERING_VALIDATION_TESTING_TOOL_INTEGRATION_TESTING
+  moduleId: 144
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/tool/mocking
+  serviceName: ENGINEERING_VALIDATION_TESTING_TOOL_MOCKING
+  moduleId: 145
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/tool/mutation-testing
+  serviceName: ENGINEERING_VALIDATION_TESTING_TOOL_MUTATION_TESTING
+  moduleId: 146
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/tool/performance-testing
+  serviceName: VALIDATION_PERFORMANCE_TESTING_TOOLING
+  moduleId: 553
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/tool/service-stubbing
+  serviceName: VALIDATION_TESTING_SERVICE_STUBBING
+  moduleId: 560
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/tool/test-environment
+  serviceName: ENGINEERING_VALIDATION_TESTING_TOOL_TEST_ENVIRONMENT
+  moduleId: 147
+  languages:
+  - vi
+- module: module/platform/development/engineering/validation/testing/tool/test-framework
+  serviceName: ENGINEERING_VALIDATION_TESTING_TOOL_TEST_FRAMEWORK
+  moduleId: 148
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/project-reactor/core
+  serviceName: PROJECT_REACTOR_CORE
+  moduleId: 291
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/project-reactor/netty
+  serviceName: PROJECT_REACTOR_NETTY
+  moduleId: 292
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/project-reactor/testing
+  serviceName: PROJECT_REACTOR_TESTING
+  moduleId: 293
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-ai/core
+  serviceName: SPRING_AI_CORE
+  moduleId: 439
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-ai/embeddings-vector-store
+  serviceName: SPRING_AI_EMBEDDINGS_VECTOR_STORE
+  moduleId: 440
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-ai/evaluation-observability
+  serviceName: SPRING_AI_EVALUATION_OBSERVABILITY
+  moduleId: 441
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-ai/mcp
+  serviceName: SPRING_AI_MCP
+  moduleId: 442
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-ai/memory-advisors
+  serviceName: SPRING_AI_MEMORY_ADVISORS
+  moduleId: 443
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-ai/rag
+  serviceName: SPRING_AI_RAG
+  moduleId: 444
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-ai/tool-calling
+  serviceName: SPRING_AI_TOOL_CALLING
+  moduleId: 445
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-cloud/configuration
+  serviceName: SPRING_CLOUD_CONFIGURATION
+  moduleId: 463
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-cloud/service-broker
+  serviceName: SPRING_CLOUD_SERVICE_BROKER
+  moduleId: 470
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-data/key-value
+  serviceName: SPRING_DATA_KEY_VALUE
+  moduleId: 482
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-data/ldap
+  serviceName: SPRING_DATA_LDAP
+  moduleId: 483
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-data/neo4j
+  serviceName: SPRING_DATA_NEO4J
+  moduleId: 485
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-ldap
+  serviceName: SPRING_LDAP
+  moduleId: 506
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-modulith/documentation-observability
+  serviceName: SPRING_MODULITH_DOCUMENTATION_OBSERVABILITY
+  moduleId: 509
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-modulith/module-model
+  serviceName: SPRING_MODULITH_MODULE_MODEL
+  moduleId: 510
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-session
+  serviceName: SPRING_SESSION
+  moduleId: 525
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-shell
+  serviceName: SPRING_SHELL
+  moduleId: 526
+  languages:
+  - vi
+- module: module/platform/development/programming/framework/spring-web-services
+  serviceName: SPRING_WEB_SERVICES
+  moduleId: 532
+  languages:
+  - vi
+- module: module/platform/development/programming/language/java/version/java16
+  serviceName: JAVA_VERSION_JAVA16
+  moduleId: 212
+  languages:
+  - vi
+- module: module/platform/development/programming/language/java/version/java18
+  serviceName: JAVA_VERSION_JAVA18
+  moduleId: 214
+  languages:
+  - vi
+- module: module/platform/development/programming/language/java/version/java23
+  serviceName: JAVA_VERSION_JAVA23
+  moduleId: 217
+  languages:
+  - vi
+- module: module/platform/development/programming/language/java/version/java24
+  serviceName: JAVA_VERSION_JAVA24
+  moduleId: 218
+  languages:
+  - vi
+- module: module/platform/development/programming/language/java/version/java25
+  serviceName: JAVA_VERSION_JAVA25
+  moduleId: 219
+  languages:
+  - vi
+- module: module/platform/development/programming/language/java/version/java26
+  serviceName: JAVA_VERSION_JAVA26
+  moduleId: 220
+  languages:
+  - vi
+- module: module/platform/development/programming/language/java/version/java27
+  serviceName: JAVA_VERSION_JAVA27
+  moduleId: 221
+  languages:
+  - vi
+- module: module/platform/development/programming/paradigm/concurrent
+  serviceName: CONCURRENT_PROGRAMMING
+  moduleId: 50
+  languages:
+  - vi
+- module: module/platform/development/programming/paradigm/constraint
+  serviceName: CONSTRAINT_PROGRAMMING
+  moduleId: 51
+  languages:
+  - vi
+- module: module/platform/development/programming/paradigm/data-oriented
+  serviceName: DATA_ORIENTED_PROGRAMMING
+  moduleId: 78
+  languages:
+  - vi
+- module: module/platform/development/programming/paradigm/dataflow
+  serviceName: DATAFLOW_PROGRAMMING
+  moduleId: 74
+  languages:
+  - vi
+- module: module/platform/development/programming/paradigm/declarative
+  serviceName: DECLARATIVE_PROGRAMMING
+  moduleId: 87
+  languages:
+  - vi
+- module: module/platform/development/programming/paradigm/event-driven
+  serviceName: EVENT_DRIVEN_PROGRAMMING
+  moduleId: 149
+  languages:
+  - vi
+- module: module/platform/development/programming/paradigm/functional
+  serviceName: FUNCTIONAL_PROGRAMMING
+  moduleId: 151
+  languages:
+  - vi
+- module: module/platform/development/programming/paradigm/imperative
+  serviceName: IMPERATIVE_PROGRAMMING
+  moduleId: 155
+  languages:
+  - vi
+- module: module/platform/development/programming/paradigm/logic
+  serviceName: LOGIC_PROGRAMMING
+  moduleId: 230
+  languages:
+  - vi
+- module: module/platform/development/programming/paradigm/metaprogramming
+  serviceName: METAPROGRAMMING
+  moduleId: 231
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/architectural-pattern/clean-architecture
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_ARCHITECTURAL_PATTERN_CLEAN_ARCHITECTURE
+  moduleId: 372
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/architectural-pattern/client-server
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_ARCHITECTURAL_PATTERN_CLIENT_SERVER
+  moduleId: 373
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/architectural-pattern/cqrs
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_ARCHITECTURAL_PATTERN_CQRS
+  moduleId: 374
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/architectural-pattern/event-driven
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_ARCHITECTURAL_PATTERN_EVENT_DRIVEN
+  moduleId: 375
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/architectural-pattern/event-sourcing
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_ARCHITECTURAL_PATTERN_EVENT_SOURCING
+  moduleId: 376
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/architectural-pattern/hexagonal
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_ARCHITECTURAL_PATTERN_HEXAGONAL
+  moduleId: 377
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/architectural-pattern/microkernel
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_ARCHITECTURAL_PATTERN_MICROKERNEL
+  moduleId: 379
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/architectural-pattern/onion-architecture
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_ARCHITECTURAL_PATTERN_ONION_ARCHITECTURE
+  moduleId: 380
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/architectural-pattern/pipes-and-filters
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_ARCHITECTURAL_PATTERN_PIPES_AND_FILTERS
+  moduleId: 381
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/architectural-pattern/service-oriented-architecture
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_ARCHITECTURAL_PATTERN_SERVICE_ORIENTED_ARCHITECTURE
+  moduleId: 382
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/distributed-system/fundamentals
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_DISTRIBUTED_SYSTEM_FUNDAMENTALS
+  moduleId: 383
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/distributed-system/saga
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_DISTRIBUTED_SYSTEM_SAGA
+  moduleId: 384
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/distributed-system/transactional-outbox
+  serviceName: TRANSACTIONAL_OUTBOX
+  moduleId: 551
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/documentation-decisions
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_DOCUMENTATION_DECISIONS
+  moduleId: 385
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/domain-modeling/fundamentals
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_DOMAIN_MODELING_FUNDAMENTALS
+  moduleId: 386
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/fundamentals
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_FUNDAMENTALS
+  moduleId: 387
+  languages:
+  - vi
+- module: module/platform/development/software-design/architecture/system-architecture/monolithic/modular-monolith
+  serviceName: SOFTWARE_DESIGN_ARCHITECTURE_SYSTEM_ARCHITECTURE_MONOLITHIC_MODULAR_MONOLITH
+  moduleId: 389
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/behavioral/chain-of-responsibility
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_BEHAVIORAL_CHAIN_OF_RESPONSIBILITY
+  moduleId: 390
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/behavioral/command
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_BEHAVIORAL_COMMAND
+  moduleId: 391
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/behavioral/interpreter
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_BEHAVIORAL_INTERPRETER
+  moduleId: 392
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/behavioral/iterator
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_BEHAVIORAL_ITERATOR
+  moduleId: 393
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/behavioral/mediator
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_BEHAVIORAL_MEDIATOR
+  moduleId: 394
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/behavioral/memento
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_BEHAVIORAL_MEMENTO
+  moduleId: 395
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/behavioral/observer
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_BEHAVIORAL_OBSERVER
+  moduleId: 396
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/behavioral/state
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_BEHAVIORAL_STATE
+  moduleId: 397
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/behavioral/strategy
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_BEHAVIORAL_STRATEGY
+  moduleId: 398
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/behavioral/template-method
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_BEHAVIORAL_TEMPLATE_METHOD
+  moduleId: 399
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/behavioral/visitor
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_BEHAVIORAL_VISITOR
+  moduleId: 400
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/creational/builder
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_CREATIONAL_BUILDER
+  moduleId: 402
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/creational/factory-method
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_CREATIONAL_FACTORY_METHOD
+  moduleId: 403
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/creational/prototype
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_CREATIONAL_PROTOTYPE
+  moduleId: 404
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/creational/singleton
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_CREATIONAL_SINGLETON
+  moduleId: 405
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/fundamentals
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_FUNDAMENTALS
+  moduleId: 406
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/structural/adapter
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_STRUCTURAL_ADAPTER
+  moduleId: 407
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/structural/bridge
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_STRUCTURAL_BRIDGE
+  moduleId: 408
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/structural/composite
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_STRUCTURAL_COMPOSITE
+  moduleId: 409
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/structural/decorator
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_STRUCTURAL_DECORATOR
+  moduleId: 410
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/structural/facade
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_STRUCTURAL_FACADE
+  moduleId: 411
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/structural/flyweight
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_STRUCTURAL_FLYWEIGHT
+  moduleId: 412
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-pattern/structural/proxy
+  serviceName: SOFTWARE_DESIGN_DESIGN_PATTERN_STRUCTURAL_PROXY
+  moduleId: 413
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-principle/composition-over-inheritance
+  serviceName: SOFTWARE_DESIGN_DESIGN_PRINCIPLE_COMPOSITION_OVER_INHERITANCE
+  moduleId: 414
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-principle/fundamentals
+  serviceName: SOFTWARE_DESIGN_DESIGN_PRINCIPLE_FUNDAMENTALS
+  moduleId: 415
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-principle/high-cohesion
+  serviceName: SOFTWARE_DESIGN_DESIGN_PRINCIPLE_HIGH_COHESION
+  moduleId: 416
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-principle/loose-coupling
+  serviceName: SOFTWARE_DESIGN_DESIGN_PRINCIPLE_LOOSE_COUPLING
+  moduleId: 417
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-principle/separation-of-concerns
+  serviceName: SOFTWARE_DESIGN_DESIGN_PRINCIPLE_SEPARATION_OF_CONCERNS
+  moduleId: 418
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-principle/solid-principles
+  serviceName: SOFTWARE_DESIGN_DESIGN_PRINCIPLE_SOLID_PRINCIPLES
+  moduleId: 419
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-problem/anti-pattern
+  serviceName: SOFTWARE_DESIGN_DESIGN_PROBLEM_ANTI_PATTERN
+  moduleId: 420
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-problem/code-smell
+  serviceName: SOFTWARE_DESIGN_DESIGN_PROBLEM_CODE_SMELL
+  moduleId: 421
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-problem/technical-debt
+  serviceName: SOFTWARE_DESIGN_DESIGN_PROBLEM_TECHNICAL_DEBT
+  moduleId: 422
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-technique/api-contract-design
+  serviceName: SOFTWARE_DESIGN_DESIGN_TECHNIQUE_API_CONTRACT_DESIGN
+  moduleId: 423
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-technique/modularity
+  serviceName: SOFTWARE_DESIGN_DESIGN_TECHNIQUE_MODULARITY
+  moduleId: 424
+  languages:
+  - vi
+- module: module/platform/development/software-design/design-technique/refactoring
+  serviceName: SOFTWARE_DESIGN_DESIGN_TECHNIQUE_REFACTORING
+  moduleId: 425
+  languages:
+  - vi
+- module: module/platform/development/software-process/development-practices/acceptance-test-driven-development
+  serviceName: SOFTWARE_PROCESS_DEVELOPMENT_PRACTICES_ACCEPTANCE_TEST_DRIVEN_DEVELOPMENT
+  moduleId: 427
+  languages:
+  - vi
+- module: module/platform/development/software-process/development-practices/behavior-driven-development
+  serviceName: SOFTWARE_PROCESS_DEVELOPMENT_PRACTICES_BEHAVIOR_DRIVEN_DEVELOPMENT
+  moduleId: 428
+  languages:
+  - vi
+- module: module/platform/development/software-process/development-practices/test-driven-development
+  serviceName: SOFTWARE_PROCESS_DEVELOPMENT_PRACTICES_TEST_DRIVEN_DEVELOPMENT
+  moduleId: 429
+  languages:
+  - vi
+- module: module/platform/development/software-process/fundamentals
+  serviceName: SOFTWARE_PROCESS_FUNDAMENTALS
+  moduleId: 430
+  languages:
+  - vi
+- module: module/platform/development/software-process/maintenance-evolution
+  serviceName: SOFTWARE_PROCESS_MAINTENANCE_EVOLUTION
+  moduleId: 431
+  languages:
+  - vi
+- module: module/platform/development/software-process/methodology/lifecycle-models
+  serviceName: SOFTWARE_LIFECYCLE_MODELS
+  moduleId: 426
+  languages:
+  - vi
+- module: module/platform/development/software-process/methodology/model-driven-development
+  serviceName: SOFTWARE_PROCESS_METHODOLOGY_MODEL_DRIVEN_DEVELOPMENT
+  moduleId: 432
+  languages:
+  - vi
+- module: module/platform/development/software-process/process-improvement
+  serviceName: SOFTWARE_PROCESS_PROCESS_IMPROVEMENT
+  moduleId: 433
+  languages:
+  - vi
+- module: module/platform/development/software-process/quality-management
+  serviceName: SOFTWARE_PROCESS_QUALITY_MANAGEMENT
+  moduleId: 434
+  languages:
+  - vi
+- module: module/platform/development/software-process/requirements-engineering
+  serviceName: SOFTWARE_PROCESS_REQUIREMENTS_ENGINEERING
+  moduleId: 435
+  languages:
+  - vi
+- module: module/platform/development/software-process/work-management
+  serviceName: SOFTWARE_PROCESS_WORK_MANAGEMENT
+  moduleId: 436
+  languages:
+  - vi
+- module: module/platform/support/document/diagram/mermaid
+  serviceName: SUPPORT_DOCUMENT_DIAGRAM_MERMAID
+  moduleId: 533
+  languages:
+  - vi
+- module: module/platform/support/document/excel
+  serviceName: SUPPORT_DOCUMENT_EXCEL
+  moduleId: 534
+  languages:
+  - vi
+- module: module/platform/support/document/markdown/flexmark
+  serviceName: FLEXMARK_MARKDOWN
+  moduleId: 150
+  languages:
+  - vi
+- module: module/platform/support/document/pdf
+  serviceName: SUPPORT_DOCUMENT_PDF
+  moduleId: 535
+  languages:
+  - vi
+- module: module/platform/support/document/reporting
+  serviceName: SUPPORT_DOCUMENT_REPORTING_JASPERREPORTS
+  moduleId: 536
+  languages:
+  - vi
+- module: module/platform/support/document/translate/argos
+  serviceName: SUPPORT_DOCUMENT_TRANSLATE_ARGOS
+  moduleId: 537
+  languages:
+  - vi
+- module: module/platform/support/document/translate/azure
+  serviceName: AZURE_TRANSLATE
+  moduleId: 3
+  languages:
+  - vi
+- module: module/platform/support/document/translate/libre
+  serviceName: SUPPORT_DOCUMENT_TRANSLATION_LIBRETRANSLATE
+  moduleId: 538
+  languages:
+  - vi
+- module: module/platform/support/document/word
+  serviceName: SUPPORT_DOCUMENT_WORD
+  moduleId: 539
+  languages:
+  - vi
+- module: module/platform/support/document/xml
+  serviceName: SUPPORT_DOCUMENT_XML
+  moduleId: 540
+  languages:
+  - vi
+- module: module/platform/support/notification/email
+  serviceName: SUPPORT_NOTIFICATION_EMAIL
+  moduleId: 541
+  languages:
+  - vi
+- module: module/platform/support/notification/kakao
+  serviceName: SUPPORT_NOTIFICATION_KAKAO
+  moduleId: 542
+  languages:
+  - vi
+- module: module/platform/support/notification/microsoft-team
+  serviceName: SUPPORT_NOTIFICATION_MICROSOFT_TEAMS
+  moduleId: 543
+  languages:
+  - vi
+- module: module/platform/support/notification/mobile-push
+  serviceName: SUPPORT_NOTIFICATION_MOBILE_PUSH
+  moduleId: 544
+  languages:
+  - vi
+- module: module/platform/support/notification/slack
+  serviceName: SUPPORT_NOTIFICATION_SLACK
+  moduleId: 545
+  languages:
+  - vi
+- module: module/platform/support/notification/sms
+  serviceName: SUPPORT_NOTIFICATION_SMS
+  moduleId: 546
+  languages:
+  - vi
+- module: module/platform/support/notification/telegram
+  serviceName: SUPPORT_NOTIFICATION_TELEGRAM
+  moduleId: 547
+  languages:
+  - vi
+errors: []
