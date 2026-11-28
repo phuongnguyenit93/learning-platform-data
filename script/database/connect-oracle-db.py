@@ -16,6 +16,8 @@ from pathlib import Path
 import re
 
 
+# Oracle scripts and their private .env file belong to learning-platform-data,
+# not the parent java-learning Gradle repository.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ENV_FILE = REPO_ROOT / ".env.oracle-overview"
 SCHEMA_RE = re.compile(r"[A-Za-z][A-Za-z0-9_$#]*\Z")

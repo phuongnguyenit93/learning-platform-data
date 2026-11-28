@@ -1,0 +1,1131 @@
+csharp-module
+├── foundations
+│   ├── csharp-and-dotnet-overview
+│   │   ├── what-csharp-is
+│   │   ├── csharp-language-evolution
+│   │   ├── csharp-versus-java-and-cpp
+│   │   ├── dotnet-platform-and-runtime
+│   │   ├── dotnet-framework-versus-modern-dotnet
+│   │   ├── clr-and-managed-execution
+│   │   ├── cross-platform-dotnet
+│   │   ├── csharp-use-cases-and-tradeoffs
+│   │   └── csharp-developer-learning-path
+│   ├── language-versions-and-standards
+│   │   ├── csharp-language-versioning
+│   │   ├── csharp-7-and-7x
+│   │   ├── csharp-8
+│   │   ├── csharp-9
+│   │   ├── csharp-10
+│   │   ├── csharp-11
+│   │   ├── csharp-12
+│   │   ├── csharp-13-and-newer-features
+│   │   ├── target-framework-and-language-version
+│   │   └── feature-availability-and-compatibility
+│   ├── development-environment
+│   │   ├── windows-development
+│   │   ├── linux-development
+│   │   ├── macos-development
+│   │   ├── dotnet-sdk-installation
+│   │   ├── visual-studio
+│   │   ├── visual-studio-code-and-csharp-dev-kit
+│   │   ├── rider-and-alternative-ides
+│   │   ├── command-line-interface
+│   │   └── reproducible-development-environment
+│   ├── dotnet-toolchain-and-project-system
+│   │   ├── dotnet-cli
+│   │   ├── sdk-and-runtime-differences
+│   │   ├── dotnet-new-and-project-templates
+│   │   ├── solution-and-project-files
+│   │   ├── target-framework-monikers
+│   │   ├── nuget-package-management
+│   │   ├── global-json-and-sdk-selection
+│   │   ├── restore-build-run-and-publish
+│   │   └── project-and-solution-configuration
+│   └── compilation-and-execution
+│       ├── source-code-and-compilation
+│       ├── roslyn-compiler
+│       ├── intermediate-language
+│       ├── clr-execution
+│       ├── jit-compilation
+│       ├── tiered-compilation-and-pgo
+│       ├── garbage-collector-overview
+│       ├── managed-and-unmanaged-code
+│       └── runtime-diagnostics-and-errors
+├── core-language-fundamentals
+│   ├── lexical-structure-and-syntax
+│   │   ├── tokens-and-identifiers
+│   │   ├── keywords-and-contextual-keywords
+│   │   ├── literals-and-escape-sequences
+│   │   ├── comments-and-documentation-comments
+│   │   ├── namespaces-and-using-directives
+│   │   ├── statements-and-expressions
+│   │   ├── top-level-statements
+│   │   └── syntax-errors-and-compiler-diagnostics
+│   ├── types-and-values
+│   │   ├── value-types-and-reference-types
+│   │   ├── built-in-numeric-types
+│   │   ├── bool-and-char
+│   │   ├── string-and-object
+│   │   ├── decimal-and-floating-point
+│   │   ├── enums-and-structs
+│   │   ├── classes-and-records
+│   │   ├── nullable-value-types
+│   │   ├── nullable-reference-types
+│   │   └── type-aliases-and-global-usings
+│   ├── variables-and-constants
+│   │   ├── local-and-field-variables
+│   │   ├── var-and-implicit-typing
+│   │   ├── const-and-readonly
+│   │   ├── static-readonly
+│   │   ├── default-values
+│   │   ├── definite-assignment
+│   │   ├── variable-scope-and-lifetime
+│   │   └── naming-and-coding-conventions
+│   ├── operators-and-expressions
+│   │   ├── arithmetic-operators
+│   │   ├── comparison-and-logical-operators
+│   │   ├── bitwise-and-shift-operators
+│   │   ├── assignment-and-compound-assignment
+│   │   ├── null-coalescing-and-conditional-access
+│   │   ├── conditional-and-switch-expressions
+│   │   ├── operator-precedence
+│   │   ├── checked-and-unchecked-contexts
+│   │   └── implicit-and-explicit-conversions
+│   ├── control-flow
+│   │   ├── if-and-else
+│   │   ├── switch-statements
+│   │   ├── switch-expressions
+│   │   ├── for-and-foreach
+│   │   ├── while-and-do-while
+│   │   ├── break-continue-and-return
+│   │   ├── pattern-based-branching
+│   │   └── goto-and-labels
+│   ├── methods-and-parameters
+│   │   ├── method-declaration-and-invocation
+│   │   ├── return-types-and-void
+│   │   ├── value-and-reference-parameters
+│   │   ├── ref-out-and-in
+│   │   ├── optional-and-named-arguments
+│   │   ├── params-arrays-and-collections
+│   │   ├── method-overloading
+│   │   ├── expression-bodied-members
+│   │   ├── local-functions
+│   │   └── extension-methods
+│   ├── arrays-and-collections-basics
+│   │   ├── single-and-multidimensional-arrays
+│   │   ├── jagged-arrays
+│   │   ├── array-initialization-and-copying
+│   │   ├── indexing-and-ranges
+│   │   ├── collection-initializers
+│   │   └── iteration-and-enumeration
+│   └── strings-and-text-processing
+│       ├── string-immutability
+│       ├── string-interpolation
+│       ├── string-formatting
+│       ├── stringbuilder
+│       ├── spans-and-memory-for-text
+│       ├── parsing-and-validation
+│       ├── regular-expressions
+│       ├── unicode-and-utf-encoding
+│       └── culture-aware-text-processing
+├── object-oriented-programming
+│   ├── classes-and-objects
+│   │   ├── class-declaration-and-instantiation
+│   │   ├── fields-and-properties
+│   │   ├── constructors-and-initializers
+│   │   ├── primary-constructors
+│   │   ├── methods-and-events
+│   │   ├── access-modifiers
+│   │   ├── static-members
+│   │   ├── object-initializers
+│   │   └── object-invariants
+│   ├── encapsulation-and-abstraction
+│   │   ├── information-hiding
+│   │   ├── property-validation
+│   │   ├── interface-design
+│   │   ├── abstract-classes
+│   │   ├── explicit-interface-implementation
+│   │   ├── accessors-and-init-only-properties
+│   │   └── api-contracts
+│   ├── inheritance-and-polymorphism
+│   │   ├── base-and-derived-classes
+│   │   ├── virtual-and-override
+│   │   ├── abstract-and-sealed
+│   │   ├── method-hiding-with-new
+│   │   ├── runtime-polymorphism
+│   │   ├── object-and-type-hierarchy
+│   │   ├── is-as-and-pattern-matching
+│   │   └── composition-versus-inheritance
+│   ├── interfaces
+│   │   ├── interface-declaration
+│   │   ├── interface-implementation
+│   │   ├── multiple-interface-implementation
+│   │   ├── default-interface-members
+│   │   ├── static-abstract-interface-members
+│   │   ├── interface-segregation
+│   │   └── interface-based-testing
+│   ├── records-and-value-semantics
+│   │   ├── record-classes
+│   │   ├── record-structs
+│   │   ├── positional-records
+│   │   ├── value-based-equality
+│   │   ├── with-expressions
+│   │   ├── init-only-properties
+│   │   └── records-versus-classes-and-structs
+│   ├── structs-and-ref-structs
+│   │   ├── struct-value-semantics
+│   │   ├── readonly-structs
+│   │   ├── ref-structs-and-stack-only-types
+│   │   ├── ref-fields-and-ref-returns
+│   │   ├── boxing-and-unboxing
+│   │   └── struct-size-and-copy-cost
+│   └── object-lifecycle-and-finalization
+│       ├── constructor-chaining
+│       ├── static-constructors
+│       ├── garbage-collection-lifecycle
+│       ├── finalizers-and-finalization-queue
+│       ├── idisposable
+│       ├── async-disposable
+│       ├── using-statement-and-declaration
+│       └── deterministic-resource-cleanup
+├── modern-csharp-and-type-system
+│   ├── generics
+│   │   ├── generic-classes-and-methods
+│   │   ├── generic-interfaces-and-delegates
+│   │   ├── generic-constraints
+│   │   ├── covariance-and-contravariance
+│   │   ├── generic-type-inference
+│   │   ├── open-and-closed-generic-types
+│   │   ├── generic-math-and-static-abstract-members
+│   │   └── generic-performance-considerations
+│   ├── delegates-and-events
+│   │   ├── delegate-types-and-invocation
+│   │   ├── multicast-delegates
+│   │   ├── action-func-and-predicate
+│   │   ├── lambda-expressions
+│   │   ├── event-declaration-and-subscription
+│   │   ├── event-handler-lifecycle
+│   │   ├── custom-event-accessors
+│   │   └── memory-leaks-from-event-subscriptions
+│   ├── pattern-matching
+│   │   ├── type-and-constant-patterns
+│   │   ├── relational-and-logical-patterns
+│   │   ├── property-and-positional-patterns
+│   │   ├── list-patterns
+│   │   ├── recursive-patterns
+│   │   ├── switch-expression-patterns
+│   │   └── pattern-exhaustiveness-and-readability
+│   ├── nullable-reference-types
+│   │   ├── nullable-context-and-annotations
+│   │   ├── nullable-flow-analysis
+│   │   ├── null-forgiving-operator
+│   │   ├── nullable-attributes
+│   │   ├── required-members
+│   │   ├── nullability-at-api-boundaries
+│   │   └── migration-of-legacy-projects
+│   ├── asynchronous-programming
+│   │   ├── task-and-task-of-t
+│   │   ├── async-and-await
+│   │   ├── value-task
+│   │   ├── async-void-risks
+│   │   ├── cancellation-token
+│   │   ├── task-composition-and-when-all
+│   │   ├── exception-propagation
+│   │   ├── synchronization-context
+│   │   ├── configure-await
+│   │   └── async-streams-and-iasyncenumerable
+│   ├── iterators-and-yield
+│   │   ├── iterator-methods
+│   │   ├── yield-return-and-yield-break
+│   │   ├── deferred-execution
+│   │   ├── iterator-state-machines
+│   │   ├── disposal-and-iterator-lifecycle
+│   │   └── lazy-sequence-design
+│   ├── attributes-and-reflection
+│   │   ├── built-in-attributes
+│   │   ├── custom-attributes
+│   │   ├── reflection-types-and-members
+│   │   ├── assembly-metadata
+│   │   ├── reflection-performance
+│   │   ├── source-generators-versus-reflection
+│   │   └── trimming-and-reflection-compatibility
+│   └── language-feature-evolution
+│       ├── global-usings-and-file-scoped-namespaces
+│       ├── init-only-and-required-members
+│       ├── records-and-record-structs
+│       ├── raw-string-literals
+│       ├── list-patterns-and-collection-expressions
+│       ├── primary-constructors
+│       ├── ref-readonly-and-ref-struct-evolution
+│       ├── interceptors-and-preview-feature-awareness
+│       └── language-version-migration
+├── collections-linq-and-data-processing
+│   ├── collection-types
+│   │   ├── list-and-linkedlist
+│   │   ├── dictionary-and-sorted-dictionary
+│   │   ├── hashset-and-sortedset
+│   │   ├── queue-and-stack
+│   │   ├── concurrent-collections
+│   │   ├── immutable-collections
+│   │   ├── observable-collections
+│   │   └── collection-selection-and-complexity
+│   ├── enumerable-and-enumerator
+│   │   ├── ienumerable-and-ienumerator
+│   │   ├── generic-and-nongeneric-enumeration
+│   │   ├── foreach-pattern
+│   │   ├── custom-enumerators
+│   │   ├── deferred-execution
+│   │   └── multiple-enumeration-risks
+│   ├── linq-fundamentals
+│   │   ├── query-and-method-syntax
+│   │   ├── where-select-and-selectmany
+│   │   ├── orderby-and-thenby
+│   │   ├── groupby-and-join
+│   │   ├── aggregate-and-group-operations
+│   │   ├── first-single-and-default
+│   │   ├── any-all-and-contains
+│   │   ├── set-operations
+│   │   └── linq-performance-and-materialization
+│   ├── expression-trees-and-providers
+│   │   ├── expression-tree-fundamentals
+│   │   ├── expression-versus-delegate
+│   │   ├── expression-tree-composition
+│   │   ├── query-provider-translation
+│   │   ├── client-versus-server-evaluation
+│   │   └── unsupported-query-translation
+│   ├── spans-memory-and-buffers
+│   │   ├── span-and-readonlyspan
+│   │   ├── memory-and-readonlymemory
+│   │   ├── memorypool-and-owners
+│   │   ├── arraypool
+│   │   ├── memorymarshal-and-low-level-views
+│   │   ├── ref-safety-and-lifetimes
+│   │   └── allocation-reduction
+│   └── serialization-and-data-formats
+│       ├── system-text-json
+│       ├── json-serialization-options
+│       ├── custom-json-converters
+│       ├── xml-serialization-and-processing
+│       ├── csv-and-delimited-data
+│       ├── binary-serialization-options
+│       ├── schema-and-version-compatibility
+│       └── untrusted-data-validation
+├── memory-management-and-runtime-internals
+│   ├── garbage-collection
+│   │   ├── managed-heap-and-generations
+│   │   ├── workstation-and-server-gc
+│   │   ├── background-gc
+│   │   ├── large-object-heap
+│   │   ├── pinned-object-heap
+│   │   ├── allocation-pressure
+│   │   ├── gc-latency-modes
+│   │   └── gc-diagnostics-and-tuning
+│   ├── memory-and-resource-management
+│   │   ├── managed-versus-unmanaged-resources
+│   │   ├── disposable-pattern
+│   │   ├── safe-handle
+│   │   ├── finalization-and-resurrection
+│   │   ├── pinning-and-fixed
+│   │   ├── native-memory-ownership
+│   │   ├── pooled-resources
+│   │   └── resource-leak-detection
+│   ├── runtime-and-type-system-internals
+│   │   ├── clr-and-coreclr
+│   │   ├── metadata-and-assemblies
+│   │   ├── type-loading-and-resolution
+│   │   ├── jit-and-tiered-compilation
+│   │   ├── reflection-and-runtime-code-generation
+│   │   ├── assembly-load-context
+│   │   ├── runtime-configuration
+│   │   └── runtime-versioning
+│   ├── unsafe-and-interoperability
+│   │   ├── unsafe-context-and-pointers
+│   │   ├── fixed-and-pinning
+│   │   ├── stackalloc
+│   │   ├── unmanaged-types
+│   │   ├── memory-and-native-boundaries
+│   │   ├── safe-buffer-and-safehandle
+│   │   └── unsafe-code-review-and-risk
+│   └── performance-diagnostics
+│       ├── dotnet-counters
+│       ├── dotnet-trace
+│       ├── dotnet-dump
+│       ├── perfview-and-eventpipe
+│       ├── allocation-and-gc-profiling
+│       ├── cpu-sampling-and-flame-graphs
+│       └── runtime-metric-interpretation
+├── exception-handling-and-correctness
+│   ├── exception-fundamentals
+│   │   ├── try-catch-finally
+│   │   ├── throw-and-throw-ex
+│   │   ├── exception-hierarchy
+│   │   ├── custom-exception-types
+│   │   ├── exception-filters
+│   │   ├── aggregate-exception
+│   │   ├── inner-exceptions-and-context
+│   │   └── exception-stack-traces
+│   ├── error-handling-design
+│   │   ├── exceptions-versus-result-types
+│   │   ├── validation-and-guard-clauses
+│   │   ├── error-codes-and-domain-errors
+│   │   ├── error-propagation-and-translation
+│   │   ├── retryable-versus-nonretryable-errors
+│   │   ├── cancellation-versus-failure
+│   │   └── user-facing-versus-diagnostic-errors
+│   ├── defensive-programming
+│   │   ├── argument-validation
+│   │   ├── null-and-range-checks
+│   │   ├── invariants-and-state-validation
+│   │   ├── checked-arithmetic
+│   │   ├── resource-lifetime-safety
+│   │   └── fail-fast-and-recovery
+│   └── correctness-and-contracts
+│       ├── preconditions-and-postconditions
+│       ├── nullable-contracts
+│       ├── interface-contracts
+│       ├── deterministic-behavior
+│       ├── concurrency-correctness
+│       └── static-analysis-and-analyzers
+├── asynchronous-and-concurrent-programming
+│   ├── task-based-asynchronous-pattern
+│   │   ├── task-and-task-of-t
+│   │   ├── async-await-state-machines
+│   │   ├── task-scheduling-and-thread-pool
+│   │   ├── task-run-and-cpu-bound-work
+│   │   ├── io-bound-versus-cpu-bound
+│   │   ├── task-combinators
+│   │   ├── cancellation-and-timeouts
+│   │   └── async-deadlocks-and-blocking
+│   ├── asynchronous-io
+│   │   ├── async-file-operations
+│   │   ├── async-networking
+│   │   ├── async-streams
+│   │   ├── cancellation-token-propagation
+│   │   ├── backpressure-and-buffering
+│   │   └── async-disposal
+│   ├── threading-and-synchronization
+│   │   ├── thread-and-threadpool
+│   │   ├── lock-and-monitor
+│   │   ├── mutex-and-semaphore
+│   │   ├── readerwriterlockslim
+│   │   ├── concurrent-collections
+│   │   ├── interlocked-and-volatile
+│   │   ├── manual-and-auto-reset-events
+│   │   └── synchronization-context
+│   ├── parallel-programming
+│   │   ├── parallel-class
+│   │   ├── parallel-for-and-foreach
+│   │   ├── plinq
+│   │   ├── data-parallelism
+│   │   ├── task-parallel-library
+│   │   ├── partitioning-and-scheduling
+│   │   ├── parallel-exception-handling
+│   │   └── parallel-performance-tradeoffs
+│   ├── concurrency-patterns
+│   │   ├── producer-consumer
+│   │   ├── channels-and-pipelines
+│   │   ├── actor-model-overview
+│   │   ├── async-lock-and-coordination
+│   │   ├── bounded-concurrency
+│   │   ├── single-flight-and-deduplication
+│   │   └── graceful-shutdown
+│   └── concurrency-failure-modes
+│       ├── race-conditions
+│       ├── deadlocks-and-lock-ordering
+│       ├── starvation-and-contention
+│       ├── shared-mutable-state
+│       ├── cancellation-races
+│       ├── thread-safety-and-reentrancy
+│       └── concurrency-testing-and-diagnostics
+├── file-system-networking-and-system-integration
+│   ├── file-system-and-streams
+│   │   ├── system-io-file-and-directory
+│   │   ├── file-stream-and-memory-stream
+│   │   ├── buffered-and-asynchronous-streams
+│   │   ├── stream-reader-and-writer
+│   │   ├── file-sharing-and-locking
+│   │   ├── file-watchers
+│   │   ├── path-and-filesystem-abstraction
+│   │   └── robust-file-io-and-atomic-replacement
+│   ├── networking
+│   │   ├── httpclient-lifecycle
+│   │   ├── http-request-and-response
+│   │   ├── sockets-and-tcpclient
+│   │   ├── udpclient
+│   │   ├── dns-and-network-streams
+│   │   ├── tls-and-certificate-validation
+│   │   ├── proxy-and-timeout-configuration
+│   │   └── connection-pooling-and-resilience
+│   ├── process-and-operating-system-integration
+│   │   ├── process-start-and-arguments
+│   │   ├── standard-input-output-and-error
+│   │   ├── process-lifetime-and-cancellation
+│   │   ├── environment-variables
+│   │   ├── registry-and-platform-configuration
+│   │   ├── signals-and-console-lifecycle
+│   │   └── cross-platform-api-boundaries
+│   ├── interprocess-communication
+│   │   ├── named-pipes
+│   │   ├── memory-mapped-files
+│   │   ├── sockets-and-local-transport
+│   │   ├── shared-memory-overview
+│   │   ├── grpc-and-local-services
+│   │   └── ipc-security-and-lifecycle
+│   └── globalization-and-time
+│       ├── cultureinfo-and-locales
+│       ├── date-time-and-timezone
+│       ├── datetimeoffset
+│       ├── utc-and-local-time
+│       ├── number-and-currency-formatting
+│       ├── globalization-invariant-mode
+│       └── culture-dependent-parsing-risks
+├── dotnet-application-development
+│   ├── console-and-worker-applications
+│   │   ├── console-app-structure
+│   │   ├── command-line-argument-parsing
+│   │   ├── configuration-and-options
+│   │   ├── dependency-injection-in-console-apps
+│   │   ├── generic-host-and-hosted-services
+│   │   ├── backgroundservice
+│   │   ├── graceful-shutdown-and-cancellation
+│   │   └── worker-service-deployment
+│   ├── windows-and-desktop-applications
+│   │   ├── windows-forms
+│   │   ├── wpf-and-xaml
+│   │   ├── mvvm-pattern
+│   │   ├── data-binding-and-commands
+│   │   ├── observable-collections
+│   │   ├── dispatcher-and-ui-thread
+│   │   ├── maui-desktop-targets
+│   │   └── desktop-packaging-and-updates
+│   ├── cross-platform-desktop-and-mobile
+│   │   ├── dotnet-maui-overview
+│   │   ├── maui-project-structure
+│   │   ├── xaml-and-controls
+│   │   ├── handlers-and-platform-apis
+│   │   ├── navigation-and-shell
+│   │   ├── platform-permissions
+│   │   ├── mobile-lifecycle
+│   │   └── deployment-and-store-release
+│   └── application-configuration-and-hosting
+│       ├── microsoft-extensions-hosting
+│       ├── appsettings-and-configuration-providers
+│       ├── options-pattern
+│       ├── environment-specific-settings
+│       ├── secrets-and-credential-providers
+│       ├── dependency-injection-container
+│       ├── hosted-services-and-lifecycle
+│       └── application-startup-and-shutdown
+├── web-development-with-aspnet-core
+│   ├── aspnet-core-fundamentals
+│   │   ├── request-response-pipeline
+│   │   ├── middleware-and-ordering
+│   │   ├── dependency-injection-and-scopes
+│   │   ├── configuration-and-environments
+│   │   ├── logging-and-diagnostics
+│   │   ├── kestrel-and-hosting
+│   │   ├── static-files-and-content-types
+│   │   └── error-handling-and-problem-details
+│   ├── minimal-apis
+│   │   ├── endpoint-mapping
+│   │   ├── route-groups-and-filters
+│   │   ├── parameter-binding
+│   │   ├── validation-and-results
+│   │   ├── dependency-injection-in-endpoints
+│   │   ├── openapi-and-api-exploration
+│   │   └── minimal-api-testing
+│   ├── controllers-and-web-api
+│   │   ├── controller-and-action-design
+│   │   ├── routing-and-attribute-routing
+│   │   ├── model-binding
+│   │   ├── model-validation
+│   │   ├── filters-and-action-results
+│   │   ├── api-versioning
+│   │   ├── problem-details-and-error-contracts
+│   │   └── controller-unit-and-integration-tests
+│   ├── middleware-and-request-pipeline-engineering
+│   │   ├── custom-middleware
+│   │   ├── exception-handling-middleware
+│   │   ├── authentication-and-authorization-order
+│   │   ├── cors-and-caching-middleware
+│   │   ├── request-correlation
+│   │   ├── rate-limiting
+│   │   └── middleware-performance
+│   ├── authentication-and-authorization
+│   │   ├── cookie-authentication
+│   │   ├── jwt-bearer-authentication
+│   │   ├── oauth2-and-openid-connect
+│   │   ├── identity-and-account-management
+│   │   ├── claims-and-policies
+│   │   ├── role-and-resource-based-authorization
+│   │   ├── external-identity-providers
+│   │   └── token-validation-and-key-rotation
+│   ├── realtime-and-communication
+│   │   ├── signalr-hubs
+│   │   ├── websocket-and-server-sent-events
+│   │   ├── connection-lifecycle
+│   │   ├── groups-and-user-targeting
+│   │   ├── scale-out-and-backplanes
+│   │   └── realtime-integration-tests
+│   ├── mvc-and-server-rendered-applications
+│   │   ├── mvc-architecture
+│   │   ├── razor-views
+│   │   ├── razor-pages
+│   │   ├── model-binding-and-validation
+│   │   ├── tag-helpers-and-view-components
+│   │   ├── antiforgery-and-form-security
+│   │   └── server-rendered-ui-testing
+│   └── web-api-production-readiness
+│       ├── health-checks-and-readiness
+│       ├── rate-limiting-and-throttling
+│       ├── output-and-response-caching
+│       ├── request-size-and-timeout-limits
+│       ├── graceful-shutdown
+│       ├── reverse-proxy-and-forwarded-headers
+│       └── deployment-and-operational-diagnostics
+├── data-access-and-persistence
+│   ├── database-fundamentals
+│   │   ├── relational-database-concepts
+│   │   ├── tables-keys-and-constraints
+│   │   ├── indexes-and-query-plans
+│   │   ├── transactions-and-isolation
+│   │   ├── normalization-and-data-modeling
+│   │   └── connection-pooling
+│   ├── ado-net
+│   │   ├── connections-and-commands
+│   │   ├── data-readers
+│   │   ├── parameters-and-sql-injection-prevention
+│   │   ├── transactions
+│   │   ├── async-database-operations
+│   │   ├── connection-lifetime
+│   │   └── provider-specific-behavior
+│   ├── entity-framework-core
+│   │   ├── dbcontext-and-dbset
+│   │   ├── entity-configuration
+│   │   ├── relationships-and-navigation-properties
+│   │   ├── migrations-and-schema-evolution
+│   │   ├── change-tracking
+│   │   ├── query-translation-and-linq
+│   │   ├── eager-explicit-and-lazy-loading
+│   │   ├── transactions-and-concurrency
+│   │   ├── compiled-queries-and-performance
+│   │   ├── interceptors-and-global-filters
+│   │   └── ef-core-testing-strategy
+│   ├── alternative-data-access
+│   │   ├── dapper
+│   │   ├── raw-sql-and-micro-orms
+│   │   ├── mongodb-and-document-databases
+│   │   ├── redis-and-distributed-cache
+│   │   ├── elasticsearch-and-search-stores
+│   │   └── repository-pattern-tradeoffs
+│   ├── data-modeling-and-domain-persistence
+│   │   ├── entity-versus-value-object
+│   │   ├── aggregate-and-invariants
+│   │   ├── domain-model-versus-persistence-model
+│   │   ├── mapping-and-projection
+│   │   ├── soft-delete-and-audit-fields
+│   │   ├── optimistic-concurrency
+│   │   └── data-migration-and-backfill
+│   └── transactions-and-consistency
+│       ├── local-database-transactions
+│       ├── isolation-levels-and-locking
+│       ├── optimistic-versus-pessimistic-concurrency
+│       ├── distributed-transaction-limitations
+│       ├── outbox-and-inbox-patterns
+│       ├── saga-and-compensation
+│       └── consistency-and-reconciliation
+├── software-architecture-and-design
+│   ├── object-oriented-design
+│   │   ├── solid-principles
+│   │   ├── composition-over-inheritance
+│   │   ├── dependency-inversion
+│   │   ├── encapsulation-and-invariants
+│   │   ├── domain-services-and-entities
+│   │   ├── value-objects-and-aggregates
+│   │   └── interface-and-abstraction-design
+│   ├── design-patterns
+│   │   ├── factory-and-abstract-factory
+│   │   ├── builder
+│   │   ├── strategy
+│   │   ├── decorator
+│   │   ├── adapter-and-facade
+│   │   ├── observer-and-publisher-subscriber
+│   │   ├── mediator
+│   │   ├── command-and-state
+│   │   ├── repository-and-unit-of-work
+│   │   └── pattern-selection-and-tradeoffs
+│   ├── layered-and-clean-architecture
+│   │   ├── presentation-application-domain-infrastructure
+│   │   ├── dependency-rules
+│   │   ├── use-cases-and-application-services
+│   │   ├── ports-and-adapters
+│   │   ├── dependency-injection-composition-root
+│   │   ├── modular-monolith
+│   │   └── architecture-testing
+│   ├── domain-driven-design
+│   │   ├── ubiquitous-language
+│   │   ├── bounded-contexts
+│   │   ├── entities-and-value-objects
+│   │   ├── aggregates-and-domain-events
+│   │   ├── repositories-and-domain-services
+│   │   ├── domain-event-handling
+│   │   ├── context-mapping
+│   │   └── tactical-versus-strategic-ddd
+│   ├── distributed-and-event-driven-architecture
+│   │   ├── message-brokers-and-queues
+│   │   ├── event-driven-design
+│   │   ├── publish-subscribe
+│   │   ├── eventual-consistency
+│   │   ├── idempotent-consumers
+│   │   ├── outbox-and-inbox
+│   │   ├── saga-orchestration-and-choreography
+│   │   └── distributed-failure-handling
+│   └── architecture-evolution-and-quality
+│       ├── modularity-and-coupling
+│       ├── architecture-decision-records
+│       ├── fitness-functions
+│       ├── legacy-modernization
+│       ├── service-boundaries
+│       ├── maintainability-and-operability
+│       └── when-not-to-use-microservices
+├── testing-debugging-and-quality-engineering
+│   ├── unit-testing
+│   │   ├── xunit
+│   │   ├── nunit
+│   │   ├── mstest
+│   │   ├── test-fixtures-and-lifecycle
+│   │   ├── parameterized-and-data-driven-tests
+│   │   ├── assertions-and-constraints
+│   │   ├── mocking-with-moq-and-nsubstitute
+│   │   └── test-organization-and-naming
+│   ├── integration-and-functional-testing
+│   │   ├── aspnetcore-integration-testing
+│   │   ├── webapplicationfactory
+│   │   ├── database-integration-tests
+│   │   ├── testcontainers-for-dotnet
+│   │   ├── api-contract-tests
+│   │   ├── authentication-and-authorization-tests
+│   │   ├── messaging-and-background-worker-tests
+│   │   └── end-to-end-test-boundaries
+│   ├── test-design-and-coverage
+│   │   ├── equivalence-and-boundary-testing
+│   │   ├── decision-table-and-state-transition
+│   │   ├── property-based-testing
+│   │   ├── mutation-testing
+│   │   ├── code-coverage-and-interpretation
+│   │   ├── test-doubles-and-isolation
+│   │   └── deterministic-test-data
+│   ├── debugging-and-diagnostics
+│   │   ├── visual-studio-debugger
+│   │   ├── rider-and-vscode-debugging
+│   │   ├── breakpoints-and-data-inspection
+│   │   ├── exception-and-stack-trace-analysis
+│   │   ├── dump-and-crash-analysis
+│   │   ├── async-and-concurrency-debugging
+│   │   └── minimal-reproduction-and-bisection
+│   ├── static-analysis-and-code-quality
+│   │   ├── roslyn-analyzers
+│   │   ├── editorconfig-and-analyzer-severity
+│   │   ├── nullable-analysis
+│   │   ├── code-style-and-formatting
+│   │   ├── dotnet-format
+│   │   ├── sonarqube-and-quality-gates
+│   │   └── analyzer-suppressions-and-justification
+│   └── test-automation-and-mutation
+│       ├── test-coverage-collection
+│       ├── coverlet-and-reportgenerator
+│       ├── mutation-testing-with-stryker-net
+│       ├── flaky-test-identification
+│       ├── parallel-test-execution
+│       ├── test-runtime-optimization
+│       └── ci-test-reporting
+├── security-and-secure-dotnet-development
+│   ├── application-security-fundamentals
+│   │   ├── threat-modeling
+│   │   ├── trust-boundaries-and-attack-surface
+│   │   ├── secure-defaults-and-least-privilege
+│   │   ├── input-validation-and-output-encoding
+│   │   ├── authentication-versus-authorization
+│   │   └── security-review-lifecycle
+│   ├── web-and-api-security
+│   │   ├── owasp-top-ten-awareness
+│   │   ├── sql-injection-and-parameterization
+│   │   ├── cross-site-scripting
+│   │   ├── csrf-and-antiforgery
+│   │   ├── cors-and-origin-policy
+│   │   ├── jwt-validation-and-key-rotation
+│   │   ├── object-level-authorization
+│   │   ├── rate-limiting-and-abuse-prevention
+│   │   └── secure-file-upload-and-download
+│   ├── identity-and-secrets
+│   │   ├── aspnetcore-identity
+│   │   ├── oauth2-and-openid-connect
+│   │   ├── managed-identities
+│   │   ├── user-secrets-and-development-credentials
+│   │   ├── secret-vault-integration
+│   │   ├── certificate-and-key-management
+│   │   └── credential-rotation-and-revocation
+│   ├── cryptography-and-data-protection
+│   │   ├── cryptographic-primitives-and-safe-apis
+│   │   ├── password-hashing
+│   │   ├── data-protection-api
+│   │   ├── encryption-at-rest-and-in-transit
+│   │   ├── key-storage-and-rotation
+│   │   ├── random-number-generation
+│   │   └── cryptographic-misuse-avoidance
+│   └── supply-chain-and-runtime-security
+│       ├── nuget-dependency-auditing
+│       ├── vulnerable-package-management
+│       ├── sbom-and-provenance
+│       ├── signed-build-artifacts
+│       ├── container-image-scanning
+│       ├── runtime-hardening
+│       └── security-regression-and-incident-response
+├── cloud-native-and-distributed-dotnet
+│   ├── microservices-and-service-communication
+│   │   ├── service-boundaries-and-decomposition
+│   │   ├── http-and-rest-communication
+│   │   ├── grpc-and-protobuf
+│   │   ├── message-based-communication
+│   │   ├── service-discovery-and-load-balancing
+│   │   ├── api-gateway-and-bff
+│   │   ├── versioning-and-compatibility
+│   │   └── distributed-testing
+│   ├── resilience-and-fault-tolerance
+│   │   ├── timeout-and-deadline-propagation
+│   │   ├── retry-and-exponential-backoff
+│   │   ├── circuit-breaker
+│   │   ├── bulkhead-and-concurrency-limits
+│   │   ├── rate-limiter
+│   │   ├── fallback-and-degraded-mode
+│   │   ├── hedging-and-duplicate-work
+│   │   └── resilience-testing
+│   ├── messaging-and-event-streaming
+│   │   ├── azure-service-bus
+│   │   ├── rabbitmq
+│   │   ├── apache-kafka-and-event-streams
+│   │   ├── masstransit
+│   │   ├── message-delivery-semantics
+│   │   ├── ordering-and-partitioning
+│   │   ├── dead-letter-and-retry-queues
+│   │   └── schema-and-event-versioning
+│   ├── caching-and-performance-at-scale
+│   │   ├── memorycache
+│   │   ├── distributed-cache-and-redis
+│   │   ├── output-and-response-caching
+│   │   ├── cache-invalidation-and-consistency
+│   │   ├── cache-stampede-and-locking
+│   │   ├── connection-pooling
+│   │   └── cache-observability
+│   ├── cloud-platforms
+│   │   ├── microsoft-azure-dotnet
+│   │   ├── aws-dotnet-sdk
+│   │   ├── google-cloud-dotnet
+│   │   ├── managed-database-and-storage
+│   │   ├── identity-and-secret-services
+│   │   ├── serverless-and-functions
+│   │   └── cloud-cost-and-resource-governance
+│   └── containers-and-orchestration
+│       ├── dockerfile-for-dotnet
+│       ├── multi-stage-builds
+│       ├── nonroot-container-users
+│       ├── health-checks-and-graceful-shutdown
+│       ├── docker-compose-for-local-development
+│       ├── kubernetes-deployment-basics
+│       ├── configuration-and-secret-injection
+│       └── container-security-and-observability
+├── performance-observability-and-production-operations
+│   ├── application-performance
+│   │   ├── cpu-and-allocation-profiling
+│   │   ├── async-and-threadpool-performance
+│   │   ├── database-query-performance
+│   │   ├── serialization-and-json-performance
+│   │   ├── caching-and-memory-pressure
+│   │   ├── startup-and-warmup
+│   │   ├── throughput-and-tail-latency
+│   │   └── benchmarkdotnet
+│   ├── logging-and-diagnostics
+│   │   ├── microsoft-extensions-logging
+│   │   ├── structured-logging
+│   │   ├── serilog-and-sinks
+│   │   ├── correlation-and-trace-identifiers
+│   │   ├── log-level-and-redaction
+│   │   ├── eventsource-and-eventpipe
+│   │   └── production-diagnostic-collection
+│   ├── metrics-and-distributed-tracing
+│   │   ├── system-diagnostics-metrics
+│   │   ├── opentelemetry-dotnet
+│   │   ├── traces-spans-and-context-propagation
+│   │   ├── metrics-and-histograms
+│   │   ├── prometheus-and-grafana-integration
+│   │   ├── application-insights
+│   │   └── sampling-and-telemetry-cost
+│   ├── health-and-readiness
+│   │   ├── aspnetcore-health-checks
+│   │   ├── liveness-readiness-and-startup-probes
+│   │   ├── dependency-health
+│   │   ├── health-check-security
+│   │   ├── graceful-shutdown-and-draining
+│   │   └── operational-status-endpoints
+│   └── incident-and-reliability-practices
+│       ├── alerting-and-slo-awareness
+│       ├── incident-triage-and-diagnosis
+│       ├── rollback-and-hotfix
+│       ├── postmortem-and-root-cause
+│       ├── capacity-and-load-planning
+│       ├── backup-and-disaster-recovery
+│       └── production-readiness-review
+├── build-release-and-devops
+│   ├── build-and-publish
+│   │   ├── dotnet-build-configurations
+│   │   ├── framework-dependent-deployment
+│   │   ├── self-contained-deployment
+│   │   ├── single-file-publishing
+│   │   ├── trimming-and-trim-compatibility
+│   │   ├── ready-to-run
+│   │   ├── native-aot
+│   │   └── publish-size-and-startup-tradeoffs
+│   ├── ci-cd-pipelines
+│   │   ├── github-actions-for-dotnet
+│   │   ├── azure-devops-pipelines
+│   │   ├── gitlab-ci-for-dotnet
+│   │   ├── jenkins-and-other-runners
+│   │   ├── restore-build-test-and-publish-stages
+│   │   ├── artifact-and-package-management
+│   │   ├── secret-and-signing-management
+│   │   └── deployment-approval-and-rollback
+│   ├── nuget-and-library-engineering
+│   │   ├── class-library-design
+│   │   ├── nuget-package-creation
+│   │   ├── package-metadata-and-dependencies
+│   │   ├── source-link-and-symbol-packages
+│   │   ├── semantic-versioning
+│   │   ├── package-signing-and-provenance
+│   │   └── compatibility-and-deprecation-policy
+│   ├── deployment-targets
+│   │   ├── iis-and-windows-services
+│   │   ├── linux-systemd-and-reverse-proxy
+│   │   ├── containers-and-kubernetes
+│   │   ├── azure-app-service-and-container-apps
+│   │   ├── serverless-functions
+│   │   ├── desktop-and-store-distribution
+│   │   └── deployment-environment-configuration
+│   └── modernization-and-upgrades
+│       ├── framework-to-modern-dotnet-migration
+│       ├── target-framework-upgrades
+│       ├── breaking-change-assessment
+│       ├── dependency-and-runtime-updates
+│       ├── api-compatibility-analysis
+│       ├── migration-testing-and-rollout
+│       └── end-of-support-and-lifecycle-planning
+├── specialized-dotnet-ecosystem
+│   ├── entity-and-enterprise-applications
+│   │   ├── modular-monolith-and-enterprise-patterns
+│   │   ├── background-processing-and-scheduling
+│   │   ├── workflow-and-approval-systems
+│   │   ├── audit-and-compliance-logging
+│   │   ├── multi-tenant-application-design
+│   │   └── enterprise-integration
+│   ├── blazor-and-web-ui
+│   │   ├── blazor-components-and-rendering
+│   │   ├── blazor-webassembly
+│   │   ├── blazor-server-and-interactive-server
+│   │   ├── forms-and-validation
+│   │   ├── component-state-and-lifecycle
+│   │   ├── javascript-interop
+│   │   ├── authentication-and-authorization
+│   │   └── blazor-performance-and-deployment
+│   ├── cloud-and-serverless-applications
+│   │   ├── azure-functions
+│   │   ├── aws-lambda-dotnet
+│   │   ├── event-triggered-functions
+│   │   ├── cold-start-and-execution-limits
+│   │   ├── durable-workflows
+│   │   ├── serverless-observability
+│   │   └── local-and-cloud-integration-tests
+│   ├── machine-learning-and-data-applications
+│   │   ├── ml-dotnet-and-model-inference
+│   │   ├── onnx-runtime-integration
+│   │   ├── data-pipeline-and-batch-processing
+│   │   ├── microsoft-ml-net-overview
+│   │   ├── vector-and-embedding-integration
+│   │   └── model-serving-and-monitoring
+│   ├── game-and-interactive-development
+│   │   ├── unity-and-csharp
+│   │   ├── game-object-and-component-model
+│   │   ├── update-loop-and-coroutines
+│   │   ├── physics-and-input
+│   │   ├── async-and-performance-in-games
+│   │   └── profiling-and-platform-builds
+│   └── interoperability-and-native-integration
+│       ├── platform-invoke-and-pinvoke
+│       ├── com-interoperability
+│       ├── native-aot-and-native-exports
+│       ├── source-generated-pinvoke
+│       ├── unmanaged-callbacks-and-lifetimes
+│       ├── native-library-loading
+│       └── interop-marshalling-and-safety
+├── professional-practice-and-career
+│   ├── engineering-workflow
+│   │   ├── requirement-to-implementation-breakdown
+│   │   ├── technical-design-and-estimation
+│   │   ├── vertical-slice-delivery
+│   │   ├── code-review-and-pull-requests
+│   │   ├── refactoring-and-technical-debt
+│   │   ├── documentation-and-runbooks
+│   │   └── maintenance-and-support-ownership
+│   ├── collaboration-and-team-practices
+│   │   ├── product-and-business-collaboration
+│   │   ├── api-contract-and-frontend-collaboration
+│   │   ├── database-and-platform-collaboration
+│   │   ├── qa-and-test-engineering-collaboration
+│   │   ├── incident-communication
+│   │   └── mentoring-and-technical-leadership
+│   ├── career-levels-and-specializations
+│   │   ├── junior-csharp-developer
+│   │   ├── dotnet-developer
+│   │   ├── aspnet-core-backend-developer
+│   │   ├── full-stack-dotnet-developer
+│   │   ├── senior-dotnet-engineer
+│   │   ├── dotnet-tech-lead
+│   │   ├── cloud-native-dotnet-engineer
+│   │   ├── desktop-and-maui-developer
+│   │   └── dotnet-platform-architect
+│   ├── certifications-and-learning
+│   │   ├── microsoft-learn-paths
+│   │   ├── azure-developer-learning
+│   │   ├── cloud-and-devops-certifications
+│   │   ├── certification-versus-practical-skill
+│   │   └── continuing-professional-development
+│   └── portfolio-and-interview-preparation
+│       ├── clean-code-and-language-explanation
+│       ├── async-and-concurrency-explanation
+│       ├── api-and-database-projects
+│       ├── architecture-and-design-decisions
+│       ├── testing-and-ci-evidence
+│       ├── performance-and-diagnostics-case-study
+│       └── practical-and-system-design-interviews
+└── practice-projects
+    ├── csharp-language-basics-lab
+    │   ├── types-variables-and-control-flow
+    │   ├── methods-and-collections
+    │   ├── classes-records-and-interfaces
+    │   ├── nullable-and-pattern-matching
+    │   ├── linq-and-lambda-exercises
+    │   └── unit-tests-and-debugging
+    ├── console-inventory-manager
+    │   ├── domain-model-and-validation
+    │   ├── collection-and-linq-operations
+    │   ├── file-and-json-persistence
+    │   ├── command-line-menu-and-arguments
+    │   ├── error-handling-and-logging
+    │   └── automated-tests
+    ├── async-file-processing-service
+    │   ├── asynchronous-stream-processing
+    │   ├── cancellation-and-timeouts
+    │   ├── bounded-concurrency
+    │   ├── memory-and-allocation-control
+    │   ├── error-and-retry-policy
+    │   └── performance-benchmarks
+    ├── aspnet-core-rest-api
+    │   ├── resource-and-endpoint-design
+    │   ├── request-validation-and-problem-details
+    │   ├── dependency-injection-and-service-layer
+    │   ├── authentication-and-authorization
+    │   ├── openapi-and-api-versioning
+    │   ├── logging-and-health-checks
+    │   ├── integration-tests
+    │   └── containerized-deployment
+    ├── ef-core-data-driven-application
+    │   ├── relational-domain-model
+    │   ├── dbcontext-and-entity-configuration
+    │   ├── migrations-and-seeding
+    │   ├── query-and-index-optimization
+    │   ├── transactions-and-concurrency
+    │   ├── repository-tradeoff-evaluation
+    │   └── database-integration-tests
+    ├── authentication-and-multitenant-portal
+    │   ├── identity-and-login-flow
+    │   ├── jwt-or-cookie-session
+    │   ├── tenant-context-and-isolation
+    │   ├── role-and-policy-authorization
+    │   ├── audit-and-security-events
+    │   ├── permission-and-data-leakage-tests
+    │   └── deployment-and-monitoring
+    ├── realtime-notification-system
+    │   ├── signalr-hub-and-client
+    │   ├── user-and-group-targeting
+    │   ├── background-event-publisher
+    │   ├── reconnect-and-message-delivery
+    │   ├── authorization-and-rate-limiting
+    │   ├── integration-and-load-tests
+    │   └── observability-dashboard
+    ├── distributed-order-processing
+    │   ├── order-domain-and-state-machine
+    │   ├── message-broker-integration
+    │   ├── outbox-and-inbox
+    │   ├── idempotent-consumers
+    │   ├── saga-and-compensation
+    │   ├── retry-and-dead-letter-handling
+    │   ├── distributed-tracing
+    │   └── failure-and-recovery-tests
+    ├── worker-service-and-scheduler
+    │   ├── generic-host-and-dependency-injection
+    │   ├── backgroundservice-implementation
+    │   ├── scheduling-and-job-coordination
+    │   ├── graceful-shutdown-and-cancellation
+    │   ├── persistence-and-retry
+    │   ├── health-and-structured-logging
+    │   └── container-and-service-deployment
+    ├── blazor-business-application
+    │   ├── component-and-routing-design
+    │   ├── forms-and-validation
+    │   ├── state-and-service-integration
+    │   ├── authentication-and-role-aware-ui
+    │   ├── accessibility-and-responsive-design
+    │   ├── component-and-browser-tests
+    │   └── production-publishing
+    ├── cross-platform-maui-application
+    │   ├── shared-domain-and-ui-structure
+    │   ├── navigation-and-mvvm
+    │   ├── local-storage-and-sync
+    │   ├── platform-permissions-and-device-apis
+    │   ├── offline-and-network-recovery
+    │   ├── accessibility-and-localization
+    │   └── android-and-ios-release
+    ├── reusable-nuget-library
+    │   ├── public-api-and-generic-design
+    │   ├── nullable-and-error-contracts
+    │   ├── unit-and-compatibility-tests
+    │   ├── package-metadata-and-versioning
+    │   ├── source-link-and-symbols
+    │   ├── ci-and-package-signing
+    │   └── documentation-and-samples
+    ├── dotnet-performance-diagnostics-lab
+    │   ├── baseline-workload-and-metrics
+    │   ├── cpu-and-allocation-profiling
+    │   ├── gc-and-memory-pressure-analysis
+    │   ├── database-and-http-performance
+    │   ├── benchmarkdotnet-comparisons
+    │   ├── tracing-and-metrics-integration
+    │   └── measured-optimization-report
+    ├── secure-dotnet-service
+    │   ├── threat-model-and-trust-boundaries
+    │   ├── authentication-and-resource-authorization
+    │   ├── input-validation-and-data-protection
+    │   ├── secrets-and-certificate-management
+    │   ├── dependency-and-container-scanning
+    │   ├── security-regression-tests
+    │   └── remediation-and-audit-report
+    └── production-dotnet-capstone
+        ├── requirements-and-domain-model
+        ├── architecture-and-module-boundaries
+        ├── modern-csharp-and-type-safety
+        ├── aspnet-core-api-and-authentication
+        ├── persistence-and-distributed-integration
+        ├── asynchronous-work-and-resilience
+        ├── unit-integration-and-end-to-end-tests
+        ├── security-and-performance-review
+        ├── ci-cd-and-container-deployment
+        ├── observability-and-operational-runbooks
+        └── release-retrospective-and-maintenance-plan

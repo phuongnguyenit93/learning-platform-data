@@ -16,9 +16,9 @@ import re
 from typing import Any
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[4]
 MODULE_ROOT = REPO_ROOT / "learning-platform-data" / "module"
-CONNECT_FILE = REPO_ROOT / "script" / "database" / "connect-oracle-db.py"
+CONNECT_FILE = REPO_ROOT / "learning-platform-data" / "script" / "database" / "connect-oracle-db.py"
 LANGUAGE_RE = re.compile(r"[a-z][a-z0-9-]{0,9}\Z")
 SERVICE_NAME_RE = re.compile(r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*\Z")
 PRUNED_DIRS = frozenset({

@@ -1,18 +1,18 @@
 unfinishedKnowledge:
-- location: learning-platform-data/module/infrastructure/system/security/identity-access-management/privileged-access-management
+- location: learning-platform-data/module/platform/development/data/persistence/relational-access/mybatis
   CURRENT_STEP: '3'
-  SERVICE_NAME: SECURITY_IDENTITY_ACCESS_MANAGEMENT_PRIVILEGED_ACCESS_MANAGEMENT
-  totalFiles: 500
-  blankFiles: 218
-  filledFiles: 282
+  SERVICE_NAME: MYBATIS
+  totalFiles: 414
+  blankFiles: 174
+  filledFiles: 240
 summary:
   totalModules: 569
   unfinishedModules: 1
-  blankModules: 384
-  finishedModules: 184
+  blankModules: 365
+  finishedModules: 203
   modulesWithoutMarkdown: 0
   missingMetadataModules: 0
-  totalMarkdownFiles: 200517
-  blankMarkdownFiles: 116279
-  filledMarkdownFiles: 84238
-  generatedAt: '2026-11-27T00:11:02+07:00'
+  totalMarkdownFiles: 218760
+  blankMarkdownFiles: 109679
+  filledMarkdownFiles: 109081
+  generatedAt: '2026-11-28T15:17:24+07:00'

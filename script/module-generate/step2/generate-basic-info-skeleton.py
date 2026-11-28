@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Create the three empty, file-first STEP_2_NEW targets for one module.
 
-From the java-learning repository root:
+From the learning-platform-data repository root:
     python script/module-generate/step2/generate-basic-info-skeleton.py --module module/path --lang vi
     python script/module-generate/step2/generate-basic-info-skeleton.py --module module/path --lang vi --dry-run
 
@@ -17,7 +17,7 @@ import re
 import sys
 
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 MODULE_ROOT = ROOT / "learning-platform-data" / "module"
 LANG_RE = re.compile(r"[a-z][a-z0-9-]{0,9}\Z")
 SERVICE_NAME_RE = re.compile(r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*\Z")

@@ -19,9 +19,9 @@ import sys
 from typing import Any
 
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
+REPO_ROOT = Path(__file__).resolve().parents[5]
 MODULE_ROOT = REPO_ROOT / "learning-platform-data" / "module"
-CONNECT_FILE = REPO_ROOT / "script" / "database" / "connect-oracle-db.py"
+CONNECT_FILE = REPO_ROOT / "learning-platform-data" / "script" / "database" / "connect-oracle-db.py"
 SERVICE_NAME_RE = re.compile(r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*\Z")
 LANGUAGE_RE = re.compile(r"[a-z][a-z0-9-]{0,9}\Z")
 ROADMAP_KEY_RE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")

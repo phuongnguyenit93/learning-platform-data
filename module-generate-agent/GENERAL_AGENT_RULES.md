@@ -1,5 +1,7 @@
 # GENERAL AGENT RULES
 
+Với workflow Python NEW, chạy lệnh `python script/...` từ thư mục `java-learning/learning-platform-data`. Mọi script quản lý dữ liệu và `temp-module/` nằm trong repository này; Gradle vẫn chạy từ `java-learning`.
+
 **Phân biệt workflow NEW và legacy:** Khi Prime triển khai quy trình Python
 file-first theo các tài liệu `STEP_<N>_NEW.md`, phải dùng **STEP 5 NEW = tạo
 Quiz/Interview/Case Study** (`script/module-generate/step5/`, `worker/STEP_5_WORKER_NEW/`)

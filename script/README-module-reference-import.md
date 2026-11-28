@@ -24,8 +24,10 @@ Do not use the backend's production read-only account for imports.
 python -m pip install -r script/requirements-oracle-reference.txt
 ```
 
-The default config is the same **Git-ignored** `.env.oracle-overview`
-used by the existing importers. A custom location is accepted using
+The default config is the same **Git-ignored**
+`learning-platform-data/.env.oracle-overview` used by the existing
+importers (`.env.oracle-overview` from this repository root).
+A custom location is accepted using
 `--env-file path/to/file`. Set `ORACLE_USER`, `ORACLE_PASSWORD`,
 `ORACLE_DSN` and optionally `ORACLE_SCHEMA`. The DSN is the Python
 oracledb Thin TLS descriptor (not JDBC); do not put credentials in logs.

@@ -1,0 +1,992 @@
+data-engineer-module
+├── foundations
+│   ├── data-engineering-overview
+│   │   ├── purpose-and-scope-of-data-engineering
+│   │   ├── data-engineer-role-and-responsibilities
+│   │   ├── data-engineer-versus-data-analyst
+│   │   ├── data-engineer-versus-data-scientist
+│   │   ├── analytics-engineering-and-platform-engineering
+│   │   ├── data-lifecycle-and-value-chain
+│   │   ├── operational-versus-analytical-workloads
+│   │   ├── batch-streaming-and-real-time-data
+│   │   └── data-engineer-learning-path
+│   ├── data-platform-and-architecture-basics
+│   │   ├── data-platform-components
+│   │   ├── data-sources-and-consumers
+│   │   ├── ingestion-storage-processing-and-serving
+│   │   ├── data-lake-warehouse-and-lakehouse
+│   │   ├── data-movement-versus-data-transformation
+│   │   ├── data-platform-environments
+│   │   ├── reliability-and-scalability-fundamentals
+│   │   └── architecture-tradeoffs-and-cost
+│   ├── computer-science-prerequisites
+│   │   ├── data-structures-and-algorithms
+│   │   ├── complexity-analysis
+│   │   ├── operating-system-and-process-basics
+│   │   ├── memory-and-storage-hierarchy
+│   │   ├── concurrency-and-parallelism
+│   │   ├── networking-and-distributed-systems
+│   │   ├── serialization-and-data-representation
+│   │   └── fault-tolerance-and-consistency
+│   ├── development-environment
+│   │   ├── linux-and-command-line
+│   │   ├── shell-scripting
+│   │   ├── git-and-version-control
+│   │   ├── ide-and-editor-setup
+│   │   ├── python-and-java-toolchains
+│   │   ├── docker-development-environment
+│   │   ├── environment-variables-and-secrets
+│   │   └── reproducible-local-development
+│   └── professional-fundamentals
+│       ├── problem-decomposition
+│       ├── technical-documentation
+│       ├── stakeholder-communication
+│       ├── data-product-thinking
+│       ├── operational-ownership
+│       ├── security-and-privacy-awareness
+│       └── continuous-learning
+├── programming-and-software-engineering
+│   ├── python-for-data-engineering
+│   │   ├── python-syntax-and-data-types
+│   │   ├── collections-and-comprehensions
+│   │   ├── functions-classes-and-modules
+│   │   ├── iterators-generators-and-context-managers
+│   │   ├── exceptions-and-error-handling
+│   │   ├── typing-and-type-hints
+│   │   ├── dataclasses-and-pydantic
+│   │   ├── file-and-stream-processing
+│   │   ├── packaging-and-virtual-environments
+│   │   ├── logging-and-configuration
+│   │   ├── concurrency-asyncio-and-multiprocessing
+│   │   └── python-performance-and-profiling
+│   ├── sql-for-data-engineers
+│   │   ├── relational-model-and-normalization
+│   │   ├── select-where-and-order-by
+│   │   ├── joins-and-set-operations
+│   │   ├── aggregation-and-grouping
+│   │   ├── subqueries-and-common-table-expressions
+│   │   ├── window-functions
+│   │   ├── recursive-queries
+│   │   ├── date-time-and-timezone-functions
+│   │   ├── null-semantics-and-three-valued-logic
+│   │   ├── transactions-and-isolation
+│   │   ├── query-plans-and-indexes
+│   │   └── sql-dialect-differences
+│   ├── java-and-jvm-for-data-platforms
+│   │   ├── java-language-fundamentals
+│   │   ├── collections-and-stream-api
+│   │   ├── generics-and-functional-interfaces
+│   │   ├── concurrency-and-executors
+│   │   ├── jvm-memory-and-garbage-collection
+│   │   ├── maven-and-gradle
+│   │   ├── serialization-and-configuration
+│   │   └── java-for-spark-and-kafka-ecosystems
+│   ├── software-engineering-practices
+│   │   ├── clean-code-and-code-organization
+│   │   ├── modularity-and-reusable-libraries
+│   │   ├── dependency-management
+│   │   ├── configuration-management
+│   │   ├── design-patterns-for-data-pipelines
+│   │   ├── code-review-and-pull-requests
+│   │   ├── semantic-versioning
+│   │   └── technical-debt-management
+│   └── command-line-and-developer-tooling
+│       ├── bash-and-shell-automation
+│       ├── curl-and-httpie
+│       ├── jq-and-yq
+│       ├── make-and-task-runners
+│       ├── git-branching-and-merge-strategies
+│       ├── pre-commit-hooks
+│       └── developer-productivity-tools
+├── databases-and-data-storage
+│   ├── relational-databases
+│   │   ├── postgresql
+│   │   ├── mysql-and-mariadb
+│   │   ├── microsoft-sql-server
+│   │   ├── oracle-database-overview
+│   │   ├── schema-design-and-constraints
+│   │   ├── indexes-and-query-optimization
+│   │   ├── transactions-and-locking
+│   │   ├── partitioning-and-replication
+│   │   └── backup-restore-and-high-availability
+│   ├── analytical-databases-and-warehouses
+│   │   ├── snowflake
+│   │   ├── google-bigquery
+│   │   ├── amazon-redshift
+│   │   ├── azure-synapse-analytics
+│   │   ├── clickhouse
+│   │   ├── columnar-storage-and-compression
+│   │   ├── compute-and-storage-separation
+│   │   ├── workload-management
+│   │   └── warehouse-cost-optimization
+│   ├── nosql-and-operational-data-stores
+│   │   ├── document-databases-and-mongodb
+│   │   ├── key-value-stores-and-redis
+│   │   ├── wide-column-stores-and-cassandra
+│   │   ├── dynamodb-and-managed-key-value
+│   │   ├── graph-databases-and-neo4j
+│   │   ├── search-engines-and-opensearch
+│   │   ├── consistency-and-partition-tolerance
+│   │   └── database-selection-and-access-patterns
+│   ├── data-lake-and-object-storage
+│   │   ├── amazon-s3
+│   │   ├── azure-data-lake-storage
+│   │   ├── google-cloud-storage
+│   │   ├── object-storage-semantics
+│   │   ├── bucket-and-prefix-design
+│   │   ├── lifecycle-and-retention-policies
+│   │   ├── partitioned-data-layout
+│   │   ├── small-file-problem
+│   │   └── storage-cost-and-access-tiers
+│   ├── data-file-formats
+│   │   ├── csv-and-tsv
+│   │   ├── json-and-jsonl
+│   │   ├── avro
+│   │   ├── parquet
+│   │   ├── orc
+│   │   ├── arrow-and-feather
+│   │   ├── protobuf-and-binary-serialization
+│   │   ├── row-versus-columnar-formats
+│   │   ├── compression-codecs
+│   │   └── schema-evolution-and-compatibility
+│   └── lakehouse-table-formats
+│       ├── apache-iceberg
+│       ├── delta-lake
+│       ├── apache-hudi
+│       ├── metadata-and-manifest-files
+│       ├── snapshots-and-time-travel
+│       ├── schema-and-partition-evolution
+│       ├── compaction-and-clustering
+│       ├── concurrency-and-optimistic-commits
+│       └── table-format-selection
+├── data-modeling-and-warehouse-design
+│   ├── data-modeling-fundamentals
+│   │   ├── conceptual-logical-and-physical-models
+│   │   ├── entities-attributes-and-relationships
+│   │   ├── keys-and-identifiers
+│   │   ├── normalization-and-denormalization
+│   │   ├── data-dictionaries-and-definitions
+│   │   └── modeling-for-analytics-and-operations
+│   ├── dimensional-modeling
+│   │   ├── facts-and-dimensions
+│   │   ├── grain-definition
+│   │   ├── star-and-snowflake-schemas
+│   │   ├── surrogate-and-natural-keys
+│   │   ├── conformed-dimensions
+│   │   ├── role-playing-dimensions
+│   │   ├── degenerate-dimensions
+│   │   └── bridge-tables-and-many-to-many
+│   ├── slowly-changing-dimensions
+│   │   ├── scd-type-zero-and-one
+│   │   ├── scd-type-two
+│   │   ├── scd-type-three-and-hybrid-patterns
+│   │   ├── effective-dates-and-current-records
+│   │   ├── late-arriving-dimensions
+│   │   └── historical-correction-strategies
+│   ├── fact-table-design
+│   │   ├── transaction-fact-tables
+│   │   ├── periodic-snapshot-facts
+│   │   ├── accumulating-snapshot-facts
+│   │   ├── factless-fact-tables
+│   │   ├── additive-semi-additive-and-non-additive-measures
+│   │   ├── late-arriving-facts
+│   │   └── fact-grain-and-duplication-control
+│   ├── data-vault-modeling
+│   │   ├── hubs-links-and-satellites
+│   │   ├── hash-keys-and-business-keys
+│   │   ├── historization-and-load-dates
+│   │   ├── raw-vault-and-business-vault
+│   │   ├── effectivity-and-record-tracking
+│   │   └── data-vault-versus-dimensional-modeling
+│   └── analytical-modeling-patterns
+│       ├── wide-tables-and-one-big-table-tradeoffs
+│       ├── semantic-layer-and-metrics
+│       ├── aggregate-tables-and-materialized-views
+│       ├── snapshot-and-incremental-models
+│       ├── event-and-entity-modeling
+│       └── model-documentation-and-ownership
+├── data-ingestion-and-integration
+│   ├── ingestion-fundamentals
+│   │   ├── source-system-assessment
+│   │   ├── extraction-patterns
+│   │   ├── full-load-and-incremental-load
+│   │   ├── batch-and-micro-batch-ingestion
+│   │   ├── streaming-ingestion
+│   │   ├── change-data-capture
+│   │   ├── source-rate-limits-and-throttling
+│   │   └── ingestion-reliability-and-reconciliation
+│   ├── database-ingestion-and-cdc
+│   │   ├── log-based-change-data-capture
+│   │   ├── debezium
+│   │   ├── database-log-and-replication-slots
+│   │   ├── snapshot-plus-stream-capture
+│   │   ├── schema-change-events
+│   │   ├── delete-and-tombstone-handling
+│   │   ├── offset-and-checkpoint-management
+│   │   └── cdc-lag-and-recovery
+│   ├── api-and-saas-ingestion
+│   │   ├── rest-api-extraction
+│   │   ├── pagination-and-cursor-strategies
+│   │   ├── oauth-and-api-authentication
+│   │   ├── rate-limit-and-retry-handling
+│   │   ├── webhook-ingestion
+│   │   ├── incremental-sync-and-watermarks
+│   │   ├── source-api-schema-drift
+│   │   └── saas-connectors-and-fivetran
+│   ├── file-and-object-ingestion
+│   │   ├── scheduled-file-arrival
+│   │   ├── csv-json-and-parquet-ingestion
+│   │   ├── compressed-and-encrypted-files
+│   │   ├── manifest-and-checksum-validation
+│   │   ├── late-and-duplicate-file-detection
+│   │   ├── schema-inference-and-explicit-contracts
+│   │   └── quarantine-and-reprocessing
+│   ├── application-and-event-ingestion
+│   │   ├── event-driven-data-capture
+│   │   ├── message-broker-consumers
+│   │   ├── event-envelope-and-metadata
+│   │   ├── event-ordering-and-deduplication
+│   │   ├── webhook-and-application-events
+│   │   └── audit-and-business-event-ingestion
+│   └── integration-platforms-and-connectors
+│       ├── airbyte
+│       ├── fivetran
+│       ├── dlt-and-python-connectors
+│       ├── cloud-native-data-transfer-services
+│       ├── connector-development
+│       ├── source-checkpoint-and-state-management
+│       └── connector-monitoring-and-maintenance
+├── batch-processing-and-transformation
+│   ├── etl-and-elt-design
+│   │   ├── etl-versus-elt
+│   │   ├── extract-transform-load-stages
+│   │   ├── raw-staging-and-curated-zones
+│   │   ├── transformation-boundaries
+│   │   ├── idempotent-pipeline-design
+│   │   ├── incremental-processing
+│   │   ├── full-refresh-and-backfill
+│   │   └── data-reconciliation
+│   ├── python-data-processing
+│   │   ├── pandas-for-data-engineering
+│   │   ├── polars-and-columnar-dataframes
+│   │   ├── pyarrow-and-arrow-memory
+│   │   ├── chunked-and-streaming-file-processing
+│   │   ├── vectorization-and-memory-efficiency
+│   │   ├── data-validation-and-cleaning
+│   │   └── when-not-to-use-dataframes
+│   ├── distributed-processing-with-spark
+│   │   ├── apache-spark-architecture
+│   │   ├── spark-session-and-application
+│   │   ├── rdd-and-dataframe-abstractions
+│   │   ├── spark-sql-and-catalyst
+│   │   ├── transformations-and-actions
+│   │   ├── joins-and-shuffle
+│   │   ├── partitioning-and-repartitioning
+│   │   ├── caching-and-persistence
+│   │   ├── broadcast-joins-and-skew-handling
+│   │   ├── adaptive-query-execution
+│   │   ├── structured-streaming-overview
+│   │   └── spark-performance-tuning
+│   ├── alternative-distributed-processing
+│   │   ├── apache-flink-batch-and-streaming
+│   │   ├── apache-beam-programming-model
+│   │   ├── dask-and-ray-overview
+│   │   ├── distributed-sql-engines-and-trino
+│   │   ├── duckdb-for-local-analytics
+│   │   └── engine-selection-and-tradeoffs
+│   ├── transformation-patterns
+│   │   ├── filtering-mapping-and-aggregation
+│   │   ├── joins-and-enrichment
+│   │   ├── deduplication-and-survivorship
+│   │   ├── sessionization-and-windowing
+│   │   ├── late-arriving-and-out-of-order-data
+│   │   ├── data-quality-rules-in-transformations
+│   │   ├── deterministic-and-repeatable-transforms
+│   │   └── transformation-testing
+│   └── incremental-and-reprocessing-strategies
+│       ├── watermark-and-high-water-mark
+│       ├── change-detection-and-merge
+│       ├── partition-overwrite-and-merge
+│       ├── late-data-and-correction-windows
+│       ├── historical-backfill
+│       ├── replay-and-recovery
+│       ├── exactly-once-effect-through-idempotency
+│       └── cost-aware-reprocessing
+├── stream-processing-and-real-time-data
+│   ├── streaming-fundamentals
+│   │   ├── event-streams-and-unbounded-data
+│   │   ├── event-time-and-processing-time
+│   │   ├── windows-and-triggers
+│   │   ├── watermarking-and-late-events
+│   │   ├── stateful-and-stateless-processing
+│   │   ├── delivery-semantics
+│   │   ├── ordering-and-partitioning
+│   │   └── stream-processing-use-cases
+│   ├── apache-kafka
+│   │   ├── brokers-topics-and-partitions
+│   │   ├── producers-and-consumers
+│   │   ├── consumer-groups-and-rebalancing
+│   │   ├── offsets-and-commits
+│   │   ├── replication-and-retention
+│   │   ├── partition-keys-and-ordering
+│   │   ├── transactions-and-idempotent-producers
+│   │   ├── kafka-connect
+│   │   ├── kafka-streams
+│   │   └── kafka-operations-and-monitoring
+│   ├── schema-and-event-contracts
+│   │   ├── schema-registry
+│   │   ├── avro-protobuf-and-json-schema
+│   │   ├── backward-and-forward-compatibility
+│   │   ├── event-envelope-design
+│   │   ├── schema-evolution-policy
+│   │   └── poison-message-and-dead-letter-handling
+│   ├── stream-processing-engines
+│   │   ├── apache-flink-data-stream-api
+│   │   ├── flink-checkpoints-and-savepoints
+│   │   ├── flink-state-backends
+│   │   ├── flink-watermarks-and-windows
+│   │   ├── spark-structured-streaming
+│   │   ├── beam-runners-and-windowing
+│   │   └── stream-engine-performance-and-recovery
+│   ├── real-time-pipeline-reliability
+│   │   ├── backpressure-and-flow-control
+│   │   ├── checkpointing-and-state-recovery
+│   │   ├── duplicate-detection-and-idempotency
+│   │   ├── retry-and-dead-letter-queues
+│   │   ├── consumer-lag-and-throughput
+│   │   ├── ordering-and-partition-hotspots
+│   │   └── end-to-end-latency-monitoring
+│   └── change-data-and-event-driven-architecture
+│       ├── cdc-to-kafka-pattern
+│       ├── event-driven-data-platform
+│       ├── outbox-and-inbox-pattern
+│       ├── event-sourcing-awareness
+│       ├── stream-to-lakehouse-sinks
+│       └── real-time-serving-and-materialized-views
+├── workflow-orchestration-and-scheduling
+│   ├── orchestration-fundamentals
+│   │   ├── workflow-versus-data-processing
+│   │   ├── dags-and-task-dependencies
+│   │   ├── scheduling-and-calendar-intervals
+│   │   ├── retries-and-timeouts
+│   │   ├── backfills-and-catchup
+│   │   ├── sensors-and-event-triggers
+│   │   ├── idempotent-task-design
+│   │   └── workflow-state-and-recovery
+│   ├── apache-airflow
+│   │   ├── airflow-architecture-and-components
+│   │   ├── dag-authoring-and-best-practices
+│   │   ├── operators-hooks-and-sensors
+│   │   ├── taskflow-api
+│   │   ├── xcom-and-data-passing
+│   │   ├── connections-and-secrets
+│   │   ├── executors-and-worker-scaling
+│   │   ├── dynamic-dags-and-task-mapping
+│   │   ├── datasets-and-data-aware-scheduling
+│   │   └── airflow-monitoring-and-upgrades
+│   ├── alternative-orchestrators
+│   │   ├── dagster-assets-and-jobs
+│   │   ├── prefect-flows-and-deployments
+│   │   ├── kestra-workflows
+│   │   ├── argo-workflows
+│   │   ├── cloud-managed-orchestration-services
+│   │   └── orchestrator-selection
+│   ├── workflow-engineering
+│   │   ├── task-boundaries-and-granularity
+│   │   ├── passing-metadata-versus-large-payloads
+│   │   ├── dynamic-and-mapped-workflows
+│   │   ├── dependency-and-resource-pools
+│   │   ├── concurrency-and-priority
+│   │   ├── failure-notification-and-escalation
+│   │   └── workflow-testing-and-local-development
+│   └── production-scheduling-and-operations
+│       ├── scheduler-availability
+│       ├── missed-and-delayed-runs
+│       ├── rerun-and-backfill-safety
+│       ├── deployment-and-dag-versioning
+│       ├── secrets-and-credential-rotation
+│       ├── metadata-database-maintenance
+│       └── orchestration-cost-and-capacity
+├── analytics-engineering-and-transformation-frameworks
+│   ├── dbt-fundamentals
+│   │   ├── dbt-project-and-models
+│   │   ├── sources-and-staging-models
+│   │   ├── intermediate-and-mart-models
+│   │   ├── refs-and-dependency-graph
+│   │   ├── materializations-and-incremental-models
+│   │   ├── snapshots-and-scd-patterns
+│   │   ├── macros-and-jinja
+│   │   ├── seeds-and-exposures
+│   │   ├── packages-and-project-structure
+│   │   └── dbt-build-and-deployment
+│   ├── dbt-testing-and-governance
+│   │   ├── generic-and-singular-tests
+│   │   ├── unit-tests-and-model-validation
+│   │   ├── freshness-and-source-monitoring
+│   │   ├── contracts-and-enforced-types
+│   │   ├── documentation-and-lineage
+│   │   ├── model-versioning-and-deprecation
+│   │   ├── state-and-defer-selection
+│   │   └── dbt-ci-and-environment-strategy
+│   ├── sql-transformation-engineering
+│   │   ├── modular-sql-design
+│   │   ├── reusable-macros-and-functions
+│   │   ├── incremental-merge-patterns
+│   │   ├── query-cost-and-performance
+│   │   ├── warehouse-specific-optimization
+│   │   └── transformation-code-review
+│   └── semantic-and-metrics-layer
+│       ├── business-metric-definitions
+│       ├── dimensions-and-measures
+│       ├── metric-consistency-and-reuse
+│       ├── semantic-models-and-entities
+│       ├── access-control-and-metric-governance
+│       └── downstream-bi-consumption
+├── data-quality-testing-and-validation
+│   ├── data-quality-fundamentals
+│   │   ├── accuracy-completeness-and-validity
+│   │   ├── uniqueness-and-consistency
+│   │   ├── timeliness-and-freshness
+│   │   ├── referential-integrity
+│   │   ├── distribution-and-anomaly-detection
+│   │   ├── business-rule-validation
+│   │   └── quality-dimensions-and-service-levels
+│   ├── data-testing-techniques
+│   │   ├── schema-and-type-validation
+│   │   ├── null-and-duplicate-checks
+│   │   ├── source-to-target-reconciliation
+│   │   ├── aggregate-and-control-total-checks
+│   │   ├── freshness-and-volume-checks
+│   │   ├── distribution-and-statistical-tests
+│   │   ├── contract-and-compatibility-tests
+│   │   └── regression-and-backfill-validation
+│   ├── data-quality-tools
+│   │   ├── great-expectations
+│   │   ├── soda-core
+│   │   ├── elementary
+│   │   ├── dbt-tests
+│   │   ├── deequ-and-spark-validation
+│   │   ├── pandera-and-python-validation
+│   │   └── tool-selection-and-integration
+│   ├── pipeline-and-integration-testing
+│   │   ├── unit-tests-for-transformations
+│   │   ├── integration-tests-for-connectors
+│   │   ├── end-to-end-pipeline-tests
+│   │   ├── ephemeral-test-databases
+│   │   ├── fixture-and-synthetic-data-generation
+│   │   ├── deterministic-replay-and-testability
+│   │   └── failure-injection-and-recovery-tests
+│   └── data-quality-incident-management
+│       ├── quality-alerts-and-triage
+│       ├── impact-and-downstream-consumer-analysis
+│       ├── quarantine-and-invalid-record-handling
+│       ├── correction-and-reprocessing
+│       ├── root-cause-and-prevention
+│       ├── quality-scorecards
+│       └── data-quality-slas-and-ownership
+├── data-governance-security-and-compliance
+│   ├── data-governance-fundamentals
+│   │   ├── data-ownership-and-stewardship
+│   │   ├── data-domain-and-product-ownership
+│   │   ├── data-policies-and-standards
+│   │   ├── business-glossary-and-definitions
+│   │   ├── metadata-management
+│   │   ├── data-lineage-and-provenance
+│   │   ├── data-classification
+│   │   └── governance-operating-model
+│   ├── data-catalog-and-discovery
+│   │   ├── datahub
+│   │   ├── openmetadata
+│   │   ├── apache-atlas
+│   │   ├── cloud-data-catalogs
+│   │   ├── technical-and-business-metadata
+│   │   ├── ownership-tags-and-certification
+│   │   └── catalog-adoption-and-maintenance
+│   ├── security-and-access-control
+│   │   ├── identity-and-role-based-access
+│   │   ├── row-and-column-level-security
+│   │   ├── attribute-based-access-control
+│   │   ├── encryption-at-rest-and-in-transit
+│   │   ├── secrets-and-key-management
+│   │   ├── network-and-private-connectivity
+│   │   ├── audit-logging-and-access-review
+│   │   └── least-privilege-and-separation-of-duties
+│   ├── privacy-and-regulatory-compliance
+│   │   ├── personal-and-sensitive-data
+│   │   ├── pii-discovery-and-classification
+│   │   ├── anonymization-and-pseudonymization
+│   │   ├── consent-and-purpose-limitation
+│   │   ├── retention-and-right-to-erasure
+│   │   ├── gdpr-and-regional-privacy-awareness
+│   │   ├── data-residency-and-cross-border-transfer
+│   │   └── compliance-evidence-and-audit-readiness
+│   └── governance-in-data-pipelines
+│       ├── policy-as-code-and-enforcement
+│       ├── schema-and-contract-governance
+│       ├── lineage-based-impact-analysis
+│       ├── controlled-data-sharing
+│       ├── retention-and-lifecycle-automation
+│       └── governance-monitoring-and-exceptions
+├── cloud-data-engineering
+│   ├── cloud-fundamentals
+│   │   ├── cloud-compute-storage-and-networking
+│   │   ├── identity-and-access-management
+│   │   ├── private-networking-and-endpoints
+│   │   ├── infrastructure-as-code
+│   │   ├── managed-services-versus-self-hosting
+│   │   ├── regions-and-availability-zones
+│   │   └── cloud-cost-and-finops-basics
+│   ├── aws-data-engineering
+│   │   ├── s3-and-data-lake-foundations
+│   │   ├── iam-and-kms
+│   │   ├── glue-data-catalog-and-etl
+│   │   ├── athena-and-querying-s3
+│   │   ├── redshift-and-spectrum
+│   │   ├── emr-and-managed-spark
+│   │   ├── kinesis-data-streams-and-firehose
+│   │   ├── lambda-and-eventbridge
+│   │   ├── step-functions-and-orchestration
+│   │   └── cloudwatch-and-data-pipeline-monitoring
+│   ├── azure-data-engineering
+│   │   ├── azure-data-lake-storage
+│   │   ├── microsoft-entra-id-and-managed-identities
+│   │   ├── azure-data-factory
+│   │   ├── azure-synapse-analytics
+│   │   ├── azure-databricks
+│   │   ├── event-hubs-and-stream-analytics
+│   │   ├── azure-functions-and-event-grid
+│   │   ├── microsoft-fabric-and-onelake
+│   │   └── azure-monitor-and-cost-management
+│   ├── google-cloud-data-engineering
+│   │   ├── cloud-storage-and-iam
+│   │   ├── bigquery-and-storage-api
+│   │   ├── dataflow-and-apache-beam
+│   │   ├── dataproc-and-spark
+│   │   ├── pub-sub
+│   │   ├── dataform-and-transformation
+│   │   ├── composer-and-airflow
+│   │   ├── datastream-and-cdc
+│   │   └── cloud-monitoring-and-cost-controls
+│   └── multi-cloud-and-platform-strategy
+│       ├── cloud-service-equivalence-and-differences
+│       ├── portability-and-vendor-lock-in
+│       ├── cross-cloud-data-transfer
+│       ├── identity-and-network-trust-boundaries
+│       ├── data-residency-and-region-strategy
+│       ├── cost-comparison-and-workload-placement
+│       └── hybrid-and-on-premises-integration
+├── data-platform-infrastructure-and-devops
+│   ├── containerization
+│   │   ├── docker-images-and-containers
+│   │   ├── dockerfile-and-multi-stage-builds
+│   │   ├── docker-compose-for-data-stacks
+│   │   ├── persistent-volumes-and-networking
+│   │   ├── container-resource-limits
+│   │   └── container-security-and-scanning
+│   ├── kubernetes-for-data-platforms
+│   │   ├── pods-deployments-and-services
+│   │   ├── configmaps-and-secrets
+│   │   ├── statefulsets-and-persistent-volumes
+│   │   ├── jobs-and-cronjobs
+│   │   ├── resource-requests-and-limits
+│   │   ├── autoscaling-and-node-pools
+│   │   ├── helm-and-operator-patterns
+│   │   └── data-workload-observability
+│   ├── infrastructure-as-code
+│   │   ├── terraform-fundamentals
+│   │   ├── modules-and-state-management
+│   │   ├── cloud-resource-provisioning
+│   │   ├── environment-and-workspace-strategy
+│   │   ├── secrets-and-state-security
+│   │   ├── policy-as-code
+│   │   └── infrastructure-testing
+│   ├── ci-cd-for-data-platforms
+│   │   ├── github-actions
+│   │   ├── gitlab-ci
+│   │   ├── azure-devops-pipelines
+│   │   ├── jenkins-and-other-runners
+│   │   ├── sql-and-dbt-deployment-pipelines
+│   │   ├── airflow-dag-deployment
+│   │   ├── schema-and-migration-release
+│   │   ├── artifact-and-image-promotion
+│   │   └── rollback-and-release-validation
+│   └── platform-reliability-and-operations
+│       ├── service-level-objectives
+│       ├── capacity-and-resource-planning
+│       ├── disaster-recovery-and-backups
+│       ├── high-availability-and-failover
+│       ├── patching-and-upgrade-management
+│       ├── incident-response-and-runbooks
+│       ├── platform-cost-allocation
+│       └── operational-readiness-review
+├── data-observability-and-performance
+│   ├── pipeline-observability
+│   │   ├── structured-logs-and-correlation-ids
+│   │   ├── pipeline-run-and-task-metrics
+│   │   ├── data-volume-and-throughput
+│   │   ├── freshness-and-latency
+│   │   ├── failure-and-retry-monitoring
+│   │   ├── lineage-and-impact-observability
+│   │   └── alerting-and-on-call
+│   ├── data-observability-tools
+│   │   ├── openlineage
+│   │   ├── marquez
+│   │   ├── elementary-and-dbt-observability
+│   │   ├── monte-carlo-and-commercial-platforms
+│   │   ├── cloud-native-monitoring
+│   │   └── tool-integration-and-alert-routing
+│   ├── distributed-tracing-and-monitoring
+│   │   ├── opentelemetry
+│   │   ├── prometheus-and-grafana
+│   │   ├── datadog-and-dynatrace-overview
+│   │   ├── cloudwatch-azure-monitor-and-cloud-monitoring
+│   │   ├── trace-context-across-pipeline-tasks
+│   │   └── dashboards-and-operational-views
+│   ├── performance-optimization
+│   │   ├── sql-query-plan-analysis
+│   │   ├── warehouse-compute-sizing
+│   │   ├── partitioning-and-clustering
+│   │   ├── file-size-and-compaction
+│   │   ├── spark-shuffle-and-skew
+│   │   ├── memory-and-executor-tuning
+│   │   ├── kafka-throughput-and-latency
+│   │   └── pipeline-parallelism-and-bottlenecks
+│   └── cost-and-efficiency-engineering
+│       ├── storage-tiering-and-retention
+│       ├── warehouse-query-cost
+│       ├── idle-compute-and-auto-suspend
+│       ├── spark-and-cluster-right-sizing
+│       ├── data-transfer-and-egress-cost
+│       ├── workload-scheduling-and-prioritization
+│       ├── cost-per-data-product-or-consumer
+│       └── finops-reporting-and-optimization
+├── data-architecture-and-advanced-patterns
+│   ├── data-architecture-styles
+│   │   ├── centralized-data-warehouse
+│   │   ├── enterprise-data-lake
+│   │   ├── lakehouse-architecture
+│   │   ├── lambda-and-kappa-architectures
+│   │   ├── medallion-architecture
+│   │   ├── data-fabric-overview
+│   │   └── architecture-selection-and-evolution
+│   ├── data-mesh
+│   │   ├── domain-oriented-ownership
+│   │   ├── data-as-a-product
+│   │   ├── self-serve-data-platform
+│   │   ├── federated-computational-governance
+│   │   ├── data-product-interfaces-and-slas
+│   │   └── data-mesh-adoption-tradeoffs
+│   ├── data-contracts-and-product-thinking
+│   │   ├── producer-consumer-agreements
+│   │   ├── schema-and-semantic-contracts
+│   │   ├── quality-and-freshness-guarantees
+│   │   ├── compatibility-and-change-management
+│   │   ├── ownership-and-support-model
+│   │   └── consumer-driven-contract-testing
+│   ├── master-and-reference-data
+│   │   ├── master-data-management
+│   │   ├── reference-data-and-code-sets
+│   │   ├── identity-resolution-and-entity-matching
+│   │   ├── golden-record-and-survivorship
+│   │   ├── hierarchy-and-effective-dating
+│   │   └── master-data-integration
+│   └── advanced-data-processing-patterns
+│       ├── event-sourcing-and-cqrs-awareness
+│       ├── change-data-capture-and-replay
+│       ├── exactly-once-effects-and-idempotency
+│       ├── bitemporal-and-time-travel-data
+│       ├── late-data-and-correction-models
+│       ├── incremental-computation
+│       └── multi-region-data-processing
+├── analytics-bi-and-downstream-consumption
+│   ├── business-intelligence-fundamentals
+│   │   ├── analytical-workloads-and-use-cases
+│   │   ├── dashboard-and-reporting-requirements
+│   │   ├── metrics-and-kpi-definitions
+│   │   ├── semantic-models-and-business-logic
+│   │   ├── self-service-analytics
+│   │   └── data-consumer-experience
+│   ├── bi-and-analytics-platforms
+│   │   ├── power-bi-and-semantic-models
+│   │   ├── tableau
+│   │   ├── looker-and-lookml
+│   │   ├── apache-superset
+│   │   ├── metabase
+│   │   └── bi-connector-and-refresh-design
+│   ├── data-serving-and-access
+│   │   ├── warehouse-and-lakehouse-serving
+│   │   ├── sql-endpoints-and-query-services
+│   │   ├── materialized-views-and-aggregates
+│   │   ├── reverse-etl
+│   │   ├── operational-data-apis
+│   │   ├── feature-store-and-ml-serving-awareness
+│   │   └── data-sharing-and-external-consumers
+│   └── analytics-performance-and-governance
+│       ├── dashboard-query-optimization
+│       ├── semantic-layer-consistency
+│       ├── row-level-security
+│       ├── refresh-and-cache-strategy
+│       ├── metric-certification
+│       └── usage-and-consumption-monitoring
+├── machine-learning-and-ai-data-platforms
+│   ├── machine-learning-data-foundations
+│   │   ├── feature-and-label-data
+│   │   ├── training-validation-and-test-splits
+│   │   ├── data-leakage-and-temporal-splits
+│   │   ├── reproducible-datasets
+│   │   ├── feature-engineering-pipelines
+│   │   └── model-data-lineage
+│   ├── feature-platforms
+│   │   ├── offline-and-online-feature-stores
+│   │   ├── feature-definition-and-versioning
+│   │   ├── point-in-time-correctness
+│   │   ├── feature-computation-and-serving
+│   │   ├── feast-and-feature-platforms
+│   │   └── training-serving-skew
+│   ├── ml-pipeline-integration
+│   │   ├── orchestration-for-ml-workflows
+│   │   ├── dataset-and-model-artifact-management
+│   │   ├── mlflow-and-experiment-tracking
+│   │   ├── model-registry-and-deployment-data
+│   │   ├── batch-and-online-inference-data
+│   │   └── model-monitoring-and-drift
+│   └── ai-and-llm-data-engineering
+│       ├── document-ingestion-and-normalization
+│       ├── chunking-and-metadata-strategy
+│       ├── embedding-generation-pipelines
+│       ├── vector-databases-and-indexes
+│       ├── retrieval-augmented-generation-data-flow
+│       ├── access-control-and-document-level-security
+│       ├── data-freshness-and-index-rebuilds
+│       └── evaluation-datasets-and-quality-monitoring
+├── testing-and-quality-engineering
+│   ├── data-pipeline-testing
+│   │   ├── unit-and-transformation-tests
+│   │   ├── integration-and-connector-tests
+│   │   ├── end-to-end-pipeline-tests
+│   │   ├── schema-and-contract-tests
+│   │   ├── idempotency-and-replay-tests
+│   │   ├── backfill-and-recovery-tests
+│   │   └── performance-and-volume-tests
+│   ├── testing-frameworks-and-tools
+│   │   ├── pytest
+│   │   ├── dbt-test-and-unit-test
+│   │   ├── great-expectations
+│   │   ├── soda-core
+│   │   ├── deequ
+│   │   ├── testcontainers
+│   │   └── data-diff-and-reconciliation-tools
+│   ├── test-data-and-environment-management
+│   │   ├── synthetic-and-anonymized-data
+│   │   ├── fixture-and-seed-management
+│   │   ├── ephemeral-environment-provisioning
+│   │   ├── deterministic-pipeline-inputs
+│   │   ├── production-like-data-shapes
+│   │   └── secure-test-data-retention
+│   └── quality-engineering-practices
+│       ├── shift-left-data-quality
+│       ├── code-review-and-sql-review
+│       ├── continuous-validation
+│       ├── quality-gates-and-release-criteria
+│       ├── regression-and-compatibility
+│       └── defect-triage-and-root-cause
+├── data-platform-tools-and-ecosystem
+│   ├── orchestration-and-ingestion-tools
+│   │   ├── apache-airflow
+│   │   ├── dagster-and-prefect
+│   │   ├── kafka-and-kafka-connect
+│   │   ├── debezium
+│   │   ├── airbyte-and-fivetran
+│   │   └── cloud-native-data-integration
+│   ├── processing-and-query-engines
+│   │   ├── apache-spark
+│   │   ├── apache-flink
+│   │   ├── apache-beam
+│   │   ├── trino-and-presto
+│   │   ├── duckdb
+│   │   └── distributed-engine-selection
+│   ├── transformation-and-modeling-tools
+│   │   ├── dbt-core-and-cloud
+│   │   ├── sqlmesh
+│   │   ├── dataform
+│   │   ├── sqlfluff
+│   │   └── modeling-and-lineage-tools
+│   ├── catalog-and-governance-tools
+│   │   ├── datahub
+│   │   ├── openmetadata
+│   │   ├── apache-atlas
+│   │   ├── openlineage-and-marquez
+│   │   └── commercial-data-catalogs
+│   └── tool-selection-and-platform-integration
+│       ├── open-source-versus-managed-services
+│       ├── operational-complexity-and-total-cost
+│       ├── ecosystem-and-community-health
+│       ├── interoperability-and-open-standards
+│       ├── vendor-lock-in-and-exit-strategy
+│       └── platform-roadmap-and-deprecation
+├── professional-practice-and-career
+│   ├── data-engineering-work-management
+│   │   ├── intake-and-requirement-discovery
+│   │   ├── source-and-consumer-contracts
+│   │   ├── estimation-and-delivery-planning
+│   │   ├── dependency-and-blocker-management
+│   │   ├── incident-and-on-call-ownership
+│   │   ├── technical-documentation-and-runbooks
+│   │   └── retrospective-and-improvement
+│   ├── collaboration-and-communication
+│   │   ├── analyst-and-bi-collaboration
+│   │   ├── data-scientist-and-ml-engineer-collaboration
+│   │   ├── application-and-source-system-teams
+│   │   ├── security-and-governance-teams
+│   │   ├── platform-and-devops-teams
+│   │   └── data-product-stakeholder-management
+│   ├── career-levels-and-specializations
+│   │   ├── junior-data-engineer
+│   │   ├── data-engineer
+│   │   ├── senior-data-engineer
+│   │   ├── analytics-engineer
+│   │   ├── streaming-data-engineer
+│   │   ├── cloud-data-engineer
+│   │   ├── data-platform-engineer
+│   │   ├── data-architect
+│   │   └── data-engineering-lead
+│   ├── certifications-and-learning
+│   │   ├── aws-data-engineering-learning-path
+│   │   ├── azure-data-engineering-learning-path
+│   │   ├── google-cloud-data-engineering-learning-path
+│   │   ├── databricks-certification-paths
+│   │   ├── snowflake-certification-paths
+│   │   ├── certification-versus-practical-competence
+│   │   └── continuing-professional-development
+│   └── portfolio-and-interview-preparation
+│       ├── end-to-end-data-pipeline-case-study
+│       ├── sql-and-data-modeling-exercises
+│       ├── python-and-spark-coding-exercises
+│       ├── streaming-and-distributed-systems-design
+│       ├── cloud-architecture-and-cost-decisions
+│       ├── data-quality-and-governance-examples
+│       └── production-incident-and-troubleshooting-stories
+└── practice-projects
+    ├── python-data-ingestion-tool
+    │   ├── api-and-file-source-connectors
+    │   ├── pagination-and-incremental-extraction
+    │   ├── schema-validation-and-normalization
+    │   ├── retries-and-rate-limit-handling
+    │   ├── structured-logging-and-metrics
+    │   └── unit-tests-and-cli-packaging
+    ├── sql-data-warehouse-model
+    │   ├── business-process-and-grain-definition
+    │   ├── source-to-target-mapping
+    │   ├── fact-and-dimension-design
+    │   ├── scd-type-two-implementation
+    │   ├── data-quality-and-reconciliation
+    │   └── query-performance-analysis
+    ├── batch-etl-pipeline
+    │   ├── multi-source-extraction
+    │   ├── raw-staging-and-curated-zones
+    │   ├── transformation-and-deduplication
+    │   ├── incremental-load-and-backfill
+    │   ├── idempotency-and-recovery
+    │   ├── automated-quality-checks
+    │   └── pipeline-documentation
+    ├── dbt-analytics-engineering-project
+    │   ├── source-and-staging-models
+    │   ├── intermediate-and-mart-models
+    │   ├── dimensional-model-and-metrics
+    │   ├── incremental-models-and-snapshots
+    │   ├── tests-and-documentation
+    │   ├── lineage-and-exposures
+    │   └── ci-and-deployment-workflow
+    ├── airflow-orchestrated-data-platform
+    │   ├── dag-and-task-design
+    │   ├── ingestion-and-transformation-workflows
+    │   ├── retries-sensors-and-alerts
+    │   ├── backfill-and-catchup-strategy
+    │   ├── secrets-and-connections
+    │   ├── testing-and-local-development
+    │   └── monitoring-and-operational-runbook
+    ├── lakehouse-with-open-table-format
+    │   ├── object-storage-and-data-layout
+    │   ├── parquet-and-partition-strategy
+    │   ├── iceberg-or-delta-table-setup
+    │   ├── batch-write-and-merge
+    │   ├── schema-evolution-and-time-travel
+    │   ├── compaction-and-file-maintenance
+    │   └── query-engine-and-cost-evaluation
+    ├── kafka-event-ingestion-platform
+    │   ├── event-contract-and-schema-registry
+    │   ├── producer-and-consumer-applications
+    │   ├── partition-key-and-ordering-design
+    │   ├── offset-and-consumer-group-management
+    │   ├── dead-letter-and-retry-handling
+    │   ├── sink-to-lakehouse-or-warehouse
+    │   └── lag-and-throughput-observability
+    ├── real-time-stream-processing-pipeline
+    │   ├── event-time-and-watermark-design
+    │   ├── windowed-aggregation
+    │   ├── stateful-processing
+    │   ├── late-and-out-of-order-event-handling
+    │   ├── checkpoint-and-recovery
+    │   ├── exactly-once-effect-and-deduplication
+    │   └── end-to-end-latency-report
+    ├── database-cdc-replication-pipeline
+    │   ├── debezium-and-source-database-setup
+    │   ├── snapshot-and-log-based-capture
+    │   ├── schema-change-and-delete-events
+    │   ├── kafka-topic-and-key-design
+    │   ├── sink-upsert-and-reconciliation
+    │   ├── restart-and-offset-recovery
+    │   └── cdc-lag-and-data-consistency-tests
+    ├── cloud-native-data-warehouse
+    │   ├── cloud-storage-and-identity-setup
+    │   ├── managed-ingestion-and-orchestration
+    │   ├── warehouse-schema-and-model-design
+    │   ├── dbt-transformation-and-tests
+    │   ├── access-control-and-data-classification
+    │   ├── cost-monitoring-and-query-optimization
+    │   └── infrastructure-as-code-and-ci-cd
+    ├── data-quality-and-observability-platform
+    │   ├── quality-rule-catalog
+    │   ├── freshness-volume-and-schema-monitoring
+    │   ├── anomaly-and-distribution-detection
+    │   ├── lineage-and-impact-visibility
+    │   ├── alert-routing-and-incident-workflow
+    │   ├── quarantine-and-reprocessing
+    │   └── quality-scorecard-and-slas
+    ├── data-catalog-and-governance-implementation
+    │   ├── metadata-and-domain-inventory
+    │   ├── datahub-or-openmetadata-deployment
+    │   ├── technical-and-business-lineage
+    │   ├── ownership-and-classification-tags
+    │   ├── access-policy-and-audit
+    │   ├── glossary-and-certified-assets
+    │   └── governance-operating-guide
+    ├── machine-learning-feature-pipeline
+    │   ├── training-data-ingestion
+    │   ├── feature-transformation-and-validation
+    │   ├── point-in-time-correct-feature-sets
+    │   ├── offline-feature-store
+    │   ├── online-feature-serving
+    │   ├── training-serving-skew-checks
+    │   └── feature-lineage-and-monitoring
+    ├── llm-retrieval-data-pipeline
+    │   ├── document-source-connectors
+    │   ├── parsing-cleaning-and-chunking
+    │   ├── metadata-and-access-control
+    │   ├── embedding-generation-and-versioning
+    │   ├── vector-index-and-incremental-refresh
+    │   ├── deletion-and-permission-synchronization
+    │   └── retrieval-quality-and-data-freshness-evaluation
+    └── production-data-platform-capstone
+        ├── business-requirements-and-data-products
+        ├── source-inventory-and-contracts
+        ├── cloud-and-storage-architecture
+        ├── batch-and-streaming-ingestion
+        ├── lakehouse-and-warehouse-modeling
+        ├── orchestration-and-incremental-processing
+        ├── data-quality-and-governance-controls
+        ├── security-and-access-management
+        ├── observability-and-slo-definition
+        ├── cost-and-performance-optimization
+        ├── ci-cd-and-infrastructure-as-code
+        └── production-runbooks-and-portfolio-presentation

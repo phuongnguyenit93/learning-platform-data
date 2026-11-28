@@ -19,7 +19,7 @@ import tempfile
 import yaml
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[4]
 KINDS = ("quiz", "interview", "casestudy")
 STATUS_INITIAL = "status: Phase 0\n"
 SUBFOLDERS = ("raw", "format", "status", "readme-related")

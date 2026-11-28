@@ -1,0 +1,1942 @@
+module
+├── foundation
+│   ├── nodejs-overview
+│   │   ├── runtime-and-language
+│   │   ├── nodejs-and-browser
+│   │   ├── event-driven-model
+│   │   ├── non-blocking-io
+│   │   ├── io-bound-and-cpu-bound-workloads
+│   │   ├── use-cases-and-tradeoffs
+│   │   └── learning-path
+│   ├── environment-setup
+│   │   ├── operating-system-support
+│   │   ├── installation-and-verification
+│   │   ├── version-managers
+│   │   ├── project-local-version-pinning
+│   │   ├── terminal-and-shell
+│   │   ├── editor-and-debugger
+│   │   └── first-script-and-first-server
+│   ├── web-and-system-prerequisites
+│   │   ├── client-server-model
+│   │   ├── domain-and-dns
+│   │   ├── http-and-https
+│   │   ├── ports-and-sockets
+│   │   ├── files-and-processes
+│   │   ├── command-line-and-environment
+│   │   └── text-and-binary-data
+│   ├── development-workflow
+│   │   ├── project-initialization
+│   │   ├── source-and-test-layout
+│   │   ├── local-run-and-watch
+│   │   ├── configuration-and-secrets
+│   │   ├── dependency-installation
+│   │   ├── debugging-and-reproduction
+│   │   └── build-test-release-cycle
+│   ├── ecosystem-boundaries
+│   │   ├── node-core-and-userland
+│   │   ├── runtime-and-framework
+│   │   ├── backend-and-frontend-tooling
+│   │   ├── nodejs-and-other-javascript-runtimes
+│   │   ├── nodejs-and-edge-runtimes
+│   │   └── application-and-library-development
+│   └── release-and-compatibility
+│       ├── current-and-lts
+│       ├── support-and-end-of-life
+│       ├── api-stability-levels
+│       ├── experimental-feature-evaluation
+│       ├── deprecations-and-migration
+│       ├── runtime-and-dependency-compatibility
+│       └── release-note-review
+├── javascript-and-typescript
+│   ├── javascript-language-foundations
+│   │   ├── values-and-types
+│   │   ├── declarations-and-mutability
+│   │   ├── equality-and-coercion
+│   │   ├── control-flow
+│   │   ├── destructuring-and-spread
+│   │   ├── optional-chaining-and-nullish-coalescing
+│   │   ├── numeric-precision-and-bigint
+│   │   └── unicode-and-strings
+│   ├── functions-and-scope
+│   │   ├── function-declarations-and-expressions
+│   │   ├── lexical-scope-and-closures
+│   │   ├── hoisting-and-temporal-dead-zone
+│   │   ├── arrow-functions
+│   │   ├── this-and-binding
+│   │   ├── higher-order-functions
+│   │   └── pure-functions-and-side-effects
+│   ├── objects-and-prototypes
+│   │   ├── object-identity-and-mutation
+│   │   ├── prototypes-and-inheritance
+│   │   ├── classes-and-private-fields
+│   │   ├── property-descriptors
+│   │   ├── getters-and-setters
+│   │   ├── shallow-and-deep-copy
+│   │   └── object-composition
+│   ├── collections-and-iteration
+│   │   ├── arrays-and-transformations
+│   │   ├── map-and-set
+│   │   ├── weakmap-and-weakset
+│   │   ├── symbols-and-iteration-protocols
+│   │   ├── iterators-and-generators
+│   │   ├── asynchronous-iterators
+│   │   └── collection-complexity
+│   ├── data-and-serialization
+│   │   ├── json-encoding-and-decoding
+│   │   ├── serialization-boundaries
+│   │   ├── dates-and-time-zones
+│   │   ├── locale-aware-formatting
+│   │   ├── regular-expressions
+│   │   ├── structured-clone
+│   │   └── non-serializable-values
+│   ├── typescript-type-system
+│   │   ├── inference-and-annotations
+│   │   ├── interfaces-and-type-aliases
+│   │   ├── unions-and-intersections
+│   │   ├── literal-and-discriminated-unions
+│   │   ├── narrowing-and-type-guards
+│   │   ├── generics-and-constraints
+│   │   ├── utility-and-mapped-types
+│   │   ├── unknown-any-and-never
+│   │   └── readonly-and-immutability
+│   ├── typescript-for-nodejs
+│   │   ├── node-type-declarations
+│   │   ├── tsconfig-and-strictness
+│   │   ├── nodenext-module-resolution
+│   │   ├── type-only-imports-and-exports
+│   │   ├── declaration-files
+│   │   ├── source-maps
+│   │   ├── javascript-interop
+│   │   └── jsdoc-and-checkjs
+│   ├── typescript-execution
+│   │   ├── compilation-with-tsc
+│   │   ├── runtime-type-stripping
+│   │   ├── erasable-syntax
+│   │   ├── type-checking-as-separate-step
+│   │   ├── tsconfig-runtime-limitations
+│   │   ├── import-extension-handling
+│   │   ├── tsx-runner
+│   │   └── decorators-and-transform-requirements
+│   ├── application-type-boundaries
+│   │   ├── request-and-response-types
+│   │   ├── domain-and-persistence-types
+│   │   ├── runtime-schema-validation
+│   │   ├── branded-identifiers
+│   │   ├── typed-error-models
+│   │   ├── public-library-types
+│   │   └── schema-and-type-consistency
+│   └── resource-management
+│       ├── try-finally
+│       ├── deterministic-cleanup
+│       ├── explicit-resource-management
+│       ├── synchronous-and-asynchronous-disposal
+│       ├── cleanup-on-partial-failure
+│       └── resource-ownership
+├── runtime-and-execution
+│   ├── runtime-architecture
+│   │   ├── javascript-and-native-boundary
+│   │   ├── v8-engine
+│   │   ├── libuv
+│   │   ├── operating-system-integration
+│   │   ├── bindings-and-built-in-modules
+│   │   ├── runtime-startup
+│   │   └── execution-environments
+│   ├── v8-execution
+│   │   ├── parsing-and-compilation
+│   │   ├── interpreter-and-jit
+│   │   ├── optimization-and-deoptimization
+│   │   ├── hidden-classes-and-object-shapes
+│   │   ├── inline-caches
+│   │   ├── isolates-and-contexts
+│   │   └── engine-version-compatibility
+│   ├── libuv-and-io
+│   │   ├── event-loop-and-handles
+│   │   ├── kernel-io-and-readiness
+│   │   ├── thread-pool-backed-operations
+│   │   ├── thread-pool-size-and-contention
+│   │   ├── dns-and-filesystem-work
+│   │   ├── cross-platform-io-differences
+│   │   └── active-handles-and-process-liveness
+│   ├── event-loop
+│   │   ├── timers-phase
+│   │   ├── pending-callbacks
+│   │   ├── poll-phase
+│   │   ├── check-phase
+│   │   ├── close-callbacks
+│   │   ├── loop-iteration-and-starvation
+│   │   ├── timer-order-version-differences
+│   │   └── observable-ordering-experiments
+│   ├── task-and-microtask-ordering
+│   │   ├── call-stack-and-run-to-completion
+│   │   ├── promise-microtasks
+│   │   ├── queue-microtask
+│   │   ├── process-next-tick
+│   │   ├── set-timeout-and-set-immediate
+│   │   ├── commonjs-and-esm-ordering
+│   │   └── recursive-scheduling-and-starvation
+│   ├── process-lifecycle
+│   │   ├── startup-arguments
+│   │   ├── process-environment
+│   │   ├── working-directory
+│   │   ├── exit-code-and-exit
+│   │   ├── before-exit-and-exit-events
+│   │   ├── operating-system-signals
+│   │   ├── uncaught-errors-and-shutdown
+│   │   └── graceful-resource-release
+│   └── memory-model
+│       ├── stack-and-heap
+│       ├── young-and-old-generations
+│       ├── garbage-collection
+│       ├── strong-and-weak-references
+│       ├── external-and-buffer-memory
+│       ├── heap-limits-and-rss
+│       └── memory-retention-paths
+├── asynchronous-programming
+│   ├── callback-programming
+│   │   ├── error-first-callbacks
+│   │   ├── synchronous-and-asynchronous-contracts
+│   │   ├── callback-composition
+│   │   ├── callback-once-guarantees
+│   │   ├── callback-errors
+│   │   ├── promisify-and-callbackify
+│   │   └── legacy-api-adapters
+│   ├── promises
+│   │   ├── promise-state-and-resolution
+│   │   ├── chaining-and-error-propagation
+│   │   ├── promise-all
+│   │   ├── promise-all-settled
+│   │   ├── promise-race
+│   │   ├── promise-any
+│   │   ├── thenables
+│   │   └── floating-and-unhandled-promises
+│   ├── async-await
+│   │   ├── async-function-semantics
+│   │   ├── await-and-suspension
+│   │   ├── sequential-and-concurrent-execution
+│   │   ├── try-catch-finally
+│   │   ├── asynchronous-loops
+│   │   ├── top-level-await
+│   │   └── return-await-and-error-boundaries
+│   ├── task-coordination
+│   │   ├── bounded-concurrency
+│   │   ├── concurrency-pools
+│   │   ├── batching
+│   │   ├── rate-limiting
+│   │   ├── debouncing-and-throttling
+│   │   ├── producer-consumer-pattern
+│   │   ├── result-ordering
+│   │   └── partial-success-handling
+│   ├── cancellation-and-deadlines
+│   │   ├── abort-controller-and-signal
+│   │   ├── signal-composition
+│   │   ├── timeout-signals
+│   │   ├── deadline-propagation
+│   │   ├── cooperative-cancellation
+│   │   ├── abortable-io
+│   │   ├── cancellation-cleanup
+│   │   └── timeout-without-leaked-work
+│   ├── asynchronous-context
+│   │   ├── async-local-storage
+│   │   ├── context-run-and-read
+│   │   ├── context-binding-and-snapshots
+│   │   ├── request-scoped-context
+│   │   ├── context-loss-diagnosis
+│   │   ├── async-resource
+│   │   └── context-cleanup
+│   ├── asynchronous-error-design
+│   │   ├── operational-and-programming-errors
+│   │   ├── error-causes-and-wrapping
+│   │   ├── aggregate-errors
+│   │   ├── callback-promise-and-emitter-errors
+│   │   ├── error-boundaries
+│   │   ├── retryability-classification
+│   │   └── background-task-supervision
+│   └── concurrency-correctness
+│       ├── logical-race-conditions
+│       ├── shared-mutable-state
+│       ├── serialization-and-mutexes
+│       ├── semaphore-pattern
+│       ├── cancellation-races
+│       ├── resource-leaks
+│       └── deterministic-concurrency-tests
+├── core-apis-and-io
+│   ├── buffers-and-binary-data
+│   │   ├── buffer-allocation
+│   │   ├── safe-and-unsafe-allocation
+│   │   ├── byte-length-and-encoding
+│   │   ├── typed-arrays-and-arraybuffer
+│   │   ├── views-and-memory-sharing
+│   │   ├── endianness
+│   │   ├── binary-protocol-parsing
+│   │   └── text-encoder-and-decoder
+│   ├── filesystem
+│   │   ├── api-styles
+│   │   │   ├── callback-api
+│   │   │   ├── promise-api
+│   │   │   ├── synchronous-api
+│   │   │   ├── blocking-costs
+│   │   │   ├── file-handles
+│   │   │   └── resource-disposal
+│   │   ├── reading-and-writing
+│   │   │   ├── read-and-write-files
+│   │   │   ├── append-and-truncate
+│   │   │   ├── partial-reads-and-writes
+│   │   │   ├── positional-io
+│   │   │   ├── file-streams
+│   │   │   ├── atomic-replacement
+│   │   │   └── durability-and-sync
+│   │   ├── directories-and-metadata
+│   │   │   ├── directory-traversal
+│   │   │   ├── recursive-operations
+│   │   │   ├── stat-and-lstat
+│   │   │   ├── symbolic-and-hard-links
+│   │   │   ├── permissions-and-ownership
+│   │   │   ├── temporary-directories
+│   │   │   └── file-watching
+│   │   └── correctness-and-portability
+│   │       ├── path-normalization
+│   │       ├── path-traversal-prevention
+│   │       ├── race-free-file-operations
+│   │       ├── concurrent-writes
+│   │       ├── cross-platform-paths
+│   │       ├── case-and-unicode-differences
+│   │       └── file-descriptor-exhaustion
+│   ├── paths-and-urls
+│   │   ├── path-join-and-resolve
+│   │   ├── absolute-and-relative-paths
+│   │   ├── basename-dirname-and-extension
+│   │   ├── file-urls
+│   │   ├── whatwg-url
+│   │   ├── url-search-parameters
+│   │   ├── percent-encoding
+│   │   └── path-and-url-boundaries
+│   ├── node-streams
+│   │   ├── stream-model
+│   │   │   ├── readable
+│   │   │   ├── writable
+│   │   │   ├── duplex
+│   │   │   ├── transform
+│   │   │   ├── object-mode
+│   │   │   ├── flowing-and-paused-modes
+│   │   │   └── stream-state-and-events
+│   │   ├── stream-consumption
+│   │   │   ├── async-iteration
+│   │   │   ├── readable-events
+│   │   │   ├── pipe
+│   │   │   ├── pipeline
+│   │   │   ├── finished
+│   │   │   ├── abortable-pipelines
+│   │   │   └── premature-close-handling
+│   │   ├── stream-implementation
+│   │   │   ├── custom-readable
+│   │   │   ├── custom-writable
+│   │   │   ├── custom-transform
+│   │   │   ├── construct-and-destroy
+│   │   │   ├── flush-and-final
+│   │   │   ├── error-propagation
+│   │   │   └── resource-cleanup
+│   │   └── backpressure
+│   │       ├── high-water-mark
+│   │       ├── write-return-value
+│   │       ├── drain-event
+│   │       ├── bounded-buffering
+│   │       ├── slow-consumers
+│   │       ├── pipeline-memory-budgets
+│   │       └── backpressure-testing
+│   ├── web-streams
+│   │   ├── readable-stream
+│   │   ├── writable-stream
+│   │   ├── transform-stream
+│   │   ├── readers-and-writers
+│   │   ├── locking-and-cancellation
+│   │   ├── node-stream-adapters
+│   │   └── streaming-fetch-bodies
+│   ├── events
+│   │   ├── event-emitter
+│   │   ├── event-target
+│   │   ├── listener-order-and-synchronous-emission
+│   │   ├── once-and-listener-removal
+│   │   ├── error-events
+│   │   ├── promise-rejection-capture
+│   │   ├── async-event-iteration
+│   │   └── listener-leak-prevention
+│   ├── timers-and-scheduling-primitives
+│   │   ├── timeout-and-interval
+│   │   ├── immediate-callbacks
+│   │   ├── promise-based-timers
+│   │   ├── timer-ref-and-unref
+│   │   ├── timer-cancellation
+│   │   ├── timer-drift
+│   │   └── non-overlapping-recurring-work
+│   ├── compression
+│   │   ├── gzip-and-deflate
+│   │   ├── brotli
+│   │   ├── compression-streams
+│   │   ├── decompression-limits
+│   │   ├── compression-level-tradeoffs
+│   │   ├── cpu-and-memory-costs
+│   │   └── corrupted-input-handling
+│   ├── cryptography-primitives
+│   │   ├── secure-randomness
+│   │   ├── hashes-and-hmac
+│   │   ├── password-key-derivation
+│   │   ├── symmetric-encryption
+│   │   ├── asymmetric-keys
+│   │   ├── signatures-and-verification
+│   │   ├── timing-safe-comparison
+│   │   └── web-crypto-interop
+│   └── operating-system-and-utilities
+│       ├── system-and-cpu-information
+│       ├── memory-and-resource-information
+│       ├── process-usage-and-resource-limits
+│       ├── standard-input-output-and-error
+│       ├── util-inspect-and-format
+│       ├── mime-and-content-types
+│       ├── intl-and-icu
+│       └── structured-error-codes
+├── modules-and-packages
+│   ├── commonjs
+│   │   ├── require-and-resolution
+│   │   ├── module-exports-and-exports
+│   │   ├── module-wrapper
+│   │   ├── module-cache
+│   │   ├── circular-dependencies
+│   │   ├── require-main
+│   │   ├── filename-and-directory-context
+│   │   └── json-and-native-loading
+│   ├── ecmascript-modules
+│   │   ├── import-and-export
+│   │   ├── static-and-dynamic-import
+│   │   ├── named-and-default-exports
+│   │   ├── live-bindings
+│   │   ├── import-meta
+│   │   ├── file-extensions
+│   │   ├── url-based-resolution
+│   │   ├── top-level-await
+│   │   ├── import-attributes
+│   │   └── esm-module-cache
+│   ├── module-interoperability
+│   │   ├── commonjs-from-esm
+│   │   ├── esm-from-commonjs
+│   │   ├── create-require
+│   │   ├── default-and-named-export-interop
+│   │   ├── asynchronous-module-boundaries
+│   │   ├── dual-package-hazards
+│   │   └── migration-from-commonjs
+│   ├── package-resolution
+│   │   ├── package-type
+│   │   ├── main-entry-points
+│   │   ├── exports-and-encapsulation
+│   │   ├── subpath-exports
+│   │   ├── conditional-exports
+│   │   ├── package-imports
+│   │   ├── self-referencing-packages
+│   │   └── resolution-debugging
+│   ├── package-manifest
+│   │   ├── name-version-and-scope
+│   │   ├── scripts-and-lifecycle
+│   │   ├── dependencies-and-dev-dependencies
+│   │   ├── peer-dependencies
+│   │   ├── optional-dependencies
+│   │   ├── engines-and-platform-constraints
+│   │   ├── files-and-publish-configuration
+│   │   ├── executable-bin-entries
+│   │   └── license-and-repository-metadata
+│   ├── dependency-management
+│   │   ├── semantic-versioning
+│   │   ├── version-ranges-and-prereleases
+│   │   ├── direct-and-transitive-dependencies
+│   │   ├── lockfiles-and-integrity
+│   │   ├── reproducible-installation
+│   │   ├── dependency-overrides
+│   │   ├── deduplication
+│   │   └── dependency-tree-investigation
+│   ├── package-authoring
+│   │   ├── public-api-design
+│   │   ├── internal-module-boundaries
+│   │   ├── esm-and-commonjs-distribution
+│   │   ├── type-declaration-distribution
+│   │   ├── browser-and-node-targets
+│   │   ├── package-artifact-inspection
+│   │   ├── consumer-fixture-tests
+│   │   └── documentation-and-examples
+│   ├── publishing-and-maintenance
+│   │   ├── npm-pack-and-dry-run
+│   │   ├── registry-and-access-scopes
+│   │   ├── versioning-and-dist-tags
+│   │   ├── release-notes
+│   │   ├── provenance-and-trusted-publishing
+│   │   ├── credential-hygiene
+│   │   ├── compatibility-matrices
+│   │   └── deprecation-and-security-response
+│   └── workspace-packages
+│       ├── workspace-discovery
+│       ├── local-package-linking
+│       ├── dependency-boundaries
+│       ├── shared-config-packages
+│       ├── independent-and-fixed-versioning
+│       ├── release-order
+│       └── circular-workspace-dependencies
+├── networking-and-http
+│   ├── tcp-and-local-sockets
+│   │   ├── tcp-client-and-server
+│   │   ├── socket-lifecycle
+│   │   ├── connection-and-idle-timeouts
+│   │   ├── half-open-connections
+│   │   ├── socket-backpressure
+│   │   ├── message-framing
+│   │   └── unix-sockets-and-named-pipes
+│   ├── udp-and-dns
+│   │   ├── datagram-client-and-server
+│   │   ├── packet-size-and-loss
+│   │   ├── multicast-fundamentals
+│   │   ├── dns-lookup-and-resolve
+│   │   ├── dns-caching-and-ttl
+│   │   ├── ipv4-and-ipv6
+│   │   └── address-selection-and-failover
+│   ├── tls-and-https
+│   │   ├── certificates-and-trust
+│   │   ├── hostname-verification
+│   │   ├── server-name-indication
+│   │   ├── mutual-tls
+│   │   ├── tls-termination
+│   │   ├── certificate-renewal
+│   │   └── secure-client-configuration
+│   ├── http-foundations
+│   │   ├── methods-and-idempotency
+│   │   ├── status-codes
+│   │   ├── headers-and-message-bodies
+│   │   ├── content-types
+│   │   ├── content-negotiation
+│   │   ├── cookies
+│   │   ├── cache-control-and-validators
+│   │   ├── redirects
+│   │   └── range-requests
+│   ├── http-server
+│   │   ├── server-and-request-listener
+│   │   ├── incoming-message
+│   │   ├── server-response
+│   │   ├── request-body-streaming
+│   │   ├── response-streaming
+│   │   ├── header-and-body-limits
+│   │   ├── connection-and-request-timeouts
+│   │   ├── client-abort-handling
+│   │   ├── keep-alive
+│   │   └── graceful-server-close
+│   ├── http-client
+│   │   ├── native-fetch
+│   │   ├── request-response-and-headers
+│   │   ├── request-methods-and-bodies
+│   │   ├── formdata-and-file-uploads
+│   │   ├── streaming-downloads
+│   │   ├── status-and-network-errors
+│   │   ├── cancellation-and-timeouts
+│   │   ├── redirects-and-credentials
+│   │   ├── connection-pools-and-agents
+│   │   └── undici
+│   ├── http2
+│   │   ├── sessions-and-streams
+│   │   ├── multiplexing
+│   │   ├── flow-control
+│   │   ├── pseudo-headers
+│   │   ├── tls-and-alpn
+│   │   ├── http1-compatibility
+│   │   └── connection-shutdown
+│   ├── proxy-and-gateway-integration
+│   │   ├── reverse-proxies
+│   │   ├── forwarded-headers
+│   │   ├── trusted-proxy-boundaries
+│   │   ├── host-and-origin-validation
+│   │   ├── path-rewriting
+│   │   ├── buffering-and-streaming
+│   │   ├── upstream-timeout-alignment
+│   │   └── load-balancer-connection-draining
+│   └── resilient-outbound-requests
+│       ├── timeout-budgets
+│       ├── retry-backoff-and-jitter
+│       ├── safe-retry-conditions
+│       ├── retry-after
+│       ├── connection-reuse
+│       ├── response-size-limits
+│       ├── partial-body-failures
+│       └── client-observability
+├── web-frameworks
+│   ├── native-http-application
+│   │   ├── manual-routing
+│   │   ├── request-parsing
+│   │   ├── handler-composition
+│   │   ├── response-helpers
+│   │   ├── error-boundaries
+│   │   └── framework-abstraction-tradeoffs
+│   ├── express
+│   │   ├── application-and-router
+│   │   ├── routing-and-parameters
+│   │   ├── middleware-composition
+│   │   ├── request-and-response
+│   │   ├── body-parsers
+│   │   ├── async-errors-and-error-middleware
+│   │   ├── static-assets
+│   │   ├── template-rendering
+│   │   ├── cookies-and-sessions
+│   │   ├── proxy-configuration
+│   │   ├── application-testing
+│   │   └── major-version-migration
+│   ├── fastify
+│   │   ├── application-lifecycle
+│   │   ├── routes-and-schemas
+│   │   ├── validation-and-serialization
+│   │   ├── hooks
+│   │   ├── plugins-and-encapsulation
+│   │   ├── decorators
+│   │   ├── type-providers
+│   │   ├── request-scoped-logging
+│   │   ├── error-handlers
+│   │   ├── testing-with-inject
+│   │   ├── graceful-close
+│   │   └── plugin-compatibility
+│   ├── nestjs
+│   │   ├── application-structure
+│   │   │   ├── modules
+│   │   │   ├── controllers
+│   │   │   ├── providers
+│   │   │   ├── dependency-injection
+│   │   │   ├── custom-providers
+│   │   │   ├── dynamic-modules
+│   │   │   ├── injection-scopes
+│   │   │   └── lifecycle-hooks
+│   │   ├── request-processing
+│   │   │   ├── middleware
+│   │   │   ├── guards
+│   │   │   ├── pipes
+│   │   │   ├── interceptors
+│   │   │   ├── exception-filters
+│   │   │   ├── execution-context
+│   │   │   ├── custom-decorators
+│   │   │   └── request-lifecycle-order
+│   │   ├── application-features
+│   │   │   ├── configuration
+│   │   │   ├── validation-and-transformation
+│   │   │   ├── serialization
+│   │   │   ├── database-integration
+│   │   │   ├── authentication-integration
+│   │   │   ├── openapi
+│   │   │   └── testing-modules
+│   │   └── transports-and-extension
+│   │       ├── express-and-fastify-adapters
+│   │       ├── graphql
+│   │       ├── websocket-gateways
+│   │       ├── microservice-transports
+│   │       ├── queue-integration
+│   │       └── standalone-application-context
+│   ├── koa
+│   │   ├── context
+│   │   ├── async-middleware
+│   │   ├── onion-model
+│   │   ├── routing-integration
+│   │   ├── error-handling
+│   │   └── application-testing
+│   ├── hono-on-nodejs
+│   │   ├── node-adapter
+│   │   ├── web-standard-request-response
+│   │   ├── routing
+│   │   ├── middleware
+│   │   ├── validation
+│   │   ├── streaming
+│   │   └── runtime-compatibility
+│   ├── server-rendered-applications
+│   │   ├── template-engines
+│   │   ├── server-side-rendering
+│   │   ├── static-and-dynamic-rendering
+│   │   ├── backend-for-frontend
+│   │   ├── nextjs-node-deployment
+│   │   ├── nuxt-and-nitro-node-deployment
+│   │   └── server-and-client-boundaries
+│   └── framework-selection
+│       ├── minimal-and-opinionated-frameworks
+│       ├── application-size-and-team-fit
+│       ├── runtime-overhead
+│       ├── type-safety
+│       ├── extension-ecosystem
+│       ├── maintenance-and-upgrade-policy
+│       └── framework-independent-business-logic
+├── api-design-and-delivery
+│   ├── rest-api-design
+│   │   ├── resource-modeling
+│   │   ├── resource-urls
+│   │   ├── http-method-semantics
+│   │   ├── status-code-design
+│   │   ├── representations-and-dtos
+│   │   ├── filtering-and-sorting
+│   │   ├── pagination
+│   │   ├── idempotent-operations
+│   │   └── conditional-updates
+│   ├── api-contracts
+│   │   ├── openapi
+│   │   ├── json-schema
+│   │   ├── schema-first-and-code-first
+│   │   ├── request-and-response-contracts
+│   │   ├── generated-client-sdks
+│   │   ├── examples-and-documentation
+│   │   ├── contract-drift-detection
+│   │   └── backward-compatibility
+│   ├── validation-and-serialization
+│   │   ├── input-boundaries
+│   │   ├── structural-and-semantic-validation
+│   │   ├── coercion-and-normalization
+│   │   ├── unknown-field-policy
+│   │   ├── nested-and-union-schemas
+│   │   ├── response-serialization
+│   │   ├── sensitive-field-exclusion
+│   │   ├── zod
+│   │   └── ajv
+│   ├── error-responses
+│   │   ├── error-taxonomy
+│   │   ├── problem-details
+│   │   ├── validation-error-shape
+│   │   ├── correlation-identifiers
+│   │   ├── domain-to-http-mapping
+│   │   ├── internal-error-redaction
+│   │   └── retryable-and-terminal-errors
+│   ├── collection-and-bulk-apis
+│   │   ├── offset-pagination
+│   │   ├── cursor-pagination
+│   │   ├── stable-ordering
+│   │   ├── filtering-and-index-alignment
+│   │   ├── bulk-request-limits
+│   │   ├── partial-failure-responses
+│   │   └── asynchronous-operation-status
+│   ├── graphql
+│   │   ├── schemas-and-types
+│   │   ├── queries-and-mutations
+│   │   ├── resolvers-and-context
+│   │   ├── input-validation
+│   │   ├── dataloader-and-n-plus-one
+│   │   ├── authorization
+│   │   ├── query-complexity-limits
+│   │   ├── pagination
+│   │   ├── subscriptions
+│   │   ├── schema-evolution
+│   │   └── graphql-server-integration
+│   ├── grpc
+│   │   ├── protocol-buffers
+│   │   ├── service-definitions
+│   │   ├── generated-client-and-server
+│   │   ├── unary-calls
+│   │   ├── client-server-and-bidirectional-streaming
+│   │   ├── deadlines-and-cancellation
+│   │   ├── metadata-and-authentication
+│   │   └── status-and-error-mapping
+│   ├── typesafe-rpc
+│   │   ├── trpc
+│   │   ├── routers-and-procedures
+│   │   ├── client-type-inference
+│   │   ├── runtime-input-validation
+│   │   ├── shared-type-boundaries
+│   │   └── rpc-and-public-api-tradeoffs
+│   ├── webhooks
+│   │   ├── event-contracts
+│   │   ├── signature-verification
+│   │   ├── raw-body-preservation
+│   │   ├── replay-protection
+│   │   ├── idempotent-processing
+│   │   ├── delivery-retries
+│   │   ├── delivery-ordering
+│   │   ├── receiver-acknowledgment
+│   │   └── dead-letter-and-replay-workflows
+│   └── api-evolution-and-governance
+│       ├── versioning-strategies
+│       ├── additive-and-breaking-changes
+│       ├── deprecation-policy
+│       ├── api-inventory
+│       ├── consumer-migration
+│       ├── compatibility-testing
+│       └── usage-and-error-observation
+├── data-and-storage
+│   ├── data-modeling
+│   │   ├── entities-and-identifiers
+│   │   ├── relationships
+│   │   ├── constraints-and-invariants
+│   │   ├── normalization-and-denormalization
+│   │   ├── timestamps-and-time-zones
+│   │   ├── monetary-and-decimal-values
+│   │   ├── optimistic-versioning
+│   │   └── schema-evolution
+│   ├── relational-database-access
+│   │   ├── sql-and-parameterized-queries
+│   │   ├── connection-pooling
+│   │   ├── connection-release
+│   │   ├── transactions-and-savepoints
+│   │   ├── isolation-and-locking
+│   │   ├── deadlock-retries
+│   │   ├── query-timeouts
+│   │   └── cursor-and-streaming-results
+│   ├── database-drivers
+│   │   ├── postgresql
+│   │   │   ├── node-postgres
+│   │   │   ├── pool-and-client
+│   │   │   ├── prepared-queries
+│   │   │   ├── transactions
+│   │   │   ├── jsonb-and-type-parsing
+│   │   │   ├── notification-listeners
+│   │   │   └── bulk-import-and-export
+│   │   ├── mysql
+│   │   │   ├── mysql2
+│   │   │   ├── promise-based-client
+│   │   │   ├── connection-pools
+│   │   │   ├── prepared-statements
+│   │   │   ├── transaction-boundaries
+│   │   │   └── charset-and-time-zone-handling
+│   │   └── sqlite
+│   │       ├── node-sqlite
+│   │       ├── runtime-version-and-api-stability
+│   │       ├── synchronous-and-asynchronous-access
+│   │       ├── prepared-statements
+│   │       ├── transactions
+│   │       ├── wal-and-concurrency
+│   │       ├── backups
+│   │       └── worker-isolation-for-blocking-access
+│   ├── query-builders-and-orms
+│   │   ├── query-builders
+│   │   │   ├── knex
+│   │   │   ├── kysely
+│   │   │   ├── composable-queries
+│   │   │   ├── parameter-binding
+│   │   │   ├── typed-query-results
+│   │   │   └── raw-sql-escape-hatches
+│   │   ├── prisma
+│   │   │   ├── schema-and-generated-client
+│   │   │   ├── relations
+│   │   │   ├── migrations
+│   │   │   ├── transaction-api
+│   │   │   ├── query-performance
+│   │   │   └── client-lifecycle
+│   │   ├── drizzle
+│   │   │   ├── schema-definition
+│   │   │   ├── typed-queries
+│   │   │   ├── relations
+│   │   │   ├── migrations
+│   │   │   ├── database-driver-integration
+│   │   │   └── query-inspection
+│   │   ├── typeorm
+│   │   │   ├── entities-and-mappings
+│   │   │   ├── repositories-and-query-builder
+│   │   │   ├── relation-loading
+│   │   │   ├── migrations
+│   │   │   ├── transactions
+│   │   │   └── connection-lifecycle
+│   │   └── persistence-design
+│   │       ├── repository-boundaries
+│   │       ├── unit-of-work
+│   │       ├── n-plus-one-prevention
+│   │       ├── optimistic-concurrency
+│   │       ├── bulk-operations
+│   │       └── orm-and-sql-tradeoffs
+│   ├── mongodb
+│   │   ├── native-driver
+│   │   ├── connection-pooling
+│   │   ├── bson-and-objectid
+│   │   ├── document-modeling
+│   │   ├── query-and-projection
+│   │   ├── indexes
+│   │   ├── aggregation-pipelines
+│   │   ├── transactions
+│   │   └── change-streams
+│   ├── mongoose
+│   │   ├── schemas-and-models
+│   │   ├── validation
+│   │   ├── middleware
+│   │   ├── population
+│   │   ├── lean-queries
+│   │   ├── schema-evolution
+│   │   └── transaction-integration
+│   ├── redis-and-caching
+│   │   ├── redis-client-lifecycle
+│   │   ├── data-structures
+│   │   ├── ttl-and-expiration
+│   │   ├── atomic-operations
+│   │   ├── transactions-and-lua
+│   │   ├── pipelining
+│   │   ├── cache-aside
+│   │   ├── invalidation
+│   │   ├── stampede-prevention
+│   │   └── distributed-lock-limitations
+│   ├── search-and-indexing
+│   │   ├── full-text-search
+│   │   ├── search-engine-clients
+│   │   ├── index-mappings
+│   │   ├── indexing-pipelines
+│   │   ├── relevance-and-filtering
+│   │   ├── eventual-consistency
+│   │   └── reindexing-and-aliases
+│   ├── object-storage
+│   │   ├── storage-client-adapters
+│   │   ├── upload-and-download-streams
+│   │   ├── multipart-uploads
+│   │   ├── presigned-urls
+│   │   ├── object-metadata
+│   │   ├── access-controls
+│   │   ├── lifecycle-and-retention
+│   │   └── checksum-verification
+│   └── data-lifecycle
+│       ├── migrations-and-rollbacks
+│       ├── seed-and-fixture-data
+│       ├── backup-and-restore
+│       ├── retention-and-deletion
+│       ├── tenant-data-isolation
+│       ├── encryption-boundaries
+│       ├── reconciliation
+│       └── migration-observability
+├── messaging-and-realtime
+│   ├── messaging-foundations
+│   │   ├── commands-and-events
+│   │   ├── queues-and-topics
+│   │   ├── producers-and-consumers
+│   │   ├── acknowledgments
+│   │   ├── delivery-guarantees
+│   │   ├── ordering-and-partitioning
+│   │   ├── consumer-idempotency
+│   │   └── schema-evolution
+│   ├── message-brokers
+│   │   ├── rabbitmq
+│   │   │   ├── connections-and-channels
+│   │   │   ├── exchanges-and-routing
+│   │   │   ├── queues-and-bindings
+│   │   │   ├── publisher-confirms
+│   │   │   ├── consumer-acknowledgments
+│   │   │   ├── prefetch
+│   │   │   └── retry-and-dead-letter-exchanges
+│   │   ├── kafka
+│   │   │   ├── topics-and-partitions
+│   │   │   ├── producer-keys
+│   │   │   ├── consumer-groups
+│   │   │   ├── offsets-and-commits
+│   │   │   ├── rebalancing
+│   │   │   ├── batch-consumption
+│   │   │   ├── transactional-boundaries
+│   │   │   └── schema-compatibility
+│   │   ├── nats
+│   │   │   ├── subjects-and-subscriptions
+│   │   │   ├── request-reply
+│   │   │   ├── queue-groups
+│   │   │   ├── jetstream
+│   │   │   ├── durable-consumers
+│   │   │   └── acknowledgment-and-redelivery
+│   │   └── mqtt
+│   │       ├── topics-and-wildcards
+│   │       ├── quality-of-service
+│   │       ├── retained-messages
+│   │       ├── persistent-sessions
+│   │       ├── reconnect-and-offline-delivery
+│   │       └── client-authentication
+│   ├── background-job-queues
+│   │   ├── bullmq
+│   │   ├── job-producers-and-workers
+│   │   ├── job-data-contracts
+│   │   ├── delayed-and-recurring-jobs
+│   │   ├── retries-and-backoff
+│   │   ├── job-deduplication
+│   │   ├── progress-and-cancellation
+│   │   ├── stalled-job-recovery
+│   │   ├── queue-backpressure
+│   │   └── worker-shutdown
+│   ├── scheduling-and-workflows
+│   │   ├── cron-scheduling
+│   │   ├── time-zones-and-daylight-saving
+│   │   ├── overlap-prevention
+│   │   ├── distributed-scheduler-ownership
+│   │   ├── durable-workflows
+│   │   ├── temporal-nodejs-sdk
+│   │   ├── compensation-and-recovery
+│   │   └── workflow-versioning
+│   ├── websocket
+│   │   ├── upgrade-handshake
+│   │   ├── server-and-client-libraries
+│   │   ├── native-client-and-server-library-boundaries
+│   │   ├── text-and-binary-frames
+│   │   ├── ping-pong-and-heartbeats
+│   │   ├── authentication-and-origins
+│   │   ├── per-message-validation
+│   │   ├── backpressure-and-buffer-limits
+│   │   └── reconnection-and-resumption
+│   ├── socketio
+│   │   ├── events-and-acknowledgments
+│   │   ├── rooms-and-namespaces
+│   │   ├── middleware
+│   │   ├── transport-fallback
+│   │   ├── distributed-adapters
+│   │   ├── connection-state-recovery
+│   │   ├── sticky-session-requirements
+│   │   └── socketio-and-websocket-compatibility
+│   ├── server-sent-events
+│   │   ├── event-stream-format
+│   │   ├── event-identifiers
+│   │   ├── retry-and-reconnection
+│   │   ├── heartbeat-comments
+│   │   ├── client-disconnection
+│   │   ├── proxy-buffering
+│   │   ├── authentication-and-origin-policy
+│   │   └── stream-capacity
+│   └── realtime-state-design
+│       ├── presence
+│       ├── subscriptions
+│       ├── fanout
+│       ├── ordered-updates
+│       ├── missed-event-recovery
+│       ├── authorization-changes
+│       ├── multi-instance-coordination
+│       └── connection-load-testing
+├── architecture-and-distributed-systems
+│   ├── application-organization
+│   │   ├── feature-based-modules
+│   │   ├── layered-architecture
+│   │   ├── vertical-slices
+│   │   ├── composition-root
+│   │   ├── dependency-direction
+│   │   ├── public-module-contracts
+│   │   └── configuration-boundaries
+│   ├── design-principles-and-patterns
+│   │   ├── separation-of-concerns
+│   │   ├── dependency-inversion
+│   │   ├── composition-over-inheritance
+│   │   ├── factory-and-builder
+│   │   ├── adapter-and-facade
+│   │   ├── strategy-and-policy
+│   │   ├── observer-and-mediator
+│   │   └── middleware-and-pipeline
+│   ├── clean-and-hexagonal-architecture
+│   │   ├── domain-model
+│   │   ├── application-use-cases
+│   │   ├── ports-and-adapters
+│   │   ├── infrastructure-boundaries
+│   │   ├── transport-independent-logic
+│   │   ├── persistence-independent-logic
+│   │   └── boundary-testing
+│   ├── domain-driven-design
+│   │   ├── bounded-contexts
+│   │   ├── aggregates-and-invariants
+│   │   ├── entities-and-value-objects
+│   │   ├── domain-services
+│   │   ├── domain-events
+│   │   ├── repositories
+│   │   ├── context-mapping
+│   │   └── domain-language
+│   ├── modular-monolith
+│   │   ├── module-isolation
+│   │   ├── explicit-module-interfaces
+│   │   ├── intra-process-communication
+│   │   ├── shared-database-boundaries
+│   │   ├── module-owned-data
+│   │   ├── extraction-readiness
+│   │   └── architectural-fitness-tests
+│   ├── microservices
+│   │   ├── service-boundaries
+│   │   ├── data-ownership
+│   │   ├── synchronous-and-asynchronous-communication
+│   │   ├── service-discovery
+│   │   ├── api-gateway
+│   │   ├── backend-for-frontend
+│   │   ├── distributed-configuration
+│   │   └── service-contracts
+│   ├── resilience
+│   │   ├── timeouts-and-deadlines
+│   │   ├── retries-and-jitter
+│   │   ├── retry-budgets
+│   │   ├── circuit-breakers
+│   │   ├── bulkheads
+│   │   ├── bounded-queues
+│   │   ├── load-shedding
+│   │   ├── graceful-degradation
+│   │   └── dependency-health
+│   ├── distributed-data-patterns
+│   │   ├── eventual-consistency
+│   │   ├── idempotency-keys
+│   │   ├── transactional-outbox
+│   │   ├── inbox-and-deduplication
+│   │   ├── saga-orchestration
+│   │   ├── saga-choreography
+│   │   ├── cqrs
+│   │   ├── event-sourcing
+│   │   └── reconciliation
+│   ├── multitenancy
+│   │   ├── tenant-resolution
+│   │   ├── request-context-isolation
+│   │   ├── tenant-aware-authorization
+│   │   ├── data-partitioning
+│   │   ├── per-tenant-quotas
+│   │   ├── noisy-neighbor-control
+│   │   ├── tenant-provisioning
+│   │   └── tenant-offboarding
+│   └── architecture-governance
+│       ├── architecture-decision-records
+│       ├── dependency-mapping
+│       ├── contract-ownership
+│       ├── compatibility-strategy
+│       ├── failure-mode-analysis
+│       ├── operational-readiness
+│       └── evolutionary-refactoring
+├── security
+│   ├── threat-modeling
+│   │   ├── assets-and-trust-boundaries
+│   │   ├── attack-surface
+│   │   ├── external-input-inventory
+│   │   ├── abuse-cases
+│   │   ├── least-privilege
+│   │   ├── secure-defaults
+│   │   ├── dependency-trust
+│   │   └── security-review
+│   ├── authentication
+│   │   ├── password-hashing
+│   │   ├── credential-verification
+│   │   ├── session-authentication
+│   │   ├── token-authentication
+│   │   ├── email-verification
+│   │   ├── password-reset
+│   │   ├── multi-factor-authentication
+│   │   ├── passkeys-and-webauthn
+│   │   └── account-enumeration-prevention
+│   ├── authorization
+│   │   ├── role-based-access
+│   │   ├── attribute-based-access
+│   │   ├── policy-based-access
+│   │   ├── resource-ownership
+│   │   ├── object-level-authorization
+│   │   ├── function-level-authorization
+│   │   ├── tenant-isolation
+│   │   └── deny-by-default
+│   ├── sessions-and-cookies
+│   │   ├── server-side-session-stores
+│   │   ├── session-id-rotation
+│   │   ├── session-expiration
+│   │   ├── session-revocation
+│   │   ├── secure-httponly-and-samesite
+│   │   ├── csrf-protection
+│   │   └── session-fixation-prevention
+│   ├── oauth-and-openid-connect
+│   │   ├── authorization-code-and-pkce
+│   │   ├── state-and-nonce
+│   │   ├── issuer-and-audience-validation
+│   │   ├── discovery-and-jwks
+│   │   ├── token-refresh
+│   │   ├── identity-provider-integration
+│   │   └── oauth-client-security
+│   ├── token-security
+│   │   ├── signed-and-encrypted-tokens
+│   │   ├── algorithm-allowlists
+│   │   ├── claims-validation
+│   │   ├── key-rotation
+│   │   ├── access-and-refresh-token-separation
+│   │   ├── replay-detection
+│   │   └── revocation-strategies
+│   ├── input-and-output-defense
+│   │   ├── sql-and-nosql-injection
+│   │   ├── command-injection
+│   │   ├── cross-site-scripting
+│   │   ├── prototype-pollution
+│   │   ├── unsafe-object-merging
+│   │   ├── server-side-request-forgery
+│   │   ├── path-traversal
+│   │   ├── unsafe-deserialization
+│   │   └── regular-expression-denial-of-service
+│   ├── transport-and-http-defense
+│   │   ├── tls-policy
+│   │   ├── security-headers
+│   │   ├── content-security-policy
+│   │   ├── cors-and-origin-validation
+│   │   ├── request-smuggling-defense
+│   │   ├── host-header-validation
+│   │   ├── trusted-proxy-configuration
+│   │   └── request-size-and-time-limits
+│   ├── secrets-and-sensitive-data
+│   │   ├── secret-injection
+│   │   ├── secret-rotation
+│   │   ├── log-redaction
+│   │   ├── encryption-at-rest
+│   │   ├── key-management
+│   │   ├── pii-minimization
+│   │   ├── safe-error-disclosure
+│   │   └── sensitive-memory-lifetime
+│   ├── runtime-hardening
+│   │   ├── permission-model
+│   │   ├── permission-scope-and-limitations
+│   │   ├── inspector-exposure-prevention
+│   │   ├── non-root-execution
+│   │   ├── filesystem-and-network-restrictions
+│   │   ├── process-and-worker-isolation
+│   │   ├── vm-not-a-security-sandbox
+│   │   └── experimental-api-risk
+│   ├── supply-chain-security
+│   │   ├── package-maintainer-assessment
+│   │   ├── typosquatting-and-dependency-confusion
+│   │   ├── lockfile-review
+│   │   ├── install-script-controls
+│   │   ├── vulnerability-triage
+│   │   ├── provenance-and-signatures
+│   │   ├── sbom
+│   │   ├── trusted-publishing
+│   │   └── compromised-dependency-response
+│   └── abuse-and-upload-protection
+│       ├── rate-limiting
+│       ├── brute-force-protection
+│       ├── resource-exhaustion
+│       ├── archive-and-decompression-bombs
+│       ├── file-type-verification
+│       ├── malware-scanning-integration
+│       ├── storage-quotas
+│       └── secure-temporary-files
+├── testing-and-quality
+│   ├── testing-strategy
+│   │   ├── test-boundaries
+│   │   ├── unit-integration-and-end-to-end
+│   │   ├── risk-based-coverage
+│   │   ├── deterministic-tests
+│   │   ├── test-pyramid-and-tradeoffs
+│   │   ├── test-data-ownership
+│   │   └── fast-feedback-loops
+│   ├── node-test-runner
+│   │   ├── test-files-and-discovery
+│   │   ├── test-and-suite-structure
+│   │   ├── assertions
+│   │   ├── setup-and-teardown
+│   │   ├── asynchronous-tests
+│   │   ├── subtests-and-concurrency
+│   │   ├── mocks-and-timers
+│   │   ├── snapshots
+│   │   ├── coverage-and-reporters
+│   │   └── isolation-and-watch-mode
+│   ├── ecosystem-test-runners
+│   │   ├── vitest
+│   │   │   ├── configuration
+│   │   │   ├── test-environments
+│   │   │   ├── mocking
+│   │   │   ├── timers
+│   │   │   ├── coverage
+│   │   │   └── workspace-projects
+│   │   ├── jest
+│   │   │   ├── configuration
+│   │   │   ├── matchers
+│   │   │   ├── mocking
+│   │   │   ├── fake-timers
+│   │   │   ├── esm-and-typescript-integration
+│   │   │   └── coverage
+│   │   └── runner-selection
+│   │       ├── runtime-compatibility
+│   │       ├── module-system-support
+│   │       ├── transform-requirements
+│   │       ├── parallel-execution
+│   │       └── startup-and-maintenance-costs
+│   ├── unit-testing
+│   │   ├── pure-functions
+│   │   ├── domain-services
+│   │   ├── dependency-injection
+│   │   ├── stubs-spies-and-fakes
+│   │   ├── boundary-cases
+│   │   ├── error-paths
+│   │   └── public-contract-testing
+│   ├── asynchronous-testing
+│   │   ├── promise-rejections
+│   │   ├── event-emitter-errors
+│   │   ├── abort-and-timeout-cases
+│   │   ├── concurrency-control
+│   │   ├── stream-backpressure
+│   │   ├── resource-cleanup
+│   │   └── dangling-handles
+│   ├── integration-testing
+│   │   ├── http-server-tests
+│   │   ├── supertest
+│   │   ├── framework-injection-tests
+│   │   ├── database-tests
+│   │   ├── broker-tests
+│   │   ├── object-storage-tests
+│   │   ├── testcontainers
+│   │   └── service-lifecycle
+│   ├── contract-and-end-to-end-testing
+│   │   ├── openapi-schema-validation
+│   │   ├── consumer-driven-contracts
+│   │   ├── webhook-contracts
+│   │   ├── graphql-contracts
+│   │   ├── playwright
+│   │   ├── cross-service-flows
+│   │   └── backward-compatibility
+│   ├── data-and-fixture-management
+│   │   ├── fixture-builders
+│   │   ├── isolated-databases
+│   │   ├── transaction-rollbacks
+│   │   ├── migration-tests
+│   │   ├── deterministic-clock-and-randomness
+│   │   ├── test-credential-isolation
+│   │   └── cleanup-after-failure
+│   ├── advanced-testing
+│   │   ├── property-based-testing
+│   │   ├── fast-check
+│   │   ├── fuzz-testing
+│   │   ├── mutation-testing
+│   │   ├── fault-injection
+│   │   ├── race-condition-tests
+│   │   └── invariant-based-tests
+│   ├── performance-and-security-testing
+│   │   ├── load-tests
+│   │   ├── stress-tests
+│   │   ├── soak-tests
+│   │   ├── authorization-matrix-tests
+│   │   ├── injection-regression-tests
+│   │   ├── dependency-scans
+│   │   └── resource-exhaustion-tests
+│   └── quality-gates
+│       ├── static-type-checking
+│       ├── linting-and-formatting
+│       ├── coverage-interpretation
+│       ├── flaky-test-management
+│       ├── ci-test-partitioning
+│       ├── artifact-and-report-retention
+│       └── release-blocking-checks
+├── observability-and-diagnostics
+│   ├── structured-logging
+│   │   ├── log-levels
+│   │   ├── structured-fields
+│   │   ├── request-and-correlation-identifiers
+│   │   ├── error-serialization
+│   │   ├── pii-and-secret-redaction
+│   │   ├── pino
+│   │   ├── winston
+│   │   └── log-output-and-rotation
+│   ├── metrics
+│   │   ├── request-rate-errors-and-duration
+│   │   ├── event-loop-delay
+│   │   ├── event-loop-utilization
+│   │   ├── heap-and-rss
+│   │   ├── garbage-collection
+│   │   ├── queue-depth-and-lag
+│   │   ├── connection-pool-utilization
+│   │   └── metric-cardinality
+│   ├── distributed-tracing
+│   │   ├── spans-and-context
+│   │   ├── trace-context-propagation
+│   │   ├── sampling
+│   │   ├── http-and-database-spans
+│   │   ├── message-propagation
+│   │   ├── asynchronous-boundaries
+│   │   ├── trace-and-log-correlation
+│   │   └── telemetry-export
+│   ├── opentelemetry
+│   │   ├── api-and-sdk
+│   │   ├── resource-attributes
+│   │   ├── auto-instrumentation
+│   │   ├── manual-instrumentation
+│   │   ├── instrumentation-startup-order
+│   │   ├── esm-instrumentation
+│   │   ├── otlp-and-collectors
+│   │   └── export-failure-handling
+│   ├── debugging
+│   │   ├── inspector
+│   │   ├── ide-debugger
+│   │   ├── breakpoints-and-watch-expressions
+│   │   ├── asynchronous-call-stacks
+│   │   ├── source-map-debugging
+│   │   ├── remote-debugging-safeguards
+│   │   └── reproducible-failure-cases
+│   ├── runtime-diagnostics
+│   │   ├── diagnostic-reports
+│   │   ├── diagnostics-channel
+│   │   ├── performance-hooks
+│   │   ├── cpu-profiles
+│   │   ├── flame-graphs
+│   │   ├── trace-events
+│   │   ├── active-resource-inspection
+│   │   └── crash-artifacts
+│   ├── memory-diagnostics
+│   │   ├── heap-snapshots
+│   │   ├── allocation-profiling
+│   │   ├── retention-path-analysis
+│   │   ├── listener-and-timer-leaks
+│   │   ├── buffer-and-external-memory
+│   │   ├── native-memory-growth
+│   │   └── production-capture-risks
+│   └── reliability-observation
+│       ├── service-level-indicators
+│       ├── service-level-objectives
+│       ├── error-budgets
+│       ├── health-and-readiness
+│       ├── actionable-alerts
+│       ├── incident-correlation
+│       ├── runbooks
+│       └── post-incident-analysis
+├── performance-and-scalability
+│   ├── measurement-methodology
+│   │   ├── workload-modeling
+│   │   ├── baseline-and-regression
+│   │   ├── throughput-and-latency
+│   │   ├── percentile-distributions
+│   │   ├── warmup-and-jit-effects
+│   │   ├── benchmark-isolation
+│   │   ├── coordinated-omission
+│   │   └── statistical-variance
+│   ├── event-loop-efficiency
+│   │   ├── blocking-operation-inventory
+│   │   ├── synchronous-api-removal
+│   │   ├── large-json-work
+│   │   ├── expensive-regular-expressions
+│   │   ├── cpu-work-partitioning
+│   │   ├── cooperative-yielding
+│   │   ├── callback-duration
+│   │   └── microtask-starvation
+│   ├── memory-efficiency
+│   │   ├── bounded-caches
+│   │   ├── bounded-concurrency
+│   │   ├── streaming-over-buffering
+│   │   ├── object-retention
+│   │   ├── buffer-reuse-tradeoffs
+│   │   ├── garbage-collection-pressure
+│   │   ├── native-allocation-tracking
+│   │   └── memory-budgeting
+│   ├── io-and-http-optimization
+│   │   ├── connection-reuse
+│   │   ├── pool-sizing
+│   │   ├── request-batching
+│   │   ├── response-streaming
+│   │   ├── compression-tradeoffs
+│   │   ├── cache-validators
+│   │   ├── reverse-proxy-offloading
+│   │   └── timeout-tuning
+│   ├── database-performance
+│   │   ├── query-plans-and-indexes
+│   │   ├── n-plus-one-detection
+│   │   ├── query-count-budgets
+│   │   ├── connection-pool-saturation
+│   │   ├── read-and-write-batching
+│   │   ├── pagination-performance
+│   │   ├── lock-contention
+│   │   └── cache-effectiveness
+│   ├── parallelism-and-offloading
+│   │   ├── cpu-and-io-classification
+│   │   ├── worker-pool-sizing
+│   │   ├── worker-startup-overhead
+│   │   ├── transfer-and-clone-costs
+│   │   ├── process-isolation-tradeoffs
+│   │   ├── native-and-wasm-offloading
+│   │   └── queue-based-offloading
+│   ├── horizontal-scaling
+│   │   ├── stateless-service-design
+│   │   ├── shared-state-extraction
+│   │   ├── session-distribution
+│   │   ├── load-balancing
+│   │   ├── connection-affinity
+│   │   ├── distributed-cache
+│   │   ├── autoscaling-signals
+│   │   └── graceful-scale-down
+│   └── load-and-capacity-engineering
+│       ├── autocannon
+│       ├── k6
+│       ├── artillery
+│       ├── saturation-point
+│       ├── queueing-and-backpressure
+│       ├── cpu-memory-and-fd-limits
+│       ├── capacity-headroom
+│       └── overload-recovery
+├── command-line-and-automation
+│   ├── cli-design
+│   │   ├── commands-and-subcommands
+│   │   ├── flags-and-options
+│   │   ├── positional-arguments
+│   │   ├── help-and-usage
+│   │   ├── input-validation
+│   │   ├── exit-codes
+│   │   ├── interactive-and-noninteractive-modes
+│   │   └── machine-readable-output
+│   ├── terminal-io
+│   │   ├── readline
+│   │   ├── tty-detection
+│   │   ├── stdin-pipelines
+│   │   ├── stdout-and-stderr-separation
+│   │   ├── progress-and-status-output
+│   │   ├── color-and-accessibility
+│   │   └── signal-and-interruption-handling
+│   ├── cli-implementation
+│   │   ├── native-argument-parsing
+│   │   ├── commander
+│   │   ├── yargs
+│   │   ├── prompts-and-confirmations
+│   │   ├── configuration-precedence
+│   │   ├── file-and-directory-selection
+│   │   ├── safe-defaults
+│   │   └── dry-run-mode
+│   ├── subprocess-orchestration
+│   │   ├── spawn-and-execfile
+│   │   ├── argument-arrays-and-shell-safety
+│   │   ├── streamed-output
+│   │   ├── exit-and-signal-propagation
+│   │   ├── timeout-and-cancellation
+│   │   ├── process-tree-cleanup
+│   │   └── cross-platform-commands
+│   ├── cli-distribution
+│   │   ├── executable-entry-points
+│   │   ├── shebang
+│   │   ├── npm-bin-packages
+│   │   ├── npx-execution-model
+│   │   ├── single-executable-applications
+│   │   ├── platform-specific-assets
+│   │   └── update-and-compatibility-policy
+│   └── automation-workflows
+│       ├── filesystem-batch-processing
+│       ├── data-import-and-export
+│       ├── api-synchronization
+│       ├── build-and-release-scripts
+│       ├── scheduled-report-generation
+│       ├── resumable-jobs
+│       ├── checkpoints-and-idempotency
+│       └── audit-logs
+├── development-tooling
+│   ├── project-conventions
+│   │   ├── source-and-test-layout
+│   │   ├── feature-and-layer-boundaries
+│   │   ├── naming-and-import-conventions
+│   │   ├── configuration-schema
+│   │   ├── environment-examples
+│   │   ├── editor-settings
+│   │   └── git-ignore-rules
+│   ├── package-managers
+│   │   ├── npm
+│   │   ├── pnpm
+│   │   ├── yarn
+│   │   ├── lockfile-selection
+│   │   ├── workspace-behavior
+│   │   ├── manager-version-pinning
+│   │   ├── installation-cache
+│   │   └── package-manager-migration
+│   ├── build-and-transformation
+│   │   ├── typescript-compiler
+│   │   ├── esbuild
+│   │   ├── swc
+│   │   ├── rollup
+│   │   ├── server-bundling-tradeoffs
+│   │   ├── external-dependencies
+│   │   ├── source-maps
+│   │   └── asset-and-native-binary-copying
+│   ├── monorepo-tooling
+│   │   ├── workspace-graph
+│   │   ├── shared-types-and-contracts
+│   │   ├── task-dependencies
+│   │   ├── incremental-builds
+│   │   ├── local-and-remote-cache
+│   │   ├── turborepo
+│   │   ├── nx
+│   │   └── package-boundary-checks
+│   ├── code-quality
+│   │   ├── eslint
+│   │   ├── typescript-eslint
+│   │   ├── prettier
+│   │   ├── biome
+│   │   ├── import-order-and-unused-code
+│   │   ├── complexity-checks
+│   │   ├── pre-commit-hooks
+│   │   └── editor-and-ci-consistency
+│   ├── local-development
+│   │   ├── native-watch-mode
+│   │   ├── environment-file-loading
+│   │   ├── local-tls
+│   │   ├── development-proxy
+│   │   ├── service-emulators
+│   │   ├── docker-compose-dependencies
+│   │   ├── reproducible-seed-data
+│   │   └── debugger-launch-profiles
+│   ├── release-tooling
+│   │   ├── semantic-version-policy
+│   │   ├── changesets
+│   │   ├── changelog-generation
+│   │   ├── package-build-verification
+│   │   ├── release-candidates
+│   │   ├── compatibility-fixtures
+│   │   └── reproducible-artifacts
+│   └── documentation
+│       ├── readme-and-onboarding
+│       ├── architecture-decisions
+│       ├── api-reference
+│       ├── typedoc
+│       ├── runnable-examples
+│       ├── operational-runbooks
+│       └── dependency-and-runtime-matrices
+├── deployment-and-operations
+│   ├── process-management
+│   │   ├── foreground-processes
+│   │   ├── service-managers
+│   │   ├── systemd
+│   │   ├── pm2
+│   │   ├── restart-policy
+│   │   ├── signal-forwarding
+│   │   ├── graceful-shutdown
+│   │   └── crash-loop-diagnosis
+│   ├── containers
+│   │   ├── node-base-images
+│   │   ├── multi-stage-builds
+│   │   ├── production-dependencies
+│   │   ├── non-root-users
+│   │   ├── read-only-filesystems
+│   │   ├── signal-handling-and-init
+│   │   ├── native-dependency-builds
+│   │   ├── image-size-and-cache
+│   │   ├── health-checks
+│   │   └── image-provenance
+│   ├── environment-and-configuration
+│   │   ├── environment-specific-settings
+│   │   ├── startup-validation
+│   │   ├── secret-stores
+│   │   ├── configuration-precedence
+│   │   ├── runtime-versus-build-time-config
+│   │   ├── feature-flags
+│   │   ├── certificate-management
+│   │   └── configuration-drift
+│   ├── continuous-integration
+│   │   ├── runtime-version-matrix
+│   │   ├── lockfile-enforcement
+│   │   ├── dependency-cache
+│   │   ├── type-lint-test-gates
+│   │   ├── integration-service-containers
+│   │   ├── security-scanning
+│   │   ├── artifact-signing
+│   │   └── reproducible-builds
+│   ├── continuous-delivery
+│   │   ├── release-artifacts
+│   │   ├── environment-promotion
+│   │   ├── database-migration-order
+│   │   ├── backward-compatible-deployments
+│   │   ├── canary-releases
+│   │   ├── blue-green-deployments
+│   │   ├── feature-rollouts
+│   │   └── rollback-validation
+│   ├── kubernetes
+│   │   ├── deployments-and-services
+│   │   ├── resource-requests-and-limits
+│   │   ├── configmaps-and-secrets
+│   │   ├── startup-readiness-and-liveness-probes
+│   │   ├── termination-grace-period
+│   │   ├── ingress-and-tls
+│   │   ├── horizontal-autoscaling
+│   │   ├── job-and-cronjob-workloads
+│   │   └── disruption-budgets
+│   ├── serverless
+│   │   ├── function-lifecycle
+│   │   ├── cold-starts
+│   │   ├── handler-contracts
+│   │   ├── connection-reuse
+│   │   ├── concurrency-and-pool-limits
+│   │   ├── execution-time-and-memory-limits
+│   │   ├── event-source-retries
+│   │   ├── ephemeral-filesystems
+│   │   └── serverless-observability
+│   ├── deployment-targets
+│   │   ├── virtual-machines
+│   │   ├── managed-application-platforms
+│   │   ├── managed-containers
+│   │   ├── function-platforms
+│   │   ├── edge-node-compatibility
+│   │   ├── cloud-sdk-integration
+│   │   └── target-runtime-validation
+│   ├── production-readiness
+│   │   ├── startup-and-dependency-checks
+│   │   ├── shutdown-and-connection-draining
+│   │   ├── backup-and-restore-drills
+│   │   ├── capacity-and-load-validation
+│   │   ├── dashboards-and-alerts
+│   │   ├── security-baseline
+│   │   ├── operational-ownership
+│   │   └── release-checklists
+│   └── incident-and-maintenance-workflows
+│       ├── incident-triage
+│       ├── rollback-and-mitigation
+│       ├── safe-diagnostic-capture
+│       ├── dependency-and-runtime-updates
+│       ├── certificate-and-secret-rotation
+│       ├── disaster-recovery
+│       ├── postmortems
+│       └── maintenance-windows
+├── advanced-runtime-and-interoperability
+│   ├── worker-threads
+│   │   ├── worker-lifecycle
+│   │   ├── worker-data
+│   │   ├── parent-port-and-message-channels
+│   │   ├── structured-clone-and-transfer-lists
+│   │   ├── shared-arraybuffer
+│   │   ├── atomics-and-synchronization
+│   │   ├── broadcast-channel
+│   │   ├── worker-resource-limits
+│   │   ├── worker-pools
+│   │   ├── worker-failure-and-termination
+│   │   └── async-context-in-worker-pools
+│   ├── child-processes
+│   │   ├── spawn
+│   │   ├── exec
+│   │   ├── execfile
+│   │   ├── fork
+│   │   ├── stdio-and-pipes
+│   │   ├── ipc-messages
+│   │   ├── shell-and-argument-safety
+│   │   ├── process-cancellation
+│   │   ├── signals-and-exit-status
+│   │   └── child-resource-limits
+│   ├── cluster
+│   │   ├── primary-and-worker-processes
+│   │   ├── shared-server-ports
+│   │   ├── connection-distribution
+│   │   ├── ipc-coordination
+│   │   ├── worker-restarts
+│   │   ├── graceful-worker-replacement
+│   │   └── cluster-and-external-orchestrators
+│   ├── module-customization
+│   │   ├── node-module-api
+│   │   ├── resolution-and-load-hooks
+│   │   ├── hook-registration
+│   │   ├── source-transformation
+│   │   ├── module-compile-cache
+│   │   ├── instrumentation-hooks
+│   │   └── compatibility-and-stability-checks
+│   ├── vm-and-execution-contexts
+│   │   ├── scripts-and-contexts
+│   │   ├── code-compilation
+│   │   ├── context-boundaries
+│   │   ├── execution-timeouts
+│   │   ├── asynchronous-escape-risks
+│   │   ├── isolation-limitations
+│   │   └── untrusted-code-process-isolation
+│   ├── native-addons
+│   │   ├── node-api
+│   │   ├── node-addon-api
+│   │   ├── native-build-toolchains
+│   │   ├── node-gyp
+│   │   ├── abi-and-runtime-compatibility
+│   │   ├── native-value-conversion
+│   │   ├── asynchronous-native-work
+│   │   ├── thread-safe-functions
+│   │   ├── native-memory-lifecycle
+│   │   └── prebuilt-binary-distribution
+│   ├── webassembly
+│   │   ├── module-loading-and-instantiation
+│   │   ├── imports-and-exports
+│   │   ├── linear-memory
+│   │   ├── host-function-boundaries
+│   │   ├── wasm-and-worker-threads
+│   │   ├── wasi
+│   │   ├── capability-and-platform-limits
+│   │   └── benchmarking-js-native-and-wasm
+│   ├── executable-and-embedded-runtime
+│   │   ├── single-executable-builds
+│   │   ├── asset-embedding
+│   │   ├── startup-snapshots
+│   │   ├── platform-targeting
+│   │   ├── code-signing
+│   │   ├── embedded-node-runtime
+│   │   └── runtime-lifecycle-ownership
+│   └── cross-runtime-interoperability
+│       ├── web-standard-apis
+│       ├── node-specific-apis
+│       ├── browser-compatible-libraries
+│       ├── edge-runtime-limitations
+│       ├── bun-and-deno-compatibility-testing
+│       ├── native-addon-portability
+│       └── cross-runtime-test-matrices
+├── application-capabilities
+│   ├── file-and-media-services
+│   │   ├── upload-protocols
+│   │   ├── multipart-stream-parsing
+│   │   ├── direct-to-storage-uploads
+│   │   ├── download-authorization
+│   │   ├── image-processing
+│   │   ├── media-transcoding-workers
+│   │   ├── malware-scan-pipelines
+│   │   └── processing-status-and-retries
+│   ├── document-and-data-processing
+│   │   ├── csv-streaming
+│   │   ├── json-and-ndjson
+│   │   ├── xml-parsing
+│   │   ├── spreadsheet-processing
+│   │   ├── pdf-generation
+│   │   ├── template-rendering
+│   │   ├── archive-processing
+│   │   └── bounded-memory-imports
+│   ├── email-and-notifications
+│   │   ├── smtp-and-provider-apis
+│   │   ├── nodemailer
+│   │   ├── email-templates
+│   │   ├── transactional-email
+│   │   ├── bounce-and-delivery-events
+│   │   ├── push-notifications
+│   │   ├── channel-adapters
+│   │   └── deduplication-and-preferences
+│   ├── payment-integration
+│   │   ├── provider-sdk-adapters
+│   │   ├── checkout-and-payment-state
+│   │   ├── webhook-verification
+│   │   ├── idempotency-and-reconciliation
+│   │   ├── refunds-and-compensation
+│   │   ├── secrets-and-sensitive-data-boundaries
+│   │   └── sandbox-integration-tests
+│   ├── localization-and-time
+│   │   ├── message-catalogs
+│   │   ├── locale-resolution
+│   │   ├── pluralization
+│   │   ├── number-and-date-formatting
+│   │   ├── time-zone-conversion
+│   │   ├── utc-storage-and-local-display
+│   │   └── translation-fallbacks
+│   ├── external-service-integration
+│   │   ├── provider-contract-adapters
+│   │   ├── credentials-and-scopes
+│   │   ├── quotas-and-rate-limits
+│   │   ├── pagination-and-checkpointing
+│   │   ├── synchronization-and-reconciliation
+│   │   ├── provider-outage-handling
+│   │   └── audit-and-redaction
+│   └── ai-service-integration
+│       ├── provider-independent-adapters
+│       ├── streaming-responses
+│       ├── structured-output-validation
+│       ├── tool-execution-boundaries
+│       ├── prompt-injection-defenses
+│       ├── cancellation-and-timeouts
+│       ├── concurrency-and-cost-budgets
+│       └── evaluation-and-observability
+└── practice-projects
+    ├── runtime-and-event-loop-lab
+    │   ├── callback-order-experiments
+    │   ├── commonjs-and-esm-comparison
+    │   ├── blocking-io-demonstration
+    │   ├── microtask-starvation
+    │   ├── cancellation-cases
+    │   ├── event-loop-metrics
+    │   └── reproducible-tests
+    ├── command-line-file-tool
+    │   ├── command-and-option-design
+    │   ├── safe-file-operations
+    │   ├── streaming-transformations
+    │   ├── dry-run-and-confirmation
+    │   ├── exit-codes-and-signals
+    │   ├── cross-platform-tests
+    │   └── package-distribution
+    ├── stream-processing-pipeline
+    │   ├── csv-and-ndjson-input
+    │   ├── transform-stages
+    │   ├── bounded-memory-processing
+    │   ├── slow-consumer-backpressure
+    │   ├── partial-failure-policy
+    │   ├── cancellation-and-cleanup
+    │   └── throughput-and-memory-report
+    ├── native-http-api
+    │   ├── routing
+    │   ├── request-validation
+    │   ├── response-streaming
+    │   ├── consistent-errors
+    │   ├── timeouts-and-aborts
+    │   ├── graceful-shutdown
+    │   └── native-test-runner
+    ├── express-rest-service
+    │   ├── modular-routing
+    │   ├── middleware
+    │   ├── database-repositories
+    │   ├── authentication-and-authorization
+    │   ├── openapi-contract
+    │   ├── integration-tests
+    │   └── production-container
+    ├── fastify-schema-first-api
+    │   ├── route-schemas
+    │   ├── serialization
+    │   ├── plugin-boundaries
+    │   ├── typed-request-contracts
+    │   ├── structured-logging
+    │   ├── injection-tests
+    │   └── load-test-comparison
+    ├── nestjs-modular-application
+    │   ├── domain-modules
+    │   ├── providers-and-injection
+    │   ├── request-pipeline
+    │   ├── database-migrations
+    │   ├── background-jobs
+    │   ├── module-and-end-to-end-tests
+    │   └── operational-health
+    ├── authentication-service
+    │   ├── identity-model
+    │   ├── password-and-session-flows
+    │   ├── oauth-provider-integration
+    │   ├── authorization-policies
+    │   ├── token-and-session-revocation
+    │   ├── abuse-protection
+    │   └── security-regression-tests
+    ├── realtime-collaboration-service
+    │   ├── websocket-or-socketio-transport
+    │   ├── room-and-presence-model
+    │   ├── connection-authorization
+    │   ├── event-order-and-recovery
+    │   ├── distributed-fanout
+    │   ├── backpressure
+    │   └── reconnection-tests
+    ├── background-processing-service
+    │   ├── queue-contracts
+    │   ├── worker-pool
+    │   ├── retry-and-dead-letter-policy
+    │   ├── idempotent-processing
+    │   ├── progress-and-cancellation
+    │   ├── graceful-worker-stop
+    │   └── queue-observability
+    ├── worker-thread-compute-service
+    │   ├── cpu-workload-baseline
+    │   ├── bounded-worker-pool
+    │   ├── message-and-transfer-design
+    │   ├── resource-limits
+    │   ├── timeout-and-cancellation
+    │   ├── failure-recovery
+    │   └── parallelism-benchmark
+    ├── package-and-sdk-library
+    │   ├── public-api
+    │   ├── esm-and-commonjs-compatibility
+    │   ├── type-declarations
+    │   ├── runtime-validation
+    │   ├── consumer-fixture-tests
+    │   ├── packaging-and-provenance
+    │   └── release-workflow
+    ├── multitenant-saas-backend
+    │   ├── tenant-resolution
+    │   ├── tenant-owned-data
+    │   ├── authorization
+    │   ├── quotas-and-rate-limits
+    │   ├── background-job-isolation
+    │   ├── audit-events
+    │   └── tenant-isolation-tests
+    ├── ecommerce-event-driven-system
+    │   ├── catalog-and-inventory
+    │   ├── order-and-payment-workflows
+    │   ├── transactional-outbox
+    │   ├── broker-and-consumers
+    │   ├── idempotency-and-compensation
+    │   ├── distributed-tracing
+    │   └── failure-scenario-tests
+    ├── graphql-and-rpc-gateway
+    │   ├── graphql-schema
+    │   ├── resolver-and-dataloader
+    │   ├── grpc-service-integration
+    │   ├── authentication-context
+    │   ├── query-complexity-limits
+    │   ├── contract-tests
+    │   └── gateway-observability
+    ├── production-diagnostics-lab
+    │   ├── memory-leak-reproduction
+    │   ├── event-loop-blocking
+    │   ├── connection-pool-exhaustion
+    │   ├── cpu-and-heap-profiling
+    │   ├── evidence-based-fixes
+    │   ├── regression-tests
+    │   └── incident-runbook
+    ├── serverless-api-and-event-worker
+    │   ├── handler-and-trigger-design
+    │   ├── shared-domain-logic
+    │   ├── database-connection-policy
+    │   ├── event-idempotency
+    │   ├── cold-start-measurement
+    │   ├── runtime-compatibility
+    │   └── deployment-and-monitoring
+    └── end-to-end-nodejs-capstone
+        ├── requirements-and-architecture
+        ├── module-and-api-contracts
+        ├── persistence-and-migrations
+        ├── security-and-threat-model
+        ├── asynchronous-jobs-and-realtime
+        ├── automated-tests
+        ├── telemetry-and-load-validation
+        ├── ci-cd-and-deployment
+        └── recovery-drills-and-retrospective

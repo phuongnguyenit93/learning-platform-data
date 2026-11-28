@@ -1,0 +1,2249 @@
+module
+├── foundation
+│   ├── typescript-overview
+│   │   ├── javascript-and-typescript
+│   │   ├── language-and-toolchain
+│   │   ├── use-cases-and-tradeoffs
+│   │   ├── application-and-library-development
+│   │   ├── gradual-adoption
+│   │   └── learning-path
+│   ├── mental-model
+│   │   ├── values-and-types
+│   │   ├── compile-time-and-runtime
+│   │   ├── static-analysis-and-execution
+│   │   ├── type-erasure
+│   │   ├── types-as-contracts
+│   │   ├── runtime-validation-boundary
+│   │   └── soundness-and-pragmatism
+│   ├── environment-setup
+│   │   ├── local-compiler-installation
+│   │   ├── compiler-version-pinning
+│   │   ├── editor-integration
+│   │   ├── workspace-typescript-version
+│   │   ├── first-typescript-file
+│   │   ├── first-type-check
+│   │   └── first-javascript-output
+│   ├── project-workflow
+│   │   ├── package-initialization
+│   │   ├── source-and-output-layout
+│   │   ├── package-scripts
+│   │   ├── development-watch
+│   │   ├── build-and-typecheck-separation
+│   │   ├── diagnostic-feedback-loop
+│   │   └── reproducible-installation
+│   ├── documentation-and-exploration
+│   │   ├── handbook-navigation
+│   │   ├── playground-experiments
+│   │   ├── inferred-type-inspection
+│   │   ├── javascript-emit-inspection
+│   │   ├── compiler-option-experiments
+│   │   ├── minimal-reproductions
+│   │   └── release-note-reading
+│   ├── cross-language-orientation
+│   │   ├── structural-and-nominal-typing
+│   │   ├── interfaces-without-runtime-objects
+│   │   ├── generics-without-reification
+│   │   ├── classes-and-prototypes
+│   │   ├── nullability-and-optionality
+│   │   ├── checked-exception-absence
+│   │   └── java-to-typescript-design-shifts
+│   └── compatibility-planning
+│       ├── compiler-version
+│       ├── runtime-version
+│       ├── ecmascript-target
+│       ├── library-type-definitions
+│       ├── framework-compatibility
+│       ├── declaration-consumer-compatibility
+│       └── stable-and-preview-evaluation
+├── javascript-prerequisites
+│   ├── values-and-bindings
+│   │   ├── primitive-and-reference-values
+│   │   ├── let-and-const
+│   │   ├── lexical-scope-and-closures
+│   │   ├── hoisting-and-temporal-dead-zone
+│   │   ├── equality-and-coercion
+│   │   ├── null-and-undefined
+│   │   └── mutation-and-aliasing
+│   ├── functions-and-calls
+│   │   ├── declarations-and-expressions
+│   │   ├── arrow-functions
+│   │   ├── parameters-and-arguments
+│   │   ├── higher-order-functions
+│   │   ├── this-and-binding
+│   │   ├── closures-and-captured-state
+│   │   └── callback-execution
+│   ├── objects-and-prototypes
+│   │   ├── property-access
+│   │   ├── own-and-inherited-properties
+│   │   ├── property-descriptors
+│   │   ├── prototypes-and-constructor-functions
+│   │   ├── object-spread-and-rest
+│   │   ├── computed-properties
+│   │   └── enumeration-order
+│   ├── collections-and-iteration
+│   │   ├── arrays-and-array-methods
+│   │   ├── destructuring
+│   │   ├── iterables-and-iterators
+│   │   ├── generators
+│   │   ├── maps-and-sets
+│   │   ├── weak-collections
+│   │   └── object-keys-values-and-entries
+│   ├── control-flow-and-errors
+│   │   ├── conditionals-and-switch
+│   │   ├── loops-and-early-returns
+│   │   ├── exceptions-and-finally
+│   │   ├── optional-chaining
+│   │   ├── nullish-coalescing
+│   │   ├── truthiness-and-falsy-values
+│   │   └── error-causes
+│   ├── asynchronous-basics
+│   │   ├── promises
+│   │   ├── async-and-await
+│   │   ├── event-loop-overview
+│   │   ├── microtasks
+│   │   ├── callback-to-promise-conversion
+│   │   ├── cancellation-signals
+│   │   └── async-error-propagation
+│   └── modern-javascript-features
+│       ├── classes-and-private-fields
+│       ├── static-initialization
+│       ├── symbols-and-well-known-symbols
+│       ├── bigint
+│       ├── dynamic-import
+│       ├── top-level-await
+│       └── runtime-feature-detection
+├── type-system-foundations
+│   ├── type-spaces
+│   │   ├── value-space
+│   │   ├── type-space
+│   │   ├── namespace-space
+│   │   ├── dual-space-declarations
+│   │   ├── typeof-at-runtime-and-in-types
+│   │   └── erased-and-emitted-constructs
+│   ├── annotations-and-inference
+│   │   ├── variable-annotations
+│   │   ├── parameter-annotations
+│   │   ├── return-annotations
+│   │   ├── contextual-typing
+│   │   ├── inference-from-initializers
+│   │   ├── annotation-placement
+│   │   └── explicit-boundaries
+│   ├── structural-typing
+│   │   ├── shape-based-compatibility
+│   │   ├── member-comparison
+│   │   ├── width-and-depth-compatibility
+│   │   ├── nominal-typing-contrast
+│   │   ├── class-private-member-identity
+│   │   ├── branding-techniques
+│   │   └── structural-contract-design
+│   ├── assignability
+│   │   ├── assignment-and-subtyping
+│   │   ├── compatibility-directions
+│   │   ├── source-and-target-types
+│   │   ├── excess-property-checking
+│   │   ├── freshness-and-intermediate-variables
+│   │   ├── weak-type-detection
+│   │   └── recursive-compatibility
+│   ├── special-types
+│   │   ├── any
+│   │   ├── unknown
+│   │   ├── never
+│   │   ├── void
+│   │   ├── object
+│   │   ├── empty-object-type
+│   │   └── null-and-undefined
+│   ├── special-type-interactions
+│   │   ├── any-propagation
+│   │   ├── unknown-narrowing
+│   │   ├── never-in-unions
+│   │   ├── never-in-intersections
+│   │   ├── void-return-compatibility
+│   │   ├── object-versus-empty-object
+│   │   └── unsafe-top-type-escapes
+│   ├── union-and-intersection-algebra
+│   │   ├── union-members
+│   │   ├── common-union-operations
+│   │   ├── intersection-requirements
+│   │   ├── incompatible-intersections
+│   │   ├── assignability-of-unions
+│   │   ├── distributive-behavior
+│   │   └── type-simplification-limits
+│   ├── literal-widening
+│   │   ├── let-and-const-inference
+│   │   ├── fresh-literal-types
+│   │   ├── property-widening
+│   │   ├── array-widening
+│   │   ├── widening-through-assignment
+│   │   ├── const-assertions
+│   │   └── contextual-literal-preservation
+│   ├── variance-and-mutability
+│   │   ├── covariance
+│   │   ├── contravariance
+│   │   ├── invariance
+│   │   ├── bivariance
+│   │   ├── mutable-array-compatibility
+│   │   ├── readonly-views
+│   │   └── function-property-and-method-differences
+│   └── soundness-boundaries
+│       ├── unchecked-array-access
+│       ├── inaccurate-declarations
+│       ├── assertion-unsoundness
+│       ├── refinement-invalidation
+│       ├── callback-variance
+│       ├── runtime-mutation
+│       └── type-system-design-tradeoffs
+├── everyday-types-and-data-structures
+│   ├── primitive-types
+│   │   ├── string
+│   │   ├── number
+│   │   ├── boolean
+│   │   ├── bigint
+│   │   ├── symbol
+│   │   ├── null
+│   │   ├── undefined
+│   │   └── primitive-versus-wrapper-types
+│   ├── literal-and-unique-types
+│   │   ├── string-literals
+│   │   ├── number-literals
+│   │   ├── boolean-literals
+│   │   ├── bigint-literals
+│   │   ├── unique-symbol
+│   │   ├── literal-unions
+│   │   └── literal-preservation
+│   ├── arrays
+│   │   ├── array-syntax
+│   │   ├── generic-array-syntax
+│   │   ├── readonly-arrays
+│   │   ├── nested-arrays
+│   │   ├── array-of-unions
+│   │   ├── union-of-arrays
+│   │   ├── indexed-access-safety
+│   │   └── empty-array-inference
+│   ├── tuples
+│   │   ├── fixed-length-tuples
+│   │   ├── optional-elements
+│   │   ├── rest-elements
+│   │   ├── labeled-elements
+│   │   ├── readonly-tuples
+│   │   ├── variadic-tuples
+│   │   ├── tuple-and-array-compatibility
+│   │   └── bounds-and-destructuring
+│   ├── object-shapes
+│   │   ├── required-properties
+│   │   ├── optional-properties
+│   │   ├── readonly-properties
+│   │   ├── nested-object-types
+│   │   ├── computed-property-names
+│   │   ├── property-access
+│   │   └── union-valued-properties
+│   ├── collections
+│   │   ├── map-and-readonly-map
+│   │   ├── set-and-readonly-set
+│   │   ├── weak-map-and-weak-set
+│   │   ├── record-and-dictionary-types
+│   │   ├── key-domain-modeling
+│   │   ├── missing-entry-handling
+│   │   └── collection-variance
+│   ├── index-signatures
+│   │   ├── string-index-signatures
+│   │   ├── number-index-signatures
+│   │   ├── symbol-index-signatures
+│   │   ├── template-pattern-index-signatures
+│   │   ├── explicit-property-compatibility
+│   │   ├── readonly-index-signatures
+│   │   └── index-signature-and-mapped-type-differences
+│   ├── unions-and-intersections
+│   │   ├── primitive-unions
+│   │   ├── object-unions
+│   │   ├── nullable-unions
+│   │   ├── discriminated-unions
+│   │   ├── intersection-composition
+│   │   ├── incompatible-property-intersections
+│   │   └── union-and-intersection-precedence
+│   ├── enums-and-alternatives
+│   │   ├── numeric-enums
+│   │   ├── string-enums
+│   │   ├── computed-members
+│   │   ├── reverse-mapping
+│   │   ├── const-enums
+│   │   ├── ambient-enum-pitfalls
+│   │   ├── const-object-alternatives
+│   │   ├── literal-union-alternatives
+│   │   └── emitted-runtime-behavior
+│   ├── built-in-object-types
+│   │   ├── date
+│   │   ├── regexp
+│   │   ├── error
+│   │   ├── promise
+│   │   ├── array-buffer
+│   │   ├── typed-arrays
+│   │   ├── data-view
+│   │   └── runtime-library-availability
+│   ├── modern-standard-library-types
+│   │   ├── temporal-types-and-runtime-support
+│   │   ├── map-and-weakmap-upsert-types
+│   │   ├── regexp-escape-types
+│   │   ├── iterator-helper-types
+│   │   ├── set-operation-types
+│   │   ├── array-copying-method-types
+│   │   └── typed-array-buffer-parameters
+│   └── optional-and-readonly-semantics
+│       ├── missing-versus-undefined
+│       ├── exact-optional-properties
+│       ├── optional-parameters-and-properties
+│       ├── readonly-versus-const
+│       ├── shallow-readonly
+│       ├── runtime-freezing
+│       └── alias-mutation
+├── functions-and-call-signatures
+│   ├── function-types
+│   │   ├── function-type-expressions
+│   │   ├── call-signatures
+│   │   ├── callable-object-types
+│   │   ├── constructor-signatures
+│   │   ├── method-signatures
+│   │   ├── contextual-function-typing
+│   │   └── named-function-contracts
+│   ├── parameters
+│   │   ├── required-parameters
+│   │   ├── optional-parameters
+│   │   ├── default-initializers
+│   │   ├── rest-parameters
+│   │   ├── destructured-parameters
+│   │   ├── parameter-properties-boundary
+│   │   └── parameter-ordering
+│   ├── return-types
+│   │   ├── inferred-returns
+│   │   ├── explicit-returns
+│   │   ├── void-returns
+│   │   ├── never-returns
+│   │   ├── promise-returns
+│   │   ├── conditional-returns
+│   │   └── public-return-contracts
+│   ├── function-overloads
+│   │   ├── overload-signatures
+│   │   ├── implementation-signature
+│   │   ├── overload-resolution
+│   │   ├── overload-visibility
+│   │   ├── generic-overloads
+│   │   ├── union-parameter-alternatives
+│   │   └── overload-maintainability
+│   ├── callbacks-and-higher-order-functions
+│   │   ├── callback-contracts
+│   │   ├── callback-parameter-inference
+│   │   ├── optional-callback-parameter-pitfalls
+│   │   ├── callback-return-discarding
+│   │   ├── synchronous-and-asynchronous-callbacks
+│   │   ├── function-composition
+│   │   └── typed-pipelines
+│   ├── this-typing
+│   │   ├── explicit-this-parameters
+│   │   ├── this-in-object-methods
+│   │   ├── this-in-arrow-functions
+│   │   ├── this-in-callbacks
+│   │   ├── polymorphic-this
+│   │   ├── this-type-utility
+│   │   └── call-apply-and-bind
+│   ├── function-compatibility
+│   │   ├── parameter-count-compatibility
+│   │   ├── optional-and-rest-compatibility
+│   │   ├── contravariant-parameters
+│   │   ├── covariant-returns
+│   │   ├── strict-function-types
+│   │   ├── method-bivariance
+│   │   └── overload-compatibility
+│   ├── variadic-functions
+│   │   ├── tuple-rest-parameters
+│   │   ├── tuple-spread-arguments
+│   │   ├── preserving-argument-lists
+│   │   ├── forwarding-functions
+│   │   ├── partial-application
+│   │   ├── currying
+│   │   └── variadic-composition
+│   ├── callable-and-constructable-apis
+│   │   ├── hybrid-call-construct-signatures
+│   │   ├── constructor-factories
+│   │   ├── abstract-construct-signatures
+│   │   ├── callable-properties
+│   │   ├── function-object-metadata
+│   │   └── class-static-side-contracts
+│   └── function-design
+│       ├── inference-friendly-signatures
+│       ├── avoiding-unnecessary-type-parameters
+│       ├── overload-versus-generic-choice
+│       ├── options-object-pattern
+│       ├── explicit-error-contracts
+│       ├── stable-public-signatures
+│       └── implementation-and-public-type-separation
+├── objects-interfaces-and-type-aliases
+│   ├── interfaces
+│   │   ├── interface-declarations
+│   │   ├── extending-interfaces
+│   │   ├── multiple-interface-inheritance
+│   │   ├── optional-and-readonly-members
+│   │   ├── callable-interfaces
+│   │   ├── constructable-interfaces
+│   │   └── recursive-interfaces
+│   ├── aliases
+│   │   ├── object-type-aliases
+│   │   ├── union-type-aliases
+│   │   ├── intersection-type-aliases
+│   │   ├── primitive-aliases
+│   │   ├── tuple-aliases
+│   │   ├── recursive-aliases
+│   │   └── alias-display-and-diagnostics
+│   ├── interface-and-alias-selection
+│   │   ├── reopenable-versus-closed-declarations
+│   │   ├── extension-versus-intersection
+│   │   ├── conflicting-property-behavior
+│   │   ├── public-extension-points
+│   │   ├── declaration-merging-needs
+│   │   ├── diagnostic-readability
+│   │   └── typecheck-performance
+│   ├── object-composition
+│   │   ├── nested-composition
+│   │   ├── intersection-composition
+│   │   ├── spread-result-inference
+│   │   ├── rest-property-inference
+│   │   ├── mixin-shaped-contracts
+│   │   ├── conflicting-members
+│   │   └── reusable-fragments
+│   ├── property-modeling
+│   │   ├── optional-property-design
+│   │   ├── readonly-property-design
+│   │   ├── getters-and-setters
+│   │   ├── asymmetric-accessor-types
+│   │   ├── computed-symbol-properties
+│   │   ├── indexable-objects
+│   │   └── exactness-limitations
+│   ├── object-literal-checking
+│   │   ├── excess-property-checks
+│   │   ├── contextual-object-typing
+│   │   ├── fresh-and-stale-object-literals
+│   │   ├── satisfies-operator
+│   │   ├── annotation-versus-satisfies
+│   │   ├── assertion-versus-satisfies
+│   │   └── nested-object-validation
+│   ├── object-transformation-patterns
+│   │   ├── keyed-accessors
+│   │   ├── property-pickers
+│   │   ├── property-updaters
+│   │   ├── immutable-updates
+│   │   ├── typed-object-entries
+│   │   ├── object-from-entries-boundaries
+│   │   └── dictionary-to-record-conversion
+│   ├── recursive-data-models
+│   │   ├── trees
+│   │   ├── linked-lists
+│   │   ├── recursive-json-types
+│   │   ├── graph-identifiers
+│   │   ├── cyclic-runtime-structures
+│   │   ├── recursive-readonly-views
+│   │   └── depth-bounded-modeling
+│   └── contract-evolution
+│       ├── additive-properties
+│       ├── optional-to-required-transitions
+│       ├── readonly-transitions
+│       ├── discriminant-evolution
+│       ├── public-and-internal-shapes
+│       ├── backward-compatible-options
+│       └── consumer-extension-contracts
+├── classes-and-object-oriented-design
+│   ├── class-fundamentals
+│   │   ├── fields
+│   │   ├── constructors
+│   │   ├── methods
+│   │   ├── accessors
+│   │   ├── static-members
+│   │   ├── class-expressions
+│   │   └── instance-and-static-types
+│   ├── initialization
+│   │   ├── strict-property-initialization
+│   │   ├── constructor-assignment
+│   │   ├── definite-assignment-assertions
+│   │   ├── field-initialization-order
+│   │   ├── derived-constructor-order
+│   │   ├── use-define-for-class-fields
+│   │   └── declare-fields
+│   ├── encapsulation
+│   │   ├── public-protected-and-private
+│   │   ├── javascript-private-fields
+│   │   ├── compile-time-and-runtime-privacy
+│   │   ├── readonly-fields
+│   │   ├── private-constructors
+│   │   ├── protected-constructors
+│   │   └── access-control-limitations
+│   ├── inheritance-and-polymorphism
+│   │   ├── extends
+│   │   ├── super-calls
+│   │   ├── overriding
+│   │   ├── no-implicit-override
+│   │   ├── abstract-classes
+│   │   ├── abstract-members
+│   │   ├── polymorphic-this
+│   │   └── inheritance-versus-composition
+│   ├── class-contracts
+│   │   ├── implements-clauses
+│   │   ├── multiple-interfaces
+│   │   ├── implementation-checking-limitations
+│   │   ├── constructor-interface-pattern
+│   │   ├── instance-type-extraction
+│   │   ├── constructor-parameter-extraction
+│   │   └── structural-class-compatibility
+│   ├── generic-classes
+│   │   ├── generic-instance-state
+│   │   ├── generic-constructors
+│   │   ├── static-member-type-parameter-limits
+│   │   ├── constrained-class-parameters
+│   │   ├── generic-base-classes
+│   │   └── class-factory-inference
+│   ├── composition-patterns
+│   │   ├── dependency-injection
+│   │   ├── factory-functions
+│   │   ├── strategy-objects
+│   │   ├── adapters
+│   │   ├── decorators-as-wrappers
+│   │   ├── object-capabilities
+│   │   └── service-boundaries
+│   ├── mixins
+│   │   ├── constructor-constraints
+│   │   ├── class-expression-mixins
+│   │   ├── intersection-instance-types
+│   │   ├── mixin-requirements
+│   │   ├── private-member-limitations
+│   │   ├── mixin-ordering
+│   │   └── type-assertion-boundaries
+│   └── runtime-and-emit
+│       ├── parameter-properties
+│       ├── enum-and-namespace-interactions
+│       ├── class-field-emit
+│       ├── static-blocks
+│       ├── downlevel-private-fields
+│       ├── runtime-identity-checks
+│       └── prototype-method-behavior
+├── narrowing-and-control-flow
+│   ├── control-flow-analysis
+│   │   ├── declared-and-observed-types
+│   │   ├── assignment-narrowing
+│   │   ├── branch-merging
+│   │   ├── reachability
+│   │   ├── early-return-analysis
+│   │   ├── loop-analysis
+│   │   └── control-flow-boundaries
+│   ├── built-in-guards
+│   │   ├── typeof-guards
+│   │   ├── instanceof-guards
+│   │   ├── in-operator
+│   │   ├── array-is-array
+│   │   ├── equality-checks
+│   │   ├── discriminant-checks
+│   │   └── nullish-checks
+│   ├── truthiness-and-optionality
+│   │   ├── truthy-and-falsy-branches
+│   │   ├── empty-string-and-zero-pitfalls
+│   │   ├── optional-chaining-narrowing
+│   │   ├── nullish-coalescing-behavior
+│   │   ├── explicit-null-checks
+│   │   └── optional-property-existence
+│   ├── union-refinement
+│   │   ├── discriminated-object-unions
+│   │   ├── multi-field-discriminants
+│   │   ├── boolean-discriminants
+│   │   ├── destructured-discriminated-unions
+│   │   ├── aliased-conditions
+│   │   ├── union-array-methods
+│   │   └── correlated-union-limitations
+│   ├── user-defined-guards
+│   │   ├── type-predicates
+│   │   ├── predicate-implementation-correctness
+│   │   ├── generic-type-guards
+│   │   ├── inferred-type-predicates
+│   │   ├── filter-predicates
+│   │   ├── this-based-type-guards
+│   │   └── false-branch-correctness
+│   ├── assertion-functions
+│   │   ├── asserts-condition
+│   │   ├── asserts-parameter-type
+│   │   ├── assertion-function-declarations
+│   │   ├── invariant-checks
+│   │   ├── validation-before-assertion
+│   │   ├── throwing-versus-narrowing
+│   │   └── assertion-function-limits
+│   ├── exhaustiveness
+│   │   ├── never-as-unreachable
+│   │   ├── exhaustive-switch
+│   │   ├── exhaustive-handler-maps
+│   │   ├── assert-never-pattern
+│   │   ├── return-path-completeness
+│   │   ├── new-variant-regressions
+│   │   └── compiler-and-linter-checks
+│   ├── closures-and-mutation
+│   │   ├── captured-variable-narrowing
+│   │   ├── last-assignment-analysis
+│   │   ├── callback-boundaries
+│   │   ├── property-mutation
+│   │   ├── invalidation-through-aliasing
+│   │   ├── temporal-assumptions
+│   │   └── readonly-capture-patterns
+│   ├── collections-and-indexing
+│   │   ├── indexed-access-narrowing
+│   │   ├── no-unchecked-indexed-access
+│   │   ├── key-existence-checks
+│   │   ├── map-lookup-narrowing
+│   │   ├── tuple-index-bounds
+│   │   ├── has-own-property-boundaries
+│   │   └── checked-access-helpers
+│   ├── error-narrowing
+│   │   ├── unknown-catch-variables
+│   │   ├── error-instance-checks
+│   │   ├── structural-error-checks
+│   │   ├── error-code-discriminants
+│   │   ├── non-error-throws
+│   │   ├── aggregate-errors
+│   │   └── safe-error-normalization
+│   └── narrowing-debugging
+│       ├── inspect-type-at-location
+│       ├── minimal-control-flow-reproduction
+│       ├── unexpected-never
+│       ├── lost-discriminants
+│       ├── annotation-induced-widening
+│       ├── unsafe-custom-guards
+│       └── assertion-free-refactoring
+├── generics-and-inference
+│   ├── generic-fundamentals
+│   │   ├── type-parameters
+│   │   ├── type-arguments
+│   │   ├── generic-functions
+│   │   ├── generic-interfaces
+│   │   ├── generic-aliases
+│   │   ├── generic-classes
+│   │   └── preserving-type-relationships
+│   ├── constraints
+│   │   ├── extends-constraints
+│   │   ├── structural-constraints
+│   │   ├── keyof-constraints
+│   │   ├── dependent-constraints
+│   │   ├── callable-constraints
+│   │   ├── constructor-constraints
+│   │   └── constraint-versus-concrete-type
+│   ├── inference-sources
+│   │   ├── argument-inference
+│   │   ├── contextual-return-inference
+│   │   ├── callback-inference
+│   │   ├── property-inference
+│   │   ├── tuple-inference
+│   │   ├── rest-argument-inference
+│   │   └── inference-candidates
+│   ├── inference-control
+│   │   ├── explicit-type-arguments
+│   │   ├── generic-parameter-defaults
+│   │   ├── const-type-parameters
+│   │   ├── no-infer-utility
+│   │   ├── inference-site-selection
+│   │   ├── constraint-widening
+│   │   └── partial-inference-workarounds
+│   ├── literal-and-tuple-inference
+│   │   ├── const-generic-inputs
+│   │   ├── readonly-constraint-selection
+│   │   ├── tuple-builder-functions
+│   │   ├── variadic-tuple-inference
+│   │   ├── object-literal-preservation
+│   │   ├── satisfies-with-generics
+│   │   └── mutable-result-tradeoffs
+│   ├── generic-function-design
+│   │   ├── input-output-relationships
+│   │   ├── type-parameter-count
+│   │   ├── callback-placement
+│   │   ├── optional-parameter-inference
+│   │   ├── inference-preserving-wrappers
+│   │   ├── overload-and-generic-interactions
+│   │   └── avoiding-return-only-generics
+│   ├── higher-order-generics
+│   │   ├── generic-function-values
+│   │   ├── generic-callbacks
+│   │   ├── factory-returned-generics
+│   │   ├── composed-function-inference
+│   │   ├── instantiation-expressions
+│   │   ├── generic-constructor-values
+│   │   └── generic-methods
+│   ├── variance
+│   │   ├── input-positions
+│   │   ├── output-positions
+│   │   ├── mixed-positions
+│   │   ├── emergent-variance
+│   │   ├── variance-annotations
+│   │   ├── instantiation-and-structural-comparisons
+│   │   └── annotation-limitations
+│   ├── constraints-and-implementation
+│   │   ├── constrained-value-construction
+│   │   ├── subtype-instantiation-errors
+│   │   ├── generic-branch-narrowing
+│   │   ├── generic-index-write-safety
+│   │   ├── correlated-generic-members
+│   │   ├── overload-implementation-boundaries
+│   │   └── runtime-constructor-requirements
+│   ├── inference-edge-cases
+│   │   ├── best-common-type
+│   │   ├── empty-array-context
+│   │   ├── object-property-order
+│   │   ├── contextual-feedback
+│   │   ├── union-inference
+│   │   ├── intersection-inference
+│   │   └── default-parameter-inference
+│   └── reusable-generic-patterns
+│       ├── repositories
+│       ├── caches
+│       ├── event-maps
+│       ├── result-containers
+│       ├── paginated-responses
+│       ├── typed-factories
+│       └── constrained-builders
+├── type-operators-and-transformations
+│   ├── type-queries
+│   │   ├── typeof-type-query
+│   │   ├── keyof-operator
+│   │   ├── indexed-access-type
+│   │   ├── type-import-query
+│   │   ├── constructor-instance-extraction
+│   │   ├── array-element-extraction
+│   │   └── tuple-element-extraction
+│   ├── keyof-and-indexed-access
+│   │   ├── string-number-and-symbol-keys
+│   │   ├── keyof-unions
+│   │   ├── keyof-intersections
+│   │   ├── index-signature-key-domains
+│   │   ├── optional-property-lookups
+│   │   ├── nested-indexed-access
+│   │   └── generic-key-access
+│   ├── mapped-types
+│   │   ├── fundamentals
+│   │   │   ├── mapped-type-parameters
+│   │   │   ├── mapping-over-key-unions
+│   │   │   ├── property-value-transformations
+│   │   │   ├── readonly-modifiers
+│   │   │   ├── optional-modifiers
+│   │   │   ├── modifier-removal
+│   │   │   └── homomorphic-mapping
+│   │   ├── key-remapping
+│   │   │   ├── as-clauses
+│   │   │   ├── template-generated-keys
+│   │   │   ├── key-filtering
+│   │   │   ├── symbol-key-preservation
+│   │   │   ├── duplicate-remapped-keys
+│   │   │   └── event-to-handler-maps
+│   │   └── collection-behavior
+│   │       ├── tuple-mapping
+│   │       ├── array-mapping
+│   │       ├── readonly-preservation
+│   │       ├── optional-preservation
+│   │       ├── generic-record-mapping
+│   │       └── object-union-mapping
+│   ├── conditional-types
+│   │   ├── fundamentals
+│   │   │   ├── extends-conditions
+│   │   │   ├── true-and-false-branches
+│   │   │   ├── constraint-extraction
+│   │   │   ├── nested-conditionals
+│   │   │   ├── deferred-conditional-types
+│   │   │   └── assignability-based-branching
+│   │   ├── inference
+│   │   │   ├── infer-in-patterns
+│   │   │   ├── inferring-function-parameters
+│   │   │   ├── inferring-return-types
+│   │   │   ├── inferring-constructor-arguments
+│   │   │   ├── inferring-tuple-segments
+│   │   │   ├── constrained-infer
+│   │   │   └── overload-inference-limits
+│   │   └── distribution
+│   │       ├── naked-type-parameters
+│   │       ├── union-member-distribution
+│   │       ├── tuple-wrapped-nondistribution
+│   │       ├── never-distribution
+│   │       ├── any-branch-behavior
+│   │       ├── union-filtering
+│   │       └── distribution-costs
+│   ├── template-literal-types
+│   │   ├── literal-concatenation
+│   │   ├── union-cross-products
+│   │   ├── string-pattern-matching
+│   │   ├── inferred-string-segments
+│   │   ├── numeric-string-patterns
+│   │   ├── key-remapping-composition
+│   │   └── string-expansion-limits
+│   ├── intrinsic-string-utilities
+│   │   ├── uppercase
+│   │   ├── lowercase
+│   │   ├── capitalize
+│   │   ├── uncapitalize
+│   │   ├── casing-and-unicode-limitations
+│   │   └── intrinsic-versus-user-defined-utilities
+│   └── built-in-utilities
+│       ├── object-utilities
+│       │   ├── partial
+│       │   ├── required
+│       │   ├── readonly
+│       │   ├── pick
+│       │   ├── omit
+│       │   └── record
+│       ├── union-utilities
+│       │   ├── exclude
+│       │   ├── extract
+│       │   └── non-nullable
+│       ├── function-utilities
+│       │   ├── parameters
+│       │   ├── return-type
+│       │   ├── constructor-parameters
+│       │   ├── instance-type
+│       │   ├── this-parameter-type
+│       │   ├── omit-this-parameter
+│       │   └── this-type
+│       └── inference-and-async-utilities
+│           ├── awaited
+│           ├── no-infer
+│           ├── promise-like-unwrapping
+│           └── inference-blocking-design
+├── advanced-type-programming
+│   ├── recursive-transformations
+│   │   ├── recursive-conditional-types
+│   │   ├── deep-readonly
+│   │   ├── deep-partial
+│   │   ├── deep-required
+│   │   ├── deep-non-nullable
+│   │   ├── special-object-handling
+│   │   └── recursion-base-cases
+│   ├── union-processing
+│   │   ├── union-filtering
+│   │   ├── union-mapping
+│   │   ├── union-to-intersection
+│   │   ├── discriminated-union-extraction
+│   │   ├── member-correlation
+│   │   ├── union-order-instability
+│   │   └── avoiding-union-to-tuple-contracts
+│   ├── tuple-programming
+│   │   ├── head-and-tail
+│   │   ├── prepend-and-append
+│   │   ├── concat-and-zip
+│   │   ├── reverse-and-flatten
+│   │   ├── optional-and-rest-segments
+│   │   ├── labeled-tuple-preservation
+│   │   └── bounded-tuple-arithmetic
+│   ├── string-type-programming
+│   │   ├── delimiter-splitting
+│   │   ├── string-joining
+│   │   ├── prefix-and-suffix-matching
+│   │   ├── route-parameter-extraction
+│   │   ├── naming-convention-transforms
+│   │   ├── path-segment-parsing
+│   │   └── finite-pattern-modeling
+│   ├── object-type-programming
+│   │   ├── keys-by-value-type
+│   │   ├── required-and-optional-keys
+│   │   ├── readonly-and-mutable-keys
+│   │   ├── property-replacement
+│   │   ├── exclusive-property-unions
+│   │   ├── nested-key-paths
+│   │   └── path-value-lookup
+│   ├── type-level-predicates
+│   │   ├── any-detection
+│   │   ├── never-detection
+│   │   ├── unknown-detection
+│   │   ├── union-detection
+│   │   ├── equality-test-limitations
+│   │   ├── assignability-versus-equality
+│   │   └── test-oracle-design
+│   ├── advanced-api-patterns
+│   │   ├── fluent-builder-state
+│   │   ├── typestate-transitions
+│   │   ├── phantom-type-parameters
+│   │   ├── opaque-and-branded-types
+│   │   ├── typed-event-registries
+│   │   ├── extensible-plugin-maps
+│   │   └── higher-kinded-type-encodings
+│   ├── recursive-safety-and-cost
+│   │   ├── recursion-depth-limits
+│   │   ├── type-instantiation-budget
+│   │   ├── distributive-explosion
+│   │   ├── template-literal-explosion
+│   │   ├── depth-parameters
+│   │   ├── tail-recursive-forms
+│   │   └── complexity-budgets
+│   └── diagnostics-and-maintainability
+│       ├── readable-type-aliases
+│       ├── named-intermediate-results
+│       ├── custom-error-type-patterns
+│       ├── hover-size-management
+│       ├── simplification-helper-limits
+│       ├── escape-hatch-isolation
+│       └── type-puzzle-versus-production-design
+├── type-safe-domain-modeling
+│   ├── domain-boundaries
+│   │   ├── domain-and-transport-types
+│   │   ├── entities-and-value-objects
+│   │   ├── identifiers-and-identity
+│   │   ├── invariants-at-construction
+│   │   ├── representation-independence
+│   │   ├── domain-and-persistence-separation
+│   │   └── public-and-private-contracts
+│   ├── branded-and-opaque-types
+│   │   ├── branded-identifiers
+│   │   ├── unique-symbol-brands
+│   │   ├── validated-string-types
+│   │   ├── units-of-measure
+│   │   ├── currencies-and-money
+│   │   ├── constructor-validation
+│   │   └── brand-erasure-at-serialization
+│   ├── algebraic-data-models
+│   │   ├── product-types
+│   │   ├── sum-types
+│   │   ├── tagged-unions
+│   │   ├── result-types
+│   │   ├── option-types
+│   │   ├── recursive-domain-types
+│   │   └── illegal-state-prevention
+│   ├── state-modeling
+│   │   ├── finite-state-machines
+│   │   ├── state-specific-data
+│   │   ├── transition-events
+│   │   ├── exhaustive-transition-functions
+│   │   ├── async-request-states
+│   │   ├── workflow-state-models
+│   │   └── transition-invariant-tests
+│   ├── error-modeling
+│   │   ├── expected-and-unexpected-errors
+│   │   ├── domain-error-unions
+│   │   ├── result-returning-functions
+│   │   ├── exception-adapters
+│   │   ├── error-code-stability
+│   │   ├── exhaustive-error-handling
+│   │   └── retryability-classification
+│   ├── functional-domain-design
+│   │   ├── pure-functions
+│   │   ├── immutable-data
+│   │   ├── total-functions
+│   │   ├── boundary-parsing
+│   │   ├── function-composition
+│   │   ├── dependency-parameters
+│   │   └── explicit-side-effect-contracts
+│   ├── object-oriented-domain-design
+│   │   ├── aggregate-contracts
+│   │   ├── value-object-classes
+│   │   ├── interface-based-ports
+│   │   ├── factory-enforced-invariants
+│   │   ├── repository-boundaries
+│   │   ├── composition-over-inheritance
+│   │   └── dependency-inversion
+│   ├── configuration-modeling
+│   │   ├── literal-preserving-configs
+│   │   ├── satisfies-based-validation
+│   │   ├── discriminated-options
+│   │   ├── feature-dependent-options
+│   │   ├── mutually-exclusive-options
+│   │   ├── defaults-and-normalization
+│   │   └── versioned-configuration
+│   ├── contract-design-patterns
+│   │   ├── command-and-query-types
+│   │   ├── event-payload-contracts
+│   │   ├── pagination-and-filter-types
+│   │   ├── patch-and-update-semantics
+│   │   ├── capability-based-apis
+│   │   ├── policy-and-permission-types
+│   │   └── multi-tenant-identifiers
+│   └── evolution-and-maintenance
+│       ├── versioned-domain-types
+│       ├── backward-compatible-events
+│       ├── adapter-boundaries
+│       ├── deprecation-strategies
+│       ├── migration-functions
+│       ├── consumer-contract-tests
+│       └── type-level-regression-tests
+├── decorators-and-metaprogramming
+│   ├── decorator-models
+│   │   ├── standard-decorators
+│   │   ├── legacy-decorators
+│   │   ├── proposal-and-implementation-status
+│   │   ├── compiler-and-runtime-support
+│   │   ├── decorator-model-incompatibilities
+│   │   └── metadata-design-boundaries
+│   ├── standard-decorator-fundamentals
+│   │   ├── decorator-expressions
+│   │   ├── decorated-values
+│   │   ├── decorator-context
+│   │   ├── replacement-values
+│   │   ├── decorator-composition
+│   │   └── evaluation-and-application-order
+│   ├── standard-decorator-targets
+│   │   ├── class-decorators
+│   │   ├── method-decorators
+│   │   ├── field-decorators
+│   │   ├── getter-decorators
+│   │   ├── setter-decorators
+│   │   └── auto-accessor-decorators
+│   ├── standard-decorator-typing
+│   │   ├── generic-method-decorators
+│   │   ├── this-and-argument-preservation
+│   │   ├── return-type-preservation
+│   │   ├── context-type-parameters
+│   │   ├── public-and-private-access
+│   │   └── static-and-instance-context
+│   ├── initialization-and-metadata
+│   │   ├── add-initializer
+│   │   ├── field-initializers
+│   │   ├── auto-accessor-initializers
+│   │   ├── decorator-metadata
+│   │   ├── symbol-metadata-availability
+│   │   ├── metadata-inheritance
+│   │   └── metadata-storage-privacy
+│   ├── legacy-decorator-interop
+│   │   ├── experimental-decorators
+│   │   ├── emit-decorator-metadata
+│   │   ├── reflect-metadata
+│   │   ├── parameter-decorators
+│   │   ├── design-type-erasure
+│   │   ├── metadata-circular-dependencies
+│   │   └── framework-compatibility
+│   └── metaprogramming-patterns
+│       ├── logging-and-measurement
+│       ├── method-binding
+│       ├── dependency-registration
+│       ├── runtime-schema-registration
+│       ├── proxy-and-reflect-boundaries
+│       ├── decorator-testing
+│       └── migration-away-from-metadata-assumptions
+├── modules-and-resolution
+│   ├── module-fundamentals
+│   │   ├── script-and-module-scope
+│   │   ├── module-detection
+│   │   ├── module-specifiers
+│   │   ├── import-and-export-bindings
+│   │   ├── type-space-and-value-space
+│   │   ├── live-bindings
+│   │   └── side-effect-imports
+│   ├── esm-syntax
+│   │   ├── named-imports-and-exports
+│   │   ├── default-imports-and-exports
+│   │   ├── namespace-imports
+│   │   ├── re-exports
+│   │   ├── dynamic-import
+│   │   ├── import-meta
+│   │   ├── top-level-await
+│   │   └── import-attributes
+│   ├── type-only-modules
+│   │   ├── import-type
+│   │   ├── export-type
+│   │   ├── inline-type-specifiers
+│   │   ├── type-only-re-exports
+│   │   ├── import-type-queries
+│   │   ├── verbatim-module-syntax
+│   │   └── runtime-import-elision
+│   ├── file-and-package-identity
+│   │   ├── ts-tsx-mts-cts
+│   │   ├── d-ts-d-mts-d-cts
+│   │   ├── js-mjs-cjs
+│   │   ├── package-type-field
+│   │   ├── nearest-package-boundary
+│   │   ├── module-format-detection
+│   │   └── source-and-output-extension-mapping
+│   ├── node-module-model
+│   │   ├── fixed-node-module-modes
+│   │   ├── nodenext-mode
+│   │   ├── esm-and-commonjs-detection
+│   │   ├── esm-relative-extensions
+│   │   ├── require-and-import-conditions
+│   │   ├── commonjs-esm-interop
+│   │   └── top-level-await-interop-limits
+│   ├── bundler-module-model
+│   │   ├── bundler-resolution
+│   │   ├── preserve-module-mode
+│   │   ├── extensionless-imports
+│   │   ├── bundler-conditions
+│   │   ├── virtual-modules
+│   │   ├── asset-imports
+│   │   └── bundler-and-runtime-parity
+│   ├── package-resolution
+│   │   ├── package-exports
+│   │   ├── package-imports
+│   │   ├── conditional-exports
+│   │   ├── types-condition
+│   │   ├── package-self-references
+│   │   ├── subpath-exports
+│   │   ├── extension-substitution
+│   │   └── blocked-deep-imports
+│   ├── resolution-customization
+│   │   ├── paths-mappings
+│   │   ├── runtime-alias-agreement
+│   │   ├── custom-conditions
+│   │   ├── module-suffixes
+│   │   ├── root-dirs
+│   │   ├── symlink-and-realpath-behavior
+│   │   └── workspace-package-resolution
+│   ├── non-code-imports
+│   │   ├── json-module-resolution
+│   │   ├── json-import-attributes
+│   │   ├── css-module-declarations
+│   │   ├── image-and-font-declarations
+│   │   ├── arbitrary-extension-declarations
+│   │   ├── side-effect-import-checking
+│   │   └── asset-build-pipeline-parity
+│   ├── interop-and-compatibility
+│   │   ├── commonjs-export-shapes
+│   │   ├── default-and-namespace-interop
+│   │   ├── export-equals-declarations
+│   │   ├── import-equals-compatibility
+│   │   ├── dynamic-import-across-formats
+│   │   ├── duplicate-package-identities
+│   │   └── dual-package-hazards
+│   ├── module-architecture
+│   │   ├── feature-module-boundaries
+│   │   ├── explicit-public-entrypoints
+│   │   ├── barrel-export-tradeoffs
+│   │   ├── circular-value-dependencies
+│   │   ├── type-only-cycle-management
+│   │   ├── dependency-direction
+│   │   └── tree-shaking-and-side-effects
+│   └── resolution-diagnostics
+│       ├── trace-resolution
+│       ├── explain-files
+│       ├── list-files-only
+│       ├── package-condition-inspection
+│       ├── editor-and-cli-disagreement
+│       ├── runtime-module-not-found
+│       └── missing-declaration-investigation
+├── declaration-files-and-library-authoring
+│   ├── declaration-fundamentals
+│   │   ├── declaration-file-purpose
+│   │   ├── ambient-context
+│   │   ├── declare-keyword
+│   │   ├── runtime-shape-description
+│   │   ├── implementation-free-signatures
+│   │   ├── declaration-accuracy
+│   │   └── consumer-environment-modeling
+│   ├── library-shape-modeling
+│   │   ├── esm-libraries
+│   │   ├── commonjs-libraries
+│   │   ├── callable-modules
+│   │   ├── constructable-modules
+│   │   ├── global-libraries
+│   │   ├── global-modifying-libraries
+│   │   └── plugin-style-libraries
+│   ├── ambient-declarations
+│   │   ├── ambient-variables
+│   │   ├── ambient-functions
+│   │   ├── ambient-classes
+│   │   ├── ambient-enums
+│   │   ├── ambient-modules
+│   │   ├── wildcard-module-declarations
+│   │   └── global-augmentation
+│   ├── merging-and-augmentation
+│   │   ├── interface-merging
+│   │   ├── namespace-merging
+│   │   ├── class-and-namespace-merging
+│   │   ├── function-and-namespace-merging
+│   │   ├── enum-and-namespace-merging
+│   │   ├── module-augmentation
+│   │   └── augmentation-versus-module-replacement
+│   ├── declaration-authoring
+│   │   ├── overload-design
+│   │   ├── generic-inference-design
+│   │   ├── callback-and-event-contracts
+│   │   ├── literal-preserving-contracts
+│   │   ├── optional-and-readonly-semantics
+│   │   ├── this-typing
+│   │   └── private-type-leaks
+│   ├── consuming-types
+│   │   ├── bundled-declarations
+│   │   ├── types-packages
+│   │   ├── definitely-typed
+│   │   ├── version-alignment
+│   │   ├── duplicate-types
+│   │   ├── missing-types
+│   │   └── local-declaration-patches
+│   ├── emitting-declarations
+│   │   ├── declaration-emit
+│   │   ├── emit-declaration-only
+│   │   ├── declaration-maps
+│   │   ├── declaration-dir
+│   │   ├── isolated-declarations
+│   │   ├── exported-type-annotations
+│   │   └── inferred-public-type-stability
+│   ├── package-metadata
+│   │   ├── types-entrypoint
+│   │   ├── conditional-type-exports
+│   │   ├── subpath-type-exports
+│   │   ├── types-versions
+│   │   ├── interactions-with-exports
+│   │   ├── esm-cjs-declaration-pairing
+│   │   └── package-file-allowlists
+│   ├── public-api-design
+│   │   ├── explicit-export-surface
+│   │   ├── internal-type-encapsulation
+│   │   ├── portable-type-names
+│   │   ├── declaration-dependency-reachability
+│   │   ├── extension-points
+│   │   ├── overload-evolution
+│   │   └── semver-and-type-compatibility
+│   ├── library-build
+│   │   ├── runtime-output-targets
+│   │   ├── declaration-output-layout
+│   │   ├── source-map-policy
+│   │   ├── dependency-externalization
+│   │   ├── side-effects-metadata
+│   │   ├── packed-artifact-inspection
+│   │   └── build-output-cleanliness
+│   ├── consumer-validation
+│   │   ├── node-esm-consumer
+│   │   ├── node-commonjs-consumer
+│   │   ├── bundler-consumer
+│   │   ├── strict-compiler-consumer
+│   │   ├── supported-compiler-matrix
+│   │   ├── javascript-consumer
+│   │   └── smoke-tests-against-packed-package
+│   └── api-documentation
+│       ├── tsdoc-comments
+│       ├── typedoc-output
+│       ├── examples-that-typecheck
+│       ├── public-api-reports
+│       ├── deprecation-tags
+│       ├── documentation-links
+│       └── api-diff-review
+├── compiler-and-project-configuration
+│   ├── compilation-model
+│   │   ├── parsing
+│   │   ├── binding
+│   │   ├── type-checking
+│   │   ├── transforms
+│   │   ├── javascript-emit
+│   │   ├── declaration-emit
+│   │   └── diagnostics-and-exit-codes
+│   ├── project-definition
+│   │   ├── tsconfig-discovery
+│   │   ├── compiler-options
+│   │   ├── files-and-include
+│   │   ├── exclude-limitations
+│   │   ├── extends-and-inheritance
+│   │   ├── relative-path-origins
+│   │   └── project-versus-file-invocation
+│   ├── strictness
+│   │   ├── strict-family
+│   │   │   ├── strict
+│   │   │   ├── no-implicit-any
+│   │   │   ├── strict-null-checks
+│   │   │   ├── strict-function-types
+│   │   │   ├── strict-bind-call-apply
+│   │   │   ├── strict-property-initialization
+│   │   │   ├── no-implicit-this
+│   │   │   ├── use-unknown-in-catch-variables
+│   │   │   └── strict-builtin-iterator-return
+│   │   ├── additional-safety
+│   │   │   ├── no-unchecked-indexed-access
+│   │   │   ├── exact-optional-property-types
+│   │   │   ├── no-property-access-from-index-signature
+│   │   │   ├── no-implicit-override
+│   │   │   ├── no-implicit-returns
+│   │   │   ├── no-fallthrough-cases-in-switch
+│   │   │   └── no-unchecked-side-effect-imports
+│   │   └── code-hygiene
+│   │       ├── no-unused-locals
+│   │       ├── no-unused-parameters
+│   │       ├── unreachable-code-diagnostics
+│   │       ├── unused-label-diagnostics
+│   │       ├── consistent-file-name-casing
+│   │       └── error-suppression-policy
+│   ├── runtime-targeting
+│   │   ├── target
+│   │   ├── lib
+│   │   ├── explicit-library-selection
+│   │   ├── types-and-type-roots
+│   │   ├── browser-and-node-global-separation
+│   │   ├── runtime-polyfill-requirements
+│   │   └── library-replacement-control
+│   ├── module-configuration
+│   │   ├── module
+│   │   ├── module-resolution
+│   │   ├── module-detection
+│   │   ├── verbatim-module-syntax
+│   │   ├── resolve-json-module
+│   │   ├── custom-conditions
+│   │   └── import-extension-policy
+│   ├── emit-configuration
+│   │   ├── no-emit
+│   │   ├── no-emit-on-error
+│   │   ├── root-dir
+│   │   ├── out-dir
+│   │   ├── source-map
+│   │   ├── inline-sources
+│   │   ├── remove-comments
+│   │   └── import-helpers
+│   ├── syntax-and-transforms
+│   │   ├── isolated-modules
+│   │   ├── erasable-syntax-only
+│   │   ├── rewrite-relative-import-extensions
+│   │   ├── allow-importing-ts-extensions
+│   │   ├── use-define-for-class-fields
+│   │   ├── downlevel-iteration
+│   │   └── helper-runtime-dependencies
+│   ├── jsx-configuration
+│   │   ├── jsx-modes
+│   │   ├── jsx-import-source
+│   │   ├── jsx-runtime-selection
+│   │   ├── jsx-factory-compatibility
+│   │   ├── jsx-fragment-factory-compatibility
+│   │   ├── jsx-namespace-resolution
+│   │   └── framework-transform-ownership
+│   ├── incremental-builds
+│   │   ├── incremental
+│   │   ├── ts-build-info-file
+│   │   ├── composite
+│   │   ├── project-references
+│   │   ├── build-mode
+│   │   ├── build-order
+│   │   ├── clean-and-force
+│   │   └── cache-invalidation
+│   ├── multi-config-projects
+│   │   ├── base-configuration
+│   │   ├── application-configuration
+│   │   ├── library-configuration
+│   │   ├── test-configuration
+│   │   ├── tooling-configuration
+│   │   ├── environment-specific-globals
+│   │   └── configuration-overrides
+│   ├── compiler-diagnostics
+│   │   ├── show-config
+│   │   ├── diagnostics
+│   │   ├── extended-diagnostics
+│   │   ├── generate-trace
+│   │   ├── trace-resolution
+│   │   ├── explain-files
+│   │   └── pretty-and-machine-readable-output
+│   └── version-sensitive-options
+│       ├── defaults-across-releases
+│       ├── option-deprecations
+│       ├── removed-options
+│       ├── migration-only-overrides
+│       ├── no-check-and-separate-validation
+│       ├── stable-type-ordering-evaluation
+│       └── explicit-compatibility-baselines
+├── asynchronous-and-resource-programming
+│   ├── promise-types
+│   │   ├── promise-value-types
+│   │   ├── promise-like-contracts
+│   │   ├── awaited-unwrapping
+│   │   ├── nested-promises
+│   │   ├── promise-constructor-typing
+│   │   ├── then-catch-finally-inference
+│   │   └── rejection-type-limitations
+│   ├── async-functions
+│   │   ├── async-return-inference
+│   │   ├── explicit-promise-contracts
+│   │   ├── async-callback-compatibility
+│   │   ├── await-narrowing
+│   │   ├── error-boundaries
+│   │   ├── return-await-semantics
+│   │   └── floating-promise-detection
+│   ├── promise-combinators
+│   │   ├── promise-all-tuple-inference
+│   │   ├── promise-all-settled-discriminants
+│   │   ├── promise-race-unions
+│   │   ├── promise-any-results
+│   │   ├── aggregate-error-handling
+│   │   ├── readonly-input-tuples
+│   │   └── empty-input-behavior
+│   ├── async-workflow-contracts
+│   │   ├── async-result-types
+│   │   ├── typed-task-functions
+│   │   ├── cancellable-operations
+│   │   ├── timeouts-and-abort-signals
+│   │   ├── retry-policy-types
+│   │   ├── bounded-concurrency-contracts
+│   │   └── progress-event-types
+│   ├── iteration
+│   │   ├── iterable-and-iterator-types
+│   │   ├── iterator-result-discriminants
+│   │   ├── yield-return-next-types
+│   │   ├── iterable-iterator
+│   │   ├── iterator-object-types
+│   │   ├── builtin-iterator-return-checking
+│   │   └── iterator-helper-availability
+│   ├── generators
+│   │   ├── generator-type-parameters
+│   │   ├── yield-inference
+│   │   ├── delegated-yield
+│   │   ├── generator-return-values
+│   │   ├── next-input-types
+│   │   ├── early-termination
+│   │   └── generator-cleanup
+│   ├── async-iteration
+│   │   ├── async-iterable
+│   │   ├── async-iterator
+│   │   ├── async-generator
+│   │   ├── for-await-of
+│   │   ├── sync-to-async-iteration
+│   │   ├── typed-data-streams
+│   │   └── async-iterator-cleanup
+│   ├── explicit-resource-management
+│   │   ├── using-declarations
+│   │   ├── await-using-declarations
+│   │   ├── disposable-contract
+│   │   ├── async-disposable-contract
+│   │   ├── symbol-dispose
+│   │   ├── symbol-async-dispose
+│   │   ├── disposable-stacks
+│   │   ├── suppressed-errors
+│   │   └── runtime-support-and-polyfills
+│   └── event-and-message-types
+│       ├── event-name-to-payload-maps
+│       ├── typed-listeners
+│       ├── event-target-contracts
+│       ├── request-response-correlation
+│       ├── worker-message-unions
+│       ├── unsubscribe-handles
+│       └── serialized-message-validation
+├── runtime-validation-and-data-boundaries
+│   ├── trust-boundary-design
+│   │   ├── untrusted-input
+│   │   ├── unknown-before-validation
+│   │   ├── parse-versus-assert
+│   │   ├── boundary-placement
+│   │   ├── validation-versus-authorization
+│   │   ├── static-and-runtime-contracts
+│   │   └── validation-error-design
+│   ├── schema-design
+│   │   ├── primitive-schemas
+│   │   ├── object-schemas
+│   │   ├── optional-nullable-and-defaulted-values
+│   │   ├── discriminated-union-schemas
+│   │   ├── recursive-schemas
+│   │   ├── unknown-key-policy
+│   │   └── schema-composition
+│   ├── schema-and-type-alignment
+│   │   ├── schema-first-modeling
+│   │   ├── inferred-input-types
+│   │   ├── inferred-output-types
+│   │   ├── type-first-code-generation
+│   │   ├── schema-drift-detection
+│   │   ├── refinement-limitations
+│   │   └── transform-type-changes
+│   ├── validation-libraries
+│   │   ├── zod
+│   │   ├── valibot
+│   │   ├── ajv-and-json-schema
+│   │   ├── typebox
+│   │   ├── arktype
+│   │   ├── standard-schema-interop
+│   │   └── library-selection-and-compatibility
+│   ├── parsing-and-normalization
+│   │   ├── safe-parse-results
+│   │   ├── coercion-and-preprocessing
+│   │   ├── transforms-and-codecs
+│   │   ├── asynchronous-refinements
+│   │   ├── cross-field-validation
+│   │   ├── locale-sensitive-inputs
+│   │   └── canonical-domain-construction
+│   ├── serialization
+│   │   ├── json-compatible-types
+│   │   ├── bigint-serialization
+│   │   ├── date-and-time-serialization
+│   │   ├── undefined-and-missing-properties
+│   │   ├── map-and-set-serialization
+│   │   ├── class-prototype-loss
+│   │   └── round-trip-contract-tests
+│   ├── network-boundaries
+│   │   ├── request-body-validation
+│   │   ├── query-and-path-parsing
+│   │   ├── header-normalization
+│   │   ├── response-validation
+│   │   ├── websocket-message-validation
+│   │   ├── webhook-contracts
+│   │   └── remote-schema-versioning
+│   ├── configuration-boundaries
+│   │   ├── environment-variable-parsing
+│   │   ├── configuration-file-validation
+│   │   ├── default-application
+│   │   ├── secret-value-wrappers
+│   │   ├── startup-validation
+│   │   ├── feature-flag-payloads
+│   │   └── configuration-version-migrations
+│   ├── persistence-boundaries
+│   │   ├── database-row-types
+│   │   ├── nullable-column-mapping
+│   │   ├── json-column-validation
+│   │   ├── document-schema-evolution
+│   │   ├── cache-payload-validation
+│   │   ├── migration-compatibility
+│   │   └── domain-rehydration
+│   └── contract-interchange
+│       ├── json-schema
+│       ├── openapi
+│       ├── graphql-schemas
+│       ├── protocol-buffers
+│       ├── generated-clients
+│       ├── custom-scalar-mapping
+│       ├── generator-version-pinning
+│       └── runtime-validator-parity
+├── frontend-and-ui-integration
+│   ├── browser-platform
+│   │   ├── dom-library-types
+│   │   ├── element-query-narrowing
+│   │   ├── html-element-specializations
+│   │   ├── typed-dom-events
+│   │   ├── event-target-narrowing
+│   │   ├── custom-event-payloads
+│   │   └── storage-and-url-boundaries
+│   ├── jsx-and-tsx
+│   │   ├── tsx-syntax
+│   │   ├── jsx-element-types
+│   │   ├── intrinsic-elements
+│   │   ├── component-prop-checking
+│   │   ├── children-typing
+│   │   ├── generic-arrow-syntax
+│   │   └── jsx-runtime-contracts
+│   ├── react
+│   │   ├── component-contracts
+│   │   │   ├── prop-interfaces
+│   │   │   ├── discriminated-props
+│   │   │   ├── mutually-exclusive-props
+│   │   │   ├── generic-components
+│   │   │   ├── native-element-props
+│   │   │   ├── polymorphic-component-design
+│   │   │   └── ref-prop-compatibility
+│   │   ├── state-and-behavior
+│   │   │   ├── state-inference
+│   │   │   ├── reducer-action-unions
+│   │   │   ├── typed-context
+│   │   │   ├── nullable-refs
+│   │   │   ├── event-handlers
+│   │   │   ├── custom-hooks
+│   │   │   └── async-ui-state
+│   │   └── library-boundaries
+│   │       ├── react-node-and-element-types
+│   │       ├── component-prop-extraction
+│   │       ├── callback-variance
+│   │       ├── ref-forwarding-compatibility
+│   │       ├── server-client-serialization
+│   │       └── public-component-declarations
+│   ├── vue
+│   │   ├── script-setup-types
+│   │   ├── define-props-and-emits
+│   │   ├── generic-components
+│   │   ├── refs-and-reactive-state
+│   │   ├── computed-and-watch-types
+│   │   ├── injection-keys
+│   │   ├── template-typechecking
+│   │   └── vue-tsc
+│   ├── angular
+│   │   ├── strict-template-checking
+│   │   ├── typed-reactive-forms
+│   │   ├── component-input-output-contracts
+│   │   ├── dependency-injection-tokens
+│   │   ├── typed-http-boundaries
+│   │   ├── signal-value-types
+│   │   └── framework-compiler-compatibility
+│   ├── svelte
+│   │   ├── typescript-in-components
+│   │   ├── typed-props
+│   │   ├── component-generics
+│   │   ├── state-and-derived-types
+│   │   ├── snippet-and-callback-contracts
+│   │   ├── contextual-types
+│   │   └── svelte-check
+│   ├── frontend-application-contracts
+│   │   ├── typed-routing
+│   │   ├── url-and-search-parameter-parsing
+│   │   ├── form-input-and-output-types
+│   │   ├── query-key-contracts
+│   │   ├── server-state-result-types
+│   │   ├── localization-key-types
+│   │   └── feature-flag-types
+│   ├── web-workers-and-components
+│   │   ├── worker-global-type-isolation
+│   │   ├── post-message-contracts
+│   │   ├── transferable-data-types
+│   │   ├── custom-element-maps
+│   │   ├── custom-event-maps
+│   │   └── browser-runtime-feature-checks
+│   └── ssr-and-hydration
+│       ├── server-and-browser-type-boundaries
+│       ├── serializable-props
+│       ├── runtime-only-values
+│       ├── shared-contract-packages
+│       ├── generated-route-types
+│       ├── hydration-data-validation
+│       └── environment-specific-imports
+├── backend-and-service-integration
+│   ├── nodejs-integration
+│   │   ├── node-type-definitions
+│   │   ├── runtime-and-type-version-alignment
+│   │   ├── process-and-environment-types
+│   │   ├── buffer-and-binary-types
+│   │   ├── timer-type-differences
+│   │   ├── esm-package-configuration
+│   │   └── built-in-type-stripping-boundaries
+│   ├── http-service-contracts
+│   │   ├── typed-route-parameters
+│   │   ├── query-and-header-types
+│   │   ├── request-body-schemas
+│   │   ├── response-shapes
+│   │   ├── request-context-types
+│   │   ├── middleware-contracts
+│   │   └── error-response-unions
+│   ├── framework-integration
+│   │   ├── express-request-augmentation
+│   │   ├── fastify-type-providers
+│   │   ├── nestjs-dto-and-metadata-boundaries
+│   │   ├── hono-context-and-route-inference
+│   │   ├── framework-schema-validation
+│   │   ├── lifecycle-hook-types
+│   │   └── framework-version-compatibility
+│   ├── rpc-and-graphql
+│   │   ├── trpc-router-inference
+│   │   ├── graphql-operation-types
+│   │   ├── resolver-context-types
+│   │   ├── custom-scalar-runtime-parity
+│   │   ├── grpc-generated-contracts
+│   │   ├── request-response-correlation
+│   │   └── transport-serialization-boundaries
+│   ├── persistence-integration
+│   │   ├── orm-generated-types
+│   │   ├── query-builder-result-types
+│   │   ├── select-and-include-inference
+│   │   ├── nullable-join-results
+│   │   ├── transaction-contexts
+│   │   ├── database-generated-values
+│   │   └── repository-domain-mapping
+│   ├── background-and-realtime-work
+│   │   ├── job-name-payload-maps
+│   │   ├── queue-payload-validation
+│   │   ├── versioned-events
+│   │   ├── consumer-result-types
+│   │   ├── retry-and-dead-letter-contracts
+│   │   ├── websocket-protocols
+│   │   └── cancellation-and-shutdown-contracts
+│   ├── service-architecture
+│   │   ├── module-public-contracts
+│   │   ├── dependency-injection-tokens
+│   │   ├── configuration-parsing
+│   │   ├── service-client-adapters
+│   │   ├── domain-error-mapping
+│   │   ├── authorization-context-types
+│   │   └── shared-contract-versioning
+│   └── multi-runtime-portability
+│       ├── node-deno-and-bun-type-boundaries
+│       ├── edge-runtime-types
+│       ├── web-standard-contracts
+│       ├── runtime-specific-adapters
+│       ├── dependency-portability
+│       ├── api-availability-validation
+│       └── separate-typecheck-configurations
+├── testing-and-quality
+│   ├── testing-strategy
+│   │   ├── compile-time-and-runtime-tests
+│   │   ├── public-contract-tests
+│   │   ├── implementation-tests
+│   │   ├── integration-tests
+│   │   ├── regression-tests
+│   │   ├── negative-test-cases
+│   │   └── test-confidence-boundaries
+│   ├── compiler-driven-type-tests
+│   │   ├── no-emit-test-projects
+│   │   ├── expect-error-directives
+│   │   ├── unused-expect-error-detection
+│   │   ├── accepted-usage-fixtures
+│   │   ├── rejected-usage-fixtures
+│   │   ├── strict-option-matrices
+│   │   └── declaration-consumer-fixtures
+│   ├── type-assertion-testing
+│   │   ├── expect-type-of
+│   │   ├── assert-type
+│   │   ├── tsd
+│   │   ├── assignability-assertions
+│   │   ├── equality-assertion-limitations
+│   │   ├── any-leak-detection
+│   │   └── inference-regression-tests
+│   ├── runtime-unit-testing
+│   │   ├── vitest
+│   │   ├── jest
+│   │   ├── node-test-runner
+│   │   ├── typed-test-fixtures
+│   │   ├── table-driven-tests
+│   │   ├── asynchronous-tests
+│   │   └── deterministic-test-data
+│   ├── mocks-and-test-doubles
+│   │   ├── structural-test-doubles
+│   │   ├── typed-spies
+│   │   ├── module-mocking
+│   │   ├── dependency-injection-fakes
+│   │   ├── partial-mock-risks
+│   │   ├── mock-contract-drift
+│   │   └── reset-and-isolation
+│   ├── property-and-contract-testing
+│   │   ├── fast-check
+│   │   ├── generated-valid-inputs
+│   │   ├── generated-invalid-inputs
+│   │   ├── schema-roundtrip-properties
+│   │   ├── state-transition-properties
+│   │   ├── api-consumer-contracts
+│   │   └── serialized-contract-compatibility
+│   ├── integration-and-end-to-end
+│   │   ├── http-contract-tests
+│   │   ├── database-adapter-tests
+│   │   ├── message-contract-tests
+│   │   ├── browser-component-tests
+│   │   ├── full-user-flow-tests
+│   │   ├── production-build-smoke-tests
+│   │   └── packed-package-smoke-tests
+│   ├── typed-linting
+│   │   ├── typescript-eslint
+│   │   ├── type-aware-rules
+│   │   ├── project-service-configuration
+│   │   ├── no-floating-promises
+│   │   ├── no-misused-promises
+│   │   ├── no-unsafe-operations
+│   │   └── switch-exhaustiveness-check
+│   ├── style-and-maintainability
+│   │   ├── consistent-type-imports
+│   │   ├── assertion-restraint
+│   │   ├── naming-and-export-conventions
+│   │   ├── documentation-quality
+│   │   ├── unused-code-management
+│   │   ├── formatting
+│   │   └── public-type-readability
+│   └── quality-gates
+│       ├── typecheck-gate
+│       ├── lint-gate
+│       ├── runtime-test-gate
+│       ├── type-test-gate
+│       ├── api-diff-gate
+│       ├── coverage-interpretation
+│       └── compiler-matrix-gate
+├── development-tooling-and-monorepos
+│   ├── editor-workflows
+│   │   ├── workspace-compiler-selection
+│   │   ├── hover-and-quick-info
+│   │   ├── go-to-definition
+│   │   ├── find-references
+│   │   ├── rename-symbol
+│   │   ├── import-organization
+│   │   └── editor-diagnostic-troubleshooting
+│   ├── command-line-workflows
+│   │   ├── local-tsc-invocation
+│   │   ├── project-typechecking
+│   │   ├── build-mode-watch
+│   │   ├── diagnostic-output-capture
+│   │   ├── script-exit-codes
+│   │   ├── reproducible-task-order
+│   │   └── environment-specific-commands
+│   ├── transpilation-toolchains
+│   │   ├── tsc-emission
+│   │   ├── esbuild-typescript-transform
+│   │   ├── swc-typescript-transform
+│   │   ├── babel-typescript-transform
+│   │   ├── transform-only-limitations
+│   │   ├── helper-and-decorator-compatibility
+│   │   └── separate-typecheck-pipelines
+│   ├── bundler-integration
+│   │   ├── vite
+│   │   ├── rollup
+│   │   ├── webpack
+│   │   ├── dependency-externalization
+│   │   ├── source-map-composition
+│   │   ├── asset-declarations
+│   │   └── resolution-and-runtime-alignment
+│   ├── execution-tooling
+│   │   ├── tsx
+│   │   ├── node-type-stripping
+│   │   ├── ts-node-compatibility
+│   │   ├── deno-typechecking
+│   │   ├── bun-transpilation
+│   │   ├── source-execution-versus-built-output
+│   │   └── runner-version-compatibility
+│   ├── package-management
+│   │   ├── npm-workspaces
+│   │   ├── pnpm-workspaces
+│   │   ├── yarn-workspaces
+│   │   ├── dependency-deduplication
+│   │   ├── lockfile-reproducibility
+│   │   ├── peer-dependency-types
+│   │   └── compiler-version-consistency
+│   ├── monorepo-boundaries
+│   │   ├── application-and-library-packages
+│   │   ├── shared-contract-packages
+│   │   ├── workspace-package-exports
+│   │   ├── project-reference-graphs
+│   │   ├── source-versus-built-consumption
+│   │   ├── cross-package-cycles
+│   │   └── public-import-enforcement
+│   ├── build-orchestration
+│   │   ├── dependency-ordered-builds
+│   │   ├── task-graphs
+│   │   ├── affected-project-selection
+│   │   ├── local-and-remote-caching
+│   │   ├── cache-input-correctness
+│   │   ├── output-isolation
+│   │   ├── parallel-typechecking
+│   │   └── clean-build-validation
+│   ├── continuous-integration
+│   │   ├── frozen-installs
+│   │   ├── compiler-and-runtime-matrices
+│   │   ├── independent-lint-typecheck-test-jobs
+│   │   ├── declaration-build-validation
+│   │   ├── package-consumer-fixtures
+│   │   ├── artifact-reproducibility
+│   │   └── diagnostic-regression-review
+│   └── team-governance
+│       ├── shared-tsconfig-presets
+│       ├── strictness-policy
+│       ├── public-api-review
+│       ├── error-suppression-review
+│       ├── ownership-and-module-boundaries
+│       ├── dependency-upgrade-policy
+│       └── versioned-learning-examples
+├── compiler-tooling-and-code-generation
+│   ├── compiler-architecture
+│   │   ├── syntax-trees
+│   │   ├── source-files
+│   │   ├── symbols
+│   │   ├── types
+│   │   ├── binder-and-checker
+│   │   ├── emit-pipeline
+│   │   └── language-service-boundary
+│   ├── api-version-boundaries
+│   │   ├── javascript-compiler-api-versions
+│   │   ├── native-compiler-api-compatibility
+│   │   ├── editor-protocol-compatibility
+│   │   ├── unstable-internal-apis
+│   │   ├── dependency-version-pinning
+│   │   ├── capability-detection
+│   │   └── migration-adapters
+│   ├── javascript-compiler-api
+│   │   ├── programs-and-hosts
+│   │   │   ├── program-creation
+│   │   │   ├── compiler-host
+│   │   │   ├── filesystem-abstraction
+│   │   │   ├── compiler-option-parsing
+│   │   │   ├── module-resolution-host
+│   │   │   ├── source-file-loading
+│   │   │   └── incremental-programs
+│   │   ├── syntax-and-semantics
+│   │   │   ├── ast-traversal
+│   │   │   ├── syntax-kind-guards
+│   │   │   ├── source-position-mapping
+│   │   │   ├── symbol-lookup
+│   │   │   ├── type-at-location
+│   │   │   ├── signature-inspection
+│   │   │   └── syntax-versus-semantic-analysis
+│   │   └── output-and-diagnostics
+│   │       ├── diagnostic-categories
+│   │       ├── diagnostic-formatting
+│   │       ├── emit-results
+│   │       ├── printer-api
+│   │       ├── node-factories
+│   │       ├── synthetic-comments
+│   │       └── source-map-considerations
+│   ├── language-services
+│   │   ├── editor-project-model
+│   │   ├── language-service-host
+│   │   ├── completions-and-quick-info
+│   │   ├── rename-and-references
+│   │   ├── incremental-document-updates
+│   │   ├── tsserver-protocol
+│   │   └── plugin-version-compatibility
+│   ├── ast-tools
+│   │   ├── ts-morph
+│   │   ├── typescript-estree
+│   │   ├── parser-services
+│   │   ├── source-text-preservation
+│   │   ├── semantic-symbol-resolution
+│   │   ├── language-version-support
+│   │   └── tool-maintenance-evaluation
+│   ├── codemod-design
+│   │   ├── syntax-aware-rewrites
+│   │   ├── symbol-aware-renames
+│   │   ├── import-migration
+│   │   ├── public-api-migration
+│   │   ├── comment-and-format-preservation
+│   │   ├── dry-run-and-diff
+│   │   ├── idempotence-tests
+│   │   └── post-transform-typechecking
+│   ├── code-generation
+│   │   ├── schema-to-types
+│   │   ├── openapi-client-generation
+│   │   ├── graphql-operation-generation
+│   │   ├── protocol-buffer-types
+│   │   ├── typed-route-generation
+│   │   ├── validation-schema-generation
+│   │   └── generated-and-authored-boundaries
+│   ├── custom-analysis
+│   │   ├── export-surface-inventory
+│   │   ├── dependency-boundary-analysis
+│   │   ├── unsafe-assertion-inventory
+│   │   ├── custom-typed-eslint-rules
+│   │   ├── deprecated-api-detection
+│   │   ├── contract-drift-detection
+│   │   └── diagnostic-quality
+│   └── native-toolchain-evaluation
+│       ├── installed-capability-inventory
+│       ├── typecheck-parity
+│       ├── declaration-emit-parity
+│       ├── editor-behavior-parity
+│       ├── build-mode-compatibility
+│       ├── ecosystem-tool-support
+│       └── rollback-and-version-pinning
+├── type-system-performance-and-diagnostics
+│   ├── performance-baselines
+│   │   ├── cold-and-warm-typechecks
+│   │   ├── incremental-rebuild-times
+│   │   ├── editor-response-time
+│   │   ├── compiler-memory-use
+│   │   ├── declaration-emit-time
+│   │   ├── representative-workloads
+│   │   └── environment-and-version-control
+│   ├── measurement-tools
+│   │   ├── extended-diagnostics
+│   │   ├── compiler-traces
+│   │   ├── trace-analysis
+│   │   ├── project-file-inventory
+│   │   ├── resolution-traces
+│   │   ├── editor-performance-traces
+│   │   └── repeatable-benchmark-scripts
+│   ├── expensive-type-patterns
+│   │   ├── large-unions
+│   │   ├── intersection-chains
+│   │   ├── recursive-conditionals
+│   │   ├── distributive-cross-products
+│   │   ├── template-literal-expansion
+│   │   ├── oversized-inferred-types
+│   │   └── repeated-generic-instantiation
+│   ├── optimization-techniques
+│   │   ├── named-type-aliases
+│   │   ├── explicit-public-annotations
+│   │   ├── interfaces-for-object-composition
+│   │   ├── constrained-distribution
+│   │   ├── bounded-recursion
+│   │   ├── simplified-public-contracts
+│   │   └── reusable-generic-boundaries
+│   ├── project-graph-optimization
+│   │   ├── smaller-project-scopes
+│   │   ├── project-references
+│   │   ├── explicit-ambient-types
+│   │   ├── generated-file-exclusions
+│   │   ├── dependency-deduplication
+│   │   ├── build-cache-reuse
+│   │   └── independent-project-partitioning
+│   ├── declaration-performance
+│   │   ├── exported-type-size
+│   │   ├── declaration-portability
+│   │   ├── generic-leak-reduction
+│   │   ├── inferred-type-stability
+│   │   ├── bundled-and-unbundled-declarations
+│   │   ├── consumer-typecheck-benchmarks
+│   │   └── api-surface-budgets
+│   ├── troubleshooting
+│   │   ├── excessively-deep-instantiation
+│   │   ├── union-too-complex-to-represent
+│   │   ├── declaration-nameability-errors
+│   │   ├── duplicate-global-identifiers
+│   │   ├── cannot-find-module
+│   │   ├── cannot-find-name
+│   │   └── editor-cli-type-disagreement
+│   └── reliability-and-tradeoffs
+│       ├── skip-lib-check-limitations
+│       ├── no-check-limitations
+│       ├── suppression-versus-root-cause
+│       ├── type-performance-regression-tests
+│       ├── runtime-performance-independence
+│       ├── simpler-contract-refactoring
+│       └── measured-optimization-review
+├── migration-and-interoperability
+│   ├── javascript-migration-planning
+│   │   ├── dependency-and-runtime-inventory
+│   │   ├── entrypoint-and-boundary-map
+│   │   ├── risk-based-file-order
+│   │   ├── baseline-tests
+│   │   ├── incremental-scope
+│   │   ├── migration-success-criteria
+│   │   └── rollback-plan
+│   ├── jsdoc-and-checked-javascript
+│   │   ├── allow-js
+│   │   ├── check-js
+│   │   ├── ts-check-directives
+│   │   ├── jsdoc-type-tags
+│   │   ├── jsdoc-typedef-and-callback
+│   │   ├── jsdoc-template
+│   │   ├── jsdoc-import-types
+│   │   └── jsdoc-satisfies
+│   ├── incremental-conversion
+│   │   ├── javascript-and-typescript-coexistence
+│   │   ├── rename-and-fix-workflow
+│   │   ├── boundary-first-typing
+│   │   ├── untyped-dependency-adapters
+│   │   ├── inferred-public-api-review
+│   │   ├── generated-declaration-bootstrap
+│   │   └── migration-debt-tracking
+│   ├── strictness-adoption
+│   │   ├── implicit-any-removal
+│   │   ├── nullability-cleanup
+│   │   ├── unknown-catch-adoption
+│   │   ├── unchecked-index-cleanup
+│   │   ├── exact-optional-property-adoption
+│   │   ├── override-and-return-checks
+│   │   └── strictness-by-project
+│   ├── unsafe-type-reduction
+│   │   ├── any-inventory
+│   │   ├── any-to-unknown
+│   │   ├── double-assertion-removal
+│   │   ├── non-null-assertion-removal
+│   │   ├── unsafe-json-casts
+│   │   ├── typed-object-key-workarounds
+│   │   └── runtime-validation-introduction
+│   ├── module-migration
+│   │   ├── commonjs-to-esm
+│   │   ├── package-type-transition
+│   │   ├── extension-updates
+│   │   ├── type-only-import-migration
+│   │   ├── alias-to-package-import-migration
+│   │   ├── consumer-format-testing
+│   │   └── circular-dependency-audit
+│   ├── legacy-syntax-and-config
+│   │   ├── namespace-to-module-refactoring
+│   │   ├── import-assertions-to-attributes
+│   │   ├── classic-and-node10-resolution-migration
+│   │   ├── base-url-removal
+│   │   ├── legacy-module-target-migration
+│   │   ├── out-file-to-bundler-migration
+│   │   └── legacy-decorator-compatibility
+│   ├── compiler-upgrades
+│   │   ├── release-note-triage
+│   │   ├── default-option-changes
+│   │   ├── new-diagnostics
+│   │   ├── library-definition-changes
+│   │   ├── deprecated-option-removal
+│   │   ├── emit-and-declaration-diffs
+│   │   └── compiler-matrix-tests
+│   ├── toolchain-transitions
+│   │   ├── typescript-6-transition
+│   │   ├── native-compiler-compatibility
+│   │   ├── compiler-api-consumer-migration
+│   │   ├── declaration-consumer-compatibility
+│   │   ├── editor-extension-alignment
+│   │   ├── preview-feature-isolation
+│   │   └── staged-rollout
+│   ├── external-code-interop
+│   │   ├── untyped-npm-packages
+│   │   ├── handwritten-declarations
+│   │   ├── generated-client-adapters
+│   │   ├── browser-global-libraries
+│   │   ├── commonjs-export-shapes
+│   │   ├── non-javascript-service-contracts
+│   │   └── schema-based-language-boundaries
+│   └── migration-validation
+│       ├── runtime-behavior-parity
+│       ├── type-safety-improvement
+│       ├── compile-time-cost
+│       ├── declaration-diff-review
+│       ├── package-consumer-tests
+│       ├── suppression-budget
+│       └── documentation-and-handoff
+├── security-and-reliability-boundaries
+│   ├── type-safety-limitations
+│   │   ├── types-are-not-runtime-validation
+│   │   ├── assertions-are-not-sanitization
+│   │   ├── brands-are-not-security-tokens
+│   │   ├── readonly-is-not-runtime-immutability
+│   │   ├── private-keyword-versus-private-fields
+│   │   ├── declaration-trust-boundaries
+│   │   └── runtime-authorization-requirements
+│   ├── untrusted-data-handling
+│   │   ├── unknown-entrypoints
+│   │   ├── schema-validation
+│   │   ├── safe-domain-construction
+│   │   ├── bounded-inputs
+│   │   ├── json-object-key-safety
+│   │   ├── prototype-pollution-defenses
+│   │   └── contextual-output-encoding
+│   ├── capability-and-permission-models
+│   │   ├── validated-authentication-context
+│   │   ├── permission-unions
+│   │   ├── resource-ownership-checks
+│   │   ├── tenant-scoped-identifiers
+│   │   ├── least-privilege-interfaces
+│   │   ├── capability-object-lifetimes
+│   │   └── compile-time-and-server-enforcement
+│   ├── sensitive-data-modeling
+│   │   ├── public-and-private-dtos
+│   │   ├── redacted-log-types
+│   │   ├── secret-wrapper-limitations
+│   │   ├── field-allowlists
+│   │   ├── serialization-boundaries
+│   │   ├── safe-error-payloads
+│   │   └── sensitive-debug-output
+│   ├── robust-api-contracts
+│   │   ├── invalid-state-prevention
+│   │   ├── exhaustive-failure-handling
+│   │   ├── explicit-null-and-absence
+│   │   ├── versioned-inputs
+│   │   ├── validated-output
+│   │   ├── unknown-enum-values
+│   │   └── dependency-failure-models
+│   ├── package-and-toolchain-integrity
+│   │   ├── dependency-review
+│   │   ├── lockfile-verification
+│   │   ├── types-package-trust
+│   │   ├── install-script-boundaries
+│   │   ├── generated-code-review
+│   │   ├── published-artifact-inspection
+│   │   └── compiler-upgrade-validation
+│   └── operational-reliability
+│       ├── config-validation-at-startup
+│       ├── typed-observability-events
+│       ├── runtime-assertion-placement
+│       ├── safe-fallback-contracts
+│       ├── timeout-and-cancellation-contracts
+│       ├── schema-change-rollouts
+│       └── incident-regression-tests
+└── practice-projects
+    ├── type-system-playground
+    │   ├── isolated-experiment-projects
+    │   ├── inferred-type-observation
+    │   ├── emit-comparison
+    │   ├── narrowing-cases
+    │   ├── assignability-cases
+    │   ├── negative-type-tests
+    │   └── experiment-catalog
+    ├── utility-type-library
+    │   ├── requirements-and-type-contracts
+    │   ├── mapped-utility-types
+    │   ├── conditional-utility-types
+    │   ├── tuple-and-string-utilities
+    │   ├── edge-case-type-tests
+    │   ├── recursion-budgets
+    │   └── declaration-consumer-tests
+    ├── typed-event-bus
+    │   ├── event-payload-map
+    │   ├── listener-contracts
+    │   ├── emit-signatures
+    │   ├── subscription-lifecycle
+    │   ├── asynchronous-listeners
+    │   ├── runtime-event-validation
+    │   └── type-and-runtime-tests
+    ├── state-machine-workflow
+    │   ├── states-and-events
+    │   ├── transition-table
+    │   ├── legal-transition-types
+    │   ├── exhaustive-reducers
+    │   ├── serialized-state-validation
+    │   ├── transition-tests
+    │   └── workflow-visualization-contract
+    ├── typed-router
+    │   ├── route-declaration-model
+    │   ├── path-parameter-extraction
+    │   ├── query-schema-validation
+    │   ├── route-builder-functions
+    │   ├── handler-contracts
+    │   ├── malformed-input-tests
+    │   └── runtime-and-type-contract-parity
+    ├── schema-driven-form
+    │   ├── field-schema-model
+    │   ├── input-and-output-types
+    │   ├── cross-field-validation
+    │   ├── field-error-mapping
+    │   ├── typed-submit-handler
+    │   ├── component-contracts
+    │   └── form-behavior-tests
+    ├── type-safe-api-client
+    │   ├── endpoint-contracts
+    │   ├── request-builders
+    │   ├── runtime-response-validation
+    │   ├── discriminated-errors
+    │   ├── cancellation-and-retries
+    │   ├── client-type-tests
+    │   └── packaged-consumer-fixtures
+    ├── validated-rest-service
+    │   ├── request-schemas
+    │   ├── domain-types
+    │   ├── route-contracts
+    │   ├── persistence-adapters
+    │   ├── error-mapping
+    │   ├── integration-tests
+    │   └── separate-runtime-and-typecheck-gates
+    ├── graphql-contract-client
+    │   ├── schema-input
+    │   ├── operation-generation
+    │   ├── custom-scalar-mapping
+    │   ├── nullable-result-modeling
+    │   ├── fragment-contracts
+    │   ├── runtime-response-boundaries
+    │   └── generated-code-drift-checks
+    ├── react-component-library
+    │   ├── generic-component-props
+    │   ├── discriminated-variants
+    │   ├── native-prop-composition
+    │   ├── ref-contracts
+    │   ├── component-type-tests
+    │   ├── runtime-interaction-tests
+    │   └── declaration-publication
+    ├── cross-runtime-sdk
+    │   ├── portable-public-api
+    │   ├── platform-adapters
+    │   ├── runtime-feature-validation
+    │   ├── esm-entrypoints
+    │   ├── declaration-output
+    │   ├── node-and-browser-consumers
+    │   └── compatibility-matrix
+    ├── shared-contract-monorepo
+    │   ├── workspace-boundaries
+    │   ├── contract-package
+    │   ├── project-references
+    │   ├── conditional-package-exports
+    │   ├── frontend-and-backend-consumers
+    │   ├── contract-evolution-tests
+    │   └── incremental-ci
+    ├── plugin-platform
+    │   ├── plugin-definition-contract
+    │   ├── capability-registry
+    │   ├── extension-point-typing
+    │   ├── dependency-registration
+    │   ├── lifecycle-contracts
+    │   ├── runtime-plugin-validation
+    │   └── plugin-consumer-tests
+    ├── async-data-pipeline
+    │   ├── source-schema
+    │   ├── typed-transform-stages
+    │   ├── async-iterable-processing
+    │   ├── result-based-errors
+    │   ├── cancellation-and-disposal
+    │   ├── stream-boundary-validation
+    │   └── throughput-and-correctness-tests
+    ├── javascript-to-typescript-migration
+    │   ├── baseline-behavior-tests
+    │   ├── checked-javascript-phase
+    │   ├── boundary-typing
+    │   ├── file-conversion
+    │   ├── strictness-increments
+    │   ├── assertion-debt-reduction
+    │   └── before-and-after-validation
+    ├── compiler-codemod
+    │   ├── compiler-api-version-baseline
+    │   ├── source-and-symbol-analysis
+    │   ├── safe-transformation
+    │   ├── dry-run-diff
+    │   ├── idempotence-tests
+    │   ├── transformed-project-typecheck
+    │   └── migration-report
+    ├── typecheck-performance-lab
+    │   ├── slow-type-reproductions
+    │   ├── compiler-metric-baseline
+    │   ├── trace-analysis
+    │   ├── alternative-type-designs
+    │   ├── project-graph-improvements
+    │   ├── consumer-regression-tests
+    │   └── benchmark-report
+    └── end-to-end-typescript-capstone
+        ├── requirements-and-domain-model
+        ├── shared-api-contracts
+        ├── runtime-validation
+        ├── typed-frontend
+        ├── typed-backend
+        ├── public-package-output
+        ├── type-and-runtime-test-suites
+        ├── build-and-ci-pipeline
+        ├── compatibility-and-security-review
+        └── results-and-retrospective

@@ -1,0 +1,2583 @@
+module
+├── foundation
+│   ├── javascript-overview
+│   │   ├── javascript-and-ecmascript
+│   │   ├── language-and-runtime
+│   │   ├── browser-and-server
+│   │   ├── use-cases-and-tradeoffs
+│   │   ├── javascript-and-java
+│   │   ├── javascript-and-typescript
+│   │   └── learning-path
+│   ├── environment-setup
+│   │   ├── browser-developer-tools
+│   │   ├── code-editor
+│   │   ├── local-development-server
+│   │   ├── command-line-runtime
+│   │   ├── source-files-and-project-layout
+│   │   ├── first-script
+│   │   └── first-interactive-page
+│   ├── programming-mental-model
+│   │   ├── source-code-and-execution
+│   │   ├── expressions-and-statements
+│   │   ├── values-and-bindings
+│   │   ├── state-and-side-effects
+│   │   ├── input-processing-output
+│   │   ├── synchronous-and-asynchronous-work
+│   │   └── errors-and-observations
+│   ├── platform-boundaries
+│   │   ├── ecmascript-built-ins
+│   │   ├── host-provided-apis
+│   │   ├── dom-and-web-apis
+│   │   ├── server-runtime-apis
+│   │   ├── framework-and-library-apis
+│   │   ├── globals-by-environment
+│   │   └── shared-and-platform-specific-code
+│   ├── development-workflow
+│   │   ├── edit-run-inspect
+│   │   ├── minimal-reproductions
+│   │   ├── console-experiments
+│   │   ├── breakpoints-and-step-execution
+│   │   ├── assertions-and-tests
+│   │   ├── version-control
+│   │   └── feedback-and-refactoring
+│   ├── documentation-and-evidence
+│   │   ├── mdn-guide-and-reference
+│   │   ├── specification-navigation
+│   │   ├── api-signatures-and-examples
+│   │   ├── compatibility-tables
+│   │   ├── feature-detection
+│   │   ├── reproducible-experiments
+│   │   └── standards-and-implementation-differences
+│   └── cross-language-orientation
+│       ├── dynamic-and-static-typing
+│       ├── prototype-and-class-models
+│       ├── value-passing-and-object-sharing
+│       ├── truthiness-and-coercion
+│       ├── exceptions-and-promise-rejections
+│       ├── modules-and-packages
+│       └── browser-security-boundaries
+├── syntax-bindings-and-control-flow
+│   ├── lexical-grammar
+│   │   ├── identifiers-and-reserved-words
+│   │   ├── unicode-identifiers
+│   │   ├── comments-and-documentation
+│   │   ├── whitespace-and-line-terminators
+│   │   ├── literals-and-tokens
+│   │   ├── expression-and-statement-context
+│   │   └── automatic-semicolon-insertion
+│   ├── variable-declarations
+│   │   ├── let-bindings
+│   │   ├── const-bindings
+│   │   ├── var-bindings
+│   │   ├── declaration-and-initialization
+│   │   ├── reassignment-and-mutation
+│   │   ├── redeclaration-rules
+│   │   ├── destructuring-declarations
+│   │   └── global-binding-pitfalls
+│   ├── expression-evaluation
+│   │   ├── operator-precedence
+│   │   ├── associativity
+│   │   ├── evaluation-order
+│   │   ├── short-circuit-evaluation
+│   │   ├── side-effect-order
+│   │   ├── parentheses-and-grouping
+│   │   ├── comma-operator
+│   │   └── expression-results
+│   ├── operators
+│   │   ├── arithmetic-and-exponentiation
+│   │   ├── assignment-and-compound-assignment
+│   │   ├── comparison-and-equality
+│   │   ├── logical-and-or-not
+│   │   ├── logical-assignment
+│   │   ├── conditional-operator
+│   │   ├── optional-chaining
+│   │   ├── nullish-coalescing
+│   │   └── delete-and-void-operators
+│   ├── destructuring-and-spread
+│   │   ├── array-destructuring
+│   │   ├── object-destructuring
+│   │   ├── renamed-bindings
+│   │   ├── default-values
+│   │   ├── nested-patterns
+│   │   ├── rest-elements
+│   │   ├── object-rest
+│   │   └── array-and-object-spread
+│   ├── conditional-control-flow
+│   │   ├── if-and-else
+│   │   ├── switch-and-case
+│   │   ├── switch-fallthrough
+│   │   ├── guard-clauses
+│   │   ├── conditional-expressions
+│   │   ├── truthy-condition-pitfalls
+│   │   └── exhaustive-case-design
+│   ├── loop-constructs
+│   │   ├── for-loops
+│   │   ├── while-loops
+│   │   ├── do-while-loops
+│   │   ├── for-of-loops
+│   │   ├── for-in-loops
+│   │   ├── nested-loops
+│   │   ├── loop-variable-bindings
+│   │   └── termination-conditions
+│   ├── control-transfer
+│   │   ├── break-statements
+│   │   ├── continue-statements
+│   │   ├── labeled-statements
+│   │   ├── early-return
+│   │   ├── loop-cleanup
+│   │   ├── unreachable-code
+│   │   └── fallthrough-and-missing-return
+│   └── strict-mode-and-script-semantics
+│       ├── strict-directives
+│       ├── module-strictness
+│       ├── accidental-globals
+│       ├── restricted-syntax
+│       ├── silent-failure-differences
+│       ├── strict-function-semantics
+│       └── legacy-sloppy-code-recognition
+├── values-types-and-coercion
+│   ├── language-types
+│   │   ├── undefined
+│   │   ├── null
+│   │   ├── boolean
+│   │   ├── number
+│   │   ├── bigint
+│   │   ├── string
+│   │   ├── symbol
+│   │   └── object
+│   ├── dynamic-typing
+│   │   ├── values-have-types
+│   │   ├── bindings-can-change-types
+│   │   ├── runtime-type-observation
+│   │   ├── primitive-immutability
+│   │   ├── object-mutability
+│   │   ├── primitive-and-wrapper-objects
+│   │   └── property-access-on-primitives
+│   ├── type-inspection
+│   │   ├── typeof-operator
+│   │   ├── typeof-null-pitfall
+│   │   ├── array-is-array
+│   │   ├── instanceof-boundaries
+│   │   ├── object-to-string-tags
+│   │   ├── cross-realm-values
+│   │   └── callable-and-iterable-detection
+│   ├── conversion-rules
+│   │   ├── to-primitive-conversion
+│   │   ├── string-conversion
+│   │   ├── number-conversion
+│   │   ├── boolean-conversion
+│   │   ├── bigint-conversion
+│   │   ├── property-key-conversion
+│   │   └── explicit-and-implicit-conversion
+│   ├── truthiness-and-defaults
+│   │   ├── falsy-values
+│   │   ├── truthy-objects
+│   │   ├── empty-array-and-object-conditions
+│   │   ├── nullish-and-falsy-differences
+│   │   ├── default-parameter-semantics
+│   │   ├── destructuring-default-semantics
+│   │   └── preserving-zero-and-empty-string
+│   ├── equality-and-identity
+│   │   ├── strict-equality
+│   │   ├── loose-equality
+│   │   ├── object-is
+│   │   ├── same-value-zero
+│   │   ├── reference-identity
+│   │   ├── nan-comparison
+│   │   ├── positive-and-negative-zero
+│   │   └── value-equality-design
+│   ├── value-passing-and-aliasing
+│   │   ├── argument-value-copying
+│   │   ├── shared-object-references
+│   │   ├── reassignment-versus-mutation
+│   │   ├── nested-aliasing
+│   │   ├── shallow-copy-boundaries
+│   │   ├── immutable-update-patterns
+│   │   └── ownership-and-defensive-copying
+│   ├── nullability-and-absence
+│   │   ├── null-versus-undefined
+│   │   ├── missing-versus-undefined-properties
+│   │   ├── absent-arguments
+│   │   ├── optional-object-paths
+│   │   ├── nullish-guards
+│   │   ├── sentinel-values
+│   │   └── empty-and-invalid-values
+│   └── coercion-edge-cases
+│       ├── addition-and-concatenation
+│       ├── relational-comparison
+│       ├── chained-comparisons
+│       ├── array-to-string-conversion
+│       ├── numeric-string-whitespace
+│       ├── symbol-conversion-errors
+│       ├── mixed-bigint-and-number
+│       └── safe-input-conversion
+├── numbers-text-and-regular-expressions
+│   ├── number-semantics
+│   │   ├── ieee-754-floating-point
+│   │   ├── integer-and-fraction-representation
+│   │   ├── safe-integer-range
+│   │   ├── numeric-precision
+│   │   ├── nan-and-infinity
+│   │   ├── negative-zero
+│   │   ├── overflow-and-underflow
+│   │   └── epsilon-and-tolerances
+│   ├── numeric-parsing-and-formatting
+│   │   ├── number-constructor
+│   │   ├── parse-int-and-radix
+│   │   ├── parse-float
+│   │   ├── numeric-separators
+│   │   ├── binary-octal-and-hex
+│   │   ├── is-finite-and-is-nan
+│   │   ├── to-fixed-and-to-precision
+│   │   └── parsing-versus-validation
+│   ├── arithmetic-and-math
+│   │   ├── rounding-and-truncation
+│   │   ├── floor-and-ceil
+│   │   ├── min-max-and-clamping
+│   │   ├── powers-and-roots
+│   │   ├── logarithms-and-trigonometry
+│   │   ├── remainder-and-modulo
+│   │   ├── random-sampling
+│   │   └── non-cryptographic-randomness
+│   ├── bigint-and-domain-numbers
+│   │   ├── bigint-literals
+│   │   ├── conversion-boundaries
+│   │   ├── mixed-numeric-operations
+│   │   ├── integer-division
+│   │   ├── arbitrary-precision-counting
+│   │   ├── serialization-policies
+│   │   ├── monetary-precision-strategies
+│   │   └── decimal-library-boundaries
+│   ├── string-basics
+│   │   ├── quote-styles-and-escapes
+│   │   ├── template-literals
+│   │   ├── interpolation
+│   │   ├── string-immutability
+│   │   ├── indexing-and-length
+│   │   ├── concatenation-and-joining
+│   │   ├── substring-and-slicing
+│   │   ├── searching-and-replacing
+│   │   └── trimming-and-padding
+│   ├── unicode-and-text-processing
+│   │   ├── utf-16-code-units
+│   │   ├── code-points-and-surrogates
+│   │   ├── grapheme-clusters
+│   │   ├── unicode-normalization
+│   │   ├── locale-sensitive-case-conversion
+│   │   ├── well-formed-strings
+│   │   ├── unicode-iteration
+│   │   ├── user-visible-length
+│   │   └── text-encoding-boundaries
+│   ├── regular-expressions
+│   │   ├── pattern-construction
+│   │   │   ├── regex-literals
+│   │   │   ├── regexp-constructor
+│   │   │   ├── dynamic-pattern-escaping
+│   │   │   ├── regexp-escape
+│   │   │   └── syntax-errors-and-validation
+│   │   ├── matching-grammar
+│   │   │   ├── character-classes
+│   │   │   ├── quantifiers
+│   │   │   ├── groups-and-alternation
+│   │   │   ├── anchors-and-boundaries
+│   │   │   ├── named-capture-groups
+│   │   │   ├── backreferences
+│   │   │   └── lookahead-and-lookbehind
+│   │   ├── flags-and-unicode
+│   │   │   ├── global-and-sticky
+│   │   │   ├── ignore-case-and-multiline
+│   │   │   ├── dot-all
+│   │   │   ├── unicode-mode
+│   │   │   ├── unicode-sets-mode
+│   │   │   ├── unicode-property-escapes
+│   │   │   ├── match-indices
+│   │   │   └── inline-modifiers
+│   │   ├── matching-apis
+│   │   │   ├── test-and-exec
+│   │   │   ├── match-and-match-all
+│   │   │   ├── search-and-replace
+│   │   │   ├── replacement-callbacks
+│   │   │   ├── split-with-patterns
+│   │   │   ├── last-index-state
+│   │   │   └── zero-width-matches
+│   │   └── practical-patterns
+│   │       ├── token-extraction
+│   │       ├── structured-text-search
+│   │       ├── log-line-parsing
+│   │       ├── input-format-checking
+│   │       ├── redos-awareness
+│   │       └── readability-and-maintenance
+│   ├── binary-and-bitwise-numbers
+│   │   ├── signed-32-bit-coercion
+│   │   ├── bitwise-and-or-xor
+│   │   ├── shifts-and-masks
+│   │   ├── unsigned-right-shift
+│   │   ├── bigint-bitwise-operations
+│   │   ├── flags-and-bit-fields
+│   │   └── binary-representation-inspection
+│   └── text-serialization
+│       ├── json-grammar
+│       ├── json-parse-and-stringify
+│       ├── reviver-and-replacer
+│       ├── reviver-source-context
+│       ├── raw-json-values
+│       ├── custom-to-json
+│       ├── unsupported-json-values
+│       ├── circular-reference-errors
+│       ├── bigint-and-json
+│       └── roundtrip-limitations
+├── date-time-and-internationalization
+│   ├── date-and-time-models
+│   │   ├── instants-and-wall-clock-time
+│   │   ├── utc-and-offsets
+│   │   ├── named-time-zones
+│   │   ├── calendar-dates
+│   │   ├── durations-and-intervals
+│   │   ├── daylight-saving-transitions
+│   │   ├── ambiguous-and-nonexistent-times
+│   │   └── clocks-and-monotonic-time
+│   ├── date-object
+│   │   ├── timestamps-and-epoch
+│   │   ├── constructors-and-parsing
+│   │   ├── utc-and-local-accessors
+│   │   ├── zero-based-months
+│   │   ├── invalid-dates
+│   │   ├── date-mutation
+│   │   ├── iso-serialization
+│   │   └── parsing-portability
+│   ├── date-calculation
+│   │   ├── date-comparison
+│   │   ├── elapsed-time
+│   │   ├── calendar-arithmetic
+│   │   ├── time-zone-conversion
+│   │   ├── boundary-crossings
+│   │   ├── leap-years
+│   │   ├── scheduling-pitfalls
+│   │   └── deterministic-time-tests
+│   ├── temporal
+│   │   ├── runtime-support-and-polyfills
+│   │   ├── instant
+│   │   ├── plain-date-and-plain-time
+│   │   ├── plain-date-time
+│   │   ├── zoned-date-time
+│   │   ├── duration
+│   │   ├── plain-year-month-and-month-day
+│   │   ├── calendar-and-time-zone-options
+│   │   ├── arithmetic-and-rounding
+│   │   └── migration-from-date
+│   ├── intl-fundamentals
+│   │   ├── locales-and-language-tags
+│   │   ├── locale-negotiation
+│   │   ├── unicode-locale-extensions
+│   │   ├── options-and-resolved-options
+│   │   ├── supported-locales
+│   │   ├── formatter-reuse
+│   │   └── locale-data-and-runtime-differences
+│   ├── intl-formatters
+│   │   ├── number-format
+│   │   ├── date-time-format
+│   │   ├── relative-time-format
+│   │   ├── list-format
+│   │   ├── plural-rules
+│   │   ├── collator
+│   │   ├── display-names
+│   │   ├── segmenter
+│   │   └── duration-format
+│   └── localized-applications
+│       ├── message-catalogs
+│       ├── interpolation-and-plurals
+│       ├── currency-and-unit-display
+│       ├── user-time-zone-preferences
+│       ├── bidirectional-text-context
+│       ├── locale-aware-sorting
+│       ├── localized-input-validation
+│       └── translation-fallbacks
+├── functions-scope-and-closures
+│   ├── function-forms
+│   │   ├── function-declarations
+│   │   ├── function-expressions
+│   │   ├── named-function-expressions
+│   │   ├── arrow-functions
+│   │   ├── method-definitions
+│   │   ├── immediately-invoked-functions
+│   │   └── function-values-and-identity
+│   ├── parameters-and-returns
+│   │   ├── positional-arguments
+│   │   ├── omitted-and-extra-arguments
+│   │   ├── default-parameters
+│   │   ├── rest-parameters
+│   │   ├── destructured-parameters
+│   │   ├── arguments-object
+│   │   ├── return-values
+│   │   └── implicit-undefined-return
+│   ├── invocation-and-this
+│   │   ├── plain-function-calls
+│   │   ├── method-calls
+│   │   ├── constructor-calls
+│   │   ├── explicit-call-and-apply
+│   │   ├── bind-and-bound-functions
+│   │   ├── lexical-this
+│   │   ├── detached-methods
+│   │   ├── callback-this-loss
+│   │   └── strict-and-sloppy-this
+│   ├── lexical-scope
+│   │   ├── global-scope
+│   │   ├── module-scope
+│   │   ├── function-scope
+│   │   ├── block-scope
+│   │   ├── scope-chain
+│   │   ├── lexical-versus-dynamic-scope
+│   │   ├── name-shadowing
+│   │   └── variable-lifetime
+│   ├── declaration-initialization
+│   │   ├── hoisting-mental-model
+│   │   ├── var-initialization
+│   │   ├── lexical-binding-initialization
+│   │   ├── temporal-dead-zone
+│   │   ├── function-declaration-initialization
+│   │   ├── class-declaration-initialization
+│   │   ├── parameter-scope
+│   │   └── loop-binding-capture
+│   ├── closures
+│   │   ├── captured-bindings
+│   │   ├── persistent-private-state
+│   │   ├── closure-factories
+│   │   ├── loop-closure-pitfalls
+│   │   ├── stale-captured-values
+│   │   ├── closure-based-encapsulation
+│   │   ├── cleanup-and-retained-references
+│   │   └── closure-debugging
+│   ├── higher-order-functions
+│   │   ├── functions-as-arguments
+│   │   ├── functions-as-results
+│   │   ├── callback-contracts
+│   │   ├── function-composition
+│   │   ├── partial-application
+│   │   ├── currying
+│   │   ├── method-borrowing
+│   │   └── dependency-injection-through-functions
+│   ├── functional-programming
+│   │   ├── pure-functions
+│   │   ├── referential-transparency
+│   │   ├── side-effect-boundaries
+│   │   ├── immutable-data-transformations
+│   │   ├── predicates-and-comparators
+│   │   ├── reducers-and-folds
+│   │   ├── point-free-readability
+│   │   └── functional-core-imperative-shell
+│   ├── recursion
+│   │   ├── base-and-recursive-cases
+│   │   ├── call-stack-growth
+│   │   ├── tree-recursion
+│   │   ├── mutual-recursion
+│   │   ├── accumulator-patterns
+│   │   ├── memoized-recursion
+│   │   ├── stack-safe-iteration
+│   │   └── tail-call-support-boundaries
+│   └── reusable-function-patterns
+│       ├── debounce
+│       ├── throttle
+│       ├── once
+│       ├── memoize
+│       ├── retry-wrapper
+│       ├── argument-validation
+│       ├── wrapper-this-preservation
+│       └── cache-invalidation
+├── objects-and-property-model
+│   ├── object-creation
+│   │   ├── object-literals
+│   │   ├── computed-property-names
+│   │   ├── property-shorthand
+│   │   ├── method-shorthand
+│   │   ├── factory-functions
+│   │   ├── object-create
+│   │   └── null-prototype-objects
+│   ├── property-access
+│   │   ├── dot-and-bracket-access
+│   │   ├── property-keys
+│   │   ├── string-and-symbol-properties
+│   │   ├── optional-access
+│   │   ├── property-existence
+│   │   ├── object-has-own
+│   │   ├── in-operator
+│   │   └── missing-and-undefined-values
+│   ├── property-descriptors
+│   │   ├── data-descriptors
+│   │   ├── accessor-descriptors
+│   │   ├── writable-enumerable-configurable
+│   │   ├── object-define-property
+│   │   ├── object-define-properties
+│   │   ├── descriptor-defaults
+│   │   ├── redefining-properties
+│   │   └── descriptor-inspection
+│   ├── getters-and-setters
+│   │   ├── accessor-syntax
+│   │   ├── computed-properties
+│   │   ├── validation-in-setters
+│   │   ├── receiver-and-this
+│   │   ├── recursive-accessor-pitfalls
+│   │   ├── accessor-side-effects
+│   │   └── accessors-and-serialization
+│   ├── enumeration-and-order
+│   │   ├── object-keys
+│   │   ├── object-values
+│   │   ├── object-entries
+│   │   ├── own-property-names
+│   │   ├── own-property-symbols
+│   │   ├── reflect-own-keys
+│   │   ├── for-in-and-inheritance
+│   │   └── property-order-rules
+│   ├── copying-and-merging
+│   │   ├── object-assign
+│   │   ├── object-spread
+│   │   ├── descriptor-preserving-copy
+│   │   ├── shallow-and-deep-copy
+│   │   ├── structured-clone
+│   │   ├── merge-conflicts
+│   │   ├── getters-during-copy
+│   │   └── prototype-preservation
+│   ├── object-integrity
+│   │   ├── prevent-extensions
+│   │   ├── seal
+│   │   ├── freeze
+│   │   ├── integrity-inspection
+│   │   ├── shallow-freeze-limitations
+│   │   ├── nested-immutability
+│   │   ├── mutation-error-behavior
+│   │   └── immutable-public-contracts
+│   ├── object-data-models
+│   │   ├── dictionary-and-record-usage
+│   │   ├── nested-entity-models
+│   │   ├── identity-and-lifecycle
+│   │   ├── normalized-relations
+│   │   ├── schema-validation
+│   │   ├── object-to-map-tradeoffs
+│   │   ├── safe-untrusted-keys
+│   │   └── default-value-factories
+│   └── serialization-and-cloning-boundaries
+│       ├── reference-sharing-loss
+│       ├── cyclic-graphs
+│       ├── non-enumerable-properties
+│       ├── symbols-and-functions
+│       ├── custom-prototypes
+│       ├── transferable-values
+│       ├── structured-clone-errors
+│       └── serialization-versioning
+├── prototypes-classes-and-object-oriented-design
+│   ├── prototype-model
+│   │   ├── own-and-inherited-properties
+│   │   ├── prototype-chain
+│   │   ├── property-lookup
+│   │   ├── shadowing-inherited-properties
+│   │   ├── object-get-prototype-of
+│   │   ├── object-set-prototype-of
+│   │   ├── prototype-versus-prototype-property
+│   │   └── null-prototype-chain
+│   ├── constructor-functions
+│   │   ├── new-operator
+│   │   ├── constructor-prototype-link
+│   │   ├── instance-initialization
+│   │   ├── explicit-object-returns
+│   │   ├── new-target
+│   │   ├── calling-without-new
+│   │   ├── shared-prototype-methods
+│   │   └── constructor-property-limitations
+│   ├── class-basics
+│   │   ├── declarations-and-expressions
+│   │   ├── constructor-method
+│   │   ├── instance-methods
+│   │   ├── instance-fields
+│   │   ├── static-methods
+│   │   ├── static-fields
+│   │   ├── static-initialization-blocks
+│   │   └── class-evaluation-order
+│   ├── encapsulation
+│   │   ├── public-properties
+│   │   ├── private-fields
+│   │   ├── private-methods
+│   │   ├── private-accessors
+│   │   ├── private-brand-checks
+│   │   ├── closure-based-privacy
+│   │   ├── weakmap-based-privacy
+│   │   └── reflection-boundaries
+│   ├── inheritance-and-super
+│   │   ├── extends
+│   │   ├── super-constructor
+│   │   ├── super-method-calls
+│   │   ├── derived-constructor-rules
+│   │   ├── field-initialization-order
+│   │   ├── static-inheritance
+│   │   ├── method-overriding
+│   │   └── built-in-subclassing-limitations
+│   ├── polymorphism-and-composition
+│   │   ├── duck-typing
+│   │   ├── behavioral-contracts
+│   │   ├── strategy-objects
+│   │   ├── delegation
+│   │   ├── object-composition
+│   │   ├── mixins-and-collisions
+│   │   ├── dependency-injection
+│   │   └── composition-over-inheritance
+│   ├── object-oriented-design
+│   │   ├── entity-and-value-object-design
+│   │   ├── invariant-enforcement
+│   │   ├── cohesion-and-coupling
+│   │   ├── responsibility-boundaries
+│   │   ├── lifecycle-and-ownership
+│   │   ├── immutable-domain-objects
+│   │   └── avoiding-shared-mutable-state
+│   └── class-pitfalls-and-interop
+│       ├── unbound-instance-methods
+│       ├── arrow-fields-and-prototype-methods
+│       ├── cross-realm-instanceof
+│       ├── custom-has-instance
+│       ├── private-fields-and-proxies
+│       ├── inheritance-fragility
+│       └── prototype-mutation-risks
+├── arrays-collections-and-data-processing
+│   ├── array-model
+│   │   ├── array-literals
+│   │   ├── array-construction
+│   │   ├── array-from-and-of
+│   │   ├── length-property
+│   │   ├── array-index-properties
+│   │   ├── dense-and-sparse-arrays
+│   │   ├── holes-versus-undefined
+│   │   ├── array-like-objects
+│   │   └── array-is-array
+│   ├── array-access-and-mutation
+│   │   ├── indexing-and-at
+│   │   ├── push-pop-shift-unshift
+│   │   ├── splice-and-slice
+│   │   ├── fill-and-copy-within
+│   │   ├── concatenation-and-spread
+│   │   ├── reverse-and-sort
+│   │   ├── length-truncation
+│   │   └── mutation-during-iteration
+│   ├── array-transformation
+│   │   ├── map
+│   │   ├── filter
+│   │   ├── flat-and-flat-map
+│   │   ├── reduce-and-reduce-right
+│   │   ├── find-and-find-index
+│   │   ├── find-last-and-find-last-index
+│   │   ├── some-and-every
+│   │   └── includes-and-index-of
+│   ├── immutable-array-operations
+│   │   ├── to-sorted
+│   │   ├── to-reversed
+│   │   ├── to-spliced
+│   │   ├── array-with
+│   │   ├── copying-versus-sharing
+│   │   ├── stable-sorting
+│   │   ├── comparator-correctness
+│   │   └── sparse-array-behavior
+│   ├── maps
+│   │   ├── map-construction
+│   │   ├── arbitrary-key-types
+│   │   ├── key-identity
+│   │   ├── insertion-order
+│   │   ├── get-set-has-delete
+│   │   ├── map-iteration
+│   │   ├── object-and-map-conversion
+│   │   └── map-group-by
+│   ├── sets
+│   │   ├── set-construction
+│   │   ├── uniqueness-and-equality
+│   │   ├── membership-tests
+│   │   ├── insertion-order
+│   │   ├── union-and-intersection
+│   │   ├── difference-and-symmetric-difference
+│   │   ├── subset-and-superset
+│   │   ├── disjointness-checks
+│   │   └── deduplication-patterns
+│   ├── weak-collections
+│   │   ├── weakmap-keys
+│   │   ├── weakset-values
+│   │   ├── weak-reference-semantics
+│   │   ├── non-enumerability
+│   │   ├── object-metadata
+│   │   ├── private-associations
+│   │   ├── caching-without-retention
+│   │   └── weak-collection-limitations
+│   ├── grouping-and-aggregation
+│   │   ├── object-group-by
+│   │   ├── grouping-by-composite-keys
+│   │   ├── indexing-by-identifier
+│   │   ├── counting-and-frequency-tables
+│   │   ├── summation-and-statistics
+│   │   ├── pivoting-data
+│   │   ├── joins-and-lookups
+│   │   └── partitioning-and-bucketing
+│   ├── collection-pipelines
+│   │   ├── transformation-composition
+│   │   ├── single-pass-processing
+│   │   ├── eager-and-lazy-tradeoffs
+│   │   ├── sorting-and-pagination
+│   │   ├── flattening-nested-data
+│   │   ├── stable-data-order
+│   │   ├── empty-input-handling
+│   │   └── large-collection-limits
+│   └── data-integrity
+│       ├── deep-and-shallow-equality
+│       ├── cloning-and-reference-sharing
+│       ├── deterministic-comparators
+│       ├── duplicate-key-policy
+│       ├── sparse-array-surprises
+│       ├── collection-serialization
+│       └── object-key-safety
+├── iterators-generators-and-lazy-evaluation
+│   ├── iterable-protocol
+│   │   ├── symbol-iterator
+│   │   ├── built-in-iterables
+│   │   ├── custom-iterables
+│   │   ├── iterable-versus-array-like
+│   │   ├── for-of-consumption
+│   │   ├── spread-and-destructuring
+│   │   └── single-use-and-repeatable-iteration
+│   ├── iterator-protocol
+│   │   ├── next-and-result-objects
+│   │   ├── value-and-done
+│   │   ├── return-and-cleanup
+│   │   ├── throw-and-error-forwarding
+│   │   ├── iterator-state
+│   │   ├── invalid-protocol-results
+│   │   └── early-termination
+│   ├── generator-functions
+│   │   ├── generator-declaration
+│   │   ├── generator-expressions
+│   │   ├── yield-and-resume
+│   │   ├── next-input-values
+│   │   ├── generator-return-values
+│   │   ├── suspended-execution
+│   │   └── generator-methods
+│   ├── generator-control-flow
+│   │   ├── yield-delegation
+│   │   ├── nested-generators
+│   │   ├── try-catch-around-yield
+│   │   ├── finally-and-early-return
+│   │   ├── generator-throw
+│   │   ├── generator-return
+│   │   └── delegation-error-handling
+│   ├── iterator-helpers
+│   │   ├── iterator-from
+│   │   ├── map-and-filter
+│   │   ├── take-and-drop
+│   │   ├── flat-map
+│   │   ├── reduce
+│   │   ├── some-every-and-find
+│   │   ├── to-array
+│   │   └── lazy-consumption-and-closing
+│   ├── asynchronous-iteration
+│   │   ├── symbol-async-iterator
+│   │   ├── async-generators
+│   │   ├── for-await-of
+│   │   ├── asynchronous-next-results
+│   │   ├── sequential-consumption
+│   │   ├── cancellation-and-cleanup
+│   │   └── sync-async-iterator-interoperability
+│   ├── lazy-data-processing
+│   │   ├── infinite-sequences
+│   │   ├── paginated-api-traversal
+│   │   ├── streaming-transformations
+│   │   ├── pull-based-consumption
+│   │   ├── bounded-memory-processing
+│   │   ├── short-circuiting
+│   │   └── producer-consumer-boundaries
+│   └── iteration-design-and-testing
+│       ├── traversal-order
+│       ├── resumable-state
+│       ├── resource-ownership
+│       ├── error-propagation
+│       ├── deterministic-fixtures
+│       ├── protocol-conformance
+│       └── eager-lazy-benchmarks
+├── modules-and-code-organization
+│   ├── module-fundamentals
+│   │   ├── script-versus-module
+│   │   ├── module-scope
+│   │   ├── automatic-strict-mode
+│   │   ├── module-identity
+│   │   ├── dependency-graphs
+│   │   ├── module-side-effects
+│   │   └── module-singletons
+│   ├── imports-and-exports
+│   │   ├── named-exports
+│   │   ├── default-exports
+│   │   ├── named-imports
+│   │   ├── namespace-imports
+│   │   ├── aliases
+│   │   ├── re-exports
+│   │   ├── side-effect-imports
+│   │   └── imported-binding-immutability
+│   ├── module-linking-and-evaluation
+│   │   ├── parsing-and-linking
+│   │   ├── live-bindings
+│   │   ├── module-instantiation
+│   │   ├── evaluation-order
+│   │   ├── cyclic-dependencies
+│   │   ├── initialization-hazards
+│   │   └── shared-module-state
+│   ├── dynamic-modules
+│   │   ├── dynamic-import
+│   │   ├── lazy-loading
+│   │   ├── conditional-loading
+│   │   ├── import-error-handling
+│   │   ├── module-namespace-objects
+│   │   ├── code-splitting-boundaries
+│   │   └── import-caching
+│   ├── asynchronous-modules
+│   │   ├── top-level-await
+│   │   ├── asynchronous-initialization
+│   │   ├── dependent-module-blocking
+│   │   ├── cyclic-async-dependencies
+│   │   ├── startup-failure-handling
+│   │   └── initialization-versus-request-work
+│   ├── browser-module-delivery
+│   │   ├── module-script-elements
+│   │   ├── url-based-specifiers
+│   │   ├── relative-and-absolute-imports
+│   │   ├── import-maps
+│   │   ├── mime-types
+│   │   ├── cors-requirements
+│   │   ├── module-preload
+│   │   └── import-meta-url
+│   ├── module-assets-and-attributes
+│   │   ├── import-attributes
+│   │   ├── json-module-support
+│   │   ├── host-specific-module-types
+│   │   ├── asset-url-construction
+│   │   ├── bundler-asset-conventions
+│   │   ├── runtime-support-checks
+│   │   └── unsupported-attribute-errors
+│   ├── commonjs-interoperability
+│   │   ├── require-and-module-exports
+│   │   ├── commonjs-loading-model
+│   │   ├── esm-commonjs-boundaries
+│   │   ├── default-and-named-interop
+│   │   ├── synchronous-asynchronous-loading
+│   │   ├── package-format-detection
+│   │   └── migration-tradeoffs
+│   ├── module-design
+│   │   ├── public-and-private-modules
+│   │   ├── feature-based-organization
+│   │   ├── layering-and-dependency-direction
+│   │   ├── explicit-initialization
+│   │   ├── dependency-injection
+│   │   ├── barrel-file-tradeoffs
+│   │   ├── circular-dependency-removal
+│   │   └── side-effect-isolation
+│   └── package-contracts
+│       ├── package-entry-points
+│       ├── package-exports
+│       ├── public-api-stability
+│       ├── runtime-targets
+│       ├── browser-and-server-conditions
+│       ├── source-and-build-output
+│       └── dependency-and-peer-dependency-boundaries
+├── execution-model-and-memory
+│   ├── runtime-components
+│   │   ├── source-parser
+│   │   ├── interpreter-and-compiler
+│   │   ├── runtime-built-ins
+│   │   ├── host-environment
+│   │   ├── execution-agents
+│   │   ├── realms
+│   │   ├── global-object-and-global-this
+│   │   └── intrinsic-objects
+│   ├── execution-contexts
+│   │   ├── call-stack
+│   │   ├── script-and-module-context
+│   │   ├── function-context
+│   │   ├── lexical-environments
+│   │   ├── variable-environments
+│   │   ├── binding-resolution
+│   │   ├── this-binding
+│   │   └── completion-records
+│   ├── browser-event-loop
+│   │   ├── tasks-and-task-sources
+│   │   ├── microtask-checkpoints
+│   │   ├── promise-jobs
+│   │   ├── run-to-completion
+│   │   ├── rendering-opportunities
+│   │   ├── timer-tasks
+│   │   ├── user-input-tasks
+│   │   └── task-source-ordering-limits
+│   ├── scheduling-behavior
+│   │   ├── queue-microtask
+│   │   ├── set-timeout
+│   │   ├── set-interval
+│   │   ├── request-animation-frame
+│   │   ├── idle-callbacks-and-support
+│   │   ├── scheduling-api-and-support
+│   │   ├── timer-clamping
+│   │   ├── background-tab-throttling
+│   │   └── microtask-starvation
+│   ├── runtime-comparisons
+│   │   ├── browser-and-node-event-loops
+│   │   ├── host-scheduling-differences
+│   │   ├── window-and-worker-contexts
+│   │   ├── realm-isolation
+│   │   ├── iframe-and-worker-boundaries
+│   │   └── engine-specific-diagnostics
+│   ├── memory-lifecycle
+│   │   ├── allocation-and-reachability
+│   │   ├── object-graphs
+│   │   ├── garbage-collection-roots
+│   │   ├── tracing-collection
+│   │   ├── generational-collection
+│   │   ├── engine-heap-and-stack
+│   │   ├── implementation-dependent-memory-layout
+│   │   └── non-deterministic-collection
+│   ├── memory-retention
+│   │   ├── accidental-globals
+│   │   ├── retained-closures
+│   │   ├── detached-dom-trees
+│   │   ├── forgotten-listeners
+│   │   ├── unbounded-caches
+│   │   ├── orphaned-timers
+│   │   ├── unresolved-operation-retention
+│   │   └── cyclic-references-and-reachability
+│   ├── weak-references-and-finalization
+│   │   ├── weakref-deref
+│   │   ├── finalization-registry
+│   │   ├── registration-and-unregistration
+│   │   ├── held-value-retention
+│   │   ├── collection-timing-uncertainty
+│   │   ├── finalizer-error-handling
+│   │   └── finalizers-not-for-critical-cleanup
+│   └── engine-optimization-models
+│       ├── parsing-and-bytecode
+│       ├── just-in-time-compilation
+│       ├── object-shapes
+│       ├── inline-caches
+│       ├── optimization-and-deoptimization
+│       ├── allocation-costs
+│       ├── engine-diversity
+│       └── measurement-over-assumptions
+├── asynchronous-programming
+│   ├── asynchronous-foundations
+│   │   ├── blocking-and-non-blocking
+│   │   ├── concurrency-versus-parallelism
+│   │   ├── callbacks-and-continuations
+│   │   ├── host-io-and-events
+│   │   ├── operation-start-and-completion
+│   │   ├── asynchronous-state-machines
+│   │   └── ordering-guarantees
+│   ├── callbacks
+│   │   ├── callback-signatures
+│   │   ├── error-first-callbacks
+│   │   ├── continuation-passing
+│   │   ├── nested-callbacks
+│   │   ├── callback-invocation-count
+│   │   ├── synchronous-asynchronous-mixing
+│   │   └── callback-to-promise-adapters
+│   ├── promise-fundamentals
+│   │   ├── pending-fulfilled-rejected
+│   │   ├── settled-versus-resolved
+│   │   ├── promise-constructor
+│   │   ├── synchronous-executor
+│   │   ├── resolve-and-reject
+│   │   ├── thenable-assimilation
+│   │   ├── promise-identity
+│   │   └── single-settlement
+│   ├── promise-composition
+│   │   ├── then-chaining
+│   │   ├── return-value-propagation
+│   │   ├── returned-promise-adoption
+│   │   ├── catch-and-recovery
+│   │   ├── finally-and-cleanup
+│   │   ├── rejection-propagation
+│   │   ├── missing-return-pitfalls
+│   │   └── floating-promises
+│   ├── promise-utilities
+│   │   ├── promise-resolve
+│   │   ├── promise-reject
+│   │   ├── promise-all
+│   │   ├── promise-all-settled
+│   │   ├── promise-race
+│   │   ├── promise-any
+│   │   ├── promise-with-resolvers
+│   │   ├── promise-try
+│   │   └── aggregate-error-handling
+│   ├── async-and-await
+│   │   ├── async-function-return
+│   │   ├── await-expression
+│   │   ├── await-non-promise-values
+│   │   ├── try-catch-with-await
+│   │   ├── sequential-await
+│   │   ├── concurrent-start-and-join
+│   │   ├── async-arrow-functions
+│   │   └── async-methods
+│   ├── asynchronous-collections
+│   │   ├── async-map-and-promise-all
+│   │   ├── array-from-async
+│   │   ├── async-filter-design
+│   │   ├── async-reduce-tradeoffs
+│   │   ├── for-each-async-pitfalls
+│   │   ├── serial-iteration
+│   │   ├── bounded-concurrency
+│   │   ├── batching-and-chunking
+│   │   └── result-order-preservation
+│   ├── cancellation-and-timeouts
+│   │   ├── abort-controller
+│   │   ├── abort-signal
+│   │   ├── signal-reasons
+│   │   ├── signal-composition
+│   │   ├── timeout-signals
+│   │   ├── cooperative-cancellation
+│   │   ├── cleanup-on-abort
+│   │   └── timeout-versus-cancellation
+│   ├── coordination-and-resilience
+│   │   ├── concurrency-limits
+│   │   ├── task-queues
+│   │   ├── retry-and-backoff
+│   │   ├── jitter-and-retry-budgets
+│   │   ├── deduplication
+│   │   ├── single-flight
+│   │   ├── circuit-breaking-concepts
+│   │   └── deadline-propagation
+│   ├── races-and-state-consistency
+│   │   ├── stale-response-prevention
+│   │   ├── latest-request-wins
+│   │   ├── operation-identifiers
+│   │   ├── serialized-state-transitions
+│   │   ├── optimistic-update-rollback
+│   │   ├── cancellation-races
+│   │   ├── teardown-races
+│   │   └── shared-state-after-await
+│   └── asynchronous-api-design
+│       ├── promise-returning-contracts
+│       ├── consistent-error-channels
+│       ├── signal-propagation
+│       ├── progress-notifications
+│       ├── resource-lifecycle
+│       ├── idempotent-cleanup
+│       ├── synchronous-preconditions
+│       └── async-contract-tests
+├── errors-and-resource-management
+│   ├── error-fundamentals
+│   │   ├── throw-statements
+│   │   ├── error-objects
+│   │   ├── syntax-errors
+│   │   ├── reference-errors
+│   │   ├── type-errors
+│   │   ├── range-errors
+│   │   ├── uri-errors
+│   │   └── error-versus-arbitrary-thrown-value
+│   ├── handling-and-propagation
+│   │   ├── try-catch-finally
+│   │   ├── catch-binding
+│   │   ├── normal-and-abrupt-completion
+│   │   ├── rethrowing
+│   │   ├── boundary-level-handling
+│   │   ├── finally-return-pitfalls
+│   │   └── errors-in-cleanup
+│   ├── error-design
+│   │   ├── custom-error-classes
+│   │   ├── error-cause
+│   │   ├── aggregate-error
+│   │   ├── suppressed-error
+│   │   ├── machine-readable-codes
+│   │   ├── user-safe-messages
+│   │   └── context-and-sensitive-data
+│   ├── asynchronous-error-boundaries
+│   │   ├── callback-errors
+│   │   ├── promise-rejections
+│   │   ├── async-try-catch
+│   │   ├── unhandled-rejections
+│   │   ├── browser-error-events
+│   │   ├── worker-error-events
+│   │   ├── event-handler-errors
+│   │   └── last-resort-reporting
+│   ├── deterministic-cleanup
+│   │   ├── acquire-use-release
+│   │   ├── try-finally-cleanup
+│   │   ├── listener-removal
+│   │   ├── timer-cancellation
+│   │   ├── subscription-disposal
+│   │   ├── abort-on-teardown
+│   │   ├── idempotent-disposal
+│   │   └── resource-ownership
+│   ├── explicit-resource-management
+│   │   ├── using-declarations
+│   │   ├── await-using-declarations
+│   │   ├── symbol-dispose
+│   │   ├── symbol-async-dispose
+│   │   ├── block-scope-lifetimes
+│   │   ├── reverse-disposal-order
+│   │   ├── disposal-error-suppression
+│   │   └── runtime-support-and-transforms
+│   ├── disposable-stacks
+│   │   ├── disposable-stack
+│   │   ├── async-disposable-stack
+│   │   ├── use-adopt-and-defer
+│   │   ├── stack-move
+│   │   ├── disposing-multiple-resources
+│   │   ├── conditional-acquisition
+│   │   └── async-disposal-sequencing
+│   └── reliable-failure-models
+│       ├── recoverable-and-fatal-errors
+│       ├── fail-fast-validation
+│       ├── result-object-pattern
+│       ├── partial-success
+│       ├── rollback-and-compensation
+│       ├── retry-eligibility
+│       ├── timeout-reporting
+│       └── degraded-mode-behavior
+├── metaprogramming-and-reflection
+│   ├── symbols
+│   │   ├── unique-symbols
+│   │   ├── symbol-descriptions
+│   │   ├── global-symbol-registry
+│   │   ├── symbol-for-and-key-for
+│   │   ├── symbol-property-keys
+│   │   ├── symbol-visibility
+│   │   └── symbols-and-serialization
+│   ├── well-known-symbols
+│   │   ├── symbol-iterator
+│   │   ├── symbol-async-iterator
+│   │   ├── symbol-to-primitive
+│   │   ├── symbol-to-string-tag
+│   │   ├── symbol-has-instance
+│   │   ├── symbol-species
+│   │   ├── symbol-is-concat-spreadable
+│   │   └── regex-protocol-symbols
+│   ├── reflect-api
+│   │   ├── reflect-get-and-set
+│   │   ├── reflect-has
+│   │   ├── reflect-delete-property
+│   │   ├── reflect-define-property
+│   │   ├── reflect-own-keys
+│   │   ├── reflect-apply
+│   │   ├── reflect-construct
+│   │   └── prototype-and-extensibility-operations
+│   ├── proxy-fundamentals
+│   │   ├── target-and-handler
+│   │   ├── get-and-set-traps
+│   │   ├── has-and-delete-traps
+│   │   ├── own-keys-and-descriptor-traps
+│   │   ├── apply-and-construct-traps
+│   │   ├── revocable-proxies
+│   │   └── proxy-identity
+│   ├── proxy-invariants
+│   │   ├── non-configurable-properties
+│   │   ├── non-extensible-targets
+│   │   ├── receiver-forwarding
+│   │   ├── reflect-based-forwarding
+│   │   ├── recursive-trap-pitfalls
+│   │   ├── private-field-brand-checks
+│   │   └── built-in-internal-slot-limitations
+│   ├── metaprogramming-patterns
+│   │   ├── validation-proxies
+│   │   ├── access-observation
+│   │   ├── lazy-property-resolution
+│   │   ├── virtual-properties
+│   │   ├── method-interception
+│   │   ├── capability-restriction
+│   │   └── proxy-overhead-and-debuggability
+│   └── runtime-inspection-boundaries
+│       ├── property-and-prototype-inspection
+│       ├── function-name-and-length
+│       ├── function-source-inspection
+│       ├── runtime-contract-validation
+│       ├── eval-and-function-constructor-risks
+│       └── reflection-versus-static-analysis
+├── browser-platform-and-dom
+│   ├── browser-environment
+│   │   ├── window-and-document
+│   │   ├── navigator-and-location
+│   │   ├── browsing-contexts
+│   │   ├── origins-and-sites
+│   │   ├── secure-contexts
+│   │   ├── permissions-and-user-activation
+│   │   ├── same-origin-policy
+│   │   └── feature-detection
+│   ├── script-loading
+│   │   ├── classic-script-elements
+│   │   ├── inline-and-external-scripts
+│   │   ├── async-and-defer
+│   │   ├── module-script-behavior
+│   │   ├── parser-blocking
+│   │   ├── loading-and-execution-order
+│   │   ├── dom-content-loaded
+│   │   └── load-event
+│   ├── dom-tree-model
+│   │   ├── documents-elements-and-nodes
+│   │   ├── text-and-comment-nodes
+│   │   ├── parent-child-sibling-relations
+│   │   ├── live-and-static-collections
+│   │   ├── document-fragments
+│   │   ├── templates
+│   │   ├── dom-versus-html-source
+│   │   └── dom-versus-render-tree
+│   ├── querying-and-traversal
+│   │   ├── query-selector
+│   │   ├── query-selector-all
+│   │   ├── get-element-by-id
+│   │   ├── matches-and-closest
+│   │   ├── element-and-node-traversal
+│   │   ├── tree-walker
+│   │   ├── node-iterator
+│   │   └── selector-escaping
+│   ├── dom-mutation
+│   │   ├── create-element-and-text
+│   │   ├── append-prepend-and-insert
+│   │   ├── replace-and-remove
+│   │   ├── clone-node
+│   │   ├── adopt-and-import-nodes
+│   │   ├── text-content
+│   │   ├── safe-html-insertion
+│   │   └── batching-dom-changes
+│   ├── attributes-and-properties
+│   │   ├── get-set-remove-attribute
+│   │   ├── reflected-properties
+│   │   ├── boolean-attributes
+│   │   ├── dataset
+│   │   ├── class-list
+│   │   ├── style-properties
+│   │   ├── value-versus-attribute
+│   │   └── namespace-aware-attributes
+│   ├── css-and-layout-integration
+│   │   ├── computed-styles
+│   │   ├── css-custom-properties
+│   │   ├── stylesheet-access
+│   │   ├── element-dimensions
+│   │   ├── bounding-client-rect
+│   │   ├── scroll-metrics
+│   │   ├── match-media
+│   │   └── read-write-layout-separation
+│   ├── observers
+│   │   ├── mutation-observer
+│   │   ├── resize-observer
+│   │   ├── intersection-observer
+│   │   ├── observer-options
+│   │   ├── observation-lifecycle
+│   │   ├── callback-timing
+│   │   ├── disconnect-and-cleanup
+│   │   └── feedback-loop-prevention
+│   ├── navigation-and-page-lifecycle
+│   │   ├── location-and-url
+│   │   ├── history-pushstate-and-replacestate
+│   │   ├── popstate-and-hashchange
+│   │   ├── navigation-api-support
+│   │   ├── visibility-change
+│   │   ├── page-show-and-page-hide
+│   │   ├── bfcache-awareness
+│   │   └── reliable-page-teardown
+│   └── dom-advanced-topics
+│       ├── selection-and-ranges
+│       ├── dom-parser
+│       ├── xml-serializer
+│       ├── focus-and-active-element
+│       ├── inert-subtrees
+│       ├── iframe-access-boundaries
+│       ├── document-readiness
+│       └── mutation-record-analysis
+├── browser-events-forms-and-accessibility
+│   ├── event-model
+│   │   ├── event-target
+│   │   ├── event-objects
+│   │   ├── capture-target-bubble
+│   │   ├── target-and-current-target
+│   │   ├── composed-path
+│   │   ├── cancelable-events
+│   │   ├── default-actions
+│   │   └── trusted-and-synthetic-events
+│   ├── listener-management
+│   │   ├── add-event-listener
+│   │   ├── remove-event-listener
+│   │   ├── once-options
+│   │   ├── passive-options
+│   │   ├── capture-options
+│   │   ├── abort-signal-listeners
+│   │   ├── event-delegation
+│   │   └── duplicate-listener-prevention
+│   ├── propagation-and-defaults
+│   │   ├── stop-propagation
+│   │   ├── stop-immediate-propagation
+│   │   ├── prevent-default
+│   │   ├── passive-listener-limitations
+│   │   ├── nested-interactions
+│   │   ├── non-bubbling-events
+│   │   └── delegated-event-matching
+│   ├── input-events
+│   │   ├── click-and-pointer-events
+│   │   ├── mouse-events
+│   │   ├── touch-events
+│   │   ├── keyboard-events
+│   │   ├── composition-events
+│   │   ├── beforeinput-and-input
+│   │   ├── change-events
+│   │   └── focusin-and-focusout
+│   ├── custom-events
+│   │   ├── custom-event-construction
+│   │   ├── detail-payload
+│   │   ├── dispatch-event
+│   │   ├── synchronous-dispatch
+│   │   ├── bubbling-and-composed-options
+│   │   ├── event-contracts
+│   │   └── component-boundary-events
+│   ├── forms-and-controls
+│   │   ├── form-elements
+│   │   ├── control-values
+│   │   ├── checked-and-selected-state
+│   │   ├── form-data
+│   │   ├── submit-and-request-submit
+│   │   ├── submitter-and-button-behavior
+│   │   ├── reset-behavior
+│   │   └── disabled-and-readonly-controls
+│   ├── form-validation
+│   │   ├── constraint-validation
+│   │   ├── validity-state
+│   │   ├── check-validity
+│   │   ├── report-validity
+│   │   ├── custom-validity-messages
+│   │   ├── cross-field-validation
+│   │   ├── asynchronous-validation
+│   │   └── server-validation-boundaries
+│   ├── file-and-drag-interactions
+│   │   ├── file-inputs
+│   │   ├── multiple-file-selection
+│   │   ├── drag-and-drop
+│   │   ├── data-transfer
+│   │   ├── clipboard-events
+│   │   ├── paste-normalization
+│   │   ├── user-gesture-requirements
+│   │   └── file-type-validation-boundaries
+│   ├── accessible-interactions
+│   │   ├── semantic-controls
+│   │   ├── keyboard-operability
+│   │   ├── focus-order
+│   │   ├── focus-restoration
+│   │   ├── roving-tabindex
+│   │   ├── accessible-dialogs
+│   │   ├── aria-state-synchronization
+│   │   └── live-region-announcements
+│   └── inclusive-interaction-design
+│       ├── reduced-motion-preferences
+│       ├── accessible-error-messages
+│       ├── loading-and-busy-states
+│       ├── touch-and-pointer-parity
+│       ├── composition-aware-input
+│       ├── shortcut-conflicts
+│       ├── progressive-enhancement
+│       └── assistive-technology-testing
+├── networking-and-api-integration
+│   ├── http-and-url-foundations
+│   │   ├── request-response-model
+│   │   ├── methods-and-status-codes
+│   │   ├── headers-and-media-types
+│   │   ├── url-construction
+│   │   ├── url-search-params
+│   │   ├── percent-encoding
+│   │   ├── query-serialization
+│   │   └── origin-and-credential-context
+│   ├── fetch-fundamentals
+│   │   ├── request-and-response
+│   │   ├── headers-interface
+│   │   ├── fetch-options
+│   │   ├── get-and-post-request
+│   │   ├── json-and-form-bodies
+│   │   ├── response-body-readers
+│   │   ├── http-errors-versus-network-errors
+│   │   └── response-ok-and-status
+│   ├── fetch-lifecycle
+│   │   ├── headers-before-body
+│   │   ├── one-shot-body-consumption
+│   │   ├── body-used
+│   │   ├── clone-and-stream-tee
+│   │   ├── aborting-requests
+│   │   ├── timeout-policies
+│   │   ├── redirect-behavior
+│   │   └── keepalive-and-delivery-limits
+│   ├── cross-origin-requests
+│   │   ├── cors-and-preflight
+│   │   ├── allowed-methods-and-headers
+│   │   ├── credentialed-requests
+│   │   ├── opaque-responses
+│   │   ├── no-cors-limitations
+│   │   ├── cookie-samesite-interaction
+│   │   ├── server-policy-responsibility
+│   │   └── cors-error-diagnosis
+│   ├── api-client-design
+│   │   ├── endpoint-adapters
+│   │   ├── request-builders
+│   │   ├── response-validation
+│   │   ├── error-normalization
+│   │   ├── authentication-transport
+│   │   ├── pagination-and-cursors
+│   │   ├── retry-safe-operations
+│   │   └── cancellation-propagation
+│   ├── network-resilience
+│   │   ├── exponential-backoff
+│   │   ├── rate-limit-handling
+│   │   ├── retry-after
+│   │   ├── network-offline-detection
+│   │   ├── request-deduplication
+│   │   ├── cache-revalidation
+│   │   ├── stale-response-prevention
+│   │   └── partial-response-recovery
+│   ├── streaming-http
+│   │   ├── readable-response-bodies
+│   │   ├── incremental-text-decoding
+│   │   ├── newline-delimited-json
+│   │   ├── event-stream-parsing
+│   │   ├── progress-and-chunking
+│   │   ├── backpressure-aware-consumption
+│   │   ├── stream-cancellation
+│   │   └── streaming-error-boundaries
+│   ├── uploads-and-downloads
+│   │   ├── multipart-form-data
+│   │   ├── blob-and-file-payloads
+│   │   ├── content-type-boundaries
+│   │   ├── object-url-downloads
+│   │   ├── streaming-downloads
+│   │   ├── upload-progress-alternatives
+│   │   ├── resumable-transfer-contracts
+│   │   └── filename-sanitization
+│   ├── realtime-communication
+│   │   ├── websockets
+│   │   │   ├── connection-lifecycle
+│   │   │   ├── message-serialization
+│   │   │   ├── close-codes
+│   │   │   ├── heartbeat-contracts
+│   │   │   ├── reconnect-and-resubscribe
+│   │   │   ├── buffered-amount
+│   │   │   └── flow-control-limits
+│   │   ├── server-sent-events
+│   │   │   ├── event-source
+│   │   │   ├── event-types
+│   │   │   ├── event-identifiers
+│   │   │   ├── reconnection-behavior
+│   │   │   ├── credential-options
+│   │   │   └── streaming-fetch-alternatives
+│   │   └── protocol-selection
+│   │       ├── polling
+│   │       ├── long-polling
+│   │       ├── one-way-versus-two-way
+│   │       ├── ordering-and-delivery
+│   │       ├── authentication-and-expiry
+│   │       └── connection-budget
+│   ├── api-protocol-integration
+│   │   ├── rest-resources
+│   │   ├── graphql-requests-and-errors
+│   │   ├── graphql-query-cost-boundaries
+│   │   ├── json-rpc
+│   │   ├── browser-grpc-constraints
+│   │   ├── webhook-client-boundaries
+│   │   └── versioned-contracts
+│   └── network-testing-and-diagnostics
+│       ├── devtools-network-panel
+│       ├── request-timing
+│       ├── cache-inspection
+│       ├── request-mocking
+│       ├── offline-and-latency-simulation
+│       ├── contract-fixtures
+│       └── redacted-request-logging
+├── browser-storage-and-offline
+│   ├── storage-models
+│   │   ├── origin-scoping
+│   │   ├── persistence-and-session-lifetimes
+│   │   ├── quotas-and-eviction
+│   │   ├── private-browsing-behavior
+│   │   ├── storage-partitioning
+│   │   ├── storage-estimation
+│   │   └── persistence-requests
+│   ├── web-storage
+│   │   ├── local-storage
+│   │   ├── session-storage
+│   │   ├── string-only-values
+│   │   ├── serialization-and-versioning
+│   │   ├── storage-events
+│   │   ├── synchronous-blocking
+│   │   ├── quota-errors
+│   │   └── safe-read-write-wrappers
+│   ├── cookies-and-sessions
+│   │   ├── cookie-scope
+│   │   ├── expiry-and-max-age
+│   │   ├── secure-and-samesite
+│   │   ├── http-only-boundaries
+│   │   ├── document-cookie
+│   │   ├── cookie-store-api-support
+│   │   ├── session-identifier-safety
+│   │   └── logout-and-data-cleanup
+│   ├── indexeddb
+│   │   ├── database-and-version
+│   │   ├── object-stores
+│   │   ├── keys-and-key-paths
+│   │   ├── indexes
+│   │   ├── readwrite-and-readonly-transactions
+│   │   ├── requests-and-events
+│   │   ├── cursors
+│   │   ├── schema-upgrades
+│   │   └── blocked-upgrades
+│   ├── indexeddb-reliability
+│   │   ├── transaction-lifetime
+│   │   ├── auto-commit-timing
+│   │   ├── request-versus-transaction-success
+│   │   ├── abort-and-rollback
+│   │   ├── concurrent-tabs
+│   │   ├── connection-cleanup
+│   │   ├── versioned-data-migrations
+│   │   └── query-performance
+│   ├── cache-storage
+│   │   ├── request-response-cache
+│   │   ├── cache-names
+│   │   ├── match-put-add-delete
+│   │   ├── cache-keys
+│   │   ├── opaque-response-limitations
+│   │   ├── storage-quota-management
+│   │   ├── cache-version-cleanup
+│   │   └── sensitive-response-exclusion
+│   ├── service-workers
+│   │   ├── registration-and-scope
+│   │   ├── installation
+│   │   ├── activation-and-control
+│   │   ├── update-lifecycle
+│   │   ├── fetch-events
+│   │   ├── message-events
+│   │   ├── event-wait-until
+│   │   ├── worker-termination-and-restart
+│   │   └── module-import-constraints
+│   ├── offline-strategies
+│   │   ├── cache-first
+│   │   ├── network-first
+│   │   ├── stale-while-revalidate
+│   │   ├── network-only
+│   │   ├── cache-only
+│   │   ├── navigation-fallbacks
+│   │   ├── offline-mutation-queues
+│   │   └── sync-conflict-resolution
+│   ├── progressive-web-apps
+│   │   ├── web-app-manifest
+│   │   ├── installability-and-browser-differences
+│   │   ├── standalone-experience
+│   │   ├── offline-shell
+│   │   ├── update-prompts
+│   │   ├── push-notification-permissions
+│   │   ├── background-sync-support
+│   │   └── accessibility-and-resilience
+│   └── cross-tab-and-persistence-coordination
+│       ├── broadcast-channel
+│       ├── storage-event-coordination
+│       ├── web-locks-support
+│       ├── stale-tab-detection
+│       ├── schema-version-conflicts
+│       ├── sign-out-propagation
+│       └── shared-data-consistency
+├── workers-parallelism-and-interoperability
+│   ├── parallel-execution-model
+│   │   ├── agents-and-isolates
+│   │   ├── shared-nothing-design
+│   │   ├── task-offloading
+│   │   ├── communication-overhead
+│   │   ├── cpu-bound-work
+│   │   ├── worker-startup-cost
+│   │   └── lifecycle-ownership
+│   ├── dedicated-workers
+│   │   ├── worker-construction
+│   │   ├── classic-and-module-workers
+│   │   ├── worker-globals
+│   │   ├── messaging-protocols
+│   │   ├── error-events
+│   │   ├── termination
+│   │   ├── cancellation-protocols
+│   │   └── worker-pools
+│   ├── shared-workers
+│   │   ├── shared-worker-construction
+│   │   ├── message-ports
+│   │   ├── multi-tab-connections
+│   │   ├── connection-lifecycle
+│   │   ├── shared-coordination
+│   │   ├── browser-support-boundaries
+│   │   └── graceful-fallbacks
+│   ├── message-passing
+│   │   ├── post-message
+│   │   ├── structured-clone
+│   │   ├── transferable-objects
+│   │   ├── message-channel
+│   │   ├── correlation-identifiers
+│   │   ├── request-response-protocols
+│   │   ├── worker-rpc
+│   │   └── serialized-errors
+│   ├── binary-data-model
+│   │   ├── array-buffer
+│   │   ├── typed-arrays
+│   │   ├── data-view
+│   │   ├── byte-offset-and-length
+│   │   ├── endianness
+│   │   ├── aligned-and-unaligned-access
+│   │   ├── signed-and-unsigned-interpretation
+│   │   └── float16-runtime-support
+│   ├── buffer-lifecycle
+│   │   ├── shared-buffer-views
+│   │   ├── copying-versus-slicing
+│   │   ├── detached-buffers
+│   │   ├── array-buffer-transfer
+│   │   ├── resizable-array-buffers
+│   │   ├── length-tracking-views
+│   │   ├── transfer-ownership
+│   │   └── memory-bounds
+│   ├── shared-memory
+│   │   ├── shared-array-buffer
+│   │   ├── cross-origin-isolation
+│   │   ├── atomics-load-and-store
+│   │   ├── atomic-read-modify-write
+│   │   ├── compare-exchange
+│   │   ├── wait-and-notify
+│   │   ├── wait-async
+│   │   └── blocking-on-main-thread-restrictions
+│   ├── concurrency-correctness
+│   │   ├── races-and-ordering
+│   │   ├── synchronization-protocols
+│   │   ├── locks-and-ownership
+│   │   ├── producer-consumer-queues
+│   │   ├── deadlock-and-starvation
+│   │   ├── memory-visibility
+│   │   ├── non-deterministic-tests
+│   │   └── shared-memory-tradeoffs
+│   ├── webassembly-integration
+│   │   ├── module-and-instance
+│   │   ├── compilation-and-instantiation
+│   │   ├── imports-and-exports
+│   │   ├── linear-memory
+│   │   ├── typed-array-views
+│   │   ├── data-marshalling
+│   │   ├── streaming-instantiation
+│   │   └── javascript-wasm-boundaries
+│   ├── streams-and-binary-interop
+│   │   ├── web-readable-streams
+│   │   ├── web-writable-streams
+│   │   ├── transform-streams
+│   │   ├── reader-and-writer-locks
+│   │   ├── stream-pipelines
+│   │   ├── backpressure
+│   │   ├── text-encoder-and-decoder
+│   │   ├── uint8array-base64-and-hex
+│   │   └── compression-stream-support
+│   └── runtime-bridges
+│       ├── browser-main-and-worker-adapters
+│       ├── node-worker-threads-boundaries
+│       ├── browser-and-node-buffer-differences
+│       ├── native-addon-boundaries
+│       ├── ffi-security-boundaries
+│       └── portable-message-contracts
+├── application-architecture-and-state
+│   ├── application-boundaries
+│   │   ├── domain-and-platform-code
+│   │   ├── ui-and-data-access
+│   │   ├── business-rules-and-effects
+│   │   ├── configuration-boundaries
+│   │   ├── environment-adapters
+│   │   ├── public-contracts
+│   │   └── dependency-direction
+│   ├── architecture-patterns
+│   │   ├── layered-design
+│   │   ├── modular-monolith
+│   │   ├── feature-oriented-modules
+│   │   ├── ports-and-adapters
+│   │   ├── functional-core-imperative-shell
+│   │   ├── plugin-architecture
+│   │   └── composition-roots
+│   ├── state-modeling
+│   │   ├── local-and-shared-state
+│   │   ├── server-and-client-state
+│   │   ├── persistent-and-ephemeral-state
+│   │   ├── normalized-entities
+│   │   ├── derived-state
+│   │   ├── state-ownership
+│   │   └── state-invariants
+│   ├── state-transitions
+│   │   ├── explicit-actions
+│   │   ├── reducers
+│   │   ├── immutable-updates
+│   │   ├── finite-state-machines
+│   │   ├── guarded-transitions
+│   │   ├── transition-side-effects
+│   │   ├── statecharts-overview
+│   │   └── invalid-state-prevention
+│   ├── reactive-models
+│   │   ├── observer-pattern
+│   │   ├── publish-subscribe
+│   │   ├── observable-streams
+│   │   ├── signal-based-models
+│   │   ├── dependency-tracking
+│   │   ├── computed-values
+│   │   ├── subscription-lifetimes
+│   │   └── batching-and-notification-order
+│   ├── asynchronous-application-state
+│   │   ├── idle-loading-success-error
+│   │   ├── parallel-loading
+│   │   ├── refresh-and-stale-data
+│   │   ├── optimistic-updates
+│   │   ├── request-identities
+│   │   ├── cancellation-and-teardown
+│   │   ├── retry-and-error-ui
+│   │   └── background-refresh
+│   ├── design-patterns
+│   │   ├── factory
+│   │   ├── strategy
+│   │   ├── adapter
+│   │   ├── facade
+│   │   ├── decorator-wrapper
+│   │   ├── command
+│   │   ├── mediator
+│   │   ├── repository-pattern
+│   │   └── dependency-injection
+│   ├── application-services
+│   │   ├── use-case-orchestration
+│   │   ├── data-mappers
+│   │   ├── validation-boundaries
+│   │   ├── policy-objects
+│   │   ├── error-translation
+│   │   ├── transaction-boundary-awareness
+│   │   ├── feature-flags
+│   │   └── audit-events
+│   ├── client-routing
+│   │   ├── route-matching
+│   │   ├── route-parameters
+│   │   ├── query-state
+│   │   ├── navigation-guards
+│   │   ├── lazy-route-modules
+│   │   ├── deep-linking
+│   │   ├── not-found-routes
+│   │   └── scroll-and-focus-restoration
+│   └── maintainability
+│       ├── cohesive-modules
+│       ├── explicit-dependencies
+│       ├── avoiding-global-state
+│       ├── avoiding-circular-imports
+│       ├── side-effect-isolation
+│       ├── dependency-inversion
+│       ├── refactoring-with-tests
+│       └── architectural-fitness-checks
+├── web-components-and-ui-ecosystem
+│   ├── framework-free-ui
+│   │   ├── render-functions
+│   │   ├── template-functions
+│   │   ├── state-to-dom-updates
+│   │   ├── event-binding
+│   │   ├── component-lifecycles
+│   │   ├── keyed-list-updates
+│   │   ├── cleanup-contracts
+│   │   └── progressive-enhancement
+│   ├── custom-elements
+│   │   ├── element-registration
+│   │   ├── lifecycle-callbacks
+│   │   ├── observed-attributes
+│   │   ├── property-attribute-synchronization
+│   │   ├── upgrade-timing
+│   │   ├── form-associated-elements
+│   │   ├── element-internals
+│   │   └── support-and-fallbacks
+│   ├── shadow-dom
+│   │   ├── shadow-root
+│   │   ├── open-and-closed-mode
+│   │   ├── encapsulation-boundaries
+│   │   ├── slots-and-slotchange
+│   │   ├── event-retargeting
+│   │   ├── composed-events
+│   │   ├── shadow-styling
+│   │   └── accessibility-boundaries
+│   ├── component-contracts
+│   │   ├── properties-and-attributes
+│   │   ├── events-and-callbacks
+│   │   ├── slots-and-composition
+│   │   ├── controlled-and-uncontrolled-state
+│   │   ├── validation-and-errors
+│   │   ├── async-loading-contracts
+│   │   └── cleanup-and-disposal
+│   ├── rendering-models
+│   │   ├── direct-dom-updates
+│   │   ├── virtual-dom
+│   │   ├── signal-driven-updates
+│   │   ├── compiled-updates
+│   │   ├── server-rendered-html
+│   │   ├── hydration
+│   │   ├── island-architecture
+│   │   └── client-server-module-boundaries
+│   ├── framework-integration
+│   │   ├── react-jsx-and-hooks-boundaries
+│   │   ├── vue-reactivity-and-components
+│   │   ├── svelte-compiler-and-components
+│   │   ├── angular-component-and-di-boundaries
+│   │   ├── lit-and-custom-elements
+│   │   ├── framework-lifecycle-adapters
+│   │   └── interoperability-and-lock-in
+│   ├── ui-libraries-and-widgets
+│   │   ├── accessible-dialogs
+│   │   ├── combobox-and-autocomplete
+│   │   ├── tabs-and-disclosure
+│   │   ├── menus-and-tooltips
+│   │   ├── virtualized-lists
+│   │   ├── data-tables
+│   │   ├── form-components
+│   │   └── loading-and-empty-states
+│   └── integration-quality
+│       ├── cross-framework-components
+│       ├── event-and-state-contract-tests
+│       ├── hydration-mismatches
+│       ├── duplicate-runtime-dependencies
+│       ├── styling-isolation
+│       ├── accessibility-audits
+│       └── bundle-cost-evaluation
+├── browser-graphics-media-and-device-apis
+│   ├── canvas-and-svg
+│   │   ├── canvas-2d-context
+│   │   ├── drawing-paths-and-shapes
+│   │   ├── transforms-and-compositing
+│   │   ├── text-and-image-rendering
+│   │   ├── pixel-data
+│   │   ├── svg-dom-manipulation
+│   │   ├── canvas-accessibility
+│   │   └── high-dpi-scaling
+│   ├── animation
+│   │   ├── animation-frame-loops
+│   │   ├── time-based-motion
+│   │   ├── easing-and-interpolation
+│   │   ├── web-animations-api
+│   │   ├── animation-cancellation
+│   │   ├── visibility-aware-pausing
+│   │   ├── reduced-motion-support
+│   │   └── css-versus-javascript-animation
+│   ├── media-playback
+│   │   ├── audio-and-video-elements
+│   │   ├── playback-promises
+│   │   ├── media-events
+│   │   ├── buffering-and-ready-states
+│   │   ├── autoplay-policy
+│   │   ├── text-tracks-and-captions
+│   │   ├── media-session-support
+│   │   └── resource-release
+│   ├── media-capture-and-processing
+│   │   ├── get-user-media
+│   │   ├── media-device-enumeration
+│   │   ├── permission-and-constraint-errors
+│   │   ├── media-stream-tracks
+│   │   ├── track-stop-and-cleanup
+│   │   ├── media-recorder
+│   │   ├── web-audio-overview
+│   │   └── audio-context-lifecycle
+│   ├── file-and-blob-apis
+│   │   ├── blob-construction
+│   │   ├── file-metadata
+│   │   ├── file-reading
+│   │   ├── object-urls
+│   │   ├── revoking-object-urls
+│   │   ├── file-system-access-support
+│   │   ├── origin-private-file-system
+│   │   └── user-selected-file-boundaries
+│   ├── device-and-permission-boundaries
+│   │   ├── geolocation
+│   │   ├── clipboard-api
+│   │   ├── fullscreen-api
+│   │   ├── notifications
+│   │   ├── pointer-lock
+│   │   ├── screen-wake-lock
+│   │   ├── capability-detection
+│   │   └── explicit-user-consent
+│   ├── advanced-platform-integrations
+│   │   ├── webgl-and-webgpu-boundaries
+│   │   ├── offscreen-canvas
+│   │   ├── audio-worklets
+│   │   ├── web-codecs-support
+│   │   ├── web-rtc-peer-connections
+│   │   ├── data-channels
+│   │   ├── hardware-api-support
+│   │   └── permissions-policy
+│   └── interaction-safety-and-fallbacks
+│       ├── permission-denial
+│       ├── unsupported-browser-paths
+│       ├── secure-context-checks
+│       ├── transient-user-activation
+│       ├── device-disconnection
+│       ├── origin-and-cross-origin-limits
+│       └── accessible-alternatives
+├── security-and-trust-boundaries
+│   ├── security-mental-model
+│   │   ├── trusted-and-untrusted-input
+│   │   ├── client-server-trust-boundary
+│   │   ├── origin-and-capability-boundaries
+│   │   ├── authentication-versus-authorization
+│   │   ├── client-validation-limitations
+│   │   ├── threat-modeling
+│   │   └── least-privilege-design
+│   ├── dom-injection-defense
+│   │   ├── text-versus-html-sinks
+│   │   ├── contextual-output-encoding
+│   │   ├── sanitization
+│   │   ├── trusted-types-policy
+│   │   ├── content-security-policy
+│   │   ├── dynamic-code-execution-risks
+│   │   ├── safe-url-handling
+│   │   └── dom-clobbering-defense
+│   ├── object-and-parser-safety
+│   │   ├── prototype-pollution-defense
+│   │   ├── dangerous-property-keys
+│   │   ├── own-property-checks
+│   │   ├── null-prototype-dictionaries
+│   │   ├── schema-validation
+│   │   ├── safe-merge-behavior
+│   │   ├── regex-denial-of-service
+│   │   └── input-size-and-depth-limits
+│   ├── browser-isolation
+│   │   ├── same-origin-policy
+│   │   ├── iframe-sandboxing
+│   │   ├── content-security-policy-directives
+│   │   ├── subresource-integrity
+│   │   ├── permissions-policy
+│   │   ├── opener-isolation
+│   │   ├── cross-origin-embedder-policy
+│   │   └── cross-origin-resource-policy
+│   ├── authentication-and-session-boundaries
+│   │   ├── server-enforced-authorization
+│   │   ├── session-cookie-properties
+│   │   ├── token-storage-tradeoffs
+│   │   ├── csrf-protection-contracts
+│   │   ├── oauth-pkce-client-boundaries
+│   │   ├── session-expiry
+│   │   ├── logout-and-cache-cleanup
+│   │   └── credential-leak-prevention
+│   ├── cross-context-messaging-security
+│   │   ├── target-origin-validation
+│   │   ├── message-origin-and-source-checks
+│   │   ├── payload-schema-validation
+│   │   ├── worker-message-trust
+│   │   ├── extension-message-boundaries
+│   │   ├── capability-based-interfaces
+│   │   └── replay-and-stale-message-handling
+│   ├── cryptography-usage
+│   │   ├── crypto-get-random-values
+│   │   ├── crypto-random-uuid
+│   │   ├── web-crypto-subtle
+│   │   ├── key-import-and-export
+│   │   ├── hashing-versus-encryption
+│   │   ├── authenticated-encryption-boundaries
+│   │   ├── key-storage-limitations
+│   │   └── established-protocols-over-custom-crypto
+│   ├── dependency-and-delivery-security
+│   │   ├── dependency-review
+│   │   ├── lockfile-integrity
+│   │   ├── install-script-risks
+│   │   ├── third-party-script-isolation
+│   │   ├── secret-exclusion-from-bundles
+│   │   ├── source-map-exposure
+│   │   ├── trusted-build-inputs
+│   │   └── vulnerability-response
+│   └── privacy-and-data-handling
+│       ├── sensitive-data-minimization
+│       ├── telemetry-redaction
+│       ├── consent-aware-collection
+│       ├── storage-retention
+│       ├── permissions-minimization
+│       ├── secure-error-messages
+│       └── data-clearing-and-export
+├── testing-and-quality
+│   ├── testing-foundations
+│   │   ├── observable-behavior
+│   │   ├── arrange-act-assert
+│   │   ├── test-isolation
+│   │   ├── deterministic-inputs
+│   │   ├── boundary-cases
+│   │   ├── regression-tests
+│   │   └── test-pyramid-and-tradeoffs
+│   ├── unit-testing
+│   │   ├── pure-function-tests
+│   │   ├── object-and-class-tests
+│   │   ├── collection-transform-tests
+│   │   ├── validation-tests
+│   │   ├── error-path-tests
+│   │   ├── custom-matchers
+│   │   └── table-driven-tests
+│   ├── asynchronous-testing
+│   │   ├── awaiting-test-completion
+│   │   ├── rejection-assertions
+│   │   ├── callback-completion
+│   │   ├── fake-timers
+│   │   ├── microtask-flushing
+│   │   ├── cancellation-tests
+│   │   ├── concurrency-limits
+│   │   └── race-condition-reproductions
+│   ├── browser-component-testing
+│   │   ├── rendered-output-tests
+│   │   ├── role-and-label-queries
+│   │   ├── user-event-simulation
+│   │   ├── focus-and-keyboard-tests
+│   │   ├── custom-element-tests
+│   │   ├── shadow-dom-testing
+│   │   └── cleanup-verification
+│   ├── integration-and-contract-testing
+│   │   ├── api-contract-fixtures
+│   │   ├── storage-integration
+│   │   ├── module-boundary-tests
+│   │   ├── worker-message-contracts
+│   │   ├── service-worker-tests
+│   │   ├── serialization-roundtrips
+│   │   └── cross-runtime-contracts
+│   ├── end-to-end-testing
+│   │   ├── user-journeys
+│   │   ├── stable-locators
+│   │   ├── network-control
+│   │   ├── authentication-fixtures
+│   │   ├── multi-tab-scenarios
+│   │   ├── offline-scenarios
+│   │   ├── cross-browser-matrix
+│   │   └── artifact-capture
+│   ├── test-doubles-and-environments
+│   │   ├── stubs-and-spies
+│   │   ├── module-mocking
+│   │   ├── network-mocking
+│   │   ├── clock-and-randomness-injection
+│   │   ├── in-memory-adapters
+│   │   ├── dom-emulation-limitations
+│   │   └── real-browser-tests
+│   ├── advanced-testing
+│   │   ├── property-based-testing
+│   │   ├── invariant-testing
+│   │   ├── fuzzed-inputs
+│   │   ├── mutation-testing
+│   │   ├── visual-regression
+│   │   ├── accessibility-testing
+│   │   ├── leak-and-cleanup-tests
+│   │   └── performance-regression
+│   ├── quality-tooling
+│   │   ├── vitest
+│   │   ├── jest
+│   │   ├── mocha
+│   │   ├── node-test-runner
+│   │   ├── testing-library
+│   │   ├── playwright
+│   │   ├── web-test-runner
+│   │   └── fast-check
+│   └── test-maintenance
+│       ├── flaky-test-diagnosis
+│       ├── fixture-ownership
+│       ├── coverage-limitations
+│       ├── test-data-builders
+│       ├── failure-readability
+│       ├── test-runtime-budgets
+│       ├── ci-parallelism
+│       └── test-review-checklist
+├── debugging-performance-and-observability
+│   ├── debugging-workflow
+│   │   ├── symptom-reproduction
+│   │   ├── hypothesis-and-evidence
+│   │   ├── minimal-reproduction
+│   │   ├── bisecting-regressions
+│   │   ├── deterministic-state-capture
+│   │   ├── root-cause-analysis
+│   │   └── regression-proof
+│   ├── developer-tools
+│   │   ├── breakpoints
+│   │   ├── conditional-breakpoints
+│   │   ├── logpoints
+│   │   ├── call-stack-and-scope
+│   │   ├── async-stack-traces
+│   │   ├── pause-on-exceptions
+│   │   ├── dom-breakpoints
+│   │   └── event-listener-breakpoints
+│   ├── source-debugging
+│   │   ├── source-maps
+│   │   ├── original-and-generated-source
+│   │   ├── module-resolution-errors
+│   │   ├── minified-stack-traces
+│   │   ├── sourcemap-privacy
+│   │   ├── blackboxing-and-ignore-lists
+│   │   └── production-reproduction
+│   ├── performance-measurement
+│   │   ├── performance-now
+│   │   ├── user-timing-marks-and-measures
+│   │   ├── performance-observer
+│   │   ├── resource-timing
+│   │   ├── navigation-timing
+│   │   ├── event-timing
+│   │   ├── lab-and-field-data
+│   │   └── realistic-workloads
+│   ├── cpu-and-main-thread-profiling
+│   │   ├── flame-charts
+│   │   ├── call-tree
+│   │   ├── bottom-up-analysis
+│   │   ├── long-tasks
+│   │   ├── long-animation-frames
+│   │   ├── scripting-layout-paint-costs
+│   │   ├── task-yielding
+│   │   └── worker-offloading
+│   ├── memory-diagnostics
+│   │   ├── heap-snapshots
+│   │   ├── allocation-profiling
+│   │   ├── retained-size
+│   │   ├── dominator-trees
+│   │   ├── detached-elements
+│   │   ├── listener-and-timer-leaks
+│   │   ├── allocation-churn
+│   │   └── repeated-lifecycle-tests
+│   ├── rendering-performance
+│   │   ├── layout-thrashing
+│   │   ├── dom-batching
+│   │   ├── animation-frame-scheduling
+│   │   ├── large-list-virtualization
+│   │   ├── expensive-event-handlers
+│   │   ├── visibility-aware-work
+│   │   ├── animation-compositing-limits
+│   │   └── user-interaction-latency
+│   ├── loading-and-bundle-performance
+│   │   ├── code-splitting
+│   │   ├── tree-shaking
+│   │   ├── dead-code-removal
+│   │   ├── lazy-imports
+│   │   ├── module-preload
+│   │   ├── dependency-cost-analysis
+│   │   ├── parse-and-execution-costs
+│   │   └── cacheable-asset-hashing
+│   ├── benchmarking-discipline
+│   │   ├── warmup-and-jit-effects
+│   │   ├── representative-inputs
+│   │   ├── measurement-overhead
+│   │   ├── variance-and-outliers
+│   │   ├── gc-interference
+│   │   ├── microbenchmarks-versus-user-outcomes
+│   │   ├── baseline-comparisons
+│   │   └── reproducible-environments
+│   └── application-observability
+│       ├── structured-client-events
+│       ├── error-reporting
+│       ├── release-identifiers
+│       ├── correlation-identifiers
+│       ├── performance-budgets
+│       ├── sampling-and-rate-limits
+│       ├── sensitive-data-redaction
+│       └── actionable-alerts
+├── tooling-packaging-and-delivery
+│   ├── project-setup
+│   │   ├── package-json
+│   │   ├── scripts-and-task-aliases
+│   │   ├── dependency-classification
+│   │   ├── reproducible-installs
+│   │   ├── lockfiles
+│   │   ├── runtime-version-pinning
+│   │   ├── editor-settings
+│   │   └── gitignore-and-generated-output
+│   ├── package-managers
+│   │   ├── npm
+│   │   ├── pnpm
+│   │   ├── yarn
+│   │   ├── workspace-concepts
+│   │   ├── dependency-resolution
+│   │   ├── hoisting-and-isolation
+│   │   ├── overrides-and-resolutions
+│   │   └── registry-configuration
+│   ├── code-quality
+│   │   ├── eslint
+│   │   ├── prettier
+│   │   ├── editorconfig
+│   │   ├── lint-rule-design
+│   │   ├── formatter-linter-boundaries
+│   │   ├── import-ordering
+│   │   ├── unused-code-detection
+│   │   └── automated-review-gates
+│   ├── jsdoc-and-static-checking
+│   │   ├── documentation-comments
+│   │   ├── parameter-and-return-tags
+│   │   ├── typedef-and-callback-tags
+│   │   ├── generic-templates
+│   │   ├── imported-types
+│   │   ├── check-js
+│   │   ├── gradual-type-checking
+│   │   └── type-assertion-limitations
+│   ├── transpilation
+│   │   ├── syntax-transforms
+│   │   ├── babel
+│   │   ├── swc
+│   │   ├── target-environments
+│   │   ├── transform-configuration
+│   │   ├── source-map-generation
+│   │   ├── helpers-and-runtime-dependencies
+│   │   └── polyfill-separation
+│   ├── build-and-bundling
+│   │   ├── vite
+│   │   ├── rollup
+│   │   ├── webpack
+│   │   ├── esbuild
+│   │   ├── dependency-graphs
+│   │   ├── development-and-production-builds
+│   │   ├── asset-processing
+│   │   └── plugin-boundaries
+│   ├── bundling-design
+│   │   ├── entry-points
+│   │   ├── output-formats
+│   │   ├── esm-preservation
+│   │   ├── side-effects-metadata
+│   │   ├── tree-shaking-prerequisites
+│   │   ├── dynamic-import-chunks
+│   │   ├── vendor-chunk-tradeoffs
+│   │   └── bundle-analysis
+│   ├── library-authoring
+│   │   ├── public-api-design
+│   │   ├── pure-and-side-effectful-entry-points
+│   │   ├── esm-package-output
+│   │   ├── commonjs-compatibility-policy
+│   │   ├── browser-and-server-exports
+│   │   ├── consumer-fixture-tests
+│   │   ├── semantic-versioning
+│   │   └── package-content-audits
+│   ├── monorepos
+│   │   ├── package-boundaries
+│   │   ├── workspaces
+│   │   ├── dependency-graphs
+│   │   ├── shared-tooling
+│   │   ├── task-ordering
+│   │   ├── build-caching
+│   │   ├── package-release-strategies
+│   │   └── avoiding-cross-package-internals
+│   ├── continuous-delivery
+│   │   ├── lint-test-build-pipeline
+│   │   ├── browser-test-ci
+│   │   ├── artifact-reproducibility
+│   │   ├── environment-injection
+│   │   ├── static-hosting
+│   │   ├── module-mime-configuration
+│   │   ├── cache-invalidation
+│   │   ├── deployment-smoke-tests
+│   │   └── rollback-strategy
+│   └── maintenance-and-migration
+│       ├── dependency-upgrades
+│       ├── deprecation-review
+│       ├── codemod-basics
+│       ├── ast-parser-boundaries
+│       ├── automated-refactoring
+│       ├── migration-fixtures
+│       ├── changelogs
+│       └── support-matrices
+├── runtime-compatibility-and-language-evolution
+│   ├── runtime-landscape
+│   │   ├── browser-runtimes
+│   │   ├── nodejs-runtime
+│   │   ├── deno-runtime
+│   │   ├── bun-runtime
+│   │   ├── edge-runtimes
+│   │   ├── embedded-runtimes
+│   │   └── shared-language-different-host-apis
+│   ├── javascript-engines
+│   │   ├── v8
+│   │   ├── spidermonkey
+│   │   ├── javascriptcore
+│   │   ├── engine-and-runtime-distinction
+│   │   ├── embedding-and-host-hooks
+│   │   ├── implementation-specific-flags
+│   │   └── cross-engine-behavior-tests
+│   ├── compatibility-planning
+│   │   ├── supported-browser-matrix
+│   │   ├── supported-runtime-matrix
+│   │   ├── syntax-support
+│   │   ├── built-in-api-support
+│   │   ├── web-api-support
+│   │   ├── module-format-support
+│   │   └── environment-specific-entry-points
+│   ├── feature-adoption
+│   │   ├── feature-detection
+│   │   ├── capability-based-fallbacks
+│   │   ├── baseline-and-compatibility-data
+│   │   ├── progressive-enhancement
+│   │   ├── graceful-degradation
+│   │   ├── polyfill-loading
+│   │   └── transpilation-limitations
+│   ├── polyfills-and-shims
+│   │   ├── language-syntax-versus-runtime-api
+│   │   ├── standards-conformant-polyfills
+│   │   ├── global-patching-risks
+│   │   ├── ponyfills
+│   │   ├── bundle-size-impact
+│   │   ├── load-order
+│   │   └── third-party-polyfill-trust
+│   ├── standards-and-proposals
+│   │   ├── ecma-262-language
+│   │   ├── ecma-402-internationalization
+│   │   ├── whatwg-web-platform
+│   │   ├── tc39-proposal-process
+│   │   ├── proposal-stage-versus-availability
+│   │   ├── annual-editions
+│   │   ├── living-specifications
+│   │   └── implementation-conformance
+│   ├── proposal-evaluation
+│   │   ├── proposal-text-reading
+│   │   ├── semantics-and-open-questions
+│   │   ├── transpiler-experiments
+│   │   ├── native-implementation-checks
+│   │   ├── decorators-and-metadata-evaluation
+│   │   ├── syntax-conflict-risks
+│   │   └── migration-and-removal-plans
+│   ├── legacy-code-migration
+│   │   ├── var-to-lexical-bindings
+│   │   ├── callback-to-promise-refactoring
+│   │   ├── constructor-prototype-to-class-tradeoffs
+│   │   ├── commonjs-to-esm
+│   │   ├── jquery-to-platform-apis
+│   │   ├── legacy-polyfill-removal
+│   │   ├── strict-mode-adoption
+│   │   └── behavior-preserving-tests
+│   ├── ecosystem-interop
+│   │   ├── javascript-typescript-boundaries
+│   │   ├── jsx-transform-boundaries
+│   │   ├── browser-node-shared-libraries
+│   │   ├── esm-consumer-fixtures
+│   │   ├── commonjs-consumer-fixtures
+│   │   ├── worker-consumer-fixtures
+│   │   └── runtime-specific-adapters
+│   └── conformance-and-reproducibility
+│       ├── specification-algorithm-reading
+│       ├── test262-overview
+│       ├── web-platform-tests-overview
+│       ├── minimal-cross-engine-reproductions
+│       ├── pinned-test-environments
+│       ├── expected-error-classification
+│       └── implementation-bug-reporting
+├── algorithms-and-problem-solving
+│   ├── problem-solving-foundations
+│   │   ├── requirements-and-invariants
+│   │   ├── examples-and-counterexamples
+│   │   ├── input-output-contracts
+│   │   ├── decomposition
+│   │   ├── edge-case-enumeration
+│   │   ├── brute-force-baselines
+│   │   └── correctness-before-optimization
+│   ├── complexity-analysis
+│   │   ├── time-complexity
+│   │   ├── space-complexity
+│   │   ├── amortized-analysis
+│   │   ├── recursion-depth
+│   │   ├── allocation-costs
+│   │   ├── collection-operation-assumptions
+│   │   └── input-size-measurement
+│   ├── fundamental-data-structures
+│   │   ├── stacks
+│   │   ├── queues
+│   │   ├── deques
+│   │   ├── linked-lists
+│   │   ├── hash-maps-and-sets
+│   │   ├── binary-heaps
+│   │   ├── trees
+│   │   └── graphs
+│   ├── sequence-and-text-patterns
+│   │   ├── two-pointers
+│   │   ├── sliding-windows
+│   │   ├── frequency-maps
+│   │   ├── prefix-sums
+│   │   ├── interval-merging
+│   │   ├── string-tokenization
+│   │   ├── unicode-aware-processing
+│   │   └── deduplication-and-grouping
+│   ├── searching-and-sorting
+│   │   ├── linear-search
+│   │   ├── binary-search
+│   │   ├── binary-search-boundaries
+│   │   ├── comparison-sorting
+│   │   ├── stable-ordering
+│   │   ├── numeric-and-locale-comparators
+│   │   ├── custom-sort-keys
+│   │   └── selection-problems
+│   ├── recursive-and-graph-patterns
+│   │   ├── depth-first-search
+│   │   ├── breadth-first-search
+│   │   ├── tree-traversal
+│   │   ├── topological-sort
+│   │   ├── cycle-detection
+│   │   ├── backtracking
+│   │   ├── memoization
+│   │   └── dynamic-programming
+│   ├── practical-javascript-algorithms
+│   │   ├── lru-cache
+│   │   ├── dependency-graph-ordering
+│   │   ├── path-traversal-and-validation
+│   │   ├── tree-flattening
+│   │   ├── pagination-and-windowing
+│   │   ├── diffing-and-keyed-updates
+│   │   ├── incremental-aggregation
+│   │   └── bounded-task-scheduler
+│   └── algorithm-validation
+│       ├── invariant-assertions
+│       ├── randomized-test-inputs
+│       ├── reference-implementation-comparison
+│       ├── duplicate-and-empty-cases
+│       ├── numeric-boundaries
+│       ├── recursion-to-iteration-conversion
+│       └── performance-profiling
+└── practice-projects
+    ├── language-semantics-lab
+    │   ├── coercion-and-equality-cases
+    │   ├── scope-and-hoisting-experiments
+    │   ├── this-binding-experiments
+    │   ├── prototype-chain-experiments
+    │   ├── event-loop-order-observations
+    │   ├── assertions-and-test-cases
+    │   └── findings-and-limitations
+    ├── functional-utility-library
+    │   ├── pure-transform-functions
+    │   ├── compose-and-pipe
+    │   ├── debounce-and-throttle
+    │   ├── memoization-policy
+    │   ├── lazy-iterator-helpers
+    │   ├── unit-and-property-tests
+    │   └── package-and-consumer-tests
+    ├── data-transformation-pipeline
+    │   ├── input-schema-validation
+    │   ├── normalization-and-grouping
+    │   ├── unicode-aware-text-processing
+    │   ├── immutable-transformations
+    │   ├── aggregation-and-sorting
+    │   ├── streaming-input-adapter
+    │   └── deterministic-output-tests
+    ├── accessible-form-workbench
+    │   ├── semantic-form-markup
+    │   ├── field-state-model
+    │   ├── constraint-validation
+    │   ├── async-field-checks
+    │   ├── stale-response-prevention
+    │   ├── keyboard-and-focus-flow
+    │   ├── accessible-error-announcements
+    │   └── browser-tests
+    ├── dom-component-library
+    │   ├── component-contracts
+    │   ├── safe-rendering
+    │   ├── event-delegation
+    │   ├── lifecycle-and-cleanup
+    │   ├── reusable-dialog-and-tabs
+    │   ├── state-synchronization
+    │   └── accessibility-and-component-tests
+    ├── vanilla-spa-dashboard
+    │   ├── esm-feature-modules
+    │   ├── client-routing
+    │   ├── normalized-state
+    │   ├── async-data-loading
+    │   ├── pagination-and-filtering
+    │   ├── loading-and-error-states
+    │   ├── deep-link-tests
+    │   └── deployment-smoke-tests
+    ├── resilient-api-client
+    │   ├── request-and-response-contracts
+    │   ├── runtime-response-validation
+    │   ├── normalized-error-types
+    │   ├── timeout-and-cancellation
+    │   ├── retry-and-backoff
+    │   ├── request-deduplication
+    │   ├── http-cache-integration
+    │   └── contract-and-race-tests
+    ├── async-task-scheduler
+    │   ├── queue-and-task-model
+    │   ├── bounded-concurrency
+    │   ├── task-priorities
+    │   ├── cooperative-cancellation
+    │   ├── deadlines-and-retries
+    │   ├── progress-events
+    │   ├── fairness-and-starvation-tests
+    │   └── resource-cleanup
+    ├── event-driven-state-machine
+    │   ├── state-and-transition-model
+    │   ├── guard-functions
+    │   ├── action-handlers
+    │   ├── async-effects
+    │   ├── transition-history
+    │   ├── invalid-transition-tests
+    │   └── deterministic-replay
+    ├── offline-notes-pwa
+    │   ├── indexeddb-schema-and-migrations
+    │   ├── service-worker-lifecycle
+    │   ├── cache-strategy
+    │   ├── offline-edit-queue
+    │   ├── conflict-resolution
+    │   ├── update-prompts
+    │   ├── multi-tab-coordination
+    │   └── offline-and-upgrade-tests
+    ├── worker-data-processor
+    │   ├── worker-pool-design
+    │   ├── message-contracts
+    │   ├── transferable-buffers
+    │   ├── chunked-data-processing
+    │   ├── progress-and-cancellation
+    │   ├── worker-failure-recovery
+    │   ├── main-thread-responsiveness
+    │   └── throughput-and-memory-tests
+    ├── binary-file-inspector
+    │   ├── file-selection-and-reading
+    │   ├── array-buffer-and-data-view
+    │   ├── binary-header-parsing
+    │   ├── endianness-handling
+    │   ├── bounds-and-format-validation
+    │   ├── worker-offload
+    │   ├── safe-output-rendering
+    │   └── malformed-input-tests
+    ├── realtime-collaboration-client
+    │   ├── websocket-contracts
+    │   ├── connection-state-machine
+    │   ├── reconnect-and-resubscribe
+    │   ├── ordered-message-application
+    │   ├── optimistic-ui-and-reconciliation
+    │   ├── presence-state
+    │   ├── credential-expiry-handling
+    │   └── deterministic-network-tests
+    ├── web-components-design-system
+    │   ├── custom-element-registration
+    │   ├── shadow-dom-and-slots
+    │   ├── property-attribute-contracts
+    │   ├── composed-custom-events
+    │   ├── form-associated-controls
+    │   ├── style-tokens
+    │   ├── accessibility-contracts
+    │   └── cross-framework-consumer-tests
+    ├── canvas-interactive-visualization
+    │   ├── scene-and-data-model
+    │   ├── drawing-and-transforms
+    │   ├── animation-loop
+    │   ├── pointer-and-keyboard-interaction
+    │   ├── high-dpi-rendering
+    │   ├── worker-assisted-computation
+    │   ├── accessible-fallback
+    │   └── performance-budget
+    ├── internationalized-scheduler
+    │   ├── instant-and-local-time-model
+    │   ├── time-zone-selection
+    │   ├── temporal-support-strategy
+    │   ├── localized-formatters
+    │   ├── daylight-saving-cases
+    │   ├── recurring-event-rules
+    │   ├── persistence-contracts
+    │   └── deterministic-time-tests
+    ├── browser-security-lab
+    │   ├── isolated-test-fixtures
+    │   ├── safe-dom-rendering
+    │   ├── prototype-pollution-regression-tests
+    │   ├── trusted-types-policies
+    │   ├── csp-violation-observation
+    │   ├── postmessage-validation
+    │   ├── session-and-storage-boundaries
+    │   └── security-review-report
+    ├── performance-and-memory-lab
+    │   ├── reproducible-slow-interactions
+    │   ├── cpu-profile-baseline
+    │   ├── memory-leak-reproduction
+    │   ├── heap-retention-analysis
+    │   ├── event-loop-yielding-fixes
+    │   ├── bundle-and-rendering-improvements
+    │   ├── regression-measurements
+    │   └── findings-and-tradeoffs
+    ├── cross-runtime-library
+    │   ├── host-independent-core
+    │   ├── environment-adapters
+    │   ├── esm-entry-points
+    │   ├── explicit-compatibility-policy
+    │   ├── browser-node-worker-fixtures
+    │   ├── runtime-contract-tests
+    │   ├── package-content-validation
+    │   └── release-checklist
+    └── end-to-end-javascript-capstone
+        ├── requirements-and-domain-model
+        ├── module-and-state-architecture
+        ├── accessible-browser-interface
+        ├── validated-api-integration
+        ├── offline-persistence
+        ├── worker-assisted-processing
+        ├── security-and-error-boundaries
+        ├── automated-test-suite
+        ├── performance-and-memory-validation
+        ├── build-and-delivery-pipeline
+        └── results-and-retrospective

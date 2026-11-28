@@ -1,0 +1,1241 @@
+module
+├── foundation
+│   ├── seo-overview
+│   │   ├── organic-search
+│   │   ├── seo-and-paid-search
+│   │   ├── seo-and-content-marketing
+│   │   ├── discovery-to-conversion
+│   │   └── seo-learning-path
+│   ├── web-fundamentals
+│   │   ├── domain-and-dns
+│   │   ├── hosting-and-cdn
+│   │   ├── http-and-https
+│   │   ├── html-css-and-javascript
+│   │   ├── urls-and-resources
+│   │   └── browser-and-server
+│   ├── search-engine-fundamentals
+│   │   ├── discovery-and-crawling
+│   │   ├── rendering
+│   │   ├── indexing
+│   │   ├── ranking-and-serving
+│   │   └── recrawling-and-freshness
+│   ├── information-retrieval
+│   │   ├── tokenization-and-inverted-index
+│   │   ├── query-understanding
+│   │   ├── lexical-and-semantic-matching
+│   │   ├── entities-and-relationships
+│   │   ├── link-graphs-and-pagerank
+│   │   └── retrieval-and-reranking
+│   ├── search-result-landscape
+│   │   ├── organic-web-results
+│   │   ├── paid-result-identification
+│   │   ├── featured-snippets
+│   │   ├── people-also-ask
+│   │   ├── knowledge-panels
+│   │   ├── local-pack-and-maps
+│   │   ├── image-and-video-results
+│   │   ├── shopping-results
+│   │   └── ai-generated-results
+│   ├── search-quality
+│   │   ├── relevance-and-usefulness
+│   │   ├── people-first-content
+│   │   ├── experience-expertise-authoritativeness-trust
+│   │   ├── quality-rater-guidelines-and-limitations
+│   │   ├── ymyl-content
+│   │   └── ranking-systems-and-updates
+│   └── evidence-and-misconceptions
+│       ├── official-guidance-and-case-studies
+│       ├── correlation-and-causation
+│       ├── third-party-authority-metrics
+│       ├── keyword-density-and-lsi-myths
+│       ├── word-count-and-heading-myths
+│       └── indexing-and-ranking-guarantee-myths
+├── research-and-strategy
+│   ├── business-and-audience-research
+│   │   ├── business-model
+│   │   ├── audience-segments
+│   │   ├── customer-interviews
+│   │   ├── jobs-to-be-done
+│   │   ├── customer-journey
+│   │   └── organic-conversion-opportunities
+│   ├── market-and-competitor-research
+│   │   ├── search-competitors-and-business-competitors
+│   │   ├── market-demand
+│   │   ├── competitor-page-types
+│   │   ├── content-gap-analysis
+│   │   ├── link-gap-analysis
+│   │   └── brand-and-non-brand-demand
+│   ├── keyword-research
+│   │   ├── discovery
+│   │   │   ├── seed-keywords
+│   │   │   ├── customer-language
+│   │   │   ├── search-console-queries
+│   │   │   ├── autocomplete-and-related-searches
+│   │   │   ├── competitor-keywords
+│   │   │   └── community-and-support-questions
+│   │   ├── classification
+│   │   │   ├── branded-and-non-branded
+│   │   │   ├── head-and-long-tail
+│   │   │   ├── evergreen-and-seasonal
+│   │   │   ├── local-and-geographic
+│   │   │   ├── product-and-service
+│   │   │   └── question-and-comparison
+│   │   ├── evaluation
+│   │   │   ├── search-volume-and-uncertainty
+│   │   │   ├── trend-and-seasonality
+│   │   │   ├── serp-competition
+│   │   │   ├── keyword-difficulty-limitations
+│   │   │   ├── click-potential
+│   │   │   └── business-value
+│   │   ├── search-intent
+│   │   │   ├── informational
+│   │   │   ├── navigational
+│   │   │   ├── commercial-investigation
+│   │   │   ├── transactional
+│   │   │   ├── local-intent
+│   │   │   └── mixed-and-changing-intent
+│   │   └── clustering-and-mapping
+│   │       ├── intent-based-clustering
+│   │       ├── serp-overlap-clustering
+│   │       ├── entity-and-topic-clustering
+│   │       ├── keyword-to-url-mapping
+│   │       ├── primary-and-supporting-topics
+│   │       └── cannibalization-prevention
+│   ├── serp-analysis
+│   │   ├── dominant-content-types
+│   │   ├── content-format-and-angle
+│   │   ├── serp-feature-opportunities
+│   │   ├── device-and-location-variation
+│   │   ├── freshness-expectations
+│   │   └── zero-click-behavior
+│   ├── information-architecture-planning
+│   │   ├── topic-taxonomy
+│   │   ├── pillar-and-cluster-model
+│   │   ├── hub-and-spoke-model
+│   │   ├── category-and-subcategory-design
+│   │   ├── navigation-planning
+│   │   └── page-type-inventory
+│   └── strategy-and-roadmap
+│       ├── baseline-and-goals
+│       ├── opportunity-sizing
+│       ├── impact-effort-confidence
+│       ├── resource-and-budget-planning
+│       ├── dependencies-and-sequencing
+│       └── milestones-and-review-cycles
+├── technical-seo
+│   ├── server-and-http
+│   │   ├── availability-and-response
+│   │   │   ├── dns-resolution
+│   │   │   ├── tls-certificates
+│   │   │   ├── uptime-and-outages
+│   │   │   ├── response-headers
+│   │   │   └── compression-and-caching
+│   │   ├── status-codes
+│   │   │   ├── successful-responses
+│   │   │   ├── permanent-redirects
+│   │   │   ├── temporary-redirects
+│   │   │   ├── not-found-and-gone
+│   │   │   ├── access-denied
+│   │   │   ├── rate-limiting
+│   │   │   └── server-errors
+│   │   └── infrastructure-controls
+│   │       ├── cdn-cache-consistency
+│   │       ├── waf-and-bot-access
+│   │       ├── geo-and-ip-restrictions
+│   │       ├── authentication-boundaries
+│   │       └── staging-and-preview-protection
+│   ├── crawling
+│   │   ├── crawler-behavior
+│   │   │   ├── user-agents
+│   │   │   ├── crawler-verification
+│   │   │   ├── discovery-sources
+│   │   │   ├── crawl-frequency
+│   │   │   └── resource-fetching
+│   │   ├── robots-txt
+│   │   │   ├── syntax-and-rule-matching
+│   │   │   ├── user-agent-groups
+│   │   │   ├── allow-and-disallow
+│   │   │   ├── wildcards-and-path-matching
+│   │   │   ├── sitemap-declarations
+│   │   │   ├── testing-and-deployment
+│   │   │   └── crawl-blocking-limitations
+│   │   ├── crawl-budget
+│   │   │   ├── large-site-applicability
+│   │   │   ├── crawl-capacity
+│   │   │   ├── crawl-demand
+│   │   │   ├── crawl-waste
+│   │   │   ├── infinite-url-spaces
+│   │   │   └── resource-efficiency
+│   │   └── crawl-diagnostics
+│   │       ├── crawl-stats
+│   │       ├── server-log-evidence
+│   │       ├── blocked-resources
+│   │       ├── redirect-chains-and-loops
+│   │       ├── bot-traps
+│   │       └── orphan-url-discovery
+│   ├── indexing
+│   │   ├── indexability-controls
+│   │   │   ├── robots-meta
+│   │   │   ├── x-robots-tag
+│   │   │   ├── noindex
+│   │   │   ├── nofollow
+│   │   │   ├── directive-conflicts
+│   │   │   └── robots-txt-and-noindex-interaction
+│   │   ├── indexing-lifecycle
+│   │   │   ├── discovery-to-indexing
+│   │   │   ├── recrawl-and-reprocessing
+│   │   │   ├── index-eligibility
+│   │   │   ├── url-inspection
+│   │   │   └── indexed-and-live-version-differences
+│   │   ├── exclusion-diagnostics
+│   │   │   ├── discovered-not-indexed
+│   │   │   ├── crawled-not-indexed
+│   │   │   ├── duplicate-page-selection
+│   │   │   ├── soft-404
+│   │   │   ├── blocked-and-restricted-pages
+│   │   │   └── low-value-url-inventory
+│   │   └── removals-and-submission
+│   │       ├── temporary-removals
+│   │       ├── permanent-removal-methods
+│   │       ├── outdated-content
+│   │       ├── recrawl-requests
+│   │       ├── indexnow
+│   │       └── google-indexing-api-eligibility
+│   ├── sitemaps
+│   │   ├── xml-sitemaps
+│   │   ├── sitemap-indexes
+│   │   ├── image-sitemaps
+│   │   ├── video-sitemaps
+│   │   ├── news-sitemaps
+│   │   ├── dynamic-generation
+│   │   ├── lastmod-accuracy
+│   │   ├── canonical-url-inclusion
+│   │   └── submission-and-validation
+│   ├── url-management
+│   │   ├── url-design
+│   │   │   ├── readable-paths
+│   │   │   ├── hyphenation-and-case
+│   │   │   ├── trailing-slashes
+│   │   │   ├── encoding-and-special-characters
+│   │   │   ├── query-parameters
+│   │   │   └── stable-url-identities
+│   │   ├── duplicate-url-sources
+│   │   │   ├── protocol-and-host-variants
+│   │   │   ├── tracking-parameters
+│   │   │   ├── session-ids
+│   │   │   ├── print-and-download-views
+│   │   │   ├── sorting-and-filtering
+│   │   │   └── internal-search-results
+│   │   ├── canonicalization
+│   │   │   ├── canonical-clusters
+│   │   │   ├── self-referencing-canonicals
+│   │   │   ├── html-link-canonicals
+│   │   │   ├── http-header-canonicals
+│   │   │   ├── cross-domain-canonicals
+│   │   │   ├── canonical-signal-consistency
+│   │   │   └── user-declared-and-selected-canonicals
+│   │   └── redirects
+│   │       ├── url-mapping
+│   │       ├── one-hop-redirects
+│   │       ├── redirect-destination-relevance
+│   │       ├── bulk-redirect-rules
+│   │       ├── redirect-retention
+│   │       └── redirect-validation
+│   ├── site-architecture
+│   │   ├── crawl-depth
+│   │   ├── navigational-link-graphs
+│   │   ├── html-sitemaps
+│   │   ├── pagination
+│   │   ├── infinite-scroll-and-load-more
+│   │   ├── faceted-navigation
+│   │   ├── empty-and-invalid-combinations
+│   │   └── orphan-pages
+│   ├── javascript-seo
+│   │   ├── rendering-models
+│   │   │   ├── server-side-rendering
+│   │   │   ├── static-site-generation
+│   │   │   ├── client-side-rendering
+│   │   │   ├── hybrid-rendering
+│   │   │   ├── incremental-regeneration
+│   │   │   └── dynamic-rendering-limitations
+│   │   ├── discovery-and-navigation
+│   │   │   ├── crawlable-anchor-links
+│   │   │   ├── history-api-routing
+│   │   │   ├── deep-link-access
+│   │   │   ├── fragment-routing-limitations
+│   │   │   └── pagination-url-access
+│   │   ├── content-and-metadata
+│   │   │   ├── raw-and-rendered-html
+│   │   │   ├── hydration-and-content-parity
+│   │   │   ├── head-and-metadata-management
+│   │   │   ├── rendered-canonicals
+│   │   │   ├── structured-data-rendering
+│   │   │   └── api-dependent-content
+│   │   ├── rendering-failures
+│   │   │   ├── blocked-javascript-and-css
+│   │   │   ├── javascript-errors
+│   │   │   ├── lazy-loaded-content
+│   │   │   ├── interaction-dependent-content
+│   │   │   ├── soft-404-in-single-page-apps
+│   │   │   └── rendering-timeouts
+│   │   └── validation
+│   │       ├── rendered-dom-inspection
+│   │       ├── mobile-rendering
+│   │       ├── resource-and-network-inspection
+│   │       ├── crawler-render-comparison
+│   │       └── search-engine-live-tests
+│   ├── mobile-and-page-experience
+│   │   ├── mobile-first-content-parity
+│   │   ├── responsive-layouts
+│   │   ├── viewport-configuration
+│   │   ├── navigation-usability
+│   │   ├── intrusive-interstitials
+│   │   ├── consent-overlay-accessibility
+│   │   └── main-content-visibility
+│   ├── web-performance
+│   │   ├── core-web-vitals
+│   │   │   ├── largest-contentful-paint
+│   │   │   ├── interaction-to-next-paint
+│   │   │   └── cumulative-layout-shift
+│   │   ├── measurement
+│   │   │   ├── field-and-lab-data
+│   │   │   ├── chrome-ux-report
+│   │   │   ├── real-user-monitoring
+│   │   │   ├── page-and-origin-data
+│   │   │   ├── percentiles-and-sample-size
+│   │   │   └── performance-budgets
+│   │   ├── delivery-optimization
+│   │   │   ├── server-response-time
+│   │   │   ├── cdn-and-edge-caching
+│   │   │   ├── cache-control
+│   │   │   ├── compression
+│   │   │   └── critical-resource-discovery
+│   │   └── frontend-optimization
+│   │       ├── render-blocking-resources
+│   │       ├── image-sizing-and-formats
+│   │       ├── font-loading
+│   │       ├── javascript-splitting
+│   │       ├── long-task-reduction
+│   │       ├── third-party-script-control
+│   │       ├── layout-stability
+│   │       └── lazy-loading-boundaries
+│   ├── log-file-analysis
+│   │   ├── access-log-collection
+│   │   ├── bot-verification
+│   │   ├── url-and-status-segmentation
+│   │   ├── crawl-frequency-distribution
+│   │   ├── crawl-waste-detection
+│   │   ├── crawl-and-indexing-correlation
+│   │   └── log-privacy-and-retention
+│   └── site-migrations
+│       ├── migration-types
+│       │   ├── domain-move
+│       │   ├── protocol-move
+│       │   ├── url-restructure
+│       │   ├── cms-migration
+│       │   ├── design-and-template-change
+│       │   ├── hosting-and-cdn-change
+│       │   └── site-merger-and-split
+│       ├── migration-planning
+│       │   ├── baseline-capture
+│       │   ├── url-inventory
+│       │   ├── redirect-mapping
+│       │   ├── content-and-metadata-parity
+│       │   ├── staging-validation
+│       │   └── rollback-plan
+│       ├── migration-execution
+│       │   ├── redirect-deployment
+│       │   ├── internal-link-updates
+│       │   ├── canonical-and-hreflang-updates
+│       │   ├── sitemap-updates
+│       │   ├── search-console-change-of-address
+│       │   └── launch-crawl
+│       └── post-migration-validation
+│           ├── redirect-and-error-monitoring
+│           ├── index-transition
+│           ├── traffic-and-conversion-comparison
+│           ├── external-link-updates
+│           └── regression-fixes
+├── on-page-seo
+│   ├── search-intent-alignment
+│   │   ├── page-purpose
+│   │   ├── content-type-selection
+│   │   ├── intent-satisfaction
+│   │   ├── primary-topic-focus
+│   │   └── unique-value-proposition
+│   ├── title-and-snippet
+│   │   ├── title-elements
+│   │   ├── title-uniqueness
+│   │   ├── brand-and-topic-placement
+│   │   ├── title-rewrites
+│   │   ├── meta-descriptions
+│   │   ├── snippet-selection
+│   │   ├── snippet-preview-controls
+│   │   └── site-name-and-favicon
+│   ├── semantic-page-structure
+│   │   ├── heading-hierarchy
+│   │   ├── main-content-and-boilerplate
+│   │   ├── semantic-html
+│   │   ├── tables-lists-and-definitions
+│   │   ├── table-of-contents
+│   │   └── accessible-content-structure
+│   ├── topical-optimization
+│   │   ├── natural-language-usage
+│   │   ├── entity-disambiguation
+│   │   ├── topic-completeness
+│   │   ├── supporting-questions
+│   │   ├── facts-and-citations
+│   │   └── terminology-consistency
+│   ├── internal-linking
+│   │   ├── contextual-links
+│   │   ├── navigation-links
+│   │   ├── breadcrumb-links
+│   │   ├── hub-and-cluster-links
+│   │   ├── descriptive-anchor-text
+│   │   ├── link-destination-quality
+│   │   ├── orphan-page-remediation
+│   │   └── internal-link-audits
+│   ├── external-linking
+│   │   ├── source-selection
+│   │   ├── citation-placement
+│   │   ├── broken-outbound-links
+│   │   ├── nofollow-sponsored-and-ugc
+│   │   └── affiliate-link-disclosure
+│   ├── media-on-pages
+│   │   ├── image-context-and-captions
+│   │   ├── alternative-text
+│   │   ├── descriptive-filenames
+│   │   ├── image-dimensions
+│   │   ├── video-context-and-transcripts
+│   │   └── media-accessibility
+│   ├── structured-data
+│   │   ├── foundations
+│   │   │   ├── schema-vocabulary
+│   │   │   ├── json-ld
+│   │   │   ├── microdata-and-rdfa
+│   │   │   ├── entities-and-identifiers
+│   │   │   ├── nested-relationships
+│   │   │   └── visible-content-consistency
+│   │   ├── site-and-identity
+│   │   │   ├── organization
+│   │   │   ├── local-business
+│   │   │   ├── person-and-profile-page
+│   │   │   └── breadcrumb-list
+│   │   ├── editorial-and-community
+│   │   │   ├── article-and-news-article
+│   │   │   ├── discussion-forum-posting
+│   │   │   ├── qa-page
+│   │   │   └── dataset
+│   │   ├── commerce-and-service
+│   │   │   ├── product-and-product-group
+│   │   │   ├── offer-and-availability
+│   │   │   ├── shipping-and-return-policies
+│   │   │   ├── review-and-aggregate-rating
+│   │   │   ├── job-posting
+│   │   │   └── event
+│   │   ├── media-and-specialized-content
+│   │   │   ├── video-object
+│   │   │   ├── image-object
+│   │   │   ├── recipe
+│   │   │   ├── course-list
+│   │   │   └── software-application
+│   │   └── validation-and-eligibility
+│   │       ├── schema-validity-and-search-eligibility
+│   │       ├── required-and-recommended-properties
+│   │       ├── rich-results-testing
+│   │       ├── structured-data-policy
+│   │       ├── supported-features-and-deprecations
+│   │       └── deployment-monitoring
+│   └── conversion-and-usability
+│       ├── above-the-fold-clarity
+│       ├── call-to-action-alignment
+│       ├── forms-and-friction
+│       ├── trust-elements
+│       ├── related-next-steps
+│       └── organic-landing-page-testing
+├── content-seo
+│   ├── content-strategy
+│   │   ├── audience-needs
+│   │   ├── editorial-positioning
+│   │   ├── topic-coverage
+│   │   ├── content-portfolio
+│   │   ├── funnel-coverage
+│   │   └── editorial-calendar
+│   ├── content-formats
+│   │   ├── educational-guides
+│   │   ├── how-to-content
+│   │   ├── glossaries
+│   │   ├── comparison-pages
+│   │   ├── alternatives-pages
+│   │   ├── product-and-service-pages
+│   │   ├── case-studies
+│   │   ├── original-research
+│   │   ├── tools-and-calculators
+│   │   └── templates-and-checklists
+│   ├── content-research
+│   │   ├── source-discovery
+│   │   ├── expert-interviews
+│   │   ├── first-hand-testing
+│   │   ├── original-data-collection
+│   │   ├── fact-checking
+│   │   └── search-intent-research
+│   ├── content-production
+│   │   ├── content-briefs
+│   │   ├── outline-design
+│   │   ├── drafting
+│   │   ├── editing-and-proofreading
+│   │   ├── visual-support
+│   │   ├── source-attribution
+│   │   └── publication-quality-assurance
+│   ├── credibility-and-trust
+│   │   ├── author-identification
+│   │   ├── expert-review
+│   │   ├── first-hand-evidence
+│   │   ├── editorial-and-correction-policies
+│   │   ├── business-transparency
+│   │   └── affiliate-and-sponsorship-transparency
+│   ├── content-lifecycle
+│   │   ├── inventory-and-classification
+│   │   ├── performance-review
+│   │   ├── content-refresh
+│   │   ├── content-expansion
+│   │   ├── content-consolidation
+│   │   ├── content-retirement
+│   │   ├── historical-accuracy
+│   │   └── redirect-and-removal-decisions
+│   ├── duplication-and-syndication
+│   │   ├── duplicate-and-near-duplicate-content
+│   │   ├── boilerplate-overuse
+│   │   ├── manufacturer-description-duplication
+│   │   ├── cross-site-syndication
+│   │   ├── canonical-and-noindex-coordination
+│   │   └── content-ownership
+│   ├── user-generated-content
+│   │   ├── community-content-value
+│   │   ├── moderation
+│   │   ├── ugc-link-qualification
+│   │   ├── spam-prevention
+│   │   └── thin-profile-and-thread-management
+│   ├── programmatic-seo
+│   │   ├── use-case-selection
+│   │   ├── dataset-quality
+│   │   ├── template-architecture
+│   │   ├── page-level-unique-value
+│   │   ├── indexation-thresholds
+│   │   ├── empty-and-duplicate-combinations
+│   │   ├── sampling-and-quality-gates
+│   │   └── staged-rollout
+│   └── ai-assisted-content
+│       ├── research-assistance
+│       ├── outline-assistance
+│       ├── draft-review
+│       ├── fact-and-source-verification
+│       ├── human-expertise-integration
+│       ├── originality-and-added-value
+│       ├── sensitive-content-review
+│       └── scaled-content-abuse-prevention
+├── off-page-seo
+│   ├── link-fundamentals
+│   │   ├── link-discovery-and-evaluation
+│   │   ├── referring-pages-and-domains
+│   │   ├── editorial-relevance
+│   │   ├── link-placement-and-context
+│   │   ├── anchor-text
+│   │   └── follow-and-qualified-links
+│   ├── backlink-analysis
+│   │   ├── backlink-inventory
+│   │   ├── competitor-link-analysis
+│   │   ├── new-and-lost-links
+│   │   ├── referring-domain-relevance
+│   │   ├── destination-page-analysis
+│   │   └── link-metric-limitations
+│   ├── link-earning
+│   │   ├── original-research-assets
+│   │   ├── useful-tools-and-resources
+│   │   ├── expert-contributions
+│   │   ├── resource-page-outreach
+│   │   ├── broken-link-replacement
+│   │   ├── unlinked-mention-reclamation
+│   │   └── lost-link-recovery
+│   ├── digital-pr
+│   │   ├── story-development
+│   │   ├── data-led-campaigns
+│   │   ├── journalist-research
+│   │   ├── expert-commentary
+│   │   ├── media-pitches
+│   │   ├── campaign-timing
+│   │   └── coverage-measurement
+│   ├── outreach-management
+│   │   ├── prospect-qualification
+│   │   ├── contact-relevance
+│   │   ├── personalized-pitches
+│   │   ├── follow-up-management
+│   │   ├── relationship-tracking
+│   │   └── response-and-placement-analysis
+│   ├── brand-and-reputation
+│   │   ├── brand-mentions
+│   │   ├── entity-consistency
+│   │   ├── industry-participation
+│   │   ├── community-participation
+│   │   ├── review-and-reputation-monitoring
+│   │   └── social-distribution-and-indirect-effects
+│   └── link-risk-management
+│       ├── link-spam-recognition
+│       ├── paid-and-exchanged-link-risks
+│       ├── private-blog-network-risks
+│       ├── spam-link-investigation
+│       ├── removal-requests
+│       ├── disavow-eligibility-and-risks
+│       └── manual-action-remediation
+├── local-seo
+│   ├── local-search-fundamentals
+│   │   ├── local-intent
+│   │   ├── maps-and-local-pack
+│   │   ├── relevance
+│   │   ├── distance
+│   │   ├── prominence
+│   │   └── service-area-and-storefront-models
+│   ├── google-business-profile
+│   │   ├── eligibility-and-representation
+│   │   ├── ownership-and-verification
+│   │   ├── primary-and-secondary-categories
+│   │   ├── business-name-address-and-phone
+│   │   ├── service-areas
+│   │   ├── hours-and-special-hours
+│   │   ├── services-and-products
+│   │   ├── photos-and-videos
+│   │   ├── posts-and-updates
+│   │   ├── duplicate-profile-management
+│   │   └── suspension-and-reinstatement
+│   ├── local-website-optimization
+│   │   ├── location-pages
+│   │   ├── service-area-pages
+│   │   ├── local-service-content
+│   │   ├── store-locators
+│   │   ├── directions-and-contact-details
+│   │   ├── local-business-markup
+│   │   └── location-page-uniqueness
+│   ├── citations-and-listings
+│   │   ├── name-address-phone-consistency
+│   │   ├── industry-directories
+│   │   ├── local-directories
+│   │   ├── listing-duplicates
+│   │   └── business-moves-and-rebranding
+│   ├── reviews-and-reputation
+│   │   ├── authentic-review-acquisition
+│   │   ├── review-responses
+│   │   ├── negative-feedback-handling
+│   │   ├── review-policy-compliance
+│   │   └── review-monitoring
+│   ├── local-authority
+│   │   ├── community-partnerships
+│   │   ├── local-media
+│   │   ├── local-associations
+│   │   ├── local-events
+│   │   └── relevant-local-links
+│   ├── multi-location-seo
+│   │   ├── location-taxonomy
+│   │   ├── location-specific-content
+│   │   ├── profile-governance
+│   │   ├── franchise-consistency
+│   │   └── location-opening-and-closure
+│   └── local-measurement
+│       ├── profile-performance
+│       ├── local-ranking-grids
+│       ├── location-and-radius-bias
+│       ├── calls-and-direction-actions
+│       └── location-level-conversions
+├── international-seo
+│   ├── market-and-language-strategy
+│   │   ├── market-prioritization
+│   │   ├── language-and-country-targeting
+│   │   ├── local-search-behavior
+│   │   ├── local-competitor-research
+│   │   └── localized-keyword-research
+│   ├── international-site-architecture
+│   │   ├── country-code-domains
+│   │   ├── language-and-country-subdirectories
+│   │   ├── subdomains
+│   │   ├── locale-url-design
+│   │   └── regional-content-ownership
+│   ├── hreflang
+│   │   ├── language-and-region-codes
+│   │   ├── self-and-return-references
+│   │   ├── x-default
+│   │   ├── html-annotations
+│   │   ├── http-header-annotations
+│   │   ├── xml-sitemap-annotations
+│   │   ├── canonical-alignment
+│   │   └── cluster-validation
+│   ├── localization
+│   │   ├── translation-and-transcreation
+│   │   ├── local-terminology
+│   │   ├── cultural-context
+│   │   ├── currency-and-units
+│   │   ├── date-and-address-formats
+│   │   ├── local-proof-and-trust
+│   │   └── human-language-review
+│   ├── international-technical-controls
+│   │   ├── language-switchers
+│   │   ├── locale-adaptive-pages
+│   │   ├── geo-redirect-risks
+│   │   ├── crawlable-locale-versions
+│   │   ├── same-language-regional-duplicates
+│   │   └── localized-media-and-metadata
+│   └── international-measurement
+│       ├── country-and-language-segmentation
+│       ├── locale-landing-page-analysis
+│       ├── regional-serp-tracking
+│       ├── cross-market-cannibalization
+│       └── localized-conversion-analysis
+├── ecommerce-seo
+│   ├── catalog-architecture
+│   │   ├── category-hierarchy
+│   │   ├── subcategory-design
+│   │   ├── brand-pages
+│   │   ├── collection-pages
+│   │   ├── seasonal-landing-pages
+│   │   └── product-discovery-paths
+│   ├── category-page-optimization
+│   │   ├── category-intent
+│   │   ├── useful-category-content
+│   │   ├── product-listing-structure
+│   │   ├── filters-and-sort-controls
+│   │   ├── pagination-strategy
+│   │   └── category-internal-linking
+│   ├── product-page-optimization
+│   │   ├── unique-descriptions
+│   │   ├── specifications-and-identifiers
+│   │   ├── product-images-and-video
+│   │   ├── price-and-stock-accuracy
+│   │   ├── reviews-and-questions
+│   │   ├── variant-content
+│   │   └── related-products
+│   ├── product-lifecycle
+│   │   ├── out-of-stock-products
+│   │   ├── discontinued-products
+│   │   ├── replacement-products
+│   │   ├── returning-seasonal-products
+│   │   └── product-url-stability
+│   ├── ecommerce-crawl-control
+│   │   ├── filter-indexation-policy
+│   │   ├── valuable-facet-landing-pages
+│   │   ├── sort-and-tracking-parameters
+│   │   ├── cart-and-checkout-pages
+│   │   ├── account-and-wishlist-pages
+│   │   ├── internal-search-indexation
+│   │   └── variant-canonicalization
+│   ├── merchant-data-and-free-listings
+│   │   ├── merchant-center-setup
+│   │   ├── product-feed-management
+│   │   ├── product-identifiers
+│   │   ├── feed-and-page-consistency
+│   │   ├── shipping-and-return-data
+│   │   ├── product-structured-data
+│   │   ├── feed-diagnostics
+│   │   └── listing-policy-review
+│   ├── ecommerce-content
+│   │   ├── buying-guides
+│   │   ├── product-comparisons
+│   │   ├── use-case-content
+│   │   ├── care-and-maintenance-guides
+│   │   └── category-supporting-content
+│   └── ecommerce-measurement
+│       ├── category-and-product-segments
+│       ├── organic-product-discovery
+│       ├── purchase-funnel
+│       ├── revenue-and-margin-context
+│       ├── stock-availability-impact
+│       └── free-listing-and-web-search-attribution
+├── search-verticals
+│   ├── image-seo
+│   │   ├── image-discovery
+│   │   ├── image-quality-and-originality
+│   │   ├── responsive-images
+│   │   ├── image-landing-page-context
+│   │   ├── image-metadata-and-rights
+│   │   ├── image-sitemaps
+│   │   ├── visual-and-multimodal-search
+│   │   └── image-performance-analysis
+│   ├── video-seo
+│   │   ├── watch-page-design
+│   │   ├── video-indexability
+│   │   ├── thumbnail-accessibility
+│   │   ├── titles-and-descriptions
+│   │   ├── transcripts-and-captions
+│   │   ├── video-structured-data
+│   │   ├── video-sitemaps
+│   │   ├── key-moments
+│   │   └── video-indexing-diagnostics
+│   ├── youtube-search
+│   │   ├── audience-and-topic-research
+│   │   ├── search-intent-and-video-format
+│   │   ├── titles-and-thumbnails
+│   │   ├── descriptions-and-chapters
+│   │   ├── captions
+│   │   ├── playlists-and-channel-organization
+│   │   ├── viewer-satisfaction
+│   │   └── youtube-analytics
+│   ├── news-and-publisher-seo
+│   │   ├── newsworthiness-and-original-reporting
+│   │   ├── publication-and-update-dates
+│   │   ├── bylines-and-editorial-transparency
+│   │   ├── news-sitemaps
+│   │   ├── article-structured-data
+│   │   ├── paywall-and-subscription-access
+│   │   ├── breaking-news-workflows
+│   │   └── news-performance-analysis
+│   ├── discover
+│   │   ├── audience-interest-alignment
+│   │   ├── original-and-compelling-content
+│   │   ├── large-image-previews
+│   │   ├── non-misleading-headlines
+│   │   ├── content-policy
+│   │   ├── traffic-volatility
+│   │   └── discover-performance-analysis
+│   └── business-model-specialization
+│       ├── b2b-and-saas
+│       │   ├── solution-pages
+│       │   ├── use-case-pages
+│       │   ├── integration-pages
+│       │   ├── comparison-and-alternative-pages
+│       │   ├── documentation-seo
+│       │   └── lead-quality-measurement
+│       ├── service-business
+│       │   ├── service-taxonomy
+│       │   ├── service-detail-pages
+│       │   ├── proof-and-case-studies
+│       │   └── qualified-lead-paths
+│       ├── marketplaces-and-directories
+│       │   ├── listing-quality
+│       │   ├── taxonomy-and-facets
+│       │   ├── inventory-lifecycle
+│       │   ├── duplicate-listings
+│       │   └── ugc-moderation
+│       └── high-trust-publishing
+│           ├── expert-review-workflows
+│           ├── evidence-quality
+│           ├── author-transparency
+│           └── accuracy-and-update-governance
+├── ai-search
+│   ├── discovery-models
+│   │   ├── traditional-and-generative-search
+│   │   ├── retrieval-augmented-generation
+│   │   ├── query-fan-out
+│   │   ├── citations-and-source-selection
+│   │   ├── search-index-and-training-data
+│   │   └── seo-aeo-and-geo-terminology
+│   ├── search-surfaces
+│   │   ├── google-ai-overviews
+│   │   ├── google-ai-mode
+│   │   ├── bing-and-copilot-search
+│   │   └── chatgpt-search
+│   ├── access-and-eligibility
+│   │   ├── search-crawler-access
+│   │   ├── training-crawler-controls
+│   │   ├── user-triggered-fetchers
+│   │   ├── bot-verification-and-waf
+│   │   ├── index-and-snippet-eligibility
+│   │   ├── rendered-content-access
+│   │   └── publisher-preview-controls
+│   ├── content-and-entity-readiness
+│   │   ├── original-information-and-first-hand-evidence
+│   │   ├── clear-entity-identities
+│   │   ├── verifiable-facts-and-sources
+│   │   ├── consistent-business-and-product-data
+│   │   ├── text-image-and-video-context
+│   │   └── content-freshness
+│   ├── visibility-measurement
+│   │   ├── query-and-prompt-sample-design
+│   │   ├── citation-and-mention-tracking
+│   │   ├── referral-traffic
+│   │   ├── conversion-quality
+│   │   ├── search-console-ai-reporting
+│   │   ├── platform-and-model-variation
+│   │   └── zero-click-and-attribution-limits
+│   ├── evidence-and-limitations
+│   │   ├── official-platform-guidance
+│   │   ├── llms-txt-and-platform-support
+│   │   ├── special-schema-myths
+│   │   ├── content-chunking-myths
+│   │   ├── inauthentic-mention-risks
+│   │   ├── visibility-score-limitations
+│   │   └── controlled-observation
+│   └── agent-friendly-websites
+│       ├── accessible-navigation
+│       ├── clear-product-and-service-data
+│       ├── machine-readable-page-structure
+│       ├── interaction-reliability
+│       └── access-control-and-user-consent
+├── analytics-and-measurement
+│   ├── measurement-planning
+│   │   ├── business-goals-and-kpis
+│   │   ├── baseline-definition
+│   │   ├── event-and-conversion-design
+│   │   ├── measurement-ownership
+│   │   ├── data-dictionary
+│   │   └── reporting-cadence
+│   ├── search-console-analysis
+│   │   ├── properties-and-verification
+│   │   ├── search-performance
+│   │   ├── query-page-country-device-segmentation
+│   │   ├── branded-and-non-branded-analysis
+│   │   ├── page-indexing
+│   │   ├── url-inspection
+│   │   ├── sitemap-and-crawl-reports
+│   │   ├── rich-result-monitoring
+│   │   └── bulk-export
+│   ├── web-analytics
+│   │   ├── organic-channel-classification
+│   │   ├── landing-page-performance
+│   │   ├── engagement-and-navigation
+│   │   ├── key-events-and-conversions
+│   │   ├── ecommerce-events
+│   │   ├── cross-domain-measurement
+│   │   ├── internal-and-bot-traffic-filtering
+│   │   └── referral-classification
+│   ├── metrics-and-interpretation
+│   │   ├── impressions-and-clicks
+│   │   ├── ctr
+│   │   ├── average-position-limitations
+│   │   ├── organic-sessions-and-users
+│   │   ├── qualified-leads-and-revenue
+│   │   ├── visibility-and-share-of-search
+│   │   ├── conversion-rate
+│   │   └── leading-and-lagging-indicators
+│   ├── segmentation
+│   │   ├── brand-and-non-brand
+│   │   ├── topic-and-intent
+│   │   ├── page-type-and-template
+│   │   ├── device-and-country
+│   │   ├── new-and-existing-content
+│   │   └── business-unit-and-location
+│   ├── attribution-and-data-quality
+│   │   ├── search-console-and-analytics-differences
+│   │   ├── clicks-and-sessions
+│   │   ├── canonical-url-attribution
+│   │   ├── consent-and-measurement-gaps
+│   │   ├── time-zones-and-data-latency
+│   │   ├── anonymized-query-data
+│   │   ├── sampling-and-thresholds
+│   │   └── assisted-conversions-and-attribution-limits
+│   ├── reporting-and-forecasting
+│   │   ├── stakeholder-dashboards
+│   │   ├── executive-reporting
+│   │   ├── opportunity-reporting
+│   │   ├── seasonality-adjustment
+│   │   ├── scenario-forecasting
+│   │   ├── confidence-and-assumptions
+│   │   └── change-annotations
+│   └── data-infrastructure
+│       ├── api-data-extraction
+│       ├── bigquery-storage
+│       ├── sql-analysis
+│       ├── url-normalization
+│       ├── data-joins-and-quality-checks
+│       ├── scheduled-refresh
+│       └── access-control-and-retention
+├── audit-and-recovery
+│   ├── audit-planning
+│   │   ├── scope-and-business-context
+│   │   ├── access-and-data-inventory
+│   │   ├── crawl-configuration
+│   │   ├── sampling-strategy
+│   │   ├── baseline-snapshots
+│   │   └── issue-evidence
+│   ├── audit-workstreams
+│   │   ├── crawl-and-index-audit
+│   │   ├── architecture-and-internal-link-audit
+│   │   ├── javascript-and-rendering-audit
+│   │   ├── performance-audit
+│   │   ├── on-page-and-schema-audit
+│   │   ├── content-and-intent-audit
+│   │   ├── backlink-audit
+│   │   ├── local-audit
+│   │   ├── international-audit
+│   │   ├── ecommerce-audit
+│   │   └── analytics-audit
+│   ├── diagnosis-and-prioritization
+│   │   ├── symptom-and-root-cause
+│   │   ├── template-level-patterns
+│   │   ├── affected-url-count
+│   │   ├── impact-confidence-and-effort
+│   │   ├── dependency-analysis
+│   │   ├── false-positive-review
+│   │   └── remediation-acceptance-criteria
+│   ├── traffic-drop-investigation
+│   │   ├── tracking-failure
+│   │   ├── seasonal-demand-change
+│   │   ├── search-demand-decline
+│   │   ├── technical-release-regression
+│   │   ├── indexation-loss
+│   │   ├── ranking-change
+│   │   ├── serp-layout-change
+│   │   ├── competitor-change
+│   │   ├── manual-action
+│   │   └── security-compromise
+│   ├── policy-and-spam-diagnostics
+│   │   ├── cloaking-and-sneaky-redirects
+│   │   ├── doorway-abuse
+│   │   ├── keyword-stuffing
+│   │   ├── hidden-text-and-link-abuse
+│   │   ├── link-spam
+│   │   ├── scaled-content-abuse
+│   │   ├── site-reputation-abuse
+│   │   ├── expired-domain-abuse
+│   │   ├── scraped-content
+│   │   └── misleading-structured-data
+│   ├── security-and-manual-actions
+│   │   ├── search-console-security-reports
+│   │   ├── hacked-content-investigation
+│   │   ├── malware-and-spam-cleanup
+│   │   ├── root-cause-remediation
+│   │   ├── manual-action-reconsideration
+│   │   └── reinfection-prevention
+│   └── recovery-and-validation
+│       ├── remediation-plan
+│       ├── fix-deployment
+│       ├── recrawl-and-reprocessing
+│       ├── before-and-after-comparison
+│       ├── confounding-factor-review
+│       ├── recovery-monitoring
+│       └── incident-retrospective
+├── automation-and-experimentation
+│   ├── automation-foundations
+│   │   ├── spreadsheets-and-formulas
+│   │   ├── regular-expressions
+│   │   ├── html-parsing
+│   │   ├── xpath-and-css-selectors
+│   │   ├── python-for-seo
+│   │   ├── sql-for-seo
+│   │   └── http-clients-and-apis
+│   ├── api-integrations
+│   │   ├── search-console-api
+│   │   ├── url-inspection-api
+│   │   ├── analytics-data-api
+│   │   ├── pagespeed-insights-api
+│   │   ├── chrome-ux-report-api
+│   │   ├── bing-webmaster-api
+│   │   └── indexnow-api
+│   ├── automated-workflows
+│   │   ├── sitemap-validation
+│   │   ├── status-and-redirect-checks
+│   │   ├── metadata-and-schema-checks
+│   │   ├── internal-link-analysis
+│   │   ├── keyword-clustering
+│   │   ├── content-inventory-updates
+│   │   ├── anomaly-detection
+│   │   └── dashboard-refresh
+│   ├── testing-methodology
+│   │   ├── hypothesis-design
+│   │   ├── success-metrics
+│   │   ├── control-and-treatment-groups
+│   │   ├── page-template-split-tests
+│   │   ├── sample-size-and-duration
+│   │   ├── seasonality-and-confounders
+│   │   ├── statistical-and-practical-significance
+│   │   └── test-logging-and-reproducibility
+│   ├── experiment-types
+│   │   ├── title-and-snippet-tests
+│   │   ├── internal-link-tests
+│   │   ├── content-refresh-tests
+│   │   ├── template-tests
+│   │   ├── structured-data-tests
+│   │   ├── performance-tests
+│   │   └── conversion-and-seo-interactions
+│   ├── deployment-quality-assurance
+│   │   ├── staging-crawls
+│   │   ├── pre-release-checks
+│   │   ├── rendered-html-snapshots
+│   │   ├── robots-and-canonical-regression-tests
+│   │   ├── redirect-mapping-tests
+│   │   ├── post-release-smoke-tests
+│   │   └── rollback-triggers
+│   └── automation-governance
+│       ├── human-review-gates
+│       ├── api-quotas-and-rate-limits
+│       ├── robots-and-terms-respect
+│       ├── credential-security
+│       ├── dry-run-and-backup
+│       ├── error-handling-and-retries
+│       └── audit-logs
+├── platforms-and-tools
+│   ├── search-engine-platforms
+│   │   ├── google-search-console
+│   │   ├── bing-webmaster-tools
+│   │   ├── google-business-profile
+│   │   └── google-merchant-center
+│   ├── research-tools
+│   │   ├── google-trends
+│   │   ├── google-keyword-planner
+│   │   ├── ahrefs
+│   │   └── semrush
+│   ├── crawling-and-diagnostics
+│   │   ├── screaming-frog-seo-spider
+│   │   ├── sitebulb
+│   │   ├── screaming-frog-log-file-analyser
+│   │   └── browser-developer-tools
+│   ├── performance-and-markup
+│   │   ├── pagespeed-insights
+│   │   ├── lighthouse
+│   │   ├── chrome-ux-report
+│   │   ├── webpagetest
+│   │   ├── rich-results-test
+│   │   └── schema-markup-validator
+│   ├── analytics-and-reporting
+│   │   ├── google-analytics-4
+│   │   ├── google-tag-manager
+│   │   ├── looker-studio
+│   │   ├── bigquery
+│   │   └── google-sheets-and-excel
+│   ├── cms-and-framework-seo
+│   │   ├── wordpress
+│   │   │   ├── permalinks-and-archives
+│   │   │   ├── taxonomy-indexation
+│   │   │   ├── seo-plugin-configuration
+│   │   │   ├── theme-and-plugin-performance
+│   │   │   └── schema-and-metadata-conflicts
+│   │   ├── shopify
+│   │   │   ├── product-and-collection-urls
+│   │   │   ├── variant-handling
+│   │   │   ├── theme-metadata
+│   │   │   ├── app-and-script-performance
+│   │   │   └── storefront-migrations
+│   │   ├── woocommerce
+│   │   │   ├── product-taxonomy
+│   │   │   ├── attribute-and-filter-urls
+│   │   │   ├── catalog-metadata
+│   │   │   ├── plugin-conflicts
+│   │   │   └── store-performance
+│   │   ├── javascript-frameworks
+│   │   │   ├── nextjs
+│   │   │   ├── nuxt
+│   │   │   ├── astro
+│   │   │   └── single-page-applications
+│   │   └── headless-and-custom-sites
+│   │       ├── cms-content-models
+│   │       ├── metadata-contracts
+│   │       ├── rendering-strategy
+│   │       ├── preview-and-production-separation
+│   │       └── sitemap-and-redirect-pipelines
+│   └── tool-evaluation
+│       ├── use-case-fit
+│       ├── data-coverage
+│       ├── freshness-and-sampling
+│       ├── metric-definitions
+│       ├── validation-against-first-party-data
+│       └── cost-and-workflow-fit
+├── operations-and-governance
+│   ├── delivery-workflow
+│   │   ├── discovery-and-onboarding
+│   │   ├── research-and-planning
+│   │   ├── backlog-management
+│   │   ├── implementation-tickets
+│   │   ├── acceptance-testing
+│   │   ├── release-coordination
+│   │   └── impact-review
+│   ├── team-collaboration
+│   │   ├── seo-and-engineering
+│   │   ├── seo-and-editorial
+│   │   ├── seo-and-design
+│   │   ├── seo-and-product
+│   │   ├── seo-and-pr
+│   │   └── seo-and-analytics
+│   ├── content-governance
+│   │   ├── editorial-standards
+│   │   ├── author-and-reviewer-roles
+│   │   ├── source-and-fact-checking
+│   │   ├── content-maintenance-ownership
+│   │   ├── translation-governance
+│   │   └── ai-usage-policy
+│   ├── technical-governance
+│   │   ├── seo-requirements
+│   │   ├── component-and-template-standards
+│   │   ├── change-control
+│   │   ├── monitoring-and-alerts
+│   │   ├── incident-response
+│   │   └── documentation-and-runbooks
+│   ├── ethical-and-policy-practice
+│   │   ├── search-engine-policies
+│   │   ├── authentic-reviews-and-endorsements
+│   │   ├── sponsorship-transparency
+│   │   ├── copyright-and-content-rights
+│   │   ├── privacy-aware-measurement
+│   │   └── vendor-and-outreach-standards
+│   └── professional-development
+│       ├── official-documentation-review
+│       ├── search-update-tracking
+│       ├── case-study-evaluation
+│       ├── experiment-portfolio
+│       └── stakeholder-communication
+└── practice-projects
+    ├── personal-site-seo
+    │   ├── baseline-audit
+    │   ├── keyword-map
+    │   ├── site-architecture
+    │   ├── on-page-implementation
+    │   ├── search-console-setup
+    │   └── performance-report
+    ├── content-hub
+    │   ├── audience-and-topic-research
+    │   ├── pillar-and-cluster-design
+    │   ├── content-briefs
+    │   ├── original-content-production
+    │   ├── internal-link-plan
+    │   └── content-review
+    ├── technical-seo-lab
+    │   ├── crawler-and-robots-tests
+    │   ├── canonicalization-cases
+    │   ├── redirect-and-status-cases
+    │   ├── javascript-rendering-comparison
+    │   ├── core-web-vitals-improvements
+    │   └── automated-regression-checks
+    ├── local-business-site
+    │   ├── local-keyword-map
+    │   ├── location-and-service-pages
+    │   ├── eligible-business-profile-setup
+    │   ├── citation-review
+    │   ├── review-workflow
+    │   └── local-performance-report
+    ├── ecommerce-catalog
+    │   ├── category-and-product-design
+    │   ├── faceted-navigation-policy
+    │   ├── variant-handling
+    │   ├── product-markup
+    │   ├── merchant-feed-validation
+    │   └── purchase-funnel-report
+    ├── multilingual-site
+    │   ├── market-and-language-plan
+    │   ├── locale-url-architecture
+    │   ├── localized-content
+    │   ├── hreflang-implementation
+    │   ├── canonical-consistency
+    │   └── international-performance-report
+    ├── migration-simulation
+    │   ├── old-site-inventory
+    │   ├── new-url-map
+    │   ├── redirect-rules
+    │   ├── pre-launch-validation
+    │   ├── launch-monitoring
+    │   └── rollback-drill
+    ├── ai-search-observation
+    │   ├── crawler-access-audit
+    │   ├── query-and-prompt-benchmark
+    │   ├── source-and-citation-observation
+    │   ├── content-evidence-improvements
+    │   ├── referral-analysis
+    │   └── limitations-report
+    ├── seo-data-pipeline
+    │   ├── api-extraction
+    │   ├── url-normalization
+    │   ├── data-storage
+    │   ├── dashboard-build
+    │   ├── anomaly-alerts
+    │   └── data-quality-validation
+    └── end-to-end-seo-capstone
+        ├── business-case
+        ├── research-and-roadmap
+        ├── technical-and-content-delivery
+        ├── ethical-promotion
+        ├── measurement-and-experiments
+        └── results-and-retrospective

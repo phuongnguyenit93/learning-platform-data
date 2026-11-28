@@ -18,7 +18,8 @@ python -m pip install -r script/requirements-oracle-overview.txt
 Copy-Item script/oracle-overview.env.example .env.oracle-overview
 ```
 
-Edit the **untracked** `.env.oracle-overview` file in the repository root:
+Edit the **untracked** `learning-platform-data/.env.oracle-overview` file
+(the root of this data repository, if running the commands above):
 
 ```dotenv
 ORACLE_USER=LEARNING_PLATFORM

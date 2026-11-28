@@ -1,0 +1,1117 @@
+business-analyst-module
+├── foundations
+│   ├── business-analysis-overview
+│   │   ├── purpose-of-business-analysis
+│   │   ├── business-analysis-versus-business-analytics
+│   │   ├── business-analyst-role-and-accountabilities
+│   │   ├── business-analyst-versus-product-owner
+│   │   ├── business-analyst-versus-project-manager
+│   │   ├── business-analyst-versus-system-analyst
+│   │   ├── business-analyst-versus-data-analyst
+│   │   ├── internal-and-external-consulting-contexts
+│   │   ├── business-analysis-value-and-outcomes
+│   │   └── business-analyst-learning-path
+│   ├── business-analysis-standards-and-frameworks
+│   │   ├── babok-knowledge-areas
+│   │   ├── business-analysis-core-concept-model
+│   │   ├── business-analysis-planning-and-monitoring
+│   │   ├── elicitation-and-collaboration
+│   │   ├── requirements-life-cycle-management
+│   │   ├── strategy-analysis
+│   │   ├── requirements-analysis-and-design-definition
+│   │   ├── solution-evaluation
+│   │   ├── agile-extension-and-lean-thinking
+│   │   └── organizational-methodology-tailoring
+│   ├── business-and-organization-basics
+│   │   ├── organizational-structures
+│   │   ├── business-units-and-functions
+│   │   ├── business-models
+│   │   ├── products-services-and-value-propositions
+│   │   ├── customers-users-and-beneficiaries
+│   │   ├── revenue-cost-and-profit-basics
+│   │   ├── policies-procedures-and-controls
+│   │   ├── internal-and-external-environments
+│   │   └── industry-and-domain-familiarization
+│   ├── business-analysis-lifecycle
+│   │   ├── identify-business-need
+│   │   ├── understand-current-state
+│   │   ├── define-future-state
+│   │   ├── assess-gaps-and-options
+│   │   ├── elicit-and-specify-requirements
+│   │   ├── validate-and-verify-requirements
+│   │   ├── support-solution-delivery
+│   │   ├── evaluate-solution-performance
+│   │   └── manage-change-and-continuous-improvement
+│   ├── critical-thinking-and-problem-solving
+│   │   ├── problem-versus-symptom
+│   │   ├── fact-assumption-and-opinion
+│   │   ├── root-cause-analysis
+│   │   ├── hypothesis-driven-analysis
+│   │   ├── systems-thinking
+│   │   ├── first-principles-thinking
+│   │   ├── decision-trees-and-tradeoffs
+│   │   ├── ambiguity-and-uncertainty
+│   │   └── evidence-based-recommendations
+│   ├── communication-and-professional-skills
+│   │   ├── active-listening
+│   │   ├── asking-effective-questions
+│   │   ├── facilitation-and-neutrality
+│   │   ├── written-and-verbal-communication
+│   │   ├── presentation-and-storytelling
+│   │   ├── negotiation-and-conflict-resolution
+│   │   ├── influencing-without-authority
+│   │   ├── cross-cultural-communication
+│   │   └── professional-ethics-and-confidentiality
+│   └── business-analysis-toolkit
+│       ├── documentation-and-note-taking
+│       ├── spreadsheets-and-document-editors
+│       ├── diagramming-and-whiteboarding
+│       ├── requirements-management-tools
+│       ├── issue-and-project-tracking-tools
+│       ├── collaboration-and-knowledge-bases
+│       ├── prototyping-and-wireframing-tools
+│       └── tool-selection-and-governance
+├── strategy-analysis-and-business-needs
+│   ├── business-context-and-strategy
+│   │   ├── vision-mission-and-values
+│   │   ├── strategic-goals-and-objectives
+│   │   ├── business-model-canvas
+│   │   ├── value-proposition-canvas
+│   │   ├── value-chain-analysis
+│   │   ├── capability-based-planning
+│   │   ├── operating-model
+│   │   └── strategy-to-execution-alignment
+│   ├── current-state-analysis
+│   │   ├── organizational-context
+│   │   ├── business-process-baseline
+│   │   ├── capability-assessment
+│   │   ├── stakeholder-and-user-landscape
+│   │   ├── technology-and-system-landscape
+│   │   ├── policy-and-control-landscape
+│   │   ├── pain-points-and-constraints
+│   │   └── evidence-and-baseline-metrics
+│   ├── future-state-definition
+│   │   ├── target-outcomes
+│   │   ├── target-capabilities
+│   │   ├── target-processes
+│   │   ├── target-organization-and-roles
+│   │   ├── target-information-and-systems
+│   │   ├── target-experience
+│   │   ├── target-operating-model
+│   │   └── future-state-success-measures
+│   ├── gap-and-root-cause-analysis
+│   │   ├── capability-gap-analysis
+│   │   ├── process-gap-analysis
+│   │   ├── technology-gap-analysis
+│   │   ├── skills-and-resource-gaps
+│   │   ├── five-whys
+│   │   ├── fishbone-diagram
+│   │   ├── issue-trees
+│   │   ├── cause-and-effect-analysis
+│   │   └── validate-root-causes-with-evidence
+│   ├── options-and-feasibility-assessment
+│   │   ├── do-nothing-baseline
+│   │   ├── process-change-option
+│   │   ├── buy-build-or-subscribe
+│   │   ├── solution-alternatives
+│   │   ├── technical-feasibility
+│   │   ├── operational-feasibility
+│   │   ├── financial-feasibility
+│   │   ├── legal-and-regulatory-feasibility
+│   │   ├── schedule-and-resource-feasibility
+│   │   └── option-comparison-and-recommendation
+│   ├── business-case-and-value-assessment
+│   │   ├── problem-and-opportunity-statement
+│   │   ├── strategic-alignment
+│   │   ├── benefits-and-disbenefits
+│   │   ├── cost-categories-and-estimation
+│   │   ├── total-cost-of-ownership
+│   │   ├── return-on-investment
+│   │   ├── net-present-value-and-payback
+│   │   ├── sensitivity-and-scenario-analysis
+│   │   ├── risks-and-dependencies
+│   │   └── benefits-realization-plan
+│   ├── risk-and-assumption-analysis
+│   │   ├── risk-identification
+│   │   ├── probability-and-impact
+│   │   ├── risk-register
+│   │   ├── assumption-register
+│   │   ├── constraint-and-dependency-mapping
+│   │   ├── mitigation-and-contingency
+│   │   ├── issue-escalation
+│   │   └── residual-risk-acceptance
+│   └── strategic-analysis-techniques
+│       ├── swot-analysis
+│       ├── pestle-analysis
+│       ├── porter-five-forces
+│       ├── benchmarking
+│       ├── maturity-assessment
+│       ├── scenario-planning
+│       ├── balanced-scorecard
+│       └── strategy-map-and-objectives
+├── stakeholder-analysis-and-engagement
+│   ├── stakeholder-identification
+│   │   ├── internal-stakeholders
+│   │   ├── external-stakeholders
+│   │   ├── sponsors-and-decision-makers
+│   │   ├── process-owners-and-subject-matter-experts
+│   │   ├── end-users-and-customer-groups
+│   │   ├── delivery-and-technical-teams
+│   │   ├── regulators-and-control-functions
+│   │   └── stakeholder-register
+│   ├── stakeholder-analysis
+│   │   ├── power-interest-grid
+│   │   ├── influence-impact-matrix
+│   │   ├── rasic-and-responsibility-mapping
+│   │   ├── stakeholder-needs-and-concerns
+│   │   ├── attitude-and-readiness-assessment
+│   │   ├── communication-preferences
+│   │   ├── conflict-and-dependency-analysis
+│   │   └── stakeholder-prioritization
+│   ├── engagement-and-communication-planning
+│   │   ├── engagement-objectives
+│   │   ├── communication-plan
+│   │   ├── meeting-and-workshop-design
+│   │   ├── decision-and-approval-forums
+│   │   ├── feedback-and-response-loops
+│   │   ├── escalation-paths
+│   │   ├── remote-and-distributed-engagement
+│   │   └── engagement-effectiveness-review
+│   ├── stakeholder-conflict-management
+│   │   ├── conflicting-goals-and-priorities
+│   │   ├── competing-requirements
+│   │   ├── negotiation-techniques
+│   │   ├── consensus-building
+│   │   ├── decision-rights-and-authority
+│   │   ├── unresolved-conflict-escalation
+│   │   └── decision-rationale-and-records
+│   └── stakeholder-validation-and-signoff
+│       ├── review-participants-and-authority
+│       ├── walkthrough-and-feedback
+│       ├── approval-criteria
+│       ├── formal-and-informal-signoff
+│       ├── conditional-approval
+│       ├── rejection-and-rework
+│       └── approval-evidence-and-audit-trail
+├── elicitation-and-collaboration
+│   ├── elicitation-planning
+│   │   ├── elicitation-objectives
+│   │   ├── stakeholder-and-source-selection
+│   │   ├── technique-selection
+│   │   ├── session-agenda-and-materials
+│   │   ├── pre-reading-and-context
+│   │   ├── participant-accessibility
+│   │   └── elicitation-risks-and-contingencies
+│   ├── interviews
+│   │   ├── structured-interviews
+│   │   ├── semi-structured-interviews
+│   │   ├── open-ended-and-probing-questions
+│   │   ├── contextual-interviews
+│   │   ├── executive-and-expert-interviews
+│   │   ├── user-interviews
+│   │   ├── interview-bias-and-leading-questions
+│   │   └── interview-notes-and-confirmation
+│   ├── workshops-and-facilitation
+│   │   ├── requirements-workshops
+│   │   ├── discovery-workshops
+│   │   ├── process-mapping-workshops
+│   │   ├── brainstorming-and-ideation
+│   │   ├── focus-groups
+│   │   ├── facilitated-prioritization
+│   │   ├── divergent-and-convergent-thinking
+│   │   ├── managing-dominant-and-quiet-participants
+│   │   └── workshop-output-and-action-log
+│   ├── observation-and-contextual-inquiry
+│   │   ├── direct-observation
+│   │   ├── job-shadowing
+│   │   ├── contextual-inquiry
+│   │   ├── task-and-time-observation
+│   │   ├── workarounds-and-exceptions
+│   │   ├── environmental-and-operational-constraints
+│   │   └── observation-ethics-and-consent
+│   ├── document-and-interface-analysis
+│   │   ├── existing-policies-and-procedures
+│   │   ├── forms-and-templates
+│   │   ├── contracts-and-service-agreements
+│   │   ├── reports-and-spreadsheets
+│   │   ├── system-screens-and-user-guides
+│   │   ├── logs-and-operational-records
+│   │   └── document-conflict-and-version-review
+│   ├── surveys-and-questionnaires
+│   │   ├── survey-objectives-and-population
+│   │   ├── question-types-and-wording
+│   │   ├── response-scales
+│   │   ├── sampling-and-distribution
+│   │   ├── response-bias-and-nonresponse
+│   │   ├── survey-pilot-and-validation
+│   │   └── results-synthesis
+│   ├── collaborative-discovery-techniques
+│   │   ├── brainstorming
+│   │   ├── brainwriting-and-dot-voting
+│   │   ├── nominal-group-technique
+│   │   ├── affinity-diagramming
+│   │   ├── story-mapping
+│   │   ├── design-thinking
+│   │   ├── design-studio
+│   │   └── collaborative-modeling
+│   └── elicitation-results-management
+│       ├── capture-and-organize-findings
+│       ├── distinguish-facts-from-assumptions
+│       ├── open-question-and-issue-log
+│       ├── confirm-understanding
+│       ├── resolve-conflicting-information
+│       ├── trace-source-and-rationale
+│       └── communicate-elicitation-outcomes
+├── requirements-engineering
+│   ├── requirements-fundamentals
+│   │   ├── requirement-definition
+│   │   ├── business-needs-and-requirements
+│   │   ├── stakeholder-requirements
+│   │   ├── solution-requirements
+│   │   ├── transition-requirements
+│   │   ├── functional-requirements
+│   │   ├── nonfunctional-requirements
+│   │   ├── constraints-and-assumptions
+│   │   └── requirements-versus-design
+│   ├── requirements-elicitation-and-discovery
+│   │   ├── derive-requirements-from-business-goals
+│   │   ├── derive-requirements-from-processes
+│   │   ├── derive-requirements-from-user-needs
+│   │   ├── derive-requirements-from-rules-and-policies
+│   │   ├── derive-requirements-from-existing-systems
+│   │   ├── derive-requirements-from-data-and-reports
+│   │   ├── discover-exceptions-and-edge-cases
+│   │   └── requirement-decomposition
+│   ├── requirement-quality-and-writing
+│   │   ├── clear-and-unambiguous-language
+│   │   ├── atomic-and-singular-statements
+│   │   ├── necessary-and-value-oriented
+│   │   ├── feasible-and-verifiable
+│   │   ├── consistent-and-complete
+│   │   ├── implementation-independent-when-appropriate
+│   │   ├── measurable-acceptance-criteria
+│   │   ├── avoid-vague-terms
+│   │   └── requirement-quality-checklist
+│   ├── functional-requirements
+│   │   ├── business-capabilities-and-functions
+│   │   ├── user-and-system-interactions
+│   │   ├── inputs-processing-and-outputs
+│   │   ├── business-rules-and-validations
+│   │   ├── workflows-and-state-transitions
+│   │   ├── permissions-and-authorization
+│   │   ├── notifications-and-communications
+│   │   └── exception-and-alternate-flows
+│   ├── nonfunctional-requirements
+│   │   ├── performance-and-response-time
+│   │   ├── availability-and-reliability
+│   │   ├── scalability-and-capacity
+│   │   ├── security-and-privacy
+│   │   ├── usability-and-accessibility
+│   │   ├── compatibility-and-portability
+│   │   ├── maintainability-and-supportability
+│   │   ├── auditability-and-traceability
+│   │   ├── localization-and-language
+│   │   └── measurable-quality-attributes
+│   ├── business-rules-and-decision-logic
+│   │   ├── rule-identification-and-sources
+│   │   ├── rule-statements-and-conditions
+│   │   ├── decision-tables
+│   │   ├── decision-trees
+│   │   ├── decision-model-and-notation
+│   │   ├── rule-priority-and-conflict
+│   │   ├── effective-dates-and-versioning
+│   │   ├── exception-and-override-policy
+│   │   └── rule-ownership-and-governance
+│   ├── requirements-specification
+│   │   ├── business-requirements-document
+│   │   ├── business-requirements-specification
+│   │   ├── software-requirements-specification
+│   │   ├── functional-specification
+│   │   ├── system-requirements-specification
+│   │   ├── interface-requirements
+│   │   ├── data-requirements
+│   │   ├── reporting-requirements
+│   │   ├── requirements-catalog
+│   │   └── document-templates-and-tailoring
+│   ├── requirements-validation-and-verification
+│   │   ├── requirement-review-and-inspection
+│   │   ├── stakeholder-validation
+│   │   ├── testability-and-verifiability
+│   │   ├── completeness-and-consistency-checks
+│   │   ├── feasibility-and-priority-review
+│   │   ├── model-based-validation
+│   │   ├── prototype-based-validation
+│   │   └── formal-approval
+│   └── requirements-change-and-versioning
+│       ├── change-request-intake
+│       ├── impact-analysis
+│       ├── change-prioritization
+│       ├── approval-and-rejection
+│       ├── baseline-management
+│       ├── version-control-and-history
+│       ├── obsolete-requirement-management
+│       └── communicate-approved-changes
+├── requirements-life-cycle-management
+│   ├── traceability
+│   │   ├── business-objective-to-requirement
+│   │   ├── stakeholder-need-to-solution
+│   │   ├── requirement-to-design
+│   │   ├── requirement-to-test-case
+│   │   ├── requirement-to-release
+│   │   ├── forward-and-backward-traceability
+│   │   ├── traceability-matrix
+│   │   └── orphan-and-uncovered-requirements
+│   ├── prioritization
+│   │   ├── must-should-could-wont
+│   │   ├── kano-model
+│   │   ├── value-versus-effort
+│   │   ├── weighted-scoring
+│   │   ├── cost-of-delay
+│   │   ├── risk-based-prioritization
+│   │   ├── dependency-aware-prioritization
+│   │   └── stakeholder-alignment
+│   ├── approval-and-baseline
+│   │   ├── requirement-baseline
+│   │   ├── baseline-entry-criteria
+│   │   ├── approval-workflow
+│   │   ├── signoff-authority
+│   │   ├── baseline-change-control
+│   │   ├── audit-history
+│   │   └── release-specific-baselines
+│   ├── requirement-reuse
+│   │   ├── reusable-requirement-patterns
+│   │   ├── enterprise-requirement-catalog
+│   │   ├── domain-and-product-variants
+│   │   ├── configuration-versus-customization
+│   │   ├── reuse-quality-and-context
+│   │   └── ownership-and-maintenance
+│   └── requirements-repository-and-tooling
+│       ├── requirement-identifiers-and-metadata
+│       ├── folder-and-hierarchy-design
+│       ├── workflow-states
+│       ├── review-and-comment-management
+│       ├── access-control-and-audit
+│       ├── reporting-and-dashboards
+│       └── repository-migration-and-archiving
+├── business-process-analysis-and-modeling
+│   ├── process-management-fundamentals
+│   │   ├── process-definition-and-boundaries
+│   │   ├── process-owner-and-participants
+│   │   ├── input-output-and-customer
+│   │   ├── value-added-and-non-value-added-work
+│   │   ├── process-hierarchy
+│   │   ├── end-to-end-process-thinking
+│   │   └── process-performance-measures
+│   ├── process-discovery-and-documentation
+│   │   ├── interview-based-process-discovery
+│   │   ├── workshop-based-process-discovery
+│   │   ├── observation-based-discovery
+│   │   ├── document-based-discovery
+│   │   ├── process-inventory
+│   │   ├── process-boundary-and-trigger
+│   │   ├── happy-path-and-exceptions
+│   │   └── process-validation-with-owners
+│   ├── process-modeling-notations
+│   │   ├── flowcharts
+│   │   ├── cross-functional-swimlane-diagrams
+│   │   ├── bpmn-events-activities-and-gateways
+│   │   ├── bpmn-pools-and-lanes
+│   │   ├── bpmn-message-and-timer-flows
+│   │   ├── bpmn-subprocesses-and-boundaries
+│   │   ├── uml-activity-diagrams
+│   │   ├── value-stream-maps
+│   │   └── notation-selection-and-modeling-conventions
+│   ├── as-is-process-analysis
+│   │   ├── current-process-baseline
+│   │   ├── handoffs-and-wait-times
+│   │   ├── bottleneck-identification
+│   │   ├── rework-and-defect-analysis
+│   │   ├── process-variation
+│   │   ├── control-and-compliance-gaps
+│   │   ├── customer-pain-points
+│   │   └── process-performance-baseline
+│   ├── to-be-process-design
+│   │   ├── process-redesign-principles
+│   │   ├── eliminate-simplify-and-standardize
+│   │   ├── automation-opportunities
+│   │   ├── role-and-responsibility-redesign
+│   │   ├── exception-and-escalation-design
+│   │   ├── control-and-approval-points
+│   │   ├── target-process-metrics
+│   │   └── to-be-validation
+│   ├── process-improvement-methods
+│   │   ├── lean-fundamentals
+│   │   ├── seven-wastes
+│   │   ├── kaizen-and-continuous-improvement
+│   │   ├── six-sigma-dmaic
+│   │   ├── value-stream-analysis
+│   │   ├── theory-of-constraints
+│   │   ├── process-reengineering
+│   │   └── control-and-sustainment
+│   └── process-automation-and-mining
+│       ├── automation-suitability-assessment
+│       ├── workflow-and-approval-automation
+│       ├── robotic-process-automation
+│       ├── process-mining-concepts
+│       ├── event-log-requirements
+│       ├── conformance-and-variant-analysis
+│       ├── automation-exception-handling
+│       └── human-in-the-loop-design
+├── requirements-analysis-and-solution-design
+│   ├── analysis-and-decomposition
+│   │   ├── requirement-decomposition-hierarchy
+│   │   ├── capability-and-feature-breakdown
+│   │   ├── functional-decomposition
+│   │   ├── use-case-decomposition
+│   │   ├── workflow-and-state-decomposition
+│   │   ├── interface-and-integration-decomposition
+│   │   └── identify-cross-cutting-requirements
+│   ├── use-case-modeling
+│   │   ├── actors-and-goals
+│   │   ├── system-boundary
+│   │   ├── use-case-diagrams
+│   │   ├── use-case-briefs
+│   │   ├── preconditions-and-postconditions
+│   │   ├── main-success-scenario
+│   │   ├── alternate-and-exception-flows
+│   │   ├── include-and-extend-relationships
+│   │   └── use-case-review-and-validation
+│   ├── user-stories-and-backlog-items
+│   │   ├── user-story-structure
+│   │   ├── user-role-and-value
+│   │   ├── story-splitting-techniques
+│   │   ├── story-mapping
+│   │   ├── acceptance-criteria
+│   │   ├── three-amigos-review
+│   │   ├── definition-of-ready
+│   │   ├── definition-of-done
+│   │   └── backlog-refinement
+│   ├── acceptance-criteria-and-specification-by-example
+│   │   ├── given-when-then
+│   │   ├── decision-table-based-criteria
+│   │   ├── boundary-and-equivalence-cases
+│   │   ├── examples-and-counterexamples
+│   │   ├── negative-and-exception-scenarios
+│   │   ├── business-rule-examples
+│   │   ├── executable-specifications
+│   │   └── ambiguity-and-overlap-review
+│   ├── data-and-information-requirements
+│   │   ├── business-entities-and-attributes
+│   │   ├── conceptual-data-model
+│   │   ├── logical-data-model
+│   │   ├── entity-relationship-diagrams
+│   │   ├── data-dictionary-and-definitions
+│   │   ├── data-quality-rules
+│   │   ├── data-retention-and-archiving
+│   │   ├── data-migration-requirements
+│   │   └── master-and-reference-data
+│   ├── interface-and-integration-requirements
+│   │   ├── system-context-and-boundaries
+│   │   ├── source-and-target-systems
+│   │   ├── api-and-service-contracts
+│   │   ├── request-and-response-mapping
+│   │   ├── batch-and-event-integrations
+│   │   ├── error-and-retry-behavior
+│   │   ├── data-synchronization
+│   │   ├── security-and-authentication-needs
+│   │   └── interface-control-document
+│   ├── user-experience-and-prototyping
+│   │   ├── user-personas-and-needs
+│   │   ├── user-journey-maps
+│   │   ├── task-analysis
+│   │   ├── information-architecture
+│   │   ├── wireframes-and-low-fidelity-prototypes
+│   │   ├── interactive-prototypes
+│   │   ├── usability-review
+│   │   ├── accessibility-requirements
+│   │   └── design-handoff-and-traceability
+│   └── solution-option-and-design-assessment
+│       ├── solution-boundary-and-context
+│       ├── build-buy-and-configure-options
+│       ├── fit-gap-analysis
+│       ├── solution-component-overview
+│       ├── architecture-constraints-and-dependencies
+│       ├── usability-and-operability-tradeoffs
+│       ├── design-review-and-feedback
+│       └── requirements-to-design-alignment
+├── agile-product-and-project-delivery
+│   ├── delivery-methodologies
+│   │   ├── predictive-and-waterfall
+│   │   ├── iterative-and-incremental
+│   │   ├── agile-values-and-principles
+│   │   ├── scrum-framework
+│   │   ├── kanban-method
+│   │   ├── hybrid-delivery
+│   │   ├── lean-product-development
+│   │   └── methodology-selection
+│   ├── business-analyst-in-agile
+│   │   ├── product-goal-and-outcomes
+│   │   ├── product-backlog-structure
+│   │   ├── epic-feature-and-story-hierarchy
+│   │   ├── backlog-refinement-and-readiness
+│   │   ├── sprint-planning-support
+│   │   ├── daily-collaboration-with-developers
+│   │   ├── sprint-review-and-feedback
+│   │   ├── retrospective-and-improvement
+│   │   └── evolving-requirements-and-discovery
+│   ├── product-discovery-and-validation
+│   │   ├── problem-discovery
+│   │   ├── customer-and-user-research
+│   │   ├── opportunity-solution-tree
+│   │   ├── hypothesis-and-assumption-testing
+│   │   ├── minimum-viable-product
+│   │   ├── prototype-and-concept-validation
+│   │   ├── product-market-and-user-value
+│   │   └── discovery-to-delivery-handoff
+│   ├── backlog-and-scope-management
+│   │   ├── backlog-creation-and-structure
+│   │   ├── backlog-prioritization
+│   │   ├── dependency-and-sequencing
+│   │   ├── scope-baseline-and-boundaries
+│   │   ├── change-versus-new-scope
+│   │   ├── technical-debt-and-enablers
+│   │   ├── release-scope-negotiation
+│   │   └── backlog-health-and-aging
+│   ├── estimation-and-planning
+│   │   ├── relative-and-absolute-estimation
+│   │   ├── story-points-and-sizing
+│   │   ├── planning-poker
+│   │   ├── three-point-estimation
+│   │   ├── dependency-and-critical-path
+│   │   ├── release-and-iteration-planning
+│   │   ├── uncertainty-and-estimation-ranges
+│   │   └── estimate-versus-commitment
+│   └── delivery-collaboration
+│       ├── developer-and-architect-collaboration
+│       ├── qa-and-test-engineer-collaboration
+│       ├── ux-and-design-collaboration
+│       ├── product-owner-and-sponsor-alignment
+│       ├── issue-triage-and-clarification
+│       ├── scope-and-defect-discussion
+│       ├── delivery-status-communication
+│       └── release-readiness
+├── solution-evaluation-and-testing
+│   ├── solution-validation
+│   │   ├── solution-performance-against-objectives
+│   │   ├── stakeholder-and-user-satisfaction
+│   │   ├── business-value-realization
+│   │   ├── process-and-operational-impact
+│   │   ├── adoption-and-utilization
+│   │   ├── solution-limitations
+│   │   ├── unintended-consequences
+│   │   └── improvement-recommendations
+│   ├── software-testing-fundamentals
+│   │   ├── verification-and-validation
+│   │   ├── test-levels-and-types
+│   │   ├── positive-and-negative-testing
+│   │   ├── boundary-value-analysis
+│   │   ├── equivalence-partitioning
+│   │   ├── decision-table-testing
+│   │   ├── state-transition-testing
+│   │   └── risk-based-testing
+│   ├── test-analysis-and-design
+│   │   ├── test-scenario-identification
+│   │   ├── test-case-design
+│   │   ├── test-data-requirements
+│   │   ├── preconditions-and-test-steps
+│   │   ├── expected-results-and-oracles
+│   │   ├── requirements-coverage
+│   │   ├── traceability-matrix
+│   │   └── testability-review
+│   ├── user-acceptance-testing
+│   │   ├── uat-scope-and-objectives
+│   │   ├── uat-entry-and-exit-criteria
+│   │   ├── business-user-and-tester-roles
+│   │   ├── uat-scenario-and-script-preparation
+│   │   ├── test-environment-and-data-readiness
+│   │   ├── defect-capture-and-triage
+│   │   ├── retest-and-regression
+│   │   ├── uat-signoff
+│   │   └── production-acceptance
+│   ├── defect-and-issue-management
+│   │   ├── defect-versus-change-request
+│   │   ├── severity-and-priority
+│   │   ├── defect-reproduction-and-evidence
+│   │   ├── root-cause-and-impact
+│   │   ├── triage-and-assignment
+│   │   ├── workaround-and-resolution
+│   │   ├── regression-impact
+│   │   └── closure-and-trend-analysis
+│   └── post-implementation-evaluation
+│       ├── benefits-versus-business-case
+│       ├── baseline-versus-actual-performance
+│       ├── adoption-and-training-gaps
+│       ├── operational-readiness
+│       ├── support-and-maintenance-feedback
+│       ├── lessons-learned
+│       └── continuous-improvement-backlog
+├── change-transition-and-implementation
+│   ├── organizational-change-management
+│   │   ├── change-impact-assessment
+│   │   ├── affected-groups-and-roles
+│   │   ├── readiness-and-resistance
+│   │   ├── change-sponsor-and-coalition
+│   │   ├── change-communication-plan
+│   │   ├── training-and-coaching-needs
+│   │   ├── adoption-measures
+│   │   └── sustainment-and-reinforcement
+│   ├── transition-requirements
+│   │   ├── data-migration-and-conversion
+│   │   ├── legacy-and-new-system-coexistence
+│   │   ├── cutover-and-transition-window
+│   │   ├── user-and-role-migration
+│   │   ├── training-and-knowledge-transfer
+│   │   ├── operational-support-model
+│   │   ├── rollback-and-contingency
+│   │   └── transition-acceptance
+│   ├── implementation-planning
+│   │   ├── implementation-approach
+│   │   ├── workstream-and-dependency-mapping
+│   │   ├── resource-and-capacity-planning
+│   │   ├── deployment-readiness
+│   │   ├── pilot-and-phased-rollout
+│   │   ├── communication-and-support-readiness
+│   │   ├── go-live-checklist
+│   │   └── hypercare-and-stabilization
+│   └── benefits-realization
+│       ├── benefit-owner-and-accountability
+│       ├── benefit-measures-and-baselines
+│       ├── leading-and-lagging-indicators
+│       ├── measurement-frequency
+│       ├── benefit-dependency-and-enablers
+│       ├── benefit-risk-and-disbenefit
+│       ├── realization-reporting
+│       └── corrective-action
+├── data-systems-and-technology-literacy
+│   ├── data-literacy-for-business-analysts
+│   │   ├── data-types-and-structures
+│   │   ├── data-quality-dimensions
+│   │   ├── data-dictionaries-and-metadata
+│   │   ├── master-and-reference-data
+│   │   ├── data-ownership-and-stewardship
+│   │   ├── privacy-and-data-classification
+│   │   ├── data-lineage-and-provenance
+│   │   └── data-driven-decision-making
+│   ├── database-and-sql-literacy
+│   │   ├── relational-database-concepts
+│   │   ├── tables-rows-and-columns
+│   │   ├── primary-and-foreign-keys
+│   │   ├── relationships-and-cardinality
+│   │   ├── basic-select-where-and-order-by
+│   │   ├── joins-and-aggregation
+│   │   ├── transactions-and-data-consistency
+│   │   └── reading-schemas-and-query-results
+│   ├── software-and-system-fundamentals
+│   │   ├── application-and-system-architecture
+│   │   ├── frontend-backend-and-database
+│   │   ├── client-server-and-web-basics
+│   │   ├── api-and-integration-concepts
+│   │   ├── authentication-and-authorization
+│   │   ├── environments-and-deployment
+│   │   ├── logs-and-monitoring
+│   │   └── technical-debt-and-maintainability
+│   ├── api-and-integration-analysis
+│   │   ├── api-purpose-and-consumers
+│   │   ├── rest-and-http-fundamentals
+│   │   ├── endpoints-methods-and-status-codes
+│   │   ├── request-response-payloads
+│   │   ├── json-and-schema-basics
+│   │   ├── authentication-and-api-keys
+│   │   ├── synchronous-and-asynchronous-integration
+│   │   ├── webhooks-and-event-driven-integration
+│   │   ├── error-handling-and-retry-contracts
+│   │   └── api-documentation-and-contract-review
+│   ├── enterprise-systems-overview
+│   │   ├── enterprise-resource-planning
+│   │   ├── customer-relationship-management
+│   │   ├── human-capital-management
+│   │   ├── supply-chain-management
+│   │   ├── warehouse-and-inventory-management
+│   │   ├── ecommerce-and-commerce-platforms
+│   │   ├── business-intelligence-and-reporting
+│   │   └── enterprise-integration-platforms
+│   └── technology-collaboration
+│       ├── translating-business-needs-for-engineers
+│       ├── reading-technical-designs
+│       ├── architecture-review-participation
+│       ├── technical-constraint-discovery
+│       ├── integration-dependency-management
+│       ├── vendor-and-platform-evaluation
+│       └── business-and-technical-tradeoffs
+├── business-domain-knowledge
+│   ├── finance-and-accounting
+│   │   ├── chart-of-accounts-and-ledger
+│   │   ├── accounts-payable-and-receivable
+│   │   ├── invoicing-and-billing
+│   │   ├── budgeting-and-forecasting
+│   │   ├── revenue-recognition-basics
+│   │   ├── financial-close-and-reconciliation
+│   │   ├── tax-and-compliance-context
+│   │   └── finance-process-modeling
+│   ├── sales-and-customer-management
+│   │   ├── lead-to-opportunity
+│   │   ├── opportunity-to-order
+│   │   ├── quote-and-pricing
+│   │   ├── order-management
+│   │   ├── customer-onboarding
+│   │   ├── customer-service-and-support
+│   │   ├── customer-retention-and-renewal
+│   │   └── crm-process-and-data
+│   ├── procurement-and-supply-chain
+│   │   ├── procure-to-pay
+│   │   ├── supplier-onboarding-and-management
+│   │   ├── purchase-requisition-and-approval
+│   │   ├── sourcing-and-purchase-orders
+│   │   ├── goods-receipt-and-invoice-matching
+│   │   ├── inventory-and-warehouse-processes
+│   │   ├── logistics-and-fulfillment
+│   │   └── returns-and-reverse-logistics
+│   ├── human-resources
+│   │   ├── hire-to-retire
+│   │   ├── recruitment-and-selection
+│   │   ├── onboarding-and-offboarding
+│   │   ├── time-and-attendance
+│   │   ├── payroll-and-benefits
+│   │   ├── performance-and-learning
+│   │   ├── workforce-planning
+│   │   └── hr-data-and-access-controls
+│   ├── ecommerce-and-digital-business
+│   │   ├── product-catalog-and-merchandising
+│   │   ├── cart-and-checkout
+│   │   ├── payment-and-refund
+│   │   ├── promotion-and-discount
+│   │   ├── order-fulfillment
+│   │   ├── marketplace-and-seller-operations
+│   │   ├── subscription-and-recurring-billing
+│   │   └── digital-customer-experience
+│   ├── banking-and-insurance
+│   │   ├── customer-and-account-onboarding
+│   │   ├── know-your-customer
+│   │   ├── credit-and-loan-origination
+│   │   ├── payment-and-settlement
+│   │   ├── claims-and-underwriting
+│   │   ├── fraud-and-risk-controls
+│   │   ├── regulatory-reporting
+│   │   └── financial-data-security
+│   ├── healthcare-and-public-sector
+│   │   ├── patient-and-service-recipient-journeys
+│   │   ├── appointment-and-case-management
+│   │   ├── records-and-consent
+│   │   ├── service-eligibility-and-benefits
+│   │   ├── casework-and-approval-processes
+│   │   ├── accessibility-and-inclusion
+│   │   ├── privacy-and-regulatory-obligations
+│   │   └── public-service-outcome-measures
+│   └── domain-learning-method
+│       ├── domain-glossary
+│       ├── value-chain-and-process-inventory
+│       ├── stakeholder-and-role-map
+│       ├── business-rules-and-regulations
+│       ├── domain-data-entities
+│       ├── common-kpis-and-performance-drivers
+│       ├── exceptions-and-operational-risks
+│       └── domain-expert-validation
+├── governance-compliance-and-enterprise-architecture
+│   ├── business-analysis-governance
+│   │   ├── analysis-approach-and-methodology
+│   │   ├── deliverable-standards
+│   │   ├── review-and-approval-authority
+│   │   ├── decision-rights-and-escalation
+│   │   ├── requirement-quality-governance
+│   │   ├── repository-and-record-retention
+│   │   └── auditability-and-assurance
+│   ├── risk-control-and-compliance
+│   │   ├── operational-risk
+│   │   ├── internal-controls
+│   │   ├── segregation-of-duties
+│   │   ├── approval-and-delegation-matrices
+│   │   ├── audit-trails-and-evidence
+│   │   ├── regulatory-and-policy-requirements
+│   │   ├── privacy-and-personal-data
+│   │   └── compliance-by-design
+│   ├── enterprise-architecture-literacy
+│   │   ├── business-architecture
+│   │   ├── capability-maps
+│   │   ├── value-streams
+│   │   ├── application-architecture
+│   │   ├── data-architecture
+│   │   ├── technology-architecture
+│   │   ├── architecture-principles-and-standards
+│   │   └── architecture-decision-records
+│   ├── vendor-and-procurement-analysis
+│   │   ├── request-for-information
+│   │   ├── request-for-proposal
+│   │   ├── request-for-quotation
+│   │   ├── vendor-demonstration-scenarios
+│   │   ├── evaluation-criteria-and-scoring
+│   │   ├── fit-gap-and-customization-assessment
+│   │   ├── contract-and-service-level-requirements
+│   │   └── vendor-risk-and-dependency
+│   └── data-and-information-governance
+│       ├── data-ownership-and-stewardship
+│       ├── data-classification
+│       ├── access-and-retention-policy
+│       ├── data-quality-accountability
+│       ├── master-data-governance
+│       ├── consent-and-purpose-limitation
+│       └── information-lifecycle-management
+├── business-analysis-tools-and-deliverables
+│   ├── requirements-and-work-management-platforms
+│   │   ├── jira-and-confluence
+│   │   ├── azure-devops
+│   │   ├── monday-and-asana
+│   │   ├── trello-and-linear
+│   │   ├── enterprise-requirements-tools
+│   │   ├── workflow-and-approval-tools
+│   │   └── tool-configuration-and-permissions
+│   ├── modeling-and-diagramming-tools
+│   │   ├── microsoft-visio
+│   │   ├── lucidchart
+│   │   ├── drawio
+│   │   ├── miro-and-mural
+│   │   ├── bpmn-modelers
+│   │   ├── uml-and-erd-modelers
+│   │   └── model-versioning-and-export
+│   ├── prototyping-and-design-tools
+│   │   ├── figma
+│   │   ├── balsamiq
+│   │   ├── clickable-prototypes
+│   │   ├── design-system-and-components
+│   │   ├── accessibility-inspection
+│   │   └── design-feedback-and-handoff
+│   ├── core-business-analysis-deliverables
+│   │   ├── business-analysis-approach
+│   │   ├── stakeholder-register-and-map
+│   │   ├── business-requirements-document
+│   │   ├── functional-and-nonfunctional-requirements
+│   │   ├── user-stories-and-acceptance-criteria
+│   │   ├── use-case-specification
+│   │   ├── as-is-and-to-be-process-models
+│   │   ├── business-rules-catalog
+│   │   ├── data-dictionary-and-data-mapping
+│   │   ├── traceability-matrix
+│   │   ├── fit-gap-analysis
+│   │   ├── impact-assessment
+│   │   ├── uat-plan-and-test-scenarios
+│   │   └── business-case-and-recommendation
+│   └── documentation-quality
+│       ├── audience-and-purpose
+│       ├── document-structure-and-navigation
+│       ├── terminology-and-glossary
+│       ├── diagrams-and-text-consistency
+│       ├── source-and-decision-rationale
+│       ├── version-and-change-history
+│       ├── review-and-approval-status
+│       └── maintainable-documentation
+├── professional-practice-and-career
+│   ├── business-analyst-work-management
+│   │   ├── request-intake-and-triage
+│   │   ├── analysis-estimation-and-planning
+│   │   ├── prioritization-and-timeboxing
+│   │   ├── dependency-and-blocker-management
+│   │   ├── meeting-and-action-management
+│   │   ├── decision-and-assumption-logs
+│   │   ├── deliverable-review-checkpoints
+│   │   └── retrospective-and-improvement
+│   ├── collaboration-and-leadership
+│   │   ├── product-and-project-team-collaboration
+│   │   ├── business-and-technology-translation
+│   │   ├── executive-stakeholder-management
+│   │   ├── workshop-leadership
+│   │   ├── negotiation-and-facilitation
+│   │   ├── mentoring-and-peer-review
+│   │   └── distributed-team-collaboration
+│   ├── career-levels-and-specializations
+│   │   ├── junior-business-analyst
+│   │   ├── business-analyst
+│   │   ├── senior-business-analyst
+│   │   ├── lead-business-analyst
+│   │   ├── business-analysis-manager
+│   │   ├── product-business-analyst
+│   │   ├── it-business-analyst
+│   │   ├── process-business-analyst
+│   │   ├── business-systems-analyst
+│   │   └── business-architecture-track
+│   ├── certifications-and-development
+│   │   ├── ecba-and-ccba
+│   │   ├── cbap
+│   │   ├── pmi-pba
+│   │   ├── agile-analysis-certifications
+│   │   ├── scrum-and-product-certifications
+│   │   ├── certification-versus-practical-competence
+│   │   └── continuing-professional-development
+│   ├── portfolio-and-interview-preparation
+│   │   ├── portfolio-case-selection
+│   │   ├── anonymized-and-synthetic-project-context
+│   │   ├── problem-and-scope-summary
+│   │   ├── stakeholder-and-elicitation-evidence
+│   │   ├── process-and-requirements-artifacts
+│   │   ├── tradeoff-and-decision-rationale
+│   │   ├── outcome-and-measurement
+│   │   └── behavioral-and-case-interviews
+│   └── business-analysis-quality-rubric
+│       ├── business-value-and-goal-alignment
+│       ├── stakeholder-coverage
+│       ├── requirement-clarity-and-testability
+│       ├── process-and-model-correctness
+│       ├── traceability-and-change-control
+│       ├── feasibility-and-risk-awareness
+│       ├── delivery-collaboration
+│       └── measurable-solution-outcomes
+└── practice-projects
+    ├── business-process-discovery-case
+    │   ├── organization-and-problem-context
+    │   ├── stakeholder-register
+    │   ├── interview-and-observation-plan
+    │   ├── current-state-process-map
+    │   ├── pain-point-and-root-cause-analysis
+    │   ├── baseline-metrics
+    │   ├── findings-validation-workshop
+    │   └── discovery-report
+    ├── as-is-to-be-process-redesign
+    │   ├── process-scope-and-boundaries
+    │   ├── as-is-bpmn-model
+    │   ├── bottleneck-and-waste-analysis
+    │   ├── improvement-options
+    │   ├── to-be-bpmn-model
+    │   ├── roles-and-control-points
+    │   ├── target-process-kpis
+    │   └── owner-validation-and-handoff
+    ├── requirements-engineering-case
+    │   ├── business-need-and-objectives
+    │   ├── stakeholder-and-elicitation-plan
+    │   ├── business-requirements
+    │   ├── functional-requirements
+    │   ├── nonfunctional-requirements
+    │   ├── business-rules-and-exceptions
+    │   ├── requirement-quality-review
+    │   ├── traceability-matrix
+    │   └── stakeholder-signoff
+    ├── customer-onboarding-system
+    │   ├── customer-journey-and-personas
+    │   ├── current-onboarding-process
+    │   ├── identity-and-document-requirements
+    │   ├── workflow-and-state-model
+    │   ├── validation-and-business-rules
+    │   ├── notifications-and-exception-flows
+    │   ├── wireframes-and-prototype
+    │   ├── acceptance-criteria-and-uat
+    │   └── adoption-and-cycle-time-measures
+    ├── ecommerce-order-management
+    │   ├── business-goals-and-scope
+    │   ├── product-cart-and-checkout-use-cases
+    │   ├── order-lifecycle-state-model
+    │   ├── payment-and-refund-rules
+    │   ├── inventory-and-fulfillment-process
+    │   ├── api-and-system-context-diagrams
+    │   ├── exception-and-reconciliation-requirements
+    │   ├── user-stories-and-acceptance-criteria
+    │   └── end-to-end-uat-scenarios
+    ├── crm-implementation-fit-gap
+    │   ├── sales-and-service-process-discovery
+    │   ├── stakeholder-and-user-role-map
+    │   ├── current-system-inventory
+    │   ├── vendor-capability-assessment
+    │   ├── standard-versus-custom-fit-gap
+    │   ├── customer-data-migration-needs
+    │   ├── integration-and-reporting-requirements
+    │   ├── option-scoring-and-recommendation
+    │   └── implementation-roadmap
+    ├── procurement-approval-workflow
+    │   ├── procure-to-pay-process
+    │   ├── approval-authority-matrix
+    │   ├── spend-threshold-business-rules
+    │   ├── supplier-and-purchase-data-model
+    │   ├── exception-and-escalation-paths
+    │   ├── workflow-prototype
+    │   ├── segregation-of-duties-controls
+    │   └── uat-and-control-validation
+    ├── finance-reporting-requirements
+    │   ├── finance-stakeholder-interviews
+    │   ├── report-catalog-and-user-needs
+    │   ├── metric-and-accounting-definitions
+    │   ├── source-to-report-data-mapping
+    │   ├── reconciliation-and-control-totals
+    │   ├── report-layout-wireframes
+    │   ├── access-and-audit-requirements
+    │   └── report-acceptance-tests
+    ├── api-integration-analysis
+    │   ├── business-use-case-and-system-context
+    │   ├── producer-and-consumer-stakeholders
+    │   ├── endpoint-and-data-contract-inventory
+    │   ├── field-mapping-and-transformation
+    │   ├── authentication-and-authorization-needs
+    │   ├── error-retry-and-timeout-scenarios
+    │   ├── sequence-diagram
+    │   ├── integration-acceptance-criteria
+    │   └── interface-control-document
+    ├── agile-product-backlog
+    │   ├── product-vision-and-goals
+    │   ├── user-research-and-problem-statements
+    │   ├── opportunity-solution-tree
+    │   ├── epic-feature-and-story-breakdown
+    │   ├── story-splitting-and-prioritization
+    │   ├── acceptance-criteria
+    │   ├── definition-of-ready-and-done
+    │   └── refinement-and-release-plan
+    ├── business-case-and-feasibility-study
+    │   ├── problem-and-opportunity-definition
+    │   ├── current-state-and-baseline
+    │   ├── solution-options
+    │   ├── cost-and-benefit-estimates
+    │   ├── roi-and-payback-analysis
+    │   ├── risk-and-sensitivity-analysis
+    │   ├── strategic-and-operational-fit
+    │   └── executive-recommendation
+    ├── user-acceptance-testing-package
+    │   ├── requirement-and-scope-baseline
+    │   ├── uat-strategy-and-entry-criteria
+    │   ├── scenario-and-test-case-design
+    │   ├── test-data-and-environment-needs
+    │   ├── requirement-to-test-traceability
+    │   ├── defect-triage-and-retest
+    │   ├── exit-criteria-and-signoff
+    │   └── production-acceptance-checklist
+    ├── legacy-system-replacement
+    │   ├── current-system-and-process-inventory
+    │   ├── user-and-integration-dependency-map
+    │   ├── data-quality-and-migration-assessment
+    │   ├── functional-and-nonfunctional-baseline
+    │   ├── replacement-options-and-fit-gap
+    │   ├── coexistence-and-cutover-requirements
+    │   ├── rollback-and-contingency
+    │   └── transition-and-benefits-plan
+    ├── organizational-change-and-adoption
+    │   ├── change-context-and-impact
+    │   ├── affected-stakeholder-groups
+    │   ├── readiness-and-resistance-assessment
+    │   ├── communication-and-training-plan
+    │   ├── role-and-process-transition
+    │   ├── adoption-and-proficiency-measures
+    │   ├── feedback-and-hypercare
+    │   └── sustainment-review
+    ├── vendor-selection-and-rfp
+    │   ├── business-objectives-and-scope
+    │   ├── stakeholder-and-evaluation-panel
+    │   ├── functional-requirement-catalog
+    │   ├── nonfunctional-and-compliance-requirements
+    │   ├── rfi-and-rfp-document
+    │   ├── vendor-demo-use-cases
+    │   ├── weighted-evaluation-scorecard
+    │   ├── total-cost-and-risk-comparison
+    │   └── selection-recommendation
+    └── end-to-end-business-analysis-capstone
+        ├── business-context-and-strategic-objectives
+        ├── stakeholder-analysis-and-engagement-plan
+        ├── current-state-and-problem-analysis
+        ├── future-state-and-solution-options
+        ├── business-case-and-feasibility
+        ├── elicitation-and-requirements-specification
+        ├── process-models-and-solution-design
+        ├── prioritization-and-traceability
+        ├── agile-delivery-and-change-control
+        ├── test-strategy-and-uat-signoff
+        ├── transition-and-change-management
+        ├── benefits-realization-and-kpis
+        ├── governance-and-documentation
+        └── retrospective-and-portfolio-presentation

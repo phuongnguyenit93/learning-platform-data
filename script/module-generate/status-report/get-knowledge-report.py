@@ -10,6 +10,9 @@ Files containing only whitespace count as blank, including nonzero-byte files.
 All language folders under content/knowledge are included. No module content is
 modified. Three separate YAML reports are written in report/ next to this script.
 Modules without any Markdown are included separately in the blank report.
+
+An incremental cache avoids reopening unchanged nonempty Markdown files.
+Use --full-scan to verify every file and refresh the cache.
 """
 
 from __future__ import annotations
@@ -20,13 +23,16 @@ from datetime import datetime
 import json
 import os
 from pathlib import Path
+import sys
 import tempfile
 
 import yaml
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parent / "report"
+CACHE_FILENAME = ".knowledge-scan-cache.json"
+CACHE_VERSION = 1
 GROUPS = ("unfinishedKnowledge", "blankKnowledge", "finishedKnowledge")
 REPORT_FILES = {
     "unfinishedKnowledge": "knowledge-unfinished.yml",
@@ -51,42 +57,94 @@ def has_markdown_content(path: Path) -> bool:
     return False
 
 
-def count_knowledge_files(directory: Path) -> Counter:
-    result: Counter = Counter()
-    if not directory.is_dir():
+def windows_long_path(directory: Path) -> str:
+    """Preserve support for Windows paths longer than legacy MAX_PATH."""
+    path = str(directory.resolve())
+    if os.name == "nt" and not path.startswith("\\\\?\\"):
+        if path.startswith("\\\\"):
+            return "\\\\?\\UNC\\" + path.lstrip("\\")
+        return "\\\\?\\" + path
+    return path
+
+
+def load_scan_cache(path: Path, root: Path) -> dict:
+    """An absent, outdated or damaged cache simply triggers a full read."""
+    try:
+        with path.open("r", encoding="utf-8") as stream:
+            data = json.load(stream)
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return {}
+    if (
+        not isinstance(data, dict)
+        or data.get("version") != CACHE_VERSION
+        or data.get("root") != str(root)
+        or not isinstance(data.get("files"), dict)
+    ):
+        return {}
+    return data["files"]
+
+
+class KnowledgeScanner:
+    def __init__(self, previous: dict | None = None, *, use_cache: bool = True) -> None:
+        self.previous = previous if previous is not None else {}
+        self.use_cache = use_cache
+        self.updated: dict[str, list] = {}
+        self.stats: Counter = Counter()
+
+    def count_files(self, directory: Path, module_key: str) -> Counter:
+        result: Counter = Counter()
+        if not directory.is_dir():
+            return result
+
+        # scandir's DirEntry already holds file metadata on Windows. Calling
+        # Path.stat() for every file causes extra HDD work on this repository.
+        # Never follow directory symlinks, matching os.walk's default.
+        stack = [(windows_long_path(directory), "")]
+        while stack:
+            folder, relative_folder = stack.pop()
+            with os.scandir(folder) as entries:
+                for entry in entries:
+                    if entry.is_dir(follow_symlinks=False):
+                        stack.append((entry.path, relative_folder + entry.name + "/"))
+                        continue
+                    if not entry.name.lower().endswith(".md"):
+                        continue
+
+                    stat = entry.stat()
+                    result["totalFiles"] += 1
+                    self.stats["visited"] += 1
+                    if stat.st_size == 0:
+                        result["blankFiles"] += 1
+                        self.stats["zeroByteFiles"] += 1
+                        continue
+
+                    key = f"{module_key}/content/knowledge/{relative_folder}{entry.name}"
+                    signature = [stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns]
+                    cached = self.previous.get(key) if self.use_cache else None
+                    if (
+                        isinstance(cached, list)
+                        and len(cached) == 4
+                        and cached[:3] == signature
+                        and type(cached[3]) is bool
+                    ):
+                        filled = cached[3]
+                        self.stats["cacheHits"] += 1
+                    else:
+                        filled = has_markdown_content(Path(entry.path))
+                        self.stats["contentReads"] += 1
+
+                    if self.use_cache:
+                        self.updated[key] = signature + [filled]
+                    result["filledFiles" if filled else "blankFiles"] += 1
         return result
 
-    # Windows' legacy MAX_PATH prevents stat/open on paths > 260 characters
-    # even when os.walk can enumerate them. Use extended-length paths for
-    # the entire walk so every existing Markdown file is counted correctly.
-    if os.name == "nt":
-        absolute = str(directory.resolve())
-        if not absolute.startswith("\\\\?\\"):
-            if absolute.startswith("\\\\"):
-                absolute = "\\\\?\\UNC\\" + absolute.lstrip("\\")
-            else:
-                absolute = "\\\\?\\" + absolute
-        directory = Path(absolute)
 
-    # Walk the knowledge tree (vi, en, and any additional language folders).
-    for folder, _, filenames in os.walk(directory):
-        for filename in filenames:
-            if not filename.lower().endswith(".md"):
-                continue
-            path = Path(folder) / filename
-            result["totalFiles"] += 1
-            if path.stat().st_size == 0 or not has_markdown_content(path):
-                result["blankFiles"] += 1
-            else:
-                result["filledFiles"] += 1
-    return result
-
-
-def build_report(root: Path) -> dict:
+def build_report(root: Path, scanner: KnowledgeScanner | None = None) -> dict:
     module_root = root / "learning-platform-data" / "module"
     if not module_root.is_dir():
         raise FileNotFoundError(f"Module root not found: {module_root}")
 
+    scanner = scanner if scanner is not None else KnowledgeScanner(use_cache=False)
     report: dict = {name: [] for name in GROUPS}
     without_md: list[dict] = []
     totals: Counter = Counter()
@@ -94,13 +152,14 @@ def build_report(root: Path) -> dict:
 
     for info_path in info_paths:
         module = info_path.parent
+        module_key = module.relative_to(root).as_posix()
         module_info = json.loads(info_path.read_text(encoding="utf-8-sig"))
         if not isinstance(module_info, dict):
             raise ValueError(f"Invalid module-info.json object: {info_path}")
 
-        counts = count_knowledge_files(module / "content" / "knowledge")
+        counts = scanner.count_files(module / "content" / "knowledge", module_key)
         item = {
-            "location": module.relative_to(root).as_posix(),
+            "location": module_key,
             "CURRENT_STEP": metadata_value(module_info, "CURRENT_STEP"),
             "SERVICE_NAME": metadata_value(module_info, "SERVICE_NAME"),
             "totalFiles": counts["totalFiles"],
@@ -164,6 +223,26 @@ def write_yaml_atomic(path: Path, report: dict) -> None:
             os.unlink(staging)
 
 
+def write_scan_cache(path: Path, root: Path, files: dict) -> None:
+    """Write a complete snapshot; removed files disappear from the next cache."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, staging = tempfile.mkstemp(prefix=".knowledge-cache-", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as stream:
+            json.dump(
+                {"version": CACHE_VERSION, "root": str(root), "files": files},
+                stream,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(staging, path)
+    finally:
+        if os.path.exists(staging):
+            os.unlink(staging)
+
+
 def write_reports(directory: Path, report: dict) -> list[Path]:
     """Write each classification to its own YAML without changing item fields."""
     paths = []
@@ -187,12 +266,31 @@ def main() -> int:
         "--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR,
         help="Directory for three YAML reports (default: report/ beside this script)",
     )
+    parser.add_argument(
+        "--full-scan", action="store_true",
+        help="Recheck every Markdown file and replace the incremental cache",
+    )
+    parser.add_argument(
+        "--no-cache", action="store_true",
+        help="Read every Markdown file without reading or writing a cache",
+    )
     args = parser.parse_args()
     root = args.root.resolve()
     output_dir = args.output_dir if args.output_dir.is_absolute() else root / args.output_dir
+    cache_path = output_dir / CACHE_FILENAME
+    use_cache = not args.no_cache
+    previous = (
+        load_scan_cache(cache_path, root) if use_cache and not args.full_scan else {}
+    )
+    scanner = KnowledgeScanner(previous, use_cache=use_cache)
 
-    report = build_report(root)
+    report = build_report(root, scanner)
     paths = write_reports(output_dir, report)
+    if use_cache:
+        try:
+            write_scan_cache(cache_path, root, scanner.updated)
+        except OSError as error:
+            print(f"CACHE_WARNING {error}", file=sys.stderr)
     summary = report["summary"]
     for path in paths:
         print(f"REPORT_WRITTEN {path}")
@@ -207,6 +305,12 @@ def main() -> int:
         f"MARKDOWN total={summary['totalMarkdownFiles']} "
         f"blank={summary['blankMarkdownFiles']} "
         f"filled={summary['filledMarkdownFiles']}"
+    )
+    print(
+        f"SCAN visited={scanner.stats['visited']} "
+        f"zero_bytes={scanner.stats['zeroByteFiles']} "
+        f"cache_hits={scanner.stats['cacheHits']} "
+        f"content_reads={scanner.stats['contentReads']}"
     )
     return 0
 

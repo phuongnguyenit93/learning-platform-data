@@ -23,9 +23,9 @@ from readme_related import (
     read_assessments, load_yaml, semantic_fingerprint,
 )
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(REPO_ROOT / "script" / "module-generate" / "step3"))
-sys.path.insert(0, str(REPO_ROOT / "script" / "module-generate" / "step4"))
+REPO_ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(REPO_ROOT / "learning-platform-data" / "script" / "module-generate" / "step3"))
+sys.path.insert(0, str(REPO_ROOT / "learning-platform-data" / "script" / "module-generate" / "step4"))
 
 from generate_menu_detail import StrictLoader, Step3Error, CHILD_FIELDS, windows_long_path  # noqa: E402
 from _knowledge_local import load_layout, markdown_has_content  # noqa: E402

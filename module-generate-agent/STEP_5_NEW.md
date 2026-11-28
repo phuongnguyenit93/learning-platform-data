@@ -71,8 +71,8 @@ phạm vi ghi riêng; STEP 5 chỉ cần Menu cấp 1 và metadata của module,
 Từ root `java-learning`:
 
 ```powershell
-python script/module/step5/generate-temp-file.py --module "<MODULE_LOCATION>" --dry-run
-python script/module/step5/generate-temp-file.py --module "<MODULE_LOCATION>"
+python script/module-generate/step5/generate-temp-file.py --module "<MODULE_LOCATION>" --dry-run
+python script/module-generate/step5/generate-temp-file.py --module "<MODULE_LOCATION>"
 ```
 
 Script chỉ **khởi tạo**; không tự tạo nội dung học thuật, không cập nhật status

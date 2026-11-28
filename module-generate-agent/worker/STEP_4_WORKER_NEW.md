@@ -88,7 +88,7 @@ sau khi STEP 5 NEW tạo Quiz, Interview, Case Study.
 4. Đọc lại YAML và Markdown; nếu WRITE/readback lỗi, **không** đánh dấu
    thành công, trả BLOCKER có tên file và nguyên nhân.
 5. Không đổi `menu-detail-status.yml`: **Prime** sẽ chạy
-   `script/module/step4/refresh_menu_status.py` để tổng hợp các status.
+   `script/module-generate/step4/refresh_menu_status.py` để tổng hợp các status.
 
 ## W4 — REPORT và release ownership
 

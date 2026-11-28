@@ -1,0 +1,961 @@
+ubuntu-module
+├── foundations
+│   ├── ubuntu-overview
+│   │   ├── ubuntu-linux-history-and-goals
+│   │   ├── ubuntu-release-models
+│   │   ├── ubuntu-desktop-versus-server
+│   │   ├── ubuntu-lts-and-interim-releases
+│   │   ├── ubuntu-and-debian-relationship
+│   │   ├── ubuntu-flavors-and-derivatives
+│   │   ├── ubuntu-use-cases-and-ecosystem
+│   │   └── ubuntu-administrator-learning-path
+│   ├── ubuntu-versions-and-lifecycle
+│   │   ├── release-numbering-and-codenames
+│   │   ├── standard-support-and-maintenance
+│   │   ├── esm-and-ubuntu-pro-overview
+│   │   ├── release-notes-and-known-issues
+│   │   ├── hardware-enablement-stacks
+│   │   ├── kernel-version-and-support-policy
+│   │   ├── package-update-and-security-lifecycle
+│   │   └── release-upgrade-paths
+│   ├── linux-and-operating-system-basics
+│   │   ├── kernel-and-user-space
+│   │   ├── processes-and-threads
+│   │   ├── memory-and-virtual-memory
+│   │   ├── filesystems-and-storage
+│   │   ├── users-groups-and-permissions
+│   │   ├── system-calls-and-devices
+│   │   ├── services-and-daemons
+│   │   └── boot-and-shutdown-lifecycle
+│   ├── installation-and-lab-environment
+│   │   ├── hardware-requirements-and-compatibility
+│   │   ├── ubuntu-iso-and-checksum-verification
+│   │   ├── bootable-usb-and-installation-media
+│   │   ├── interactive-desktop-installation
+│   │   ├── ubuntu-server-installation
+│   │   ├── minimal-and-automated-installation
+│   │   ├── virtualbox-and-vmware-installation
+│   │   ├── hyper-v-and-wsl2
+│   │   ├── cloud-image-and-instance-launch
+│   │   └── snapshots-and-revertible-labs
+│   └── desktop-and-server-environments
+│       ├── gnome-desktop-overview
+│       ├── ubuntu-desktop-settings
+│       ├── display-and-multi-monitor-configuration
+│       ├── desktop-applications-and-defaults
+│       ├── server-console-and-remote-administration
+│       ├── headless-server-operation
+│       ├── desktop-versus-server-package-profile
+│       └── choosing-the-right-ubuntu-edition
+├── command-line-and-shell-operations
+│   ├── terminal-and-shell-fundamentals
+│   │   ├── terminal-console-and-tty
+│   │   ├── bash-and-posix-shell
+│   │   ├── login-and-interactive-shells
+│   │   ├── shell-startup-files
+│   │   ├── environment-variables-and-path
+│   │   ├── aliases-functions-and-history
+│   │   ├── command-resolution-and-help
+│   │   └── man-pages-and-ubuntu-documentation
+│   ├── navigation-and-file-operations
+│   │   ├── pwd-cd-and-ls
+│   │   ├── mkdir-rmdir-and-touch
+│   │   ├── cp-mv-and-rm
+│   │   ├── find-locate-and-updatedb
+│   │   ├── file-stat-and-file-types
+│   │   ├── hard-links-and-symbolic-links
+│   │   ├── basename-dirname-and-realpath
+│   │   └── safe-file-operation-practices
+│   ├── text-processing-and-editing
+│   │   ├── cat-less-more-head-and-tail
+│   │   ├── grep-and-regular-expressions
+│   │   ├── sed-and-awk
+│   │   ├── cut-paste-sort-and-uniq
+│   │   ├── tr-wc-and-comm
+│   │   ├── nano-and-vim
+│   │   ├── file-encoding-and-line-endings
+│   │   └── jq-and-json-processing
+│   ├── pipes-redirection-and-process-composition
+│   │   ├── standard-input-output-and-error
+│   │   ├── redirection-and-append
+│   │   ├── pipelines-and-pipe-status
+│   │   ├── tee-and-process-substitution
+│   │   ├── command-chaining-and-conditionals
+│   │   ├── here-documents
+│   │   └── file-descriptors
+│   └── bash-scripting-for-ubuntu
+│       ├── script-structure-and-shebang
+│       ├── variables-and-quoting
+│       ├── arguments-and-option-parsing
+│       ├── conditionals-and-test-expressions
+│       ├── loops-and-functions
+│       ├── exit-codes-and-error-handling
+│       ├── traps-and-cleanup
+│       ├── logging-and-debugging
+│       ├── shellcheck-and-shfmt
+│       └── safe-and-idempotent-admin-scripts
+├── package-management-and-software
+│   ├── apt-and-dpkg-fundamentals
+│   │   ├── deb-package-format
+│   │   ├── dpkg-package-database
+│   │   ├── apt-and-apt-get-commands
+│   │   ├── package-install-remove-and-purge
+│   │   ├── package-search-and-inspection
+│   │   ├── dependency-resolution
+│   │   ├── package-cache-and-cleanup
+│   │   └── broken-package-and-dependency-recovery
+│   ├── repositories-and-package-sources
+│   │   ├── ubuntu-archive-and-mirror-structure
+│   │   ├── sources-list-and-deb822-sources
+│   │   ├── main-universe-restricted-and-multiverse
+│   │   ├── apt-priorities-and-pinning
+│   │   ├── repository-signing-and-keyrings
+│   │   ├── third-party-repository-risk
+│   │   ├── ppa-and-launchpad-overview
+│   │   └── repository-troubleshooting
+│   ├── package-updates-and-upgrades
+│   │   ├── apt-update-and-upgrade
+│   │   ├── full-upgrade-and-dependency-changes
+│   │   ├── unattended-upgrades
+│   │   ├── security-pocket-and-proposed-updates
+│   │   ├── package-holds-and-version-control
+│   │   ├── kernel-package-updates
+│   │   ├── reboot-required-detection
+│   │   └── update-window-and-maintenance-policy
+│   ├── snap-packaging
+│   │   ├── snapd-and-snap-architecture
+│   │   ├── snap-install-refresh-and-remove
+│   │   ├── snap-channels-and-tracks
+│   │   ├── snap-confinement-and-interfaces
+│   │   ├── snap-services-and-logs
+│   │   ├── snap-refresh-control
+│   │   └── snap-versus-deb-tradeoffs
+│   ├── other-software-installation-methods
+│   │   ├── flatpak-overview
+│   │   ├── appimage-overview
+│   │   ├── source-build-and-compilation
+│   │   ├── make-and-cmake
+│   │   ├── language-specific-package-managers
+│   │   ├── manually-installed-binaries
+│   │   └── software-provenance-and-integrity
+│   └── package-lifecycle-and-recovery
+│       ├── package-configuration-files
+│       ├── maintainer-scripts-and-hooks
+│       ├── dpkg-reconfigure
+│       ├── package-database-repair
+│       ├── package-rollback-limitations
+│       ├── package-audit-and-inventory
+│       └── reproducible-package-management
+├── filesystem-storage-and-mounting
+│   ├── ubuntu-filesystem-hierarchy
+│   │   ├── root-and-home-directories
+│   │   ├── etc-var-usr-and-opt
+│   │   ├── tmp-run-and-srv
+│   │   ├── proc-sys-and-dev
+│   │   ├── filesystem-hierarchy-standard
+│   │   ├── ubuntu-configuration-file-layout
+│   │   └── logs-cache-and-state-directories
+│   ├── file-permissions-and-ownership
+│   │   ├── users-groups-and-other-permissions
+│   │   ├── chmod-chown-and-chgrp
+│   │   ├── umask-and-default-permissions
+│   │   ├── setuid-setgid-and-sticky-bit
+│   │   ├── access-control-lists
+│   │   ├── linux-capabilities
+│   │   └── permission-troubleshooting
+│   ├── disks-partitions-and-filesystems
+│   │   ├── lsblk-blkid-and-udev
+│   │   ├── fdisk-parted-and-gdisk
+│   │   ├── mbr-and-gpt-partition-tables
+│   │   ├── mkfs-and-filesystem-creation
+│   │   ├── ext4-and-xfs
+│   │   ├── btrfs-and-zfs-awareness
+│   │   ├── mount-and-umount
+│   │   ├── fstab-and-uuid-based-mounts
+│   │   └── filesystem-check-and-repair
+│   ├── lvm-and-software-raid
+│   │   ├── physical-volumes-and-volume-groups
+│   │   ├── logical-volume-creation-and-resizing
+│   │   ├── lvm-snapshots-and-thin-provisioning
+│   │   ├── mdadm-and-software-raid
+│   │   ├── raid-levels-and-redundancy
+│   │   ├── array-monitoring-and-rebuild
+│   │   └── storage-failure-and-recovery
+│   ├── storage-monitoring-and-performance
+│   │   ├── df-du-and-inode-usage
+│   │   ├── iostat-and-iotop
+│   │   ├── iops-throughput-and-latency
+│   │   ├── disk-queue-and-saturation
+│   │   ├── fio-benchmarking
+│   │   ├── disk-full-and-inode-exhaustion
+│   │   └── storage-capacity-planning
+│   └── backup-and-data-recovery
+│       ├── tar-and-compression
+│       ├── rsync-and-incremental-backup
+│       ├── dd-and-disk-imaging
+│       ├── filesystem-and-volume-snapshots
+│       ├── backup-retention-and-rotation
+│       ├── restore-testing
+│       └── recovery-runbooks
+├── users-groups-authentication-and-privileges
+│   ├── account-management
+│   │   ├── passwd-shadow-and-group-files
+│   │   ├── adduser-and-useradd
+│   │   ├── usermod-and-userdel
+│   │   ├── groupadd-groupmod-and-groupdel
+│   │   ├── id-whoami-and-groups
+│   │   ├── system-and-service-accounts
+│   │   ├── password-aging-and-expiration
+│   │   └── account-locking-and-removal
+│   ├── sudo-and-privilege-management
+│   │   ├── root-account-and-sudo-model
+│   │   ├── sudoers-and-visudo
+│   │   ├── command-specific-sudo-rules
+│   │   ├── sudo-groups-and-policy
+│   │   ├── sudo-logging-and-auditing
+│   │   ├── least-privilege-administration
+│   │   └── privilege-escalation-risk
+│   ├── authentication-and-pam
+│   │   ├── pam-architecture-and-stacks
+│   │   ├── password-authentication
+│   │   ├── ssh-public-key-authentication
+│   │   ├── login-and-session-management
+│   │   ├── faillock-and-brute-force-controls
+│   │   ├── multi-factor-authentication-overview
+│   │   └── authentication-log-investigation
+│   ├── centralized-identity
+│   │   ├── ldap-and-active-directory-integration
+│   │   ├── sssd-and-domain-joining
+│   │   ├── kerberos-and-ticket-authentication
+│   │   ├── centralized-user-and-group-resolution
+│   │   ├── centralized-sudo-policy
+│   │   └── identity-outage-and-fallback
+│   └── access-control-and-isolation
+│       ├── discretionary-access-control
+│       ├── apparmor-profiles-and-enforcement
+│       ├── selinux-awareness
+│       ├── capabilities-and-file-security
+│       ├── namespaces-and-process-isolation
+│       └── access-review-and-audit
+├── boot-kernel-and-service-management
+│   ├── ubuntu-boot-process
+│   │   ├── bios-and-uefi
+│   │   ├── grub-and-boot-entries
+│   │   ├── kernel-and-initramfs
+│   │   ├── root-filesystem-mount
+│   │   ├── systemd-and-pid-one
+│   │   ├── boot-targets-and-dependencies
+│   │   ├── bootloader-recovery
+│   │   └── boot-performance-and-diagnostics
+│   ├── kernel-management
+│   │   ├── ubuntu-kernel-flavors-and-packages
+│   │   ├── generic-and-low-latency-kernels
+│   │   ├── hardware-enablement-kernel
+│   │   ├── kernel-installation-and-removal
+│   │   ├── grub-default-kernel-selection
+│   │   ├── kernel-modules-and-modprobe
+│   │   ├── dkms-and-out-of-tree-modules
+│   │   ├── kernel-headers-and-build-tools
+│   │   └── kernel-regression-and-recovery
+│   ├── systemd-and-service-administration
+│   │   ├── systemd-units-and-targets
+│   │   ├── service-unit-files
+│   │   ├── systemctl-start-stop-restart
+│   │   ├── enable-disable-and-mask
+│   │   ├── daemon-reload-and-unit-validation
+│   │   ├── service-dependencies-and-ordering
+│   │   ├── restart-policies-and-resource-limits
+│   │   ├── custom-service-design
+│   │   └── systemd-timers
+│   ├── logs-and-journaling
+│   │   ├── journalctl-and-journald
+│   │   ├── rsyslog-and-syslog
+│   │   ├── auth-and-system-logs
+│   │   ├── kernel-and-boot-logs
+│   │   ├── logrotate-and-retention
+│   │   ├── persistent-journal-configuration
+│   │   └── centralized-log-forwarding
+│   └── scheduled-tasks-and-startup
+│       ├── cron-and-crontab
+│       ├── systemd-timers-and-calendar-events
+│       ├── at-and-one-time-jobs
+│       ├── cron-environment-and-path
+│       ├── job-locking-and-overlap-prevention
+│       ├── startup-scripts-and-cloud-init
+│       └── scheduled-job-monitoring
+├── networking-and-connectivity
+│   ├── network-configuration
+│   │   ├── ip-addresses-and-interfaces
+│   │   ├── iproute2-and-ip-command
+│   │   ├── netplan-architecture-and-yaml
+│   │   ├── networkmanager-and-nmcli
+│   │   ├── systemd-networkd
+│   │   ├── static-and-dynamic-addressing
+│   │   ├── routing-and-default-gateway
+│   │   ├── vlan-and-bonding
+│   │   └── network-configuration-validation
+│   ├── dns-and-name-resolution
+│   │   ├── systemd-resolved
+│   │   ├── resolv-conf-and-resolvectl
+│   │   ├── hosts-and-nsswitch-conf
+│   │   ├── dns-records-and-query-resolution
+│   │   ├── local-and-caching-resolvers
+│   │   ├── bind-and-authoritative-dns-awareness
+│   │   └── dns-troubleshooting
+│   ├── firewall-and-network-security
+│   │   ├── ufw-fundamentals
+│   │   ├── ufw-rules-and-application-profiles
+│   │   ├── nftables-and-netfilter
+│   │   ├── iptables-legacy-awareness
+│   │   ├── ingress-egress-and-forwarding
+│   │   ├── connection-tracking
+│   │   ├── firewall-logging-and-auditing
+│   │   └── safe-remote-firewall-changes
+│   ├── remote-access-and-file-transfer
+│   │   ├── openssh-server-and-client
+│   │   ├── ssh-key-generation-and-agent
+│   │   ├── sshd-config-and-hardening
+│   │   ├── scp-sftp-and-rsync
+│   │   ├── ssh-tunnels-and-port-forwarding
+│   │   ├── bastion-and-jump-hosts
+│   │   └── ssh-logs-and-troubleshooting
+│   ├── network-services
+│   │   ├── nginx-and-apache
+│   │   ├── reverse-proxy-and-load-balancing
+│   │   ├── tls-and-certificate-configuration
+│   │   ├── nfs-and-samba
+│   │   ├── dhcp-and-ip-address-management
+│   │   ├── time-synchronization-and-chrony
+│   │   └── service-port-and-listener-inspection
+│   └── network-diagnostics
+│       ├── ping-and-fping
+│       ├── traceroute-tracepath-and-mtr
+│       ├── dig-host-and-nslookup
+│       ├── curl-wget-and-http-debugging
+│       ├── tcpdump-and-wireshark
+│       ├── ss-and-socket-inspection
+│       ├── ethtool-and-interface-diagnostics
+│       └── latency-loss-and-throughput-analysis
+├── desktop-environment-and-user-experience
+│   ├── gnome-and-ubuntu-desktop
+│   │   ├── gnome-shell-and-session
+│   │   ├── activities-overview-and-workspaces
+│   │   ├── settings-and-control-center
+│   │   ├── extensions-and-extension-management
+│   │   ├── themes-icons-and-fonts
+│   │   ├── keyboard-shortcuts-and-input-sources
+│   │   └── desktop-session-troubleshooting
+│   ├── display-and-hardware
+│   │   ├── display-resolution-and-refresh-rate
+│   │   ├── multi-monitor-and-scaling
+│   │   ├── graphics-drivers-and-firmware
+│   │   ├── nvidia-driver-management
+│   │   ├── hybrid-graphics-and-prime
+│   │   ├── audio-pulseaudio-and-pipewire
+│   │   ├── bluetooth-and-peripheral-devices
+│   │   └── laptop-power-and-suspend
+│   ├── desktop-applications-and-packaging
+│   │   ├── default-applications-and-file-associations
+│   │   ├── snap-desktop-applications
+│   │   ├── deb-and-flatpak-desktop-apps
+│   │   ├── application-permissions-and-portals
+│   │   ├── desktop-launchers-and-autostart
+│   │   └── application-crash-and-log-diagnostics
+│   ├── printing-and-peripheral-management
+│   │   ├── cups-and-print-queues
+│   │   ├── printer-drivers-and-network-printers
+│   │   ├── scanner-and-sane
+│   │   ├── removable-storage-and-automount
+│   │   └── udev-rules-for-peripherals
+│   └── desktop-accessibility-and-localization
+│       ├── screen-reader-and-accessibility-settings
+│       ├── keyboard-and-pointer-accessibility
+│       ├── font-scaling-and-contrast
+│       ├── language-and-input-methods
+│       ├── locale-and-timezone
+│       ├── right-to-left-language-support
+│       └── accessibility-validation
+├── security-and-ubuntu-hardening
+│   ├── security-fundamentals
+│   │   ├── threat-model-and-attack-surface
+│   │   ├── least-privilege-and-defense-in-depth
+│   │   ├── secure-installation-baseline
+│   │   ├── minimal-services-and-package-profile
+│   │   ├── security-updates-and-patching
+│   │   └── security-configuration-audit
+│   ├── apparmor-and-mandatory-access-control
+│   │   ├── apparmor-status-and-modes
+│   │   ├── profile-loading-and-enforcement
+│   │   ├── complain-and-enforce-modes
+│   │   ├── aa-logprof-and-profile-tuning
+│   │   ├── apparmor-denial-investigation
+│   │   ├── custom-profile-development
+│   │   └── service-confinement-validation
+│   ├── authentication-and-remote-access-hardening
+│   │   ├── ssh-password-and-root-login-policy
+│   │   ├── public-key-and-allowed-user-policy
+│   │   ├── sudo-policy-and-command-logging
+│   │   ├── pam-and-password-policy
+│   │   ├── brute-force-protection
+│   │   ├── mfa-and-centralized-authentication
+│   │   └── access-review-and-session-auditing
+│   ├── firewall-and-host-protection
+│   │   ├── ufw-default-deny-policy
+│   │   ├── nftables-rule-review
+│   │   ├── exposed-service-inventory
+│   │   ├── fail2ban-and-abuse-mitigation
+│   │   ├── tls-and-certificate-hardening
+│   │   ├── kernel-sysctl-hardening
+│   │   └── network-security-monitoring
+│   ├── encryption-and-secret-management
+│   │   ├── luks-and-full-disk-encryption
+│   │   ├── encrypted-home-and-data-volumes
+│   │   ├── openssl-and-certificate-tools
+│   │   ├── ssh-agent-and-key-protection
+│   │   ├── secret-storage-and-rotation
+│   │   ├── backup-encryption
+│   │   └── key-and-certificate-lifecycle
+│   ├── auditing-and-compliance
+│   │   ├── auditd-and-linux-audit-framework
+│   │   ├── journal-and-authentication-auditing
+│   │   ├── file-integrity-monitoring
+│   │   ├── lynis-and-security-assessment
+│   │   ├── openscap-and-compliance-scanning
+│   │   ├── cis-benchmark-awareness
+│   │   ├── ubuntu-security-guide
+│   │   └── evidence-and-remediation-reporting
+│   └── vulnerability-and-incident-response
+│       ├── vulnerability-identification-and-prioritization
+│       ├── unattended-security-updates
+│       ├── kernel-and-package-cve-assessment
+│       ├── incident-triage-and-containment
+│       ├── log-and-process-forensics
+│       ├── recovery-and-rebuild
+│       └── post-incident-hardening
+├── process-memory-and-kernel-management
+│   ├── process-management
+│   │   ├── pid-ppid-and-process-states
+│   │   ├── ps-top-and-htop
+│   │   ├── pgrep-pkill-and-kill
+│   │   ├── signals-and-graceful-shutdown
+│   │   ├── jobs-bg-and-fg
+│   │   ├── orphan-and-zombie-processes
+│   │   ├── nice-renice-and-cpu-affinity
+│   │   └── lsof-and-open-file-investigation
+│   ├── memory-management
+│   │   ├── virtual-memory-and-address-spaces
+│   │   ├── free-vmstat-and-memory-metrics
+│   │   ├── swap-and-swappiness
+│   │   ├── page-cache-and-buffer-cache
+│   │   ├── oom-killer-and-memory-pressure
+│   │   ├── huge-pages-awareness
+│   │   └── memory-mapped-files
+│   ├── cpu-and-resource-control
+│   │   ├── load-average-and-run-queue
+│   │   ├── mpstat-and-pidstat
+│   │   ├── cgroups-v1-and-v2
+│   │   ├── ulimit-and-resource-limits
+│   │   ├── systemd-resource-controls
+│   │   ├── cpu-throttling-and-saturation
+│   │   └── resource-contention-diagnostics
+│   └── kernel-and-device-management
+│       ├── uname-and-kernel-information
+│       ├── procfs-and-sysfs
+│       ├── sysctl-and-kernel-parameters
+│       ├── lsmod-modinfo-and-modprobe
+│       ├── dkms-and-driver-builds
+│       ├── udev-and-device-events
+│       ├── dmesg-and-kernel-logs
+│       └── kernel-panic-and-oops-awareness
+├── automation-configuration-and-infrastructure
+│   ├── shell-and-python-administration
+│   │   ├── bash-system-administration-scripts
+│   │   ├── python-subprocess-and-process-control
+│   │   ├── filesystem-and-account-automation
+│   │   ├── package-and-update-automation
+│   │   ├── service-health-checks
+│   │   ├── logging-and-notification
+│   │   ├── retries-locks-and-timeouts
+│   │   └── safe-and-idempotent-script-design
+│   ├── ansible-configuration-management
+│   │   ├── inventory-and-connection-configuration
+│   │   ├── playbooks-and-task-modules
+│   │   ├── roles-and-collections
+│   │   ├── variables-and-jinja-templates
+│   │   ├── handlers-and-idempotency
+│   │   ├── privilege-escalation-and-sudo
+│   │   ├── ansible-vault-and-secrets
+│   │   ├── ansible-lint-and-molecule
+│   │   └── fleet-configuration-and-drift
+│   ├── cloud-init-and-automated-provisioning
+│   │   ├── cloud-init-architecture-and-stages
+│   │   ├── user-data-and-meta-data
+│   │   ├── users-packages-and-write-files
+│   │   ├── bootcmd-and-runcmd
+│   │   ├── cloud-init-logs-and-debugging
+│   │   ├── image-baking-and-golden-images
+│   │   └── first-boot-and-reprovisioning
+│   ├── infrastructure-as-code
+│   │   ├── terraform-fundamentals
+│   │   ├── providers-resources-and-data-sources
+│   │   ├── modules-and-reuse
+│   │   ├── remote-state-and-locking
+│   │   ├── plan-apply-and-import
+│   │   ├── cloud-network-and-vm-provisioning
+│   │   ├── infrastructure-validation-and-testing
+│   │   └── drift-detection-and-safe-destroy
+│   └── scheduled-jobs-and-operations
+│       ├── cron-and-systemd-timers
+│       ├── job-locking-and-overlap-prevention
+│       ├── log-rotation-and-retention
+│       ├── patching-and-maintenance-automation
+│       ├── backup-and-cleanup-jobs
+│       ├── failure-alerting-and-retries
+│       └── operational-automation-audit
+├── containers-virtualization-and-cloud
+│   ├── virtualization-and-wsl
+│   │   ├── virtualbox-and-vmware
+│   │   ├── hyper-v-and-wsl2
+│   │   ├── qemu-and-kvm-overview
+│   │   ├── libvirt-and-virsh
+│   │   ├── virtual-network-and-bridging
+│   │   ├── disk-images-and-snapshots
+│   │   └── vm-resource-sizing
+│   ├── docker-and-container-runtime
+│   │   ├── docker-engine-and-cli
+│   │   ├── dockerfile-and-image-layers
+│   │   ├── multi-stage-builds
+│   │   ├── container-registry-and-image-tags
+│   │   ├── compose-and-multi-container-applications
+│   │   ├── volumes-and-bind-mounts
+│   │   ├── container-networking
+│   │   ├── containerd-and-runc
+│   │   └── rootless-containers-and-security
+│   ├── snap-and-system-containment
+│   │   ├── snap-confinement-and-interfaces
+│   │   ├── apparmor-container-interaction
+│   │   ├── namespaces-and-cgroups
+│   │   ├── seccomp-and-capabilities
+│   │   └── sandboxing-and-application-isolation
+│   ├── kubernetes-and-ubuntu-nodes
+│   │   ├── kubernetes-control-plane-and-workers
+│   │   ├── kubelet-and-container-runtime
+│   │   ├── pods-deployments-and-services
+│   │   ├── cni-and-network-policy
+│   │   ├── persistent-volumes-and-csi
+│   │   ├── node-pressure-and-eviction
+│   │   ├── node-drain-and-upgrade
+│   │   └── ubuntu-node-troubleshooting
+│   └── cloud-linux-infrastructure
+│       ├── ubuntu-cloud-images
+│       ├── aws-ec2-and-instance-connect
+│       ├── azure-ubuntu-virtual-machines
+│       ├── google-compute-engine
+│       ├── cloud-networking-and-firewall-rules
+│       ├── cloud-storage-and-snapshots
+│       ├── cloud-metadata-and-instance-identity
+│       └── cloud-init-and-guest-agents
+├── web-server-and-application-hosting
+│   ├── web-server-installation-and-configuration
+│   │   ├── nginx-installation-and-virtual-hosts
+│   │   ├── apache2-installation-and-virtual-hosts
+│   │   ├── document-roots-and-permissions
+│   │   ├── reverse-proxy-and-upstream-pools
+│   │   ├── tls-certificates-and-https
+│   │   ├── lets-encrypt-and-certbot
+│   │   ├── access-and-error-logs
+│   │   └── web-server-hardening
+│   ├── application-runtime-and-services
+│   │   ├── nodejs-and-pm2
+│   │   ├── python-and-gunicorn-uvicorn
+│   │   ├── php-and-php-fpm
+│   │   ├── java-and-systemd-services
+│   │   ├── dotnet-and-kestrel
+│   │   ├── environment-and-secret-configuration
+│   │   ├── process-supervision-and-restarts
+│   │   └── application-log-and-health-management
+│   ├── databases-and-caching-services
+│   │   ├── postgresql-installation-and-administration
+│   │   ├── mysql-and-mariadb
+│   │   ├── redis-and-cache-services
+│   │   ├── database-users-and-access-control
+│   │   ├── database-backup-and-recovery
+│   │   ├── database-network-and-tls
+│   │   └── database-monitoring-and-tuning
+│   └── production-hosting-architecture
+│       ├── reverse-proxy-and-application-topology
+│       ├── tls-and-certificate-renewal
+│       ├── load-balancing-and-health-checks
+│       ├── static-assets-and-object-storage
+│       ├── application-deployment-and-rollback
+│       ├── backup-and-disaster-recovery
+│       └── production-readiness-checklist
+├── desktop-development-and-user-workflows
+│   ├── developer-workstation-setup
+│   │   ├── build-essential-and-compilers
+│   │   ├── git-and-ssh-configuration
+│   │   ├── vscode-and-jetbrains-ides
+│   │   ├── language-runtimes-and-version-managers
+│   │   ├── docker-and-local-containers
+│   │   ├── local-databases-and-services
+│   │   └── workstation-backup-and-security
+│   ├── graphics-and-hardware-drivers
+│   │   ├── mesa-and-open-source-graphics
+│   │   ├── nvidia-driver-installation
+│   │   ├── secure-boot-and-driver-signing
+│   │   ├── hybrid-graphics-and-prime
+│   │   ├── firmware-and-linux-firmware
+│   │   └── graphics-logs-and-troubleshooting
+│   ├── audio-bluetooth-and-peripherals
+│   │   ├── pipewire-and-pulseaudio
+│   │   ├── bluetoothctl-and-bluetooth-services
+│   │   ├── usb-and-device-management
+│   │   ├── webcam-and-video-devices
+│   │   ├── printing-and-cups
+│   │   └── scanner-and-sane
+│   ├── power-and-laptop-management
+│   │   ├── power-profiles-and-cpu-governors
+│   │   ├── suspend-hibernate-and-resume
+│   │   ├── tlp-and-power-optimization
+│   │   ├── battery-health-and-monitoring
+│   │   ├── thermal-management
+│   │   └── lid-and-power-button-behavior
+│   └── desktop-maintenance-and-recovery
+│       ├── user-settings-and-dotfile-backup
+│       ├── gnome-extension-troubleshooting
+│       ├── display-manager-and-login-recovery
+│       ├── desktop-session-reset
+│       ├── application-crash-diagnostics
+│       └── user-data-migration
+├── monitoring-performance-and-troubleshooting
+│   ├── system-monitoring-and-metrics
+│   │   ├── top-htop-and-load-average
+│   │   ├── free-vmstat-and-memory-pressure
+│   │   ├── iostat-iotop-and-disk-metrics
+│   │   ├── sar-sysstat-and-pidstat
+│   │   ├── mpstat-and-cpu-analysis
+│   │   ├── df-du-and-inode-monitoring
+│   │   ├── network-interface-and-socket-metrics
+│   │   └── resource-baselines-and-capacity
+│   ├── logs-and-observability-stack
+│   │   ├── journald-and-rsyslog
+│   │   ├── logrotate-and-retention
+│   │   ├── prometheus-node-exporter
+│   │   ├── grafana-dashboards
+│   │   ├── alertmanager-and-notifications
+│   │   ├── fluent-bit-and-log-forwarding
+│   │   ├── opentelemetry-overview
+│   │   └── alert-noise-and-signal-quality
+│   ├── performance-analysis
+│   │   ├── cpu-bound-and-io-bound-workloads
+│   │   ├── process-scheduling-and-context-switches
+│   │   ├── memory-leaks-and-oom-investigation
+│   │   ├── disk-queue-and-filesystem-performance
+│   │   ├── network-latency-and-packet-loss
+│   │   ├── perf-and-flame-graphs
+│   │   ├── strace-and-system-call-analysis
+│   │   └── benchmark-and-before-after-comparison
+│   ├── troubleshooting-methodology
+│   │   ├── scope-impact-and-symptom-assessment
+│   │   ├── hypothesis-driven-diagnostics
+│   │   ├── boot-and-kernel-failure
+│   │   ├── service-startup-and-crash
+│   │   ├── package-and-dependency-failure
+│   │   ├── filesystem-and-storage-failure
+│   │   ├── dns-routing-and-firewall-failure
+│   │   ├── authentication-and-permission-failure
+│   │   └── root-cause-and-incident-report
+│   └── eBPF-and-advanced-diagnostics
+│       ├── eBPF-fundamentals
+│       ├── bpftrace-and-bcc-tools
+│       ├── tracepoints-and-kprobes
+│       ├── kernel-and-process-observability
+│       ├── network-performance-tracing
+│       └── production-profiling-safety
+├── ubuntu-server-and-enterprise-operations
+│   ├── server-provisioning-and-baselines
+│   │   ├── ubuntu-server-autoinstall
+│   │   ├── cloud-init-and-first-boot
+│   │   ├── hostname-and-network-identity
+│   │   ├── time-sync-and-chrony
+│   │   ├── package-and-service-minimization
+│   │   ├── baseline-user-and-ssh-policy
+│   │   └── server-inventory-and-documentation
+│   ├── enterprise-management-and-support
+│   │   ├── ubuntu-pro-and-esm
+│   │   ├── landscape-management-overview
+│   │   ├── livepatch-and-kernel-maintenance
+│   │   ├── centralized-patching-and-compliance
+│   │   ├── fleet-inventory-and-reporting
+│   │   ├── enterprise-support-and-escalation
+│   │   └── lifecycle-and-maintenance-windows
+│   ├── high-availability-and-clustering
+│   │   ├── availability-and-failure-domains
+│   │   ├── pacemaker-and-corosync
+│   │   ├── quorum-and-fencing
+│   │   ├── active-passive-service-clusters
+│   │   ├── shared-storage-and-multipath
+│   │   ├── failover-and-failback
+│   │   └── cluster-testing-and-runbooks
+│   ├── backup-and-disaster-recovery
+│   │   ├── backup-policy-and-retention
+│   │   ├── filesystem-and-database-backups
+│   │   ├── encrypted-and-offsite-backups
+│   │   ├── rpo-and-rto-definition
+│   │   ├── restore-and-recovery-validation
+│   │   ├── cross-region-and-site-recovery
+│   │   └── disaster-recovery-exercises
+│   └── enterprise-identity-and-services
+│       ├── ldap-and-active-directory
+│       ├── kerberos-and-sssd
+│       ├── centralized-sudo-and-access
+│       ├── certificate-and-pki-integration
+│       ├── enterprise-dns-and-time-services
+│       └── audit-and-accountability
+├── cloud-devops-and-platform-engineering
+│   ├── ubuntu-in-cloud
+│   │   ├── ubuntu-cloud-images-and-marketplaces
+│   │   ├── aws-ec2-ubuntu
+│   │   ├── azure-ubuntu-virtual-machines
+│   │   ├── google-compute-engine-ubuntu
+│   │   ├── cloud-network-and-security-groups
+│   │   ├── instance-metadata-and-identity
+│   │   ├── cloud-storage-and-snapshots
+│   │   └── cloud-guest-agents-and-operations
+│   ├── container-and-kubernetes-operations
+│   │   ├── docker-and-containerd-on-ubuntu
+│   │   ├── container-runtime-and-cgroup-configuration
+│   │   ├── kubeadm-and-managed-kubernetes-nodes
+│   │   ├── kubelet-and-node-lifecycle
+│   │   ├── cni-and-csi-diagnostics
+│   │   ├── node-drain-and-upgrade
+│   │   └── container-host-hardening
+│   ├── infrastructure-as-code-and-configuration
+│   │   ├── terraform-for-ubuntu-infrastructure
+│   │   ├── ansible-for-ubuntu-fleets
+│   │   ├── cloud-init-and-image-baking
+│   │   ├── packer-and-golden-images
+│   │   ├── policy-as-code
+│   │   ├── configuration-drift-and-remediation
+│   │   └── infrastructure-testing
+│   ├── ci-cd-and-release-engineering
+│   │   ├── github-actions-self-hosted-runners
+│   │   ├── gitlab-runner-on-ubuntu
+│   │   ├── jenkins-agents-and-controller
+│   │   ├── build-and-deployment-automation
+│   │   ├── artifact-and-package-publishing
+│   │   ├── secret-and-credential-management
+│   │   └── rollback-and-release-audit
+│   └── site-reliability-and-platform-operations
+│       ├── service-level-indicators-and-objectives
+│       ├── error-budgets-and-alerting
+│       ├── on-call-and-incident-management
+│       ├── toil-reduction-and-automation
+│       ├── golden-images-and-fleet-management
+│       ├── self-service-linux-environments
+│       └── operational-readiness-and-runbooks
+├── testing-quality-and-security-validation
+│   ├── ubuntu-system-validation
+│   │   ├── installation-and-boot-tests
+│   │   ├── package-and-upgrade-validation
+│   │   ├── service-and-network-tests
+│   │   ├── filesystem-and-storage-tests
+│   │   ├── hardware-and-driver-compatibility
+│   │   └── recovery-and-rollback-tests
+│   ├── automation-testing
+│   │   ├── shellcheck-and-shell-script-tests
+│   │   ├── bats-framework
+│   │   ├── ansible-lint-and-molecule
+│   │   ├── cloud-init-validation
+│   │   ├── terraform-format-and-validation
+│   │   └── idempotency-and-drift-tests
+│   ├── security-and-compliance-testing
+│   │   ├── lynis-security-audit
+│   │   ├── ubuntu-security-guide-assessment
+│   │   ├── openscap-and-cis-benchmark-awareness
+│   │   ├── vulnerability-and-package-scanning
+│   │   ├── apparmor-policy-validation
+│   │   ├── firewall-and-ssh-hardening-tests
+│   │   └── remediation-and-evidence-report
+│   └── performance-and-resilience-testing
+│       ├── stress-ng-and-sysbench
+│       ├── fio-storage-benchmarks
+│       ├── iperf-network-benchmarks
+│       ├── resource-exhaustion-simulation
+│       ├── service-failure-and-restart-tests
+│       ├── backup-restore-drills
+│       └── failover-and-recovery-exercises
+├── professional-practice-and-career
+│   ├── ubuntu-administration-workflow
+│   │   ├── change-and-maintenance-planning
+│   │   ├── package-and-kernel-upgrade-planning
+│   │   ├── incident-triage-and-prioritization
+│   │   ├── safe-command-and-configuration-changes
+│   │   ├── operational-runbooks-and-checklists
+│   │   ├── root-cause-analysis
+│   │   └── automation-and-toil-reduction
+│   ├── collaboration-and-communication
+│   │   ├── developer-and-application-team-support
+│   │   ├── network-and-storage-team-collaboration
+│   │   ├── security-and-compliance-collaboration
+│   │   ├── cloud-and-platform-team-collaboration
+│   │   ├── stakeholder-and-incident-communication
+│   │   └── documentation-and-knowledge-sharing
+│   ├── career-levels-and-specializations
+│   │   ├── junior-ubuntu-linux-administrator
+│   │   ├── linux-system-administrator
+│   │   ├── ubuntu-server-engineer
+│   │   ├── senior-linux-engineer
+│   │   ├── cloud-and-devops-engineer
+│   │   ├── site-reliability-engineer
+│   │   ├── platform-engineer
+│   │   └── infrastructure-architect
+│   ├── certifications-and-learning
+│   │   ├── canonical-ubuntu-training-and-certification-awareness
+│   │   ├── linux-foundation-certifications
+│   │   ├── red-hat-and-cross-distribution-skills
+│   │   ├── cloud-provider-certifications
+│   │   ├── kubernetes-and-terraform-certifications
+│   │   └── certification-versus-practical-competence
+│   └── portfolio-and-interview-preparation
+│       ├── ubuntu-server-build-and-hardening
+│       ├── apt-and-release-upgrade-case-study
+│       ├── networking-and-storage-troubleshooting
+│       ├── shell-and-ansible-automation-repository
+│       ├── monitoring-and-incident-case-study
+│       ├── cloud-and-infrastructure-as-code-project
+│       └── practical-ubuntu-administration-exercises
+└── practice-projects
+    ├── ubuntu-desktop-workstation-setup
+    │   ├── install-and-update-ubuntu-desktop
+    │   ├── configure-users-locale-and-timezone
+    │   ├── install-deb-and-snap-applications
+    │   ├── configure-display-audio-and-bluetooth
+    │   ├── setup-developer-toolchain
+    │   ├── configure-backup-and-security
+    │   └── workstation-setup-documentation
+    ├── ubuntu-server-installation-and-baseline
+    │   ├── install-ubuntu-server-in-a-vm
+    │   ├── configure-hostname-and-static-network
+    │   ├── create-admin-and-service-accounts
+    │   ├── configure-ssh-and-sudo
+    │   ├── apply-security-updates
+    │   ├── configure-time-sync-and-logging
+    │   └── baseline-validation-checklist
+    ├── apt-repository-and-package-maintenance
+    │   ├── configure-official-and-approved-repositories
+    │   ├── inspect-package-signatures-and-keyrings
+    │   ├── automate-update-and-upgrade
+    │   ├── configure-unattended-upgrades
+    │   ├── hold-and-pin-selected-packages
+    │   ├── diagnose-broken-package-state
+    │   └── package-maintenance-runbook
+    ├── ubuntu-disk-and-lvm-management
+    │   ├── inventory-disks-and-partitions
+    │   ├── create-filesystem-and-mount
+    │   ├── configure-uuid-based-fstab
+    │   ├── create-and-expand-lvm-volumes
+    │   ├── monitor-space-and-inodes
+    │   ├── schedule-backups-and-rotation
+    │   └── restore-and-filesystem-recovery-test
+    ├── ubuntu-network-and-firewall-lab
+    │   ├── configure-netplan-static-and-dhcp
+    │   ├── setup-dns-and-systemd-resolved
+    │   ├── configure-ufw-default-deny
+    │   ├── add-service-specific-firewall-rules
+    │   ├── configure-ssh-access-and-tunneling
+    │   ├── capture-and-analyze-network-traffic
+    │   └── network-troubleshooting-report
+    ├── nginx-https-web-hosting
+    │   ├── install-and-configure-nginx
+    │   ├── configure-virtual-hosts-and-document-roots
+    │   ├── setup-tls-with-certbot
+    │   ├── configure-firewall-and-security-headers
+    │   ├── setup-systemd-managed-application
+    │   ├── configure-log-rotation-and-monitoring
+    │   └── backup-and-deployment-rollback
+    ├── secure-ubuntu-server-hardening
+    │   ├── apply-minimal-service-and-package-baseline
+    │   ├── harden-ssh-and-sudo
+    │   ├── configure-ufw-and-network-exposure
+    │   ├── enable-and-tune-apparmor
+    │   ├── configure-auditd-and-centralized-logs
+    │   ├── run-lynis-and-compliance-assessment
+    │   └── remediation-and-evidence-report
+    ├── ubuntu-shell-automation-toolkit
+    │   ├── account-and-permission-management-script
+    │   ├── package-update-and-reboot-check-script
+    │   ├── disk-and-service-health-checks
+    │   ├── backup-and-retention-automation
+    │   ├── logging-locking-and-error-handling
+    │   ├── shellcheck-and-bats-tests
+    │   └── usage-guide-and-release
+    ├── ansible-ubuntu-fleet-management
+    │   ├── inventory-and-environment-groups
+    │   ├── reusable-roles-and-playbooks
+    │   ├── users-packages-and-ssh-configuration
+    │   ├── firewall-and-apparmor-baseline
+    │   ├── vault-and-secret-management
+    │   ├── molecule-and-idempotency-validation
+    │   └── fleet-drift-and-compliance-report
+    ├── ubuntu-monitoring-and-alerting
+    │   ├── install-node-exporter-and-prometheus
+    │   ├── configure-grafana-dashboards
+    │   ├── collect-system-and-service-logs
+    │   ├── configure-alertmanager
+    │   ├── define-host-and-service-slos
+    │   ├── simulate-cpu-memory-and-disk-alerts
+    │   └── incident-runbooks-and-alert-tuning
+    ├── ubuntu-container-host
+    │   ├── install-docker-or-podman
+    │   ├── build-and-publish-application-images
+    │   ├── deploy-multi-service-compose-stack
+    │   ├── configure-volumes-and-container-networking
+    │   ├── apply-rootless-and-image-hardening
+    │   ├── configure-logging-and-health-checks
+    │   └── backup-and-recovery-validation
+    ├── ubuntu-cloud-vm-provisioning
+    │   ├── launch-ubuntu-cloud-image
+    │   ├── configure-instance-identity-and-ssh
+    │   ├── bootstrap-with-cloud-init
+    │   ├── configure-cloud-network-and-storage
+    │   ├── install-and-monitor-application-service
+    │   ├── snapshot-and-recovery-test
+    │   └── provisioning-and-operations-runbook
+    ├── ubuntu-kubernetes-worker-node-operations
+    │   ├── prepare-ubuntu-node-and-kernel
+    │   ├── install-containerd-and-kubelet
+    │   ├── inspect-cni-and-csi-components
+    │   ├── diagnose-node-pressure-and-eviction
+    │   ├── drain-and-upgrade-node
+    │   ├── validate-network-and-storage
+    │   └── node-maintenance-runbook
+    ├── ubuntu-release-upgrade-and-recovery
+    │   ├── inventory-release-and-package-state
+    │   ├── review-release-notes-and-compatibility
+    │   ├── backup-and-snapshot-before-upgrade
+    │   ├── perform-supported-release-upgrade
+    │   ├── validate-kernel-services-and-applications
+    │   ├── diagnose-and-recover-upgrade-failures
+    │   └── upgrade-evidence-and-post-checklist
+    ├── ubuntu-high-availability-service
+    │   ├── design-node-and-network-topology
+    │   ├── configure-pacemaker-and-corosync
+    │   ├── define-quorum-and-fencing
+    │   ├── deploy-and-monitor-cluster-resource
+    │   ├── simulate-node-and-service-failure
+    │   ├── test-failover-and-failback
+    │   └── availability-and-recovery-report
+    └── production-ubuntu-engineering-capstone
+        ├── workload-and-operational-requirements
+        ├── ubuntu-server-and-network-architecture
+        ├── storage-and-backup-design
+        ├── identity-security-and-hardening
+        ├── package-and-release-management
+        ├── ansible-and-infrastructure-automation
+        ├── container-and-cloud-deployment
+        ├── monitoring-logging-and-alerting
+        ├── performance-and-capacity-validation
+        ├── high-availability-and-disaster-recovery
+        ├── incident-response-and-operational-runbooks
+        └── final-review-and-portfolio-presentation
