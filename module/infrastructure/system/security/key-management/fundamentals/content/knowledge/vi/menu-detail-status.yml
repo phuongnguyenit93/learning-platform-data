@@ -1201,7 +1201,7 @@ menu:
     summary: ''
   - slug: key-establishment-013
     title: Replay trong key establishment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1267,7 +1267,7 @@ menu:
     summary: ''
   - slug: key-lifecycle-006
     title: Destroyed state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1294,7 +1294,7 @@ menu:
     summary: ''
   - slug: key-lifecycle-009
     title: Activate key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1303,7 +1303,7 @@ menu:
     summary: ''
   - slug: key-lifecycle-010
     title: Use key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1312,7 +1312,7 @@ menu:
     summary: ''
   - slug: key-lifecycle-011
     title: Suspend key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1321,7 +1321,7 @@ menu:
     summary: ''
   - slug: key-lifecycle-012
     title: Revoke key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1330,7 +1330,7 @@ menu:
     summary: ''
   - slug: key-lifecycle-013
     title: Archive key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1339,7 +1339,7 @@ menu:
     summary: ''
   - slug: key-lifecycle-014
     title: Destroy key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1348,7 +1348,7 @@ menu:
     summary: ''
   - slug: key-lifecycle-015
     title: Chuyển trạng thái có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1360,7 +1360,7 @@ menu:
   childs:
   - slug: key-inventory-001
     title: Key inventory là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
     summary: ''
   - slug: key-inventory-002
     title: Key identifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: key-inventory-003
     title: Key owner
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1387,7 +1387,7 @@ menu:
     summary: ''
   - slug: key-inventory-004
     title: Key custodian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1396,7 +1396,7 @@ menu:
     summary: ''
   - slug: key-inventory-005
     title: Algorithm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1405,7 +1405,7 @@ menu:
     summary: ''
   - slug: key-inventory-006
     title: Key length
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1414,7 +1414,7 @@ menu:
     summary: ''
   - slug: key-inventory-007
     title: Creation time
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1423,7 +1423,7 @@ menu:
     summary: ''
   - slug: key-inventory-008
     title: Activation time
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1432,7 +1432,7 @@ menu:
     summary: ''
   - slug: key-inventory-009
     title: Expiration time
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1441,7 +1441,7 @@ menu:
     summary: ''
   - slug: key-inventory-010
     title: Purpose
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1450,7 +1450,7 @@ menu:
     summary: ''
   - slug: key-inventory-011
     title: Environment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1459,7 +1459,7 @@ menu:
     summary: ''
   - slug: key-inventory-012
     title: Service sử dụng key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1468,7 +1468,7 @@ menu:
     summary: ''
   - slug: key-inventory-013
     title: Version và predecessor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1477,7 +1477,7 @@ menu:
     summary: ''
   - slug: key-inventory-014
     title: Inventory completeness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1486,7 +1486,7 @@ menu:
     summary: ''
   - slug: key-inventory-015
     title: Phát hiện key không có owner
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1498,7 +1498,7 @@ menu:
   childs:
   - slug: key-policy-001
     title: Cryptographic policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1507,7 +1507,7 @@ menu:
     summary: ''
   - slug: key-policy-002
     title: Key naming policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1516,7 +1516,7 @@ menu:
     summary: ''
   - slug: key-policy-003
     title: Key generation policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1525,7 +1525,7 @@ menu:
     summary: ''
   - slug: key-policy-004
     title: Key storage policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1534,7 +1534,7 @@ menu:
     summary: ''
   - slug: key-policy-005
     title: Key usage policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1543,7 +1543,7 @@ menu:
     summary: ''
   - slug: key-policy-006
     title: Cryptoperiod policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1552,7 +1552,7 @@ menu:
     summary: ''
   - slug: key-policy-007
     title: Rotation policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1561,7 +1561,7 @@ menu:
     summary: ''
   - slug: key-policy-008
     title: Revocation policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1570,7 +1570,7 @@ menu:
     summary: ''
   - slug: key-policy-009
     title: Backup policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1579,7 +1579,7 @@ menu:
     summary: ''
   - slug: key-policy-010
     title: Destruction policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1588,7 +1588,7 @@ menu:
     summary: ''
   - slug: key-policy-011
     title: Emergency compromise policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1597,7 +1597,7 @@ menu:
     summary: ''
   - slug: key-policy-012
     title: Policy exception
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1606,7 +1606,7 @@ menu:
     summary: ''
   - slug: key-policy-013
     title: Policy review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1615,7 +1615,7 @@ menu:
     summary: ''
   - slug: key-policy-014
     title: Mapping policy sang control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1627,7 +1627,7 @@ menu:
   childs:
   - slug: roles-and-responsibilities-001
     title: Key owner
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1636,7 +1636,7 @@ menu:
     summary: ''
   - slug: roles-and-responsibilities-002
     title: Key custodian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1645,7 +1645,7 @@ menu:
     summary: ''
   - slug: roles-and-responsibilities-003
     title: Security administrator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1654,7 +1654,7 @@ menu:
     summary: ''
   - slug: roles-and-responsibilities-004
     title: Cryptographic officer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1663,7 +1663,7 @@ menu:
     summary: ''
   - slug: roles-and-responsibilities-005
     title: Application owner
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1672,7 +1672,7 @@ menu:
     summary: ''
   - slug: roles-and-responsibilities-006
     title: Developer responsibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1681,7 +1681,7 @@ menu:
     summary: ''
   - slug: roles-and-responsibilities-007
     title: Operator responsibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1690,7 +1690,7 @@ menu:
     summary: ''
   - slug: roles-and-responsibilities-008
     title: Auditor responsibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1699,7 +1699,7 @@ menu:
     summary: ''
   - slug: roles-and-responsibilities-009
     title: Separation of duties
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1708,7 +1708,7 @@ menu:
     summary: ''
   - slug: roles-and-responsibilities-010
     title: Dual control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1717,7 +1717,7 @@ menu:
     summary: ''
   - slug: roles-and-responsibilities-011
     title: Quorum approval
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1726,7 +1726,7 @@ menu:
     summary: ''
   - slug: roles-and-responsibilities-012
     title: Break-glass access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1735,7 +1735,7 @@ menu:
     summary: ''
   - slug: roles-and-responsibilities-013
     title: Access review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1744,7 +1744,7 @@ menu:
     summary: ''
   - slug: roles-and-responsibilities-014
     title: Thu hồi quyền của nhân sự rời tổ chức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1756,7 +1756,7 @@ menu:
   childs:
   - slug: key-generation-001
     title: Sinh key trong cryptographic module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1765,7 +1765,7 @@ menu:
     summary: ''
   - slug: key-generation-002
     title: Sinh key bằng CSPRNG
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1774,7 +1774,7 @@ menu:
     summary: ''
   - slug: key-generation-003
     title: Sinh key đối xứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1783,7 +1783,7 @@ menu:
     summary: ''
   - slug: key-generation-004
     title: Sinh key pair
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1792,7 +1792,7 @@ menu:
     summary: ''
   - slug: key-generation-005
     title: Key generation parameters
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1801,7 +1801,7 @@ menu:
     summary: ''
   - slug: key-generation-006
     title: Key generation ceremony
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1810,7 +1810,7 @@ menu:
     summary: ''
   - slug: key-generation-007
     title: Independent keys
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1819,7 +1819,7 @@ menu:
     summary: ''
   - slug: key-generation-008
     title: Không sinh key từ từ khóa dễ đoán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1828,7 +1828,7 @@ menu:
     summary: ''
   - slug: key-generation-009
     title: Không hard-code key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1837,7 +1837,7 @@ menu:
     summary: ''
   - slug: key-generation-010
     title: Ghi nhận nguồn và thời điểm tạo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1846,7 +1846,7 @@ menu:
     summary: ''
   - slug: key-generation-011
     title: Kiểm tra key sau generation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1855,7 +1855,7 @@ menu:
     summary: ''
   - slug: key-generation-012
     title: Generated key và imported key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1867,7 +1867,7 @@ menu:
   childs:
   - slug: key-storage-001
     title: Bảo vệ key khi lưu trữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1876,7 +1876,7 @@ menu:
     summary: ''
   - slug: key-storage-002
     title: In-memory key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1885,7 +1885,7 @@ menu:
     summary: ''
   - slug: key-storage-003
     title: File key storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1894,7 +1894,7 @@ menu:
     summary: ''
   - slug: key-storage-004
     title: Database key storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1903,7 +1903,7 @@ menu:
     summary: ''
   - slug: key-storage-005
     title: Keystore
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1912,7 +1912,7 @@ menu:
     summary: ''
   - slug: key-storage-006
     title: KMS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1921,7 +1921,7 @@ menu:
     summary: ''
   - slug: key-storage-007
     title: HSM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1930,7 +1930,7 @@ menu:
     summary: ''
   - slug: key-storage-008
     title: Virtual HSM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1939,7 +1939,7 @@ menu:
     summary: ''
   - slug: key-storage-009
     title: Secret manager
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1948,7 +1948,7 @@ menu:
     summary: ''
   - slug: key-storage-010
     title: Key tách khỏi ciphertext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1957,7 +1957,7 @@ menu:
     summary: ''
   - slug: key-storage-011
     title: Không lưu key trong source code
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1966,7 +1966,7 @@ menu:
     summary: ''
   - slug: key-storage-012
     title: Không lưu key trong log
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1975,7 +1975,7 @@ menu:
     summary: ''
   - slug: key-storage-013
     title: Permission của key file
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1984,7 +1984,7 @@ menu:
     summary: ''
   - slug: key-storage-014
     title: Access audit cho key storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1996,7 +1996,7 @@ menu:
   childs:
   - slug: envelope-encryption-001
     title: Envelope encryption là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2005,7 +2005,7 @@ menu:
     summary: ''
   - slug: envelope-encryption-002
     title: Data encryption key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2014,7 +2014,7 @@ menu:
     summary: ''
   - slug: envelope-encryption-003
     title: Key encryption key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2023,7 +2023,7 @@ menu:
     summary: ''
   - slug: envelope-encryption-004
     title: DEK encryption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2032,7 +2032,7 @@ menu:
     summary: ''
   - slug: envelope-encryption-005
     title: DEK wrapping
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2041,7 +2041,7 @@ menu:
     summary: ''
   - slug: envelope-encryption-006
     title: KEK tách khỏi DEK
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2050,7 +2050,7 @@ menu:
     summary: ''
   - slug: envelope-encryption-007
     title: Lưu key ID cùng ciphertext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2059,7 +2059,7 @@ menu:
     summary: ''
   - slug: envelope-encryption-008
     title: Decrypt bằng key version
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2068,7 +2068,7 @@ menu:
     summary: ''
   - slug: envelope-encryption-009
     title: Re-wrap DEK khi rotate KEK
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2077,7 +2077,7 @@ menu:
     summary: ''
   - slug: envelope-encryption-010
     title: Re-encrypt data khi rotate DEK
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2086,7 +2086,7 @@ menu:
     summary: ''
   - slug: envelope-encryption-011
     title: Envelope metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2095,7 +2095,7 @@ menu:
     summary: ''
   - slug: envelope-encryption-012
     title: Envelope integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2104,7 +2104,7 @@ menu:
     summary: ''
   - slug: envelope-encryption-013
     title: Envelope encryption trong database
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2113,7 +2113,7 @@ menu:
     summary: ''
   - slug: envelope-encryption-014
     title: Envelope encryption trong object storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2125,7 +2125,7 @@ menu:
   childs:
   - slug: key-distribution-001
     title: Phân phối key an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2134,7 +2134,7 @@ menu:
     summary: ''
   - slug: key-distribution-002
     title: Provisioning key cho service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2143,7 +2143,7 @@ menu:
     summary: ''
   - slug: key-distribution-003
     title: Secure channel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2152,7 +2152,7 @@ menu:
     summary: ''
   - slug: key-distribution-004
     title: Authenticated distribution
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2161,7 +2161,7 @@ menu:
     summary: ''
   - slug: key-distribution-005
     title: Key import
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2170,7 +2170,7 @@ menu:
     summary: ''
   - slug: key-distribution-006
     title: Key export
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2179,7 +2179,7 @@ menu:
     summary: ''
   - slug: key-distribution-007
     title: Key wrapping khi vận chuyển
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2188,7 +2188,7 @@ menu:
     summary: ''
   - slug: key-distribution-008
     title: Key distribution giữa region
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2197,7 +2197,7 @@ menu:
     summary: ''
   - slug: key-distribution-009
     title: Key distribution giữa tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2206,7 +2206,7 @@ menu:
     summary: ''
   - slug: key-distribution-010
     title: Không gửi key qua plaintext channel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2215,7 +2215,7 @@ menu:
     summary: ''
   - slug: key-distribution-011
     title: Kiểm tra recipient
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2224,7 +2224,7 @@ menu:
     summary: ''
   - slug: key-distribution-012
     title: Ghi audit việc phân phối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2233,7 +2233,7 @@ menu:
     summary: ''
   - slug: key-distribution-013
     title: Thu hồi sau khi phân phối sai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2245,7 +2245,7 @@ menu:
   childs:
   - slug: management-fundamentals-key-use-001
     title: Key usage restriction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2254,7 +2254,7 @@ menu:
     summary: ''
   - slug: management-fundamentals-key-use-002
     title: Encryption key chỉ dùng để encrypt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2263,7 +2263,7 @@ menu:
     summary: ''
   - slug: management-fundamentals-key-use-003
     title: Signing key chỉ dùng để sign
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2272,7 +2272,7 @@ menu:
     summary: ''
   - slug: management-fundamentals-key-use-004
     title: Key purpose metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2281,7 +2281,7 @@ menu:
     summary: ''
   - slug: management-fundamentals-key-use-005
     title: Key usage count
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2290,7 +2290,7 @@ menu:
     summary: ''
   - slug: management-fundamentals-key-use-006
     title: Key usage limit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2299,7 +2299,7 @@ menu:
     summary: ''
   - slug: management-fundamentals-key-use-007
     title: Nonce uniqueness theo key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2308,7 +2308,7 @@ menu:
     summary: ''
   - slug: management-fundamentals-key-use-008
     title: Concurrent key use
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2317,7 +2317,7 @@ menu:
     summary: ''
   - slug: management-fundamentals-key-use-009
     title: Không dùng lại key sai mục đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2326,7 +2326,7 @@ menu:
     summary: ''
   - slug: management-fundamentals-key-use-010
     title: Tách key theo môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2335,7 +2335,7 @@ menu:
     summary: ''
   - slug: management-fundamentals-key-use-011
     title: Tách key theo tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2344,7 +2344,7 @@ menu:
     summary: ''
   - slug: management-fundamentals-key-use-012
     title: Tách key theo data class
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2353,7 +2353,7 @@ menu:
     summary: ''
   - slug: management-fundamentals-key-use-013
     title: Access decision trước crypto operation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2365,7 +2365,7 @@ menu:
   childs:
   - slug: cryptoperiods-and-rotation-001
     title: Cryptoperiod là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2374,7 +2374,7 @@ menu:
     summary: ''
   - slug: cryptoperiods-and-rotation-002
     title: Rotation theo thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2383,7 +2383,7 @@ menu:
     summary: ''
   - slug: cryptoperiods-and-rotation-003
     title: Rotation theo số lần sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2392,7 +2392,7 @@ menu:
     summary: ''
   - slug: cryptoperiods-and-rotation-004
     title: Rotation khi nghi ngờ compromise
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2401,7 +2401,7 @@ menu:
     summary: ''
   - slug: cryptoperiods-and-rotation-005
     title: Rotation khi nhân sự thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2410,7 +2410,7 @@ menu:
     summary: ''
   - slug: cryptoperiods-and-rotation-006
     title: Rotation khi thuật toán suy yếu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2419,7 +2419,7 @@ menu:
     summary: ''
   - slug: cryptoperiods-and-rotation-007
     title: Write với key mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2428,7 +2428,7 @@ menu:
     summary: ''
   - slug: cryptoperiods-and-rotation-008
     title: Read với key cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2437,7 +2437,7 @@ menu:
     summary: ''
   - slug: cryptoperiods-and-rotation-009
     title: Gradual rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2446,7 +2446,7 @@ menu:
     summary: ''
   - slug: cryptoperiods-and-rotation-010
     title: Re-encryption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2455,7 +2455,7 @@ menu:
     summary: ''
   - slug: cryptoperiods-and-rotation-011
     title: Re-wrapping
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2464,7 +2464,7 @@ menu:
     summary: ''
   - slug: cryptoperiods-and-rotation-012
     title: Giữ key cũ để decrypt dữ liệu cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2473,7 +2473,7 @@ menu:
     summary: ''
   - slug: cryptoperiods-and-rotation-013
     title: Xác định thời điểm destroy key cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2482,7 +2482,7 @@ menu:
     summary: ''
   - slug: cryptoperiods-and-rotation-014
     title: Kiểm thử rotation trước production
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2494,7 +2494,7 @@ menu:
   childs:
   - slug: revocation-and-key-compromise-001
     title: Key compromise là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2503,7 +2503,7 @@ menu:
     summary: ''
   - slug: revocation-and-key-compromise-002
     title: Dấu hiệu compromise
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2512,7 +2512,7 @@ menu:
     summary: ''
   - slug: revocation-and-key-compromise-003
     title: Emergency revocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2521,7 +2521,7 @@ menu:
     summary: ''
   - slug: revocation-and-key-compromise-004
     title: Suspend key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2530,7 +2530,7 @@ menu:
     summary: ''
   - slug: revocation-and-key-compromise-005
     title: Revoke key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2539,7 +2539,7 @@ menu:
     summary: ''
   - slug: revocation-and-key-compromise-006
     title: Replace key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2548,7 +2548,7 @@ menu:
     summary: ''
   - slug: revocation-and-key-compromise-007
     title: Ảnh hưởng đến ciphertext cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2557,7 +2557,7 @@ menu:
     summary: ''
   - slug: revocation-and-key-compromise-008
     title: Ảnh hưởng đến signature cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2566,7 +2566,7 @@ menu:
     summary: ''
   - slug: revocation-and-key-compromise-009
     title: Ảnh hưởng đến certificate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2575,7 +2575,7 @@ menu:
     summary: ''
   - slug: revocation-and-key-compromise-010
     title: Xác định phạm vi bị ảnh hưởng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2584,7 +2584,7 @@ menu:
     summary: ''
   - slug: revocation-and-key-compromise-011
     title: Thông báo sự cố key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2593,7 +2593,7 @@ menu:
     summary: ''
   - slug: revocation-and-key-compromise-012
     title: Forensics sau compromise
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2602,7 +2602,7 @@ menu:
     summary: ''
   - slug: revocation-and-key-compromise-013
     title: Post-compromise rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2611,7 +2611,7 @@ menu:
     summary: ''
   - slug: revocation-and-key-compromise-014
     title: Cập nhật inventory sau revocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2623,7 +2623,7 @@ menu:
   childs:
   - slug: backup-recovery-001
     title: Key backup là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2632,7 +2632,7 @@ menu:
     summary: ''
   - slug: backup-recovery-002
     title: Khi nào cần backup key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2641,7 +2641,7 @@ menu:
     summary: ''
   - slug: backup-recovery-003
     title: Backup storage độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2650,7 +2650,7 @@ menu:
     summary: ''
   - slug: backup-recovery-004
     title: Backup encryption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2659,7 +2659,7 @@ menu:
     summary: ''
   - slug: backup-recovery-005
     title: Key recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2668,7 +2668,7 @@ menu:
     summary: ''
   - slug: backup-recovery-006
     title: Key restore
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2677,7 +2677,7 @@ menu:
     summary: ''
   - slug: backup-recovery-007
     title: Key escrow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2686,7 +2686,7 @@ menu:
     summary: ''
   - slug: backup-recovery-008
     title: Không escrow signing key tùy tiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2695,7 +2695,7 @@ menu:
     summary: ''
   - slug: backup-recovery-009
     title: Recovery authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2704,7 +2704,7 @@ menu:
     summary: ''
   - slug: backup-recovery-010
     title: Quorum cho key recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2713,7 +2713,7 @@ menu:
     summary: ''
   - slug: backup-recovery-011
     title: Kiểm thử restore
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2722,7 +2722,7 @@ menu:
     summary: ''
   - slug: backup-recovery-012
     title: RPO của key material
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2731,7 +2731,7 @@ menu:
     summary: ''
   - slug: backup-recovery-013
     title: RTO của key recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2740,7 +2740,7 @@ menu:
     summary: ''
   - slug: backup-recovery-014
     title: Không backup key không còn cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2752,7 +2752,7 @@ menu:
   childs:
   - slug: key-destruction-001
     title: Key destruction là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2761,7 +2761,7 @@ menu:
     summary: ''
   - slug: key-destruction-002
     title: Zeroization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2770,7 +2770,7 @@ menu:
     summary: ''
   - slug: key-destruction-003
     title: Xóa key khỏi memory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2779,7 +2779,7 @@ menu:
     summary: ''
   - slug: key-destruction-004
     title: Xóa key khỏi disk
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2788,7 +2788,7 @@ menu:
     summary: ''
   - slug: key-destruction-005
     title: Xóa key khỏi backup
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2797,7 +2797,7 @@ menu:
     summary: ''
   - slug: key-destruction-006
     title: Destroy key trong KMS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2806,7 +2806,7 @@ menu:
     summary: ''
   - slug: key-destruction-007
     title: Destroy DEK
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2815,7 +2815,7 @@ menu:
     summary: ''
   - slug: key-destruction-008
     title: Destroy KEK
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2824,7 +2824,7 @@ menu:
     summary: ''
   - slug: key-destruction-009
     title: Certificate revocation trước destruction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2833,7 +2833,7 @@ menu:
     summary: ''
   - slug: key-destruction-010
     title: Xác nhận destruction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2842,7 +2842,7 @@ menu:
     summary: ''
   - slug: key-destruction-011
     title: Destruction evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2851,7 +2851,7 @@ menu:
     summary: ''
   - slug: key-destruction-012
     title: Không destroy key còn cần decrypt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2860,7 +2860,7 @@ menu:
     summary: ''
   - slug: key-destruction-013
     title: Data deletion và key destruction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2869,7 +2869,7 @@ menu:
     summary: ''
   - slug: key-destruction-014
     title: Crypto erasure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2881,7 +2881,7 @@ menu:
   childs:
   - slug: certificates-and-public-keys-001
     title: Certificate là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2890,7 +2890,7 @@ menu:
     summary: ''
   - slug: certificates-and-public-keys-002
     title: Public key certificate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2899,7 +2899,7 @@ menu:
     summary: ''
   - slug: certificates-and-public-keys-003
     title: Certificate Authority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2908,7 +2908,7 @@ menu:
     summary: ''
   - slug: certificates-and-public-keys-004
     title: Certificate chain
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2917,7 +2917,7 @@ menu:
     summary: ''
   - slug: certificates-and-public-keys-005
     title: Trust store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2926,7 +2926,7 @@ menu:
     summary: ''
   - slug: certificates-and-public-keys-006
     title: Key store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2935,7 +2935,7 @@ menu:
     summary: ''
   - slug: certificates-and-public-keys-007
     title: Certificate issuance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2944,7 +2944,7 @@ menu:
     summary: ''
   - slug: certificates-and-public-keys-008
     title: Certificate renewal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2953,7 +2953,7 @@ menu:
     summary: ''
   - slug: certificates-and-public-keys-009
     title: Certificate revocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2962,7 +2962,7 @@ menu:
     summary: ''
   - slug: certificates-and-public-keys-010
     title: CRL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2971,7 +2971,7 @@ menu:
     summary: ''
   - slug: certificates-and-public-keys-011
     title: OCSP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2980,7 +2980,7 @@ menu:
     summary: ''
   - slug: certificates-and-public-keys-012
     title: Hostname verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2989,7 +2989,7 @@ menu:
     summary: ''
   - slug: certificates-and-public-keys-013
     title: Certificate pinning
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2998,7 +2998,7 @@ menu:
     summary: ''
   - slug: certificates-and-public-keys-014
     title: Certificate và private key lifecycle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3010,7 +3010,7 @@ menu:
   childs:
   - slug: java-keystore-001
     title: KeyStore trong Java
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3019,7 +3019,7 @@ menu:
     summary: ''
   - slug: java-keystore-002
     title: PKCS12
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3028,7 +3028,7 @@ menu:
     summary: ''
   - slug: java-keystore-003
     title: JKS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3037,7 +3037,7 @@ menu:
     summary: ''
   - slug: java-keystore-004
     title: JCEKS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3046,7 +3046,7 @@ menu:
     summary: ''
   - slug: java-keystore-005
     title: PKCS11
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3055,7 +3055,7 @@ menu:
     summary: ''
   - slug: java-keystore-006
     title: KeyStore entry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3064,7 +3064,7 @@ menu:
     summary: ''
   - slug: java-keystore-007
     title: PrivateKeyEntry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3073,7 +3073,7 @@ menu:
     summary: ''
   - slug: java-keystore-008
     title: SecretKeyEntry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3082,7 +3082,7 @@ menu:
     summary: ''
   - slug: java-keystore-009
     title: TrustedCertificateEntry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3091,7 +3091,7 @@ menu:
     summary: ''
   - slug: java-keystore-010
     title: KeyStore password
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3100,7 +3100,7 @@ menu:
     summary: ''
   - slug: java-keystore-011
     title: Key password
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3109,7 +3109,7 @@ menu:
     summary: ''
   - slug: java-keystore-012
     title: TrustStore
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3118,7 +3118,7 @@ menu:
     summary: ''
   - slug: java-keystore-013
     title: Load và save KeyStore
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3127,7 +3127,7 @@ menu:
     summary: ''
   - slug: java-keystore-014
     title: Quản lý KeyStore trong deployment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3139,7 +3139,7 @@ menu:
   childs:
   - slug: java-cryptography-architecture-001
     title: JCA là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3148,7 +3148,7 @@ menu:
     summary: ''
   - slug: java-cryptography-architecture-002
     title: Security provider
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3157,7 +3157,7 @@ menu:
     summary: ''
   - slug: java-cryptography-architecture-003
     title: SecureRandom
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3166,7 +3166,7 @@ menu:
     summary: ''
   - slug: java-cryptography-architecture-004
     title: MessageDigest
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3175,7 +3175,7 @@ menu:
     summary: ''
   - slug: java-cryptography-architecture-005
     title: Signature
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3184,7 +3184,7 @@ menu:
     summary: ''
   - slug: java-cryptography-architecture-006
     title: Cipher
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3193,7 +3193,7 @@ menu:
     summary: ''
   - slug: java-cryptography-architecture-007
     title: Mac
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3202,7 +3202,7 @@ menu:
     summary: ''
   - slug: java-cryptography-architecture-008
     title: KDF
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3211,7 +3211,7 @@ menu:
     summary: ''
   - slug: java-cryptography-architecture-009
     title: KEM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3220,7 +3220,7 @@ menu:
     summary: ''
   - slug: java-cryptography-architecture-010
     title: KeyFactory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3229,7 +3229,7 @@ menu:
     summary: ''
   - slug: java-cryptography-architecture-011
     title: SecretKeyFactory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3238,7 +3238,7 @@ menu:
     summary: ''
   - slug: java-cryptography-architecture-012
     title: KeyPairGenerator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3247,7 +3247,7 @@ menu:
     summary: ''
   - slug: java-cryptography-architecture-013
     title: KeyGenerator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3256,7 +3256,7 @@ menu:
     summary: ''
   - slug: java-cryptography-architecture-014
     title: KeyAgreement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3265,7 +3265,7 @@ menu:
     summary: ''
   - slug: java-cryptography-architecture-015
     title: CertificateFactory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3277,7 +3277,7 @@ menu:
   childs:
   - slug: algorithms-and-providers-001
     title: Algorithm selection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3286,7 +3286,7 @@ menu:
     summary: ''
   - slug: algorithms-and-providers-002
     title: Provider selection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3295,7 +3295,7 @@ menu:
     summary: ''
   - slug: algorithms-and-providers-003
     title: Algorithm name
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3304,7 +3304,7 @@ menu:
     summary: ''
   - slug: algorithms-and-providers-004
     title: Transformation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3313,7 +3313,7 @@ menu:
     summary: ''
   - slug: algorithms-and-providers-005
     title: Algorithm parameters
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3322,7 +3322,7 @@ menu:
     summary: ''
   - slug: algorithms-and-providers-006
     title: Key size
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3331,7 +3331,7 @@ menu:
     summary: ''
   - slug: algorithms-and-providers-007
     title: Provider capability
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3340,7 +3340,7 @@ menu:
     summary: ''
   - slug: algorithms-and-providers-008
     title: Provider update
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3349,7 +3349,7 @@ menu:
     summary: ''
   - slug: algorithms-and-providers-009
     title: FIPS mode
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3358,7 +3358,7 @@ menu:
     summary: ''
   - slug: algorithms-and-providers-010
     title: Deprecated algorithm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3367,7 +3367,7 @@ menu:
     summary: ''
   - slug: algorithms-and-providers-011
     title: Algorithm agility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3376,7 +3376,7 @@ menu:
     summary: ''
   - slug: algorithms-and-providers-012
     title: Crypto policy của JDK
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3385,7 +3385,7 @@ menu:
     summary: ''
   - slug: algorithms-and-providers-013
     title: Kiểm tra provider runtime
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3394,7 +3394,7 @@ menu:
     summary: ''
   - slug: algorithms-and-providers-014
     title: Không phụ thuộc behavior không chuẩn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3406,7 +3406,7 @@ menu:
   childs:
   - slug: passwords-and-cryptographic-keys-001
     title: Password không phải encryption key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3415,7 +3415,7 @@ menu:
     summary: ''
   - slug: passwords-and-cryptographic-keys-002
     title: Password hashing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3424,7 +3424,7 @@ menu:
     summary: ''
   - slug: passwords-and-cryptographic-keys-003
     title: Password verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3433,7 +3433,7 @@ menu:
     summary: ''
   - slug: passwords-and-cryptographic-keys-004
     title: Salt và pepper
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3442,7 +3442,7 @@ menu:
     summary: ''
   - slug: passwords-and-cryptographic-keys-005
     title: Password-derived key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3451,7 +3451,7 @@ menu:
     summary: ''
   - slug: passwords-and-cryptographic-keys-006
     title: Key derivation từ passphrase
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3460,7 +3460,7 @@ menu:
     summary: ''
   - slug: passwords-and-cryptographic-keys-007
     title: Credential storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3469,7 +3469,7 @@ menu:
     summary: ''
   - slug: passwords-and-cryptographic-keys-008
     title: Credential rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3478,7 +3478,7 @@ menu:
     summary: ''
   - slug: passwords-and-cryptographic-keys-009
     title: Encryption key storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3487,7 +3487,7 @@ menu:
     summary: ''
   - slug: passwords-and-cryptographic-keys-010
     title: Tách password policy và key policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3496,7 +3496,7 @@ menu:
     summary: ''
   - slug: passwords-and-cryptographic-keys-011
     title: Không log password
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3505,7 +3505,7 @@ menu:
     summary: ''
   - slug: passwords-and-cryptographic-keys-012
     title: Không đưa password vào backup plaintext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3517,7 +3517,7 @@ menu:
   childs:
   - slug: secrets-versus-keys-001
     title: Secret là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3526,7 +3526,7 @@ menu:
     summary: ''
   - slug: secrets-versus-keys-002
     title: Khác biệt secret và key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3535,7 +3535,7 @@ menu:
     summary: ''
   - slug: secrets-versus-keys-003
     title: API credential
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3544,7 +3544,7 @@ menu:
     summary: ''
   - slug: secrets-versus-keys-004
     title: Database password
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3553,7 +3553,7 @@ menu:
     summary: ''
   - slug: secrets-versus-keys-005
     title: Signing secret
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3562,7 +3562,7 @@ menu:
     summary: ''
   - slug: secrets-versus-keys-006
     title: Encryption key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3571,7 +3571,7 @@ menu:
     summary: ''
   - slug: secrets-versus-keys-007
     title: Token signing key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3580,7 +3580,7 @@ menu:
     summary: ''
   - slug: secrets-versus-keys-008
     title: Secret manager
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3589,7 +3589,7 @@ menu:
     summary: ''
   - slug: secrets-versus-keys-009
     title: Dynamic secret
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3598,7 +3598,7 @@ menu:
     summary: ''
   - slug: secrets-versus-keys-010
     title: Secret lease
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3607,7 +3607,7 @@ menu:
     summary: ''
   - slug: secrets-versus-keys-011
     title: Secret rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3616,7 +3616,7 @@ menu:
     summary: ''
   - slug: secrets-versus-keys-012
     title: Secret revocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3625,7 +3625,7 @@ menu:
     summary: ''
   - slug: secrets-versus-keys-013
     title: Secret access audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3634,7 +3634,7 @@ menu:
     summary: ''
   - slug: secrets-versus-keys-014
     title: Khi nào chuyển secret sang KMS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3646,7 +3646,7 @@ menu:
   childs:
   - slug: key-access-control-001
     title: Key access policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3655,7 +3655,7 @@ menu:
     summary: ''
   - slug: key-access-control-002
     title: Machine identity truy cập key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3664,7 +3664,7 @@ menu:
     summary: ''
   - slug: key-access-control-003
     title: Human access vào key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3673,7 +3673,7 @@ menu:
     summary: ''
   - slug: key-access-control-004
     title: Role-based key access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3682,7 +3682,7 @@ menu:
     summary: ''
   - slug: key-access-control-005
     title: Attribute-based key access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3691,7 +3691,7 @@ menu:
     summary: ''
   - slug: key-access-control-006
     title: Read key permission
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3700,7 +3700,7 @@ menu:
     summary: ''
   - slug: key-access-control-007
     title: Use key permission
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3709,7 +3709,7 @@ menu:
     summary: ''
   - slug: key-access-control-008
     title: Export key permission
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3718,7 +3718,7 @@ menu:
     summary: ''
   - slug: key-access-control-009
     title: Rotate key permission
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3727,7 +3727,7 @@ menu:
     summary: ''
   - slug: key-access-control-010
     title: Destroy key permission
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3736,7 +3736,7 @@ menu:
     summary: ''
   - slug: key-access-control-011
     title: Break-glass key access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3745,7 +3745,7 @@ menu:
     summary: ''
   - slug: key-access-control-012
     title: Just-in-time access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3754,7 +3754,7 @@ menu:
     summary: ''
   - slug: key-access-control-013
     title: Access review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3763,7 +3763,7 @@ menu:
     summary: ''
   - slug: key-access-control-014
     title: Deny mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3775,7 +3775,7 @@ menu:
   childs:
   - slug: auditing-and-monitoring-001
     title: Key management audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3784,7 +3784,7 @@ menu:
     summary: ''
   - slug: auditing-and-monitoring-002
     title: Key created event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3793,7 +3793,7 @@ menu:
     summary: ''
   - slug: auditing-and-monitoring-003
     title: Key accessed event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3802,7 +3802,7 @@ menu:
     summary: ''
   - slug: auditing-and-monitoring-004
     title: Key used event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3811,7 +3811,7 @@ menu:
     summary: ''
   - slug: auditing-and-monitoring-005
     title: Key rotated event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3820,7 +3820,7 @@ menu:
     summary: ''
   - slug: auditing-and-monitoring-006
     title: Key revoked event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3829,7 +3829,7 @@ menu:
     summary: ''
   - slug: auditing-and-monitoring-007
     title: Key destroyed event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3838,7 +3838,7 @@ menu:
     summary: ''
   - slug: auditing-and-monitoring-008
     title: Failed key access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3847,7 +3847,7 @@ menu:
     summary: ''
   - slug: auditing-and-monitoring-009
     title: Unexpected export
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3856,7 +3856,7 @@ menu:
     summary: ''
   - slug: auditing-and-monitoring-010
     title: Unexpected region access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3865,7 +3865,7 @@ menu:
     summary: ''
   - slug: auditing-and-monitoring-011
     title: Audit record integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3874,7 +3874,7 @@ menu:
     summary: ''
   - slug: auditing-and-monitoring-012
     title: Audit retention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3883,7 +3883,7 @@ menu:
     summary: ''
   - slug: auditing-and-monitoring-013
     title: Alert khi key bị lạm dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3892,7 +3892,7 @@ menu:
     summary: ''
   - slug: auditing-and-monitoring-014
     title: Liên kết audit với incident
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3904,7 +3904,7 @@ menu:
   childs:
   - slug: automation-and-operations-001
     title: Automated key rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3913,7 +3913,7 @@ menu:
     summary: ''
   - slug: automation-and-operations-002
     title: Automated certificate renewal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3922,7 +3922,7 @@ menu:
     summary: ''
   - slug: automation-and-operations-003
     title: Key provisioning pipeline
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3931,7 +3931,7 @@ menu:
     summary: ''
   - slug: automation-and-operations-004
     title: Key deployment pipeline
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3940,7 +3940,7 @@ menu:
     summary: ''
   - slug: automation-and-operations-005
     title: Key version rollout
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3949,7 +3949,7 @@ menu:
     summary: ''
   - slug: automation-and-operations-006
     title: Dual-read rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3958,7 +3958,7 @@ menu:
     summary: ''
   - slug: automation-and-operations-007
     title: Rollback rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3967,7 +3967,7 @@ menu:
     summary: ''
   - slug: automation-and-operations-008
     title: Rotation scheduler
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3976,7 +3976,7 @@ menu:
     summary: ''
   - slug: automation-and-operations-009
     title: Rotation failure handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3985,7 +3985,7 @@ menu:
     summary: ''
   - slug: automation-and-operations-010
     title: Drift detection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3994,7 +3994,7 @@ menu:
     summary: ''
   - slug: automation-and-operations-011
     title: Runbook key compromise
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4003,7 +4003,7 @@ menu:
     summary: ''
   - slug: automation-and-operations-012
     title: Runbook key recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4012,7 +4012,7 @@ menu:
     summary: ''
   - slug: automation-and-operations-013
     title: Runbook certificate expiry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4021,7 +4021,7 @@ menu:
     summary: ''
   - slug: automation-and-operations-014
     title: Operator approval
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4033,7 +4033,7 @@ menu:
   childs:
   - slug: key-management-testing-001
     title: Test key generation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4042,7 +4042,7 @@ menu:
     summary: ''
   - slug: key-management-testing-002
     title: Test key storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4051,7 +4051,7 @@ menu:
     summary: ''
   - slug: key-management-testing-003
     title: Test key access denial
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4060,7 +4060,7 @@ menu:
     summary: ''
   - slug: key-management-testing-004
     title: Test encryption và decryption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4069,7 +4069,7 @@ menu:
     summary: ''
   - slug: key-management-testing-005
     title: Test signature verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4078,7 +4078,7 @@ menu:
     summary: ''
   - slug: key-management-testing-006
     title: Test key rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4087,7 +4087,7 @@ menu:
     summary: ''
   - slug: key-management-testing-007
     title: Test old key decryption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4096,7 +4096,7 @@ menu:
     summary: ''
   - slug: key-management-testing-008
     title: Test key revocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4105,7 +4105,7 @@ menu:
     summary: ''
   - slug: key-management-testing-009
     title: Test key recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4114,7 +4114,7 @@ menu:
     summary: ''
   - slug: key-management-testing-010
     title: Test key destruction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4123,7 +4123,7 @@ menu:
     summary: ''
   - slug: key-management-testing-011
     title: Test certificate renewal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4132,7 +4132,7 @@ menu:
     summary: ''
   - slug: key-management-testing-012
     title: Test provider compatibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4141,7 +4141,7 @@ menu:
     summary: ''
   - slug: key-management-testing-013
     title: Test failure khi KMS unavailable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4150,7 +4150,7 @@ menu:
     summary: ''
   - slug: key-management-testing-014
     title: Test audit event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4162,7 +4162,7 @@ menu:
   childs:
   - slug: standards-and-assurance-001
     title: NIST SP 800-57
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4171,7 +4171,7 @@ menu:
     summary: ''
   - slug: standards-and-assurance-002
     title: Key lifecycle theo NIST
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4180,7 +4180,7 @@ menu:
     summary: ''
   - slug: standards-and-assurance-003
     title: Key management policy theo NIST
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4189,7 +4189,7 @@ menu:
     summary: ''
   - slug: standards-and-assurance-004
     title: OWASP Key Management Cheat Sheet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4198,7 +4198,7 @@ menu:
     summary: ''
   - slug: standards-and-assurance-005
     title: OWASP Cryptographic Storage Cheat Sheet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4207,7 +4207,7 @@ menu:
     summary: ''
   - slug: standards-and-assurance-006
     title: ASVS cryptography requirements
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4216,7 +4216,7 @@ menu:
     summary: ''
   - slug: standards-and-assurance-007
     title: FIPS 140 boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4225,7 +4225,7 @@ menu:
     summary: ''
   - slug: standards-and-assurance-008
     title: Compliance evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4234,7 +4234,7 @@ menu:
     summary: ''
   - slug: standards-and-assurance-009
     title: Risk-based cryptoperiod
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4243,7 +4243,7 @@ menu:
     summary: ''
   - slug: standards-and-assurance-010
     title: Control objective và implementation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4252,7 +4252,7 @@ menu:
     summary: ''
   - slug: standards-and-assurance-011
     title: Security review của key system
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4261,7 +4261,7 @@ menu:
     summary: ''
   - slug: standards-and-assurance-012
     title: Mapping policy sang test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4273,7 +4273,7 @@ menu:
   childs:
   - slug: design-case-study-001
     title: Thiết kế encryption cho database
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4282,7 +4282,7 @@ menu:
     summary: ''
   - slug: design-case-study-002
     title: Thiết kế envelope encryption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4291,7 +4291,7 @@ menu:
     summary: ''
   - slug: design-case-study-003
     title: Thiết kế key rotation không downtime
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4300,7 +4300,7 @@ menu:
     summary: ''
   - slug: design-case-study-004
     title: Thiết kế key compromise response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4309,7 +4309,7 @@ menu:
     summary: ''
   - slug: design-case-study-005
     title: Thiết kế certificate lifecycle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4318,7 +4318,7 @@ menu:
     summary: ''
   - slug: design-case-study-006
     title: Thiết kế KMS integration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4327,7 +4327,7 @@ menu:
     summary: ''
   - slug: design-case-study-007
     title: Thiết kế HSM boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4336,7 +4336,7 @@ menu:
     summary: ''
   - slug: design-case-study-008
     title: Thiết kế multi-tenant key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4345,7 +4345,7 @@ menu:
     summary: ''
   - slug: design-case-study-009
     title: Thiết kế multi-region key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4354,7 +4354,7 @@ menu:
     summary: ''
   - slug: design-case-study-010
     title: Thiết kế key recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4363,7 +4363,7 @@ menu:
     summary: ''
   - slug: design-case-study-011
     title: Thiết kế audit cho key usage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4372,7 +4372,7 @@ menu:
     summary: ''
   - slug: design-case-study-012
     title: Thiết kế Java KeyStore deployment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4384,7 +4384,7 @@ menu:
   childs:
   - slug: hands-on-exercise-001
     title: Sinh AES key bằng SecureRandom
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4393,7 +4393,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-002
     title: Mã hóa bằng AES-GCM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4402,7 +4402,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-003
     title: Lưu ciphertext kèm key version
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4411,7 +4411,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-004
     title: Bọc DEK bằng KEK
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4420,7 +4420,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-005
     title: Đọc key từ KeyStore
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4429,7 +4429,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-006
     title: Ký và xác minh dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4438,7 +4438,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-007
     title: Xoay key với write-new read-old
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4447,7 +4447,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-008
     title: Thu hồi key bị compromise
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4456,7 +4456,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-009
     title: Khôi phục key từ backup
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4465,7 +4465,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-010
     title: Xóa key an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4474,7 +4474,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-011
     title: Viết key management policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4483,7 +4483,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-012
     title: Lập key inventory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4492,7 +4492,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-013
     title: Checklist production key readiness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

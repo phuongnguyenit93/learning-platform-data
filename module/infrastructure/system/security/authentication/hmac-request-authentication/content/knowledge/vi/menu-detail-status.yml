@@ -1258,7 +1258,7 @@ menu:
     summary: ''
   - slug: body-canonicalization-006
     title: Binary body
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1267,7 +1267,7 @@ menu:
     summary: ''
   - slug: body-canonicalization-007
     title: Content encoding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1276,7 +1276,7 @@ menu:
     summary: ''
   - slug: body-canonicalization-008
     title: Body streaming
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1285,7 +1285,7 @@ menu:
     summary: ''
   - slug: body-canonicalization-009
     title: Body bị thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1294,7 +1294,7 @@ menu:
     summary: ''
   - slug: body-canonicalization-010
     title: Kiểm thử canonical body
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1306,7 +1306,7 @@ menu:
   childs:
   - slug: signature-encoding-001
     title: Base64 signature
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1315,7 +1315,7 @@ menu:
     summary: ''
   - slug: signature-encoding-002
     title: Base64url
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1324,7 +1324,7 @@ menu:
     summary: ''
   - slug: signature-encoding-003
     title: Hex signature
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1333,7 +1333,7 @@ menu:
     summary: ''
   - slug: signature-encoding-004
     title: Padding Base64
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1342,7 +1342,7 @@ menu:
     summary: ''
   - slug: signature-encoding-005
     title: Character encoding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1351,7 +1351,7 @@ menu:
     summary: ''
   - slug: signature-encoding-006
     title: UTF-8
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1360,7 +1360,7 @@ menu:
     summary: ''
   - slug: signature-encoding-007
     title: Binary to text
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
     summary: ''
   - slug: signature-encoding-008
     title: Decode signature
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: signature-encoding-009
     title: Lỗi encoding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1387,7 +1387,7 @@ menu:
     summary: ''
   - slug: signature-encoding-010
     title: Chọn format signature
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1399,7 +1399,7 @@ menu:
   childs:
   - slug: signing-requests-001
     title: Tạo canonical request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1408,7 +1408,7 @@ menu:
     summary: ''
   - slug: signing-requests-002
     title: Khởi tạo Mac
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1417,7 +1417,7 @@ menu:
     summary: ''
   - slug: signing-requests-003
     title: Tính HMAC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1426,7 +1426,7 @@ menu:
     summary: ''
   - slug: signing-requests-004
     title: Encode kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
     summary: ''
   - slug: signing-requests-005
     title: Tạo authorization header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: signing-requests-006
     title: Thêm timestamp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1453,7 +1453,7 @@ menu:
     summary: ''
   - slug: signing-requests-007
     title: Thêm nonce
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1462,7 +1462,7 @@ menu:
     summary: ''
   - slug: signing-requests-008
     title: Gửi request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1471,7 +1471,7 @@ menu:
     summary: ''
   - slug: signing-requests-009
     title: Ký lại khi retry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1480,7 +1480,7 @@ menu:
     summary: ''
   - slug: signing-requests-010
     title: Kiểm tra client signing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1492,7 +1492,7 @@ menu:
   childs:
   - slug: verifying-requests-001
     title: Đọc authentication header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1501,7 +1501,7 @@ menu:
     summary: ''
   - slug: verifying-requests-002
     title: Đọc key identifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1510,7 +1510,7 @@ menu:
     summary: ''
   - slug: verifying-requests-003
     title: Tải shared secret
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1519,7 +1519,7 @@ menu:
     summary: ''
   - slug: verifying-requests-004
     title: Tạo canonical server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1528,7 +1528,7 @@ menu:
     summary: ''
   - slug: verifying-requests-005
     title: Tính expected signature
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1537,7 +1537,7 @@ menu:
     summary: ''
   - slug: verifying-requests-006
     title: So sánh signature
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1546,7 +1546,7 @@ menu:
     summary: ''
   - slug: verifying-requests-007
     title: Kiểm tra timestamp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1555,7 +1555,7 @@ menu:
     summary: ''
   - slug: verifying-requests-008
     title: Kiểm tra nonce
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1564,7 +1564,7 @@ menu:
     summary: ''
   - slug: verifying-requests-009
     title: Tạo authentication result
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1573,7 +1573,7 @@ menu:
     summary: ''
   - slug: verifying-requests-010
     title: Từ chối request sai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1585,7 +1585,7 @@ menu:
   childs:
   - slug: constant-time-comparison-001
     title: Timing attack
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1594,7 +1594,7 @@ menu:
     summary: ''
   - slug: constant-time-comparison-002
     title: So sánh constant-time
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1603,7 +1603,7 @@ menu:
     summary: ''
   - slug: constant-time-comparison-003
     title: MessageDigest.isEqual
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1612,7 +1612,7 @@ menu:
     summary: ''
   - slug: constant-time-comparison-004
     title: Không dùng equals tùy tiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1621,7 +1621,7 @@ menu:
     summary: ''
   - slug: constant-time-comparison-005
     title: So sánh cùng độ dài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1630,7 +1630,7 @@ menu:
     summary: ''
   - slug: constant-time-comparison-006
     title: Xử lý signature null
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1639,7 +1639,7 @@ menu:
     summary: ''
   - slug: constant-time-comparison-007
     title: Timing trong error
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1648,7 +1648,7 @@ menu:
     summary: ''
   - slug: constant-time-comparison-008
     title: Kiểm thử thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1657,7 +1657,7 @@ menu:
     summary: ''
   - slug: constant-time-comparison-009
     title: Giới hạn đo timing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1666,7 +1666,7 @@ menu:
     summary: ''
   - slug: constant-time-comparison-010
     title: Code review comparison
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1678,7 +1678,7 @@ menu:
   childs:
   - slug: timestamp-001
     title: Timestamp request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1687,7 +1687,7 @@ menu:
     summary: ''
   - slug: timestamp-002
     title: Đơn vị thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1696,7 +1696,7 @@ menu:
     summary: ''
   - slug: timestamp-003
     title: UTC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1705,7 +1705,7 @@ menu:
     summary: ''
   - slug: timestamp-004
     title: Timestamp format
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1714,7 +1714,7 @@ menu:
     summary: ''
   - slug: timestamp-005
     title: Timestamp freshness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1723,7 +1723,7 @@ menu:
     summary: ''
   - slug: timestamp-006
     title: Clock skew
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1732,7 +1732,7 @@ menu:
     summary: ''
   - slug: timestamp-007
     title: Cửa sổ thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1741,7 +1741,7 @@ menu:
     summary: ''
   - slug: timestamp-008
     title: Request tương lai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1750,7 +1750,7 @@ menu:
     summary: ''
   - slug: timestamp-009
     title: Request quá cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1759,7 +1759,7 @@ menu:
     summary: ''
   - slug: timestamp-010
     title: Kiểm thử timestamp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1771,7 +1771,7 @@ menu:
   childs:
   - slug: nonce-001
     title: Nonce là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1780,7 +1780,7 @@ menu:
     summary: ''
   - slug: nonce-002
     title: Nonce uniqueness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1789,7 +1789,7 @@ menu:
     summary: ''
   - slug: nonce-003
     title: Nonce randomness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1798,7 +1798,7 @@ menu:
     summary: ''
   - slug: nonce-004
     title: Nonce length
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1807,7 +1807,7 @@ menu:
     summary: ''
   - slug: nonce-005
     title: Nonce store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1816,7 +1816,7 @@ menu:
     summary: ''
   - slug: nonce-006
     title: Nonce expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1825,7 +1825,7 @@ menu:
     summary: ''
   - slug: nonce-007
     title: Nonce trùng lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1834,7 +1834,7 @@ menu:
     summary: ''
   - slug: nonce-008
     title: Nonce theo client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1843,7 +1843,7 @@ menu:
     summary: ''
   - slug: nonce-009
     title: Nonce phân tán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1852,7 +1852,7 @@ menu:
     summary: ''
   - slug: nonce-010
     title: Kiểm thử nonce
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1864,7 +1864,7 @@ menu:
   childs:
   - slug: replay-protection-001
     title: Replay attack
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1873,7 +1873,7 @@ menu:
     summary: ''
   - slug: replay-protection-002
     title: Dấu hiệu replay
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1882,7 +1882,7 @@ menu:
     summary: ''
   - slug: replay-protection-003
     title: Timestamp chống replay
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1891,7 +1891,7 @@ menu:
     summary: ''
   - slug: replay-protection-004
     title: Nonce chống replay
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1900,7 +1900,7 @@ menu:
     summary: ''
   - slug: replay-protection-005
     title: Replay cache
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1909,7 +1909,7 @@ menu:
     summary: ''
   - slug: replay-protection-006
     title: Replay database
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1918,7 +1918,7 @@ menu:
     summary: ''
   - slug: replay-protection-007
     title: Atomic check and insert
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1927,7 +1927,7 @@ menu:
     summary: ''
   - slug: replay-protection-008
     title: Replay trong cluster
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1936,7 +1936,7 @@ menu:
     summary: ''
   - slug: replay-protection-009
     title: Replay khi retry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1945,7 +1945,7 @@ menu:
     summary: ''
   - slug: replay-protection-010
     title: Điều tra replay
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1957,7 +1957,7 @@ menu:
   childs:
   - slug: idempotency-001
     title: Idempotency là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1966,7 +1966,7 @@ menu:
     summary: ''
   - slug: idempotency-002
     title: Request identifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1975,7 +1975,7 @@ menu:
     summary: ''
   - slug: idempotency-003
     title: Idempotency key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1984,7 +1984,7 @@ menu:
     summary: ''
   - slug: idempotency-004
     title: Retry an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1993,7 +1993,7 @@ menu:
     summary: ''
   - slug: idempotency-005
     title: POST và retry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2002,7 +2002,7 @@ menu:
     summary: ''
   - slug: idempotency-006
     title: Response cache
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2011,7 +2011,7 @@ menu:
     summary: ''
   - slug: idempotency-007
     title: Duplicate request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2020,7 +2020,7 @@ menu:
     summary: ''
   - slug: idempotency-008
     title: Idempotency store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2029,7 +2029,7 @@ menu:
     summary: ''
   - slug: idempotency-009
     title: Idempotency theo client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2038,7 +2038,7 @@ menu:
     summary: ''
   - slug: idempotency-010
     title: Kiểm thử idempotency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2050,7 +2050,7 @@ menu:
   childs:
   - slug: authorization-header-001
     title: Thiết kế authorization scheme
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2059,7 +2059,7 @@ menu:
     summary: ''
   - slug: authorization-header-002
     title: Key identifier field
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2068,7 +2068,7 @@ menu:
     summary: ''
   - slug: authorization-header-003
     title: Signature field
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2077,7 +2077,7 @@ menu:
     summary: ''
   - slug: authorization-header-004
     title: Signed headers field
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2086,7 +2086,7 @@ menu:
     summary: ''
   - slug: authorization-header-005
     title: Timestamp field
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2095,7 +2095,7 @@ menu:
     summary: ''
   - slug: authorization-header-006
     title: Nonce field
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2104,7 +2104,7 @@ menu:
     summary: ''
   - slug: authorization-header-007
     title: Version field
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2113,7 +2113,7 @@ menu:
     summary: ''
   - slug: authorization-header-008
     title: Header parsing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2122,7 +2122,7 @@ menu:
     summary: ''
   - slug: authorization-header-009
     title: Header injection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2131,7 +2131,7 @@ menu:
     summary: ''
   - slug: authorization-header-010
     title: Tài liệu header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2143,7 +2143,7 @@ menu:
   childs:
   - slug: key-identifier-001
     title: Key ID là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2152,7 +2152,7 @@ menu:
     summary: ''
   - slug: key-identifier-002
     title: Mapping key với client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2161,7 +2161,7 @@ menu:
     summary: ''
   - slug: key-identifier-003
     title: Key ID format
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2170,7 +2170,7 @@ menu:
     summary: ''
   - slug: key-identifier-004
     title: Unknown key ID
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2179,7 +2179,7 @@ menu:
     summary: ''
   - slug: key-identifier-005
     title: Key ID rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2188,7 +2188,7 @@ menu:
     summary: ''
   - slug: key-identifier-006
     title: Key ID trong audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2197,7 +2197,7 @@ menu:
     summary: ''
   - slug: key-identifier-007
     title: Key ID và tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2206,7 +2206,7 @@ menu:
     summary: ''
   - slug: key-identifier-008
     title: Không nhúng secret vào key ID
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2215,7 +2215,7 @@ menu:
     summary: ''
   - slug: key-identifier-009
     title: Lookup key an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2224,7 +2224,7 @@ menu:
     summary: ''
   - slug: key-identifier-010
     title: Kiểm thử key lookup
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2236,7 +2236,7 @@ menu:
   childs:
   - slug: secret-management-001
     title: Lưu shared secret
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2245,7 +2245,7 @@ menu:
     summary: ''
   - slug: secret-management-002
     title: Vault secret
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2254,7 +2254,7 @@ menu:
     summary: ''
   - slug: secret-management-003
     title: Secret encryption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2263,7 +2263,7 @@ menu:
     summary: ''
   - slug: secret-management-004
     title: Secret access policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2272,7 +2272,7 @@ menu:
     summary: ''
   - slug: secret-management-005
     title: Secret injection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2281,7 +2281,7 @@ menu:
     summary: ''
   - slug: secret-management-006
     title: Secret rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2290,7 +2290,7 @@ menu:
     summary: ''
   - slug: secret-management-007
     title: Secret backup
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2299,7 +2299,7 @@ menu:
     summary: ''
   - slug: secret-management-008
     title: Secret recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2308,7 +2308,7 @@ menu:
     summary: ''
   - slug: secret-management-009
     title: Không ghi secret ra log
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2317,7 +2317,7 @@ menu:
     summary: ''
   - slug: secret-management-010
     title: Audit secret access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2329,7 +2329,7 @@ menu:
   childs:
   - slug: credential-lifecycle-001
     title: Tạo credential
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2338,7 +2338,7 @@ menu:
     summary: ''
   - slug: credential-lifecycle-002
     title: Kích hoạt credential
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2347,7 +2347,7 @@ menu:
     summary: ''
   - slug: credential-lifecycle-003
     title: Credential metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2356,7 +2356,7 @@ menu:
     summary: ''
   - slug: credential-lifecycle-004
     title: Credential expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2365,7 +2365,7 @@ menu:
     summary: ''
   - slug: credential-lifecycle-005
     title: Credential rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2374,7 +2374,7 @@ menu:
     summary: ''
   - slug: credential-lifecycle-006
     title: Credential suspension
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2383,7 +2383,7 @@ menu:
     summary: ''
   - slug: credential-lifecycle-007
     title: Credential revocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2392,7 +2392,7 @@ menu:
     summary: ''
   - slug: credential-lifecycle-008
     title: Credential compromise
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2401,7 +2401,7 @@ menu:
     summary: ''
   - slug: credential-lifecycle-009
     title: Credential deletion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2410,7 +2410,7 @@ menu:
     summary: ''
   - slug: credential-lifecycle-010
     title: Theo dõi trạng thái credential
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2422,7 +2422,7 @@ menu:
   childs:
   - slug: key-rotation-001
     title: Vì sao cần rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2431,7 +2431,7 @@ menu:
     summary: ''
   - slug: key-rotation-002
     title: Key version
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2440,7 +2440,7 @@ menu:
     summary: ''
   - slug: key-rotation-003
     title: Active key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2449,7 +2449,7 @@ menu:
     summary: ''
   - slug: key-rotation-004
     title: Previous key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2458,7 +2458,7 @@ menu:
     summary: ''
   - slug: key-rotation-005
     title: Dual verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2467,7 +2467,7 @@ menu:
     summary: ''
   - slug: key-rotation-006
     title: Client rollout
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2476,7 +2476,7 @@ menu:
     summary: ''
   - slug: key-rotation-007
     title: Grace period
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2485,7 +2485,7 @@ menu:
     summary: ''
   - slug: key-rotation-008
     title: Rollback rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2494,7 +2494,7 @@ menu:
     summary: ''
   - slug: key-rotation-009
     title: Rotation khẩn cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2503,7 +2503,7 @@ menu:
     summary: ''
   - slug: key-rotation-010
     title: Kiểm thử rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2515,7 +2515,7 @@ menu:
   childs:
   - slug: multi-client-001
     title: Nhiều client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2524,7 +2524,7 @@ menu:
     summary: ''
   - slug: multi-client-002
     title: Secret riêng từng client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2533,7 +2533,7 @@ menu:
     summary: ''
   - slug: multi-client-003
     title: Key ID riêng từng client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2542,7 +2542,7 @@ menu:
     summary: ''
   - slug: multi-client-004
     title: Chính sách theo client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2551,7 +2551,7 @@ menu:
     summary: ''
   - slug: multi-client-005
     title: Rate limit theo client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2560,7 +2560,7 @@ menu:
     summary: ''
   - slug: multi-client-006
     title: Rotation theo client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2569,7 +2569,7 @@ menu:
     summary: ''
   - slug: multi-client-007
     title: Thu hồi từng client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2578,7 +2578,7 @@ menu:
     summary: ''
   - slug: multi-client-008
     title: Client chưa đăng ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2587,7 +2587,7 @@ menu:
     summary: ''
   - slug: multi-client-009
     title: Client disabled
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2596,7 +2596,7 @@ menu:
     summary: ''
   - slug: multi-client-010
     title: Kiểm kê client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2608,7 +2608,7 @@ menu:
   childs:
   - slug: multi-tenant-001
     title: Tenant trong authentication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2617,7 +2617,7 @@ menu:
     summary: ''
   - slug: multi-tenant-002
     title: Secret theo tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2626,7 +2626,7 @@ menu:
     summary: ''
   - slug: multi-tenant-003
     title: Key ID theo tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2635,7 +2635,7 @@ menu:
     summary: ''
   - slug: multi-tenant-004
     title: Canonical tenant context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2644,7 +2644,7 @@ menu:
     summary: ''
   - slug: multi-tenant-005
     title: Tenant isolation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2653,7 +2653,7 @@ menu:
     summary: ''
   - slug: multi-tenant-006
     title: Tenant rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2662,7 +2662,7 @@ menu:
     summary: ''
   - slug: multi-tenant-007
     title: Tenant revocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2671,7 +2671,7 @@ menu:
     summary: ''
   - slug: multi-tenant-008
     title: Tenant routing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2680,7 +2680,7 @@ menu:
     summary: ''
   - slug: multi-tenant-009
     title: Tránh nhầm tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2689,7 +2689,7 @@ menu:
     summary: ''
   - slug: multi-tenant-010
     title: Kiểm thử tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2701,7 +2701,7 @@ menu:
   childs:
   - slug: spring-security-001
     title: HMAC trong Spring Security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2710,7 +2710,7 @@ menu:
     summary: ''
   - slug: spring-security-002
     title: SecurityFilterChain
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2719,7 +2719,7 @@ menu:
     summary: ''
   - slug: spring-security-003
     title: Authentication filter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2728,7 +2728,7 @@ menu:
     summary: ''
   - slug: spring-security-004
     title: Authentication manager
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2737,7 +2737,7 @@ menu:
     summary: ''
   - slug: spring-security-005
     title: SecurityContext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2746,7 +2746,7 @@ menu:
     summary: ''
   - slug: spring-security-006
     title: Authenticated principal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2755,7 +2755,7 @@ menu:
     summary: ''
   - slug: spring-security-007
     title: GrantedAuthority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2764,7 +2764,7 @@ menu:
     summary: ''
   - slug: spring-security-008
     title: Request matcher
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2773,7 +2773,7 @@ menu:
     summary: ''
   - slug: spring-security-009
     title: Exception translation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2782,7 +2782,7 @@ menu:
     summary: ''
   - slug: spring-security-010
     title: Luồng Spring Security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2794,7 +2794,7 @@ menu:
   childs:
   - slug: custom-authentication-filter-001
     title: Khi nào cần custom filter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2803,7 +2803,7 @@ menu:
     summary: ''
   - slug: custom-authentication-filter-002
     title: Đọc request body
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2812,7 +2812,7 @@ menu:
     summary: ''
   - slug: custom-authentication-filter-003
     title: Đọc authorization header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2821,7 +2821,7 @@ menu:
     summary: ''
   - slug: custom-authentication-filter-004
     title: Tạo authentication token
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2830,7 +2830,7 @@ menu:
     summary: ''
   - slug: custom-authentication-filter-005
     title: Đặt SecurityContext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2839,7 +2839,7 @@ menu:
     summary: ''
   - slug: custom-authentication-filter-006
     title: Tiếp tục filter chain
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2848,7 +2848,7 @@ menu:
     summary: ''
   - slug: custom-authentication-filter-007
     title: Từ chối request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2857,7 +2857,7 @@ menu:
     summary: ''
   - slug: custom-authentication-filter-008
     title: Đảm bảo filter order
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2866,7 +2866,7 @@ menu:
     summary: ''
   - slug: custom-authentication-filter-009
     title: Xử lý exception
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2875,7 +2875,7 @@ menu:
     summary: ''
   - slug: custom-authentication-filter-010
     title: Kiểm thử custom filter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2887,7 +2887,7 @@ menu:
   childs:
   - slug: spring-mvc-integration-001
     title: HMAC với Spring MVC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2896,7 +2896,7 @@ menu:
     summary: ''
   - slug: spring-mvc-integration-002
     title: OncePerRequestFilter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2905,7 +2905,7 @@ menu:
     summary: ''
   - slug: spring-mvc-integration-003
     title: HttpServletRequest
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2914,7 +2914,7 @@ menu:
     summary: ''
   - slug: spring-mvc-integration-004
     title: ContentCachingRequestWrapper
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2923,7 +2923,7 @@ menu:
     summary: ''
   - slug: spring-mvc-integration-005
     title: Controller authentication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2932,7 +2932,7 @@ menu:
     summary: ''
   - slug: spring-mvc-integration-006
     title: Request body trong MVC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2941,7 +2941,7 @@ menu:
     summary: ''
   - slug: spring-mvc-integration-007
     title: Error response MVC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2950,7 +2950,7 @@ menu:
     summary: ''
   - slug: spring-mvc-integration-008
     title: MockMvc testing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2959,7 +2959,7 @@ menu:
     summary: ''
   - slug: spring-mvc-integration-009
     title: Interceptor và filter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2968,7 +2968,7 @@ menu:
     summary: ''
   - slug: spring-mvc-integration-010
     title: Cấu hình MVC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2980,7 +2980,7 @@ menu:
   childs:
   - slug: spring-web-flux-integration-001
     title: HMAC với WebFlux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2989,7 +2989,7 @@ menu:
     summary: ''
   - slug: spring-web-flux-integration-002
     title: WebFilter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2998,7 +2998,7 @@ menu:
     summary: ''
   - slug: spring-web-flux-integration-003
     title: ServerWebExchange
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3007,7 +3007,7 @@ menu:
     summary: ''
   - slug: spring-web-flux-integration-004
     title: Reactive request body
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3016,7 +3016,7 @@ menu:
     summary: ''
   - slug: spring-web-flux-integration-005
     title: Body caching reactive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3025,7 +3025,7 @@ menu:
     summary: ''
   - slug: spring-web-flux-integration-006
     title: Reactive SecurityContext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3034,7 +3034,7 @@ menu:
     summary: ''
   - slug: spring-web-flux-integration-007
     title: Reactive authentication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3043,7 +3043,7 @@ menu:
     summary: ''
   - slug: spring-web-flux-integration-008
     title: WebTestClient
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3052,7 +3052,7 @@ menu:
     summary: ''
   - slug: spring-web-flux-integration-009
     title: Backpressure request body
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3061,7 +3061,7 @@ menu:
     summary: ''
   - slug: spring-web-flux-integration-010
     title: MVC và WebFlux khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3073,7 +3073,7 @@ menu:
   childs:
   - slug: gateways-proxies-001
     title: HMAC tại API gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3082,7 +3082,7 @@ menu:
     summary: ''
   - slug: gateways-proxies-002
     title: HMAC tại service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3091,7 +3091,7 @@ menu:
     summary: ''
   - slug: gateways-proxies-003
     title: Gateway ký lại request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3100,7 +3100,7 @@ menu:
     summary: ''
   - slug: gateways-proxies-004
     title: Proxy giữ nguyên path
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3109,7 +3109,7 @@ menu:
     summary: ''
   - slug: gateways-proxies-005
     title: Proxy giữ nguyên header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3118,7 +3118,7 @@ menu:
     summary: ''
   - slug: gateways-proxies-006
     title: Forwarded header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3127,7 +3127,7 @@ menu:
     summary: ''
   - slug: gateways-proxies-007
     title: Hop-by-hop header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3136,7 +3136,7 @@ menu:
     summary: ''
   - slug: gateways-proxies-008
     title: TLS termination
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3145,7 +3145,7 @@ menu:
     summary: ''
   - slug: gateways-proxies-009
     title: Trust gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3154,7 +3154,7 @@ menu:
     summary: ''
   - slug: gateways-proxies-010
     title: Kiểm thử qua proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3166,7 +3166,7 @@ menu:
   childs:
   - slug: error-semantics-001
     title: 401 Unauthorized
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3175,7 +3175,7 @@ menu:
     summary: ''
   - slug: error-semantics-002
     title: 403 Forbidden
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3184,7 +3184,7 @@ menu:
     summary: ''
   - slug: error-semantics-003
     title: Thiếu authorization header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3193,7 +3193,7 @@ menu:
     summary: ''
   - slug: error-semantics-004
     title: Sai key ID
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3202,7 +3202,7 @@ menu:
     summary: ''
   - slug: error-semantics-005
     title: Sai signature
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3211,7 +3211,7 @@ menu:
     summary: ''
   - slug: error-semantics-006
     title: Timestamp không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3220,7 +3220,7 @@ menu:
     summary: ''
   - slug: error-semantics-007
     title: Nonce đã dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3229,7 +3229,7 @@ menu:
     summary: ''
   - slug: error-semantics-008
     title: Body không khớp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3238,7 +3238,7 @@ menu:
     summary: ''
   - slug: error-semantics-009
     title: Error response nhất quán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3247,7 +3247,7 @@ menu:
     summary: ''
   - slug: error-semantics-010
     title: Không lộ chi tiết secret
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3259,7 +3259,7 @@ menu:
   childs:
   - slug: security-logging-001
     title: Log authentication event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3268,7 +3268,7 @@ menu:
     summary: ''
   - slug: security-logging-002
     title: Log key ID
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3277,7 +3277,7 @@ menu:
     summary: ''
   - slug: security-logging-003
     title: Log client ID
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3286,7 +3286,7 @@ menu:
     summary: ''
   - slug: security-logging-004
     title: Log request ID
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3295,7 +3295,7 @@ menu:
     summary: ''
   - slug: security-logging-005
     title: Không ghi secret
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3304,7 +3304,7 @@ menu:
     summary: ''
   - slug: security-logging-006
     title: Không log secret
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3313,7 +3313,7 @@ menu:
     summary: ''
   - slug: security-logging-007
     title: Log reason tổng quát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3322,7 +3322,7 @@ menu:
     summary: ''
   - slug: security-logging-008
     title: Audit rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3331,7 +3331,7 @@ menu:
     summary: ''
   - slug: security-logging-009
     title: Audit revocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3340,7 +3340,7 @@ menu:
     summary: ''
   - slug: security-logging-010
     title: Log correlation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3352,7 +3352,7 @@ menu:
   childs:
   - slug: monitoring-001
     title: Metric request hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3361,7 +3361,7 @@ menu:
     summary: ''
   - slug: monitoring-002
     title: Metric request bị từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3370,7 +3370,7 @@ menu:
     summary: ''
   - slug: monitoring-003
     title: Metric sai signature
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3379,7 +3379,7 @@ menu:
     summary: ''
   - slug: monitoring-004
     title: Metric replay
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3388,7 +3388,7 @@ menu:
     summary: ''
   - slug: monitoring-005
     title: Metric timestamp failure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3397,7 +3397,7 @@ menu:
     summary: ''
   - slug: monitoring-006
     title: Metric key lookup
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3406,7 +3406,7 @@ menu:
     summary: ''
   - slug: monitoring-007
     title: Metric latency HMAC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3415,7 +3415,7 @@ menu:
     summary: ''
   - slug: monitoring-008
     title: Alert authentication spike
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3424,7 +3424,7 @@ menu:
     summary: ''
   - slug: monitoring-009
     title: Dashboard client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3433,7 +3433,7 @@ menu:
     summary: ''
   - slug: monitoring-010
     title: Theo dõi health
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3445,7 +3445,7 @@ menu:
   childs:
   - slug: performance-001
     title: Chi phí HMAC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3454,7 +3454,7 @@ menu:
     summary: ''
   - slug: performance-002
     title: Chi phí canonicalization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3463,7 +3463,7 @@ menu:
     summary: ''
   - slug: performance-003
     title: Chi phí đọc body
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3472,7 +3472,7 @@ menu:
     summary: ''
   - slug: performance-004
     title: Chi phí key lookup
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3481,7 +3481,7 @@ menu:
     summary: ''
   - slug: performance-005
     title: Cache key metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3490,7 +3490,7 @@ menu:
     summary: ''
   - slug: performance-006
     title: Reuse Mac an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3499,7 +3499,7 @@ menu:
     summary: ''
   - slug: performance-007
     title: Connection handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3508,7 +3508,7 @@ menu:
     summary: ''
   - slug: performance-008
     title: Throughput verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3517,7 +3517,7 @@ menu:
     summary: ''
   - slug: performance-009
     title: Load test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3526,7 +3526,7 @@ menu:
     summary: ''
   - slug: performance-010
     title: Tối ưu đường đi request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3538,7 +3538,7 @@ menu:
   childs:
   - slug: testing-hmac-001
     title: Known signature test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3547,7 +3547,7 @@ menu:
     summary: ''
   - slug: testing-hmac-002
     title: Wrong secret test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3556,7 +3556,7 @@ menu:
     summary: ''
   - slug: testing-hmac-003
     title: Wrong key ID test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3565,7 +3565,7 @@ menu:
     summary: ''
   - slug: testing-hmac-004
     title: Changed method test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3574,7 +3574,7 @@ menu:
     summary: ''
   - slug: testing-hmac-005
     title: Changed path test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3583,7 +3583,7 @@ menu:
     summary: ''
   - slug: testing-hmac-006
     title: Changed query test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3592,7 +3592,7 @@ menu:
     summary: ''
   - slug: testing-hmac-007
     title: Changed header test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3601,7 +3601,7 @@ menu:
     summary: ''
   - slug: testing-hmac-008
     title: Changed body test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3610,7 +3610,7 @@ menu:
     summary: ''
   - slug: testing-hmac-009
     title: Expired timestamp test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3619,7 +3619,7 @@ menu:
     summary: ''
   - slug: testing-hmac-010
     title: Replay test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3631,7 +3631,7 @@ menu:
   childs:
   - slug: contract-testing-001
     title: Signature contract
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3640,7 +3640,7 @@ menu:
     summary: ''
   - slug: contract-testing-002
     title: Canonicalization contract
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3649,7 +3649,7 @@ menu:
     summary: ''
   - slug: contract-testing-003
     title: Header contract
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3658,7 +3658,7 @@ menu:
     summary: ''
   - slug: contract-testing-004
     title: Error contract
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3667,7 +3667,7 @@ menu:
     summary: ''
   - slug: contract-testing-005
     title: Version contract
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3676,7 +3676,7 @@ menu:
     summary: ''
   - slug: contract-testing-006
     title: Client fixture
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3685,7 +3685,7 @@ menu:
     summary: ''
   - slug: contract-testing-007
     title: Server fixture
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3694,7 +3694,7 @@ menu:
     summary: ''
   - slug: contract-testing-008
     title: Cross-language fixture
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3703,7 +3703,7 @@ menu:
     summary: ''
   - slug: contract-testing-009
     title: Compatibility test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3712,7 +3712,7 @@ menu:
     summary: ''
   - slug: contract-testing-010
     title: Contract regression
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3724,7 +3724,7 @@ menu:
   childs:
   - slug: security-testing-001
     title: Fuzz header parser
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3733,7 +3733,7 @@ menu:
     summary: ''
   - slug: security-testing-002
     title: Fuzz query parser
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3742,7 +3742,7 @@ menu:
     summary: ''
   - slug: security-testing-003
     title: Fuzz canonicalization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3751,7 +3751,7 @@ menu:
     summary: ''
   - slug: security-testing-004
     title: Timing test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3760,7 +3760,7 @@ menu:
     summary: ''
   - slug: security-testing-005
     title: Replay attack test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3769,7 +3769,7 @@ menu:
     summary: ''
   - slug: security-testing-006
     title: Secret leakage test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3778,7 +3778,7 @@ menu:
     summary: ''
   - slug: security-testing-007
     title: Path ambiguity test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3787,7 +3787,7 @@ menu:
     summary: ''
   - slug: security-testing-008
     title: Unicode test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3796,7 +3796,7 @@ menu:
     summary: ''
   - slug: security-testing-009
     title: Load abuse test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3805,7 +3805,7 @@ menu:
     summary: ''
   - slug: security-testing-010
     title: Penetration test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3817,7 +3817,7 @@ menu:
   childs:
   - slug: algorithm-agility-001
     title: Version algorithm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3826,7 +3826,7 @@ menu:
     summary: ''
   - slug: algorithm-agility-002
     title: Algorithm allowlist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3835,7 +3835,7 @@ menu:
     summary: ''
   - slug: algorithm-agility-003
     title: Ngừng thuật toán cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3844,7 +3844,7 @@ menu:
     summary: ''
   - slug: algorithm-agility-004
     title: Client capability
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3853,7 +3853,7 @@ menu:
     summary: ''
   - slug: algorithm-agility-005
     title: Server capability
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3862,7 +3862,7 @@ menu:
     summary: ''
   - slug: algorithm-agility-006
     title: Dual algorithm period
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3871,7 +3871,7 @@ menu:
     summary: ''
   - slug: algorithm-agility-007
     title: Algorithm negotiation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3880,7 +3880,7 @@ menu:
     summary: ''
   - slug: algorithm-agility-008
     title: Migration signature
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3889,7 +3889,7 @@ menu:
     summary: ''
   - slug: algorithm-agility-009
     title: Rollback algorithm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3898,7 +3898,7 @@ menu:
     summary: ''
   - slug: algorithm-agility-010
     title: Kiểm thử tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3910,7 +3910,7 @@ menu:
   childs:
   - slug: incident-response-001
     title: Secret compromise
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3919,7 +3919,7 @@ menu:
     summary: ''
   - slug: incident-response-002
     title: Client compromise
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3928,7 +3928,7 @@ menu:
     summary: ''
   - slug: incident-response-003
     title: Replay incident
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3937,7 +3937,7 @@ menu:
     summary: ''
   - slug: incident-response-004
     title: Signature bypass
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3946,7 +3946,7 @@ menu:
     summary: ''
   - slug: incident-response-005
     title: Thu hồi key khẩn cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3955,7 +3955,7 @@ menu:
     summary: ''
   - slug: incident-response-006
     title: Rotate toàn bộ secret
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3964,7 +3964,7 @@ menu:
     summary: ''
   - slug: incident-response-007
     title: Chặn client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3973,7 +3973,7 @@ menu:
     summary: ''
   - slug: incident-response-008
     title: Điều tra security log
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3982,7 +3982,7 @@ menu:
     summary: ''
   - slug: incident-response-009
     title: Thông báo sự cố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3991,7 +3991,7 @@ menu:
     summary: ''
   - slug: incident-response-010
     title: Bài học sau sự cố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4003,7 +4003,7 @@ menu:
   childs:
   - slug: operations-001
     title: HMAC runbook
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4012,7 +4012,7 @@ menu:
     summary: ''
   - slug: operations-002
     title: Đăng ký client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4021,7 +4021,7 @@ menu:
     summary: ''
   - slug: operations-003
     title: Cấp secret
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4030,7 +4030,7 @@ menu:
     summary: ''
   - slug: operations-004
     title: Rotate secret
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4039,7 +4039,7 @@ menu:
     summary: ''
   - slug: operations-005
     title: Thu hồi client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4048,7 +4048,7 @@ menu:
     summary: ''
   - slug: operations-006
     title: Xử lý key lookup failure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4057,7 +4057,7 @@ menu:
     summary: ''
   - slug: operations-007
     title: Xử lý clock drift
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4066,7 +4066,7 @@ menu:
     summary: ''
   - slug: operations-008
     title: Xử lý replay spike
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4075,7 +4075,7 @@ menu:
     summary: ''
   - slug: operations-009
     title: Backup key metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4084,7 +4084,7 @@ menu:
     summary: ''
   - slug: operations-010
     title: Kiểm tra sau triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4096,7 +4096,7 @@ menu:
   childs:
   - slug: migration-001
     title: Di trú scheme cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4105,7 +4105,7 @@ menu:
     summary: ''
   - slug: migration-002
     title: Di trú canonical format
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4114,7 +4114,7 @@ menu:
     summary: ''
   - slug: migration-003
     title: Di trú header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4123,7 +4123,7 @@ menu:
     summary: ''
   - slug: migration-004
     title: Xác minh song song
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4132,7 +4132,7 @@ menu:
     summary: ''
   - slug: migration-005
     title: Dual signing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4141,7 +4141,7 @@ menu:
     summary: ''
   - slug: migration-006
     title: Triển khai client theo giai đoạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4150,7 +4150,7 @@ menu:
     summary: ''
   - slug: migration-007
     title: Đối soát request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4159,7 +4159,7 @@ menu:
     summary: ''
   - slug: migration-008
     title: Rollback migration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4168,7 +4168,7 @@ menu:
     summary: ''
   - slug: migration-009
     title: Ngừng scheme cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4177,7 +4177,7 @@ menu:
     summary: ''
   - slug: migration-010
     title: Kiểm thử migration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4189,7 +4189,7 @@ menu:
   childs:
   - slug: anti-pattern-hmac-001
     title: Dùng secret chung mọi client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4198,7 +4198,7 @@ menu:
     summary: ''
   - slug: anti-pattern-hmac-002
     title: Ký không bao phủ path
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4207,7 +4207,7 @@ menu:
     summary: ''
   - slug: anti-pattern-hmac-003
     title: Ký không bao phủ body
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4216,7 +4216,7 @@ menu:
     summary: ''
   - slug: anti-pattern-hmac-004
     title: Ký query không canonical
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4225,7 +4225,7 @@ menu:
     summary: ''
   - slug: anti-pattern-hmac-005
     title: So sánh signature bằng equals
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4234,7 +4234,7 @@ menu:
     summary: ''
   - slug: anti-pattern-hmac-006
     title: Không chống replay
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4243,7 +4243,7 @@ menu:
     summary: ''
   - slug: anti-pattern-hmac-007
     title: Log signature
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4252,7 +4252,7 @@ menu:
     summary: ''
   - slug: anti-pattern-hmac-008
     title: Hard-code secret
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4261,7 +4261,7 @@ menu:
     summary: ''
   - slug: anti-pattern-hmac-009
     title: Không rotate key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4270,7 +4270,7 @@ menu:
     summary: ''
   - slug: anti-pattern-hmac-010
     title: Trộn authentication và authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4282,7 +4282,7 @@ menu:
   childs:
   - slug: hmac-system-design-001
     title: Xác định threat model
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4291,7 +4291,7 @@ menu:
     summary: ''
   - slug: hmac-system-design-002
     title: Chọn thành phần request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4300,7 +4300,7 @@ menu:
     summary: ''
   - slug: hmac-system-design-003
     title: Chọn canonical format
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4309,7 +4309,7 @@ menu:
     summary: ''
   - slug: hmac-system-design-004
     title: Chọn thuật toán MAC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4318,7 +4318,7 @@ menu:
     summary: ''
   - slug: hmac-system-design-005
     title: Chọn encoding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4327,7 +4327,7 @@ menu:
     summary: ''
   - slug: hmac-system-design-006
     title: Chọn replay window
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4336,7 +4336,7 @@ menu:
     summary: ''
   - slug: hmac-system-design-007
     title: Chọn nonce store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4345,7 +4345,7 @@ menu:
     summary: ''
   - slug: hmac-system-design-008
     title: Chọn key lifecycle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4354,7 +4354,7 @@ menu:
     summary: ''
   - slug: hmac-system-design-009
     title: Chọn error semantics
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4363,7 +4363,7 @@ menu:
     summary: ''
   - slug: hmac-system-design-010
     title: Ghi lại quyết định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4375,7 +4375,7 @@ menu:
   childs:
   - slug: practice-project-001
     title: Thiết kế signature scheme
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4384,7 +4384,7 @@ menu:
     summary: ''
   - slug: practice-project-002
     title: Viết client signer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4393,7 +4393,7 @@ menu:
     summary: ''
   - slug: practice-project-003
     title: Viết server verifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4402,7 +4402,7 @@ menu:
     summary: ''
   - slug: practice-project-004
     title: Canonicalize HTTP request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4411,7 +4411,7 @@ menu:
     summary: ''
   - slug: practice-project-005
     title: Thêm timestamp và nonce
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4420,7 +4420,7 @@ menu:
     summary: ''
   - slug: practice-project-006
     title: Thêm replay protection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4429,7 +4429,7 @@ menu:
     summary: ''
   - slug: practice-project-007
     title: Tích hợp Spring Security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4438,7 +4438,7 @@ menu:
     summary: ''
   - slug: practice-project-008
     title: Thêm key rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4447,7 +4447,7 @@ menu:
     summary: ''
   - slug: practice-project-009
     title: Viết contract test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4456,7 +4456,7 @@ menu:
     summary: ''
   - slug: practice-project-010
     title: Thêm monitoring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4465,7 +4465,7 @@ menu:
     summary: ''
   - slug: practice-project-011
     title: Viết runbook vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4477,7 +4477,7 @@ menu:
   childs:
   - slug: hmac-authentication-summary-001
     title: Bản đồ khái niệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4486,7 +4486,7 @@ menu:
     summary: ''
   - slug: hmac-authentication-summary-002
     title: Luồng ký và xác minh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4495,7 +4495,7 @@ menu:
     summary: ''
   - slug: hmac-authentication-summary-003
     title: Checklist canonicalization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4504,7 +4504,7 @@ menu:
     summary: ''
   - slug: hmac-authentication-summary-004
     title: Checklist key security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4513,7 +4513,7 @@ menu:
     summary: ''
   - slug: hmac-authentication-summary-005
     title: Checklist replay protection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4522,7 +4522,7 @@ menu:
     summary: ''
   - slug: hmac-authentication-summary-006
     title: Bước học tiếp theo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

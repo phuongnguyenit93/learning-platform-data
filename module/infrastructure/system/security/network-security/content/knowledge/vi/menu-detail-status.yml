@@ -187,7 +187,7 @@ menu:
     summary: ''
   - slug: network-models-011
     title: Điểm giao nhau của các trust zone
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -226,7 +226,7 @@ menu:
     summary: ''
   - slug: tcp-ip-004
     title: Default gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -235,7 +235,7 @@ menu:
     summary: ''
   - slug: tcp-ip-005
     title: Routing table
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -244,7 +244,7 @@ menu:
     summary: ''
   - slug: tcp-ip-006
     title: ARP và Neighbor Discovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -253,7 +253,7 @@ menu:
     summary: ''
   - slug: tcp-ip-007
     title: TCP handshake
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -262,7 +262,7 @@ menu:
     summary: ''
   - slug: tcp-ip-008
     title: UDP và đặc điểm không kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -271,7 +271,7 @@ menu:
     summary: ''
   - slug: tcp-ip-009
     title: Port và socket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -280,7 +280,7 @@ menu:
     summary: ''
   - slug: tcp-ip-010
     title: Connection state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -289,7 +289,7 @@ menu:
     summary: ''
   - slug: tcp-ip-011
     title: MTU và fragmentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -298,7 +298,7 @@ menu:
     summary: ''
   - slug: tcp-ip-012
     title: DNS trong luồng kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -307,7 +307,7 @@ menu:
     summary: ''
   - slug: tcp-ip-013
     title: DHCP và cấp phát địa chỉ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -316,7 +316,7 @@ menu:
     summary: ''
   - slug: tcp-ip-014
     title: Network namespace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -328,7 +328,7 @@ menu:
   childs:
   - slug: osi-protocols-001
     title: Tầng vật lý và liên kết dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -337,7 +337,7 @@ menu:
     summary: ''
   - slug: osi-protocols-002
     title: Tầng network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -346,7 +346,7 @@ menu:
     summary: ''
   - slug: osi-protocols-003
     title: Tầng transport
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -355,7 +355,7 @@ menu:
     summary: ''
   - slug: osi-protocols-004
     title: Tầng session và application
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -364,7 +364,7 @@ menu:
     summary: ''
   - slug: osi-protocols-005
     title: Ethernet frame
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -373,7 +373,7 @@ menu:
     summary: ''
   - slug: osi-protocols-006
     title: IP packet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -382,7 +382,7 @@ menu:
     summary: ''
   - slug: osi-protocols-007
     title: TCP segment và UDP datagram
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -391,7 +391,7 @@ menu:
     summary: ''
   - slug: osi-protocols-008
     title: HTTP và HTTPS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -400,7 +400,7 @@ menu:
     summary: ''
   - slug: osi-protocols-009
     title: TLS nằm giữa application và transport như thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -409,7 +409,7 @@ menu:
     summary: ''
   - slug: osi-protocols-010
     title: ICMP và chẩn đoán mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -418,7 +418,7 @@ menu:
     summary: ''
   - slug: osi-protocols-011
     title: Giao thức quản trị và giao thức nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -427,7 +427,7 @@ menu:
     summary: ''
   - slug: osi-protocols-012
     title: Đọc packet theo lớp để tìm nguyên nhân lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -439,7 +439,7 @@ menu:
   childs:
   - slug: network-threat-modeling-001
     title: Tài sản cần bảo vệ trong network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -448,7 +448,7 @@ menu:
     summary: ''
   - slug: network-threat-modeling-002
     title: Adversary có khả năng gì?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -457,7 +457,7 @@ menu:
     summary: ''
   - slug: network-threat-modeling-003
     title: Entry point và exposed service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -466,7 +466,7 @@ menu:
     summary: ''
   - slug: network-threat-modeling-004
     title: Trust boundary và data flow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -475,7 +475,7 @@ menu:
     summary: ''
   - slug: network-threat-modeling-005
     title: Spoofing trên mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -484,7 +484,7 @@ menu:
     summary: ''
   - slug: network-threat-modeling-006
     title: Tampering trên đường truyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -493,7 +493,7 @@ menu:
     summary: ''
   - slug: network-threat-modeling-007
     title: Repudiation và audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -502,7 +502,7 @@ menu:
     summary: ''
   - slug: network-threat-modeling-008
     title: Information disclosure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -511,7 +511,7 @@ menu:
     summary: ''
   - slug: network-threat-modeling-009
     title: Denial of service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -520,7 +520,7 @@ menu:
     summary: ''
   - slug: network-threat-modeling-010
     title: Elevation of privilege qua network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -529,7 +529,7 @@ menu:
     summary: ''
   - slug: network-threat-modeling-011
     title: Abuse case và misuse case
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -538,7 +538,7 @@ menu:
     summary: ''
   - slug: network-threat-modeling-012
     title: Xác định control theo threat
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -547,7 +547,7 @@ menu:
     summary: ''
   - slug: network-threat-modeling-013
     title: Giới hạn của threat model
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -559,7 +559,7 @@ menu:
   childs:
   - slug: reconnaissance-001
     title: Passive reconnaissance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -568,7 +568,7 @@ menu:
     summary: ''
   - slug: reconnaissance-002
     title: Active scanning
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -577,7 +577,7 @@ menu:
     summary: ''
   - slug: reconnaissance-003
     title: DNS enumeration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -586,7 +586,7 @@ menu:
     summary: ''
   - slug: reconnaissance-004
     title: Port scanning
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -595,7 +595,7 @@ menu:
     summary: ''
   - slug: reconnaissance-005
     title: Service fingerprinting
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -604,7 +604,7 @@ menu:
     summary: ''
   - slug: reconnaissance-006
     title: Banner leakage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -613,7 +613,7 @@ menu:
     summary: ''
   - slug: reconnaissance-007
     title: Certificate transparency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -622,7 +622,7 @@ menu:
     summary: ''
   - slug: reconnaissance-008
     title: Subdomain discovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -631,7 +631,7 @@ menu:
     summary: ''
   - slug: reconnaissance-009
     title: Cloud asset discovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -640,7 +640,7 @@ menu:
     summary: ''
   - slug: reconnaissance-010
     title: Network telemetry bị lạm dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -649,7 +649,7 @@ menu:
     summary: ''
   - slug: reconnaissance-011
     title: Giảm thông tin lộ ra ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -658,7 +658,7 @@ menu:
     summary: ''
   - slug: reconnaissance-012
     title: Phân biệt kiểm tra được phép với hành vi tấn công
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -670,7 +670,7 @@ menu:
   childs:
   - slug: network-access-control-001
     title: Ai được phép kết nối vào mạng?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -679,7 +679,7 @@ menu:
     summary: ''
   - slug: network-access-control-002
     title: Network ACL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -688,7 +688,7 @@ menu:
     summary: ''
   - slug: network-access-control-003
     title: Firewall rule
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -697,7 +697,7 @@ menu:
     summary: ''
   - slug: network-access-control-004
     title: Security group
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -706,7 +706,7 @@ menu:
     summary: ''
   - slug: network-access-control-005
     title: Host firewall
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -715,7 +715,7 @@ menu:
     summary: ''
   - slug: network-access-control-006
     title: Default deny
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -724,7 +724,7 @@ menu:
     summary: ''
   - slug: network-access-control-007
     title: Allowlist và blocklist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -733,7 +733,7 @@ menu:
     summary: ''
   - slug: network-access-control-008
     title: Rule theo source, destination và port
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -742,7 +742,7 @@ menu:
     summary: ''
   - slug: network-access-control-009
     title: Rule theo identity hoặc tag
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -751,7 +751,7 @@ menu:
     summary: ''
   - slug: network-access-control-010
     title: Rule order và shadowed rule
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -760,7 +760,7 @@ menu:
     summary: ''
   - slug: network-access-control-011
     title: Temporary access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -769,7 +769,7 @@ menu:
     summary: ''
   - slug: network-access-control-012
     title: Rule review và expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -778,7 +778,7 @@ menu:
     summary: ''
   - slug: network-access-control-013
     title: Bằng chứng khi một kết nối bị từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -790,7 +790,7 @@ menu:
   childs:
   - slug: segmentation-001
     title: Network segmentation là gì?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -799,7 +799,7 @@ menu:
     summary: ''
   - slug: segmentation-002
     title: Physical và logical segmentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -808,7 +808,7 @@ menu:
     summary: ''
   - slug: segmentation-003
     title: Subnet segmentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -817,7 +817,7 @@ menu:
     summary: ''
   - slug: segmentation-004
     title: VLAN
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -826,7 +826,7 @@ menu:
     summary: ''
   - slug: segmentation-005
     title: Security zone
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -835,7 +835,7 @@ menu:
     summary: ''
   - slug: segmentation-006
     title: Microsegmentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -844,7 +844,7 @@ menu:
     summary: ''
   - slug: segmentation-007
     title: East-west isolation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -853,7 +853,7 @@ menu:
     summary: ''
   - slug: segmentation-008
     title: Segmentation theo workload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -862,7 +862,7 @@ menu:
     summary: ''
   - slug: segmentation-009
     title: Segmentation theo tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -871,7 +871,7 @@ menu:
     summary: ''
   - slug: segmentation-010
     title: Segmentation theo environment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -880,7 +880,7 @@ menu:
     summary: ''
   - slug: segmentation-011
     title: Segmentation cho management plane
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -889,7 +889,7 @@ menu:
     summary: ''
   - slug: segmentation-012
     title: Vượt segmentation qua shared service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -898,7 +898,7 @@ menu:
     summary: ''
   - slug: segmentation-013
     title: Kiểm thử đường đi được phép và bị cấm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -910,7 +910,7 @@ menu:
   childs:
   - slug: firewalls-001
     title: Packet filtering firewall
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -919,7 +919,7 @@ menu:
     summary: ''
   - slug: firewalls-002
     title: Stateful firewall
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -928,7 +928,7 @@ menu:
     summary: ''
   - slug: firewalls-003
     title: Application firewall
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -937,7 +937,7 @@ menu:
     summary: ''
   - slug: firewalls-004
     title: Next-generation firewall
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -946,7 +946,7 @@ menu:
     summary: ''
   - slug: firewalls-005
     title: Ingress firewall
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -955,7 +955,7 @@ menu:
     summary: ''
   - slug: firewalls-006
     title: Egress firewall
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -964,7 +964,7 @@ menu:
     summary: ''
   - slug: firewalls-007
     title: Internal segmentation firewall
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -973,7 +973,7 @@ menu:
     summary: ''
   - slug: firewalls-008
     title: Rule matching
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -982,7 +982,7 @@ menu:
     summary: ''
   - slug: firewalls-009
     title: NAT và tác động tới policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -991,7 +991,7 @@ menu:
     summary: ''
   - slug: firewalls-010
     title: Firewall logging
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1000,7 +1000,7 @@ menu:
     summary: ''
   - slug: firewalls-011
     title: Rule hit count
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1009,7 +1009,7 @@ menu:
     summary: ''
   - slug: firewalls-012
     title: Rule ordering
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1018,7 +1018,7 @@ menu:
     summary: ''
   - slug: firewalls-013
     title: Rule sprawl
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1027,7 +1027,7 @@ menu:
     summary: ''
   - slug: firewalls-014
     title: High availability firewall
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1036,7 +1036,7 @@ menu:
     summary: ''
   - slug: firewalls-015
     title: Fail-open và fail-closed
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1048,7 +1048,7 @@ menu:
   childs:
   - slug: web-application-firewalls-001
     title: WAF bảo vệ HTTP application
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1057,7 +1057,7 @@ menu:
     summary: ''
   - slug: web-application-firewalls-002
     title: Managed rule và custom rule
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1066,7 +1066,7 @@ menu:
     summary: ''
   - slug: web-application-firewalls-003
     title: SQL injection detection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1075,7 +1075,7 @@ menu:
     summary: ''
   - slug: web-application-firewalls-004
     title: Cross-site scripting detection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1084,7 +1084,7 @@ menu:
     summary: ''
   - slug: web-application-firewalls-005
     title: Path traversal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1093,7 +1093,7 @@ menu:
     summary: ''
   - slug: web-application-firewalls-006
     title: Request size limit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1102,7 +1102,7 @@ menu:
     summary: ''
   - slug: web-application-firewalls-007
     title: Rate limiting tại WAF
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1111,7 +1111,7 @@ menu:
     summary: ''
   - slug: web-application-firewalls-008
     title: Bot và automation control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1120,7 +1120,7 @@ menu:
     summary: ''
   - slug: web-application-firewalls-009
     title: False positive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1129,7 +1129,7 @@ menu:
     summary: ''
   - slug: web-application-firewalls-010
     title: WAF trước reverse proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1138,7 +1138,7 @@ menu:
     summary: ''
   - slug: web-application-firewalls-011
     title: TLS termination tại WAF
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1147,7 +1147,7 @@ menu:
     summary: ''
   - slug: web-application-firewalls-012
     title: WAF log và request ID
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1156,7 +1156,7 @@ menu:
     summary: ''
   - slug: web-application-firewalls-013
     title: WAF không thay thế secure coding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1168,7 +1168,7 @@ menu:
   childs:
   - slug: ids-ips-001
     title: Intrusion Detection System
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1177,7 +1177,7 @@ menu:
     summary: ''
   - slug: ids-ips-002
     title: Intrusion Prevention System
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1186,7 +1186,7 @@ menu:
     summary: ''
   - slug: ids-ips-003
     title: Signature-based detection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1195,7 +1195,7 @@ menu:
     summary: ''
   - slug: ids-ips-004
     title: Anomaly-based detection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1204,7 +1204,7 @@ menu:
     summary: ''
   - slug: ids-ips-005
     title: Network sensor placement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1213,7 +1213,7 @@ menu:
     summary: ''
   - slug: ids-ips-006
     title: Inline và out-of-band sensor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1222,7 +1222,7 @@ menu:
     summary: ''
   - slug: ids-ips-007
     title: Alert severity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1231,7 +1231,7 @@ menu:
     summary: ''
   - slug: ids-ips-008
     title: False positive và false negative
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1240,7 +1240,7 @@ menu:
     summary: ''
   - slug: ids-ips-009
     title: Blocked traffic và evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1249,7 +1249,7 @@ menu:
     summary: ''
   - slug: ids-ips-010
     title: Tuning rule
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1258,7 +1258,7 @@ menu:
     summary: ''
   - slug: ids-ips-011
     title: Encrypted traffic visibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1267,7 +1267,7 @@ menu:
     summary: ''
   - slug: ids-ips-012
     title: NDR và behavior analytics
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1276,7 +1276,7 @@ menu:
     summary: ''
   - slug: ids-ips-013
     title: IDS/IPS phối hợp với SIEM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1288,7 +1288,7 @@ menu:
   childs:
   - slug: ddos-protection-001
     title: Volumetric denial of service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1297,7 +1297,7 @@ menu:
     summary: ''
   - slug: ddos-protection-002
     title: Protocol exhaustion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1306,7 +1306,7 @@ menu:
     summary: ''
   - slug: ddos-protection-003
     title: Application-layer denial of service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1315,7 +1315,7 @@ menu:
     summary: ''
   - slug: ddos-protection-004
     title: SYN flood
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1324,7 +1324,7 @@ menu:
     summary: ''
   - slug: ddos-protection-005
     title: UDP amplification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1333,7 +1333,7 @@ menu:
     summary: ''
   - slug: ddos-protection-006
     title: DNS amplification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1342,7 +1342,7 @@ menu:
     summary: ''
   - slug: ddos-protection-007
     title: HTTP flood
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1351,7 +1351,7 @@ menu:
     summary: ''
   - slug: ddos-protection-008
     title: Resource exhaustion trong application
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1360,7 +1360,7 @@ menu:
     summary: ''
   - slug: ddos-protection-009
     title: Rate limiting và connection limit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
     summary: ''
   - slug: ddos-protection-010
     title: Anycast và scrubbing service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: ddos-protection-011
     title: DDoS runbook
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1387,7 +1387,7 @@ menu:
     summary: ''
   - slug: ddos-protection-012
     title: Bảo vệ availability mà không chặn user hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1399,7 +1399,7 @@ menu:
   childs:
   - slug: dns-security-001
     title: DNS resolution trong application
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1408,7 +1408,7 @@ menu:
     summary: ''
   - slug: dns-security-002
     title: Recursive và authoritative DNS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1417,7 +1417,7 @@ menu:
     summary: ''
   - slug: dns-security-003
     title: DNS cache poisoning
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1426,7 +1426,7 @@ menu:
     summary: ''
   - slug: dns-security-004
     title: DNS spoofing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
     summary: ''
   - slug: dns-security-005
     title: DNSSEC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: dns-security-006
     title: DoH và DoT
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1453,7 +1453,7 @@ menu:
     summary: ''
   - slug: dns-security-007
     title: Private DNS zone
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1462,7 +1462,7 @@ menu:
     summary: ''
   - slug: dns-security-008
     title: Split-horizon DNS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1471,7 +1471,7 @@ menu:
     summary: ''
   - slug: dns-security-009
     title: DNS exfiltration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1480,7 +1480,7 @@ menu:
     summary: ''
   - slug: dns-security-010
     title: Fast flux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1489,7 +1489,7 @@ menu:
     summary: ''
   - slug: dns-security-011
     title: Domain takeover
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1498,7 +1498,7 @@ menu:
     summary: ''
   - slug: dns-security-012
     title: TTL và failover
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1507,7 +1507,7 @@ menu:
     summary: ''
   - slug: dns-security-013
     title: Monitoring DNS query bất thường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1519,7 +1519,7 @@ menu:
   childs:
   - slug: dhcp-ip-address-management-001
     title: DHCP lease
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1528,7 +1528,7 @@ menu:
     summary: ''
   - slug: dhcp-ip-address-management-002
     title: IP address management
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1537,7 +1537,7 @@ menu:
     summary: ''
   - slug: dhcp-ip-address-management-003
     title: Static và dynamic address
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1546,7 +1546,7 @@ menu:
     summary: ''
   - slug: dhcp-ip-address-management-004
     title: Rogue DHCP server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1555,7 +1555,7 @@ menu:
     summary: ''
   - slug: dhcp-ip-address-management-005
     title: DHCP snooping
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1564,7 +1564,7 @@ menu:
     summary: ''
   - slug: dhcp-ip-address-management-006
     title: IP conflict
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1573,7 +1573,7 @@ menu:
     summary: ''
   - slug: dhcp-ip-address-management-007
     title: Reserved address
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1582,7 +1582,7 @@ menu:
     summary: ''
   - slug: dhcp-ip-address-management-008
     title: Network inventory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1591,7 +1591,7 @@ menu:
     summary: ''
   - slug: dhcp-ip-address-management-009
     title: Address allocation theo zone
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1600,7 +1600,7 @@ menu:
     summary: ''
   - slug: dhcp-ip-address-management-010
     title: IPv6 address management
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1609,7 +1609,7 @@ menu:
     summary: ''
   - slug: dhcp-ip-address-management-011
     title: Theo dõi thiết bị mới xuất hiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1618,7 +1618,7 @@ menu:
     summary: ''
   - slug: dhcp-ip-address-management-012
     title: Không dùng IP làm identity duy nhất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1630,7 +1630,7 @@ menu:
   childs:
   - slug: routing-security-001
     title: Static và dynamic routing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1639,7 +1639,7 @@ menu:
     summary: ''
   - slug: routing-security-002
     title: Route advertisement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1648,7 +1648,7 @@ menu:
     summary: ''
   - slug: routing-security-003
     title: BGP security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1657,7 +1657,7 @@ menu:
     summary: ''
   - slug: routing-security-004
     title: Route hijacking
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1666,7 +1666,7 @@ menu:
     summary: ''
   - slug: routing-security-005
     title: Route leak
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1675,7 +1675,7 @@ menu:
     summary: ''
   - slug: routing-security-006
     title: Prefix filtering
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1684,7 +1684,7 @@ menu:
     summary: ''
   - slug: routing-security-007
     title: RPKI
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1693,7 +1693,7 @@ menu:
     summary: ''
   - slug: routing-security-008
     title: Default route
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1702,7 +1702,7 @@ menu:
     summary: ''
   - slug: routing-security-009
     title: Asymmetric routing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1711,7 +1711,7 @@ menu:
     summary: ''
   - slug: routing-security-010
     title: Routing policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1720,7 +1720,7 @@ menu:
     summary: ''
   - slug: routing-security-011
     title: Route change monitoring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1729,7 +1729,7 @@ menu:
     summary: ''
   - slug: routing-security-012
     title: Kiểm thử đường đi dự phòng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1741,7 +1741,7 @@ menu:
   childs:
   - slug: wireless-security-001
     title: Wi-Fi security boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1750,7 +1750,7 @@ menu:
     summary: ''
   - slug: wireless-security-002
     title: SSID và network separation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1759,7 +1759,7 @@ menu:
     summary: ''
   - slug: wireless-security-003
     title: WPA2 và WPA3
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1768,7 +1768,7 @@ menu:
     summary: ''
   - slug: wireless-security-004
     title: Enterprise authentication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1777,7 +1777,7 @@ menu:
     summary: ''
   - slug: wireless-security-005
     title: Rogue access point
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1786,7 +1786,7 @@ menu:
     summary: ''
   - slug: wireless-security-006
     title: Evil twin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1795,7 +1795,7 @@ menu:
     summary: ''
   - slug: wireless-security-007
     title: Wireless client isolation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1804,7 +1804,7 @@ menu:
     summary: ''
   - slug: wireless-security-008
     title: Guest network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1813,7 +1813,7 @@ menu:
     summary: ''
   - slug: wireless-security-009
     title: Management frame protection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1822,7 +1822,7 @@ menu:
     summary: ''
   - slug: wireless-security-010
     title: Wireless encryption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1831,7 +1831,7 @@ menu:
     summary: ''
   - slug: wireless-security-011
     title: Site survey và signal leakage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1840,7 +1840,7 @@ menu:
     summary: ''
   - slug: wireless-security-012
     title: Monitoring thiết bị lạ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1852,7 +1852,7 @@ menu:
   childs:
   - slug: vpn-remote-access-001
     title: VPN site-to-site và remote access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1861,7 +1861,7 @@ menu:
     summary: ''
   - slug: vpn-remote-access-002
     title: IPsec tunnel mode và transport mode
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1870,7 +1870,7 @@ menu:
     summary: ''
   - slug: vpn-remote-access-003
     title: IKE negotiation và security association
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1879,7 +1879,7 @@ menu:
     summary: ''
   - slug: vpn-remote-access-004
     title: Lựa chọn giao thức WireGuard, IPsec và TLS VPN
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1888,7 +1888,7 @@ menu:
     summary: ''
   - slug: vpn-remote-access-005
     title: Split tunnel và full tunnel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1897,7 +1897,7 @@ menu:
     summary: ''
   - slug: vpn-remote-access-006
     title: Kiểm soát thiết bị khi kết nối từ xa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1906,7 +1906,7 @@ menu:
     summary: ''
   - slug: vpn-remote-access-007
     title: Xác thực đa yếu tố cho VPN
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1915,7 +1915,7 @@ menu:
     summary: ''
   - slug: vpn-remote-access-008
     title: Phân quyền theo nhóm người dùng VPN
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1924,7 +1924,7 @@ menu:
     summary: ''
   - slug: vpn-remote-access-009
     title: Giới hạn mạng được phép truy cập qua VPN
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1933,7 +1933,7 @@ menu:
     summary: ''
   - slug: vpn-remote-access-010
     title: Bảo vệ endpoint của người dùng từ xa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1942,7 +1942,7 @@ menu:
     summary: ''
   - slug: vpn-remote-access-011
     title: Theo dõi phiên VPN và phát hiện bất thường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1951,7 +1951,7 @@ menu:
     summary: ''
   - slug: vpn-remote-access-012
     title: Xử lý tài khoản VPN bị lộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1960,7 +1960,7 @@ menu:
     summary: ''
   - slug: vpn-remote-access-013
     title: Thiết kế VPN cho mô hình hybrid cloud
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1972,7 +1972,7 @@ menu:
   childs:
   - slug: tls-transport-security-001
     title: Mục tiêu của TLS trong bảo vệ đường truyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1981,7 +1981,7 @@ menu:
     summary: ''
   - slug: tls-transport-security-002
     title: TLS handshake và quá trình thương lượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1990,7 +1990,7 @@ menu:
     summary: ''
   - slug: tls-transport-security-003
     title: Mã hóa đối xứng và bất đối xứng trong TLS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1999,7 +1999,7 @@ menu:
     summary: ''
   - slug: tls-transport-security-004
     title: Certificate chain và xác minh máy chủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2008,7 +2008,7 @@ menu:
     summary: ''
   - slug: tls-transport-security-005
     title: SNI và lựa chọn virtual host
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2017,7 +2017,7 @@ menu:
     summary: ''
   - slug: tls-transport-security-006
     title: ALPN và thương lượng HTTP/2 hoặc HTTP/3
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2026,7 +2026,7 @@ menu:
     summary: ''
   - slug: tls-transport-security-007
     title: TLS version và loại bỏ giao thức yếu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2035,7 +2035,7 @@ menu:
     summary: ''
   - slug: tls-transport-security-008
     title: Cipher suite và tiêu chí lựa chọn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2044,7 +2044,7 @@ menu:
     summary: ''
   - slug: tls-transport-security-009
     title: Perfect forward secrecy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2053,7 +2053,7 @@ menu:
     summary: ''
   - slug: tls-transport-security-010
     title: Session resumption và ticket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2062,7 +2062,7 @@ menu:
     summary: ''
   - slug: tls-transport-security-011
     title: HSTS và chống hạ cấp kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2071,7 +2071,7 @@ menu:
     summary: ''
   - slug: tls-transport-security-012
     title: Bảo vệ TLS ở load balancer và application
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2080,7 +2080,7 @@ menu:
     summary: ''
   - slug: tls-transport-security-013
     title: Kiểm thử cấu hình TLS trong môi trường thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2092,7 +2092,7 @@ menu:
   childs:
   - slug: network-pki-certificates-001
     title: Vai trò của public key infrastructure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2101,7 +2101,7 @@ menu:
     summary: ''
   - slug: network-pki-certificates-002
     title: Root CA, intermediate CA và trust store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2110,7 +2110,7 @@ menu:
     summary: ''
   - slug: network-pki-certificates-003
     title: Quy trình yêu cầu và cấp certificate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2119,7 +2119,7 @@ menu:
     summary: ''
   - slug: network-pki-certificates-004
     title: Subject Alternative Name cho hostname
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2128,7 +2128,7 @@ menu:
     summary: ''
   - slug: network-pki-certificates-005
     title: Certificate pinning và giới hạn áp dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2137,7 +2137,7 @@ menu:
     summary: ''
   - slug: network-pki-certificates-006
     title: OCSP, CRL và kiểm tra trạng thái chứng thư
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2146,7 +2146,7 @@ menu:
     summary: ''
   - slug: network-pki-certificates-007
     title: Gia hạn và thay thế certificate trước hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2155,7 +2155,7 @@ menu:
     summary: ''
   - slug: network-pki-certificates-008
     title: Certificate cho máy chủ nội bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2164,7 +2164,7 @@ menu:
     summary: ''
   - slug: network-pki-certificates-009
     title: Certificate cho thiết bị và workload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2173,7 +2173,7 @@ menu:
     summary: ''
   - slug: network-pki-certificates-010
     title: Sự khác nhau giữa certificate server và client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2182,7 +2182,7 @@ menu:
     summary: ''
   - slug: network-pki-certificates-011
     title: Rủi ro khi tin cậy quá nhiều CA
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2191,7 +2191,7 @@ menu:
     summary: ''
   - slug: network-pki-certificates-012
     title: Kiểm kê certificate và phát hiện certificate sắp hết hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2203,7 +2203,7 @@ menu:
   childs:
   - slug: proxies-load-balancing-001
     title: Forward proxy và reverse proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2212,7 +2212,7 @@ menu:
     summary: ''
   - slug: proxies-load-balancing-002
     title: Reverse proxy như một trust boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2221,7 +2221,7 @@ menu:
     summary: ''
   - slug: proxies-load-balancing-003
     title: Load balancer layer 4 và layer 7
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2230,7 +2230,7 @@ menu:
     summary: ''
   - slug: proxies-load-balancing-004
     title: TLS termination và TLS passthrough
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2239,7 +2239,7 @@ menu:
     summary: ''
   - slug: proxies-load-balancing-005
     title: Health check và tác động đến tính sẵn sàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2248,7 +2248,7 @@ menu:
     summary: ''
   - slug: proxies-load-balancing-006
     title: Header forwarding và kiểm soát X-Forwarded-For
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2257,7 +2257,7 @@ menu:
     summary: ''
   - slug: proxies-load-balancing-007
     title: Giới hạn kích thước request tại proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2266,7 +2266,7 @@ menu:
     summary: ''
   - slug: proxies-load-balancing-008
     title: Timeout, connection limit và chống resource exhaustion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2275,7 +2275,7 @@ menu:
     summary: ''
   - slug: proxies-load-balancing-009
     title: Routing theo hostname, path và header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2284,7 +2284,7 @@ menu:
     summary: ''
   - slug: proxies-load-balancing-010
     title: Bảo vệ admin endpoint của proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2293,7 +2293,7 @@ menu:
     summary: ''
   - slug: proxies-load-balancing-011
     title: Cấu hình proxy khi có nhiều lớp trung gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2302,7 +2302,7 @@ menu:
     summary: ''
   - slug: proxies-load-balancing-012
     title: Log correlation giữa proxy và backend
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2311,7 +2311,7 @@ menu:
     summary: ''
   - slug: proxies-load-balancing-013
     title: Failover và tránh bypass proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2323,7 +2323,7 @@ menu:
   childs:
   - slug: api-service-security-001
     title: Bảo vệ REST API tại network boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2332,7 +2332,7 @@ menu:
     summary: ''
   - slug: api-service-security-002
     title: Bảo vệ gRPC và HTTP/2 trên mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2341,7 +2341,7 @@ menu:
     summary: ''
   - slug: api-service-security-003
     title: Xác thực service-to-service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2350,7 +2350,7 @@ menu:
     summary: ''
   - slug: api-service-security-004
     title: Authorization theo scope và audience
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2359,7 +2359,7 @@ menu:
     summary: ''
   - slug: api-service-security-005
     title: Rate limiting theo client và identity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2368,7 +2368,7 @@ menu:
     summary: ''
   - slug: api-service-security-006
     title: Request size limit cho network service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2377,7 +2377,7 @@ menu:
     summary: ''
   - slug: api-service-security-007
     title: Timeout và circuit breaker trong kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2386,7 +2386,7 @@ menu:
     summary: ''
   - slug: api-service-security-008
     title: Chống SSRF bằng kiểm soát outbound network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2395,7 +2395,7 @@ menu:
     summary: ''
   - slug: api-service-security-009
     title: Bảo vệ health check và management endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2404,7 +2404,7 @@ menu:
     summary: ''
   - slug: api-service-security-010
     title: Network policy cho service discovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2413,7 +2413,7 @@ menu:
     summary: ''
   - slug: api-service-security-011
     title: Kiểm soát phiên bản và endpoint đã ngừng hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2422,7 +2422,7 @@ menu:
     summary: ''
   - slug: api-service-security-012
     title: Giới hạn phương thức HTTP và content type
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2431,7 +2431,7 @@ menu:
     summary: ''
   - slug: api-service-security-013
     title: Log security event của API gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2443,7 +2443,7 @@ menu:
   childs:
   - slug: cloud-network-security-001
     title: VPC hoặc VNet và ranh giới mạng cloud
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2452,7 +2452,7 @@ menu:
     summary: ''
   - slug: cloud-network-security-002
     title: Subnet public và private
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2461,7 +2461,7 @@ menu:
     summary: ''
   - slug: cloud-network-security-003
     title: Internet gateway và NAT gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2470,7 +2470,7 @@ menu:
     summary: ''
   - slug: cloud-network-security-004
     title: Security group và stateful filtering
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2479,7 +2479,7 @@ menu:
     summary: ''
   - slug: cloud-network-security-005
     title: Network ACL và stateless filtering
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2488,7 +2488,7 @@ menu:
     summary: ''
   - slug: cloud-network-security-006
     title: Route table và định tuyến giữa các subnet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2497,7 +2497,7 @@ menu:
     summary: ''
   - slug: cloud-network-security-007
     title: Peering và rủi ro kết nối mạng mở rộng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2506,7 +2506,7 @@ menu:
     summary: ''
   - slug: cloud-network-security-008
     title: Transit gateway và mô hình hub-and-spoke
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2515,7 +2515,7 @@ menu:
     summary: ''
   - slug: cloud-network-security-009
     title: Private endpoint và private service access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2524,7 +2524,7 @@ menu:
     summary: ''
   - slug: cloud-network-security-010
     title: Cloud firewall và managed network control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2533,7 +2533,7 @@ menu:
     summary: ''
   - slug: cloud-network-security-011
     title: Kiểm soát địa chỉ IP công khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2542,7 +2542,7 @@ menu:
     summary: ''
   - slug: cloud-network-security-012
     title: Cloud load balancer và lớp bảo vệ đi kèm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2551,7 +2551,7 @@ menu:
     summary: ''
   - slug: cloud-network-security-013
     title: Flow log cho điều tra lưu lượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2560,7 +2560,7 @@ menu:
     summary: ''
   - slug: cloud-network-security-014
     title: Network segmentation trong tài khoản hoặc project
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2569,7 +2569,7 @@ menu:
     summary: ''
   - slug: cloud-network-security-015
     title: Phân quyền IAM đối với thay đổi cấu hình mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2581,7 +2581,7 @@ menu:
   childs:
   - slug: container-network-security-001
     title: Network namespace và interface trong container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2590,7 +2590,7 @@ menu:
     summary: ''
   - slug: container-network-security-002
     title: Bridge network và cơ chế publish port
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2599,7 +2599,7 @@ menu:
     summary: ''
   - slug: container-network-security-003
     title: Container-to-container communication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2608,7 +2608,7 @@ menu:
     summary: ''
   - slug: container-network-security-004
     title: Container-to-host communication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2617,7 +2617,7 @@ menu:
     summary: ''
   - slug: container-network-security-005
     title: Docker network mode và rủi ro lựa chọn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2626,7 +2626,7 @@ menu:
     summary: ''
   - slug: container-network-security-006
     title: Giới hạn port exposed trong image
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2635,7 +2635,7 @@ menu:
     summary: ''
   - slug: container-network-security-007
     title: Bảo vệ Docker socket và control plane
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2644,7 +2644,7 @@ menu:
     summary: ''
   - slug: container-network-security-008
     title: Network isolation giữa các ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2653,7 +2653,7 @@ menu:
     summary: ''
   - slug: container-network-security-009
     title: Egress control cho container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2662,7 +2662,7 @@ menu:
     summary: ''
   - slug: container-network-security-010
     title: DNS resolution bên trong container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2671,7 +2671,7 @@ menu:
     summary: ''
   - slug: container-network-security-011
     title: Kiểm soát image có tiến trình mạng không cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2680,7 +2680,7 @@ menu:
     summary: ''
   - slug: container-network-security-012
     title: Quan sát lưu lượng container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2689,7 +2689,7 @@ menu:
     summary: ''
   - slug: container-network-security-013
     title: Bảo vệ network credential trong runtime
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2698,7 +2698,7 @@ menu:
     summary: ''
   - slug: container-network-security-014
     title: Kiểm tra container network trước khi phát hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2710,7 +2710,7 @@ menu:
   childs:
   - slug: kubernetes-network-security-001
     title: Pod network và nguyên tắc mỗi pod một địa chỉ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2719,7 +2719,7 @@ menu:
     summary: ''
   - slug: kubernetes-network-security-002
     title: Service, ClusterIP, NodePort và LoadBalancer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2728,7 +2728,7 @@ menu:
     summary: ''
   - slug: kubernetes-network-security-003
     title: Ingress controller và trust boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2737,7 +2737,7 @@ menu:
     summary: ''
   - slug: kubernetes-network-security-004
     title: Kubernetes NetworkPolicy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2746,7 +2746,7 @@ menu:
     summary: ''
   - slug: kubernetes-network-security-005
     title: Default deny cho namespace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2755,7 +2755,7 @@ menu:
     summary: ''
   - slug: kubernetes-network-security-006
     title: Ingress rule và Egress rule của NetworkPolicy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2764,7 +2764,7 @@ menu:
     summary: ''
   - slug: kubernetes-network-security-007
     title: Namespace isolation và cross-namespace traffic
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2773,7 +2773,7 @@ menu:
     summary: ''
   - slug: kubernetes-network-security-008
     title: Kubelet, API server và các cổng quản trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2782,7 +2782,7 @@ menu:
     summary: ''
   - slug: kubernetes-network-security-009
     title: Bảo vệ control plane endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2791,7 +2791,7 @@ menu:
     summary: ''
   - slug: kubernetes-network-security-010
     title: CNI plugin và ảnh hưởng đến chính sách mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2800,7 +2800,7 @@ menu:
     summary: ''
   - slug: kubernetes-network-security-011
     title: DNS trong cluster và CoreDNS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2809,7 +2809,7 @@ menu:
     summary: ''
   - slug: kubernetes-network-security-012
     title: Pod security liên quan đến network capability
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2818,7 +2818,7 @@ menu:
     summary: ''
   - slug: kubernetes-network-security-013
     title: Node network và hostNetwork
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2827,7 +2827,7 @@ menu:
     summary: ''
   - slug: kubernetes-network-security-014
     title: Kiểm soát service account khi truy cập service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2836,7 +2836,7 @@ menu:
     summary: ''
   - slug: kubernetes-network-security-015
     title: Theo dõi thay đổi network policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2848,7 +2848,7 @@ menu:
   childs:
   - slug: service-mesh-mtls-001
     title: Service mesh giải quyết vấn đề gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2857,7 +2857,7 @@ menu:
     summary: ''
   - slug: service-mesh-mtls-002
     title: Sidecar proxy và đường đi của request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2866,7 +2866,7 @@ menu:
     summary: ''
   - slug: service-mesh-mtls-003
     title: mTLS giữa các workload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2875,7 +2875,7 @@ menu:
     summary: ''
   - slug: service-mesh-mtls-004
     title: Workload identity trong service mesh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2884,7 +2884,7 @@ menu:
     summary: ''
   - slug: service-mesh-mtls-005
     title: Peer authentication và request authentication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2893,7 +2893,7 @@ menu:
     summary: ''
   - slug: service-mesh-mtls-006
     title: Authorization policy giữa các service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2902,7 +2902,7 @@ menu:
     summary: ''
   - slug: service-mesh-mtls-007
     title: Traffic policy và retry an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2911,7 +2911,7 @@ menu:
     summary: ''
   - slug: service-mesh-mtls-008
     title: Egress gateway và outbound boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2920,7 +2920,7 @@ menu:
     summary: ''
   - slug: service-mesh-mtls-009
     title: Ingress gateway và public exposure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2929,7 +2929,7 @@ menu:
     summary: ''
   - slug: service-mesh-mtls-010
     title: Certificate rotation trong service mesh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2938,7 +2938,7 @@ menu:
     summary: ''
   - slug: service-mesh-mtls-011
     title: Quan sát request qua telemetry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2947,7 +2947,7 @@ menu:
     summary: ''
   - slug: service-mesh-mtls-012
     title: Rủi ro khi bypass sidecar proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2959,7 +2959,7 @@ menu:
   childs:
   - slug: zero-trust-network-access-001
     title: Nguyên tắc không mặc định tin cậy vị trí mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2968,7 +2968,7 @@ menu:
     summary: ''
   - slug: zero-trust-network-access-002
     title: Xác minh identity trước mỗi phiên truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2977,7 +2977,7 @@ menu:
     summary: ''
   - slug: zero-trust-network-access-003
     title: Device posture và điều kiện thiết bị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2986,7 +2986,7 @@ menu:
     summary: ''
   - slug: zero-trust-network-access-004
     title: Application-level access thay cho network-level access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2995,7 +2995,7 @@ menu:
     summary: ''
   - slug: zero-trust-network-access-005
     title: Least privilege cho kết nối nội bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3004,7 +3004,7 @@ menu:
     summary: ''
   - slug: zero-trust-network-access-006
     title: Continuous verification và thay đổi mức tin cậy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3013,7 +3013,7 @@ menu:
     summary: ''
   - slug: zero-trust-network-access-007
     title: Identity-aware proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3022,7 +3022,7 @@ menu:
     summary: ''
   - slug: zero-trust-network-access-008
     title: Context-aware policy theo người dùng và workload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3031,7 +3031,7 @@ menu:
     summary: ''
   - slug: zero-trust-network-access-009
     title: Microsegmentation trong kiến trúc zero trust
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3040,7 +3040,7 @@ menu:
     summary: ''
   - slug: zero-trust-network-access-010
     title: Bảo vệ tài nguyên quản trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3049,7 +3049,7 @@ menu:
     summary: ''
   - slug: zero-trust-network-access-011
     title: Đường đi di động và truy cập ngoài văn phòng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3058,7 +3058,7 @@ menu:
     summary: ''
   - slug: zero-trust-network-access-012
     title: Đo lường hiệu quả của zero trust
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3067,7 +3067,7 @@ menu:
     summary: ''
   - slug: zero-trust-network-access-013
     title: Migrate từ VPN truyền thống sang ZTNA
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3076,7 +3076,7 @@ menu:
     summary: ''
   - slug: zero-trust-network-access-014
     title: Các giới hạn khi áp dụng zero trust
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3088,7 +3088,7 @@ menu:
   childs:
   - slug: egress-controls-data-loss-prevention-001
     title: Vì sao outbound traffic cần được kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3097,7 +3097,7 @@ menu:
     summary: ''
   - slug: egress-controls-data-loss-prevention-002
     title: Allowlist domain và destination
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3106,7 +3106,7 @@ menu:
     summary: ''
   - slug: egress-controls-data-loss-prevention-003
     title: Egress firewall và proxy tập trung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3115,7 +3115,7 @@ menu:
     summary: ''
   - slug: egress-controls-data-loss-prevention-004
     title: DNS policy cho outbound request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3124,7 +3124,7 @@ menu:
     summary: ''
   - slug: egress-controls-data-loss-prevention-005
     title: Chặn kết nối trực tiếp ra internet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3133,7 +3133,7 @@ menu:
     summary: ''
   - slug: egress-controls-data-loss-prevention-006
     title: Kiểm soát port và protocol đi ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3142,7 +3142,7 @@ menu:
     summary: ''
   - slug: egress-controls-data-loss-prevention-007
     title: Phát hiện data exfiltration qua HTTPS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3151,7 +3151,7 @@ menu:
     summary: ''
   - slug: egress-controls-data-loss-prevention-008
     title: Giới hạn upload từ workload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3160,7 +3160,7 @@ menu:
     summary: ''
   - slug: egress-controls-data-loss-prevention-009
     title: Phân tách đường đi quản trị và đường đi dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3169,7 +3169,7 @@ menu:
     summary: ''
   - slug: egress-controls-data-loss-prevention-010
     title: Xử lý kết nối đến domain mới xuất hiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3178,7 +3178,7 @@ menu:
     summary: ''
   - slug: egress-controls-data-loss-prevention-011
     title: Bảo vệ secret khỏi gửi qua network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3187,7 +3187,7 @@ menu:
     summary: ''
   - slug: egress-controls-data-loss-prevention-012
     title: Egress logging và điều tra bất thường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3196,7 +3196,7 @@ menu:
     summary: ''
   - slug: egress-controls-data-loss-prevention-013
     title: Ngoại lệ egress có thời hạn và người phê duyệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3208,7 +3208,7 @@ menu:
   childs:
   - slug: network-monitoring-telemetry-001
     title: Mục tiêu của network monitoring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3217,7 +3217,7 @@ menu:
     summary: ''
   - slug: network-monitoring-telemetry-002
     title: Availability, latency, throughput và error rate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3226,7 +3226,7 @@ menu:
     summary: ''
   - slug: network-monitoring-telemetry-003
     title: Flow log và metadata của kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3235,7 +3235,7 @@ menu:
     summary: ''
   - slug: network-monitoring-telemetry-004
     title: NetFlow, sFlow và IPFIX
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3244,7 +3244,7 @@ menu:
     summary: ''
   - slug: network-monitoring-telemetry-005
     title: DNS telemetry cho phát hiện truy vấn bất thường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3253,7 +3253,7 @@ menu:
     summary: ''
   - slug: network-monitoring-telemetry-006
     title: TLS metadata và giới hạn quan sát nội dung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3262,7 +3262,7 @@ menu:
     summary: ''
   - slug: network-monitoring-telemetry-007
     title: Metrics, logs và traces của network path
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3271,7 +3271,7 @@ menu:
     summary: ''
   - slug: network-monitoring-telemetry-008
     title: Correlation id xuyên qua nhiều lớp proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3280,7 +3280,7 @@ menu:
     summary: ''
   - slug: network-monitoring-telemetry-009
     title: Baseline lưu lượng bình thường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3289,7 +3289,7 @@ menu:
     summary: ''
   - slug: network-monitoring-telemetry-010
     title: Alert theo ngưỡng và theo hành vi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3298,7 +3298,7 @@ menu:
     summary: ''
   - slug: network-monitoring-telemetry-011
     title: Giảm nhiễu trong cảnh báo mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3307,7 +3307,7 @@ menu:
     summary: ''
   - slug: network-monitoring-telemetry-012
     title: Theo dõi thay đổi cấu hình firewall
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3316,7 +3316,7 @@ menu:
     summary: ''
   - slug: network-monitoring-telemetry-013
     title: Tích hợp network event vào SIEM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3325,7 +3325,7 @@ menu:
     summary: ''
   - slug: network-monitoring-telemetry-014
     title: Bảo vệ hệ thống giám sát khỏi bị can thiệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3337,7 +3337,7 @@ menu:
   childs:
   - slug: packet-capture-traffic-analysis-001
     title: Khi nào cần packet capture
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3346,7 +3346,7 @@ menu:
     summary: ''
   - slug: packet-capture-traffic-analysis-002
     title: Capture point và tác động đến hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3355,7 +3355,7 @@ menu:
     summary: ''
   - slug: packet-capture-traffic-analysis-003
     title: TCP handshake trong bản ghi gói tin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3364,7 +3364,7 @@ menu:
     summary: ''
   - slug: packet-capture-traffic-analysis-004
     title: Phân biệt retransmission, reset và timeout
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3373,7 +3373,7 @@ menu:
     summary: ''
   - slug: packet-capture-traffic-analysis-005
     title: Phân tích DNS packet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3382,7 +3382,7 @@ menu:
     summary: ''
   - slug: packet-capture-traffic-analysis-006
     title: Phân tích TLS handshake packet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3391,7 +3391,7 @@ menu:
     summary: ''
   - slug: packet-capture-traffic-analysis-007
     title: Đọc HTTP request trong môi trường được phép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3400,7 +3400,7 @@ menu:
     summary: ''
   - slug: packet-capture-traffic-analysis-008
     title: BPF filter và giới hạn dữ liệu thu thập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3409,7 +3409,7 @@ menu:
     summary: ''
   - slug: packet-capture-traffic-analysis-009
     title: pcap retention và bảo vệ dữ liệu nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3418,7 +3418,7 @@ menu:
     summary: ''
   - slug: packet-capture-traffic-analysis-010
     title: So sánh capture ở client, proxy và server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3427,7 +3427,7 @@ menu:
     summary: ''
   - slug: packet-capture-traffic-analysis-011
     title: Phân biệt lỗi ứng dụng với lỗi network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3436,7 +3436,7 @@ menu:
     summary: ''
   - slug: packet-capture-traffic-analysis-012
     title: Bằng chứng packet capture trong điều tra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3448,7 +3448,7 @@ menu:
   childs:
   - slug: network-incident-response-001
     title: Network incident response lifecycle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3457,7 +3457,7 @@ menu:
     summary: ''
   - slug: network-incident-response-002
     title: Triage cảnh báo lưu lượng bất thường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3466,7 +3466,7 @@ menu:
     summary: ''
   - slug: network-incident-response-003
     title: Xác định tài sản và đường đi bị ảnh hưởng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3475,7 +3475,7 @@ menu:
     summary: ''
   - slug: network-incident-response-004
     title: Khoanh vùng máy chủ hoặc subnet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3484,7 +3484,7 @@ menu:
     summary: ''
   - slug: network-incident-response-005
     title: Chặn IOC tại DNS, firewall và proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3493,7 +3493,7 @@ menu:
     summary: ''
   - slug: network-incident-response-006
     title: Cô lập endpoint mà vẫn giữ bằng chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3502,7 +3502,7 @@ menu:
     summary: ''
   - slug: network-incident-response-007
     title: Xử lý credential bị lộ trên network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3511,7 +3511,7 @@ menu:
     summary: ''
   - slug: network-incident-response-008
     title: Điều phối giữa network, platform và application team
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3520,7 +3520,7 @@ menu:
     summary: ''
   - slug: network-incident-response-009
     title: Ghi nhận timeline của sự cố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3529,7 +3529,7 @@ menu:
     summary: ''
   - slug: network-incident-response-010
     title: Khôi phục kết nối theo thứ tự an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3538,7 +3538,7 @@ menu:
     summary: ''
   - slug: network-incident-response-011
     title: Xác nhận không còn persistence qua network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3547,7 +3547,7 @@ menu:
     summary: ''
   - slug: network-incident-response-012
     title: Post-incident review và action item
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3556,7 +3556,7 @@ menu:
     summary: ''
   - slug: network-incident-response-013
     title: Diễn tập network incident response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3565,7 +3565,7 @@ menu:
     summary: ''
   - slug: network-incident-response-014
     title: Tiêu chí mở rộng sự cố thành security incident
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3577,7 +3577,7 @@ menu:
   childs:
   - slug: network-forensics-001
     title: Nguồn bằng chứng của network forensics
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3586,7 +3586,7 @@ menu:
     summary: ''
   - slug: network-forensics-002
     title: Bảo toàn log và chain of custody
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3595,7 +3595,7 @@ menu:
     summary: ''
   - slug: network-forensics-003
     title: Phân tích flow để dựng communication graph
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3604,7 +3604,7 @@ menu:
     summary: ''
   - slug: network-forensics-004
     title: Truy vết hostname, IP và certificate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3613,7 +3613,7 @@ menu:
     summary: ''
   - slug: network-forensics-005
     title: Nhận diện beaconing và periodic connection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3622,7 +3622,7 @@ menu:
     summary: ''
   - slug: network-forensics-006
     title: Phân tích DNS tunneling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3631,7 +3631,7 @@ menu:
     summary: ''
   - slug: network-forensics-007
     title: Phát hiện lateral movement qua network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3640,7 +3640,7 @@ menu:
     summary: ''
   - slug: network-forensics-008
     title: Đối chiếu thời gian giữa nhiều nguồn log
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3649,7 +3649,7 @@ menu:
     summary: ''
   - slug: network-forensics-009
     title: Giới hạn của IP attribution
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3658,7 +3658,7 @@ menu:
     summary: ''
   - slug: network-forensics-010
     title: Làm việc với dữ liệu đã được mã hóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3667,7 +3667,7 @@ menu:
     summary: ''
   - slug: network-forensics-011
     title: Báo cáo phát hiện có thể kiểm chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3676,7 +3676,7 @@ menu:
     summary: ''
   - slug: network-forensics-012
     title: Kết thúc vòng đời lưu trữ bằng chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3688,7 +3688,7 @@ menu:
   childs:
   - slug: device-service-hardening-001
     title: Inventory thiết bị mạng và phiên bản firmware
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3697,7 +3697,7 @@ menu:
     summary: ''
   - slug: device-service-hardening-002
     title: Tắt dịch vụ và port không cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3706,7 +3706,7 @@ menu:
     summary: ''
   - slug: device-service-hardening-003
     title: Đổi credential mặc định của thiết bị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3715,7 +3715,7 @@ menu:
     summary: ''
   - slug: device-service-hardening-004
     title: Quản trị qua kênh mã hóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3724,7 +3724,7 @@ menu:
     summary: ''
   - slug: device-service-hardening-005
     title: Tách management plane khỏi user traffic
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3733,7 +3733,7 @@ menu:
     summary: ''
   - slug: device-service-hardening-006
     title: Giới hạn nguồn được phép truy cập quản trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3742,7 +3742,7 @@ menu:
     summary: ''
   - slug: device-service-hardening-007
     title: AAA cho thiết bị mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3751,7 +3751,7 @@ menu:
     summary: ''
   - slug: device-service-hardening-008
     title: Role-based access cho operator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3760,7 +3760,7 @@ menu:
     summary: ''
   - slug: device-service-hardening-009
     title: Backup cấu hình và bảo vệ bản sao
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3769,7 +3769,7 @@ menu:
     summary: ''
   - slug: device-service-hardening-010
     title: Kiểm soát thay đổi trên router và firewall
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3778,7 +3778,7 @@ menu:
     summary: ''
   - slug: device-service-hardening-011
     title: NTP an toàn và đồng bộ thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3787,7 +3787,7 @@ menu:
     summary: ''
   - slug: device-service-hardening-012
     title: Firmware signing và kiểm tra nguồn cập nhật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3796,7 +3796,7 @@ menu:
     summary: ''
   - slug: device-service-hardening-013
     title: Hardening SNMP và giao thức quản trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3805,7 +3805,7 @@ menu:
     summary: ''
   - slug: device-service-hardening-014
     title: Cấu hình fail-safe khi thiết bị gặp lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3814,7 +3814,7 @@ menu:
     summary: ''
   - slug: device-service-hardening-015
     title: Định kỳ rà soát rule và tài khoản không dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3826,7 +3826,7 @@ menu:
   childs:
   - slug: network-security-testing-001
     title: Xây dựng phạm vi kiểm thử mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3835,7 +3835,7 @@ menu:
     summary: ''
   - slug: network-security-testing-002
     title: Xác định tài sản được phép quét
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3844,7 +3844,7 @@ menu:
     summary: ''
   - slug: network-security-testing-003
     title: Port scanning an toàn và có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3853,7 +3853,7 @@ menu:
     summary: ''
   - slug: network-security-testing-004
     title: Service enumeration và fingerprinting
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3862,7 +3862,7 @@ menu:
     summary: ''
   - slug: network-security-testing-005
     title: Kiểm tra firewall rule bằng test traffic
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3871,7 +3871,7 @@ menu:
     summary: ''
   - slug: network-security-testing-006
     title: Xác minh segmentation bằng đường đi thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3880,7 +3880,7 @@ menu:
     summary: ''
   - slug: network-security-testing-007
     title: Kiểm tra exposed management service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3889,7 +3889,7 @@ menu:
     summary: ''
   - slug: network-security-testing-008
     title: Kiểm tra TLS và certificate endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3898,7 +3898,7 @@ menu:
     summary: ''
   - slug: network-security-testing-009
     title: Kiểm tra default deny và ngoại lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3907,7 +3907,7 @@ menu:
     summary: ''
   - slug: network-security-testing-010
     title: Kiểm thử failover và khả năng phục hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3916,7 +3916,7 @@ menu:
     summary: ''
   - slug: network-security-testing-011
     title: Kiểm thử rate limit và chống flood
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3925,7 +3925,7 @@ menu:
     summary: ''
   - slug: network-security-testing-012
     title: Kiểm tra egress theo allowlist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3934,7 +3934,7 @@ menu:
     summary: ''
   - slug: network-security-testing-013
     title: Tự động hóa network security regression test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3943,7 +3943,7 @@ menu:
     summary: ''
   - slug: network-security-testing-014
     title: Đánh giá kết quả và loại bỏ false positive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3955,7 +3955,7 @@ menu:
   childs:
   - slug: red-teaming-attack-simulation-001
     title: Mục tiêu và phạm vi của network red team
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3964,7 +3964,7 @@ menu:
     summary: ''
   - slug: red-teaming-attack-simulation-002
     title: Rules of engagement cho kiểm thử tấn công
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3973,7 +3973,7 @@ menu:
     summary: ''
   - slug: red-teaming-attack-simulation-003
     title: Mô phỏng reconnaissance có phê duyệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3982,7 +3982,7 @@ menu:
     summary: ''
   - slug: red-teaming-attack-simulation-004
     title: Mô phỏng initial access qua network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3991,7 +3991,7 @@ menu:
     summary: ''
   - slug: red-teaming-attack-simulation-005
     title: Mô phỏng lateral movement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4000,7 +4000,7 @@ menu:
     summary: ''
   - slug: red-teaming-attack-simulation-006
     title: Mô phỏng command and control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4009,7 +4009,7 @@ menu:
     summary: ''
   - slug: red-teaming-attack-simulation-007
     title: Mô phỏng exfiltration an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4018,7 +4018,7 @@ menu:
     summary: ''
   - slug: red-teaming-attack-simulation-008
     title: Đo khả năng phát hiện của SOC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4027,7 +4027,7 @@ menu:
     summary: ''
   - slug: red-teaming-attack-simulation-009
     title: Phân biệt red team, penetration test và purple team
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4036,7 +4036,7 @@ menu:
     summary: ''
   - slug: red-teaming-attack-simulation-010
     title: Bảo vệ dữ liệu sản xuất trong bài diễn tập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4045,7 +4045,7 @@ menu:
     summary: ''
   - slug: red-teaming-attack-simulation-011
     title: Kết quả cần bàn giao sau mô phỏng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4054,7 +4054,7 @@ menu:
     summary: ''
   - slug: red-teaming-attack-simulation-012
     title: Chuyển phát hiện thành cải tiến control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4066,7 +4066,7 @@ menu:
   childs:
   - slug: security-architecture-decisions-001
     title: Xác định trust boundary trước khi chọn công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4075,7 +4075,7 @@ menu:
     summary: ''
   - slug: security-architecture-decisions-002
     title: Đánh đổi giữa bảo mật và độ trễ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4084,7 +4084,7 @@ menu:
     summary: ''
   - slug: security-architecture-decisions-003
     title: Đánh đổi giữa visibility và privacy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4093,7 +4093,7 @@ menu:
     summary: ''
   - slug: security-architecture-decisions-004
     title: Centralized control và distributed control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4102,7 +4102,7 @@ menu:
     summary: ''
   - slug: security-architecture-decisions-005
     title: Thiết kế cho high availability
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4111,7 +4111,7 @@ menu:
     summary: ''
   - slug: security-architecture-decisions-006
     title: Thiết kế multi-region và failover
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4120,7 +4120,7 @@ menu:
     summary: ''
   - slug: security-architecture-decisions-007
     title: Bảo vệ đường đi của traffic liên vùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4129,7 +4129,7 @@ menu:
     summary: ''
   - slug: security-architecture-decisions-008
     title: Network control dùng chung và ownership
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4138,7 +4138,7 @@ menu:
     summary: ''
   - slug: security-architecture-decisions-009
     title: Khi nào dùng managed service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4147,7 +4147,7 @@ menu:
     summary: ''
   - slug: security-architecture-decisions-010
     title: Khi nào cần custom network control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4156,7 +4156,7 @@ menu:
     summary: ''
   - slug: security-architecture-decisions-011
     title: Chi phí vận hành của nhiều lớp bảo vệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4165,7 +4165,7 @@ menu:
     summary: ''
   - slug: security-architecture-decisions-012
     title: Khả năng rollback cấu hình mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4174,7 +4174,7 @@ menu:
     summary: ''
   - slug: security-architecture-decisions-013
     title: Architecture decision record cho network security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4183,7 +4183,7 @@ menu:
     summary: ''
   - slug: security-architecture-decisions-014
     title: Đánh giá tác động khi thêm một trust zone
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4195,7 +4195,7 @@ menu:
   childs:
   - slug: secure-network-operations-001
     title: Ownership của firewall, DNS và routing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4204,7 +4204,7 @@ menu:
     summary: ''
   - slug: secure-network-operations-002
     title: Quy trình yêu cầu mở port
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4213,7 +4213,7 @@ menu:
     summary: ''
   - slug: secure-network-operations-003
     title: Phê duyệt thay đổi network policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4222,7 +4222,7 @@ menu:
     summary: ''
   - slug: secure-network-operations-004
     title: Time-bound access cho ngoại lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4231,7 +4231,7 @@ menu:
     summary: ''
   - slug: secure-network-operations-005
     title: Tách nhiệm vụ giữa người yêu cầu và người duyệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4240,7 +4240,7 @@ menu:
     summary: ''
   - slug: secure-network-operations-006
     title: Kiểm kê rule theo chủ sở hữu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4249,7 +4249,7 @@ menu:
     summary: ''
   - slug: secure-network-operations-007
     title: Rà soát rule không còn traffic
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4258,7 +4258,7 @@ menu:
     summary: ''
   - slug: secure-network-operations-008
     title: Quản lý cấu hình bằng version control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4267,7 +4267,7 @@ menu:
     summary: ''
   - slug: secure-network-operations-009
     title: Kiểm tra drift giữa cấu hình mong muốn và thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4276,7 +4276,7 @@ menu:
     summary: ''
   - slug: secure-network-operations-010
     title: Runbook cho lỗi kết nối thường gặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4285,7 +4285,7 @@ menu:
     summary: ''
   - slug: secure-network-operations-011
     title: SLA và chỉ số của network security operation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4294,7 +4294,7 @@ menu:
     summary: ''
   - slug: secure-network-operations-012
     title: Đào tạo operator về dấu hiệu tấn công
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4303,7 +4303,7 @@ menu:
     summary: ''
   - slug: secure-network-operations-013
     title: Audit trail cho thao tác quản trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4315,7 +4315,7 @@ menu:
   childs:
   - slug: common-mistakes-001
     title: Tin rằng mạng nội bộ luôn an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4324,7 +4324,7 @@ menu:
     summary: ''
   - slug: common-mistakes-002
     title: Mở port để xử lý sự cố rồi quên đóng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4333,7 +4333,7 @@ menu:
     summary: ''
   - slug: common-mistakes-003
     title: Dùng allow all để che lỗi cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4342,7 +4342,7 @@ menu:
     summary: ''
   - slug: common-mistakes-004
     title: Đặt rule quá rộng theo địa chỉ IP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4351,7 +4351,7 @@ menu:
     summary: ''
   - slug: common-mistakes-005
     title: Bỏ qua IPv6 khi chỉ bảo vệ IPv4
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4360,7 +4360,7 @@ menu:
     summary: ''
   - slug: common-mistakes-006
     title: Không bảo vệ kênh quản trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4369,7 +4369,7 @@ menu:
     summary: ''
   - slug: common-mistakes-007
     title: Không ghi log deny và thay đổi cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4378,7 +4378,7 @@ menu:
     summary: ''
   - slug: common-mistakes-008
     title: Dùng chung một security group cho mọi workload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4387,7 +4387,7 @@ menu:
     summary: ''
   - slug: common-mistakes-009
     title: Cho phép egress không giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4396,7 +4396,7 @@ menu:
     summary: ''
   - slug: common-mistakes-010
     title: Không kiểm tra đường bypass proxy hoặc firewall
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4405,7 +4405,7 @@ menu:
     summary: ''
   - slug: common-mistakes-011
     title: Phụ thuộc vào IP thay vì identity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4414,7 +4414,7 @@ menu:
     summary: ''
   - slug: common-mistakes-012
     title: Tạo quá nhiều ngoại lệ không có thời hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4423,7 +4423,7 @@ menu:
     summary: ''
   - slug: common-mistakes-013
     title: Không kiểm thử khi topology thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4435,7 +4435,7 @@ menu:
   childs:
   - slug: network-security-lab-001
     title: Đặt mục tiêu và phạm vi cho lab network security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4444,7 +4444,7 @@ menu:
     summary: ''
   - slug: network-security-lab-002
     title: Vẽ topology và các trust boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4453,7 +4453,7 @@ menu:
     summary: ''
   - slug: network-security-lab-003
     title: Tạo subnet public, private và management
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4462,7 +4462,7 @@ menu:
     summary: ''
   - slug: network-security-lab-004
     title: Triển khai firewall theo nguyên tắc default deny
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4471,7 +4471,7 @@ menu:
     summary: ''
   - slug: network-security-lab-005
     title: Đặt reverse proxy trước service mẫu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4480,7 +4480,7 @@ menu:
     summary: ''
   - slug: network-security-lab-006
     title: Bật TLS và kiểm tra certificate chain
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4489,7 +4489,7 @@ menu:
     summary: ''
   - slug: network-security-lab-007
     title: Thiết lập DNS logging và flow logging
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4498,7 +4498,7 @@ menu:
     summary: ''
   - slug: network-security-lab-008
     title: Tạo chính sách egress cho workload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4507,7 +4507,7 @@ menu:
     summary: ''
   - slug: network-security-lab-009
     title: Thêm network policy cho container hoặc Kubernetes
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4516,7 +4516,7 @@ menu:
     summary: ''
   - slug: network-security-lab-010
     title: Mô phỏng một sự cố lateral movement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4525,7 +4525,7 @@ menu:
     summary: ''
   - slug: network-security-lab-011
     title: Thu thập packet capture và log liên quan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4534,7 +4534,7 @@ menu:
     summary: ''
   - slug: network-security-lab-012
     title: Viết playbook cô lập nguồn tấn công
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4543,7 +4543,7 @@ menu:
     summary: ''
   - slug: network-security-lab-013
     title: Kiểm thử các đường truy cập hợp lệ và bị chặn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4552,7 +4552,7 @@ menu:
     summary: ''
   - slug: network-security-lab-014
     title: Đánh giá kết quả và đề xuất cải tiến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

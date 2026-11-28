@@ -178,7 +178,7 @@ menu:
     summary: ''
   - slug: security-objectives-010
     title: Đánh đổi mục tiêu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
   childs:
   - slug: security-governance-001
     title: Security governance là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1054,7 +1054,7 @@ menu:
     summary: ''
   - slug: access-control-004
     title: Separation of duties
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1063,7 +1063,7 @@ menu:
     summary: ''
   - slug: access-control-005
     title: Role review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1072,7 +1072,7 @@ menu:
     summary: ''
   - slug: access-control-006
     title: Permission review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1081,7 +1081,7 @@ menu:
     summary: ''
   - slug: access-control-007
     title: Privileged access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1090,7 +1090,7 @@ menu:
     summary: ''
   - slug: access-control-008
     title: Access recertification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1099,7 +1099,7 @@ menu:
     summary: ''
   - slug: access-control-009
     title: Tài khoản không dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1108,7 +1108,7 @@ menu:
     summary: ''
   - slug: access-control-010
     title: Bằng chứng access review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1120,7 +1120,7 @@ menu:
   childs:
   - slug: identity-assurance-001
     title: Identity proofing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1129,7 +1129,7 @@ menu:
     summary: ''
   - slug: identity-assurance-002
     title: Identity lifecycle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1138,7 +1138,7 @@ menu:
     summary: ''
   - slug: identity-assurance-003
     title: Authentication assurance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1147,7 +1147,7 @@ menu:
     summary: ''
   - slug: identity-assurance-004
     title: MFA
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1156,7 +1156,7 @@ menu:
     summary: ''
   - slug: identity-assurance-005
     title: Federation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1165,7 +1165,7 @@ menu:
     summary: ''
   - slug: identity-assurance-006
     title: Service identity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1174,7 +1174,7 @@ menu:
     summary: ''
   - slug: identity-assurance-007
     title: Workload identity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1183,7 +1183,7 @@ menu:
     summary: ''
   - slug: identity-assurance-008
     title: Identity provider
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1192,7 +1192,7 @@ menu:
     summary: ''
   - slug: identity-assurance-009
     title: Identity recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1201,7 +1201,7 @@ menu:
     summary: ''
   - slug: identity-assurance-010
     title: Đánh giá độ tin cậy identity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1213,7 +1213,7 @@ menu:
   childs:
   - slug: data-protection-001
     title: Phân loại dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1222,7 +1222,7 @@ menu:
     summary: ''
   - slug: data-protection-002
     title: Chủ sở hữu dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1231,7 +1231,7 @@ menu:
     summary: ''
   - slug: data-protection-003
     title: Data inventory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1240,7 +1240,7 @@ menu:
     summary: ''
   - slug: data-protection-004
     title: Data flow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1249,7 +1249,7 @@ menu:
     summary: ''
   - slug: data-protection-005
     title: Data minimization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1258,7 +1258,7 @@ menu:
     summary: ''
   - slug: data-protection-006
     title: Data retention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1267,7 +1267,7 @@ menu:
     summary: ''
   - slug: data-protection-007
     title: Data disposal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1276,7 +1276,7 @@ menu:
     summary: ''
   - slug: data-protection-008
     title: Data masking
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1285,7 +1285,7 @@ menu:
     summary: ''
   - slug: data-protection-009
     title: Data loss prevention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1294,7 +1294,7 @@ menu:
     summary: ''
   - slug: data-protection-010
     title: Bằng chứng bảo vệ dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1306,7 +1306,7 @@ menu:
   childs:
   - slug: privacy-assurance-001
     title: Privacy risk
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1315,7 +1315,7 @@ menu:
     summary: ''
   - slug: privacy-assurance-002
     title: Personal data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1324,7 +1324,7 @@ menu:
     summary: ''
   - slug: privacy-assurance-003
     title: Sensitive data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1333,7 +1333,7 @@ menu:
     summary: ''
   - slug: privacy-assurance-004
     title: Privacy impact assessment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1342,7 +1342,7 @@ menu:
     summary: ''
   - slug: privacy-assurance-005
     title: Consent
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1351,7 +1351,7 @@ menu:
     summary: ''
   - slug: privacy-assurance-006
     title: Purpose limitation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1360,7 +1360,7 @@ menu:
     summary: ''
   - slug: privacy-assurance-007
     title: Data subject rights
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
     summary: ''
   - slug: privacy-assurance-008
     title: Cross-border data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: privacy-assurance-009
     title: Privacy incident
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1387,7 +1387,7 @@ menu:
     summary: ''
   - slug: privacy-assurance-010
     title: Kiểm tra privacy control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1399,7 +1399,7 @@ menu:
   childs:
   - slug: encryption-keys-001
     title: Encryption assurance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1408,7 +1408,7 @@ menu:
     summary: ''
   - slug: encryption-keys-002
     title: Mã hóa khi truyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1417,7 +1417,7 @@ menu:
     summary: ''
   - slug: encryption-keys-003
     title: Mã hóa khi lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1426,7 +1426,7 @@ menu:
     summary: ''
   - slug: encryption-keys-004
     title: Key management
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
     summary: ''
   - slug: encryption-keys-005
     title: Key rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: encryption-keys-006
     title: Certificate management
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1453,7 +1453,7 @@ menu:
     summary: ''
   - slug: encryption-keys-007
     title: Secret management
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1462,7 +1462,7 @@ menu:
     summary: ''
   - slug: encryption-keys-008
     title: HSM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1471,7 +1471,7 @@ menu:
     summary: ''
   - slug: encryption-keys-009
     title: Algorithm baseline
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1480,7 +1480,7 @@ menu:
     summary: ''
   - slug: encryption-keys-010
     title: Bằng chứng cryptography
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1492,7 +1492,7 @@ menu:
   childs:
   - slug: secure-architecture-001
     title: Security architecture review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1501,7 +1501,7 @@ menu:
     summary: ''
   - slug: secure-architecture-002
     title: Defense in depth
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1510,7 +1510,7 @@ menu:
     summary: ''
   - slug: secure-architecture-003
     title: Trust boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1519,7 +1519,7 @@ menu:
     summary: ''
   - slug: secure-architecture-004
     title: Network segmentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1528,7 +1528,7 @@ menu:
     summary: ''
   - slug: secure-architecture-005
     title: Secure default
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1537,7 +1537,7 @@ menu:
     summary: ''
   - slug: secure-architecture-006
     title: Fail secure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1546,7 +1546,7 @@ menu:
     summary: ''
   - slug: secure-architecture-007
     title: Isolation boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1555,7 +1555,7 @@ menu:
     summary: ''
   - slug: secure-architecture-008
     title: Resilience boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1564,7 +1564,7 @@ menu:
     summary: ''
   - slug: secure-architecture-009
     title: Architecture decision
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1573,7 +1573,7 @@ menu:
     summary: ''
   - slug: secure-architecture-010
     title: Rà soát kiến trúc định kỳ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1585,7 +1585,7 @@ menu:
   childs:
   - slug: zero-trust-assurance-001
     title: Zero Trust là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1594,7 +1594,7 @@ menu:
     summary: ''
   - slug: zero-trust-assurance-002
     title: Verify explicitly
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1603,7 +1603,7 @@ menu:
     summary: ''
   - slug: zero-trust-assurance-003
     title: Use least privilege
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1612,7 +1612,7 @@ menu:
     summary: ''
   - slug: zero-trust-assurance-004
     title: Assume breach
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1621,7 +1621,7 @@ menu:
     summary: ''
   - slug: zero-trust-assurance-005
     title: Continuous verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1630,7 +1630,7 @@ menu:
     summary: ''
   - slug: zero-trust-assurance-006
     title: Device trust
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1639,7 +1639,7 @@ menu:
     summary: ''
   - slug: zero-trust-assurance-007
     title: Workload trust
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1648,7 +1648,7 @@ menu:
     summary: ''
   - slug: zero-trust-assurance-008
     title: Micro-segmentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1657,7 +1657,7 @@ menu:
     summary: ''
   - slug: zero-trust-assurance-009
     title: Policy decision point
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1666,7 +1666,7 @@ menu:
     summary: ''
   - slug: zero-trust-assurance-010
     title: Đo lường Zero Trust
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1678,7 +1678,7 @@ menu:
   childs:
   - slug: secure-development-001
     title: Secure SDLC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1687,7 +1687,7 @@ menu:
     summary: ''
   - slug: secure-development-002
     title: Security requirement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1696,7 +1696,7 @@ menu:
     summary: ''
   - slug: secure-development-003
     title: Review thiết kế bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1705,7 +1705,7 @@ menu:
     summary: ''
   - slug: secure-development-004
     title: Secure coding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1714,7 +1714,7 @@ menu:
     summary: ''
   - slug: secure-development-005
     title: Dependency review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1723,7 +1723,7 @@ menu:
     summary: ''
   - slug: secure-development-006
     title: Code review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1732,7 +1732,7 @@ menu:
     summary: ''
   - slug: secure-development-007
     title: Security testing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1741,7 +1741,7 @@ menu:
     summary: ''
   - slug: secure-development-008
     title: Release gate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1750,7 +1750,7 @@ menu:
     summary: ''
   - slug: secure-development-009
     title: Developer training
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1759,7 +1759,7 @@ menu:
     summary: ''
   - slug: secure-development-010
     title: Bằng chứng SDLC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1771,7 +1771,7 @@ menu:
   childs:
   - slug: security-requirements-001
     title: Viết security requirement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1780,7 +1780,7 @@ menu:
     summary: ''
   - slug: security-requirements-002
     title: Requirement có thể kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1789,7 +1789,7 @@ menu:
     summary: ''
   - slug: security-requirements-003
     title: Requirement về xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1798,7 +1798,7 @@ menu:
     summary: ''
   - slug: security-requirements-004
     title: Requirement về phân quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1807,7 +1807,7 @@ menu:
     summary: ''
   - slug: security-requirements-005
     title: Requirement về mã hóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1816,7 +1816,7 @@ menu:
     summary: ''
   - slug: security-requirements-006
     title: Requirement về audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1825,7 +1825,7 @@ menu:
     summary: ''
   - slug: security-requirements-007
     title: Requirement về logging
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1834,7 +1834,7 @@ menu:
     summary: ''
   - slug: security-requirements-008
     title: Requirement về availability
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1843,7 +1843,7 @@ menu:
     summary: ''
   - slug: security-requirements-009
     title: Traceability requirement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1852,7 +1852,7 @@ menu:
     summary: ''
   - slug: security-requirements-010
     title: Chấp nhận requirement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1864,7 +1864,7 @@ menu:
   childs:
   - slug: security-design-review-001
     title: Mục tiêu design review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1873,7 +1873,7 @@ menu:
     summary: ''
   - slug: security-design-review-002
     title: Review kiến trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1882,7 +1882,7 @@ menu:
     summary: ''
   - slug: security-design-review-003
     title: Review luồng dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1891,7 +1891,7 @@ menu:
     summary: ''
   - slug: security-design-review-004
     title: Review trust boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1900,7 +1900,7 @@ menu:
     summary: ''
   - slug: security-design-review-005
     title: Review API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1909,7 +1909,7 @@ menu:
     summary: ''
   - slug: security-design-review-006
     title: Review error handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1918,7 +1918,7 @@ menu:
     summary: ''
   - slug: security-design-review-007
     title: Review secret usage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1927,7 +1927,7 @@ menu:
     summary: ''
   - slug: security-design-review-008
     title: Review logging
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1936,7 +1936,7 @@ menu:
     summary: ''
   - slug: security-design-review-009
     title: Review threat model
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1945,7 +1945,7 @@ menu:
     summary: ''
   - slug: security-design-review-010
     title: Kết luận design review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1957,7 +1957,7 @@ menu:
   childs:
   - slug: supply-chain-security-001
     title: Software supply chain
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1966,7 +1966,7 @@ menu:
     summary: ''
   - slug: supply-chain-security-002
     title: Dependency inventory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1975,7 +1975,7 @@ menu:
     summary: ''
   - slug: supply-chain-security-003
     title: SBOM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1984,7 +1984,7 @@ menu:
     summary: ''
   - slug: supply-chain-security-004
     title: Dependency pinning
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1993,7 +1993,7 @@ menu:
     summary: ''
   - slug: supply-chain-security-005
     title: Artifact provenance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2002,7 +2002,7 @@ menu:
     summary: ''
   - slug: supply-chain-security-006
     title: Package integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2011,7 +2011,7 @@ menu:
     summary: ''
   - slug: supply-chain-security-007
     title: Build isolation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2020,7 +2020,7 @@ menu:
     summary: ''
   - slug: supply-chain-security-008
     title: Repository trust
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2029,7 +2029,7 @@ menu:
     summary: ''
   - slug: supply-chain-security-009
     title: Vulnerability trong dependency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2038,7 +2038,7 @@ menu:
     summary: ''
   - slug: supply-chain-security-010
     title: Đánh giá nhà cung cấp phần mềm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2050,7 +2050,7 @@ menu:
   childs:
   - slug: vulnerability-management-001
     title: Vulnerability là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2059,7 +2059,7 @@ menu:
     summary: ''
   - slug: vulnerability-management-002
     title: Asset discovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2068,7 +2068,7 @@ menu:
     summary: ''
   - slug: vulnerability-management-003
     title: Vulnerability scan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2077,7 +2077,7 @@ menu:
     summary: ''
   - slug: vulnerability-management-004
     title: Severity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2086,7 +2086,7 @@ menu:
     summary: ''
   - slug: vulnerability-management-005
     title: Exploitability
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2095,7 +2095,7 @@ menu:
     summary: ''
   - slug: vulnerability-management-006
     title: Prioritization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2104,7 +2104,7 @@ menu:
     summary: ''
   - slug: vulnerability-management-007
     title: Remediation SLA
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2113,7 +2113,7 @@ menu:
     summary: ''
   - slug: vulnerability-management-008
     title: Exception vulnerability
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2122,7 +2122,7 @@ menu:
     summary: ''
   - slug: vulnerability-management-009
     title: Re-scan sau sửa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2131,7 +2131,7 @@ menu:
     summary: ''
   - slug: vulnerability-management-010
     title: Báo cáo vulnerability
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2143,7 +2143,7 @@ menu:
   childs:
   - slug: patch-management-001
     title: Patch là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2152,7 +2152,7 @@ menu:
     summary: ''
   - slug: patch-management-002
     title: Patch hệ điều hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2161,7 +2161,7 @@ menu:
     summary: ''
   - slug: patch-management-003
     title: Patch runtime
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2170,7 +2170,7 @@ menu:
     summary: ''
   - slug: patch-management-004
     title: Patch dependency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2179,7 +2179,7 @@ menu:
     summary: ''
   - slug: patch-management-005
     title: Patch khẩn cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2188,7 +2188,7 @@ menu:
     summary: ''
   - slug: patch-management-006
     title: Kiểm thử patch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2197,7 +2197,7 @@ menu:
     summary: ''
   - slug: patch-management-007
     title: Triển khai patch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2206,7 +2206,7 @@ menu:
     summary: ''
   - slug: patch-management-008
     title: Rollback patch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2215,7 +2215,7 @@ menu:
     summary: ''
   - slug: patch-management-009
     title: Theo dõi patch coverage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2224,7 +2224,7 @@ menu:
     summary: ''
   - slug: patch-management-010
     title: Bằng chứng patch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2236,7 +2236,7 @@ menu:
   childs:
   - slug: static-analysis-001
     title: SAST là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2245,7 +2245,7 @@ menu:
     summary: ''
   - slug: static-analysis-002
     title: Rule static analysis
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2254,7 +2254,7 @@ menu:
     summary: ''
   - slug: static-analysis-003
     title: False positive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2263,7 +2263,7 @@ menu:
     summary: ''
   - slug: static-analysis-004
     title: Security hotspot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2272,7 +2272,7 @@ menu:
     summary: ''
   - slug: static-analysis-005
     title: Data flow analysis
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2281,7 +2281,7 @@ menu:
     summary: ''
   - slug: static-analysis-006
     title: Tích hợp IDE
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2290,7 +2290,7 @@ menu:
     summary: ''
   - slug: static-analysis-007
     title: Tích hợp CI
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2299,7 +2299,7 @@ menu:
     summary: ''
   - slug: static-analysis-008
     title: Quality gate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2308,7 +2308,7 @@ menu:
     summary: ''
   - slug: static-analysis-009
     title: Rà soát kết quả scan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2317,7 +2317,7 @@ menu:
     summary: ''
   - slug: static-analysis-010
     title: Theo dõi xu hướng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2329,7 +2329,7 @@ menu:
   childs:
   - slug: dynamic-testing-001
     title: DAST là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2338,7 +2338,7 @@ menu:
     summary: ''
   - slug: dynamic-testing-002
     title: API security testing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2347,7 +2347,7 @@ menu:
     summary: ''
   - slug: dynamic-testing-003
     title: Web security scan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2356,7 +2356,7 @@ menu:
     summary: ''
   - slug: dynamic-testing-004
     title: Authenticated scan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2365,7 +2365,7 @@ menu:
     summary: ''
   - slug: dynamic-testing-005
     title: Test environment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2374,7 +2374,7 @@ menu:
     summary: ''
   - slug: dynamic-testing-006
     title: Kết quả false positive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2383,7 +2383,7 @@ menu:
     summary: ''
   - slug: dynamic-testing-007
     title: Xử lý finding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2392,7 +2392,7 @@ menu:
     summary: ''
   - slug: dynamic-testing-008
     title: Regression security test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2401,7 +2401,7 @@ menu:
     summary: ''
   - slug: dynamic-testing-009
     title: Tích hợp pipeline
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2410,7 +2410,7 @@ menu:
     summary: ''
   - slug: dynamic-testing-010
     title: Bằng chứng DAST
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2422,7 +2422,7 @@ menu:
   childs:
   - slug: penetration-testing-001
     title: Penetration test là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2431,7 +2431,7 @@ menu:
     summary: ''
   - slug: penetration-testing-002
     title: Phạm vi pentest
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2440,7 +2440,7 @@ menu:
     summary: ''
   - slug: penetration-testing-003
     title: Black box
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2449,7 +2449,7 @@ menu:
     summary: ''
   - slug: penetration-testing-004
     title: Gray box
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2458,7 +2458,7 @@ menu:
     summary: ''
   - slug: penetration-testing-005
     title: White box
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2467,7 +2467,7 @@ menu:
     summary: ''
   - slug: penetration-testing-006
     title: Rules of engagement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2476,7 +2476,7 @@ menu:
     summary: ''
   - slug: penetration-testing-007
     title: Khai thác có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2485,7 +2485,7 @@ menu:
     summary: ''
   - slug: penetration-testing-008
     title: Báo cáo pentest
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2494,7 +2494,7 @@ menu:
     summary: ''
   - slug: penetration-testing-009
     title: Remediation sau pentest
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2503,7 +2503,7 @@ menu:
     summary: ''
   - slug: penetration-testing-010
     title: Retest
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2515,7 +2515,7 @@ menu:
   childs:
   - slug: configuration-assurance-001
     title: Secure configuration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2524,7 +2524,7 @@ menu:
     summary: ''
   - slug: configuration-assurance-002
     title: Configuration baseline
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2533,7 +2533,7 @@ menu:
     summary: ''
   - slug: configuration-assurance-003
     title: Cấu hình hệ điều hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2542,7 +2542,7 @@ menu:
     summary: ''
   - slug: configuration-assurance-004
     title: Cấu hình runtime
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2551,7 +2551,7 @@ menu:
     summary: ''
   - slug: configuration-assurance-005
     title: Cấu hình database
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2560,7 +2560,7 @@ menu:
     summary: ''
   - slug: configuration-assurance-006
     title: Cấu hình network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2569,7 +2569,7 @@ menu:
     summary: ''
   - slug: configuration-assurance-007
     title: Cấu hình cloud
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2578,7 +2578,7 @@ menu:
     summary: ''
   - slug: configuration-assurance-008
     title: Drift detection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2587,7 +2587,7 @@ menu:
     summary: ''
   - slug: configuration-assurance-009
     title: Remediation cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2596,7 +2596,7 @@ menu:
     summary: ''
   - slug: configuration-assurance-010
     title: Bằng chứng configuration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2608,7 +2608,7 @@ menu:
   childs:
   - slug: cloud-assurance-001
     title: Cloud security assurance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2617,7 +2617,7 @@ menu:
     summary: ''
   - slug: cloud-assurance-002
     title: Shared responsibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2626,7 +2626,7 @@ menu:
     summary: ''
   - slug: cloud-assurance-003
     title: Cloud account
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2635,7 +2635,7 @@ menu:
     summary: ''
   - slug: cloud-assurance-004
     title: Cloud identity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2644,7 +2644,7 @@ menu:
     summary: ''
   - slug: cloud-assurance-005
     title: Cloud network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2653,7 +2653,7 @@ menu:
     summary: ''
   - slug: cloud-assurance-006
     title: Cloud storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2662,7 +2662,7 @@ menu:
     summary: ''
   - slug: cloud-assurance-007
     title: Cloud logging
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2671,7 +2671,7 @@ menu:
     summary: ''
   - slug: cloud-assurance-008
     title: Cloud key management
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2680,7 +2680,7 @@ menu:
     summary: ''
   - slug: cloud-assurance-009
     title: Cloud configuration review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2689,7 +2689,7 @@ menu:
     summary: ''
   - slug: cloud-assurance-010
     title: Bằng chứng cloud control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2701,7 +2701,7 @@ menu:
   childs:
   - slug: platform-assurance-001
     title: Platform security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2710,7 +2710,7 @@ menu:
     summary: ''
   - slug: platform-assurance-002
     title: Host security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2719,7 +2719,7 @@ menu:
     summary: ''
   - slug: platform-assurance-003
     title: Container security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2728,7 +2728,7 @@ menu:
     summary: ''
   - slug: platform-assurance-004
     title: Cluster security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2737,7 +2737,7 @@ menu:
     summary: ''
   - slug: platform-assurance-005
     title: Runtime isolation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2746,7 +2746,7 @@ menu:
     summary: ''
   - slug: platform-assurance-006
     title: Image security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2755,7 +2755,7 @@ menu:
     summary: ''
   - slug: platform-assurance-007
     title: Orchestration policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2764,7 +2764,7 @@ menu:
     summary: ''
   - slug: platform-assurance-008
     title: Platform patching
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2773,7 +2773,7 @@ menu:
     summary: ''
   - slug: platform-assurance-009
     title: Platform monitoring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2782,7 +2782,7 @@ menu:
     summary: ''
   - slug: platform-assurance-010
     title: Rà soát platform
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2794,7 +2794,7 @@ menu:
   childs:
   - slug: logging-monitoring-001
     title: Security logging
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2803,7 +2803,7 @@ menu:
     summary: ''
   - slug: logging-monitoring-002
     title: Audit event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2812,7 +2812,7 @@ menu:
     summary: ''
   - slug: logging-monitoring-003
     title: Log integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2821,7 +2821,7 @@ menu:
     summary: ''
   - slug: logging-monitoring-004
     title: Log retention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2830,7 +2830,7 @@ menu:
     summary: ''
   - slug: logging-monitoring-005
     title: Centralized logging
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2839,7 +2839,7 @@ menu:
     summary: ''
   - slug: logging-monitoring-006
     title: Security monitoring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2848,7 +2848,7 @@ menu:
     summary: ''
   - slug: logging-monitoring-007
     title: Alert rule
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2857,7 +2857,7 @@ menu:
     summary: ''
   - slug: logging-monitoring-008
     title: Detection coverage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2866,7 +2866,7 @@ menu:
     summary: ''
   - slug: logging-monitoring-009
     title: Monitoring gap
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2875,7 +2875,7 @@ menu:
     summary: ''
   - slug: logging-monitoring-010
     title: Bằng chứng monitoring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2887,7 +2887,7 @@ menu:
   childs:
   - slug: detection-engineering-001
     title: Detection là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2896,7 +2896,7 @@ menu:
     summary: ''
   - slug: detection-engineering-002
     title: Detection use case
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2905,7 +2905,7 @@ menu:
     summary: ''
   - slug: detection-engineering-003
     title: Signal và noise
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2914,7 +2914,7 @@ menu:
     summary: ''
   - slug: detection-engineering-004
     title: Detection rule
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2923,7 +2923,7 @@ menu:
     summary: ''
   - slug: detection-engineering-005
     title: Correlation rule
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2932,7 +2932,7 @@ menu:
     summary: ''
   - slug: detection-engineering-006
     title: Tuning alert
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2941,7 +2941,7 @@ menu:
     summary: ''
   - slug: detection-engineering-007
     title: Detection test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2950,7 +2950,7 @@ menu:
     summary: ''
   - slug: detection-engineering-008
     title: Độ phủ detection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2959,7 +2959,7 @@ menu:
     summary: ''
   - slug: detection-engineering-009
     title: Detection blind spot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2968,7 +2968,7 @@ menu:
     summary: ''
   - slug: detection-engineering-010
     title: Đo hiệu quả detection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2980,7 +2980,7 @@ menu:
   childs:
   - slug: incident-response-001
     title: Incident response là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2989,7 +2989,7 @@ menu:
     summary: ''
   - slug: incident-response-002
     title: Incident classification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2998,7 +2998,7 @@ menu:
     summary: ''
   - slug: incident-response-003
     title: Triage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3007,7 +3007,7 @@ menu:
     summary: ''
   - slug: incident-response-004
     title: Containment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3016,7 +3016,7 @@ menu:
     summary: ''
   - slug: incident-response-005
     title: Eradication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3025,7 +3025,7 @@ menu:
     summary: ''
   - slug: incident-response-006
     title: Recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3034,7 +3034,7 @@ menu:
     summary: ''
   - slug: incident-response-007
     title: Evidence preservation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3043,7 +3043,7 @@ menu:
     summary: ''
   - slug: incident-response-008
     title: Communication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3052,7 +3052,7 @@ menu:
     summary: ''
   - slug: incident-response-009
     title: Lessons learned
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3061,7 +3061,7 @@ menu:
     summary: ''
   - slug: incident-response-010
     title: Incident report
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3073,7 +3073,7 @@ menu:
   childs:
   - slug: business-continuity-001
     title: Business continuity là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3082,7 +3082,7 @@ menu:
     summary: ''
   - slug: business-continuity-002
     title: Critical service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3091,7 +3091,7 @@ menu:
     summary: ''
   - slug: business-continuity-003
     title: Business impact analysis
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3100,7 +3100,7 @@ menu:
     summary: ''
   - slug: business-continuity-004
     title: Recovery strategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3109,7 +3109,7 @@ menu:
     summary: ''
   - slug: business-continuity-005
     title: Continuity plan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3118,7 +3118,7 @@ menu:
     summary: ''
   - slug: business-continuity-006
     title: Dependency mapping
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3127,7 +3127,7 @@ menu:
     summary: ''
   - slug: business-continuity-007
     title: Manual fallback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3136,7 +3136,7 @@ menu:
     summary: ''
   - slug: business-continuity-008
     title: Continuity exercise
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3145,7 +3145,7 @@ menu:
     summary: ''
   - slug: business-continuity-009
     title: RTO
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3154,7 +3154,7 @@ menu:
     summary: ''
   - slug: business-continuity-010
     title: RPO
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3166,7 +3166,7 @@ menu:
   childs:
   - slug: disaster-recovery-001
     title: Disaster recovery là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3175,7 +3175,7 @@ menu:
     summary: ''
   - slug: disaster-recovery-002
     title: DR architecture
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3184,7 +3184,7 @@ menu:
     summary: ''
   - slug: disaster-recovery-003
     title: Backup strategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3193,7 +3193,7 @@ menu:
     summary: ''
   - slug: disaster-recovery-004
     title: Restore test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3202,7 +3202,7 @@ menu:
     summary: ''
   - slug: disaster-recovery-005
     title: Failover
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3211,7 +3211,7 @@ menu:
     summary: ''
   - slug: disaster-recovery-006
     title: Failback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3220,7 +3220,7 @@ menu:
     summary: ''
   - slug: disaster-recovery-007
     title: Recovery runbook
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3229,7 +3229,7 @@ menu:
     summary: ''
   - slug: disaster-recovery-008
     title: DR exercise
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3238,7 +3238,7 @@ menu:
     summary: ''
   - slug: disaster-recovery-009
     title: Recovery evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3247,7 +3247,7 @@ menu:
     summary: ''
   - slug: disaster-recovery-010
     title: Cải tiến DR
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3259,7 +3259,7 @@ menu:
   childs:
   - slug: third-party-assurance-001
     title: Third-party risk
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3268,7 +3268,7 @@ menu:
     summary: ''
   - slug: third-party-assurance-002
     title: Vendor inventory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3277,7 +3277,7 @@ menu:
     summary: ''
   - slug: third-party-assurance-003
     title: Due diligence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3286,7 +3286,7 @@ menu:
     summary: ''
   - slug: third-party-assurance-004
     title: Security questionnaire
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3295,7 +3295,7 @@ menu:
     summary: ''
   - slug: third-party-assurance-005
     title: Contract control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3304,7 +3304,7 @@ menu:
     summary: ''
   - slug: third-party-assurance-006
     title: SLA bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3313,7 +3313,7 @@ menu:
     summary: ''
   - slug: third-party-assurance-007
     title: Vendor monitoring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3322,7 +3322,7 @@ menu:
     summary: ''
   - slug: third-party-assurance-008
     title: Subprocessor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3331,7 +3331,7 @@ menu:
     summary: ''
   - slug: third-party-assurance-009
     title: Vendor incident
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3340,7 +3340,7 @@ menu:
     summary: ''
   - slug: third-party-assurance-010
     title: Đánh giá lại nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3352,7 +3352,7 @@ menu:
   childs:
   - slug: audits-evidence-001
     title: Audit là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3361,7 +3361,7 @@ menu:
     summary: ''
   - slug: audits-evidence-002
     title: Audit scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3370,7 +3370,7 @@ menu:
     summary: ''
   - slug: audits-evidence-003
     title: Audit criteria
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3379,7 +3379,7 @@ menu:
     summary: ''
   - slug: audits-evidence-004
     title: Evidence request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3388,7 +3388,7 @@ menu:
     summary: ''
   - slug: audits-evidence-005
     title: Evidence quality
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3397,7 +3397,7 @@ menu:
     summary: ''
   - slug: audits-evidence-006
     title: Evidence freshness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3406,7 +3406,7 @@ menu:
     summary: ''
   - slug: audits-evidence-007
     title: Evidence chain
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3415,7 +3415,7 @@ menu:
     summary: ''
   - slug: audits-evidence-008
     title: Audit finding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3424,7 +3424,7 @@ menu:
     summary: ''
   - slug: audits-evidence-009
     title: Management response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3433,7 +3433,7 @@ menu:
     summary: ''
   - slug: audits-evidence-010
     title: Theo dõi audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3445,7 +3445,7 @@ menu:
   childs:
   - slug: compliance-assurance-001
     title: Compliance obligation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3454,7 +3454,7 @@ menu:
     summary: ''
   - slug: compliance-assurance-002
     title: Control requirement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3463,7 +3463,7 @@ menu:
     summary: ''
   - slug: compliance-assurance-003
     title: Mapping compliance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3472,7 +3472,7 @@ menu:
     summary: ''
   - slug: compliance-assurance-004
     title: Applicable regulation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3481,7 +3481,7 @@ menu:
     summary: ''
   - slug: compliance-assurance-005
     title: Internal compliance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3490,7 +3490,7 @@ menu:
     summary: ''
   - slug: compliance-assurance-006
     title: External assessment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3499,7 +3499,7 @@ menu:
     summary: ''
   - slug: compliance-assurance-007
     title: Compliance gap
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3508,7 +3508,7 @@ menu:
     summary: ''
   - slug: compliance-assurance-008
     title: Exception compliance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3517,7 +3517,7 @@ menu:
     summary: ''
   - slug: compliance-assurance-009
     title: Compliance report
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3526,7 +3526,7 @@ menu:
     summary: ''
   - slug: compliance-assurance-010
     title: Duy trì compliance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3538,7 +3538,7 @@ menu:
   childs:
   - slug: assurance-cases-001
     title: Assurance case là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3547,7 +3547,7 @@ menu:
     summary: ''
   - slug: assurance-cases-002
     title: Claim
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3556,7 +3556,7 @@ menu:
     summary: ''
   - slug: assurance-cases-003
     title: Argument
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3565,7 +3565,7 @@ menu:
     summary: ''
   - slug: assurance-cases-004
     title: Evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3574,7 +3574,7 @@ menu:
     summary: ''
   - slug: assurance-cases-005
     title: Context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3583,7 +3583,7 @@ menu:
     summary: ''
   - slug: assurance-cases-006
     title: Assumption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3592,7 +3592,7 @@ menu:
     summary: ''
   - slug: assurance-cases-007
     title: Warrant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3601,7 +3601,7 @@ menu:
     summary: ''
   - slug: assurance-cases-008
     title: Claim hierarchy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3610,7 +3610,7 @@ menu:
     summary: ''
   - slug: assurance-cases-009
     title: Đánh giá độ tin cậy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3619,7 +3619,7 @@ menu:
     summary: ''
   - slug: assurance-cases-010
     title: Cập nhật assurance case
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3631,7 +3631,7 @@ menu:
   childs:
   - slug: metrics-reporting-001
     title: Security metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3640,7 +3640,7 @@ menu:
     summary: ''
   - slug: metrics-reporting-002
     title: KPI bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3649,7 +3649,7 @@ menu:
     summary: ''
   - slug: metrics-reporting-003
     title: KRI
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3658,7 +3658,7 @@ menu:
     summary: ''
   - slug: metrics-reporting-004
     title: Control coverage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3667,7 +3667,7 @@ menu:
     summary: ''
   - slug: metrics-reporting-005
     title: Hiệu quả kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3676,7 +3676,7 @@ menu:
     summary: ''
   - slug: metrics-reporting-006
     title: Remediation aging
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3685,7 +3685,7 @@ menu:
     summary: ''
   - slug: metrics-reporting-007
     title: Mean time to detect
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3694,7 +3694,7 @@ menu:
     summary: ''
   - slug: metrics-reporting-008
     title: Mean time to respond
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3703,7 +3703,7 @@ menu:
     summary: ''
   - slug: metrics-reporting-009
     title: Risk trend
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3712,7 +3712,7 @@ menu:
     summary: ''
   - slug: metrics-reporting-010
     title: Báo cáo lãnh đạo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3724,7 +3724,7 @@ menu:
   childs:
   - slug: remediation-001
     title: Remediation là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3733,7 +3733,7 @@ menu:
     summary: ''
   - slug: remediation-002
     title: Finding owner
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3742,7 +3742,7 @@ menu:
     summary: ''
   - slug: remediation-003
     title: Action plan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3751,7 +3751,7 @@ menu:
     summary: ''
   - slug: remediation-004
     title: Ưu tiên sửa lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3760,7 +3760,7 @@ menu:
     summary: ''
   - slug: remediation-005
     title: Remediation deadline
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3769,7 +3769,7 @@ menu:
     summary: ''
   - slug: remediation-006
     title: Risk acceptance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3778,7 +3778,7 @@ menu:
     summary: ''
   - slug: remediation-007
     title: Biện pháp bù trừ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3787,7 +3787,7 @@ menu:
     summary: ''
   - slug: remediation-008
     title: Xác minh đã sửa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3796,7 +3796,7 @@ menu:
     summary: ''
   - slug: remediation-009
     title: Đóng finding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3805,7 +3805,7 @@ menu:
     summary: ''
   - slug: remediation-010
     title: Theo dõi quá hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3817,7 +3817,7 @@ menu:
   childs:
   - slug: exception-management-001
     title: Security exception
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3826,7 +3826,7 @@ menu:
     summary: ''
   - slug: exception-management-002
     title: Lý do ngoại lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3835,7 +3835,7 @@ menu:
     summary: ''
   - slug: exception-management-003
     title: Phạm vi ngoại lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3844,7 +3844,7 @@ menu:
     summary: ''
   - slug: exception-management-004
     title: Thời hạn ngoại lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3853,7 +3853,7 @@ menu:
     summary: ''
   - slug: exception-management-005
     title: Risk owner phê duyệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3862,7 +3862,7 @@ menu:
     summary: ''
   - slug: exception-management-006
     title: Compensating measure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3871,7 +3871,7 @@ menu:
     summary: ''
   - slug: exception-management-007
     title: Theo dõi exception
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3880,7 +3880,7 @@ menu:
     summary: ''
   - slug: exception-management-008
     title: Đánh giá lại exception
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3889,7 +3889,7 @@ menu:
     summary: ''
   - slug: exception-management-009
     title: Đóng exception
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3898,7 +3898,7 @@ menu:
     summary: ''
   - slug: exception-management-010
     title: Không lạm dụng exception
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3910,7 +3910,7 @@ menu:
   childs:
   - slug: change-assurance-001
     title: Security change review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3919,7 +3919,7 @@ menu:
     summary: ''
   - slug: change-assurance-002
     title: Change risk
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3928,7 +3928,7 @@ menu:
     summary: ''
   - slug: change-assurance-003
     title: Change approval
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3937,7 +3937,7 @@ menu:
     summary: ''
   - slug: change-assurance-004
     title: Pre-change evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3946,7 +3946,7 @@ menu:
     summary: ''
   - slug: change-assurance-005
     title: Security regression
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3955,7 +3955,7 @@ menu:
     summary: ''
   - slug: change-assurance-006
     title: Emergency change
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3964,7 +3964,7 @@ menu:
     summary: ''
   - slug: change-assurance-007
     title: Post-change review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3973,7 +3973,7 @@ menu:
     summary: ''
   - slug: change-assurance-008
     title: Configuration update
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3982,7 +3982,7 @@ menu:
     summary: ''
   - slug: change-assurance-009
     title: Traceability change
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3991,7 +3991,7 @@ menu:
     summary: ''
   - slug: change-assurance-010
     title: Rollback change
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4003,7 +4003,7 @@ menu:
   childs:
   - slug: release-assurance-001
     title: Security release gate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4012,7 +4012,7 @@ menu:
     summary: ''
   - slug: release-assurance-002
     title: Release risk
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4021,7 +4021,7 @@ menu:
     summary: ''
   - slug: release-assurance-003
     title: Release evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4030,7 +4030,7 @@ menu:
     summary: ''
   - slug: release-assurance-004
     title: Dependency snapshot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4039,7 +4039,7 @@ menu:
     summary: ''
   - slug: release-assurance-005
     title: Test result
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4048,7 +4048,7 @@ menu:
     summary: ''
   - slug: release-assurance-006
     title: Approval record
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4057,7 +4057,7 @@ menu:
     summary: ''
   - slug: release-assurance-007
     title: Deployment verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4066,7 +4066,7 @@ menu:
     summary: ''
   - slug: release-assurance-008
     title: Rollback readiness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4075,7 +4075,7 @@ menu:
     summary: ''
   - slug: release-assurance-009
     title: Post-release monitoring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4084,7 +4084,7 @@ menu:
     summary: ''
   - slug: release-assurance-010
     title: Kết luận release
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4096,7 +4096,7 @@ menu:
   childs:
   - slug: continuous-assurance-001
     title: Continuous assurance là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4105,7 +4105,7 @@ menu:
     summary: ''
   - slug: continuous-assurance-002
     title: Kiểm soát liên tục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4114,7 +4114,7 @@ menu:
     summary: ''
   - slug: continuous-assurance-003
     title: Thu thập evidence tự động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4123,7 +4123,7 @@ menu:
     summary: ''
   - slug: continuous-assurance-004
     title: Continuous compliance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4132,7 +4132,7 @@ menu:
     summary: ''
   - slug: continuous-assurance-005
     title: Drift monitoring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4141,7 +4141,7 @@ menu:
     summary: ''
   - slug: continuous-assurance-006
     title: Risk signal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4150,7 +4150,7 @@ menu:
     summary: ''
   - slug: continuous-assurance-007
     title: Feedback loop
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4159,7 +4159,7 @@ menu:
     summary: ''
   - slug: continuous-assurance-008
     title: Rà soát theo sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4168,7 +4168,7 @@ menu:
     summary: ''
   - slug: continuous-assurance-009
     title: Cải tiến kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4177,7 +4177,7 @@ menu:
     summary: ''
   - slug: continuous-assurance-010
     title: Đo độ trưởng thành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4189,7 +4189,7 @@ menu:
   childs:
   - slug: assurance-antipatterns-001
     title: Chỉ làm assurance trước audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4198,7 +4198,7 @@ menu:
     summary: ''
   - slug: assurance-antipatterns-002
     title: Thu thập evidence hình thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4207,7 +4207,7 @@ menu:
     summary: ''
   - slug: assurance-antipatterns-003
     title: Control không có owner
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4216,7 +4216,7 @@ menu:
     summary: ''
   - slug: assurance-antipatterns-004
     title: Không đo effectiveness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4225,7 +4225,7 @@ menu:
     summary: ''
   - slug: assurance-antipatterns-005
     title: Bỏ qua rủi ro còn lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4234,7 +4234,7 @@ menu:
     summary: ''
   - slug: assurance-antipatterns-006
     title: Lạm dụng checklist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4243,7 +4243,7 @@ menu:
     summary: ''
   - slug: assurance-antipatterns-007
     title: Ngoại lệ không có hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4252,7 +4252,7 @@ menu:
     summary: ''
   - slug: assurance-antipatterns-008
     title: Không kiểm tra remediation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4261,7 +4261,7 @@ menu:
     summary: ''
   - slug: assurance-antipatterns-009
     title: Không cập nhật threat model
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4270,7 +4270,7 @@ menu:
     summary: ''
   - slug: assurance-antipatterns-010
     title: Báo cáo không phản ánh thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4282,7 +4282,7 @@ menu:
   childs:
   - slug: assurance-program-design-001
     title: Xác định phạm vi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4291,7 +4291,7 @@ menu:
     summary: ''
   - slug: assurance-program-design-002
     title: Xác định tài sản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4300,7 +4300,7 @@ menu:
     summary: ''
   - slug: assurance-program-design-003
     title: Xác định control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4309,7 +4309,7 @@ menu:
     summary: ''
   - slug: assurance-program-design-004
     title: Xác định evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4318,7 +4318,7 @@ menu:
     summary: ''
   - slug: assurance-program-design-005
     title: Xác định tần suất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4327,7 +4327,7 @@ menu:
     summary: ''
   - slug: assurance-program-design-006
     title: Xác định owner
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4336,7 +4336,7 @@ menu:
     summary: ''
   - slug: assurance-program-design-007
     title: Xác định metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4345,7 +4345,7 @@ menu:
     summary: ''
   - slug: assurance-program-design-008
     title: Xác định escalation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4354,7 +4354,7 @@ menu:
     summary: ''
   - slug: assurance-program-design-009
     title: Xác định cải tiến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4363,7 +4363,7 @@ menu:
     summary: ''
   - slug: assurance-program-design-010
     title: Ghi lại quyết định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4375,7 +4375,7 @@ menu:
   childs:
   - slug: hands-on-project-001
     title: Lập risk register
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4384,7 +4384,7 @@ menu:
     summary: ''
   - slug: hands-on-project-002
     title: Xây control framework
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4393,7 +4393,7 @@ menu:
     summary: ''
   - slug: hands-on-project-003
     title: Viết security baseline
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4402,7 +4402,7 @@ menu:
     summary: ''
   - slug: hands-on-project-004
     title: Lập threat model
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4411,7 +4411,7 @@ menu:
     summary: ''
   - slug: hands-on-project-005
     title: Thiết kế evidence catalog
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4420,7 +4420,7 @@ menu:
     summary: ''
   - slug: hands-on-project-006
     title: Tạo security review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4429,7 +4429,7 @@ menu:
     summary: ''
   - slug: hands-on-project-007
     title: Thực hiện vulnerability cycle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4438,7 +4438,7 @@ menu:
     summary: ''
   - slug: hands-on-project-008
     title: Xây incident runbook
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4447,7 +4447,7 @@ menu:
     summary: ''
   - slug: hands-on-project-009
     title: Thiết lập security metrics
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4456,7 +4456,7 @@ menu:
     summary: ''
   - slug: hands-on-project-010
     title: Chạy assurance assessment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4465,7 +4465,7 @@ menu:
     summary: ''
   - slug: hands-on-project-011
     title: Lập kế hoạch cải tiến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4477,7 +4477,7 @@ menu:
   childs:
   - slug: assurance-summary-001
     title: Bản đồ khái niệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4486,7 +4486,7 @@ menu:
     summary: ''
   - slug: assurance-summary-002
     title: Luồng từ risk đến evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4495,7 +4495,7 @@ menu:
     summary: ''
   - slug: assurance-summary-003
     title: Checklist control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4504,7 +4504,7 @@ menu:
     summary: ''
   - slug: assurance-summary-004
     title: Checklist audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4513,7 +4513,7 @@ menu:
     summary: ''
   - slug: assurance-summary-005
     title: Checklist vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4522,7 +4522,7 @@ menu:
     summary: ''
   - slug: assurance-summary-006
     title: Bước học tiếp theo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
