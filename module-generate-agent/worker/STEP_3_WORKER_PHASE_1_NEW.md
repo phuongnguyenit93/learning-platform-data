@@ -14,7 +14,7 @@ SERVICE_NAME_DESCRIBE=<SERVICE_NAME_DESCRIBE.VALUE>
 SPECIAL_NOTE=<nguyên văn SPECIAL_NOTE.VALUE>
 READ=<MODULE_LOCATION>/content/knowledge/vi/menu.yml
 WRITE=<MODULE_LOCATION>/content/knowledge/vi/menu.yml
-INSTRUCTIONS=<java-learning>/learning-platform-data/module-generate-agent/worker/STEP_3_WORKER_PHASE_1_NEW.md
+INSTRUCTIONS=<DATA_ROOT>/module-generate-agent/worker/STEP_3_WORKER_PHASE_1_NEW.md
 ```
 
 Chỉ được đọc file hướng dẫn này, nội dung Prime giao và file READ; **chỉ ghi `menu.yml`**. Không sửa file khác, sinh `note.yml`, viết Markdown, làm Phase 2, dùng Sheets/Gradle/DB, cập nhật checkpoint, spawn, commit hoặc push.

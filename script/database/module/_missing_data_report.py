@@ -20,8 +20,8 @@ import sys
 import tempfile
 from typing import Any, Iterable
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
-SHARED_DATABASE_HELPERS = REPO_ROOT / "learning-platform-data" / "script" / "database" / "module"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+SHARED_DATABASE_HELPERS = REPO_ROOT / "script" / "database" / "module"
 sys.path.insert(0, str(SHARED_DATABASE_HELPERS))
 from _module_source_sync import connect_oracle, safe_oracle_error
 
@@ -279,7 +279,7 @@ def run(kind: str) -> int:
         connection.close()
 
     documents, summary = build_documents(rows, spec)
-    report_dir = REPO_ROOT / "learning-platform-data" / "script" / "database" / "module" / kind / "report"
+    report_dir = REPO_ROOT / "script" / "database" / "module" / kind / "report"
     written = write_documents(report_dir, documents, kind)
 
     print(f"MODE=READ_ONLY TYPE={kind}")

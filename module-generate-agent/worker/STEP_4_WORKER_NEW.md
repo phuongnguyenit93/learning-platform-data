@@ -18,7 +18,7 @@ SERVICE_NAME_DESCRIBE=<nội dung thực của SERVICE_NAME_DESCRIBE.VALUE>
 SPECIAL_NOTE=<nguyên văn SPECIAL_NOTE.VALUE, có thể rỗng hoặc nhiều dòng>
 INFO=<ABSOLUTE_MODULE_LOCATION>/content/knowledge/<lang>/1.overview/overview-001.yml
 MARKDOWN=<ABSOLUTE_MODULE_LOCATION>/content/knowledge/<lang>/1.overview/overview-001.md
-INSTRUCTIONS=<java-learning>/learning-platform-data/module-generate-agent/worker/STEP_4_WORKER_NEW.md
+INSTRUCTIONS=<DATA_ROOT>/module-generate-agent/worker/STEP_4_WORKER_NEW.md
 ```
 
 Đọc `SPECIAL_NOTE` **trọn vẹn**, kể cả xuống dòng hoặc rỗng; đây là ngữ

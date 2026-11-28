@@ -23,9 +23,9 @@ from readme_related import (
     read_assessments, load_yaml, semantic_fingerprint,
 )
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(REPO_ROOT / "learning-platform-data" / "script" / "module-generate" / "step3"))
-sys.path.insert(0, str(REPO_ROOT / "learning-platform-data" / "script" / "module-generate" / "step4"))
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "script" / "module-generate" / "step3"))
+sys.path.insert(0, str(REPO_ROOT / "script" / "module-generate" / "step4"))
 
 from generate_menu_detail import StrictLoader, Step3Error, CHILD_FIELDS, windows_long_path  # noqa: E402
 from _knowledge_local import load_layout, markdown_has_content  # noqa: E402
@@ -67,9 +67,7 @@ def module_context(module_arg: str, lang: str) -> tuple[Path, str, Path]:
     if not LANG_RE.fullmatch(lang):
         raise Step6Error(f"Invalid language code: {lang!r}")
     repo = REPO_ROOT.resolve()
-    modules = repo / "learning-platform-data" / "module"
-    if not modules.is_dir():
-        modules = repo / "module"
+    modules = repo / "module"
     requested = Path(module_arg).expanduser()
     if not requested.is_absolute() and requested.parts and requested.parts[0] == "module":
         requested = modules.joinpath(*requested.parts[1:])
@@ -400,7 +398,7 @@ def split(module_arg: str, *, lang: str = "vi", dry_run: bool = False) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--module", required=True, help="Module folder under java-learning/module")
+    parser.add_argument("--module", required=True, help="Module folder under learning-platform-data/module")
     parser.add_argument("--lang", default="vi", help="Knowledge language (default: vi)")
     parser.add_argument("--dry-run", action="store_true", help="Validate only; do not create staging")
     args = parser.parse_args()

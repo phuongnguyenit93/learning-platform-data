@@ -17,8 +17,8 @@ import re
 import sys
 
 
-ROOT = Path(__file__).resolve().parents[4]
-MODULE_ROOT = ROOT / "learning-platform-data" / "module"
+ROOT = Path(__file__).resolve().parents[3]
+MODULE_ROOT = ROOT / "module"
 LANG_RE = re.compile(r"[a-z][a-z0-9-]{0,9}\Z")
 SERVICE_NAME_RE = re.compile(r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*\Z")
 
@@ -52,7 +52,7 @@ def module_directory(request: str) -> Path:
             raise SkeletonError(f"Symlink module directory is not allowed: {ancestor}")
     resolved = candidate.resolve(strict=True)
     if not resolved.is_relative_to(root) or resolved == root:
-        raise SkeletonError("Module must be inside java-learning/learning-platform-data/module/")
+        raise SkeletonError("Module must be inside learning-platform-data/module/")
     if not candidate.is_dir():
         raise SkeletonError(f"Module directory not found: {candidate}")
     current = root
@@ -130,7 +130,7 @@ def generate(module: Path, lang: str, dry_run: bool) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--module", required=True, help="Existing module directory inside java-learning/learning-platform-data/module/")
+    parser.add_argument("--module", required=True, help="Existing module directory inside learning-platform-data/module/")
     parser.add_argument("--lang", default="vi", help="Target language (default: vi)")
     parser.add_argument("--dry-run", action="store_true", help="Preview without creating files")
     args = parser.parse_args()

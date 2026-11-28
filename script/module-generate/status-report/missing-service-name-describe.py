@@ -16,7 +16,7 @@ import tempfile
 import yaml
 
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_OUTPUT = Path(__file__).resolve().with_name("missing-service-name-describe.yml")
 
 
@@ -31,7 +31,7 @@ def read_value(metadata: dict, key: str, path: Path) -> object:
 
 
 def find_missing_descriptions(root: Path) -> list[dict[str, str]]:
-    modules_root = root / "learning-platform-data" / "module"
+    modules_root = root / "module"
     if not modules_root.is_dir():
         raise FileNotFoundError(f"Module directory not found: {modules_root}")
 
@@ -52,7 +52,7 @@ def find_missing_descriptions(root: Path) -> list[dict[str, str]]:
             )
         if description is None or not description.strip():
             missing.append({
-                "location": info_path.parent.relative_to(root).as_posix(),
+                "location": "learning-platform-data/" + info_path.parent.relative_to(root).as_posix(),
                 "SERVICE_NAME": service,
             })
 
@@ -86,11 +86,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--root", type=Path, default=REPO_ROOT,
-        help="java-learning root (default: determined from this script)",
+        help="learning-platform-data root (default: determined from this script)",
     )
     parser.add_argument(
         "--output", type=Path, default=DEFAULT_OUTPUT,
-        help="YAML output, relative to the java-learning root by default",
+        help="YAML output, relative to the data repository root by default",
     )
     args = parser.parse_args()
     root = args.root.resolve()

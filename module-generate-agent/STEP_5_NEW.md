@@ -48,7 +48,7 @@ phạm vi ghi riêng; STEP 5 chỉ cần Menu cấp 1 và metadata của module,
    hoặc giao Phase tiếp theo. Nếu script lỗi, danh sách xung đột hoặc có
    Worker đang ghi dở thì đối chiếu ownership/output, không giao trùng,
    không tự cập nhật `status/<type>.yml` thay Worker.
-3. Xác định chính xác một `<MODULE_ROOT>` bên trong `java-learning/learning-platform-data/module/`;
+3. Xác định chính xác một `<MODULE_ROOT>` bên trong `learning-platform-data/module/`;
    `module_activate.json.isModule = true`, có `module-info.json`,
    `MODULE_LANGUAGE.VALUE` chứa `vi`. STEP 3 NEW phải hoàn thành và
    `content/knowledge/vi/menu-level-1-slug.yml` phải tồn tại, hợp lệ.
@@ -68,7 +68,7 @@ phạm vi ghi riêng; STEP 5 chỉ cần Menu cấp 1 và metadata của module,
 
 ## 1. Prime khởi tạo bằng đúng một Python script
 
-Từ root `java-learning`:
+Từ root `learning-platform-data`:
 
 ```powershell
 python script/module-generate/step5/generate-temp-file.py --module "<MODULE_LOCATION>" --dry-run
@@ -259,7 +259,7 @@ Mỗi lượt giao trong Phase 1 **và Phase 2** chỉ có:
 SERVICE_NAME=<nội dung thực>
 SERVICE_NAME_DESCRIBE=<nội dung thực>
 SPECIAL_NOTE=<nguyên văn, có thể rỗng hoặc nhiều dòng>
-INSTRUCTIONS=<java-learning>/learning-platform-data/module-generate-agent/worker/STEP_5_WORKER_NEW/<EXACT_WORKER_FILE>.md
+INSTRUCTIONS=<DATA_ROOT>/module-generate-agent/worker/STEP_5_WORKER_NEW/<EXACT_WORKER_FILE>.md
 ```
 
 Phase 3/4 cũng có thể dùng cùng handoff. Phải truyền toàn văn nguyên

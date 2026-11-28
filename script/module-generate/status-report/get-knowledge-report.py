@@ -29,7 +29,7 @@ import tempfile
 import yaml
 
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parent / "report"
 CACHE_FILENAME = ".knowledge-scan-cache.json"
 CACHE_VERSION = 1
@@ -140,7 +140,7 @@ class KnowledgeScanner:
 
 
 def build_report(root: Path, scanner: KnowledgeScanner | None = None) -> dict:
-    module_root = root / "learning-platform-data" / "module"
+    module_root = root / "module"
     if not module_root.is_dir():
         raise FileNotFoundError(f"Module root not found: {module_root}")
 
@@ -152,7 +152,9 @@ def build_report(root: Path, scanner: KnowledgeScanner | None = None) -> dict:
 
     for info_path in info_paths:
         module = info_path.parent
-        module_key = module.relative_to(root).as_posix()
+        # Keep the established report/cache location format even when this
+        # repository is cloned standalone or under an arbitrary directory name.
+        module_key = "learning-platform-data/" + module.relative_to(root).as_posix()
         module_info = json.loads(info_path.read_text(encoding="utf-8-sig"))
         if not isinstance(module_info, dict):
             raise ValueError(f"Invalid module-info.json object: {info_path}")
@@ -260,7 +262,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--root", type=Path, default=REPO_ROOT,
-        help="java-learning repository root (default: detected from script location)",
+        help="learning-platform-data root (default: detected from script location)",
     )
     parser.add_argument(
         "--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR,

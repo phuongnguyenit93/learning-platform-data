@@ -16,9 +16,9 @@ import re
 from typing import Any
 
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
-MODULE_ROOT = REPO_ROOT / "learning-platform-data" / "module"
-CONNECT_FILE = REPO_ROOT / "learning-platform-data" / "script" / "database" / "connect-oracle-db.py"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+MODULE_ROOT = REPO_ROOT / "module"
+CONNECT_FILE = REPO_ROOT / "script" / "database" / "connect-oracle-db.py"
 LANGUAGE_RE = re.compile(r"[a-z][a-z0-9-]{0,9}\Z")
 SERVICE_NAME_RE = re.compile(r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*\Z")
 PRUNED_DIRS = frozenset({
@@ -76,7 +76,7 @@ def _target_module(module_arg: str) -> Path:
     if (not normalized or relative.is_absolute() or PureWindowsPath(module_arg).is_absolute()
             or ".." in relative.parts or not relative.parts
             or relative.parts[0] != "module"):
-        raise SyncError("--module must be relative to java-learning and start with module/")
+        raise SyncError("--module must be relative to the data repository and start with module/")
     target = (MODULE_ROOT / Path(*relative.parts[1:])).resolve()
     if not target.is_relative_to(MODULE_ROOT.resolve()) or not target.is_dir():
         raise SyncError(f"Invalid module directory: {module_arg}")

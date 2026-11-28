@@ -238,9 +238,7 @@ def source_module_path(argument: str, *, repo_root: Path = REPO_ROOT) -> Path:
     if (not normalized or candidate.is_absolute() or PureWindowsPath(argument).is_absolute()
             or ".." in candidate.parts or not candidate.parts or candidate.parts[0] != "module"):
         raise SyncError("--module must be a repository-relative module/... directory")
-    root = (repo_root / "learning-platform-data" / "module")
-    if not root.is_dir():
-        root = repo_root / "module"
+    root = repo_root / "module"
     root = root.resolve()
     resolved = (root / Path(*candidate.parts[1:])).resolve()
     if resolved == root or not resolved.is_relative_to(root) or not resolved.is_dir():
@@ -437,9 +435,7 @@ def read_source_header(module: Path, languages: tuple[str, ...] | None = None) -
 
 
 def discover_modules(*, repo_root: Path = REPO_ROOT) -> list[Path]:
-    root = repo_root / "learning-platform-data" / "module"
-    if not root.is_dir():
-        root = repo_root / "module"
+    root = repo_root / "module"
     matches: list[Path] = []
     for current, dirs, files in os.walk(root, followlinks=False):
         dirs[:] = sorted(name for name in dirs if name not in PRUNED_DIRS

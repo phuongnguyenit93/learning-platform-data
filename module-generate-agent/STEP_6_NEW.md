@@ -40,7 +40,7 @@ YAML chính thức và dọn staging. Không dùng Google Sheets hoặc Gradle.
    cùng `STEP_6_NEW.md` và `worker/STEP_6_WORKER_NEW.md`. Phân công NORMAL
    tối đa 3 Worker theo pool hiện hành, SPECIAL chỉ theo chỉ định người dùng;
    một chapter/Worker/lượt, ưu tiên reuse Worker SLEEPING.
-2. Xác minh đúng `<MODULE_LOCATION>` nằm trong `java-learning/learning-platform-data/module/`,
+2. Xác minh đúng `<MODULE_LOCATION>` nằm trong `learning-platform-data/module/`,
    `module_activate.json.isModule = true`, có `module-info.json`; chọn một
    ngôn ngữ đã được module khai báo ở `MODULE_LANGUAGE.VALUE`.
 3. **Prime tự đọc nội dung** `SERVICE_NAME.VALUE`,
@@ -70,7 +70,7 @@ YAML chính thức và dọn staging. Không dùng Google Sheets hoặc Gradle.
 
 ## 1. Split — tạo file theo từng chương
 
-Từ root `java-learning`, Prime chạy:
+Từ root `learning-platform-data`, Prime chạy:
 
 ```powershell
 # Chỉ kiểm tra, không tạo staging.
@@ -126,14 +126,14 @@ SPECIAL_NOTE=<nguyên văn SPECIAL_NOTE.VALUE; có thể rỗng hoặc nhiều d
 CHAPTER_INDEX=<số thứ tự chapter, bắt đầu từ 1>
 CHAPTER_SLUG=<slug đã xác minh>
 CHAPTER_TITLE=<title đã xác minh>
-CHAPTER_YAML=<java-learning>/temp/step6/<SERVICE_NAME>/<lang>/<index>-<slug>.yml
-CHAPTER_STATUS=<java-learning>/temp/step6/<SERVICE_NAME>/<lang>/<index>-<slug>-status.yml
+CHAPTER_YAML=<DATA_ROOT>/temp/step6/<SERVICE_NAME>/<lang>/<index>-<slug>.yml
+CHAPTER_STATUS=<DATA_ROOT>/temp/step6/<SERVICE_NAME>/<lang>/<index>-<slug>-status.yml
 KNOWLEDGE_FOLDER=<ABSOLUTE_MODULE_LOCATION>/content/knowledge/<lang>/<index>.<slug>/
 ASSESSMENTS=<MODULE_LOCATION>/content/temp/step5/format/{quiz,interview,casestudy}.yml
 RELATED_FOLDER=<MODULE_LOCATION>/content/temp/step5/readme-related/<CHAPTER_SLUG>/
 READ=<CHAPTER_YAML>,<CHAPTER_STATUS>,<danh sách đủ lesson .yml và .md trong KNOWLEDGE_FOLDER>,<ASSESSMENTS>,<RELATED_FOLDER>
 WRITE=<CHAPTER_YAML>,<CHAPTER_STATUS>,<danh sách đủ lesson .md của chapter>,<RELATED_FOLDER>/quiz.yml,<RELATED_FOLDER>/interview.yml,<RELATED_FOLDER>/casestudy.yml
-INSTRUCTIONS=<java-learning>/learning-platform-data/module-generate-agent/worker/STEP_6_WORKER_NEW.md
+INSTRUCTIONS=<DATA_ROOT>/module-generate-agent/worker/STEP_6_WORKER_NEW.md
 ```
 
 Worker chỉ được refactor đúng Markdown trong folder được giao, điền sáu

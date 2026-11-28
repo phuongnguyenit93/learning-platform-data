@@ -14,8 +14,12 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
+import sys
 
-REPO = Path(__file__).resolve().parents[5]
+
+REPO = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(REPO / "script/module-generate/step2"))
+import _scoped_import as scoped  # noqa: E402
 
 
 def load_script(label: str, filename: Path):
@@ -27,16 +31,16 @@ def load_script(label: str, filename: Path):
 
 
 SKELETON = load_script(
-    "step2_skeleton_new", REPO / "learning-platform-data/script/module-generate/step2/generate-basic-info-skeleton.py"
+    "step2_skeleton_new", REPO / "script/module-generate/step2/generate-basic-info-skeleton.py"
 )
 ROADMAP = load_script(
-    "step2_roadmap_new", REPO / "learning-platform-data/script/module-generate/step2/import-module-roadmaps.py"
+    "step2_roadmap_new", REPO / "script/module-generate/step2/import-module-roadmaps.py"
 )
 REFERENCE = load_script(
-    "step2_reference_new", REPO / "learning-platform-data/script/module-generate/step2/import-module-references.py"
+    "step2_reference_new", REPO / "script/module-generate/step2/import-module-references.py"
 )
 OVERVIEW = load_script(
-    "step2_overview_new", REPO / "learning-platform-data/script/module-generate/step2/import-module-overviews.py"
+    "step2_overview_new", REPO / "script/module-generate/step2/import-module-overviews.py"
 )
 
 
@@ -127,7 +131,7 @@ class NewStep2Test(unittest.TestCase):
             "reference" if importer is REFERENCE else "overview"
         )
         report = self.repo / "reports" / f"{suffix}.json"
-        with patch.object(importer, "REPO_ROOT", self.repo):
+        with patch.object(scoped, "DATA_ROOT", self.repo):
             with redirect_stdout(StringIO()), redirect_stderr(StringIO()):
                 code = importer.main([*args, "--report", str(report)])
         return code, json.loads(report.read_text(encoding="utf-8")) if report.exists() else None
@@ -148,7 +152,7 @@ class NewStep2Test(unittest.TestCase):
         (self.repo / "module/topic-b/module-info.json").write_text(
             "{ malformed metadata", encoding="utf-8"
         )
-        with patch.object(OVERVIEW, "REPO_ROOT", self.repo):
+        with patch.object(scoped, "DATA_ROOT", self.repo):
             entries, skipped, errors = OVERVIEW.scan_overviews(
                 self.repo / "module", module_filter=frozenset({"TOPIC_A"})
             )
@@ -213,110 +217,57 @@ class NewStep2Test(unittest.TestCase):
 
     def test_overview_db_dry_run_and_apply_are_scoped(self):
         self.set_base()
-
-        class FakeCursor:
-            def __init__(self, *, rowcount=1, registered=True):
-                self.queries = []
-                self.rows = ()
-                self.rowcount = rowcount
-                self.registered = registered
-
-            def __enter__(self): return self
-            def __exit__(self, *_): return False
-            def __iter__(self): return iter(self.rows)
-            def setinputsizes(self, **kwargs): self.sizes = kwargs
-
-            def execute(self, sql, params=None):
-                self.queries.append((sql, params))
-                if params is not None:
-                    return
-                number = len([q for q, p in self.queries if p is None])
-                self.rows = [
-                    [("TOPIC_A", 101, "MODULE")] if self.registered else [],
-                    [("vi",)],
-                    [],
-                ][number - 1]
+        import _module_source_sync as db_helpers
+        from unittest.mock import Mock
+        parser = scoped.shared("overview")
 
         class FakeConnection:
-            def __init__(self, cursor):
-                self.c = cursor
-                self.commits = 0
+            def __init__(self):
                 self.rollbacks = 0
                 self.closed = False
-            def cursor(self): return self.c
-            def commit(self): self.commits += 1
             def rollback(self): self.rollbacks += 1
             def close(self): self.closed = True
 
-        env = {
-            "ORACLE_USER": "TEST", "ORACLE_PASSWORD": "test-secret",
-            "ORACLE_DSN": "dummy", "ORACLE_SCHEMA": "",
-        }
-        for mode, expected_commit in (("--dry-run", 0), ("--apply", 1)):
+        for mode, should_apply in (("--dry-run", False), ("--apply", True)):
             with self.subTest(mode=mode):
-                cursor = FakeCursor()
-                connection = FakeConnection(cursor)
-                driver = SimpleNamespace(
-                    connect=lambda **_: connection, DB_TYPE_CLOB=object()
-                )
-                with patch.dict(os.environ, env, clear=True), patch.dict(
-                    sys.modules, {"oracledb": driver}
-                ):
-                    code, report = self.importer_run(
-                        OVERVIEW, "--module", "TOPIC_A", mode
-                    )
-                self.assertEqual(code, 0)
-                self.assertEqual(connection.commits, expected_commit)
-                self.assertEqual(connection.rollbacks, 1 - expected_commit)
+                connection = FakeConnection()
+                driver = SimpleNamespace(DB_TYPE_CLOB=object())
+                do_merge = Mock()
+                with patch.object(db_helpers, "connect_oracle", return_value=(driver, connection, "TEST.")), \
+                     patch.object(parser, "read_snapshot", return_value=({"TOPIC_A": 101}, {"vi"}, {})), \
+                     patch.object(parser, "merge_module", do_merge):
+                    code, report = self.importer_run(OVERVIEW, "--module", "TOPIC_A", mode)
+                self.assertEqual(code, 0, report)
+                self.assertEqual(do_merge.call_count, int(should_apply))
+                self.assertEqual(connection.rollbacks, int(not should_apply))
                 self.assertTrue(connection.closed)
-                mutations = [(sql, params) for sql, params in cursor.queries if params]
-                self.assertEqual(len(mutations), expected_commit)
-                if mutations:
-                    self.assertEqual(mutations[0][1]["node_key"], "TOPIC_A")
-                    self.assertEqual(mutations[0][1]["language_code"], "vi")
-                    self.assertIn("# Chủ đề", mutations[0][1]["markdown_content"])
                 self.assertEqual(report["items"][0]["nodeKey"], "TOPIC_A")
+                if should_apply:
+                    self.assertEqual(do_merge.call_args.args[3], 101)
+                    self.assertTrue(do_merge.call_args.args[4].startswith("# "))
 
     def test_overview_apply_rejects_missing_oracle_module_before_merging(self):
         self.set_base()
+        import _module_source_sync as db_helpers
+        from unittest.mock import Mock
+        parser = scoped.shared("overview")
 
-        class StubCursor:
-            def __init__(self):
-                self.queries = []
-                self.rows = []
-            def __enter__(self): return self
-            def __exit__(self, *_): return False
-            def __iter__(self): return iter(self.rows)
-            def execute(self, sql, params=None):
-                self.queries.append((sql, params))
-                self.rows = [] if len(self.queries) != 2 else [("vi",)]
-
-        class StubConnection:
-            def __init__(self):
-                self.c = StubCursor()
-                self.commits = 0
-                self.rollbacks = 0
-            def cursor(self): return self.c
-            def commit(self): self.commits += 1
+        class FakeConnection:
+            rollbacks = 0
+            closed = False
             def rollback(self): self.rollbacks += 1
-            def close(self): pass
+            def close(self): self.closed = True
 
-        connection = StubConnection()
-        driver = SimpleNamespace(
-            connect=lambda **_: connection, DB_TYPE_CLOB=object()
-        )
-        env = {
-            "ORACLE_USER": "TEST", "ORACLE_PASSWORD": "test-secret",
-            "ORACLE_DSN": "dummy", "ORACLE_SCHEMA": "",
-        }
-        with patch.dict(os.environ, env, clear=True), patch.dict(
-            sys.modules, {"oracledb": driver}
-        ):
+        connection = FakeConnection()
+        do_merge = Mock()
+        with patch.object(db_helpers, "connect_oracle", return_value=(object(), connection, "TEST.")), \
+             patch.object(parser, "read_snapshot", return_value=({}, {"vi"}, {})), \
+             patch.object(parser, "merge_module", do_merge):
             code, report = self.importer_run(OVERVIEW, "--module", "TOPIC_A", "--apply")
         self.assertEqual(code, 1)
-        self.assertEqual(connection.commits, 0)
-        self.assertGreaterEqual(connection.rollbacks, 1)
-        self.assertTrue(all(params is None for _, params in connection.c.queries))
+        do_merge.assert_not_called()
+        self.assertEqual(connection.rollbacks, 1)
+        self.assertTrue(connection.closed)
         self.assertTrue(report["errors"])
 
     def test_only_named_module_is_selected(self):

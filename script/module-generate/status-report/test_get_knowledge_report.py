@@ -25,7 +25,7 @@ class KnowledgeReportTests(unittest.TestCase):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp_dir.cleanup)
         self.root = Path(self.temp_dir.name)
-        self.modules = self.root / "learning-platform-data" / "module"
+        self.modules = self.root / "module"
         self.cache_path = self.root / "out" / report_script.CACHE_FILENAME
 
     def add_module(self, name, files):

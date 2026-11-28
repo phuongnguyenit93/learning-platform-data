@@ -12,7 +12,7 @@ SERVICE_NAME_DESCRIBE=<SERVICE_NAME_DESCRIBE.VALUE>
 SPECIAL_NOTE=<nguyên văn SPECIAL_NOTE.VALUE>
 READ=<MODULE_LOCATION>/content/knowledge/vi/menu.yml,<MODULE_LOCATION>/content/knowledge/vi/menu-level-1-slug.yml
 WRITE=<MODULE_LOCATION>/content/knowledge/vi/menu-level-1-slug.yml
-INSTRUCTIONS=<java-learning>/learning-platform-data/module-generate-agent/worker/STEP_3_WORKER_PHASE_2_NEW.md
+INSTRUCTIONS=<DATA_ROOT>/module-generate-agent/worker/STEP_3_WORKER_PHASE_2_NEW.md
 ```
 
 Không chạy Python/Sheets/DB/Gradle, cập nhật checkpoint, spawn, commit, push hoặc chuyển STEP.

@@ -30,7 +30,7 @@ Khi chạy workflow NEW, các chỉ dẫn legacy về Sheet/J3/rowXX/Gradle khô
    `STEP_4_NEW.md`, `worker/STEP_4_WORKER_NEW.md`; giới hạn pool
    **NORMAL tối đa 3**, SPECIAL chỉ N do người dùng chỉ rõ, ưu tiên Worker
    SLEEPING và một bài/Worker/lượt. Theo dõi ownership, QA/readback, BLOCKER.
-2. Xác định duy nhất `<MODULE_LOCATION>` nằm trong `java-learning/learning-platform-data/module/`,
+2. Xác định duy nhất `<MODULE_LOCATION>` nằm trong `learning-platform-data/module/`,
    có `module_activate.json.isModule = true` và `module-info.json`. Xác nhận
    `MODULE_LANGUAGE.VALUE` có ngôn ngữ được giao. **Prime** lấy nguyên giá trị
    `SERVICE_NAME.VALUE`, `SERVICE_NAME_DESCRIBE.VALUE` và `SPECIAL_NOTE.VALUE`
@@ -43,7 +43,7 @@ Khi chạy workflow NEW, các chỉ dẫn legacy về Sheet/J3/rowXX/Gradle khô
    chạy refresh thật nếu cần đồng bộ lại tiến độ sau các Worker trước đó.
    Không tự reset bài đã viết.
 
-## 1. Lệnh Python (chạy ở `java-learning/learning-platform-data`)
+## 1. Lệnh Python (chạy ở `learning-platform-data`)
 
 ```powershell
 # Kiểm tra toàn bộ cấu trúc và xem số status cần cập nhật (không ghi file).
@@ -115,7 +115,7 @@ SERVICE_NAME_DESCRIBE=<nội dung của SERVICE_NAME_DESCRIBE.VALUE>
 SPECIAL_NOTE=<nguyên văn toàn bộ SPECIAL_NOTE.VALUE, kể cả khi rỗng hoặc nhiều dòng>
 INFO=<ABSOLUTE_MODULE_LOCATION>/content/knowledge/<lang>/1.overview/overview-001.yml
 MARKDOWN=<ABSOLUTE_MODULE_LOCATION>/content/knowledge/<lang>/1.overview/overview-001.md
-INSTRUCTIONS=<java-learning>/learning-platform-data/module-generate-agent/worker/STEP_4_WORKER_NEW.md
+INSTRUCTIONS=<DATA_ROOT>/module-generate-agent/worker/STEP_4_WORKER_NEW.md
 ```
 
 Prime yêu cầu Worker sử dụng cả ba giá trị để hiểu đúng chủ đề, phạm vi và

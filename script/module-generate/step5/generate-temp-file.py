@@ -19,7 +19,7 @@ import tempfile
 import yaml
 
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 KINDS = ("quiz", "interview", "casestudy")
 STATUS_INITIAL = "status: Phase 0\n"
 SUBFOLDERS = ("raw", "format", "status", "readme-related")
@@ -60,9 +60,7 @@ def _value(data: dict, name: str) -> object:
 def module_context(module_arg: str, lang: str = "vi") -> tuple[Path, Path]:
     if lang != "vi":
         raise Step5Error("STEP 5 NEW currently supports only lang=vi; staging is module-scoped")
-    modules = REPO_ROOT.resolve() / "learning-platform-data" / "module"
-    if not modules.is_dir():
-        modules = REPO_ROOT.resolve() / "module"
+    modules = REPO_ROOT.resolve() / "module"
     requested = Path(module_arg).expanduser()
     if not requested.is_absolute() and requested.parts and requested.parts[0] == "module":
         requested = modules.joinpath(*requested.parts[1:])

@@ -27,14 +27,14 @@ SPECIAL_NOTE=<nguyên văn SPECIAL_NOTE.VALUE, kể cả khi rỗng hay nhiều 
 CHAPTER_INDEX=<1-based chapter index>
 CHAPTER_SLUG=<verified slug>
 CHAPTER_TITLE=<verified title>
-CHAPTER_YAML=<java-learning>/temp/step6/<SERVICE_NAME>/<lang>/<index>-<slug>.yml
-CHAPTER_STATUS=<java-learning>/temp/step6/<SERVICE_NAME>/<lang>/<index>-<slug>-status.yml
+CHAPTER_YAML=<DATA_ROOT>/temp/step6/<SERVICE_NAME>/<lang>/<index>-<slug>.yml
+CHAPTER_STATUS=<DATA_ROOT>/temp/step6/<SERVICE_NAME>/<lang>/<index>-<slug>-status.yml
 KNOWLEDGE_FOLDER=<ABSOLUTE_MODULE_LOCATION>/content/knowledge/<lang>/<index>.<slug>/
 ASSESSMENTS=<MODULE_LOCATION>/content/temp/step5/format/{quiz,interview,casestudy}.yml
 RELATED_FOLDER=<MODULE_LOCATION>/content/temp/step5/readme-related/<CHAPTER_SLUG>/
 READ=<CHAPTER_YAML>,<CHAPTER_STATUS>,<đầy đủ lesson .yml và .md của KNOWLEDGE_FOLDER>,<ASSESSMENTS>,<RELATED_FOLDER>
 WRITE=<CHAPTER_YAML>,<CHAPTER_STATUS>,<đầy đủ lesson .md của đúng chapter>,<RELATED_FOLDER>/quiz.yml,<RELATED_FOLDER>/interview.yml,<RELATED_FOLDER>/casestudy.yml
-INSTRUCTIONS=<java-learning>/learning-platform-data/module-generate-agent/worker/STEP_6_WORKER_NEW.md
+INSTRUCTIONS=<DATA_ROOT>/module-generate-agent/worker/STEP_6_WORKER_NEW.md
 ```
 
 Prime phải liệt kê **toàn bộ bài của chương** và cung cấp ba giá trị metadata

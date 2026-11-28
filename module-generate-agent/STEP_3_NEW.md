@@ -14,14 +14,14 @@ Hai script chính:
 ## 0. Prime preflight
 
 1. Đọc toàn văn STEP này, hai file `worker/STEP_3_WORKER_PHASE_1_NEW.md`, `worker/STEP_3_WORKER_PHASE_2_NEW.md` và quy định chung về quyền sở hữu, pool Worker, QA và readback.
-2. Xác minh chính xác thư mục module bên trong `java-learning/learning-platform-data/module/`. Với workflow NEW, module cần có `module-info.json` và `module_activate.json` với boolean `isModule: true`.
+2. Xác minh chính xác thư mục module bên trong `learning-platform-data/module/`. Với workflow NEW, module cần có `module-info.json` và `module_activate.json` với boolean `isModule: true`.
 3. Đọc **giá trị nội dung** `SERVICE_NAME.VALUE`, `SERVICE_NAME_DESCRIBE.VALUE`, `SPECIAL_NOTE.VALUE` từ `module-info.json`. Không lấy dữ liệu thay thế từ tên folder hoặc `master.json`. `SERVICE_NAME` phải theo UPPER_SNAKE_CASE. `SPECIAL_NOTE` có thể rỗng; nếu có nội dung phải chuyển **nguyên văn**, bao gồm xuống dòng, cho Worker.
 4. Chọn `<lang>` phù hợp với module (mặc định `vi`; có thể là `en`). Giữ cùng ngôn ngữ trong cả hai phase và khi chạy script.
 5. Không xóa, tự di chuyển hoặc ghi đè `content/knowledge/` cũ. Nếu có layout flat cũ hay nội dung xung đột, báo BLOCKER.
 
 ## 1. Prime chạy skeleton
 
-Chạy từ root `java-learning`:
+Chạy từ root `learning-platform-data`:
 
 ```powershell
 python script/module-generate/step3/generate_menu_skeleton.py --module "<MODULE_LOCATION>" --lang vi --dry-run
@@ -50,7 +50,7 @@ SERVICE_NAME_DESCRIBE=<SERVICE_NAME_DESCRIBE.VALUE>
 SPECIAL_NOTE=<nguyên văn SPECIAL_NOTE.VALUE, có thể nhiều dòng hoặc rỗng>
 READ=<MODULE_LOCATION>/content/knowledge/<lang>/menu.yml
 WRITE=<MODULE_LOCATION>/content/knowledge/<lang>/menu.yml
-INSTRUCTIONS=<java-learning>/learning-platform-data/module-generate-agent/worker/STEP_3_WORKER_PHASE_1_NEW.md
+INSTRUCTIONS=<DATA_ROOT>/module-generate-agent/worker/STEP_3_WORKER_PHASE_1_NEW.md
 ```
 
 Đề bài bắt buộc:
@@ -79,7 +79,7 @@ Sau Phase 1 QA PASS, Prime truyền lại nội dung metadata như trên, cùng:
 ```text
 READ=<MODULE_LOCATION>/content/knowledge/<lang>/menu.yml,<MODULE_LOCATION>/content/knowledge/<lang>/menu-level-1-slug.yml
 WRITE=<MODULE_LOCATION>/content/knowledge/<lang>/menu-level-1-slug.yml
-INSTRUCTIONS=<java-learning>/learning-platform-data/module-generate-agent/worker/STEP_3_WORKER_PHASE_2_NEW.md
+INSTRUCTIONS=<DATA_ROOT>/module-generate-agent/worker/STEP_3_WORKER_PHASE_2_NEW.md
 ```
 
 Worker đọc toàn bộ `level1`/`level2` để hiểu ý nghĩa của chapter; mỗi cấp 1 có đúng một slug **theo ngữ nghĩa tiếng Anh, tương đối ngắn gọn**, dùng lowercase kebab-case, không trùng và không dùng tên Windows bị cấm. Ưu tiên khoảng **40 ký tự trở xuống** nếu vẫn truyền đạt đủ nghĩa (giới hạn kỹ thuật hiện tại là 80); không kéo dài slug bằng cách lặp tiền tố tên module hoặc ghép máy móc từ tiếng Việt không dấu với tiếng Anh. Chọn cách diễn đạt tiếng Anh đúng với nội dung chương, không đơn thuần phiên âm/bỏ dấu tiêu đề. `title` trùng nguyên văn tiêu đề; `index` bắt đầu bằng 0 và tăng liên tiếp.

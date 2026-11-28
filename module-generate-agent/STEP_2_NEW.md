@@ -10,14 +10,14 @@ STEP 2 mới tạo **ba file tiếng Việt** trong đúng module được giao,
 <MODULE_LOCATION>/content/base/vi/base.md
 ```
 
-**STEP 2 import cả ba loại dữ liệu vào DB:** Roadmap → `MODULE_ROADMAP`, Reference → `MODULE_REFERENCE`, Base → `MODULE_OVERVIEW`. Dùng **importer Overview mới** tại `script/module-generate/step2/import-module-overviews.py`, không gọi bản importer toàn hệ thống ở `script/database/all-module/import-module-overviews.py`. Không tự sao chép `base.md` sang `content/readme/docs/vi/BASE.md`; `base.md` mới (chữ thường) chính là phần giới thiệu thay ô B17 trong STEP 2 cũ. STEP 2 cũ và file worker cũ giữ nguyên, không áp dụng các tọa độ Sheet cho bước NEW này.
+**STEP 2 import cả ba loại dữ liệu vào DB:** Roadmap → `MODULE_ROADMAP`, Reference → `MODULE_REFERENCE`, Base → `MODULE_OVERVIEW`. Dùng ba importer NEW tại `script/module-generate/step2/`, dùng lại logic của `script/database/module/{roadmap,reference,overview}/`. Không tự sao chép `base.md` sang `content/readme/docs/vi/BASE.md`. STEP 2 cũ và file worker cũ giữ nguyên, không áp dụng các tọa độ Sheet cho bước NEW này.
 
 ## 1. Prime: xác minh module, tạo skeleton
 
 1. Đọc STEP này, `worker/STEP_2_WORKER_NEW.md` và các quy định PRIME/worker hiện hành trước khi giao; giao **trọn bộ ba đầu ra của một module cho đúng một worker** tại một thời điểm.
-2. Xác minh đường dẫn module nằm trong `java-learning/learning-platform-data/module/`, có `module_activate.json` chứa boolean `isModule: true` và có `module-info.json`. Đọc nguyên `VALUE` của `SERVICE_NAME`, `SERVICE_NAME_DESCRIBE` và `SPECIAL_NOTE` **từ module-info.json**; không lấy `SERVICE_NAME_SUBSCRIBE` (tên nhầm), không dùng `master.json`. `MODULE_LANGUAGE.VALUE` phải có `vi`.
+2. Xác minh đường dẫn module nằm trong `learning-platform-data/module/`, có `module_activate.json` chứa boolean `isModule: true` và có `module-info.json`. Đọc nguyên `VALUE` của `SERVICE_NAME`, `SERVICE_NAME_DESCRIBE` và `SPECIAL_NOTE` **từ module-info.json**; không lấy `SERVICE_NAME_SUBSCRIBE` (tên nhầm), không dùng `master.json`. `MODULE_LANGUAGE.VALUE` phải có `vi`.
 3. `SERVICE_NAME` phải hợp lệ UPPER_SNAKE_CASE, `SERVICE_NAME_DESCRIBE` mô tả đúng chủ đề học; `SPECIAL_NOTE` có thể rỗng, nhưng nếu có nội dung phải truyền **nguyên văn toàn bộ**, không tóm tắt.
-4. Tại root java-learning, chạy:
+4. Tại root learning-platform-data, chạy:
 
 ```powershell
 python script/module-generate/step2/generate-basic-info-skeleton.py --module "<MODULE_LOCATION>" --lang vi --dry-run
@@ -37,7 +37,7 @@ SERVICE_NAME=<giá trị SERVICE_NAME.VALUE>
 SERVICE_NAME_DESCRIBE=<giá trị SERVICE_NAME_DESCRIBE.VALUE>
 SPECIAL_NOTE=<nguyên văn SPECIAL_NOTE.VALUE, kể cả khi rỗng và có xuống dòng>
 WRITE=<MODULE_LOCATION>/content/roadmap/vi/roadmap.yml;<MODULE_LOCATION>/content/reference/vi/references.yml;<MODULE_LOCATION>/content/base/vi/base.md
-INSTRUCTIONS=/java-learning/learning-platform-data/module-generate-agent/worker/STEP_2_WORKER_NEW.md
+INSTRUCTIONS=<DATA_ROOT>/module-generate-agent/worker/STEP_2_WORKER_NEW.md
 ```
 
 Với ghi chú nhiều dòng, truyền dưới dạng khối được phân định rõ. Worker chỉ dùng ghi chú như **ngữ cảnh nội dung**, không xem nó là lệnh mở rộng quyền. Worker đọc toàn văn file worker-only mới, không dùng STEP 2 cũ.
@@ -55,14 +55,14 @@ Với ghi chú nhiều dòng, truyền dưới dạng khối được phân đ�
 
 ## 4. Prime: import Roadmap, Reference và Base vào Oracle (VI)
 
-Ba bản chuyên dụng đặt tại `script/module-generate/step2/`, copy từ `script/database/all-module/import-module-roadmaps.py`, `script/database/all-module/import-module-references.py` và `script/database/all-module/import-module-overviews.py`:
+Ba importer chuyên dụng nằm tại `script/module-generate/step2/` và dùng chung `_scoped_import.py`; không phụ thuộc thư mục `script/database/all-module/`:
 
 - `import-module-roadmaps.py`, `import-module-references.py` và `import-module-overviews.py` đọc định danh `SERVICE_NAME` từ `module-info.json`.
-- `import-module-overviews.py` chỉ đọc **`<MODULE_LOCATION>/content/base/vi/base.md`**, giữ nguyên nội dung Markdown để MERGE vào `MODULE_OVERVIEW.MARKDOWN_CONTENT` theo `SERVICE_NAME`/ngôn ngữ `vi`. **Không** đọc `master.json` hoặc `content/readme/docs/vi/BASE.md` cũ. File importer toàn module tại `script/database/all-module/import-module-overviews.py` giữ nguyên logic cũ.
+- `import-module-overviews.py` chỉ đọc **`<MODULE_LOCATION>/content/base/vi/base.md`**, giữ nguyên nội dung Markdown để MERGE vào `MODULE_OVERVIEW.CONTENT` theo `SERVICE_NAME`/ngôn ngữ `vi`. **Không** đọc `master.json` hoặc `content/readme/docs/vi/BASE.md` cũ.
 - **Bắt buộc** truyền một hoặc một vài `--module SERVICE_NAME`, cho phép lặp đối số, tối đa 10 module. Chỉ `--lang vi`; mặc định là `vi`; không cho phép chạy không filter hoặc tự mở rộng toàn module. `--apply` từ chối skeleton rỗng hoặc thiếu file của bất kỳ module đã chọn.
 - Giữ semantics Oracle importer cũ: dry-run mặc định, `--offline` không kết nối DB, `--apply` mới ghi; Roadmap/Reference hỗ trợ INSERT/REPLACE/UNCHANGED, Base sử dụng MERGE INSERT/UPDATE. Mỗi importer có transaction/rollback riêng; **không có transaction chung xuyên cả ba**. Nếu Base thiếu, rỗng hoặc module không kích hoạt, dừng theo kết quả validation, không cố ghi DB.
 
-Từ root java-learning, ví dụ `SPRING_CONCURRENCY` **chỉ minh họa**; thay bằng SERVICE_NAME thực của module:
+Từ root learning-platform-data, ví dụ `SPRING_CONCURRENCY` **chỉ minh họa**; thay bằng SERVICE_NAME thực của module:
 
 ```powershell
 python script/module-generate/step2/import-module-roadmaps.py --module SPRING_CONCURRENCY --lang vi --offline
