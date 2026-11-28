@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-001
     title: Spring Modulith Documentation Observability là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-002
     title: Khả năng quan sát giúp hiểu ứng dụng mô-đun đang chạy như thế nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-003
     title: Mối liên hệ giữa cấu trúc mô-đun, Actuator, metrics và traces
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-004
     title: Phân biệt tài liệu kiến trúc với bằng chứng runtime
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-005
     title: Ba trụ cột logging, metrics và tracing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-006
     title: Phân biệt observation, meter, span và trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-007
     title: Giới hạn của quan sát runtime đối với tính đúng đắn nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: overview-008
     title: Kiến thức Spring Boot Actuator, Micrometer và application module cần có
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -79,7 +79,7 @@ menu:
   childs:
   - slug: observability-model-001
     title: Application module và ranh giới quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
     summary: ''
   - slug: observability-model-002
     title: Lời gọi bean giữa các module và loại tương tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: observability-model-003
     title: Công bố sự kiện miền và xử lý bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: observability-model-004
     title: Module entry span như điểm bắt đầu của tương tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: observability-model-005
     title: Quan hệ giữa một trace và nhiều module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: observability-model-006
     title: Metrics tổng hợp với traces chi tiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: observability-model-007
     title: Context truyền qua thread, executor và reactive pipeline
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: observability-model-008
     title: Định danh module trong dữ liệu quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -151,7 +151,7 @@ menu:
     summary: ''
   - slug: observability-model-009
     title: Luồng từ lời gọi ứng dụng đến hệ thống thu thập telemetry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -163,7 +163,7 @@ menu:
   childs:
   - slug: insight-starter-001
     title: Vai trò của spring-modulith-starter-insight
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
     summary: ''
   - slug: insight-starter-002
     title: Thành phần Actuator được kéo theo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: insight-starter-003
     title: Thành phần observability được kéo theo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: insight-starter-004
     title: Phạm vi runtime của starter Insight
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: insight-starter-005
     title: Khi nên dùng starter và khi khai báo artifact riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: insight-starter-006
     title: Phối hợp với Spring Boot Actuator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: insight-starter-007
     title: Phối hợp với OpenTelemetry hoặc Brave
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -226,7 +226,7 @@ menu:
     summary: ''
   - slug: insight-starter-008
     title: Phối hợp với Zipkin, OTLP và nền tảng quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -235,7 +235,7 @@ menu:
     summary: ''
   - slug: insight-starter-009
     title: Quản lý version bằng Spring Modulith BOM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -244,7 +244,7 @@ menu:
     summary: ''
   - slug: insight-starter-010
     title: Kiểm tra dependency graph sau khi thêm starter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
   childs:
   - slug: module-actuator-001
     title: Spring Modulith actuator cung cấp thông tin gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -265,7 +265,7 @@ menu:
     summary: ''
   - slug: module-actuator-002
     title: Endpoint modulith và vị trí trong Actuator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
     summary: ''
   - slug: module-actuator-003
     title: Cấu hình expose endpoint modulith
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
     summary: ''
   - slug: module-actuator-004
     title: Đọc cấu trúc module qua HTTP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: module-actuator-005
     title: Phân biệt endpoint health với endpoint modulith
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -301,7 +301,7 @@ menu:
     summary: ''
   - slug: module-actuator-006
     title: Quyền truy cập và bảo vệ dữ liệu kiến trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -310,7 +310,7 @@ menu:
     summary: ''
   - slug: module-actuator-007
     title: Định dạng JSON của module actuator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -319,7 +319,7 @@ menu:
     summary: ''
   - slug: module-actuator-008
     title: Ổn định hợp đồng endpoint theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -328,7 +328,7 @@ menu:
     summary: ''
   - slug: module-actuator-009
     title: Đưa endpoint vào tài liệu vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -337,7 +337,7 @@ menu:
     summary: ''
   - slug: module-actuator-010
     title: Kiểm thử endpoint trong môi trường chạy thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -349,7 +349,7 @@ menu:
   childs:
   - slug: module-graph-001
     title: Technical name và display name của module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -358,7 +358,7 @@ menu:
     summary: ''
   - slug: module-graph-002
     title: Base package và ý nghĩa trong dữ liệu quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -367,7 +367,7 @@ menu:
     summary: ''
   - slug: module-graph-003
     title: Parent và nested module trong graph
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -376,7 +376,7 @@ menu:
     summary: ''
   - slug: module-graph-004
     title: Dependencies và target module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -385,7 +385,7 @@ menu:
     summary: ''
   - slug: module-graph-005
     title: Dependency type DEFAULT
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -394,7 +394,7 @@ menu:
     summary: ''
   - slug: module-graph-006
     title: Dependency type USES_COMPONENT
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -403,7 +403,7 @@ menu:
     summary: ''
   - slug: module-graph-007
     title: Dependency type EVENT_LISTENER
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -412,7 +412,7 @@ menu:
     summary: ''
   - slug: module-graph-008
     title: Đọc hướng phụ thuộc từ graph
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -421,7 +421,7 @@ menu:
     summary: ''
   - slug: module-graph-009
     title: Vẽ sơ đồ module từ JSON endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -430,7 +430,7 @@ menu:
     summary: ''
   - slug: module-graph-010
     title: Đối chiếu graph runtime với thiết kế kiến trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -439,7 +439,7 @@ menu:
     summary: ''
   - slug: module-graph-011
     title: Phát hiện module thiếu hoặc dependency ngoài dự kiến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -451,7 +451,7 @@ menu:
   childs:
   - slug: enable-observability-001
     title: Thêm spring-modulith-observability-core
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -460,7 +460,7 @@ menu:
     summary: ''
   - slug: enable-observability-002
     title: Thêm observability API khi cần tùy biến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -469,7 +469,7 @@ menu:
     summary: ''
   - slug: enable-observability-003
     title: Điều kiện để component API được instrument
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -478,7 +478,7 @@ menu:
     summary: ''
   - slug: enable-observability-004
     title: Phạm vi tự động tạo observation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -487,7 +487,7 @@ menu:
     summary: ''
   - slug: enable-observability-005
     title: Kiểm tra bean và module được phát hiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -496,7 +496,7 @@ menu:
     summary: ''
   - slug: enable-observability-006
     title: Phân biệt bật metrics với bật tracing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -505,7 +505,7 @@ menu:
     summary: ''
   - slug: enable-observability-007
     title: Cấu hình môi trường local, staging và production
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -514,7 +514,7 @@ menu:
     summary: ''
   - slug: enable-observability-008
     title: Kiểm tra telemetry sau khi ứng dụng khởi động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -523,7 +523,7 @@ menu:
     summary: ''
   - slug: enable-observability-009
     title: Tránh instrument trùng cùng một điểm vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -532,7 +532,7 @@ menu:
     summary: ''
   - slug: enable-observability-010
     title: Xác định nguồn tạo observation khi kết quả bất thường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -544,7 +544,7 @@ menu:
   childs:
   - slug: module-spans-001
     title: Module entry span là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -553,7 +553,7 @@ menu:
     summary: ''
   - slug: module-spans-002
     title: Span được tạo cho lời gọi bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -562,7 +562,7 @@ menu:
     summary: ''
   - slug: module-spans-003
     title: Span được tạo cho event listener
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -571,7 +571,7 @@ menu:
     summary: ''
   - slug: module-spans-004
     title: Module identifier trong span
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -580,7 +580,7 @@ menu:
     summary: ''
   - slug: module-spans-005
     title: Module name trong span
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -589,7 +589,7 @@ menu:
     summary: ''
   - slug: module-spans-006
     title: Module invocation type
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -598,7 +598,7 @@ menu:
     summary: ''
   - slug: module-spans-007
     title: Module method và phương thức được thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -607,7 +607,7 @@ menu:
     summary: ''
   - slug: module-spans-008
     title: Quan hệ parent-child giữa các span module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -616,7 +616,7 @@ menu:
     summary: ''
   - slug: module-spans-009
     title: Trace synchronous qua nhiều module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -625,7 +625,7 @@ menu:
     summary: ''
   - slug: module-spans-010
     title: Trace asynchronous qua application event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -634,7 +634,7 @@ menu:
     summary: ''
   - slug: module-spans-011
     title: Đọc duration và lỗi trên module span
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -643,7 +643,7 @@ menu:
     summary: ''
   - slug: module-spans-012
     title: Phân biệt span module với span HTTP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -655,7 +655,7 @@ menu:
   childs:
   - slug: event-metrics-001
     title: Spring Modulith đăng ký metrics cho domain event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -664,7 +664,7 @@ menu:
     summary: ''
   - slug: event-metrics-002
     title: Metric module.events.published
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -673,7 +673,7 @@ menu:
     summary: ''
   - slug: event-metrics-003
     title: Metric theo module identifier và event type
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -682,7 +682,7 @@ menu:
     summary: ''
   - slug: event-metrics-004
     title: Đếm tổng số lần công bố event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -691,7 +691,7 @@ menu:
     summary: ''
   - slug: event-metrics-005
     title: Đếm event theo simple event type name
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -700,7 +700,7 @@ menu:
     summary: ''
   - slug: event-metrics-006
     title: Low-cardinality tags của event metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -709,7 +709,7 @@ menu:
     summary: ''
   - slug: event-metrics-007
     title: module.event.type và ý nghĩa phân tích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -718,7 +718,7 @@ menu:
     summary: ''
   - slug: event-metrics-008
     title: module.identifier và module.name
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -727,7 +727,7 @@ menu:
     summary: ''
   - slug: event-metrics-009
     title: Đọc metric qua Micrometer MeterRegistry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -736,7 +736,7 @@ menu:
     summary: ''
   - slug: event-metrics-010
     title: Khác biệt metric công bố với metric xử lý event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -745,7 +745,7 @@ menu:
     summary: ''
   - slug: event-metrics-011
     title: Giới hạn khi event bị retry hoặc công bố nhiều lần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -757,7 +757,7 @@ menu:
   childs:
   - slug: event-customizer-001
     title: ModulithEventMetricsCustomizer là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -766,7 +766,7 @@ menu:
     summary: ''
   - slug: event-customizer-002
     title: Khi nào cần thêm tag theo nội dung event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -775,7 +775,7 @@ menu:
     summary: ''
   - slug: event-customizer-003
     title: Customize metric cho từng event type
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -784,7 +784,7 @@ menu:
     summary: ''
   - slug: event-customizer-004
     title: Chuyển thuộc tính event thành tag
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -793,7 +793,7 @@ menu:
     summary: ''
   - slug: event-customizer-005
     title: Chọn tag có cardinality thấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -802,7 +802,7 @@ menu:
     summary: ''
   - slug: event-customizer-006
     title: Tránh đưa user id hoặc request id vào metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -811,7 +811,7 @@ menu:
     summary: ''
   - slug: event-customizer-007
     title: Đăng ký customizer bằng Spring bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -820,7 +820,7 @@ menu:
     summary: ''
   - slug: event-customizer-008
     title: Nhiều customizer và thứ tự áp dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -829,7 +829,7 @@ menu:
     summary: ''
   - slug: event-customizer-009
     title: Kiểm thử metric sau khi customize
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -838,7 +838,7 @@ menu:
     summary: ''
   - slug: event-customizer-010
     title: Đánh giá chi phí khi thêm tag nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -850,7 +850,7 @@ menu:
   childs:
   - slug: observation-api-001
     title: Micrometer Observation trong Spring Modulith
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -859,7 +859,7 @@ menu:
     summary: ''
   - slug: observation-api-002
     title: ObservationRegistry và vòng đời observation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -868,7 +868,7 @@ menu:
     summary: ''
   - slug: observation-api-003
     title: Observation context và metadata module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -877,7 +877,7 @@ menu:
     summary: ''
   - slug: observation-api-004
     title: ObservationConvention và cách đặt tên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -886,7 +886,7 @@ menu:
     summary: ''
   - slug: observation-api-005
     title: ObservationPredicate để lọc observation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -895,7 +895,7 @@ menu:
     summary: ''
   - slug: observation-api-006
     title: ObservationFilter để thay đổi context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -904,7 +904,7 @@ menu:
     summary: ''
   - slug: observation-api-007
     title: ObservationHandler và nơi nhận sự kiện lifecycle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -913,7 +913,7 @@ menu:
     summary: ''
   - slug: observation-api-008
     title: ObservationRegistryCustomizer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -922,7 +922,7 @@ menu:
     summary: ''
   - slug: observation-api-009
     title: Low-cardinality key value và high-cardinality key value
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -931,7 +931,7 @@ menu:
     summary: ''
   - slug: observation-api-010
     title: Phân biệt dữ liệu đi vào metrics và traces
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -943,7 +943,7 @@ menu:
   childs:
   - slug: observation-conventions-001
     title: ModulithObservationConvention là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -952,7 +952,7 @@ menu:
     summary: ''
   - slug: observation-conventions-002
     title: Đăng ký convention như một bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -961,7 +961,7 @@ menu:
     summary: ''
   - slug: observation-conventions-003
     title: Convention mặc định của Spring Modulith
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -970,7 +970,7 @@ menu:
     summary: ''
   - slug: observation-conventions-004
     title: Delegation tới ModulithContext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -979,7 +979,7 @@ menu:
     summary: ''
   - slug: observation-conventions-005
     title: Tùy chỉnh tên observation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -988,7 +988,7 @@ menu:
     summary: ''
   - slug: observation-conventions-006
     title: Tùy chỉnh low-cardinality key values
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -997,7 +997,7 @@ menu:
     summary: ''
   - slug: observation-conventions-007
     title: Tùy chỉnh high-cardinality key values
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1006,7 +1006,7 @@ menu:
     summary: ''
   - slug: observation-conventions-008
     title: Giữ tên observation ổn định khi nâng cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1015,7 +1015,7 @@ menu:
     summary: ''
   - slug: observation-conventions-009
     title: Tránh thay đổi convention làm hỏng dashboard
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1024,7 +1024,7 @@ menu:
     summary: ''
   - slug: observation-conventions-010
     title: Kiểm tra convention với cả metrics và traces
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1036,7 +1036,7 @@ menu:
   childs:
   - slug: metric-cardinality-001
     title: Cardinality là gì trong telemetry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1045,7 +1045,7 @@ menu:
     summary: ''
   - slug: metric-cardinality-002
     title: Low cardinality và khả năng dùng trong metrics
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1054,7 +1054,7 @@ menu:
     summary: ''
   - slug: metric-cardinality-003
     title: High cardinality và giới hạn trong metrics
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1063,7 +1063,7 @@ menu:
     summary: ''
   - slug: metric-cardinality-004
     title: Vì sao user id không phù hợp làm metric tag
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1072,7 +1072,7 @@ menu:
     summary: ''
   - slug: metric-cardinality-005
     title: Event type có thể tạo nhiều giá trị như thế nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1081,7 +1081,7 @@ menu:
     summary: ''
   - slug: metric-cardinality-006
     title: Module identifier và module name thường có cardinality thấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1090,7 +1090,7 @@ menu:
     summary: ''
   - slug: metric-cardinality-007
     title: Tag theo tenant, request và dữ liệu nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1099,7 +1099,7 @@ menu:
     summary: ''
   - slug: metric-cardinality-008
     title: Chọn aggregation không làm mất thông tin quan trọng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1108,7 +1108,7 @@ menu:
     summary: ''
   - slug: metric-cardinality-009
     title: Giới hạn số series trong hệ thống metrics
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1117,7 +1117,7 @@ menu:
     summary: ''
   - slug: metric-cardinality-010
     title: Kiểm tra cardinality trước khi đưa lên production
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1129,7 +1129,7 @@ menu:
   childs:
   - slug: context-propagation-001
     title: Context propagation là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1138,7 +1138,7 @@ menu:
     summary: ''
   - slug: context-propagation-002
     title: Truyền observation qua thread
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1147,7 +1147,7 @@ menu:
     summary: ''
   - slug: context-propagation-003
     title: Truyền observation qua Reactor pipeline
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1156,7 +1156,7 @@ menu:
     summary: ''
   - slug: context-propagation-004
     title: ThreadLocal và giới hạn mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1165,7 +1165,7 @@ menu:
     summary: ''
   - slug: context-propagation-005
     title: spring.reactor.context-propagation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1174,7 +1174,7 @@ menu:
     summary: ''
   - slug: context-propagation-006
     title: '@Async và propagate-context'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1183,7 +1183,7 @@ menu:
     summary: ''
   - slug: context-propagation-007
     title: ContextPropagatingTaskDecorator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1192,7 +1192,7 @@ menu:
     summary: ''
   - slug: context-propagation-008
     title: Truyền trace context qua executor tùy chỉnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1201,7 +1201,7 @@ menu:
     summary: ''
   - slug: context-propagation-009
     title: Context khi xử lý application event bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1210,7 +1210,7 @@ menu:
     summary: ''
   - slug: context-propagation-010
     title: Mất context và trace bị tách rời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1219,7 +1219,7 @@ menu:
     summary: ''
   - slug: context-propagation-011
     title: Kiểm thử propagation giữa nhiều module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1231,7 +1231,7 @@ menu:
   childs:
   - slug: micrometer-tracing-001
     title: Vai trò của Micrometer Tracing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1240,7 +1240,7 @@ menu:
     summary: ''
   - slug: micrometer-tracing-002
     title: Bridge từ Observation sang tracer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1249,7 +1249,7 @@ menu:
     summary: ''
   - slug: micrometer-tracing-003
     title: OpenTelemetry và OTLP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1258,7 +1258,7 @@ menu:
     summary: ''
   - slug: micrometer-tracing-004
     title: OpenZipkin Brave và Zipkin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1267,7 +1267,7 @@ menu:
     summary: ''
   - slug: micrometer-tracing-005
     title: Chọn tracer theo hạ tầng quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1276,7 +1276,7 @@ menu:
     summary: ''
   - slug: micrometer-tracing-006
     title: Span name, trace id và span id
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1285,7 +1285,7 @@ menu:
     summary: ''
   - slug: micrometer-tracing-007
     title: Parent span và child span
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1294,7 +1294,7 @@ menu:
     summary: ''
   - slug: micrometer-tracing-008
     title: Propagation qua HTTP client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1303,7 +1303,7 @@ menu:
     summary: ''
   - slug: micrometer-tracing-009
     title: Propagation qua message hoặc event boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1312,7 +1312,7 @@ menu:
     summary: ''
   - slug: micrometer-tracing-010
     title: Liên kết trace với log correlation id
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1324,7 +1324,7 @@ menu:
   childs:
   - slug: trace-export-001
     title: Cấu hình exporter cho OTLP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1333,7 +1333,7 @@ menu:
     summary: ''
   - slug: trace-export-002
     title: Endpoint OTLP HTTP và gRPC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1342,7 +1342,7 @@ menu:
     summary: ''
   - slug: trace-export-003
     title: Cấu hình exporter Zipkin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1351,7 +1351,7 @@ menu:
     summary: ''
   - slug: trace-export-004
     title: Chọn backend lưu trữ và hiển thị trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1360,7 +1360,7 @@ menu:
     summary: ''
   - slug: trace-export-005
     title: Sampling trước khi export
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
     summary: ''
   - slug: trace-export-006
     title: Batching và retry khi gửi telemetry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: trace-export-007
     title: Timeout và giới hạn exporter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1387,7 +1387,7 @@ menu:
     summary: ''
   - slug: trace-export-008
     title: Không để exporter làm chậm nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1396,7 +1396,7 @@ menu:
     summary: ''
   - slug: trace-export-009
     title: Kiểm tra trace tới backend
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1405,7 +1405,7 @@ menu:
     summary: ''
   - slug: trace-export-010
     title: Xử lý mất kết nối tới hệ thống quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1417,7 +1417,7 @@ menu:
   childs:
   - slug: sampling-001
     title: Sampling trace là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1426,7 +1426,7 @@ menu:
     summary: ''
   - slug: sampling-002
     title: Sampling probability và tỷ lệ thu thập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
     summary: ''
   - slug: sampling-003
     title: Always-on, always-off và ratio sampler
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: sampling-004
     title: Sampling trong môi trường local
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1453,7 +1453,7 @@ menu:
     summary: ''
   - slug: sampling-005
     title: Sampling trong staging và production
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1462,7 +1462,7 @@ menu:
     summary: ''
   - slug: sampling-006
     title: Giữ trace lỗi dù tỷ lệ sampling thấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1471,7 +1471,7 @@ menu:
     summary: ''
   - slug: sampling-007
     title: Ảnh hưởng của sampling đến điều tra sự cố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1480,7 +1480,7 @@ menu:
     summary: ''
   - slug: sampling-008
     title: Đồng nhất sampling giữa các service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1489,7 +1489,7 @@ menu:
     summary: ''
   - slug: sampling-009
     title: Chi phí lưu trữ theo tỷ lệ sampling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1498,7 +1498,7 @@ menu:
     summary: ''
   - slug: sampling-010
     title: Đánh giá trace bị thiếu do sampling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1510,7 +1510,7 @@ menu:
   childs:
   - slug: logging-001
     title: Liên kết log với module span
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1519,7 +1519,7 @@ menu:
     summary: ''
   - slug: logging-002
     title: TraceId và spanId trong MDC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1528,7 +1528,7 @@ menu:
     summary: ''
   - slug: logging-003
     title: Correlation ID trong log
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1537,7 +1537,7 @@ menu:
     summary: ''
   - slug: logging-004
     title: logging.pattern.correlation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1546,7 +1546,7 @@ menu:
     summary: ''
   - slug: logging-005
     title: Phân biệt application name với module name
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1555,7 +1555,7 @@ menu:
     summary: ''
   - slug: logging-006
     title: Log synchronous và event asynchronous
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1564,7 +1564,7 @@ menu:
     summary: ''
   - slug: logging-007
     title: Đưa module identifier vào log có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1573,7 +1573,7 @@ menu:
     summary: ''
   - slug: logging-008
     title: Không ghi payload nhạy cảm vào log
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1582,7 +1582,7 @@ menu:
     summary: ''
   - slug: logging-009
     title: Đồng bộ timestamp và timezone
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1591,7 +1591,7 @@ menu:
     summary: ''
   - slug: logging-010
     title: Truy tìm từ log sang trace và metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1603,7 +1603,7 @@ menu:
   childs:
   - slug: actuator-operations-001
     title: Đưa thông tin module vào bộ endpoint vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1612,7 +1612,7 @@ menu:
     summary: ''
   - slug: actuator-operations-002
     title: Expose endpoint theo môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1621,7 +1621,7 @@ menu:
     summary: ''
   - slug: actuator-operations-003
     title: Phân quyền endpoint modulith
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1630,7 +1630,7 @@ menu:
     summary: ''
   - slug: actuator-operations-004
     title: Giới hạn endpoint chỉ trong mạng quản trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1639,7 +1639,7 @@ menu:
     summary: ''
   - slug: actuator-operations-005
     title: Health indicator và module observability
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1648,7 +1648,7 @@ menu:
     summary: ''
   - slug: actuator-operations-006
     title: Readiness, liveness và telemetry backend
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1657,7 +1657,7 @@ menu:
     summary: ''
   - slug: actuator-operations-007
     title: Kiểm tra actuator sau deploy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1666,7 +1666,7 @@ menu:
     summary: ''
   - slug: actuator-operations-008
     title: Cache hoặc snapshot graph khi cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1675,7 +1675,7 @@ menu:
     summary: ''
   - slug: actuator-operations-009
     title: Định tuyến qua gateway và reverse proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1684,7 +1684,7 @@ menu:
     summary: ''
   - slug: actuator-operations-010
     title: Giám sát lỗi endpoint và thời gian phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1696,7 +1696,7 @@ menu:
   childs:
   - slug: dashboards-001
     title: Dashboard tổng quan tương tác module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1705,7 +1705,7 @@ menu:
     summary: ''
   - slug: dashboards-002
     title: Dashboard số lần công bố domain event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1714,7 +1714,7 @@ menu:
     summary: ''
   - slug: dashboards-003
     title: Dashboard theo module identifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1723,7 +1723,7 @@ menu:
     summary: ''
   - slug: dashboards-004
     title: Dashboard theo event type
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1732,7 +1732,7 @@ menu:
     summary: ''
   - slug: dashboards-005
     title: Panel duration của module entry span
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1741,7 +1741,7 @@ menu:
     summary: ''
   - slug: dashboards-006
     title: Panel lỗi và tỷ lệ lỗi theo module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1750,7 +1750,7 @@ menu:
     summary: ''
   - slug: dashboards-007
     title: Panel trace liên quan tới request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1759,7 +1759,7 @@ menu:
     summary: ''
   - slug: dashboards-008
     title: Panel chênh lệch giữa event publish và event handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1768,7 +1768,7 @@ menu:
     summary: ''
   - slug: dashboards-009
     title: Drill-down từ metric sang trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1777,7 +1777,7 @@ menu:
     summary: ''
   - slug: dashboards-010
     title: Tránh dashboard dùng tag cardinality cao
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1789,7 +1789,7 @@ menu:
   childs:
   - slug: alerting-001
     title: Cảnh báo module span tăng duration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1798,7 +1798,7 @@ menu:
     summary: ''
   - slug: alerting-002
     title: Cảnh báo lỗi khi gọi module API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1807,7 +1807,7 @@ menu:
     summary: ''
   - slug: alerting-003
     title: Cảnh báo event publication tăng bất thường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1816,7 +1816,7 @@ menu:
     summary: ''
   - slug: alerting-004
     title: Cảnh báo event type không còn được xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1825,7 +1825,7 @@ menu:
     summary: ''
   - slug: alerting-005
     title: Cảnh báo telemetry không được export
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1834,7 +1834,7 @@ menu:
     summary: ''
   - slug: alerting-006
     title: Cảnh báo mất context hoặc trace đứt đoạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1843,7 +1843,7 @@ menu:
     summary: ''
   - slug: alerting-007
     title: Cảnh báo số series metrics tăng nhanh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1852,7 +1852,7 @@ menu:
     summary: ''
   - slug: alerting-008
     title: Đặt ngưỡng theo baseline thay vì giá trị tùy ý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1861,7 +1861,7 @@ menu:
     summary: ''
   - slug: alerting-009
     title: Liên kết alert với runbook vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1870,7 +1870,7 @@ menu:
     summary: ''
   - slug: alerting-010
     title: Phân biệt lỗi ứng dụng và lỗi hệ thống quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1882,7 +1882,7 @@ menu:
   childs:
   - slug: operations-documentation-001
     title: Document endpoint modulith cho người vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1891,7 +1891,7 @@ menu:
     summary: ''
   - slug: operations-documentation-002
     title: Document ý nghĩa module identifier và display name
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1900,7 +1900,7 @@ menu:
     summary: ''
   - slug: operations-documentation-003
     title: Document dependency type trong module graph
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1909,7 +1909,7 @@ menu:
     summary: ''
   - slug: operations-documentation-004
     title: Document metric name và tag chính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1918,7 +1918,7 @@ menu:
     summary: ''
   - slug: operations-documentation-005
     title: Document module span và invocation type
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1927,7 +1927,7 @@ menu:
     summary: ''
   - slug: operations-documentation-006
     title: Document sampling và giới hạn dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1936,7 +1936,7 @@ menu:
     summary: ''
   - slug: operations-documentation-007
     title: Document dashboard, alert và runbook
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1945,7 +1945,7 @@ menu:
     summary: ''
   - slug: operations-documentation-008
     title: Document thay đổi telemetry khi nâng cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1954,7 +1954,7 @@ menu:
     summary: ''
   - slug: operations-documentation-009
     title: Giữ tài liệu khớp cấu hình production
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1963,7 +1963,7 @@ menu:
     summary: ''
   - slug: operations-documentation-010
     title: Không xem telemetry schema là hợp đồng bất biến tuyệt đối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1975,7 +1975,7 @@ menu:
   childs:
   - slug: testing-001
     title: Kiểm thử endpoint module actuator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1984,7 +1984,7 @@ menu:
     summary: ''
   - slug: testing-002
     title: Kiểm thử JSON module graph
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1993,7 +1993,7 @@ menu:
     summary: ''
   - slug: testing-003
     title: Kiểm thử module entry observation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2002,7 +2002,7 @@ menu:
     summary: ''
   - slug: testing-004
     title: Kiểm thử event publication metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2011,7 +2011,7 @@ menu:
     summary: ''
   - slug: testing-005
     title: Kiểm thử custom event metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2020,7 +2020,7 @@ menu:
     summary: ''
   - slug: testing-006
     title: Kiểm thử observation convention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2029,7 +2029,7 @@ menu:
     summary: ''
   - slug: testing-007
     title: Kiểm thử observation predicate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2038,7 +2038,7 @@ menu:
     summary: ''
   - slug: testing-008
     title: Kiểm thử context propagation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2047,7 +2047,7 @@ menu:
     summary: ''
   - slug: testing-009
     title: Kiểm thử trace correlation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2056,7 +2056,7 @@ menu:
     summary: ''
   - slug: testing-010
     title: Kiểm thử không tạo duplicate observation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2065,7 +2065,7 @@ menu:
     summary: ''
   - slug: testing-011
     title: Kiểm thử bằng test registry hoặc exporter giả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2077,7 +2077,7 @@ menu:
   childs:
   - slug: performance-001
     title: Chi phí tạo module span
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2086,7 +2086,7 @@ menu:
     summary: ''
   - slug: performance-002
     title: Chi phí ghi event metrics
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2095,7 +2095,7 @@ menu:
     summary: ''
   - slug: performance-003
     title: Chi phí export metrics và traces
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2104,7 +2104,7 @@ menu:
     summary: ''
   - slug: performance-004
     title: Ảnh hưởng của sampling tới CPU và bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2113,7 +2113,7 @@ menu:
     summary: ''
   - slug: performance-005
     title: Ảnh hưởng của cardinality tới backend metrics
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2122,7 +2122,7 @@ menu:
     summary: ''
   - slug: performance-006
     title: Batch export và backpressure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2131,7 +2131,7 @@ menu:
     summary: ''
   - slug: performance-007
     title: Giới hạn queue telemetry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2140,7 +2140,7 @@ menu:
     summary: ''
   - slug: performance-008
     title: Không để quan sát tạo vòng lặp nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2149,7 +2149,7 @@ menu:
     summary: ''
   - slug: performance-009
     title: Đo overhead trước và sau khi bật Insight
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2158,7 +2158,7 @@ menu:
     summary: ''
   - slug: performance-010
     title: Điều chỉnh telemetry theo tải thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2170,7 +2170,7 @@ menu:
   childs:
   - slug: security-001
     title: Endpoint graph có thể tiết lộ cấu trúc hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2179,7 +2179,7 @@ menu:
     summary: ''
   - slug: security-002
     title: Phân quyền dữ liệu module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2188,7 +2188,7 @@ menu:
     summary: ''
   - slug: security-003
     title: Che thông tin event và payload nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2197,7 +2197,7 @@ menu:
     summary: ''
   - slug: security-004
     title: Không đưa secret vào tag hoặc span
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2206,7 +2206,7 @@ menu:
     summary: ''
   - slug: security-005
     title: Không đưa dữ liệu cá nhân vào metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2215,7 +2215,7 @@ menu:
     summary: ''
   - slug: security-006
     title: Bảo vệ kết nối tới telemetry backend
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2224,7 +2224,7 @@ menu:
     summary: ''
   - slug: security-007
     title: Quản lý credential exporter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2233,7 +2233,7 @@ menu:
     summary: ''
   - slug: security-008
     title: Giới hạn quyền đọc Actuator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2242,7 +2242,7 @@ menu:
     summary: ''
   - slug: security-009
     title: Kiểm tra rò rỉ qua log correlation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2251,7 +2251,7 @@ menu:
     summary: ''
   - slug: security-010
     title: Rà soát telemetry trước khi công khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2263,7 +2263,7 @@ menu:
   childs:
   - slug: multiple-modules-001
     title: Quan sát tương tác giữa các module trong cùng ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2272,7 +2272,7 @@ menu:
     summary: ''
   - slug: multiple-modules-002
     title: Phân biệt gọi bean với lắng nghe event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2281,7 +2281,7 @@ menu:
     summary: ''
   - slug: multiple-modules-003
     title: Trace một luồng đi qua nhiều module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2290,7 +2290,7 @@ menu:
     summary: ''
   - slug: multiple-modules-004
     title: Đọc dependency type từ graph và span
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2299,7 +2299,7 @@ menu:
     summary: ''
   - slug: multiple-modules-005
     title: Xử lý module lồng nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2308,7 +2308,7 @@ menu:
     summary: ''
   - slug: multiple-modules-006
     title: Xử lý module mở và API package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2317,7 +2317,7 @@ menu:
     summary: ''
   - slug: multiple-modules-007
     title: Module dùng chung và tác động tới telemetry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2326,7 +2326,7 @@ menu:
     summary: ''
   - slug: multiple-modules-008
     title: Định danh module ổn định khi refactor package
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2335,7 +2335,7 @@ menu:
     summary: ''
   - slug: multiple-modules-009
     title: Đối chiếu topology runtime với cấu trúc source
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2344,7 +2344,7 @@ menu:
     summary: ''
   - slug: multiple-modules-010
     title: Giám sát module mới sau khi thêm vào hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2356,7 +2356,7 @@ menu:
   childs:
   - slug: asynchronous-events-001
     title: Trace event publication và event listener
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2365,7 +2365,7 @@ menu:
     summary: ''
   - slug: asynchronous-events-002
     title: Thời điểm tạo span cho listener
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2374,7 +2374,7 @@ menu:
     summary: ''
   - slug: asynchronous-events-003
     title: Khoảng cách thời gian giữa publish và handle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2383,7 +2383,7 @@ menu:
     summary: ''
   - slug: asynchronous-events-004
     title: Event retry và ảnh hưởng đến metrics
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2392,7 +2392,7 @@ menu:
     summary: ''
   - slug: asynchronous-events-005
     title: Event externalization và ranh giới trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2401,7 +2401,7 @@ menu:
     summary: ''
   - slug: asynchronous-events-006
     title: Context propagation qua event infrastructure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2410,7 +2410,7 @@ menu:
     summary: ''
   - slug: asynchronous-events-007
     title: Event listener lỗi và trạng thái span
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2419,7 +2419,7 @@ menu:
     summary: ''
   - slug: asynchronous-events-008
     title: Phân biệt event được publish với event được xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2428,7 +2428,7 @@ menu:
     summary: ''
   - slug: asynchronous-events-009
     title: Đo backlog hoặc độ trễ xử lý nếu hạ tầng cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2437,7 +2437,7 @@ menu:
     summary: ''
   - slug: asynchronous-events-010
     title: Thiết kế metric không đếm sai khi retry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2449,7 +2449,7 @@ menu:
   childs:
   - slug: environment-configuration-001
     title: Profile local cho quan sát dễ kiểm tra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2458,7 +2458,7 @@ menu:
     summary: ''
   - slug: environment-configuration-002
     title: Profile test với registry và exporter giả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2467,7 +2467,7 @@ menu:
     summary: ''
   - slug: environment-configuration-003
     title: Profile staging để kiểm thử backend thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2476,7 +2476,7 @@ menu:
     summary: ''
   - slug: environment-configuration-004
     title: Profile production với sampling phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2485,7 +2485,7 @@ menu:
     summary: ''
   - slug: environment-configuration-005
     title: Quản lý endpoint, credential và tag môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2494,7 +2494,7 @@ menu:
     summary: ''
   - slug: environment-configuration-006
     title: Override cấu hình bằng biến môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2503,7 +2503,7 @@ menu:
     summary: ''
   - slug: environment-configuration-007
     title: Kiểm soát khác biệt giữa cấu hình và code
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2512,7 +2512,7 @@ menu:
     summary: ''
   - slug: environment-configuration-008
     title: Kiểm tra cấu hình sau khi đóng gói
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2521,7 +2521,7 @@ menu:
     summary: ''
   - slug: environment-configuration-009
     title: Giữ tên metric và span ổn định giữa môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2530,7 +2530,7 @@ menu:
     summary: ''
   - slug: environment-configuration-010
     title: Tránh bật dữ liệu debug nhạy cảm ở production
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2542,7 +2542,7 @@ menu:
   childs:
   - slug: troubleshooting-001
     title: Không thấy endpoint modulith
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2551,7 +2551,7 @@ menu:
     summary: ''
   - slug: troubleshooting-002
     title: Graph module thiếu dependency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2560,7 +2560,7 @@ menu:
     summary: ''
   - slug: troubleshooting-003
     title: Không tạo module span
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2569,7 +2569,7 @@ menu:
     summary: ''
   - slug: troubleshooting-004
     title: Metric event không xuất hiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2578,7 +2578,7 @@ menu:
     summary: ''
   - slug: troubleshooting-005
     title: Metric xuất hiện nhiều lần do instrument trùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2587,7 +2587,7 @@ menu:
     summary: ''
   - slug: troubleshooting-006
     title: Trace mất parent hoặc mất correlation id
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2596,7 +2596,7 @@ menu:
     summary: ''
   - slug: troubleshooting-007
     title: Event async không nối được trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2605,7 +2605,7 @@ menu:
     summary: ''
   - slug: troubleshooting-008
     title: Exporter không gửi dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2614,7 +2614,7 @@ menu:
     summary: ''
   - slug: troubleshooting-009
     title: Backend nhận telemetry nhưng dashboard không hiển thị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2623,7 +2623,7 @@ menu:
     summary: ''
   - slug: troubleshooting-010
     title: Cardinality tăng đột biến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2632,7 +2632,7 @@ menu:
     summary: ''
   - slug: troubleshooting-011
     title: Actuator trả lỗi do cấu hình expose hoặc bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2641,7 +2641,7 @@ menu:
     summary: ''
   - slug: troubleshooting-012
     title: Phân biệt lỗi code, lỗi cấu hình và lỗi backend
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2653,7 +2653,7 @@ menu:
   childs:
   - slug: versions-001
     title: Đọc ma trận tương thích Spring Boot và Spring Modulith
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2662,7 +2662,7 @@ menu:
     summary: ''
   - slug: versions-002
     title: Quản lý BOM và version module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2671,7 +2671,7 @@ menu:
     summary: ''
   - slug: versions-003
     title: Kiểm tra thay đổi artifact Insight starter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2680,7 +2680,7 @@ menu:
     summary: ''
   - slug: versions-004
     title: Kiểm tra thay đổi endpoint modulith
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2689,7 +2689,7 @@ menu:
     summary: ''
   - slug: versions-005
     title: Kiểm tra thay đổi JSON module graph
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2698,7 +2698,7 @@ menu:
     summary: ''
   - slug: versions-006
     title: Kiểm tra thay đổi metric name và tag
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2707,7 +2707,7 @@ menu:
     summary: ''
   - slug: versions-007
     title: Kiểm tra thay đổi observation convention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2716,7 +2716,7 @@ menu:
     summary: ''
   - slug: versions-008
     title: Kiểm tra thay đổi Micrometer hoặc tracer bridge
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2725,7 +2725,7 @@ menu:
     summary: ''
   - slug: versions-009
     title: Chạy kiểm thử telemetry trước khi nâng cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2734,7 +2734,7 @@ menu:
     summary: ''
   - slug: versions-010
     title: Cập nhật dashboard và runbook theo version
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2746,7 +2746,7 @@ menu:
   childs:
   - slug: practical-design-001
     title: Chọn telemetry cần thiết cho một modular monolith
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2755,7 +2755,7 @@ menu:
     summary: ''
   - slug: practical-design-002
     title: Xác định module API cần instrument
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2764,7 +2764,7 @@ menu:
     summary: ''
   - slug: practical-design-003
     title: Chọn metric tổng hợp cho domain event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2773,7 +2773,7 @@ menu:
     summary: ''
   - slug: practical-design-004
     title: Chọn span cần giữ trong trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2782,7 +2782,7 @@ menu:
     summary: ''
   - slug: practical-design-005
     title: Đặt tag low-cardinality theo module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2791,7 +2791,7 @@ menu:
     summary: ''
   - slug: practical-design-006
     title: Thiết kế endpoint graph cho vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2800,7 +2800,7 @@ menu:
     summary: ''
   - slug: practical-design-007
     title: Thiết kế dashboard theo luồng nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2809,7 +2809,7 @@ menu:
     summary: ''
   - slug: practical-design-008
     title: Thiết kế alert theo module và event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2818,7 +2818,7 @@ menu:
     summary: ''
   - slug: practical-design-009
     title: Giữ telemetry hỗ trợ điều tra mà không tạo dữ liệu thừa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2827,7 +2827,7 @@ menu:
     summary: ''
   - slug: practical-design-010
     title: Đánh giá trade-off giữa độ chi tiết và chi phí
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2839,7 +2839,7 @@ menu:
   childs:
   - slug: hands-on-project-001
     title: Thêm Insight starter vào ứng dụng Spring Modulith
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2848,7 +2848,7 @@ menu:
     summary: ''
   - slug: hands-on-project-002
     title: Mở endpoint modulith và đọc module graph
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2857,7 +2857,7 @@ menu:
     summary: ''
   - slug: hands-on-project-003
     title: Bật module entry spans
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2866,7 +2866,7 @@ menu:
     summary: ''
   - slug: hands-on-project-004
     title: Quan sát một lời gọi bean qua hai module
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2875,7 +2875,7 @@ menu:
     summary: ''
   - slug: hands-on-project-005
     title: Quan sát một domain event bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2884,7 +2884,7 @@ menu:
     summary: ''
   - slug: hands-on-project-006
     title: Đọc module.events.published qua metrics endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2893,7 +2893,7 @@ menu:
     summary: ''
   - slug: hands-on-project-007
     title: Tùy biến tag bằng ModulithEventMetricsCustomizer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2902,7 +2902,7 @@ menu:
     summary: ''
   - slug: hands-on-project-008
     title: Tùy biến convention bằng ModulithObservationConvention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2911,7 +2911,7 @@ menu:
     summary: ''
   - slug: hands-on-project-009
     title: Gửi trace tới Zipkin hoặc OTLP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2920,7 +2920,7 @@ menu:
     summary: ''
   - slug: hands-on-project-010
     title: Liên kết log, metric và trace bằng correlation id
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2929,7 +2929,7 @@ menu:
     summary: ''
   - slug: hands-on-project-011
     title: Viết test cho endpoint và telemetry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2938,7 +2938,7 @@ menu:
     summary: ''
   - slug: hands-on-project-012
     title: Xây dashboard và runbook cho production
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2947,7 +2947,7 @@ menu:
     summary: ''
   - slug: hands-on-project-013
     title: Đánh giá solution bằng độ chính xác, bảo mật và overhead
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

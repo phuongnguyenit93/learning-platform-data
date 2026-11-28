@@ -1,3 +1,3 @@
 menuLevel1: Stream.toList
 menuLevel2: Stream.toList là terminal operation được bổ sung trong Java 16
-status: ""
+status: WRITTEN

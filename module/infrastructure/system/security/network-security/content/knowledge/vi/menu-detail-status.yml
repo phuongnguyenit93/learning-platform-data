@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: introduction-001
     title: Network security là gì và bảo vệ tài sản nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: introduction-002
     title: Mối liên hệ giữa mạng, ứng dụng, danh tính và dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: introduction-003
     title: Confidentiality, integrity và availability trên đường truyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: introduction-004
     title: Attack surface của một hệ thống kết nối mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: introduction-005
     title: Trust boundary giữa client, service và network zone
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: introduction-006
     title: Network security khác network performance như thế nào?
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: introduction-007
     title: Phòng thủ theo lớp trong bảo vệ mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: introduction-008
     title: Mạng nội bộ không mặc nhiên đáng tin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -76,7 +76,7 @@ menu:
     summary: ''
   - slug: introduction-009
     title: Security control tại host, network và application
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -85,7 +85,7 @@ menu:
     summary: ''
   - slug: introduction-010
     title: Lộ trình từ packet cơ bản đến kiến trúc zero trust
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
   childs:
   - slug: network-models-001
     title: Host, interface, subnet và route
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: network-models-002
     title: LAN, WAN, internet và private network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: network-models-003
     title: Ingress, egress và east-west traffic
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: network-models-004
     title: North-south traffic và ranh giới hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: network-models-005
     title: DMZ và vùng dịch vụ công khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: network-models-006
     title: Management network và data network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -151,7 +151,7 @@ menu:
     summary: ''
   - slug: network-models-007
     title: Control plane và data plane
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -160,7 +160,7 @@ menu:
     summary: ''
   - slug: network-models-008
     title: On-premises, cloud và hybrid network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -169,7 +169,7 @@ menu:
     summary: ''
   - slug: network-models-009
     title: Overlay network và underlay network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -178,7 +178,7 @@ menu:
     summary: ''
   - slug: network-models-010
     title: Mạng vật lý và mạng logic
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
   childs:
   - slug: tcp-ip-001
     title: Vai trò của IP address
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: tcp-ip-002
     title: IPv4 và IPv6
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: tcp-ip-003
     title: Subnet mask và CIDR
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: web-services-overview-001
     title: Spring Web Services là gì và giải quyết bài toán tích hợp SOAP như thế nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: web-services-overview-002
     title: Thông điệp, hợp đồng, endpoint và máy khách trong một lần trao đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: web-services-overview-003
     title: Phân biệt Spring-WS với Spring MVC, REST và WebSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: web-services-overview-004
     title: 'Spring-WS, JAX-WS và Apache CXF: mô hình lập trình và ranh giới trách nhiệm'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: web-services-overview-005
     title: Thiết kế từ hợp đồng (contract-first) và thiết kế từ mã (contract-last)
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: web-services-overview-006
     title: Vì sao mô hình đối tượng Java không ánh xạ hoàn toàn sang XML
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: web-services-overview-007
     title: Mối liên hệ giữa XML, XSD, WSDL, SOAP và các chuẩn WS-*
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: web-services-overview-008
     title: Khi nào SOAP phù hợp và những đánh đổi về độ phức tạp, hiệu năng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -76,7 +76,7 @@ menu:
     summary: ''
   - slug: web-services-overview-009
     title: Kiến thức tiên quyết và lộ trình từ hợp đồng đến dịch vụ được kiểm chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
   childs:
   - slug: xml-foundations-001
     title: Tài liệu XML, phần tử, thuộc tính, nội dung văn bản và tính hợp lệ cú pháp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: xml-foundations-002
     title: Namespace, URI, prefix và tên đầy đủ QName
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: xml-foundations-003
     title: Namespace mặc định và sự khác nhau giữa tên phần tử với tên thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: xml-foundations-004
     title: Khai báo XML, bảng mã và xử lý ký tự đặc biệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: xml-foundations-005
     title: Không có phần tử, phần tử rỗng và giá trị xsi:nil
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: xml-foundations-006
     title: Thứ tự phần tử, nội dung trộn và những khác biệt có ý nghĩa trong hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: xml-foundations-007
     title: DOM, SAX, StAX và lựa chọn cách xử lý XML
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -151,7 +151,7 @@ menu:
     summary: ''
   - slug: xml-foundations-008
     title: XPath, ngữ cảnh namespace và lựa chọn nút dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -160,7 +160,7 @@ menu:
     summary: ''
   - slug: xml-foundations-009
     title: XSLT, biến đổi cấu trúc và ranh giới với ánh xạ đối tượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -169,7 +169,7 @@ menu:
     summary: ''
   - slug: xml-foundations-010
     title: So sánh XML theo ngữ nghĩa thay vì so sánh chuỗi prefix và khoảng trắng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
   childs:
   - slug: soap-protocol-001
     title: SOAP Envelope, Header, Body và vai trò của từng thành phần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: soap-protocol-002
     title: 'SOAP 1.1 và SOAP 1.2: namespace, kiểu nội dung và cách biểu diễn lỗi'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: soap-protocol-003
     title: Payload ứng dụng và phong bì SOAP là hai lớp khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: soap-protocol-004
     title: Header ứng dụng, header WS-* và HTTP header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: soap-protocol-005
     title: mustUnderstand, actor, role và trách nhiệm xử lý header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -226,7 +226,7 @@ menu:
     summary: ''
   - slug: soap-protocol-006
     title: SOAPAction trong SOAP 1.1 và tham số action trong SOAP 1.2
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -235,7 +235,7 @@ menu:
     summary: ''
   - slug: soap-protocol-007
     title: Trao đổi yêu cầu, phản hồi và thông điệp một chiều
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -244,7 +244,7 @@ menu:
     summary: ''
   - slug: soap-protocol-008
     title: SOAP qua HTTP và sự độc lập giữa thông điệp với phương tiện truyền tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -253,7 +253,7 @@ menu:
     summary: ''
   - slug: soap-protocol-009
     title: SOAP Fault, mã trạng thái HTTP và lỗi kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -262,7 +262,7 @@ menu:
     summary: ''
   - slug: soap-protocol-010
     title: Document/literal, RPC và ý nghĩa của kiểu liên kết trong WSDL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -271,7 +271,7 @@ menu:
     summary: ''
   - slug: soap-protocol-011
     title: Đọc một yêu cầu, phản hồi SOAP hoàn chỉnh từ dữ liệu truyền thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
   childs:
   - slug: contract-design-001
     title: Xác định các thao tác nghiệp vụ và ranh giới dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: contract-design-002
     title: Thiết kế thông điệp yêu cầu, phản hồi trước khi viết endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -301,7 +301,7 @@ menu:
     summary: ''
   - slug: contract-design-003
     title: Hợp đồng dữ liệu và hợp đồng dịch vụ bổ sung cho nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -310,7 +310,7 @@ menu:
     summary: ''
   - slug: contract-design-004
     title: 'Document/literal wrapped và bare: cấu trúc thông điệp và lựa chọn'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -319,7 +319,7 @@ menu:
     summary: ''
   - slug: contract-design-005
     title: Tách mô hình trao đổi khỏi thực thể lưu trữ và mô hình nội bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -328,7 +328,7 @@ menu:
     summary: ''
   - slug: contract-design-006
     title: Đặt tên namespace, phần tử và thao tác có tính ổn định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -337,7 +337,7 @@ menu:
     summary: ''
   - slug: contract-design-007
     title: Quy định trường bắt buộc, giá trị thiếu và ngữ nghĩa mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -346,7 +346,7 @@ menu:
     summary: ''
   - slug: contract-design-008
     title: Thiết kế lỗi nghiệp vụ thành hợp đồng có cấu trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -355,7 +355,7 @@ menu:
     summary: ''
   - slug: contract-design-009
     title: Định nghĩa giới hạn dữ liệu, kích thước thông điệp và yêu cầu bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -364,7 +364,7 @@ menu:
     summary: ''
   - slug: contract-design-010
     title: Kiểm tra hợp đồng bằng ví dụ hợp lệ, không hợp lệ và phản hồi lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -376,7 +376,7 @@ menu:
   childs:
   - slug: xsd-design-001
     title: xs:schema, targetNamespace và elementFormDefault
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -385,7 +385,7 @@ menu:
     summary: ''
   - slug: xsd-design-002
     title: Phần tử toàn cục, kiểu có tên và phạm vi tái sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -394,7 +394,7 @@ menu:
     summary: ''
   - slug: xsd-design-003
     title: simpleType, complexType và thuộc tính của cấu trúc dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -403,7 +403,7 @@ menu:
     summary: ''
   - slug: xsd-design-004
     title: sequence, choice, all và ràng buộc thứ tự phần tử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -412,7 +412,7 @@ menu:
     summary: ''
   - slug: xsd-design-005
     title: minOccurs, maxOccurs và mô hình hóa danh sách
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -421,7 +421,7 @@ menu:
     summary: ''
   - slug: xsd-design-006
     title: optional, nillable, default, fixed và sự khác biệt khi nhận dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -430,7 +430,7 @@ menu:
     summary: ''
   - slug: xsd-design-007
     title: Ràng buộc kiểu bằng enumeration, pattern, độ dài và miền giá trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -439,7 +439,7 @@ menu:
     summary: ''
   - slug: xsd-design-008
     title: Kiểu số, decimal, ngày giờ, múi giờ và ánh xạ phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -448,7 +448,7 @@ menu:
     summary: ''
   - slug: xsd-design-009
     title: xs:include, xs:import và phân chia schema theo namespace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -457,7 +457,7 @@ menu:
     summary: ''
   - slug: xsd-design-010
     title: Kiểu mở rộng, kiểu hạn chế và đánh đổi khi dùng kế thừa trong schema
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -466,7 +466,7 @@ menu:
     summary: ''
   - slug: xsd-design-011
     title: xs:any, điểm mở rộng và giới hạn của khả năng tiến hóa hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -475,7 +475,7 @@ menu:
     summary: ''
   - slug: xsd-design-012
     title: Phát hiện schema không hợp lệ và giải quyết tham chiếu giữa các tệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -484,7 +484,7 @@ menu:
     summary: ''
   - slug: xsd-design-013
     title: Thiết kế schema theo khả năng tương tác của các nền tảng khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -496,7 +496,7 @@ menu:
   childs:
   - slug: wsdl-reading-and-publishing-001
     title: 'WSDL 1.1: types, message, portType, binding và service'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -505,7 +505,7 @@ menu:
     summary: ''
   - slug: wsdl-reading-and-publishing-002
     title: Operation, input, output, fault và liên hệ với các phần tử XSD
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -514,7 +514,7 @@ menu:
     summary: ''
   - slug: wsdl-reading-and-publishing-003
     title: SOAP binding, transport, action và địa chỉ dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -523,7 +523,7 @@ menu:
     summary: ''
   - slug: wsdl-reading-and-publishing-004
     title: Tách giao diện trừu tượng khỏi cấu hình địa chỉ triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -532,7 +532,7 @@ menu:
     summary: ''
   - slug: wsdl-reading-and-publishing-005
     title: WSDL tĩnh và WSDL được tạo từ XSD
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -541,7 +541,7 @@ menu:
     summary: ''
   - slug: wsdl-reading-and-publishing-006
     title: SimpleWsdl11Definition và sử dụng hợp đồng đã được phê duyệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -550,7 +550,7 @@ menu:
     summary: ''
   - slug: wsdl-reading-and-publishing-007
     title: DefaultWsdl11Definition và quy ước nhận diện yêu cầu, phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -559,7 +559,7 @@ menu:
     summary: ''
   - slug: wsdl-reading-and-publishing-008
     title: Công bố XSD qua XsdSchema và tập hợp nhiều schema
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -568,7 +568,7 @@ menu:
     summary: ''
   - slug: wsdl-reading-and-publishing-009
     title: Tên bean, URL WSDL và đường dẫn tài nguyên schema
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -577,7 +577,7 @@ menu:
     summary: ''
   - slug: wsdl-reading-and-publishing-010
     title: Biến đổi địa chỉ WSDL sau reverse proxy và cấu hình đường dẫn bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -586,7 +586,7 @@ menu:
     summary: ''
   - slug: wsdl-reading-and-publishing-011
     title: Kiểm chứng WSDL tải được cùng toàn bộ XSD được import
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -598,7 +598,7 @@ menu:
   childs:
   - slug: project-initialization-001
     title: Chọn bộ phiên bản JDK, Spring Framework, Spring Boot và Spring-WS tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -607,7 +607,7 @@ menu:
     summary: ''
   - slug: project-initialization-002
     title: Thành phần phụ thuộc cho máy chủ, máy khách, OXM, bảo mật và kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -616,7 +616,7 @@ menu:
     summary: ''
   - slug: project-initialization-003
     title: Khởi tạo bằng Spring Boot hoặc cấu hình Spring độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -625,7 +625,7 @@ menu:
     summary: ''
   - slug: project-initialization-004
     title: Tổ chức thư mục hợp đồng, mã được sinh, endpoint, dịch vụ và client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -634,7 +634,7 @@ menu:
     summary: ''
   - slug: project-initialization-005
     title: Quản lý phụ thuộc SAAJ, JAXB và triển khai Jakarta XML cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -643,7 +643,7 @@ menu:
     summary: ''
   - slug: project-initialization-006
     title: Cấu hình Maven hoặc Gradle để sinh mã trong vòng đời build
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -652,7 +652,7 @@ menu:
     summary: ''
   - slug: project-initialization-007
     title: Tách cấu hình theo môi trường và quản lý URL dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -661,7 +661,7 @@ menu:
     summary: ''
   - slug: project-initialization-008
     title: Đóng gói WSDL, XSD và tài nguyên ánh xạ vào ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -670,7 +670,7 @@ menu:
     summary: ''
   - slug: project-initialization-009
     title: Kiểm tra khởi động và thực hiện một trao đổi SOAP tối thiểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -682,7 +682,7 @@ menu:
   childs:
   - slug: jaxb-code-generation-001
     title: Vai trò của JAXB và công cụ XJC trong thiết kế contract-first
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -691,7 +691,7 @@ menu:
     summary: ''
   - slug: jaxb-code-generation-002
     title: Sinh lớp Java từ XSD và quản lý mã đầu ra được tạo tự động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -700,7 +700,7 @@ menu:
     summary: ''
   - slug: jaxb-code-generation-003
     title: Lấy mô hình dữ liệu từ phần schema trong WSDL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -709,7 +709,7 @@ menu:
     summary: ''
   - slug: jaxb-code-generation-004
     title: Binding tùy chỉnh, tên package và xử lý xung đột tên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -718,7 +718,7 @@ menu:
     summary: ''
   - slug: jaxb-code-generation-005
     title: XmlRootElement, XmlType, XmlElement và mô tả cấu trúc XML
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -727,7 +727,7 @@ menu:
     summary: ''
   - slug: jaxb-code-generation-006
     title: ObjectFactory, JAXBElement và phần tử toàn cục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -736,7 +736,7 @@ menu:
     summary: ''
   - slug: jaxb-code-generation-007
     title: Danh sách, kiểu liệt kê, kiểu số và dữ liệu ngày giờ trong lớp được sinh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -745,7 +745,7 @@ menu:
     summary: ''
   - slug: jaxb-code-generation-008
     title: Điều chỉnh ánh xạ bằng adapter mà không sửa trực tiếp mã được sinh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -754,7 +754,7 @@ menu:
     summary: ''
   - slug: jaxb-code-generation-009
     title: Tái sinh mã có thể lặp lại và kiểm tra thay đổi hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -763,7 +763,7 @@ menu:
     summary: ''
   - slug: jaxb-code-generation-010
     title: Phân biệt lớp dữ liệu JAXB với proxy dịch vụ JAX-WS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -775,7 +775,7 @@ menu:
   childs:
   - slug: marshalling-and-oxm-001
     title: Marshalling, unmarshalling và vai trò của Spring OXM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -784,7 +784,7 @@ menu:
     summary: ''
   - slug: marshalling-and-oxm-002
     title: Marshaller, Unmarshaller và tách cơ chế ánh xạ khỏi client, endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -793,7 +793,7 @@ menu:
     summary: ''
   - slug: marshalling-and-oxm-003
     title: Cấu hình Jaxb2Marshaller bằng context path hoặc lớp được liên kết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -802,7 +802,7 @@ menu:
     summary: ''
   - slug: marshalling-and-oxm-004
     title: Chọn phạm vi quét và tránh thiếu lớp trong JAXB context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -811,7 +811,7 @@ menu:
     summary: ''
   - slug: marshalling-and-oxm-005
     title: Ánh xạ phần tử gốc, JAXBElement và namespace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -820,7 +820,7 @@ menu:
     summary: ''
   - slug: marshalling-and-oxm-006
     title: Giá trị null, phần tử thiếu và trường có giá trị mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -829,7 +829,7 @@ menu:
     summary: ''
   - slug: marshalling-and-oxm-007
     title: Ngày giờ, decimal, dữ liệu nhị phân và adapter tùy chỉnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -838,7 +838,7 @@ menu:
     summary: ''
   - slug: marshalling-and-oxm-008
     title: Validation khi ánh xạ và phân loại lỗi chuyển đổi XML
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -847,7 +847,7 @@ menu:
     summary: ''
   - slug: marshalling-and-oxm-009
     title: Vòng đời bộ ánh xạ, sử dụng đồng thời và các phụ thuộc có trạng thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -856,7 +856,7 @@ menu:
     summary: ''
   - slug: marshalling-and-oxm-010
     title: Kiểm tra chuyển đổi hai chiều bằng bộ dữ liệu biên của hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -868,7 +868,7 @@ menu:
   childs:
   - slug: processing-architecture-001
     title: Luồng yêu cầu từ phương tiện truyền tải đến endpoint rồi phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -877,7 +877,7 @@ menu:
     summary: ''
   - slug: processing-architecture-002
     title: WebServiceMessage và SoapMessage trong mô hình thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -886,7 +886,7 @@ menu:
     summary: ''
   - slug: processing-architecture-003
     title: WebServiceMessageFactory, SoapMessageFactory và trách nhiệm tạo thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -895,7 +895,7 @@ menu:
     summary: ''
   - slug: processing-architecture-004
     title: SaajSoapMessageFactory và mô hình SOAP dựa trên SAAJ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -904,7 +904,7 @@ menu:
     summary: ''
   - slug: processing-architecture-005
     title: Lựa chọn Axiom và streaming theo khả năng hỗ trợ của phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -913,7 +913,7 @@ menu:
     summary: ''
   - slug: processing-architecture-006
     title: MessageDispatcher và các chiến lược tìm, gọi endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -922,7 +922,7 @@ menu:
     summary: ''
   - slug: processing-architecture-007
     title: EndpointMapping, EndpointAdapter và EndpointExceptionResolver
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -931,7 +931,7 @@ menu:
     summary: ''
   - slug: processing-architecture-008
     title: MessageContext, thông điệp yêu cầu, phản hồi và thuộc tính xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -940,7 +940,7 @@ menu:
     summary: ''
   - slug: processing-architecture-009
     title: Ranh giới giữa transport, giao thức SOAP và nghiệp vụ ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -952,7 +952,7 @@ menu:
   childs:
   - slug: server-configuration-001
     title: Đăng ký MessageDispatcherServlet và xác định URL tiếp nhận SOAP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -961,7 +961,7 @@ menu:
     summary: ''
   - slug: server-configuration-002
     title: ApplicationContext của servlet và ngữ cảnh ứng dụng cha
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -970,7 +970,7 @@ menu:
     summary: ''
   - slug: server-configuration-003
     title: Kích hoạt cấu hình bằng @EnableWs
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -979,7 +979,7 @@ menu:
     summary: ''
   - slug: server-configuration-004
     title: Tùy chỉnh cấu hình qua WsConfigurer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -988,7 +988,7 @@ menu:
     summary: ''
   - slug: server-configuration-005
     title: WsConfigurationSupport và trường hợp cần kiểm soát cấu hình sâu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -997,7 +997,7 @@ menu:
     summary: ''
   - slug: server-configuration-006
     title: Cấu hình bằng Java và cấu hình XML trong hệ thống hiện hữu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1006,7 +1006,7 @@ menu:
     summary: ''
   - slug: server-configuration-007
     title: Phối hợp cấu hình Spring Boot tự động với các bean do ứng dụng khai báo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1015,7 +1015,7 @@ menu:
     summary: ''
   - slug: server-configuration-008
     title: Công bố WSDL, XSD và cấu hình biến đổi địa chỉ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1024,7 +1024,7 @@ menu:
     summary: ''
   - slug: server-configuration-009
     title: Dùng chung ứng dụng với Spring MVC và tránh xung đột servlet mapping
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1033,7 +1033,7 @@ menu:
     summary: ''
   - slug: server-configuration-010
     title: Chọn phiên bản SOAP của message factory và kiểm tra Content-Type tương ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1045,7 +1045,7 @@ menu:
   childs:
   - slug: endpoint-construction-001
     title: '@Endpoint và trách nhiệm chuyển đổi thông điệp sang lời gọi nghiệp vụ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1054,7 +1054,7 @@ menu:
     summary: ''
   - slug: endpoint-construction-002
     title: '@RequestPayload, @ResponsePayload và chữ ký phương thức xử lý'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1063,7 +1063,7 @@ menu:
     summary: ''
   - slug: endpoint-construction-003
     title: Nhận đối tượng JAXB hoặc dữ liệu XML trực tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1072,7 +1072,7 @@ menu:
     summary: ''
   - slug: endpoint-construction-004
     title: Trả đối tượng JAXB, Source hoặc phần tử XML được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1081,7 +1081,7 @@ menu:
     summary: ''
   - slug: endpoint-construction-005
     title: Phương thức không có payload phản hồi và ý nghĩa của kiểu trả về void
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1090,7 +1090,7 @@ menu:
     summary: ''
   - slug: endpoint-construction-006
     title: Tiêm dịch vụ nghiệp vụ và giữ endpoint gọn, dễ kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1099,7 +1099,7 @@ menu:
     summary: ''
   - slug: endpoint-construction-007
     title: Endpoint singleton, dữ liệu theo yêu cầu và an toàn luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1108,7 +1108,7 @@ menu:
     summary: ''
   - slug: endpoint-construction-008
     title: Nhận tham số bổ sung từ header hoặc MessageContext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1117,7 +1117,7 @@ menu:
     summary: ''
   - slug: endpoint-construction-009
     title: '@XPathParam và khai báo namespace cho biểu thức XPath'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1126,7 +1126,7 @@ menu:
     summary: ''
   - slug: endpoint-construction-010
     title: MethodArgumentResolver và MethodReturnValueHandler tùy chỉnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1135,7 +1135,7 @@ menu:
     summary: ''
   - slug: endpoint-construction-011
     title: Ranh giới giao dịch nghiệp vụ và thời điểm tạo phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1144,7 +1144,7 @@ menu:
     summary: ''
   - slug: endpoint-construction-012
     title: Lỗi không tìm thấy bộ thích nghi cho chữ ký phương thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1156,7 +1156,7 @@ menu:
   childs:
   - slug: message-routing-001
     title: Định tuyến theo nội dung khác với định tuyến theo URL HTTP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1165,7 +1165,7 @@ menu:
     summary: ''
   - slug: message-routing-002
     title: '@PayloadRoot, namespace và localPart của phần tử gốc'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1174,7 +1174,7 @@ menu:
     summary: ''
   - slug: message-routing-003
     title: PayloadRootAnnotationMethodEndpointMapping và điều kiện khớp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1183,7 +1183,7 @@ menu:
     summary: ''
   - slug: message-routing-004
     title: '@SoapAction và SoapActionAnnotationMethodEndpointMapping'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1192,7 +1192,7 @@ menu:
     summary: ''
   - slug: message-routing-005
     title: Thứ tự EndpointMapping và cách xử lý nhiều cơ chế cùng tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1201,7 +1201,7 @@ menu:
     summary: ''
   - slug: message-routing-006
     title: Không có endpoint phù hợp, cấu hình trùng và chẩn đoán định tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1210,7 +1210,7 @@ menu:
     summary: ''
   - slug: message-routing-007
     title: Prefix khác nhau nhưng cùng QName và những lỗi namespace thường gặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1219,7 +1219,7 @@ menu:
     summary: ''
   - slug: message-routing-008
     title: Định tuyến nhiều phiên bản hợp đồng trong cùng ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1228,7 +1228,7 @@ menu:
     summary: ''
   - slug: message-routing-009
     title: Phân biệt khóa định tuyến với bằng chứng xác thực hoặc phân quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1240,7 +1240,7 @@ menu:
   childs:
   - slug: direct-xml-processing-001
     title: Source, Result và các dạng dữ liệu XML được Spring-WS sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1249,7 +1249,7 @@ menu:
     summary: ''
   - slug: direct-xml-processing-002
     title: DOMSource, StreamSource, StAXSource và đặc điểm truy cập dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1258,7 +1258,7 @@ menu:
     summary: ''
   - slug: direct-xml-processing-003
     title: Đọc, tạo payload bằng DOM và quản lý namespace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1267,7 +1267,7 @@ menu:
     summary: ''
   - slug: direct-xml-processing-004
     title: XPathExpression, XPathOperations và truy xuất dữ liệu có namespace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1276,7 +1276,7 @@ menu:
     summary: ''
   - slug: direct-xml-processing-005
     title: Xử lý phần tử thiếu, nhiều kết quả và chuyển kiểu giá trị XPath
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1285,7 +1285,7 @@ menu:
     summary: ''
   - slug: direct-xml-processing-006
     title: Biến đổi bằng Transformer và quản lý vòng đời thành phần không an toàn luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1294,7 +1294,7 @@ menu:
     summary: ''
   - slug: direct-xml-processing-007
     title: Áp dụng XSLT cho chuyển đổi dữ liệu giữa các định dạng hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1303,7 +1303,7 @@ menu:
     summary: ''
   - slug: direct-xml-processing-008
     title: Đọc theo luồng, đọc nhiều lần và ảnh hưởng của payload caching
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1312,7 +1312,7 @@ menu:
     summary: ''
   - slug: direct-xml-processing-009
     title: Chọn JAXB hay XML trực tiếp theo kích thước và độ linh hoạt cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1324,7 +1324,7 @@ menu:
   childs:
   - slug: headers-and-context-001
     title: SOAP header nghiệp vụ và dữ liệu định tuyến, bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1333,7 +1333,7 @@ menu:
     summary: ''
   - slug: headers-and-context-002
     title: Tạo, đọc SoapHeader và SoapHeaderElement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1342,7 +1342,7 @@ menu:
     summary: ''
   - slug: headers-and-context-003
     title: Ánh xạ header vào phương thức bằng @SoapHeader
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1351,7 +1351,7 @@ menu:
     summary: ''
   - slug: headers-and-context-004
     title: QName của header, namespace và quy tắc tìm đúng phần tử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1360,7 +1360,7 @@ menu:
     summary: ''
   - slug: headers-and-context-005
     title: Xử lý mustUnderstand qua SoapEndpointInterceptor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
     summary: ''
   - slug: headers-and-context-006
     title: MessageContext và dữ liệu cần chia sẻ trong một lần xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: headers-and-context-007
     title: TransportContext và truy cập thông tin phương tiện truyền tải khi cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1387,7 +1387,7 @@ menu:
     summary: ''
   - slug: headers-and-context-008
     title: Định danh yêu cầu, thông tin tương quan và truyền qua nhiều hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1396,7 +1396,7 @@ menu:
     summary: ''
   - slug: headers-and-context-009
     title: Giới hạn tin cậy của dữ liệu header do bên gửi cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1405,7 +1405,7 @@ menu:
     summary: ''
   - slug: headers-and-context-010
     title: Giữ dữ liệu từng yêu cầu ngoài trạng thái dùng chung của bean singleton
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1417,7 +1417,7 @@ menu:
   childs:
   - slug: data-validation-001
     title: XML đúng cú pháp, đúng XSD và đúng quy tắc nghiệp vụ là các mức khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1426,7 +1426,7 @@ menu:
     summary: ''
   - slug: data-validation-002
     title: PayloadValidatingInterceptor và cấu hình schema kiểm tra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
     summary: ''
   - slug: data-validation-003
     title: Kiểm tra yêu cầu, phản hồi và lựa chọn phạm vi áp dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: data-validation-004
     title: Tập hợp nhiều schema và giải quyết import, include
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1453,7 +1453,7 @@ menu:
     summary: ''
   - slug: data-validation-005
     title: Lỗi namespace, thứ tự, kiểu dữ liệu và số lần xuất hiện phần tử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1462,7 +1462,7 @@ menu:
     summary: ''
   - slug: data-validation-006
     title: Lỗi validation, SOAP Fault và nội dung phản hồi có thể công bố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1471,7 +1471,7 @@ menu:
     summary: ''
   - slug: data-validation-007
     title: Kiểm tra quy tắc liên trường và điều kiện nghiệp vụ sau khi đọc XML
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1480,7 +1480,7 @@ menu:
     summary: ''
   - slug: data-validation-008
     title: Validation trong OXM và tránh xử lý lặp không cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1489,7 +1489,7 @@ menu:
     summary: ''
   - slug: data-validation-009
     title: Thứ tự kiểm tra dữ liệu, xác minh bảo mật và thực hiện nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1498,7 +1498,7 @@ menu:
     summary: ''
   - slug: data-validation-010
     title: Kiểm thử cả dữ liệu biên, dữ liệu sai và phản hồi vi phạm hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1510,7 +1510,7 @@ menu:
   childs:
   - slug: interceptors-001
     title: EndpointInterceptor và vị trí trước, sau lời gọi endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1519,7 +1519,7 @@ menu:
     summary: ''
   - slug: interceptors-002
     title: handleRequest, handleResponse, handleFault và afterCompletion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1528,7 +1528,7 @@ menu:
     summary: ''
   - slug: interceptors-003
     title: Thứ tự chuỗi interceptor và hành vi khi ngừng xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1537,7 +1537,7 @@ menu:
     summary: ''
   - slug: interceptors-004
     title: Đăng ký interceptor qua WsConfigurer và cấu hình XML
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1546,7 +1546,7 @@ menu:
     summary: ''
   - slug: interceptors-005
     title: SmartEndpointInterceptor và giới hạn phạm vi theo endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1555,7 +1555,7 @@ menu:
     summary: ''
   - slug: interceptors-006
     title: PayloadLoggingInterceptor và ghi nội dung payload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1564,7 +1564,7 @@ menu:
     summary: ''
   - slug: interceptors-007
     title: SoapEnvelopeLoggingInterceptor và ghi phong bì SOAP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1573,7 +1573,7 @@ menu:
     summary: ''
   - slug: interceptors-008
     title: PayloadTransformingInterceptor và chuyển đổi hợp đồng bằng XSLT
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1582,7 +1582,7 @@ menu:
     summary: ''
   - slug: interceptors-009
     title: ClientInterceptor và chuỗi xử lý ở phía máy khách
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1591,7 +1591,7 @@ menu:
     summary: ''
   - slug: interceptors-010
     title: Thu hồi tài nguyên, xử lý lỗi và dữ liệu theo yêu cầu trong interceptor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1600,7 +1600,7 @@ menu:
     summary: ''
   - slug: interceptors-011
     title: Ảnh hưởng của interceptor đến streaming, chữ ký và dữ liệu nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1612,7 +1612,7 @@ menu:
   childs:
   - slug: soap-faults-001
     title: Cấu trúc SOAP Fault trong SOAP 1.1 và SOAP 1.2
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1621,7 +1621,7 @@ menu:
     summary: ''
   - slug: soap-faults-002
     title: Client, Server, Sender, Receiver và phân loại nguyên nhân lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1630,7 +1630,7 @@ menu:
     summary: ''
   - slug: soap-faults-003
     title: Fault code, reason, detail, actor, role và subcode
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1639,7 +1639,7 @@ menu:
     summary: ''
   - slug: soap-faults-004
     title: Lỗi hợp đồng, lỗi nghiệp vụ, lỗi kỹ thuật và lỗi bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1648,7 +1648,7 @@ menu:
     summary: ''
   - slug: soap-faults-005
     title: EndpointExceptionResolver và ranh giới xử lý ngoại lệ của endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1657,7 +1657,7 @@ menu:
     summary: ''
   - slug: soap-faults-006
     title: SimpleSoapExceptionResolver và kiểm soát thông tin được công bố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1666,7 +1666,7 @@ menu:
     summary: ''
   - slug: soap-faults-007
     title: SoapFaultMappingExceptionResolver và ánh xạ lớp ngoại lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1675,7 +1675,7 @@ menu:
     summary: ''
   - slug: soap-faults-008
     title: '@SoapFault và SoapFaultAnnotationExceptionResolver'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1684,7 +1684,7 @@ menu:
     summary: ''
   - slug: soap-faults-009
     title: Tạo phần detail có cấu trúc theo schema nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1693,7 +1693,7 @@ menu:
     summary: ''
   - slug: soap-faults-010
     title: Tùy chỉnh resolver và thứ tự áp dụng khi có nhiều resolver
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1702,7 +1702,7 @@ menu:
     summary: ''
   - slug: soap-faults-011
     title: SOAP Fault, mã HTTP và cách máy khách phân loại phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1711,7 +1711,7 @@ menu:
     summary: ''
   - slug: soap-faults-012
     title: Che thông tin nội bộ và kiểm chứng lỗi theo hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1723,7 +1723,7 @@ menu:
   childs:
   - slug: spring-ws-client-001
     title: WebServiceTemplate và vòng đời một lời gọi SOAP đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1732,7 +1732,7 @@ menu:
     summary: ''
   - slug: spring-ws-client-002
     title: Cấu hình URI mặc định và lựa chọn đích cho từng lời gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1741,7 +1741,7 @@ menu:
     summary: ''
   - slug: spring-ws-client-003
     title: Cấu hình message factory, message sender và bộ ánh xạ OXM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1750,7 +1750,7 @@ menu:
     summary: ''
   - slug: spring-ws-client-004
     title: marshalSendAndReceive và trao đổi đối tượng JAXB
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1759,7 +1759,7 @@ menu:
     summary: ''
   - slug: spring-ws-client-005
     title: Gửi Source, nhận Result và xử lý XML không qua mô hình JAXB
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1768,7 +1768,7 @@ menu:
     summary: ''
   - slug: spring-ws-client-006
     title: WebServiceMessageCallback và tùy chỉnh thông điệp trước khi gửi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1777,7 +1777,7 @@ menu:
     summary: ''
   - slug: spring-ws-client-007
     title: SoapActionCallback và cấu hình action của lời gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1786,7 +1786,7 @@ menu:
     summary: ''
   - slug: spring-ws-client-008
     title: WebServiceMessageExtractor và đọc phản hồi khi kết nối còn mở
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1795,7 +1795,7 @@ menu:
     summary: ''
   - slug: spring-ws-client-009
     title: WebServiceGatewaySupport và đóng gói client theo nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1804,7 +1804,7 @@ menu:
     summary: ''
   - slug: spring-ws-client-010
     title: Tái sử dụng WebServiceTemplate sau cấu hình và điều kiện an toàn luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1813,7 +1813,7 @@ menu:
     summary: ''
   - slug: spring-ws-client-011
     title: SoapFaultClientException, lỗi truyền tải và lỗi chuyển đổi dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1822,7 +1822,7 @@ menu:
     summary: ''
   - slug: spring-ws-client-012
     title: Gọi một chiều, phản hồi rỗng và kiểm tra ngữ nghĩa của từng API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1834,7 +1834,7 @@ menu:
   childs:
   - slug: http-and-connections-001
     title: WebServiceMessageSender, WebServiceConnection và lựa chọn transport
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1843,7 +1843,7 @@ menu:
     summary: ''
   - slug: http-and-connections-002
     title: HttpUrlConnectionMessageSender cho trao đổi HTTP cơ bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1852,7 +1852,7 @@ menu:
     summary: ''
   - slug: http-and-connections-003
     title: HttpComponents5MessageSender và cấu hình Apache HttpClient 5
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1861,7 +1861,7 @@ menu:
     summary: ''
   - slug: http-and-connections-004
     title: JdkHttpClientMessageSender và kiểm tra khả năng hỗ trợ theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1870,7 +1870,7 @@ menu:
     summary: ''
   - slug: http-and-connections-005
     title: Nhóm kết nối, giới hạn theo đích và thời gian chờ lấy kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1879,7 +1879,7 @@ menu:
     summary: ''
   - slug: http-and-connections-006
     title: Thời hạn kết nối, đọc phản hồi và ngân sách thời gian toàn lời gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1888,7 +1888,7 @@ menu:
     summary: ''
   - slug: http-and-connections-007
     title: HTTPS, xác minh chứng chỉ và xác minh tên máy chủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1897,7 +1897,7 @@ menu:
     summary: ''
   - slug: http-and-connections-008
     title: Xác thực HTTP, proxy và cấu hình thông tin truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1906,7 +1906,7 @@ menu:
     summary: ''
   - slug: http-and-connections-009
     title: Content-Type, charset, SOAPAction và các header do transport quản lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1915,7 +1915,7 @@ menu:
     summary: ''
   - slug: http-and-connections-010
     title: Lỗi Content-Length hoặc Transfer-Encoding khi phối hợp các thư viện HTTP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1924,7 +1924,7 @@ menu:
     summary: ''
   - slug: http-and-connections-011
     title: Giải phóng kết nối, phản hồi lỗi và tái sử dụng kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1933,7 +1933,7 @@ menu:
     summary: ''
   - slug: http-and-connections-012
     title: Timeout, thử lại, tính lũy đẳng và nguy cơ lặp tác dụng nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1945,7 +1945,7 @@ menu:
   childs:
   - slug: ws-addressing-001
     title: WS-Addressing bổ sung địa chỉ và thông tin tương quan cho SOAP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1954,7 +1954,7 @@ menu:
     summary: ''
   - slug: ws-addressing-002
     title: Action, To, MessageID, ReplyTo, FaultTo và RelatesTo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1963,7 +1963,7 @@ menu:
     summary: ''
   - slug: ws-addressing-003
     title: Phân biệt WS-Addressing Action với SOAPAction của transport
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1972,7 +1972,7 @@ menu:
     summary: ''
   - slug: ws-addressing-004
     title: AnnotationActionEndpointMapping và định tuyến bằng @Action
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1981,7 +1981,7 @@ menu:
     summary: ''
   - slug: ws-addressing-005
     title: '@Address và điều kiện liên quan đến địa chỉ nhận'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1990,7 +1990,7 @@ menu:
     summary: ''
   - slug: ws-addressing-006
     title: ActionCallback và thiết lập header ở phía máy khách
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1999,7 +1999,7 @@ menu:
     summary: ''
   - slug: ws-addressing-007
     title: Phiên bản WS-Addressing và yêu cầu tương thích giữa hai phía
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2008,7 +2008,7 @@ menu:
     summary: ''
   - slug: ws-addressing-008
     title: Phản hồi cùng kênh, phản hồi khác kênh và phạm vi hỗ trợ theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2017,7 +2017,7 @@ menu:
     summary: ''
   - slug: ws-addressing-009
     title: Kiểm soát đích ReplyTo, FaultTo do bên gửi thông điệp cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2026,7 +2026,7 @@ menu:
     summary: ''
   - slug: ws-addressing-010
     title: Phân biệt WS-Addressing với giao nhận tin cậy và điều phối giao dịch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2038,7 +2038,7 @@ menu:
   childs:
   - slug: attachments-001
     title: Dữ liệu nhị phân trong XML và chi phí biểu diễn base64
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2047,7 +2047,7 @@ menu:
     summary: ''
   - slug: attachments-002
     title: SOAP with Attachments, MTOM, XOP và các mục đích khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2056,7 +2056,7 @@ menu:
     summary: ''
   - slug: attachments-003
     title: MIME multipart, Content-ID và liên kết dữ liệu với payload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2065,7 +2065,7 @@ menu:
     summary: ''
   - slug: attachments-004
     title: MimeMessage, Attachment và truy cập tệp đính kèm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2074,7 +2074,7 @@ menu:
     summary: ''
   - slug: attachments-005
     title: Jaxb2Marshaller, mtomEnabled và ánh xạ dữ liệu nhị phân
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2083,7 +2083,7 @@ menu:
     summary: ''
   - slug: attachments-006
     title: DataHandler, DataSource và các kiểu Jakarta Activation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2092,7 +2092,7 @@ menu:
     summary: ''
   - slug: attachments-007
     title: Cấu hình message factory hỗ trợ tệp đính kèm theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2101,7 +2101,7 @@ menu:
     summary: ''
   - slug: attachments-008
     title: Giới hạn kích thước, bộ đệm, tệp tạm và vòng đời luồng dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2110,7 +2110,7 @@ menu:
     summary: ''
   - slug: attachments-009
     title: Loại nội dung, tên tệp và kiểm tra dữ liệu nhận được
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2119,7 +2119,7 @@ menu:
     summary: ''
   - slug: attachments-010
     title: Kiểm chứng tương thích MTOM giữa máy chủ và máy khách
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2131,7 +2131,7 @@ menu:
   childs:
   - slug: xml-processing-security-001
     title: Ranh giới tin cậy từ byte nhận được đến mô hình dữ liệu ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2140,7 +2140,7 @@ menu:
     summary: ''
   - slug: xml-processing-security-002
     title: DTD, external entity và điều kiện dẫn đến XXE
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2149,7 +2149,7 @@ menu:
     summary: ''
   - slug: xml-processing-security-003
     title: Ngăn phân giải tài nguyên ngoài tại parser, marshaller và transformer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2158,7 +2158,7 @@ menu:
     summary: ''
   - slug: xml-processing-security-004
     title: Giới hạn độ sâu, số phần tử, độ dài và mở rộng thực thể
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2167,7 +2167,7 @@ menu:
     summary: ''
   - slug: xml-processing-security-005
     title: Schema import, XSLT import và truy cập tài nguyên ngoài không được kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2176,7 +2176,7 @@ menu:
     summary: ''
   - slug: xml-processing-security-006
     title: Dùng schema tin cậy, phân giải cục bộ và kiểm soát tài nguyên hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2185,7 +2185,7 @@ menu:
     summary: ''
   - slug: xml-processing-security-007
     title: Tránh ghép XPath hoặc XSLT từ dữ liệu không đáng tin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2194,7 +2194,7 @@ menu:
     summary: ''
   - slug: xml-processing-security-008
     title: Giới hạn kích thước SOAP, multipart và dữ liệu sau giải nén
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2203,7 +2203,7 @@ menu:
     summary: ''
   - slug: xml-processing-security-009
     title: Xác minh cấu hình bảo vệ trên đúng implementation đang sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2212,7 +2212,7 @@ menu:
     summary: ''
   - slug: xml-processing-security-010
     title: Kiểm thử parser từ chối dữ liệu nguy hiểm mà không lộ nội dung hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2224,7 +2224,7 @@ menu:
   childs:
   - slug: ws-security-001
     title: Bảo mật tầng truyền tải và bảo mật thông điệp bảo vệ những phạm vi nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2233,7 +2233,7 @@ menu:
     summary: ''
   - slug: ws-security-002
     title: WS-Security header, token, timestamp, chữ ký và mã hóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2242,7 +2242,7 @@ menu:
     summary: ''
   - slug: ws-security-003
     title: Wss4jSecurityInterceptor và tích hợp Apache WSS4J
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2251,7 +2251,7 @@ menu:
     summary: ''
   - slug: ws-security-004
     title: validationActions, securementActions và thứ tự thực hiện hành động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2260,7 +2260,7 @@ menu:
     summary: ''
   - slug: ws-security-005
     title: UsernameToken, PasswordText, PasswordDigest và giới hạn bảo vệ mật khẩu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2269,7 +2269,7 @@ menu:
     summary: ''
   - slug: ws-security-006
     title: CallbackHandler và lấy thông tin xác thực từ nguồn được quản lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2278,7 +2278,7 @@ menu:
     summary: ''
   - slug: ws-security-007
     title: Timestamp, độ lệch đồng hồ, nonce và phát hiện phát lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2287,7 +2287,7 @@ menu:
     summary: ''
   - slug: ws-security-008
     title: Xác minh chữ ký, chuỗi tin cậy và phần thông điệp thực sự được ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2296,7 +2296,7 @@ menu:
     summary: ''
   - slug: ws-security-009
     title: Ký thông điệp gửi đi và lựa chọn các phần phải được bảo vệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2305,7 +2305,7 @@ menu:
     summary: ''
   - slug: ws-security-010
     title: Mã hóa, giải mã, thứ tự ký và mã hóa giữa hai phía
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2314,7 +2314,7 @@ menu:
     summary: ''
   - slug: ws-security-011
     title: Yêu cầu bảo mật bắt buộc, header bị thiếu và tránh đường đi bỏ qua xác minh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2323,7 +2323,7 @@ menu:
     summary: ''
   - slug: ws-security-012
     title: Phạm vi interceptor bảo mật phải nhất quán với cơ chế định tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2332,7 +2332,7 @@ menu:
     summary: ''
   - slug: ws-security-013
     title: Lỗi xác minh, SOAP Fault và bảo vệ phản hồi theo khả năng hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2344,7 +2344,7 @@ menu:
   childs:
   - slug: certificates-and-keys-001
     title: Keystore, truststore, khóa riêng và chứng chỉ công khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2353,7 +2353,7 @@ menu:
     summary: ''
   - slug: certificates-and-keys-002
     title: Định dạng lưu khóa, alias và lựa chọn khóa theo mục đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2362,7 +2362,7 @@ menu:
     summary: ''
   - slug: certificates-and-keys-003
     title: CryptoFactoryBean và cấu hình Crypto cho WSS4J
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2371,7 +2371,7 @@ menu:
     summary: ''
   - slug: certificates-and-keys-004
     title: Kiểm tra chuỗi chứng chỉ, thời hạn và mục đích sử dụng khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2380,7 +2380,7 @@ menu:
     summary: ''
   - slug: certificates-and-keys-005
     title: Khóa ký, khóa mã hóa và mối quan hệ giữa bên gửi với bên nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2389,7 +2389,7 @@ menu:
     summary: ''
   - slug: certificates-and-keys-006
     title: Quản lý mật khẩu kho khóa và tách bí mật khỏi mã nguồn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2398,7 +2398,7 @@ menu:
     summary: ''
   - slug: certificates-and-keys-007
     title: Luân chuyển chứng chỉ, giai đoạn chuyển tiếp và khôi phục cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2407,7 +2407,7 @@ menu:
     summary: ''
   - slug: certificates-and-keys-008
     title: Phân biệt chứng chỉ dùng cho TLS với chứng chỉ bảo vệ thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2416,7 +2416,7 @@ menu:
     summary: ''
   - slug: certificates-and-keys-009
     title: Kiểm thử chứng chỉ hết hạn, không tin cậy và thiếu khóa phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2428,7 +2428,7 @@ menu:
   childs:
   - slug: spring-security-integration-001
     title: SecurityFilterChain ở tầng HTTP và interceptor ở tầng SOAP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2437,7 +2437,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-002
     title: Xác thực HTTP Basic, TLS phía máy khách và WS-Security UsernameToken
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2446,7 +2446,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-003
     title: UserDetailsService và callback xác minh danh tính cho WS-Security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2455,7 +2455,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-004
     title: Khác biệt giữa xác minh token với cơ chế lưu mật khẩu của ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2464,7 +2464,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-005
     title: Kiểm chứng Authentication, SecurityContext và đường truyền danh tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2473,7 +2473,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-006
     title: Phân quyền theo thao tác nghiệp vụ và bảo vệ lớp dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2482,7 +2482,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-007
     title: Không dùng header nghiệp vụ chưa xác thực làm nguồn cấp quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2491,7 +2491,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-008
     title: Bảo vệ URL SOAP, WSDL, XSD và các tài nguyên quản trị theo mục đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2500,7 +2500,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-009
     title: CSRF, yêu cầu SOAP POST và thiết kế ngoại lệ có phạm vi phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2509,7 +2509,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-010
     title: Phân biệt HTTP 401, HTTP 403 với SOAP Fault bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2521,7 +2521,7 @@ menu:
   childs:
   - slug: extended-transports-001
     title: Tách xử lý SOAP khỏi HTTP và kiểm tra transport được phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2530,7 +2530,7 @@ menu:
     summary: ''
   - slug: extended-transports-002
     title: Gửi, nhận SOAP qua JMS và cấu hình bên nghe thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2539,7 +2539,7 @@ menu:
     summary: ''
   - slug: extended-transports-003
     title: BytesMessage, TextMessage và yêu cầu tương thích giữa hai phía
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2548,7 +2548,7 @@ menu:
     summary: ''
   - slug: extended-transports-004
     title: JMSReplyTo, correlation và ghép yêu cầu với phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2557,7 +2557,7 @@ menu:
     summary: ''
   - slug: extended-transports-005
     title: Thông điệp một chiều, phản hồi và giới hạn thời gian chờ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2566,7 +2566,7 @@ menu:
     summary: ''
   - slug: extended-transports-006
     title: Xác nhận JMS, giao dịch cục bộ và giới hạn đối với nghiệp vụ từ xa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2575,7 +2575,7 @@ menu:
     summary: ''
   - slug: extended-transports-007
     title: Tổng quan transport email, XMPP và nhu cầu tích hợp chuyên biệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2584,7 +2584,7 @@ menu:
     summary: ''
   - slug: extended-transports-008
     title: HTTP server nhúng và lựa chọn môi trường triển khai phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2593,7 +2593,7 @@ menu:
     summary: ''
   - slug: extended-transports-009
     title: Kiểm soát đích phản hồi khác kênh và các kết nối do thông điệp kích hoạt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2605,7 +2605,7 @@ menu:
   childs:
   - slug: contract-compatibility-001
     title: Tương thích cấu trúc, tương thích ngữ nghĩa và tương thích mã đã được sinh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2614,7 +2614,7 @@ menu:
     summary: ''
   - slug: contract-compatibility-002
     title: Thêm phần tử tùy chọn và kiểm chứng hành vi của client cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2623,7 +2623,7 @@ menu:
     summary: ''
   - slug: contract-compatibility-003
     title: Thay đổi kiểu, thứ tự, số lần xuất hiện và trường bắt buộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2632,7 +2632,7 @@ menu:
     summary: ''
   - slug: contract-compatibility-004
     title: Giá trị enum mới và giới hạn của mô hình JAXB được sinh trước đó
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2641,7 +2641,7 @@ menu:
     summary: ''
   - slug: contract-compatibility-005
     title: Chiến lược version theo namespace, endpoint hoặc hợp đồng công bố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2650,7 +2650,7 @@ menu:
     summary: ''
   - slug: contract-compatibility-006
     title: Hỗ trợ song song hợp đồng cũ, mới và định tuyến rõ ràng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2659,7 +2659,7 @@ menu:
     summary: ''
   - slug: contract-compatibility-007
     title: Chuyển đổi bằng XSLT và xác định giới hạn chuyển đổi hai chiều
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2668,7 +2668,7 @@ menu:
     summary: ''
   - slug: contract-compatibility-008
     title: Quản lý WSDL tĩnh, XSD dùng chung và bộ tạo tác hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2677,7 +2677,7 @@ menu:
     summary: ''
   - slug: contract-compatibility-009
     title: WS-I Basic Profile và kiểm chứng khả năng tương tác ngoài Java
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2686,7 +2686,7 @@ menu:
     summary: ''
   - slug: contract-compatibility-010
     title: Quy trình thông báo thay đổi, ngừng hỗ trợ và kiểm tra client phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2698,7 +2698,7 @@ menu:
   childs:
   - slug: server-testing-001
     title: Kiểm thử nghiệp vụ thuần và kiểm thử endpoint là các phạm vi khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2707,7 +2707,7 @@ menu:
     summary: ''
   - slug: server-testing-002
     title: MockWebServiceClient và tạo client từ ApplicationContext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2716,7 +2716,7 @@ menu:
     summary: ''
   - slug: server-testing-003
     title: RequestCreator, RequestCreators và tạo yêu cầu từ payload hoặc envelope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2725,7 +2725,7 @@ menu:
     summary: ''
   - slug: server-testing-004
     title: ResponseMatcher, ResponseMatchers và khai báo phản hồi mong đợi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2734,7 +2734,7 @@ menu:
     summary: ''
   - slug: server-testing-005
     title: So khớp XML, XPath và namespace trong dữ liệu phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2743,7 +2743,7 @@ menu:
     summary: ''
   - slug: server-testing-006
     title: Kiểm tra payload đúng XSD và các trường hợp không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2752,7 +2752,7 @@ menu:
     summary: ''
   - slug: server-testing-007
     title: Kiểm tra header, mustUnderstand và các loại SOAP Fault
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2761,7 +2761,7 @@ menu:
     summary: ''
   - slug: server-testing-008
     title: Kiểm tra interceptor, mapping và hợp đồng chữ ký endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2770,7 +2770,7 @@ menu:
     summary: ''
   - slug: server-testing-009
     title: Kiểm thử xác thực, phân quyền và đường đi bị từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2779,7 +2779,7 @@ menu:
     summary: ''
   - slug: server-testing-010
     title: Lát cắt kiểm thử Spring Boot và cấu hình theo phiên bản đang dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2788,7 +2788,7 @@ menu:
     summary: ''
   - slug: server-testing-011
     title: Giới hạn của mock khi chưa đi qua HTTP server và bộ lọc thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2800,7 +2800,7 @@ menu:
   childs:
   - slug: client-testing-001
     title: MockWebServiceServer và gắn với WebServiceTemplate cần kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2809,7 +2809,7 @@ menu:
     summary: ''
   - slug: client-testing-002
     title: RequestMatcher, RequestMatchers và kiểm tra thông điệp được gửi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2818,7 +2818,7 @@ menu:
     summary: ''
   - slug: client-testing-003
     title: So khớp payload, namespace, header và action của lời gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2827,7 +2827,7 @@ menu:
     summary: ''
   - slug: client-testing-004
     title: ResponseCreator, ResponseCreators và tạo phản hồi mô phỏng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2836,7 +2836,7 @@ menu:
     summary: ''
   - slug: client-testing-005
     title: Mô phỏng SOAP Fault, lỗi truyền tải và nội dung không đọc được
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2845,7 +2845,7 @@ menu:
     summary: ''
   - slug: client-testing-006
     title: Kiểm tra marshalling, unmarshalling và ánh xạ lỗi về nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2854,7 +2854,7 @@ menu:
     summary: ''
   - slug: client-testing-007
     title: Kiểm tra callback, interceptor và thông tin tương quan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2863,7 +2863,7 @@ menu:
     summary: ''
   - slug: client-testing-008
     title: Thứ tự kỳ vọng, xác nhận lời gọi đã diễn ra và phát hiện thiếu lời gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2872,7 +2872,7 @@ menu:
     summary: ''
   - slug: client-testing-009
     title: Tạo matcher, response tùy chỉnh cho quy tắc hợp đồng riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2881,7 +2881,7 @@ menu:
     summary: ''
   - slug: client-testing-010
     title: Kiểm thử logic thử lại và bảo đảm không lặp tác dụng nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2890,7 +2890,7 @@ menu:
     summary: ''
   - slug: client-testing-011
     title: Những lỗi timeout, TLS, proxy cần kiểm thử thêm qua transport thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2902,7 +2902,7 @@ menu:
   childs:
   - slug: integration-testing-001
     title: Khởi động máy chủ và client với HTTP transport thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2911,7 +2911,7 @@ menu:
     summary: ''
   - slug: integration-testing-002
     title: Kiểm tra URL WSDL, XSD import và địa chỉ dịch vụ sau triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2920,7 +2920,7 @@ menu:
     summary: ''
   - slug: integration-testing-003
     title: Ma trận SOAP 1.1, SOAP 1.2, Content-Type và action
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2929,7 +2929,7 @@ menu:
     summary: ''
   - slug: integration-testing-004
     title: Kiểm tra HTTP status, SOAP Fault và phản hồi không phải XML
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2938,7 +2938,7 @@ menu:
     summary: ''
   - slug: integration-testing-005
     title: Trao đổi MTOM và xác nhận toàn vẹn dữ liệu nhị phân
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2947,7 +2947,7 @@ menu:
     summary: ''
   - slug: integration-testing-006
     title: Kiểm chứng chữ ký, mã hóa, UsernameToken và timestamp giữa hai phía
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2956,7 +2956,7 @@ menu:
     summary: ''
   - slug: integration-testing-007
     title: Kiểm tra từ chối thông điệp sai bảo mật trước khi chạy nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2965,7 +2965,7 @@ menu:
     summary: ''
   - slug: integration-testing-008
     title: Tương tác với client ngoài Java và các khác biệt trong mã được sinh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2974,7 +2974,7 @@ menu:
     summary: ''
   - slug: integration-testing-009
     title: Mô phỏng kết nối chậm, lỗi giữa chừng và giới hạn kích thước
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2983,7 +2983,7 @@ menu:
     summary: ''
   - slug: integration-testing-010
     title: Kiểm thử hợp đồng cũ, mới bằng bộ thông điệp đã được lưu làm mẫu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2995,7 +2995,7 @@ menu:
   childs:
   - slug: performance-and-operations-001
     title: 'Đo độ trễ theo từng lớp: transport, XML, bảo mật và nghiệp vụ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3004,7 +3004,7 @@ menu:
     summary: ''
   - slug: performance-and-operations-002
     title: Kích thước payload, JAXB, DOM và mức sử dụng bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3013,7 +3013,7 @@ menu:
     summary: ''
   - slug: performance-and-operations-003
     title: Streaming, payload caching và các thao tác làm tiêu thụ luồng dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3022,7 +3022,7 @@ menu:
     summary: ''
   - slug: performance-and-operations-004
     title: Chi phí validation, biến đổi XSLT, ký và mã hóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3031,7 +3031,7 @@ menu:
     summary: ''
   - slug: performance-and-operations-005
     title: Tái sử dụng cấu hình client, JAXB context và nhóm kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3040,7 +3040,7 @@ menu:
     summary: ''
   - slug: performance-and-operations-006
     title: Giới hạn luồng servlet, số kết nối và số yêu cầu đang xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3049,7 +3049,7 @@ menu:
     summary: ''
   - slug: performance-and-operations-007
     title: Timeout theo giai đoạn và chính sách thử lại có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3058,7 +3058,7 @@ menu:
     summary: ''
   - slug: performance-and-operations-008
     title: Đánh đổi giữa base64, MTOM và lưu tệp tạm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3067,7 +3067,7 @@ menu:
     summary: ''
   - slug: performance-and-operations-009
     title: Giới hạn tải, áp lực tài nguyên và bảo vệ dịch vụ phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3076,7 +3076,7 @@ menu:
     summary: ''
   - slug: performance-and-operations-010
     title: Reverse proxy, cân bằng tải và địa chỉ WSDL công bố bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3085,7 +3085,7 @@ menu:
     summary: ''
   - slug: performance-and-operations-011
     title: Tắt có trật tự, thu hồi kết nối và xử lý yêu cầu chưa hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3097,7 +3097,7 @@ menu:
   childs:
   - slug: observability-and-diagnostics-001
     title: Log, metric, trace và thông tin cần để theo dõi một lời gọi SOAP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3106,7 +3106,7 @@ menu:
     summary: ''
   - slug: observability-and-diagnostics-002
     title: Message tracing của Spring-WS ở phía máy chủ và máy khách
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3115,7 +3115,7 @@ menu:
     summary: ''
   - slug: observability-and-diagnostics-003
     title: Phân biệt ghi payload với ghi toàn bộ SOAP envelope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3124,7 +3124,7 @@ menu:
     summary: ''
   - slug: observability-and-diagnostics-004
     title: Che dữ liệu cá nhân, token, thông tin xác thực và nội dung nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3133,7 +3133,7 @@ menu:
     summary: ''
   - slug: observability-and-diagnostics-005
     title: 'Không tìm thấy endpoint: kiểm tra URL, QName, mapping và action'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3142,7 +3142,7 @@ menu:
     summary: ''
   - slug: observability-and-diagnostics-006
     title: 'Lỗi JAXB: phần tử không mong đợi, thiếu context và khác namespace'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3151,7 +3151,7 @@ menu:
     summary: ''
   - slug: observability-and-diagnostics-007
     title: 'Lỗi adapter: chữ ký phương thức và kiểu tham số không được hỗ trợ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3160,7 +3160,7 @@ menu:
     summary: ''
   - slug: observability-and-diagnostics-008
     title: Lỗi SOAP version, Content-Type, charset và nội dung HTML từ proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3169,7 +3169,7 @@ menu:
     summary: ''
   - slug: observability-and-diagnostics-009
     title: 'Lỗi WS-Security: đồng hồ, khóa, chứng chỉ và phần dữ liệu được bảo vệ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3178,7 +3178,7 @@ menu:
     summary: ''
   - slug: observability-and-diagnostics-010
     title: Lỗi cạn kết nối, timeout và yêu cầu chờ không được giải phóng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3187,7 +3187,7 @@ menu:
     summary: ''
   - slug: observability-and-diagnostics-011
     title: Định danh tương quan và quy trình thu bằng chứng mà không làm lộ bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3199,7 +3199,7 @@ menu:
   childs:
   - slug: upgrades-and-migration-001
     title: Đọc ma trận tương thích trước khi thay đổi JDK, Boot, Spring-WS hoặc WSS4J
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3208,7 +3208,7 @@ menu:
     summary: ''
   - slug: upgrades-and-migration-002
     title: Chuyển javax sang jakarta cho JAXB, SAAJ và Activation đúng phạm vi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3217,7 +3217,7 @@ menu:
     summary: ''
   - slug: upgrades-and-migration-003
     title: Những package Java SE như javax.xml.transform vẫn giữ tên cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3226,7 +3226,7 @@ menu:
     summary: ''
   - slug: upgrades-and-migration-004
     title: Đối chiếu mã được sinh, plugin sinh mã và implementation XML khi nâng cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3235,7 +3235,7 @@ menu:
     summary: ''
   - slug: upgrades-and-migration-005
     title: Tên starter, cấu hình tự động và hỗ trợ kiểm thử khác nhau giữa các dòng Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3244,7 +3244,7 @@ menu:
     summary: ''
   - slug: upgrades-and-migration-006
     title: Chuyển thư viện HTTP, cấu hình timeout và nhóm kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3253,7 +3253,7 @@ menu:
     summary: ''
   - slug: upgrades-and-migration-007
     title: Cấu hình WsConfigurer, API bị thay thế và khác biệt chữ ký mở rộng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3262,7 +3262,7 @@ menu:
     summary: ''
   - slug: upgrades-and-migration-008
     title: Kiểm tra khả năng hỗ trợ của message factory và transport đang dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3271,7 +3271,7 @@ menu:
     summary: ''
   - slug: upgrades-and-migration-009
     title: Giữ WSDL, XSD, payload mẫu và kiểm thử tương thích làm mốc xác nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3283,7 +3283,7 @@ menu:
   childs:
   - slug: integrated-web-services-practice-001
     title: Thiết kế XSD, WSDL cho dịch vụ tra cứu và tạo lịch hẹn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3292,7 +3292,7 @@ menu:
     summary: ''
   - slug: integrated-web-services-practice-002
     title: Sinh lớp JAXB và hiện thực endpoint dựa trên hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3301,7 +3301,7 @@ menu:
     summary: ''
   - slug: integrated-web-services-practice-003
     title: Công bố WSDL, XSD rồi tạo client gọi dịch vụ qua HTTP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3310,7 +3310,7 @@ menu:
     summary: ''
   - slug: integrated-web-services-practice-004
     title: Bổ sung header tương quan và kiểm chứng định tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3319,7 +3319,7 @@ menu:
     summary: ''
   - slug: integrated-web-services-practice-005
     title: Xây dựng validation và SOAP Fault nghiệp vụ có detail theo schema
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3328,7 +3328,7 @@ menu:
     summary: ''
   - slug: integrated-web-services-practice-006
     title: Bảo vệ một thao tác bằng WS-Security và phân quyền ở lớp dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3337,7 +3337,7 @@ menu:
     summary: ''
   - slug: integrated-web-services-practice-007
     title: Trao đổi tệp đính kèm bằng MTOM và kiểm tra giới hạn dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3346,7 +3346,7 @@ menu:
     summary: ''
   - slug: integrated-web-services-practice-008
     title: Viết kiểm thử mock cho máy chủ, máy khách và kiểm thử transport thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3355,7 +3355,7 @@ menu:
     summary: ''
   - slug: integrated-web-services-practice-009
     title: Thêm phiên bản hợp đồng mới và kiểm chứng client cũ vẫn hoạt động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3364,7 +3364,7 @@ menu:
     summary: ''
   - slug: integrated-web-services-practice-010
     title: Đo tác động của kích thước payload, kết nối và bảo mật lên hiệu năng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3373,7 +3373,7 @@ menu:
     summary: ''
   - slug: integrated-web-services-practice-011
     title: Triển khai sau reverse proxy và chẩn đoán một lỗi kết nối hoặc hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

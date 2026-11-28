@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-001
     title: Spring Cloud Service Broker và tên dự án Spring Cloud Open Service Broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-002
     title: Bài toán tự phục vụ tài nguyên và vai trò của service broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-003
     title: 'Các bên tham gia: nền tảng, broker, nhà cung cấp dịch vụ và ứng dụng'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-004
     title: Quan hệ giữa dịch vụ, gói dịch vụ, thực thể dịch vụ và liên kết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-005
     title: Phân biệt service broker với service discovery, API gateway và message broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-006
     title: Phạm vi trách nhiệm của framework và phần nghiệp vụ do người viết broker đảm nhiệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-007
     title: Luồng tổng thể từ công bố dịch vụ đến cấp phát, liên kết và thu hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: overview-008
     title: Điều kiện áp dụng OSB API và giới hạn của mô hình broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -79,7 +79,7 @@ menu:
   childs:
   - slug: architecture-001
     title: Kiến trúc nền tảng – broker – hệ thống cung cấp tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
     summary: ''
   - slug: architecture-002
     title: Tách luồng quản lý vòng đời khỏi luồng ứng dụng sử dụng dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: architecture-003
     title: Controller OSB, mô hình dữ liệu và cơ chế tự cấu hình của Spring Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: architecture-004
     title: Vai trò và quan hệ của CatalogService, ServiceInstanceService và ServiceInstanceBindingService
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: architecture-005
     title: Luồng xử lý từ HTTP request đến dịch vụ nghiệp vụ và HTTP response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: architecture-006
     title: Tách bộ điều hợp hạ tầng khỏi hợp đồng Open Service Broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: architecture-007
     title: Nhận diện nền tảng bằng platformInstanceId và tiền tố đường dẫn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: architecture-008
     title: Thiết kế broker phục vụ nhiều nền tảng và nhiều khách hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -154,7 +154,7 @@ menu:
   childs:
   - slug: initialization-001
     title: 'Kiến thức cần có: Spring Boot, HTTP, JSON, bảo mật và Reactor'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -163,7 +163,7 @@ menu:
     summary: ''
   - slug: initialization-002
     title: Chọn phiên bản Java, Spring Boot và Spring Cloud Open Service Broker tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
     summary: ''
   - slug: initialization-003
     title: Khai báo spring-cloud-starter-open-service-broker bằng Maven hoặc Gradle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: initialization-004
     title: Lựa chọn web starter Spring MVC hoặc Spring WebFlux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: initialization-005
     title: Khởi tạo ứng dụng và đăng ký các Spring bean nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: initialization-006
     title: Cấu hình application.yml và tách cấu hình theo môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: initialization-007
     title: Tùy chỉnh đường dẫn bằng spring.cloud.openservicebroker.base-path
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: initialization-008
     title: Dựng broker tối thiểu và gọi thử GET /v2/catalog
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -229,7 +229,7 @@ menu:
   childs:
   - slug: osb-protocol-001
     title: 'Đọc đặc tả OSB API: yêu cầu bắt buộc, tùy chọn và khả năng của nền tảng'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -238,7 +238,7 @@ menu:
     summary: ''
   - slug: osb-protocol-002
     title: Nhóm endpoint catalog, service_instances, service_bindings và last_operation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -247,7 +247,7 @@ menu:
     summary: ''
   - slug: osb-protocol-003
     title: HTTP method, đường dẫn định danh, query parameter và JSON body
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
     summary: ''
   - slug: osb-protocol-004
     title: X-Broker-API-Version và kiểm tra phiên bản giao thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -265,7 +265,7 @@ menu:
     summary: ''
   - slug: osb-protocol-005
     title: X-Broker-API-Originating-Identity và danh tính người khởi tạo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
     summary: ''
   - slug: osb-protocol-006
     title: X-Broker-API-Request-Identity và đối chiếu các yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
     summary: ''
   - slug: osb-protocol-007
     title: Trường context và dữ liệu riêng của từng nền tảng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: osb-protocol-008
     title: service_id, plan_id, instance_id và binding_id trong từng loại yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -301,7 +301,7 @@ menu:
     summary: ''
   - slug: osb-protocol-009
     title: Hợp đồng phản hồi đồng bộ, bất đồng bộ và lỗi giao thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -310,7 +310,7 @@ menu:
     summary: ''
   - slug: osb-protocol-010
     title: Phân biệt tính năng đã phát hành với phần mở rộng phụ thuộc phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -322,7 +322,7 @@ menu:
   childs:
   - slug: service-catalog-001
     title: Cấu trúc Catalog, ServiceDefinition và Plan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -331,7 +331,7 @@ menu:
     summary: ''
   - slug: service-catalog-002
     title: Khai báo id, name, description và tính ổn định của định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -340,7 +340,7 @@ menu:
     summary: ''
   - slug: service-catalog-003
     title: Công bố danh mục qua GET /v2/catalog
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -349,7 +349,7 @@ menu:
     summary: ''
   - slug: service-catalog-004
     title: Tạo Catalog bean bằng Java builder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -358,7 +358,7 @@ menu:
     summary: ''
   - slug: service-catalog-005
     title: Khai báo danh mục bằng YAML hoặc properties
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -367,7 +367,7 @@ menu:
     summary: ''
   - slug: service-catalog-006
     title: Cài đặt CatalogService cho danh mục lấy từ nguồn dữ liệu động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -376,7 +376,7 @@ menu:
     summary: ''
   - slug: service-catalog-007
     title: Metadata, tags, liên kết tài liệu và thông tin hiển thị trên marketplace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -385,7 +385,7 @@ menu:
     summary: ''
   - slug: service-catalog-008
     title: Các cờ bindable, instances_retrievable và bindings_retrievable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -394,7 +394,7 @@ menu:
     summary: ''
   - slug: service-catalog-009
     title: Khai báo requires và các khả năng đặc thù của dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -403,7 +403,7 @@ menu:
     summary: ''
   - slug: service-catalog-010
     title: Đồng bộ danh mục với năng lực cấp phát thực tế của broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -412,7 +412,7 @@ menu:
     summary: ''
   - slug: service-catalog-011
     title: Bộ nhớ đệm danh mục và phản hồi có điều kiện bằng ETag theo phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -424,7 +424,7 @@ menu:
   childs:
   - slug: service-plans-001
     title: Mô hình gói dịch vụ và ánh xạ gói sang tài nguyên hạ tầng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -433,7 +433,7 @@ menu:
     summary: ''
   - slug: service-plans-002
     title: Định danh, mô tả, thuộc tính free và metadata của gói
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -442,7 +442,7 @@ menu:
     summary: ''
   - slug: service-plans-003
     title: Quy tắc kế thừa và ghi đè bindable ở cấp gói
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -451,7 +451,7 @@ menu:
     summary: ''
   - slug: service-plans-004
     title: Khai báo plan_updateable và giới hạn chuyển đổi gói
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -460,7 +460,7 @@ menu:
     summary: ''
   - slug: service-plans-005
     title: Tách metadata về giá khỏi cơ chế tính phí thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -469,7 +469,7 @@ menu:
     summary: ''
   - slug: service-plans-006
     title: Giới hạn dung lượng, số lượng và tài nguyên theo từng gói
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -478,7 +478,7 @@ menu:
     summary: ''
   - slug: service-plans-007
     title: maintenance_info và yêu cầu bảo trì phụ thuộc phiên bản giao thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -487,7 +487,7 @@ menu:
     summary: ''
   - slug: service-plans-008
     title: Thêm, ngừng cung cấp và thay đổi gói mà vẫn quản lý được instance cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -499,7 +499,7 @@ menu:
   childs:
   - slug: input-parameters-001
     title: Phân biệt parameters, context, metadata và thuộc tính giao thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -508,7 +508,7 @@ menu:
     summary: ''
   - slug: input-parameters-002
     title: Schema tham số cấp phát, cập nhật instance và tạo binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -517,7 +517,7 @@ menu:
     summary: ''
   - slug: input-parameters-003
     title: Mô tả tham số bằng JSON Schema trong danh mục dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -526,7 +526,7 @@ menu:
     summary: ''
   - slug: input-parameters-004
     title: Tham số bắt buộc, giá trị mặc định, kiểu dữ liệu và miền giá trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -535,7 +535,7 @@ menu:
     summary: ''
   - slug: input-parameters-005
     title: Kiểm tra tham số tại broker thay vì chỉ dựa vào kiểm tra của nền tảng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -544,7 +544,7 @@ menu:
     summary: ''
   - slug: input-parameters-006
     title: Chuẩn hóa tham số và từ chối trường không được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -553,7 +553,7 @@ menu:
     summary: ''
   - slug: input-parameters-007
     title: Kiểm tra quan hệ giữa tham số, gói dịch vụ và quyền của khách hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -562,7 +562,7 @@ menu:
     summary: ''
   - slug: input-parameters-008
     title: Quản lý tham số nhạy cảm và loại bỏ bí mật khỏi thông báo lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -571,7 +571,7 @@ menu:
     summary: ''
   - slug: input-parameters-009
     title: Tiến hóa schema tham số và tương thích với yêu cầu cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -583,7 +583,7 @@ menu:
   childs:
   - slug: service-provisioning-001
     title: PUT /v2/service_instances/{instance_id} và hợp đồng cấp phát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -592,7 +592,7 @@ menu:
     summary: ''
   - slug: service-provisioning-002
     title: CreateServiceInstanceRequest và dữ liệu cần xác minh trước khi tạo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -601,7 +601,7 @@ menu:
     summary: ''
   - slug: service-provisioning-003
     title: Cài đặt createServiceInstance() trong ServiceInstanceService
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -610,7 +610,7 @@ menu:
     summary: ''
   - slug: service-provisioning-004
     title: Ánh xạ instance_id sang tài nguyên của nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -619,7 +619,7 @@ menu:
     summary: ''
   - slug: service-provisioning-005
     title: Cấp phát tài nguyên dùng chung và tài nguyên dành riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -628,7 +628,7 @@ menu:
     summary: ''
   - slug: service-provisioning-006
     title: CreateServiceInstanceResponse, dashboard_url và metadata được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -637,7 +637,7 @@ menu:
     summary: ''
   - slug: service-provisioning-007
     title: Lựa chọn hoàn tất đồng bộ hoặc trả về thao tác bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -646,7 +646,7 @@ menu:
     summary: ''
   - slug: service-provisioning-008
     title: Lưu kết quả cấp phát và xử lý yêu cầu tạo lại cùng định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -655,7 +655,7 @@ menu:
     summary: ''
   - slug: service-provisioning-009
     title: Thu hồi tài nguyên đã tạo khi cấp phát chỉ thành công một phần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -667,7 +667,7 @@ menu:
   childs:
   - slug: service-retrieval-001
     title: instances_retrievable và điều kiện hỗ trợ GET service instance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -676,7 +676,7 @@ menu:
     summary: ''
   - slug: service-retrieval-002
     title: Cài đặt getServiceInstance() và xây dựng GetServiceInstanceResponse
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -685,7 +685,7 @@ menu:
     summary: ''
   - slug: service-retrieval-003
     title: Truy xuất cấu hình hiện tại và các tham số được phép công bố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -694,7 +694,7 @@ menu:
     summary: ''
   - slug: service-retrieval-004
     title: Phân biệt trạng thái instance với trạng thái thao tác last_operation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -703,7 +703,7 @@ menu:
     summary: ''
   - slug: service-retrieval-005
     title: Metadata, labels và thuộc tính mở rộng theo phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -712,7 +712,7 @@ menu:
     summary: ''
   - slug: service-retrieval-006
     title: Xử lý instance không tồn tại hoặc tài nguyên bên ngoài đã bị xóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -721,7 +721,7 @@ menu:
     summary: ''
   - slug: service-retrieval-007
     title: Đối chiếu trạng thái đã lưu với trạng thái thực của nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -733,7 +733,7 @@ menu:
   childs:
   - slug: service-updates-001
     title: PATCH /v2/service_instances/{instance_id} và điều kiện plan_updateable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -742,7 +742,7 @@ menu:
     summary: ''
   - slug: service-updates-002
     title: Cài đặt updateServiceInstance() và mô hình request/response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -751,7 +751,7 @@ menu:
     summary: ''
   - slug: service-updates-003
     title: Phân biệt đổi gói dịch vụ, đổi tham số và cập nhật context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -760,7 +760,7 @@ menu:
     summary: ''
   - slug: service-updates-004
     title: previous_values và đối chiếu cấu hình trước khi thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -769,7 +769,7 @@ menu:
     summary: ''
   - slug: service-updates-005
     title: Kiểm tra đường chuyển gói, hạn mức và khả năng của nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -778,7 +778,7 @@ menu:
     summary: ''
   - slug: service-updates-006
     title: Cập nhật tại chỗ hoặc thay thế tài nguyên và di chuyển dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -787,7 +787,7 @@ menu:
     summary: ''
   - slug: service-updates-007
     title: Cập nhật đồng bộ, bất đồng bộ và kiểm soát thao tác đang diễn ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -796,7 +796,7 @@ menu:
     summary: ''
   - slug: service-updates-008
     title: 'Thất bại khi cập nhật: khả năng tiếp tục sử dụng và thử lại'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -805,7 +805,7 @@ menu:
     summary: ''
   - slug: service-updates-009
     title: Bảo trì theo maintenance_info khi framework và nền tảng hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -817,7 +817,7 @@ menu:
   childs:
   - slug: service-deprovisioning-001
     title: DELETE /v2/service_instances/{instance_id} và hợp đồng thu hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -826,7 +826,7 @@ menu:
     summary: ''
   - slug: service-deprovisioning-002
     title: Cài đặt deleteServiceInstance() và mô hình request/response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -835,7 +835,7 @@ menu:
     summary: ''
   - slug: service-deprovisioning-003
     title: Xác minh service_id, plan_id và quyền sở hữu trước khi xóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -844,7 +844,7 @@ menu:
     summary: ''
   - slug: service-deprovisioning-004
     title: Xử lý binding còn tồn tại và thứ tự giải phóng tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -853,7 +853,7 @@ menu:
     summary: ''
   - slug: service-deprovisioning-005
     title: Chính sách giữ dữ liệu, sao lưu và xóa theo yêu cầu dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -862,7 +862,7 @@ menu:
     summary: ''
   - slug: service-deprovisioning-006
     title: Thu hồi đồng bộ hoặc bất đồng bộ và xác nhận kết quả cuối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -871,7 +871,7 @@ menu:
     summary: ''
   - slug: service-deprovisioning-007
     title: Thu hồi lặp lại, instance không còn tồn tại và phản hồi phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -880,7 +880,7 @@ menu:
     summary: ''
   - slug: service-deprovisioning-008
     title: Dọn tài nguyên mồ côi theo cơ chế orphan mitigation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -889,7 +889,7 @@ menu:
     summary: ''
   - slug: service-deprovisioning-009
     title: Khôi phục khả năng thu hồi khi nhà cung cấp tạm thời không đáp ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -901,7 +901,7 @@ menu:
   childs:
   - slug: async-operations-001
     title: Vì sao tác vụ hạ tầng kéo dài cần giao thức bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -910,7 +910,7 @@ menu:
     summary: ''
   - slug: async-operations-002
     title: accepts_incomplete và trường hợp phải báo AsyncRequired
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -919,7 +919,7 @@ menu:
     summary: ''
   - slug: async-operations-003
     title: Phản hồi HTTP 202, trường operation và định danh tác vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -928,7 +928,7 @@ menu:
     summary: ''
   - slug: async-operations-004
     title: Mô hình trạng thái in progress, succeeded và failed
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -937,7 +937,7 @@ menu:
     summary: ''
   - slug: async-operations-005
     title: Cài đặt getLastOperation() cho service instance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -946,7 +946,7 @@ menu:
     summary: ''
   - slug: async-operations-006
     title: Cài đặt getLastOperation() cho service binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -955,7 +955,7 @@ menu:
     summary: ''
   - slug: async-operations-007
     title: Chu kỳ hỏi trạng thái, Retry-After và giới hạn chờ theo nền tảng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -964,7 +964,7 @@ menu:
     summary: ''
   - slug: async-operations-008
     title: Phân biệt Mono bất đồng bộ trong ứng dụng với bất đồng bộ của OSB API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -973,7 +973,7 @@ menu:
     summary: ''
   - slug: async-operations-009
     title: Thực thi tác vụ bền vững bằng hàng đợi hoặc bộ xử lý nền do broker quản lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -982,7 +982,7 @@ menu:
     summary: ''
   - slug: async-operations-010
     title: Tiếp tục theo dõi tác vụ sau khi ứng dụng khởi động lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -991,7 +991,7 @@ menu:
     summary: ''
   - slug: async-operations-011
     title: Lưu kết quả cuối, thời hạn lưu và xử lý operation không còn hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1000,7 +1000,7 @@ menu:
     summary: ''
   - slug: async-operations-012
     title: Xung đột giữa thao tác đang chạy với yêu cầu cập nhật hoặc xóa mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1012,7 +1012,7 @@ menu:
   childs:
   - slug: service-bindings-001
     title: Vai trò của service binding và điều kiện bindable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1021,7 +1021,7 @@ menu:
     summary: ''
   - slug: service-bindings-002
     title: PUT service binding và CreateServiceInstanceBindingRequest
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1030,7 +1030,7 @@ menu:
     summary: ''
   - slug: service-bindings-003
     title: Cài đặt createServiceInstanceBinding() trong ServiceInstanceBindingService
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1039,7 +1039,7 @@ menu:
     summary: ''
   - slug: service-bindings-004
     title: Service binding dành cho ứng dụng và service binding dành cho route
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1048,7 +1048,7 @@ menu:
     summary: ''
   - slug: service-bindings-005
     title: bind_resource, app_guid, route và dữ liệu phụ thuộc nền tảng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1057,7 +1057,7 @@ menu:
     summary: ''
   - slug: service-bindings-006
     title: CreateServiceInstanceAppBindingResponse và cấu trúc credentials
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1066,7 +1066,7 @@ menu:
     summary: ''
   - slug: service-bindings-007
     title: CreateServiceInstanceRouteBindingResponse và route_service_url
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1075,7 +1075,7 @@ menu:
     summary: ''
   - slug: service-bindings-008
     title: Liên kết cho log drain và volume mount theo khả năng nền tảng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1084,7 +1084,7 @@ menu:
     summary: ''
   - slug: service-bindings-009
     title: Cấp phát tài khoản riêng cho từng binding hoặc dùng chung có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1093,7 +1093,7 @@ menu:
     summary: ''
   - slug: service-bindings-010
     title: Tạo binding đồng bộ, bất đồng bộ và phản hồi yêu cầu tạo lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1105,7 +1105,7 @@ menu:
   childs:
   - slug: binding-lifecycle-001
     title: bindings_retrievable và GET service binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1114,7 +1114,7 @@ menu:
     summary: ''
   - slug: binding-lifecycle-002
     title: Cài đặt getServiceInstanceBinding() và trả dữ liệu liên kết được phép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1123,7 +1123,7 @@ menu:
     summary: ''
   - slug: binding-lifecycle-003
     title: DELETE service binding và cài đặt deleteServiceInstanceBinding()
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1132,7 +1132,7 @@ menu:
     summary: ''
   - slug: binding-lifecycle-004
     title: Thu hồi quyền truy cập, tài khoản và tài nguyên thuộc riêng binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1141,7 +1141,7 @@ menu:
     summary: ''
   - slug: binding-lifecycle-005
     title: Hủy binding đồng bộ hoặc bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1150,7 +1150,7 @@ menu:
     summary: ''
   - slug: binding-lifecycle-006
     title: Binding không tồn tại và quy tắc phản hồi khi hủy lặp lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1159,7 +1159,7 @@ menu:
     summary: ''
   - slug: binding-lifecycle-007
     title: Thứ tự hủy binding, xóa instance và xử lý thao tác đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1168,7 +1168,7 @@ menu:
     summary: ''
   - slug: binding-lifecycle-008
     title: Luân chuyển binding với predecessor_binding_id khi phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1177,7 +1177,7 @@ menu:
     summary: ''
   - slug: binding-lifecycle-009
     title: Thời hạn binding, expiresAt và renewBefore theo khả năng thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1186,7 +1186,7 @@ menu:
     summary: ''
   - slug: binding-lifecycle-010
     title: Phân phối credentials mới và kết thúc thời gian chuyển tiếp an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1198,7 +1198,7 @@ menu:
   childs:
   - slug: data-state-001
     title: Mô hình lưu trữ cho instance, binding, operation và tài nguyên bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1207,7 +1207,7 @@ menu:
     summary: ''
   - slug: data-state-002
     title: Khóa dữ liệu theo nền tảng, khách hàng và định danh OSB
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1216,7 +1216,7 @@ menu:
     summary: ''
   - slug: data-state-003
     title: Giới hạn của lưu trữ trong bộ nhớ và lựa chọn kho dữ liệu bền vững
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1225,7 +1225,7 @@ menu:
     summary: ''
   - slug: data-state-004
     title: Lưu tham số, định danh nhà cung cấp và kết quả phản hồi cần tái sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1234,7 +1234,7 @@ menu:
     summary: ''
   - slug: data-state-005
     title: Ranh giới giao dịch giữa cơ sở dữ liệu broker và API hạ tầng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1243,7 +1243,7 @@ menu:
     summary: ''
   - slug: data-state-006
     title: Nhật ký thao tác, hộp thư giao dịch và tránh thất lạc tác vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1252,7 +1252,7 @@ menu:
     summary: ''
   - slug: data-state-007
     title: Khóa lạc quan, ràng buộc duy nhất và kiểm soát cập nhật cạnh tranh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1261,7 +1261,7 @@ menu:
     summary: ''
   - slug: data-state-008
     title: Đối soát trạng thái định kỳ và phát hiện tài nguyên lệch trạng thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1270,7 +1270,7 @@ menu:
     summary: ''
   - slug: data-state-009
     title: Sao lưu, phục hồi và thay đổi schema kho dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1282,7 +1282,7 @@ menu:
   childs:
   - slug: idempotency-001
     title: Tính lặp an toàn (idempotency) khi nền tảng gửi lại yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1291,7 +1291,7 @@ menu:
     summary: ''
   - slug: idempotency-002
     title: Cùng định danh và cùng tham số so với cùng định danh nhưng khác tham số
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1300,7 +1300,7 @@ menu:
     summary: ''
   - slug: idempotency-003
     title: Sử dụng dấu vết yêu cầu và kết quả đã lưu để tránh tạo tài nguyên trùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1309,7 +1309,7 @@ menu:
     summary: ''
   - slug: idempotency-004
     title: Tính lặp an toàn cho cấp phát, tạo binding và thu hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1318,7 +1318,7 @@ menu:
     summary: ''
   - slug: idempotency-005
     title: Liên kết request identity với nghiệp vụ mà không thay thế instance_id
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1327,7 +1327,7 @@ menu:
     summary: ''
   - slug: idempotency-006
     title: Kiểm soát hai yêu cầu cạnh tranh trên cùng instance hoặc binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1336,7 +1336,7 @@ menu:
     summary: ''
   - slug: idempotency-007
     title: Thử lại có giới hạn, khoảng chờ tăng dần và giới hạn tốc độ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1345,7 +1345,7 @@ menu:
     summary: ''
   - slug: idempotency-008
     title: Bù trừ thao tác khi chuỗi cấp phát chỉ thành công một phần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1354,7 +1354,7 @@ menu:
     summary: ''
   - slug: idempotency-009
     title: Cơ chế phục hồi sau sự cố giữa lúc gọi nhà cung cấp và lưu trạng thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1366,7 +1366,7 @@ menu:
   childs:
   - slug: infrastructure-integration-001
     title: Thiết kế giao diện bộ điều hợp cho từng nhà cung cấp dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1375,7 +1375,7 @@ menu:
     summary: ''
   - slug: infrastructure-integration-002
     title: Ánh xạ gói và tham số sang yêu cầu API của nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1384,7 +1384,7 @@ menu:
     summary: ''
   - slug: infrastructure-integration-003
     title: Cấp phát cơ sở dữ liệu, bộ nhớ đệm hoặc dịch vụ nhắn tin qua broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1393,7 +1393,7 @@ menu:
     summary: ''
   - slug: infrastructure-integration-004
     title: Quản lý thông tin xác thực và quyền tối thiểu của tài khoản nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1402,7 +1402,7 @@ menu:
     summary: ''
   - slug: infrastructure-integration-005
     title: Thiết lập thời gian chờ, giới hạn đồng thời và giới hạn tần suất gọi API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1411,7 +1411,7 @@ menu:
     summary: ''
   - slug: infrastructure-integration-006
     title: Phân loại lỗi nhà cung cấp thành lỗi OSB phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1420,7 +1420,7 @@ menu:
     summary: ''
   - slug: infrastructure-integration-007
     title: Đối chiếu tác vụ OSB với mã công việc bất đồng bộ của nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1429,7 +1429,7 @@ menu:
     summary: ''
   - slug: infrastructure-integration-008
     title: Đặt tên, gắn nhãn và truy vết tài nguyên do broker tạo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1438,7 +1438,7 @@ menu:
     summary: ''
   - slug: infrastructure-integration-009
     title: Đối soát hạn mức và chi phí khi có nhiều instance hoặc nhiều khách hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1450,7 +1450,7 @@ menu:
   childs:
   - slug: framework-extensions-001
     title: Thay thế Spring bean mặc định và điều kiện tự cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1459,7 +1459,7 @@ menu:
     summary: ''
   - slug: framework-extensions-002
     title: Reactor Mono trong các giao diện dịch vụ của framework
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1468,7 +1468,7 @@ menu:
     summary: ''
   - slug: framework-extensions-003
     title: Lập lịch lời gọi hạ tầng chặn luồng trong ứng dụng WebFlux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1477,7 +1477,7 @@ menu:
     summary: ''
   - slug: framework-extensions-004
     title: Truyền lỗi Reactor và chuyển thành phản hồi OSB
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1486,7 +1486,7 @@ menu:
     summary: ''
   - slug: framework-extensions-005
     title: EventFlowRegistry và các giai đoạn initialization, completion, error
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1495,7 +1495,7 @@ menu:
     summary: ''
   - slug: framework-extensions-006
     title: Đăng ký luồng bằng registry hoặc các bean event flow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1504,7 +1504,7 @@ menu:
     summary: ''
   - slug: framework-extensions-007
     title: Event flow cho cấp phát, cập nhật, thu hồi và last operation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1513,7 +1513,7 @@ menu:
     summary: ''
   - slug: framework-extensions-008
     title: Event flow cho tạo, hủy binding và truy vấn trạng thái thao tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1522,7 +1522,7 @@ menu:
     summary: ''
   - slug: framework-extensions-009
     title: Ranh giới giữa event flow trong ứng dụng và cơ chế tác vụ bền vững
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1531,7 +1531,7 @@ menu:
     summary: ''
   - slug: framework-extensions-010
     title: Bổ sung dashboard và endpoint quản trị mà không xung đột đường dẫn OSB
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1543,7 +1543,7 @@ menu:
   childs:
   - slug: errors-responses-001
     title: 'Cấu trúc lỗi OSB: error, description và phần mở rộng được hỗ trợ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1552,7 +1552,7 @@ menu:
     summary: ''
   - slug: errors-responses-002
     title: Ý nghĩa HTTP 200, 201, 202, 204 và 410 theo từng endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1561,7 +1561,7 @@ menu:
     summary: ''
   - slug: errors-responses-003
     title: Lỗi yêu cầu 400, xung đột 409 và điều kiện phiên bản 412
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1570,7 +1570,7 @@ menu:
     summary: ''
   - slug: errors-responses-004
     title: HTTP 422 cho AsyncRequired và các trường hợp không thể xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1579,7 +1579,7 @@ menu:
     summary: ''
   - slug: errors-responses-005
     title: Ánh xạ exception của framework sang mã HTTP và nội dung lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1588,7 +1588,7 @@ menu:
     summary: ''
   - slug: errors-responses-006
     title: Phân biệt lỗi xác thực, lỗi phân quyền và lỗi nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1597,7 +1597,7 @@ menu:
     summary: ''
   - slug: errors-responses-007
     title: Lỗi tạm thời của nhà cung cấp và lỗi không nên thử lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1606,7 +1606,7 @@ menu:
     summary: ''
   - slug: errors-responses-008
     title: Mô tả lỗi có thể chẩn đoán mà không lộ credentials hoặc dữ liệu khách hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1615,7 +1615,7 @@ menu:
     summary: ''
   - slug: errors-responses-009
     title: Phản hồi lỗi khi thao tác đã tạo ra tác động một phần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1627,7 +1627,7 @@ menu:
   childs:
   - slug: security-001
     title: Ranh giới tin cậy giữa nền tảng, broker, ứng dụng và nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1636,7 +1636,7 @@ menu:
     summary: ''
   - slug: security-002
     title: Xác thực nền tảng bằng HTTP Basic theo hợp đồng OSB và triển khai TLS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1645,7 +1645,7 @@ menu:
     summary: ''
   - slug: security-003
     title: Cấu hình Spring Security cho Spring MVC hoặc Spring WebFlux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1654,7 +1654,7 @@ menu:
     summary: ''
   - slug: security-004
     title: Phân tách chính sách bảo mật endpoint OSB, dashboard và Actuator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1663,7 +1663,7 @@ menu:
     summary: ''
   - slug: security-005
     title: Lựa chọn chính sách CSRF phù hợp với API và giao diện trình duyệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1672,7 +1672,7 @@ menu:
     summary: ''
   - slug: security-006
     title: Phân quyền theo nền tảng, khách hàng, dịch vụ và tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1681,7 +1681,7 @@ menu:
     summary: ''
   - slug: security-007
     title: Kiểm tra originating identity và context trong ranh giới tin cậy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1690,7 +1690,7 @@ menu:
     summary: ''
   - slug: security-008
     title: Lưu credentials trong kho bí mật và mã hóa dữ liệu nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1699,7 +1699,7 @@ menu:
     summary: ''
   - slug: security-009
     title: 'Vòng đời credentials: cấp mới, phân phối, luân chuyển và thu hồi'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1708,7 +1708,7 @@ menu:
     summary: ''
   - slug: security-010
     title: Kiểm soát dashboard_url, route_service_url và địa chỉ đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1717,7 +1717,7 @@ menu:
     summary: ''
   - slug: security-011
     title: Nhật ký kiểm toán, che dữ liệu nhạy cảm và giới hạn bề mặt tấn công
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1729,7 +1729,7 @@ menu:
   childs:
   - slug: cloud-foundry-001
     title: Vai trò marketplace, service broker và service instance trong Cloud Foundry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1738,7 +1738,7 @@ menu:
     summary: ''
   - slug: cloud-foundry-002
     title: Triển khai broker và đăng ký bằng cf create-service-broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1747,7 +1747,7 @@ menu:
     summary: ''
   - slug: cloud-foundry-003
     title: Phân biệt broker toàn nền tảng và broker giới hạn trong một space
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1756,7 +1756,7 @@ menu:
     summary: ''
   - slug: cloud-foundry-004
     title: Cập nhật thông tin đăng ký bằng cf update-service-broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1765,7 +1765,7 @@ menu:
     summary: ''
   - slug: cloud-foundry-005
     title: Công bố gói và quản lý quyền truy cập bằng cf enable-service-access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1774,7 +1774,7 @@ menu:
     summary: ''
   - slug: cloud-foundry-006
     title: Tạo và cập nhật dịch vụ bằng cf create-service và cf update-service
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1783,7 +1783,7 @@ menu:
     summary: ''
   - slug: cloud-foundry-007
     title: Liên kết ứng dụng bằng cf bind-service và phân phối cấu hình qua VCAP_SERVICES
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1792,7 +1792,7 @@ menu:
     summary: ''
   - slug: cloud-foundry-008
     title: Service key và ứng dụng của binding ngoài quy trình gắn ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1801,7 +1801,7 @@ menu:
     summary: ''
   - slug: cloud-foundry-009
     title: Theo dõi thao tác, hủy liên kết và xóa dịch vụ bằng CF CLI
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1810,7 +1810,7 @@ menu:
     summary: ''
   - slug: cloud-foundry-010
     title: Đăng ký một broker với nhiều foundation bằng platformInstanceId
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1819,7 +1819,7 @@ menu:
     summary: ''
   - slug: cloud-foundry-011
     title: Đối chiếu context, tổ chức, không gian và quyền truy cập dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1828,7 +1828,7 @@ menu:
     summary: ''
   - slug: cloud-foundry-012
     title: Dashboard SSO và kiểm soát truy cập trang quản lý dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1837,7 +1837,7 @@ menu:
     summary: ''
   - slug: cloud-foundry-013
     title: Chia sẻ service instance giữa các space và ảnh hưởng đến phân quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1849,7 +1849,7 @@ menu:
   childs:
   - slug: kubernetes-osb-001
     title: Điều kiện tích hợp OSB API và giới hạn hỗ trợ sẵn có của Kubernetes
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1858,7 +1858,7 @@ menu:
     summary: ''
   - slug: kubernetes-osb-002
     title: Kiến trúc Service Catalog trong các hệ thống Kubernetes cũ sử dụng OSB
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1867,7 +1867,7 @@ menu:
     summary: ''
   - slug: kubernetes-osb-003
     title: ClusterServiceBroker, ServiceInstance và ServiceBinding trong Service Catalog
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1876,7 +1876,7 @@ menu:
     summary: ''
   - slug: kubernetes-osb-004
     title: Luồng đồng bộ danh mục và quản lý vòng đời qua bộ điều khiển OSB
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1885,7 +1885,7 @@ menu:
     summary: ''
   - slug: kubernetes-osb-005
     title: Phân phối credentials bằng Secret và ánh xạ cho workload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1894,7 +1894,7 @@ menu:
     summary: ''
   - slug: kubernetes-osb-006
     title: Namespace, tài khoản dịch vụ, RBAC và cô lập khách hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1903,7 +1903,7 @@ menu:
     summary: ''
   - slug: kubernetes-osb-007
     title: Triển khai broker trên Kubernetes độc lập với việc nền tảng có dùng OSB
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1912,7 +1912,7 @@ menu:
     summary: ''
   - slug: kubernetes-osb-008
     title: Service Catalog đã ngừng duy trì và giới hạn khi vận hành hệ thống cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1921,7 +1921,7 @@ menu:
     summary: ''
   - slug: kubernetes-osb-009
     title: Đối chiếu OSB với Operator và cơ chế Service Binding của hệ sinh thái Kubernetes
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1930,7 +1930,7 @@ menu:
     summary: ''
   - slug: kubernetes-osb-010
     title: Phương án chuyển đổi hệ thống OSB cũ mà vẫn giữ tài nguyên và thông tin kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1942,7 +1942,7 @@ menu:
   childs:
   - slug: testing-001
     title: Lập ma trận kiểm thử từ khả năng công bố trong catalog
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1951,7 +1951,7 @@ menu:
     summary: ''
   - slug: testing-002
     title: Kiểm thử đơn vị CatalogService và các quy tắc gói dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1960,7 +1960,7 @@ menu:
     summary: ''
   - slug: testing-003
     title: Kiểm thử đơn vị vòng đời instance, binding và operation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1969,7 +1969,7 @@ menu:
     summary: ''
   - slug: testing-004
     title: Kiểm thử HTTP bằng MockMvc hoặc WebTestClient theo web stack
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1978,7 +1978,7 @@ menu:
     summary: ''
   - slug: testing-005
     title: Kiểm thử hợp đồng JSON, HTTP status và header OSB
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1987,7 +1987,7 @@ menu:
     summary: ''
   - slug: testing-006
     title: Kiểm thử phiên bản giao thức, tham số không hợp lệ và cờ khả năng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1996,7 +1996,7 @@ menu:
     summary: ''
   - slug: testing-007
     title: Kiểm thử chuỗi bất đồng bộ từ HTTP 202 đến trạng thái cuối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2005,7 +2005,7 @@ menu:
     summary: ''
   - slug: testing-008
     title: Kiểm thử yêu cầu lặp, thao tác cạnh tranh và khởi động lại broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2014,7 +2014,7 @@ menu:
     summary: ''
   - slug: testing-009
     title: Mô phỏng API nhà cung cấp, lỗi mạng và thời gian chờ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2023,7 +2023,7 @@ menu:
     summary: ''
   - slug: testing-010
     title: Kiểm thử tích hợp kho dữ liệu và dịch vụ thật bằng Testcontainers khi phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2032,7 +2032,7 @@ menu:
     summary: ''
   - slug: testing-011
     title: Kiểm thử phân quyền nhiều khách hàng và không rò rỉ credentials
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2041,7 +2041,7 @@ menu:
     summary: ''
   - slug: testing-012
     title: Kiểm thử toàn trình với nền tảng OSB tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2053,7 +2053,7 @@ menu:
   childs:
   - slug: deployment-001
     title: Đóng gói broker và quản lý cấu hình theo môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2062,7 +2062,7 @@ menu:
     summary: ''
   - slug: deployment-002
     title: Thiết lập TLS, reverse proxy và đường dẫn công khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2071,7 +2071,7 @@ menu:
     summary: ''
   - slug: deployment-003
     title: Triển khai trên Cloud Foundry, máy chủ ứng dụng hoặc Kubernetes
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2080,7 +2080,7 @@ menu:
     summary: ''
   - slug: deployment-004
     title: Vận hành nhiều bản sao với trạng thái dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2089,7 +2089,7 @@ menu:
     summary: ''
   - slug: deployment-005
     title: Phối hợp bộ xử lý nền để tránh chạy trùng tác vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2098,7 +2098,7 @@ menu:
     summary: ''
   - slug: deployment-006
     title: Readiness, liveness và khả năng kết nối kho dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2107,7 +2107,7 @@ menu:
     summary: ''
   - slug: deployment-007
     title: Dừng ứng dụng an toàn khi có thao tác cấp phát đang chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2116,7 +2116,7 @@ menu:
     summary: ''
   - slug: deployment-008
     title: Giới hạn tài nguyên, kết nối và năng lực xử lý theo tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2125,7 +2125,7 @@ menu:
     summary: ''
   - slug: deployment-009
     title: Nâng cấp cuốn chiếu và tương thích schema dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2134,7 +2134,7 @@ menu:
     summary: ''
   - slug: deployment-010
     title: Quy trình phục hồi broker và đối soát tài nguyên sau sự cố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2146,7 +2146,7 @@ menu:
   childs:
   - slug: monitoring-001
     title: Log có cấu trúc theo platform, instance, binding và operation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2155,7 +2155,7 @@ menu:
     summary: ''
   - slug: monitoring-002
     title: Đối chiếu yêu cầu OSB với tác vụ nhà cung cấp bằng mã truy vết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2164,7 +2164,7 @@ menu:
     summary: ''
   - slug: monitoring-003
     title: Đo số lượng yêu cầu, độ trễ và tỷ lệ lỗi từng thao tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2173,7 +2173,7 @@ menu:
     summary: ''
   - slug: monitoring-004
     title: Đo thời gian cấp phát, số tác vụ chờ và tuổi tác vụ chưa hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2182,7 +2182,7 @@ menu:
     summary: ''
   - slug: monitoring-005
     title: Giám sát hạn mức, tài nguyên mồ côi và lỗi đối soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2191,7 +2191,7 @@ menu:
     summary: ''
   - slug: monitoring-006
     title: Actuator, Micrometer và xuất số liệu giám sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2200,7 +2200,7 @@ menu:
     summary: ''
   - slug: monitoring-007
     title: Giới hạn nhãn số liệu để tránh cardinality cao từ instance_id
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2209,7 +2209,7 @@ menu:
     summary: ''
   - slug: monitoring-008
     title: Cảnh báo thất bại kéo dài, luân chuyển credentials lỗi và cạn tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2221,7 +2221,7 @@ menu:
   childs:
   - slug: troubleshooting-001
     title: Broker khởi động nhưng endpoint /v2/catalog trả 404
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2230,7 +2230,7 @@ menu:
     summary: ''
   - slug: troubleshooting-002
     title: Catalog không xuất hiện hoặc gói không hiển thị trên marketplace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2239,7 +2239,7 @@ menu:
     summary: ''
   - slug: troubleshooting-003
     title: Yêu cầu bị từ chối do phiên bản giao thức, xác thực hoặc phân quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2248,7 +2248,7 @@ menu:
     summary: ''
   - slug: troubleshooting-004
     title: Cấp phát bị gọi lặp và tài nguyên đã tồn tại bên nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2257,7 +2257,7 @@ menu:
     summary: ''
   - slug: troubleshooting-005
     title: Operation ở trạng thái in progress quá lâu hoặc không tìm thấy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2266,7 +2266,7 @@ menu:
     summary: ''
   - slug: troubleshooting-006
     title: Cập nhật gói thất bại trong khi instance vẫn đang được sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2275,7 +2275,7 @@ menu:
     summary: ''
   - slug: troubleshooting-007
     title: Binding được tạo nhưng ứng dụng không kết nối được dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2284,7 +2284,7 @@ menu:
     summary: ''
   - slug: troubleshooting-008
     title: Credentials đã luân chuyển nhưng ứng dụng vẫn dùng thông tin cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2293,7 +2293,7 @@ menu:
     summary: ''
   - slug: troubleshooting-009
     title: Hủy binding hoặc xóa instance thất bại và để lại tài nguyên mồ côi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2302,7 +2302,7 @@ menu:
     summary: ''
   - slug: troubleshooting-010
     title: Broker khởi động lại mất trạng thái hoặc nhiều bản sao xử lý trùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2311,7 +2311,7 @@ menu:
     summary: ''
   - slug: troubleshooting-011
     title: Quy trình thu thập bằng chứng từ nền tảng, broker, kho dữ liệu và nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2323,7 +2323,7 @@ menu:
   childs:
   - slug: upgrades-compatibility-001
     title: Phân biệt phiên bản framework, Spring Boot và OSB API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2332,7 +2332,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-002
     title: Lập bảng tính năng tương thích giữa broker, đặc tả và nền tảng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2341,7 +2341,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-003
     title: Đánh giá thay đổi API Java, cấu hình và web stack khi nâng phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2350,7 +2350,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-004
     title: Bảo toàn service_id, plan_id, instance_id và binding_id qua nâng cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2359,7 +2359,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-005
     title: Tiến hóa catalog, schema tham số và metadata mà không phá instance cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2368,7 +2368,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-006
     title: Giới thiệu tính năng tùy chọn theo năng lực thực tế của nền tảng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2377,7 +2377,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-007
     title: Di chuyển kho trạng thái và dữ liệu credentials
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2386,7 +2386,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-008
     title: Kiểm thử hồi quy, triển khai từng phần và kế hoạch khôi phục phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2395,7 +2395,7 @@ menu:
     summary: ''
   - slug: upgrades-compatibility-009
     title: Ngừng cung cấp broker và bàn giao tài nguyên đang được sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2407,7 +2407,7 @@ menu:
   childs:
   - slug: capstone-practice-001
     title: Xây dựng broker tối thiểu với catalog tĩnh và nhà cung cấp mô phỏng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2416,7 +2416,7 @@ menu:
     summary: ''
   - slug: capstone-practice-002
     title: Hoàn thiện vòng đời cấp phát, truy xuất, cập nhật và thu hồi instance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2425,7 +2425,7 @@ menu:
     summary: ''
   - slug: capstone-practice-003
     title: Thêm binding với credentials riêng và kiểm chứng thu hồi quyền truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2434,7 +2434,7 @@ menu:
     summary: ''
   - slug: capstone-practice-004
     title: Chuyển cấp phát sang bất đồng bộ và lưu trạng thái bền vững
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2443,7 +2443,7 @@ menu:
     summary: ''
   - slug: capstone-practice-005
     title: Tích hợp một dịch vụ cơ sở dữ liệu hoặc bộ nhớ đệm thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2452,7 +2452,7 @@ menu:
     summary: ''
   - slug: capstone-practice-006
     title: Bổ sung tính lặp an toàn và kiểm thử yêu cầu cạnh tranh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2461,7 +2461,7 @@ menu:
     summary: ''
   - slug: capstone-practice-007
     title: Mô phỏng lỗi giữa chừng, khởi động lại và đối soát tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2470,7 +2470,7 @@ menu:
     summary: ''
   - slug: capstone-practice-008
     title: Đăng ký broker với nền tảng OSB và chạy toàn bộ vòng đời dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2479,7 +2479,7 @@ menu:
     summary: ''
   - slug: capstone-practice-009
     title: Gia cố bảo mật, đo lường vận hành và kiểm tra điều kiện triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2488,7 +2488,7 @@ menu:
     summary: ''
   - slug: capstone-practice-010
     title: Thiết kế kế hoạch nâng cấp gói và luân chuyển credentials không gián đoạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

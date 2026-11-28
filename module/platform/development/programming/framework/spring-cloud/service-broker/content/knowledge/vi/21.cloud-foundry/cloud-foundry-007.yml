@@ -1,3 +1,3 @@
 menuLevel1: Cloud Foundry
 menuLevel2: Liên kết ứng dụng bằng cf bind-service và phân phối cấu hình qua VCAP_SERVICES
-status: ''
+status: WRITTEN

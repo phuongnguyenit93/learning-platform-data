@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: mybatis-overview-001
     title: MyBatis là gì và giải quyết vấn đề nào trong truy cập dữ liệu quan hệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: mybatis-overview-002
     title: Vai trò SQL mapper và mức kiểm soát câu lệnh SQL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: mybatis-overview-003
     title: Phân biệt MyBatis với JDBC trực tiếp và ORM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: mybatis-overview-004
     title: Phân biệt MyBatis lõi, MyBatis-Spring và Spring Boot Starter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: mybatis-overview-005
     title: Luồng dữ liệu từ phương thức Mapper tới cơ sở dữ liệu và kết quả Java
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: mybatis-overview-006
     title: 'Các thuật ngữ: Mapper, statement, SqlSession, resultMap và TypeHandler'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: mybatis-overview-007
     title: Trách nhiệm của ứng dụng, MyBatis, JDBC driver và hệ quản trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: mybatis-overview-008
     title: Điều kiện kiến thức nền về Java, SQL và giao dịch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -76,7 +76,7 @@ menu:
     summary: ''
   - slug: mybatis-overview-009
     title: Những trường hợp phù hợp và giới hạn cần cân nhắc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -85,7 +85,7 @@ menu:
     summary: ''
   - slug: mybatis-overview-010
     title: Lộ trình học từ truy vấn đơn giản tới tích hợp và vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
   childs:
   - slug: mybatis-architecture-001
     title: Vai trò của Configuration trong cấu hình lúc chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: mybatis-architecture-002
     title: SqlSessionFactoryBuilder và quá trình khởi tạo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-and-goals-001
     title: Cấu hình tập trung là gì và giải quyết vấn đề nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-and-goals-002
     title: Vì sao cấu hình cần tách khỏi mã nguồn và gói triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-and-goals-003
     title: 'Các khái niệm: nguồn cấu hình, môi trường, profile, label và bí mật'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-and-goals-004
     title: Vị trí của Spring Cloud Config trong hệ sinh thái Spring Cloud
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-and-goals-005
     title: Phân biệt cấu hình ứng dụng, Service Discovery và quản lý bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-and-goals-006
     title: Phân biệt thay đổi lúc khởi động, làm mới khi chạy và triển khai lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-and-goals-007
     title: Kiến thức nền và trình tự học từ cấu hình cục bộ đến phân tán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -70,7 +70,7 @@ menu:
   childs:
   - slug: configuration-fundamentals-001
     title: Spring Environment và các lớp PropertySource
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -79,7 +79,7 @@ menu:
     summary: ''
   - slug: configuration-fundamentals-002
     title: Đọc cấu hình bằng Environment, @Value và @ConfigurationProperties
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
     summary: ''
   - slug: configuration-fundamentals-003
     title: Binding kiểu dữ liệu, Duration, danh sách và cấu trúc lồng nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: configuration-fundamentals-004
     title: Relaxed binding và ánh xạ tên thuộc tính sang biến môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: configuration-fundamentals-005
     title: Giá trị mặc định, placeholder và tham chiếu giữa các thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: configuration-fundamentals-006
     title: Kiểm tra ràng buộc cấu hình bằng Bean Validation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: configuration-fundamentals-007
     title: YAML nhiều tài liệu và spring.config.activate.on-profile
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: configuration-fundamentals-008
     title: Cấu hình chung, cấu hình theo môi trường và dữ liệu nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: configuration-fundamentals-009
     title: Phân biệt khóa không tồn tại, giá trị rỗng và giá trị mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -154,7 +154,7 @@ menu:
   childs:
   - slug: config-architecture-001
     title: Vai trò của Config Server, Config Client và kho cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -163,7 +163,7 @@ menu:
     summary: ''
   - slug: config-architecture-002
     title: Luồng nạp cấu hình từ kho lưu trữ đến Spring Environment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
     summary: ''
   - slug: config-architecture-003
     title: Bộ ba application, profile và label trong truy vấn cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: config-architecture-004
     title: EnvironmentRepository và mô hình Environment phía máy chủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: config-architecture-005
     title: Ranh giới giữa cấu hình riêng Config Server và cấu hình phục vụ client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: config-architecture-006
     title: Nạp lúc khởi động khác phát hiện và áp dụng thay đổi khi chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: config-architecture-007
     title: Các điểm có thể lỗi giữa client, Config Server và kho lưu trữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: config-architecture-008
     title: Chọn Config Server hay nạp trực tiếp từ Consul, Zookeeper hoặc Vault
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -229,7 +229,7 @@ menu:
   childs:
   - slug: environment-setup-001
     title: Chọn tổ hợp Java, Spring Boot và Spring Cloud Release Train tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -238,7 +238,7 @@ menu:
     summary: ''
   - slug: environment-setup-002
     title: Quản lý phiên bản bằng Spring Cloud BOM trong Maven và Gradle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -247,7 +247,7 @@ menu:
     summary: ''
   - slug: environment-setup-003
     title: Thêm đúng starter cho Config Server, Config Client và Actuator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
     summary: ''
   - slug: environment-setup-004
     title: Dựng kho Git cấu hình cùng ứng dụng client tối thiểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -265,7 +265,7 @@ menu:
     summary: ''
   - slug: environment-setup-005
     title: Tách profile chạy cục bộ, kiểm thử và sản xuất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
     summary: ''
   - slug: environment-setup-006
     title: Chạy nhiều client và hạ tầng hỗ trợ bằng Docker Compose
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
     summary: ''
   - slug: environment-setup-007
     title: Kiểm tra dependency, tự cấu hình và điều kiện tái lập thí nghiệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -295,7 +295,7 @@ menu:
   childs:
   - slug: configuration-repository-design-001
     title: Quy ước tên application.yml và tệp theo tên ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -304,7 +304,7 @@ menu:
     summary: ''
   - slug: configuration-repository-design-002
     title: Tổ chức tệp theo ứng dụng, profile và thư mục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -313,7 +313,7 @@ menu:
     summary: ''
   - slug: configuration-repository-design-003
     title: Chọn YAML hoặc properties và thống nhất quy ước đặt khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -322,7 +322,7 @@ menu:
     summary: ''
   - slug: configuration-repository-design-004
     title: Chia cấu hình dùng chung với cấu hình riêng từng dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -331,7 +331,7 @@ menu:
     summary: ''
   - slug: configuration-repository-design-005
     title: Thiết kế cấu trúc cho nhiều nhóm và nhiều môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -340,7 +340,7 @@ menu:
     summary: ''
   - slug: configuration-repository-design-006
     title: Chọn một kho Git hay nhiều kho theo ranh giới sở hữu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -349,7 +349,7 @@ menu:
     summary: ''
   - slug: configuration-repository-design-007
     title: Giữ bí mật, tệp nhị phân và dữ liệu lớn ngoài kho cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -358,7 +358,7 @@ menu:
     summary: ''
   - slug: configuration-repository-design-008
     title: Đặt giá trị mặc định an toàn và ghi rõ đơn vị của tham số
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -367,7 +367,7 @@ menu:
     summary: ''
   - slug: configuration-repository-design-009
     title: Tài liệu hóa khóa cấu hình và trách nhiệm bảo trì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -379,7 +379,7 @@ menu:
   childs:
   - slug: profiles-and-labels-001
     title: Phân biệt Spring profile với Git branch, tag và commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -388,7 +388,7 @@ menu:
     summary: ''
   - slug: profiles-and-labels-002
     title: Kích hoạt một hoặc nhiều profile phía client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -397,7 +397,7 @@ menu:
     summary: ''
   - slug: profiles-and-labels-003
     title: Quy tắc kết hợp cấu hình mặc định và cấu hình theo profile
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -406,7 +406,7 @@ menu:
     summary: ''
   - slug: profiles-and-labels-004
     title: Chọn label và cấu hình nhánh mặc định phía máy chủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -415,7 +415,7 @@ menu:
     summary: ''
   - slug: profiles-and-labels-005
     title: Dùng tag hoặc commit để xác định phiên bản cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -424,7 +424,7 @@ menu:
     summary: ''
   - slug: profiles-and-labels-006
     title: Xử lý label chứa dấu gạch chéo trong API của Config Server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -433,7 +433,7 @@ menu:
     summary: ''
   - slug: profiles-and-labels-007
     title: 'Nhiều label: hành vi dự phòng và hỗ trợ theo phiên bản'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -442,7 +442,7 @@ menu:
     summary: ''
   - slug: profiles-and-labels-008
     title: Tách môi trường triển khai khỏi chiến lược phân nhánh mã nguồn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -454,7 +454,7 @@ menu:
   childs:
   - slug: config-server-001
     title: Khởi tạo máy chủ với @EnableConfigServer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -463,7 +463,7 @@ menu:
     summary: ''
   - slug: config-server-002
     title: Cấu hình cổng, context path và tiền tố đường dẫn máy chủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -472,7 +472,7 @@ menu:
     summary: ''
   - slug: config-server-003
     title: Kết nối kho Git bằng spring.cloud.config.server.git.uri
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -481,7 +481,7 @@ menu:
     summary: ''
   - slug: config-server-004
     title: Kiểm tra cấu hình được phân giải qua yêu cầu HTTP đầu tiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -490,7 +490,7 @@ menu:
     summary: ''
   - slug: config-server-005
     title: Cấu hình accept-empty và hành vi khi không tìm thấy ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -499,7 +499,7 @@ menu:
     summary: ''
   - slug: config-server-006
     title: Cấu hình ghi đè phía máy chủ bằng server.overrides
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -508,7 +508,7 @@ menu:
     summary: ''
   - slug: config-server-007
     title: Đánh giá phạm vi sử dụng Config Server nhúng trong ứng dụng khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -517,7 +517,7 @@ menu:
     summary: ''
   - slug: config-server-008
     title: Đọc trạng thái sức khỏe và xác minh kết nối kho cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -529,7 +529,7 @@ menu:
   childs:
   - slug: configuration-api-001
     title: Truy vấn Environment theo /{application}/{profile}/{label}
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -538,7 +538,7 @@ menu:
     summary: ''
   - slug: configuration-api-002
     title: Đọc propertySources, profiles, label, version và state trong phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -547,7 +547,7 @@ menu:
     summary: ''
   - slug: configuration-api-003
     title: Phân biệt thứ tự nguồn trong phản hồi và giá trị cuối cùng phía client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -556,7 +556,7 @@ menu:
     summary: ''
   - slug: configuration-api-004
     title: Truy xuất cấu hình dưới dạng YAML hoặc properties
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -565,7 +565,7 @@ menu:
     summary: ''
   - slug: configuration-api-005
     title: Phục vụ tệp cấu hình thuần văn bản và giới hạn sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -574,7 +574,7 @@ menu:
     summary: ''
   - slug: configuration-api-006
     title: Placeholder và phân giải giá trị trong nội dung được trả về
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -583,7 +583,7 @@ menu:
     summary: ''
   - slug: configuration-api-007
     title: Kiểm tra mã HTTP khi thiếu tài nguyên, lỗi xác thực hoặc lỗi kho
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -592,7 +592,7 @@ menu:
     summary: ''
   - slug: configuration-api-008
     title: Kiểm chứng API bằng curl mà không làm lộ giá trị bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -604,7 +604,7 @@ menu:
   childs:
   - slug: git-backend-001
     title: Kết nối Git cục bộ, HTTPS và SSH
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -613,7 +613,7 @@ menu:
     summary: ''
   - slug: git-backend-002
     title: Xác thực kho riêng bằng token, khóa SSH và cấu hình bí mật bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -622,7 +622,7 @@ menu:
     summary: ''
   - slug: git-backend-003
     title: JGit, known_hosts và xử lý khóa máy chủ SSH
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -631,7 +631,7 @@ menu:
     summary: ''
   - slug: git-backend-004
     title: Clone khi khởi động hay khi nhận yêu cầu đầu tiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -640,7 +640,7 @@ menu:
     summary: ''
   - slug: git-backend-005
     title: Thư mục clone, basedir và quyền ghi trong container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -649,7 +649,7 @@ menu:
     summary: ''
   - slug: git-backend-006
     title: search-paths và placeholder theo ứng dụng, profile hoặc label
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -658,7 +658,7 @@ menu:
     summary: ''
   - slug: git-backend-007
     title: Ánh xạ nhiều repository bằng mẫu tên ứng dụng và profile
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -667,7 +667,7 @@ menu:
     summary: ''
   - slug: git-backend-008
     title: refresh-rate và đánh đổi giữa độ mới dữ liệu với số lần fetch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -676,7 +676,7 @@ menu:
     summary: ''
   - slug: git-backend-009
     title: Xử lý bản sao Git bị thay đổi và tùy chọn force-pull
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -685,7 +685,7 @@ menu:
     summary: ''
   - slug: git-backend-010
     title: Dọn nhánh đã xóa và kiểm soát bản tham chiếu cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -694,7 +694,7 @@ menu:
     summary: ''
   - slug: git-backend-011
     title: Kiểm chứng hành vi khi Git mất kết nối nhưng đã có bản sao cục bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -706,7 +706,7 @@ menu:
   childs:
   - slug: alternative-backends-001
     title: Native backend với classpath và hệ thống tệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -715,7 +715,7 @@ menu:
     summary: ''
   - slug: alternative-backends-002
     title: Thiết lập search-locations và đường dẫn file trên Windows hoặc Linux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -724,7 +724,7 @@ menu:
     summary: ''
   - slug: alternative-backends-003
     title: 'Phân biệt native backend với kho Git có URI file:'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -733,7 +733,7 @@ menu:
     summary: ''
   - slug: alternative-backends-004
     title: Đóng gói cấu hình cùng ứng dụng hoặc gắn thư mục bên ngoài container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -742,7 +742,7 @@ menu:
     summary: ''
   - slug: alternative-backends-005
     title: 'JDBC backend: mô hình khóa theo application, profile và label'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -751,7 +751,7 @@ menu:
     summary: ''
   - slug: alternative-backends-006
     title: Redis backend và cách tổ chức dữ liệu cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -760,7 +760,7 @@ menu:
     summary: ''
   - slug: alternative-backends-007
     title: Vault, CredHub và kho bí mật làm backend của Config Server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -769,7 +769,7 @@ menu:
     summary: ''
   - slug: alternative-backends-008
     title: 'Kho đối tượng và dịch vụ tham số đám mây: hỗ trợ theo phiên bản'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -778,7 +778,7 @@ menu:
     summary: ''
   - slug: alternative-backends-009
     title: Đánh giá độ bền dữ liệu, quyền truy cập và sao lưu từng backend
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -790,7 +790,7 @@ menu:
   childs:
   - slug: composite-repositories-001
     title: Khi nào cần kết hợp nhiều EnvironmentRepository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -799,7 +799,7 @@ menu:
     summary: ''
   - slug: composite-repositories-002
     title: Khai báo composite profile và danh sách repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -808,7 +808,7 @@ menu:
     summary: ''
   - slug: composite-repositories-003
     title: Thứ tự repository và xử lý trùng khóa bằng order
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -817,7 +817,7 @@ menu:
     summary: ''
   - slug: composite-repositories-004
     title: Kết hợp Git cho cấu hình thường với kho bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -826,7 +826,7 @@ menu:
     summary: ''
   - slug: composite-repositories-005
     title: Phạm vi áp dụng application, profile và label ở từng backend
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -835,7 +835,7 @@ menu:
     summary: ''
   - slug: composite-repositories-006
     title: failOnCompositeError và đánh đổi khi chỉ một nguồn bị lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -844,7 +844,7 @@ menu:
     summary: ''
   - slug: composite-repositories-007
     title: Kiểm chứng nguồn gốc giá trị sau khi tổng hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -856,7 +856,7 @@ menu:
   childs:
   - slug: config-client-001
     title: 'Kết nối Config Server bằng spring.config.import=configserver:'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -865,7 +865,7 @@ menu:
     summary: ''
   - slug: config-client-002
     title: 'optional:configserver: và hành vi khi máy chủ không truy cập được'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -874,7 +874,7 @@ menu:
     summary: ''
   - slug: config-client-003
     title: Địa chỉ trong import so với spring.cloud.config.uri
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -883,7 +883,7 @@ menu:
     summary: ''
   - slug: config-client-004
     title: Ánh xạ spring.application.name và cấu hình name, profile, label
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -892,7 +892,7 @@ menu:
     summary: ''
   - slug: config-client-005
     title: Quá trình nạp profile mặc định rồi nạp profile được kích hoạt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -901,7 +901,7 @@ menu:
     summary: ''
   - slug: config-client-006
     title: Nạp nhiều nguồn import và xác định thứ tự áp dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -910,7 +910,7 @@ menu:
     summary: ''
   - slug: config-client-007
     title: Giới hạn thời gian kết nối và thời gian đọc phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -919,7 +919,7 @@ menu:
     summary: ''
   - slug: config-client-008
     title: Fail-fast, thư viện retry và chính sách giãn cách thử lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -928,7 +928,7 @@ menu:
     summary: ''
   - slug: config-client-009
     title: Tham số retry khi import được đặt trong tệp theo profile
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -937,7 +937,7 @@ menu:
     summary: ''
   - slug: config-client-010
     title: Tắt Config Client đúng phạm vi và chạy ứng dụng độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -949,7 +949,7 @@ menu:
   childs:
   - slug: property-precedence-001
     title: Ưu tiên nguồn cấu hình theo cơ chế Config Data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -958,7 +958,7 @@ menu:
     summary: ''
   - slug: property-precedence-002
     title: Thứ tự giữa tệp cục bộ, nguồn import và cấu hình theo profile
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -967,7 +967,7 @@ menu:
     summary: ''
   - slug: property-precedence-003
     title: Đối chiếu biến môi trường, system property và tham số dòng lệnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -976,7 +976,7 @@ menu:
     summary: ''
   - slug: property-precedence-004
     title: Phân biệt ưu tiên phía Config Server với ưu tiên phía client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -985,7 +985,7 @@ menu:
     summary: ''
   - slug: property-precedence-005
     title: Tác động của server.overrides lên giá trị client nhận được
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -994,7 +994,7 @@ menu:
     summary: ''
   - slug: property-precedence-006
     title: allowOverride, overrideNone và overrideSystemProperties trong bootstrap cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1003,7 +1003,7 @@ menu:
     summary: ''
   - slug: property-precedence-007
     title: Giải thích một giá trị bằng nguồn gốc thay vì đoán theo tên tệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1012,7 +1012,7 @@ menu:
     summary: ''
   - slug: property-precedence-008
     title: Trùng khóa giữa nhiều kho và nhiều hệ thống cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1021,7 +1021,7 @@ menu:
     summary: ''
   - slug: property-precedence-009
     title: Thiết kế quy tắc ghi đè rõ ràng và kiểm thử bằng ví dụ xung đột
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1033,7 +1033,7 @@ menu:
   childs:
   - slug: legacy-bootstrap-001
     title: Vai trò của bootstrap context và application context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1042,7 +1042,7 @@ menu:
     summary: ''
   - slug: legacy-bootstrap-002
     title: Khi nào bootstrap.yml được đọc và cách kích hoạt cơ chế cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1051,7 +1051,7 @@ menu:
     summary: ''
   - slug: legacy-bootstrap-003
     title: Phân biệt bootstrap.yml, application.yml và spring.config.import
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1060,7 +1060,7 @@ menu:
     summary: ''
   - slug: legacy-bootstrap-004
     title: Config-first và discovery-first trong mô hình bootstrap
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1069,7 +1069,7 @@ menu:
     summary: ''
   - slug: legacy-bootstrap-005
     title: Tìm Config Server qua Service Discovery và chi phí khởi động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1078,7 +1078,7 @@ menu:
     summary: ''
   - slug: legacy-bootstrap-006
     title: Vòng phụ thuộc giữa Config Server, Discovery Server và ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1087,7 +1087,7 @@ menu:
     summary: ''
   - slug: legacy-bootstrap-007
     title: Chuyển sang Config Data mà không nạp trùng nguồn cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1099,7 +1099,7 @@ menu:
   childs:
   - slug: configuration-refresh-001
     title: Chu trình thay đổi kho, nạp lại Environment và cập nhật bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1108,7 +1108,7 @@ menu:
     summary: ''
   - slug: configuration-refresh-002
     title: Gọi POST /actuator/refresh và đọc các khóa được báo thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1117,7 +1117,7 @@ menu:
     summary: ''
   - slug: configuration-refresh-003
     title: Phân biệt cập nhật kho Git với làm mới ứng dụng client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1126,7 +1126,7 @@ menu:
     summary: ''
   - slug: configuration-refresh-004
     title: EnvironmentChangeEvent và quá trình rebind ConfigurationProperties
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1135,7 +1135,7 @@ menu:
     summary: ''
   - slug: configuration-refresh-005
     title: '@Value trên singleton thông thường và giá trị đã được khởi tạo'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1144,7 +1144,7 @@ menu:
     summary: ''
   - slug: configuration-refresh-006
     title: Thay đổi cấu hình ghi log và giới hạn áp dụng động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1153,7 +1153,7 @@ menu:
     summary: ''
   - slug: configuration-refresh-007
     title: Khóa bị xóa, giá trị rỗng và những trường hợp không cập nhật như dự kiến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1162,7 +1162,7 @@ menu:
     summary: ''
   - slug: configuration-refresh-008
     title: Tham số cần khởi động lại như cổng, bean condition và lựa chọn hạ tầng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1171,7 +1171,7 @@ menu:
     summary: ''
   - slug: configuration-refresh-009
     title: Xử lý cấu hình mới không hợp lệ mà không làm hỏng luồng đang chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1180,7 +1180,7 @@ menu:
     summary: ''
   - slug: configuration-refresh-010
     title: Phân biệt cập nhật tạm qua Actuator env với thay đổi nguồn bền vững
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1192,7 +1192,7 @@ menu:
   childs:
   - slug: refreshscope-001
     title: '@RefreshScope, scoped proxy và khởi tạo bean theo nhu cầu'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1201,7 +1201,7 @@ menu:
     summary: ''
   - slug: refreshscope-002
     title: Làm mất hiệu lực bộ đệm scope và thời điểm tạo lại bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1210,7 +1210,7 @@ menu:
     summary: ''
   - slug: refreshscope-003
     title: Đặt RefreshScope trên @Bean hay trên lớp cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1219,7 +1219,7 @@ menu:
     summary: ''
   - slug: refreshscope-004
     title: Bean phụ thuộc giữ tham chiếu cũ và cách kiểm chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1228,7 +1228,7 @@ menu:
     summary: ''
   - slug: refreshscope-005
     title: Đóng tài nguyên cũ khi bean được tạo lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1237,7 +1237,7 @@ menu:
     summary: ''
   - slug: refreshscope-006
     title: Giới hạn với constructor binding, record và bean không thể làm mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1246,7 +1246,7 @@ menu:
     summary: ''
   - slug: refreshscope-007
     title: DataSource, connection pool và danh sách never-refreshable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1255,7 +1255,7 @@ menu:
     summary: ''
   - slug: refreshscope-008
     title: Tính nhất quán khi nhiều luồng đọc cấu hình đang thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1264,7 +1264,7 @@ menu:
     summary: ''
   - slug: refreshscope-009
     title: Giới hạn làm mới trong Spring AOT và native image
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1276,7 +1276,7 @@ menu:
   childs:
   - slug: spring-cloud-bus-001
     title: Vai trò của Bus trong lan truyền thay đổi tới nhiều client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1285,7 +1285,7 @@ menu:
     summary: ''
   - slug: spring-cloud-bus-002
     title: Chọn starter Bus với RabbitMQ hoặc Kafka
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1294,7 +1294,7 @@ menu:
     summary: ''
   - slug: spring-cloud-bus-003
     title: Cấu hình broker và kết nối trên Config Server cùng các client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1303,7 +1303,7 @@ menu:
     summary: ''
   - slug: spring-cloud-bus-004
     title: POST /actuator/busrefresh và phạm vi làm mới từ xa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1312,7 +1312,7 @@ menu:
     summary: ''
   - slug: spring-cloud-bus-005
     title: Định danh spring.cloud.bus.id và lỗi trùng ID giữa các instance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1321,7 +1321,7 @@ menu:
     summary: ''
   - slug: spring-cloud-bus-006
     title: Địa chỉ đích cho toàn hệ thống, một dịch vụ hoặc một instance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1330,7 +1330,7 @@ menu:
     summary: ''
   - slug: spring-cloud-bus-007
     title: Phân biệt busrefresh với busenv và tính bền vững của thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1339,7 +1339,7 @@ menu:
     summary: ''
   - slug: spring-cloud-bus-008
     title: Sự kiện trễ, bị xử lý lặp hoặc bỏ lỡ và cách đối soát trạng thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1348,7 +1348,7 @@ menu:
     summary: ''
   - slug: spring-cloud-bus-009
     title: 'Giới hạn của Bus: không tạo giao dịch cập nhật đồng thời mọi client'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1357,7 +1357,7 @@ menu:
     summary: ''
   - slug: spring-cloud-bus-010
     title: Bảo vệ endpoint Bus, kết nối broker và nội dung sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
   childs:
   - slug: configuration-webhooks-001
     title: Luồng Git push đến /monitor rồi phát sự kiện làm mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: configuration-webhooks-002
     title: Kích hoạt spring-cloud-config-monitor và điều kiện sử dụng Bus
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1387,7 +1387,7 @@ menu:
     summary: ''
   - slug: configuration-webhooks-003
     title: Ánh xạ tệp thay đổi sang ứng dụng bị ảnh hưởng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1396,7 +1396,7 @@ menu:
     summary: ''
   - slug: configuration-webhooks-004
     title: Thay đổi application.yml và phạm vi tác động tới các client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1405,7 +1405,7 @@ menu:
     summary: ''
   - slug: configuration-webhooks-005
     title: Tích hợp GitHub hoặc GitLab và xác minh webhook theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1414,7 +1414,7 @@ menu:
     summary: ''
   - slug: configuration-webhooks-006
     title: Kiểm soát yêu cầu lặp, nguồn gửi và phạm vi đường dẫn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1423,7 +1423,7 @@ menu:
     summary: ''
   - slug: configuration-webhooks-007
     title: Phân biệt nhận webhook thành công với client đã áp dụng cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
   childs:
   - slug: configuration-encryption-001
     title: Phân biệt mã hóa khi lưu trữ, TLS và kiểm soát quyền đọc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: configuration-encryption-002
     title: Cơ chế {cipher} trong giá trị cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1453,7 +1453,7 @@ menu:
     summary: ''
   - slug: configuration-encryption-003
     title: Dùng /encrypt và /decrypt với dữ liệu được truyền đúng định dạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1462,7 +1462,7 @@ menu:
     summary: ''
   - slug: configuration-encryption-004
     title: Mã hóa đối xứng bằng encrypt.key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1471,7 +1471,7 @@ menu:
     summary: ''
   - slug: configuration-encryption-005
     title: Mã hóa bất đối xứng bằng keystore, alias và cặp khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1480,7 +1480,7 @@ menu:
     summary: ''
   - slug: configuration-encryption-006
     title: Giải mã phía Config Server so với giải mã phía client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1489,7 +1489,7 @@ menu:
     summary: ''
   - slug: configuration-encryption-007
     title: Xử lý ciphertext hỏng, thiếu khóa và giá trị giải mã không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1498,7 +1498,7 @@ menu:
     summary: ''
   - slug: configuration-encryption-008
     title: Xoay vòng khóa và đọc cấu hình cũ trong giai đoạn chuyển đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1507,7 +1507,7 @@ menu:
     summary: ''
   - slug: configuration-encryption-009
     title: Giữ khóa giải mã ngoài repository và kiểm soát endpoint mật mã
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1519,7 +1519,7 @@ menu:
   childs:
   - slug: security-001
     title: Ranh giới tin cậy giữa client, Config Server, kho Git và broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1528,7 +1528,7 @@ menu:
     summary: ''
   - slug: security-002
     title: Xác thực truy cập Config Server bằng Spring Security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1537,7 +1537,7 @@ menu:
     summary: ''
   - slug: security-003
     title: Phân quyền đọc cấu hình theo ứng dụng và môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1546,7 +1546,7 @@ menu:
     summary: ''
   - slug: security-004
     title: Không dùng application, profile hoặc label thay cho kiểm soát quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1555,7 +1555,7 @@ menu:
     summary: ''
   - slug: security-005
     title: TLS, mTLS, truststore và xác minh chứng thư máy chủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1564,7 +1564,7 @@ menu:
     summary: ''
   - slug: security-006
     title: Quản lý token Git, mật khẩu broker và thông tin xác thực client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1573,7 +1573,7 @@ menu:
     summary: ''
   - slug: security-007
     title: Giới hạn exposure, quyền truy cập và CSRF cho từng endpoint quản trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1582,7 +1582,7 @@ menu:
     summary: ''
   - slug: security-008
     title: Che bí mật trong Actuator env, configprops, log và thông báo lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1591,7 +1591,7 @@ menu:
     summary: ''
   - slug: security-009
     title: Kiểm soát lịch sử Git và xử lý khi bí mật đã bị commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1603,7 +1603,7 @@ menu:
   childs:
   - slug: vault-config-001
     title: Phân biệt Spring Cloud Vault trực tiếp với Vault backend của Config Server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1612,7 +1612,7 @@ menu:
     summary: ''
   - slug: vault-config-002
     title: Nạp bí mật bằng spring.config.import=vault://
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1621,7 +1621,7 @@ menu:
     summary: ''
   - slug: vault-config-003
     title: KV v1, KV v2 và cách ánh xạ context theo ứng dụng, profile
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1630,7 +1630,7 @@ menu:
     summary: ''
   - slug: vault-config-004
     title: Lựa chọn đường dẫn tường minh và tiền tố thuộc tính để tránh trùng khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1639,7 +1639,7 @@ menu:
     summary: ''
   - slug: vault-config-005
     title: Xác thực bằng token hoặc danh tính workload phù hợp môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1648,7 +1648,7 @@ menu:
     summary: ''
   - slug: vault-config-006
     title: Policy tối thiểu, namespace và ranh giới truy cập bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1657,7 +1657,7 @@ menu:
     summary: ''
   - slug: vault-config-007
     title: Vòng đời token, lease và thông tin xác thực động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1666,7 +1666,7 @@ menu:
     summary: ''
   - slug: vault-config-008
     title: Phân biệt gia hạn bí mật với làm mới bean đang sử dụng bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1678,7 +1678,7 @@ menu:
   childs:
   - slug: consul-config-001
     title: Nạp cấu hình từ Consul KV bằng spring.config.import
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1687,7 +1687,7 @@ menu:
     summary: ''
   - slug: consul-config-002
     title: Context dùng chung, context ứng dụng và context theo profile
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1696,7 +1696,7 @@ menu:
     summary: ''
   - slug: consul-config-003
     title: prefix, default-context và profile-separator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1705,7 +1705,7 @@ menu:
     summary: ''
   - slug: consul-config-004
     title: Giá trị KV rời so với khối YAML hoặc properties
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1714,7 +1714,7 @@ menu:
     summary: ''
   - slug: consul-config-005
     title: data-key và cách tổ chức cấu hình nhiều tài liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1723,7 +1723,7 @@ menu:
     summary: ''
   - slug: consul-config-006
     title: Config Watch, truy vấn chờ thay đổi và sự kiện làm mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1732,7 +1732,7 @@ menu:
     summary: ''
   - slug: consul-config-007
     title: ACL token, kết nối an toàn và hành vi khi Consul lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1741,7 +1741,7 @@ menu:
     summary: ''
   - slug: consul-config-008
     title: Tách chức năng Consul Config khỏi Consul Service Discovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1753,7 +1753,7 @@ menu:
   childs:
   - slug: zookeeper-config-001
     title: Nạp cấu hình từ Zookeeper bằng spring.config.import
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1762,7 +1762,7 @@ menu:
     summary: ''
   - slug: zookeeper-config-002
     title: Cấu trúc znode cho cấu hình chung, ứng dụng và profile
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1771,7 +1771,7 @@ menu:
     summary: ''
   - slug: zookeeper-config-003
     title: root, default-context và profile-separator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1780,7 +1780,7 @@ menu:
     summary: ''
   - slug: zookeeper-config-004
     title: Chọn context tường minh và thứ tự nguồn thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1789,7 +1789,7 @@ menu:
     summary: ''
   - slug: zookeeper-config-005
     title: Theo dõi namespace cấu hình và kích hoạt quá trình làm mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1798,7 +1798,7 @@ menu:
     summary: ''
   - slug: zookeeper-config-006
     title: Kết nối Curator, tái kết nối và lỗi đọc cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1807,7 +1807,7 @@ menu:
     summary: ''
   - slug: zookeeper-config-007
     title: ACL, xác thực và ranh giới với Zookeeper Service Discovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1819,7 +1819,7 @@ menu:
   childs:
   - slug: high-availability-001
     title: Chạy nhiều Config Server cùng nguồn cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1828,7 +1828,7 @@ menu:
     summary: ''
   - slug: high-availability-002
     title: Cân bằng tải, địa chỉ ổn định và discovery-first
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1837,7 +1837,7 @@ menu:
     summary: ''
   - slug: high-availability-003
     title: Nhiều URI trong Config Client so với nhiều vị trí Config Data import
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1846,7 +1846,7 @@ menu:
     summary: ''
   - slug: high-availability-004
     title: Chuyển máy chủ khi timeout khác khi sai quyền hoặc sai cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1855,7 +1855,7 @@ menu:
     summary: ''
   - slug: high-availability-005
     title: Sự cố kho Git, Vault hoặc broker và ảnh hưởng tới từng luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1864,7 +1864,7 @@ menu:
     summary: ''
   - slug: high-availability-006
     title: Ứng dụng đã chạy so với ứng dụng vừa khởi động khi mất nguồn cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1873,7 +1873,7 @@ menu:
     summary: ''
   - slug: high-availability-007
     title: Tránh đồng loạt retry và refresh sau khi hạ tầng phục hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1882,7 +1882,7 @@ menu:
     summary: ''
   - slug: high-availability-008
     title: Đồng nhất phiên bản cấu hình giữa các Config Server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1891,7 +1891,7 @@ menu:
     summary: ''
   - slug: high-availability-009
     title: Đặt tiêu chí phục hồi và kiểm chứng bằng thí nghiệm gây lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1903,7 +1903,7 @@ menu:
   childs:
   - slug: change-management-001
     title: Quyền sở hữu khóa cấu hình và quy trình review bằng pull request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1912,7 +1912,7 @@ menu:
     summary: ''
   - slug: change-management-002
     title: Kiểm tra cú pháp, kiểu dữ liệu và ràng buộc trước khi hợp nhất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1921,7 +1921,7 @@ menu:
     summary: ''
   - slug: change-management-003
     title: Tương thích cấu hình giữa phiên bản ứng dụng cũ và mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1930,7 +1930,7 @@ menu:
     summary: ''
   - slug: change-management-004
     title: Thêm khóa, đổi tên khóa và loại bỏ khóa theo giai đoạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1939,7 +1939,7 @@ menu:
     summary: ''
   - slug: change-management-005
     title: Phát hành cấu hình bằng commit hoặc tag có thể truy vết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1948,7 +1948,7 @@ menu:
     summary: ''
   - slug: change-management-006
     title: Triển khai thử trên một nhóm client trước khi mở rộng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1957,7 +1957,7 @@ menu:
     summary: ''
   - slug: change-management-007
     title: Đổi đồng thời nhiều khóa và giới hạn về tính nguyên tử phân tán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1966,7 +1966,7 @@ menu:
     summary: ''
   - slug: change-management-008
     title: Quay lại cấu hình trước và xác minh giá trị thực trên client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1975,7 +1975,7 @@ menu:
     summary: ''
   - slug: change-management-009
     title: Ranh giới giữa cấu hình động và hệ thống quản lý feature flag
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1987,7 +1987,7 @@ menu:
   childs:
   - slug: system-observability-001
     title: Theo dõi health của Config Server và các repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1996,7 +1996,7 @@ menu:
     summary: ''
   - slug: system-observability-002
     title: Phân biệt ứng dụng đang sống với cấu hình đã được nạp thành công
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2005,7 +2005,7 @@ menu:
     summary: ''
   - slug: system-observability-003
     title: Đo độ trễ, lỗi và số lần truy vấn cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2014,7 +2014,7 @@ menu:
     summary: ''
   - slug: system-observability-004
     title: Quan sát thời gian fetch Git, truy cập backend và retry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2023,7 +2023,7 @@ menu:
     summary: ''
   - slug: system-observability-005
     title: Ghi nhận phiên bản nguồn cùng lần làm mới gần nhất mà không lộ bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2032,7 +2032,7 @@ menu:
     summary: ''
   - slug: system-observability-006
     title: Đối chiếu Environment, configprops và giá trị bean đang sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2041,7 +2041,7 @@ menu:
     summary: ''
   - slug: system-observability-007
     title: Theo dõi Bus, webhook và client bỏ lỡ thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2050,7 +2050,7 @@ menu:
     summary: ''
   - slug: system-observability-008
     title: Cảnh báo lỗi nạp cấu hình, sai phiên bản và cập nhật không hội tụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2062,7 +2062,7 @@ menu:
   childs:
   - slug: testing-001
     title: Kiểm thử binding và validation bằng ApplicationContextRunner
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2071,7 +2071,7 @@ menu:
     summary: ''
   - slug: testing-002
     title: Kiểm thử thứ tự ưu tiên với nhiều PropertySource
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2080,7 +2080,7 @@ menu:
     summary: ''
   - slug: testing-003
     title: Dựng kho Git tạm có branch, tag, commit và profile
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2089,7 +2089,7 @@ menu:
     summary: ''
   - slug: testing-004
     title: Kiểm thử API Config Server bằng dữ liệu cấu hình đã biết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2098,7 +2098,7 @@ menu:
     summary: ''
   - slug: testing-005
     title: Kiểm thử Config Client với máy chủ thật hoặc HTTP giả lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2107,7 +2107,7 @@ menu:
     summary: ''
   - slug: testing-006
     title: Kiểm thử refresh, rebind và vòng đời bean RefreshScope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2116,7 +2116,7 @@ menu:
     summary: ''
   - slug: testing-007
     title: Kiểm thử Bus nhiều instance và địa chỉ đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2125,7 +2125,7 @@ menu:
     summary: ''
   - slug: testing-008
     title: Dùng Testcontainers cho broker, Vault, Consul hoặc Zookeeper
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2134,7 +2134,7 @@ menu:
     summary: ''
   - slug: testing-009
     title: Gây lỗi timeout, mất quyền, label thiếu và ciphertext không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2143,7 +2143,7 @@ menu:
     summary: ''
   - slug: testing-010
     title: Giữ kiểm thử độc lập, che bí mật và dọn tài nguyên sau khi chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2155,7 +2155,7 @@ menu:
   childs:
   - slug: troubleshooting-001
     title: Không có spring.config.import hoặc Config Client không được kích hoạt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2164,7 +2164,7 @@ menu:
     summary: ''
   - slug: troubleshooting-002
     title: Sai tên ứng dụng, profile, label hoặc vị trí tệp cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2173,7 +2173,7 @@ menu:
     summary: ''
   - slug: troubleshooting-003
     title: Máy chủ trả cấu hình nhưng giá trị phía client không đúng dự kiến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2182,7 +2182,7 @@ menu:
     summary: ''
   - slug: troubleshooting-004
     title: Lỗi clone hoặc fetch Git do token, SSH, proxy hay quyền thư mục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2191,7 +2191,7 @@ menu:
     summary: ''
   - slug: troubleshooting-005
     title: Cấu hình chưa cập nhật vì bản sao Git hoặc chu kỳ refresh-rate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2200,7 +2200,7 @@ menu:
     summary: ''
   - slug: troubleshooting-006
     title: Lỗi khởi động do optional, fail-fast, retry hoặc timeout
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2209,7 +2209,7 @@ menu:
     summary: ''
   - slug: troubleshooting-007
     title: POST refresh thành công nhưng bean vẫn giữ giá trị cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2218,7 +2218,7 @@ menu:
     summary: ''
   - slug: troubleshooting-008
     title: Bus không lan truyền vì trùng ID, sai đích hoặc mất kết nối broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2227,7 +2227,7 @@ menu:
     summary: ''
   - slug: troubleshooting-009
     title: Webhook nhận được nhưng không ánh xạ đúng ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2236,7 +2236,7 @@ menu:
     summary: ''
   - slug: troubleshooting-010
     title: Lỗi giải mã, keystore, chứng thư hoặc quyền truy cập bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2245,7 +2245,7 @@ menu:
     summary: ''
   - slug: troubleshooting-011
     title: Consul Watch, Zookeeper watcher hoặc Vault lease không hoạt động như dự kiến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2254,7 +2254,7 @@ menu:
     summary: ''
   - slug: troubleshooting-012
     title: Thu thập nguồn gốc thuộc tính và khoanh vùng từng chặng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2266,7 +2266,7 @@ menu:
   childs:
   - slug: scaling-and-upgrades-001
     title: Khi nào cần EnvironmentRepository tùy chỉnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2275,7 +2275,7 @@ menu:
     summary: ''
   - slug: scaling-and-upgrades-002
     title: Triển khai findOne và ánh xạ Environment cùng PropertySource
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2284,7 +2284,7 @@ menu:
     summary: ''
   - slug: scaling-and-upgrades-003
     title: Tích hợp repository tùy chỉnh vào composite và thứ tự Ordered
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2293,7 +2293,7 @@ menu:
     summary: ''
   - slug: scaling-and-upgrades-004
     title: Mở rộng nhận diện tệp thay đổi qua PropertyPathNotificationExtractor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2302,7 +2302,7 @@ menu:
     summary: ''
   - slug: scaling-and-upgrades-005
     title: Phạm vi tùy chỉnh ConfigDataLocationResolver và ConfigDataLoader
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2311,7 +2311,7 @@ menu:
     summary: ''
   - slug: scaling-and-upgrades-006
     title: Đánh giá thay đổi hành vi giữa các phiên bản Config Server và Client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2320,7 +2320,7 @@ menu:
     summary: ''
   - slug: scaling-and-upgrades-007
     title: Chuyển cơ chế bootstrap cũ và hướng dẫn Actuator lỗi thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2329,7 +2329,7 @@ menu:
     summary: ''
   - slug: scaling-and-upgrades-008
     title: 'Tích hợp ConfigMap, Secret hoặc configtree: ranh giới với module Kubernetes'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2338,7 +2338,7 @@ menu:
     summary: ''
   - slug: scaling-and-upgrades-009
     title: Đánh giá nâng cấp, kiểm thử hồi quy và phương án quay lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2350,7 +2350,7 @@ menu:
   childs:
   - slug: hands-on-project-001
     title: Dựng Config Server cùng hai client dùng cấu hình chung và riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2359,7 +2359,7 @@ menu:
     summary: ''
   - slug: hands-on-project-002
     title: Thử nhiều profile và label rồi giải thích giá trị được chọn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2368,7 +2368,7 @@ menu:
     summary: ''
   - slug: hands-on-project-003
     title: Tạo xung đột giữa Git, biến môi trường và tham số dòng lệnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2377,7 +2377,7 @@ menu:
     summary: ''
   - slug: hands-on-project-004
     title: Thay đổi cấu hình và so sánh refresh, RefreshScope với khởi động lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2386,7 +2386,7 @@ menu:
     summary: ''
   - slug: hands-on-project-005
     title: Lan truyền thay đổi bằng Bus tới một dịch vụ hoặc một instance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2395,7 +2395,7 @@ menu:
     summary: ''
   - slug: hands-on-project-006
     title: Tự động kích hoạt làm mới từ webhook của kho Git
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2404,7 +2404,7 @@ menu:
     summary: ''
   - slug: hands-on-project-007
     title: Kết hợp Git với kho bí mật và kiểm thử phân quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2413,7 +2413,7 @@ menu:
     summary: ''
   - slug: hands-on-project-008
     title: Gây lỗi Config Server, kho nguồn và broker rồi kiểm chứng phục hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2422,7 +2422,7 @@ menu:
     summary: ''
   - slug: hands-on-project-009
     title: Phát hành thử, quay lại cấu hình và đối chiếu trạng thái mọi client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2431,7 +2431,7 @@ menu:
     summary: ''
   - slug: hands-on-project-010
     title: Viết hướng dẫn vận hành cùng bằng chứng cấu hình không lộ bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

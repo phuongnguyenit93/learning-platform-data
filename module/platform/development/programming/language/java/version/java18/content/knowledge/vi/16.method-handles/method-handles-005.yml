@@ -1,3 +1,3 @@
 menuLevel1: MethodHandle
 menuLevel2: 'findVirtual(): receiver là tham số đầu tiên và lời gọi vẫn có virtual dispatch'
-status: ""
+status: WRITTEN

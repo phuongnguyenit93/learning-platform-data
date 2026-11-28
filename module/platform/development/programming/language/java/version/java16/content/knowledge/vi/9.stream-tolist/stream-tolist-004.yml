@@ -1,3 +1,3 @@
 menuLevel1: Stream.toList
 menuLevel2: Phần tử mutable vẫn có thể thay đổi bên trong danh sách unmodifiable
-status: ""
+status: WRITTEN

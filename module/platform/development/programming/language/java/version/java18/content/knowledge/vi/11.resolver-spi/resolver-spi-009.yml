@@ -1,3 +1,3 @@
 menuLevel1: Resolver SPI
 menuLevel2: 'Configuration.builtinResolver(): ủy quyền đến resolver tích hợp mà không gọi lặp InetAddress'
-status: ""
+status: WRITTEN

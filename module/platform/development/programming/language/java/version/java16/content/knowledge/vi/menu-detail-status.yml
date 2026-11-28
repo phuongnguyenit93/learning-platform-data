@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: java16-overview-001
     title: Các tính năng ổn định từ Java 16 còn hữu ích trong Java hiện đại
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -13,7 +13,7 @@ menu:
     summary: ""
   - slug: java16-overview-002
     title: Đọc JEP, mục Since và đặc tả API để xác định đúng phạm vi Java 16
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -22,7 +22,7 @@ menu:
     summary: ""
   - slug: java16-overview-003
     title: Phân biệt phiên bản ngôn ngữ, thư viện chuẩn, JVM và công cụ JDK
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -31,7 +31,7 @@ menu:
     summary: ""
   - slug: java16-overview-004
     title: Chọn JDK còn được hỗ trợ để học các tính năng chính thức của Java 16
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -40,7 +40,7 @@ menu:
     summary: ""
   - slug: java16-overview-005
     title: Cấu hình javac --release 16 để kiểm tra cú pháp, API và bytecode đích
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -49,7 +49,7 @@ menu:
     summary: ""
   - slug: java16-overview-006
     title: Đồng bộ JDK của IDE, trình biên dịch và môi trường chạy
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -58,7 +58,7 @@ menu:
     summary: ""
   - slug: java16-overview-007
     title: Phân biệt tương thích mã nguồn, nhị phân và hành vi khi nâng JDK
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -67,7 +67,7 @@ menu:
     summary: ""
   - slug: java16-overview-008
     title: Tổ chức ví dụ và kiểm thử cho record, pattern matching và Stream
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -76,7 +76,7 @@ menu:
     summary: ""
   - slug: java16-overview-009
     title: Đọc thông báo biên dịch để phát hiện API vượt quá mức Java 16
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -85,7 +85,7 @@ menu:
     summary: ""
   - slug: java16-overview-010
     title: Lập tiêu chí nghiệm thu khi áp dụng tính năng Java 16 vào ứng dụng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -97,7 +97,7 @@ menu:
   childs:
   - slug: record-structure-001
     title: Record và mô hình lớp mang dữ liệu minh bạch
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -106,7 +106,7 @@ menu:
     summary: ""
   - slug: record-structure-002
     title: Khai báo record header, component và kiểu dữ liệu của component
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -115,7 +115,7 @@ menu:
     summary: ""
   - slug: record-structure-003
     title: Khởi tạo record và đọc dữ liệu bằng accessor cùng tên component
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -124,7 +124,7 @@ menu:
     summary: ""
   - slug: record-structure-004
     title: Các thành viên được sinh tự động từ record header
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -133,7 +133,7 @@ menu:
     summary: ""
   - slug: record-structure-005
     title: Quan hệ giữa record, java.lang.Record và lớp final
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -142,7 +142,7 @@ menu:
     summary: ""
   - slug: record-structure-006
     title: Field private final và giới hạn bất biến nông của record
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -151,7 +151,7 @@ menu:
     summary: ""
   - slug: record-structure-007
     title: Quy tắc đặt tên component và các tên xung đột với phương thức Object
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -160,7 +160,7 @@ menu:
     summary: ""
   - slug: record-structure-008
     title: Record không có component và ý nghĩa của tập giá trị rỗng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -169,7 +169,7 @@ menu:
     summary: ""
   - slug: record-structure-009
     title: Khai báo generic record và ràng buộc kiểu cho component
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -178,7 +178,7 @@ menu:
     summary: ""
   - slug: record-structure-010
     title: Record implements interface và triển khai hành vi theo hợp đồng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -187,7 +187,7 @@ menu:
     summary: ""
   - slug: record-structure-011
     title: Phương thức instance, phương thức static và hằng số trong record
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -196,7 +196,7 @@ menu:
     summary: ""
   - slug: record-structure-012
     title: Các giới hạn về field instance bổ sung và instance initializer
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -205,7 +205,7 @@ menu:
     summary: ""
   - slug: record-structure-013
     title: Record lồng nhau và tính static ngầm định
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -214,7 +214,7 @@ menu:
     summary: ""
   - slug: record-structure-014
     title: Local record trong phương thức và giới hạn truy cập biến bên ngoài
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -223,7 +223,7 @@ menu:
     summary: ""
   - slug: record-structure-015
     title: Static member trong inner class và khả năng khai báo nested record
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -232,7 +232,7 @@ menu:
     summary: ""
   - slug: record-structure-016
     title: Dùng javap để đối chiếu component, constructor và thành viên được sinh
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -244,7 +244,7 @@ menu:
   childs:
   - slug: record-construction-001
     title: Canonical constructor và sự tương ứng với thứ tự component
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -253,7 +253,7 @@ menu:
     summary: ""
   - slug: record-construction-002
     title: Quyền truy cập của canonical constructor so với record
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -262,7 +262,7 @@ menu:
     summary: ""
   - slug: record-construction-003
     title: Khai báo canonical constructor tường minh và gán đủ field final
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -271,7 +271,7 @@ menu:
     summary: ""
   - slug: record-construction-004
     title: Compact constructor và thời điểm compiler tự gán component field
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -280,7 +280,7 @@ menu:
     summary: ""
   - slug: record-construction-005
     title: Kiểm tra null, miền giá trị và quan hệ giữa các component
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -289,7 +289,7 @@ menu:
     summary: ""
   - slug: record-construction-006
     title: Chuẩn hóa tham số ngay trong compact constructor
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -298,7 +298,7 @@ menu:
     summary: ""
   - slug: record-construction-007
     title: Vì sao không được gán trực tiếp component field trong compact constructor
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -307,7 +307,7 @@ menu:
     summary: ""
   - slug: record-construction-008
     title: Tránh đọc accessor trước khi compact constructor hoàn tất
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -316,7 +316,7 @@ menu:
     summary: ""
   - slug: record-construction-009
     title: Constructor bổ sung và yêu cầu ủy quyền bằng this
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -325,7 +325,7 @@ menu:
     summary: ""
   - slug: record-construction-010
     title: Factory method có tên cho các cách tạo record có ý nghĩa nghiệp vụ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -334,7 +334,7 @@ menu:
     summary: ""
   - slug: record-construction-011
     title: Defensive copy collection khi nhận dữ liệu vào constructor
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -343,7 +343,7 @@ menu:
     summary: ""
   - slug: record-construction-012
     title: Sao chép mảng ở constructor và accessor để bảo vệ dữ liệu
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -352,7 +352,7 @@ menu:
     summary: ""
   - slug: record-construction-013
     title: Chọn IllegalArgumentException và NullPointerException cho hợp đồng đầu vào
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -361,7 +361,7 @@ menu:
     summary: ""
   - slug: record-construction-014
     title: Thiết kế thông báo lỗi constructor dễ kiểm chứng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -370,7 +370,7 @@ menu:
     summary: ""
   - slug: record-construction-015
     title: Kiểm thử giá trị biên, dữ liệu không hợp lệ và dữ liệu đã chuẩn hóa
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -379,7 +379,7 @@ menu:
     summary: ""
   - slug: record-construction-016
     title: Kiểm chứng mọi đường tạo đối tượng đều bảo toàn invariant của record
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -391,7 +391,7 @@ menu:
   childs:
   - slug: record-semantics-001
     title: equals của record và yêu cầu cùng chính xác kiểu record
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -400,7 +400,7 @@ menu:
     summary: ""
   - slug: record-semantics-002
     title: So sánh component tham chiếu bằng ngữ nghĩa Objects.equals
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -409,7 +409,7 @@ menu:
     summary: ""
   - slug: record-semantics-003
     title: So sánh component primitive với NaN, +0.0 và -0.0
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -418,7 +418,7 @@ menu:
     summary: ""
   - slug: record-semantics-004
     title: hashCode được suy ra từ component và giới hạn phụ thuộc thuật toán
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -427,7 +427,7 @@ menu:
     summary: ""
   - slug: record-semantics-005
     title: toString được sinh tự động và nguy cơ lộ dữ liệu nhạy cảm
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -436,7 +436,7 @@ menu:
     summary: ""
   - slug: record-semantics-006
     title: Phân biệt equality theo giá trị và identity của instance record
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -445,7 +445,7 @@ menu:
     summary: ""
   - slug: record-semantics-007
     title: Vì sao record vẫn là đối tượng có identity và không mặc nhiên là value-based class
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -454,7 +454,7 @@ menu:
     summary: ""
   - slug: record-semantics-008
     title: Array component và bẫy equality theo tham chiếu
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -463,7 +463,7 @@ menu:
     summary: ""
   - slug: record-semantics-009
     title: Mutable component có thể làm thay đổi equals và hashCode
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -472,7 +472,7 @@ menu:
     summary: ""
   - slug: record-semantics-010
     title: Điều kiện dùng record làm key trong Map hoặc phần tử trong Set
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -481,7 +481,7 @@ menu:
     summary: ""
   - slug: record-semantics-011
     title: Accessor tường minh và quy tắc bảo toàn giá trị quan sát được
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -490,7 +490,7 @@ menu:
     summary: ""
   - slug: record-semantics-012
     title: Invariant sao chép record từ các accessor của chính nó
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -499,7 +499,7 @@ menu:
     summary: ""
   - slug: record-semantics-013
     title: Tùy biến equals và hashCode nhất quán khi nghiệp vụ yêu cầu
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -508,7 +508,7 @@ menu:
     summary: ""
   - slug: record-semantics-014
     title: Tùy biến toString để che dữ liệu và tránh coi kết quả là định dạng lưu trữ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -517,7 +517,7 @@ menu:
     summary: ""
   - slug: record-semantics-015
     title: Bất biến sâu, xuất bản an toàn và giới hạn thread safety của record
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -526,7 +526,7 @@ menu:
     summary: ""
   - slug: record-semantics-016
     title: Kiểm thử equality, hash collection và đột biến từ dữ liệu bên ngoài
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -538,7 +538,7 @@ menu:
   childs:
   - slug: record-applications-001
     title: Chọn record cho DTO, kết quả truy vấn và đối tượng giá trị
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -547,7 +547,7 @@ menu:
     summary: ""
   - slug: record-applications-002
     title: Chọn class khi cần vòng đời mutable, kế thừa hoặc trạng thái ẩn
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -556,7 +556,7 @@ menu:
     summary: ""
   - slug: record-applications-003
     title: Thiết kế record lồng nhau cho dữ liệu có cấu trúc
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -565,7 +565,7 @@ menu:
     summary: ""
   - slug: record-applications-004
     title: Dùng record làm khóa ghép cho groupingBy và tra cứu dữ liệu
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -574,7 +574,7 @@ menu:
     summary: ""
   - slug: record-applications-005
     title: Local record làm kết quả trung gian trong pipeline Stream
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -583,7 +583,7 @@ menu:
     summary: ""
   - slug: record-applications-006
     title: Dùng method reference tới accessor để sắp xếp và ánh xạ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -592,7 +592,7 @@ menu:
     summary: ""
   - slug: record-applications-007
     title: Thay đổi record bằng cách tạo instance mới và giữ invariant
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -601,7 +601,7 @@ menu:
     summary: ""
   - slug: record-applications-008
     title: Thiết kế component collection với hợp đồng null và quyền sửa rõ ràng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -610,7 +610,7 @@ menu:
     summary: ""
   - slug: record-applications-009
     title: Ánh xạ record tại ranh giới JSON và kiểm tra hỗ trợ của thư viện
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -619,7 +619,7 @@ menu:
     summary: ""
   - slug: record-applications-010
     title: Binding qua constructor và khác biệt giữa accessor record với JavaBeans getter
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -628,7 +628,7 @@ menu:
     summary: ""
   - slug: record-applications-011
     title: Giới hạn của record với proxy kế thừa và mô hình entity có vòng đời mutable
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -637,7 +637,7 @@ menu:
     summary: ""
   - slug: record-applications-012
     title: Tác động của đổi tên, đổi kiểu và thêm component lên API công khai
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -646,7 +646,7 @@ menu:
     summary: ""
   - slug: record-applications-013
     title: Chuyển lớp dữ liệu sang record và kiểm tra tương thích của bên sử dụng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -655,7 +655,7 @@ menu:
     summary: ""
   - slug: record-applications-014
     title: Kiểm thử round-trip dữ liệu qua mapper mà vẫn chạy validation constructor
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -667,7 +667,7 @@ menu:
   childs:
   - slug: record-metadata-001
     title: Nhận diện record bằng Class.isRecord
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -676,7 +676,7 @@ menu:
     summary: ""
   - slug: record-metadata-002
     title: Đọc danh sách component theo thứ tự bằng Class.getRecordComponents
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -685,7 +685,7 @@ menu:
     summary: ""
   - slug: record-metadata-003
     title: RecordComponent.getName, getType và getGenericType
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -694,7 +694,7 @@ menu:
     summary: ""
   - slug: record-metadata-004
     title: Lấy accessor bằng RecordComponent.getAccessor và gọi qua API công khai
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -703,7 +703,7 @@ menu:
     summary: ""
   - slug: record-metadata-005
     title: Xác định canonical constructor từ kiểu của các component
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -712,7 +712,7 @@ menu:
     summary: ""
   - slug: record-metadata-006
     title: Annotation target RECORD_COMPONENT và retention khi đọc metadata
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -721,7 +721,7 @@ menu:
     summary: ""
   - slug: record-metadata-007
     title: Sự lan truyền annotation tới field, accessor và tham số constructor
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -730,7 +730,7 @@ menu:
     summary: ""
   - slug: record-metadata-008
     title: Phân biệt annotation trên component với annotation trên kiểu dữ liệu
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -739,7 +739,7 @@ menu:
     summary: ""
   - slug: record-metadata-009
     title: Viết mapper dựa trên component và constructor thay vì sửa field final
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -748,7 +748,7 @@ menu:
     summary: ""
   - slug: record-metadata-010
     title: Kiểm thử metadata, annotation và record không có component
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -760,7 +760,7 @@ menu:
   childs:
   - slug: instanceof-patterns-001
     title: Type pattern chính thức từ Java 16 và cú pháp instanceof có biến
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -769,7 +769,7 @@ menu:
     summary: ""
   - slug: instanceof-patterns-002
     title: Gộp kiểm tra kiểu, chuyển kiểu và khai báo biến trong một biểu thức
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -778,7 +778,7 @@ menu:
     summary: ""
   - slug: instanceof-patterns-003
     title: Kiểu tĩnh của biểu thức nguồn và kiểu của pattern variable
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -787,7 +787,7 @@ menu:
     summary: ""
   - slug: instanceof-patterns-004
     title: Hành vi khi đối tượng nguồn là null
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -796,7 +796,7 @@ menu:
     summary: ""
   - slug: instanceof-patterns-005
     title: Khớp với class, interface, subtype và array reference
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -805,7 +805,7 @@ menu:
     summary: ""
   - slug: instanceof-patterns-006
     title: Giới hạn khi pattern yêu cầu phép chuyển kiểu không hợp lệ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -814,7 +814,7 @@ menu:
     summary: ""
   - slug: instanceof-patterns-007
     title: Lỗi biên dịch khi kiểu nguồn đã là subtype của kiểu pattern
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -823,7 +823,7 @@ menu:
     summary: ""
   - slug: instanceof-patterns-008
     title: Pattern với generic và giới hạn do type erasure
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -832,7 +832,7 @@ menu:
     summary: ""
   - slug: instanceof-patterns-009
     title: Dùng pattern variable trong equals tường minh của lớp dữ liệu
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -841,7 +841,7 @@ menu:
     summary: ""
   - slug: instanceof-patterns-010
     title: Kết hợp record với instanceof mà vẫn truy cập component bằng accessor
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -850,7 +850,7 @@ menu:
     summary: ""
   - slug: instanceof-patterns-011
     title: Tái cấu trúc chuỗi kiểm tra kiểu mà giữ thứ tự và hành vi
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -859,7 +859,7 @@ menu:
     summary: ""
   - slug: instanceof-patterns-012
     title: Kiểm thử trường hợp khớp kiểu, khác kiểu và null
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -871,7 +871,7 @@ menu:
   childs:
   - slug: pattern-flow-scoping-001
     title: Flow scoping và điều kiện compiler chứng minh pattern đã khớp
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -880,7 +880,7 @@ menu:
     summary: ""
   - slug: pattern-flow-scoping-002
     title: Phạm vi pattern variable trong nhánh if và else
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -889,7 +889,7 @@ menu:
     summary: ""
   - slug: pattern-flow-scoping-003
     title: Kết hợp instanceof với && để kiểm tra tiếp dữ liệu đã ép kiểu
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -898,7 +898,7 @@ menu:
     summary: ""
   - slug: pattern-flow-scoping-004
     title: Vì sao || không cho phép dùng biến chưa chắc được khởi tạo
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -907,7 +907,7 @@ menu:
     summary: ""
   - slug: pattern-flow-scoping-005
     title: Phủ định pattern và viết guard clause bằng return hoặc throw
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -916,7 +916,7 @@ menu:
     summary: ""
   - slug: pattern-flow-scoping-006
     title: Dùng pattern variable sau nhánh không thể hoàn tất bình thường
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -925,7 +925,7 @@ menu:
     summary: ""
   - slug: pattern-flow-scoping-007
     title: Phạm vi biến trong biểu thức điều kiện ba ngôi
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -934,7 +934,7 @@ menu:
     summary: ""
   - slug: pattern-flow-scoping-008
     title: Phạm vi pattern trong vòng lặp và ảnh hưởng của break
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -943,7 +943,7 @@ menu:
     summary: ""
   - slug: pattern-flow-scoping-009
     title: Đặt tên, khai báo lại và tránh che khuất pattern variable
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -952,7 +952,7 @@ menu:
     summary: ""
   - slug: pattern-flow-scoping-010
     title: Pattern variable có thể gán lại và điều kiện effectively final khi capture
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -961,7 +961,7 @@ menu:
     summary: ""
   - slug: pattern-flow-scoping-011
     title: Tránh đánh giá lặp biểu thức nguồn có tác dụng phụ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -970,7 +970,7 @@ menu:
     summary: ""
   - slug: pattern-flow-scoping-012
     title: Kiểm thử biên dịch các biểu thức boolean sau khi refactor pattern
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -982,7 +982,7 @@ menu:
   childs:
   - slug: stream-tolist-001
     title: Stream.toList là terminal operation được bổ sung trong Java 16
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -991,7 +991,7 @@ menu:
     summary: ""
   - slug: stream-tolist-002
     title: Encounter order của danh sách kết quả với nguồn có thứ tự
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1000,7 +1000,7 @@ menu:
     summary: ""
   - slug: stream-tolist-003
     title: Hợp đồng unmodifiable và UnsupportedOperationException khi sửa danh sách
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1009,7 +1009,7 @@ menu:
     summary: ""
   - slug: stream-tolist-004
     title: Phần tử mutable vẫn có thể thay đổi bên trong danh sách unmodifiable
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1018,7 +1018,7 @@ menu:
     summary: ""
   - slug: stream-tolist-005
     title: Xử lý phần tử null khi dùng Stream.toList
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1027,7 +1027,7 @@ menu:
     summary: ""
   - slug: stream-tolist-006
     title: So sánh toList với Collectors.toList về hợp đồng mutability
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1036,7 +1036,7 @@ menu:
     summary: ""
   - slug: stream-tolist-007
     title: So sánh toList với Collectors.toUnmodifiableList về null
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1045,7 +1045,7 @@ menu:
     summary: ""
   - slug: stream-tolist-008
     title: Chọn Collectors.toCollection khi cần kiểu collection và quyền sửa cụ thể
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1054,7 +1054,7 @@ menu:
     summary: ""
   - slug: stream-tolist-009
     title: Tạo bản sao ArrayList khi bên nhận thực sự cần danh sách mutable
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1063,7 +1063,7 @@ menu:
     summary: ""
   - slug: stream-tolist-010
     title: Giới hạn suy luận generic khi gán kết quả vào List của supertype
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1072,7 +1072,7 @@ menu:
     summary: ""
   - slug: stream-tolist-011
     title: Dùng type witness và map để biểu đạt đúng kiểu đầu ra
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1081,7 +1081,7 @@ menu:
     summary: ""
   - slug: stream-tolist-012
     title: Không phụ thuộc lớp triển khai cụ thể của danh sách kết quả
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1090,7 +1090,7 @@ menu:
     summary: ""
   - slug: stream-tolist-013
     title: Không dựa vào identity hoặc dùng danh sách kết quả làm khóa đồng bộ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1099,7 +1099,7 @@ menu:
     summary: ""
   - slug: stream-tolist-014
     title: Chi phí vật chất hóa toàn bộ Stream và giới hạn kích thước dữ liệu
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1108,7 +1108,7 @@ menu:
     summary: ""
   - slug: stream-tolist-015
     title: Pipeline song song và kiểm chứng thứ tự kết quả của toList
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1117,7 +1117,7 @@ menu:
     summary: ""
   - slug: stream-tolist-016
     title: Phân biệt kết thúc Stream với đóng tài nguyên của nguồn I/O
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1126,7 +1126,7 @@ menu:
     summary: ""
   - slug: stream-tolist-017
     title: Thay collect bằng toList sau khi kiểm tra mọi vị trí sửa kết quả
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1135,7 +1135,7 @@ menu:
     summary: ""
   - slug: stream-tolist-018
     title: Kiểm thử danh sách rỗng, null, thứ tự, kiểu generic và quyền sửa
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1147,7 +1147,7 @@ menu:
   childs:
   - slug: stream-mapmulti-001
     title: mapMulti và phép biến đổi một phần tử thành không, một hoặc nhiều phần tử
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1156,7 +1156,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-002
     title: Vai trò BiConsumer, mapper và consumer phát phần tử
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1165,7 +1165,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-003
     title: Phát dữ liệu bằng consumer.accept và loại phần tử bằng cách không phát
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1174,7 +1174,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-004
     title: Chọn map, filter, flatMap hoặc mapMulti theo hình dạng đầu ra
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1183,7 +1183,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-005
     title: mapMulti khi số phần tử phát ra nhỏ và logic sinh dữ liệu dạng mệnh lệnh
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1192,7 +1192,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-006
     title: Dùng type witness để giải quyết suy luận kiểu kết quả
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1201,7 +1201,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-007
     title: Tách mapper thành method reference có chữ ký rõ ràng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1210,7 +1210,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-008
     title: Kết hợp instanceof pattern và mapMulti để lọc kiểu có biến kết quả
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1219,7 +1219,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-009
     title: Làm phẳng collection lồng nhau và giữ thứ tự phát trong từng mapper
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1228,7 +1228,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-010
     title: mapMultiToInt và IntConsumer cho kết quả số nguyên
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1237,7 +1237,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-011
     title: mapMultiToLong và LongConsumer cho kết quả số nguyên dài
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1246,7 +1246,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-012
     title: mapMultiToDouble và DoubleConsumer cho kết quả số thực
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1255,7 +1255,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-013
     title: IntStream.mapMulti và IntMapMultiConsumer
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1264,7 +1264,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-014
     title: LongStream.mapMulti và LongMapMultiConsumer
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1273,7 +1273,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-015
     title: DoubleStream.mapMulti và DoubleMapMultiConsumer
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1282,7 +1282,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-016
     title: Giảm boxing khi chọn đúng biến thể primitive
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1291,7 +1291,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-017
     title: Giới hạn vòng đời consumer và cấm giữ lại để phát bất đồng bộ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1300,7 +1300,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-018
     title: Yêu cầu stateless, non-interfering và bẫy trạng thái dùng chung khi parallel
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1309,7 +1309,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-019
     title: Xử lý null, exception và hợp đồng dữ liệu phát ra
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1318,7 +1318,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-020
     title: Tương tác với limit và findFirst khi mapper phát nhiều phần tử
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1327,7 +1327,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-021
     title: Quản lý tài nguyên bên trong mapper và khác biệt với substream của flatMap
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1336,7 +1336,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-022
     title: Đo cấp phát và thời gian trước khi kết luận mapMulti nhanh hơn flatMap
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1345,7 +1345,7 @@ menu:
     summary: ""
   - slug: stream-mapmulti-023
     title: Kiểm thử số lượng phát, thứ tự và tính tương đương của pipeline
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1357,7 +1357,7 @@ menu:
   childs:
   - slug: value-based-classes-001
     title: JEP 390 và ý nghĩa của cảnh báo sử dụng identity trên value-based class
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1366,7 +1366,7 @@ menu:
     summary: ""
   - slug: value-based-classes-002
     title: Nhận diện value-based class qua hợp đồng API của wrapper, Optional và java.time
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1375,7 +1375,7 @@ menu:
     summary: ""
   - slug: value-based-classes-003
     title: Dùng equals thay vì == khi so sánh giá trị đối tượng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1384,7 +1384,7 @@ menu:
     summary: ""
   - slug: value-based-classes-004
     title: Autoboxing, valueOf và bẫy suy luận equality từ cache wrapper
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1393,7 +1393,7 @@ menu:
     summary: ""
   - slug: value-based-classes-005
     title: Vì sao synchronized trên wrapper hoặc đối tượng value-based không an toàn
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1402,7 +1402,7 @@ menu:
     summary: ""
   - slug: value-based-classes-006
     title: Chọn khóa private chuyên dụng cho trạng thái cần đồng bộ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1411,7 +1411,7 @@ menu:
     summary: ""
   - slug: value-based-classes-007
     title: Tránh identityHashCode và IdentityHashMap với dữ liệu có ngữ nghĩa giá trị
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1420,7 +1420,7 @@ menu:
     summary: ""
   - slug: value-based-classes-008
     title: Đọc cảnh báo javac -Xlint:synchronization và sửa đúng thiết kế khóa
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1429,7 +1429,7 @@ menu:
     summary: ""
   - slug: value-based-classes-009
     title: Phân biệt value-based class với record và các đặc điểm bất biến
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1438,7 +1438,7 @@ menu:
     summary: ""
   - slug: value-based-classes-010
     title: Kiểm thử tranh chấp luồng sau khi chuyển sang khóa đồng bộ riêng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1450,7 +1450,7 @@ menu:
   childs:
   - slug: proxy-default-methods-001
     title: InvocationHandler.invokeDefault và hỗ trợ default method từ Java 16
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1459,7 +1459,7 @@ menu:
     summary: ""
   - slug: proxy-default-methods-002
     title: Đường đi của lời gọi từ dynamic proxy đến InvocationHandler
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1468,7 +1468,7 @@ menu:
     summary: ""
   - slug: proxy-default-methods-003
     title: Nhận diện default method bằng Method.isDefault
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1477,7 +1477,7 @@ menu:
     summary: ""
   - slug: proxy-default-methods-004
     title: Gọi default method qua invokeDefault với đúng proxy, method và args
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1486,7 +1486,7 @@ menu:
     summary: ""
   - slug: proxy-default-methods-005
     title: Xử lý default method không tham số, primitive và giá trị trả về
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1495,7 +1495,7 @@ menu:
     summary: ""
   - slug: proxy-default-methods-006
     title: Chọn default method khi proxy triển khai nhiều interface
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1504,7 +1504,7 @@ menu:
     summary: ""
   - slug: proxy-default-methods-007
     title: Default method kế thừa, bị override và tác động khi interface thay đổi
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1513,7 +1513,7 @@ menu:
     summary: ""
   - slug: proxy-default-methods-008
     title: Tránh gọi Method.invoke trên proxy gây đệ quy về handler
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1522,7 +1522,7 @@ menu:
     summary: ""
   - slug: proxy-default-methods-009
     title: Kiểm soát quyền truy cập, IllegalArgumentException và exception từ method đích
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1531,7 +1531,7 @@ menu:
     summary: ""
   - slug: proxy-default-methods-010
     title: Kiểm thử proxy có default method và phương thức abstract
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1543,7 +1543,7 @@ menu:
   childs:
   - slug: day-period-formatting-001
     title: Day period và nhu cầu diễn đạt các khoảng trong ngày theo locale
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1552,7 +1552,7 @@ menu:
     summary: ""
   - slug: day-period-formatting-002
     title: Pattern B của DateTimeFormatter được bổ sung từ Java 16
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1561,7 +1561,7 @@ menu:
     summary: ""
   - slug: day-period-formatting-003
     title: Phân biệt day period B với ký hiệu AM/PM a
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1570,7 +1570,7 @@ menu:
     summary: ""
   - slug: day-period-formatting-004
     title: Định dạng LocalTime bằng locale tường minh
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1579,7 +1579,7 @@ menu:
     summary: ""
   - slug: day-period-formatting-005
     title: Độ rộng B, BBBB và BBBBB trong văn bản hiển thị
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1588,7 +1588,7 @@ menu:
     summary: ""
   - slug: day-period-formatting-006
     title: DateTimeFormatterBuilder.appendDayPeriodText và TextStyle
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1597,7 +1597,7 @@ menu:
     summary: ""
   - slug: day-period-formatting-007
     title: Parse giờ có day period và ảnh hưởng của ResolverStyle
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1606,7 +1606,7 @@ menu:
     summary: ""
   - slug: day-period-formatting-008
     title: Ranh giới nửa đêm, buổi trưa và các khoảng ngày theo dữ liệu locale
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1615,7 +1615,7 @@ menu:
     summary: ""
   - slug: day-period-formatting-009
     title: Tránh dùng chuỗi day period làm định dạng trao đổi dữ liệu ổn định
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1624,7 +1624,7 @@ menu:
     summary: ""
   - slug: day-period-formatting-010
     title: Kiểm thử nhiều locale và thay đổi dữ liệu CLDR giữa các JDK
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1636,7 +1636,7 @@ menu:
   childs:
   - slug: index-checks-and-buffers-001
     title: Objects.checkIndex với long cho chỉ số vượt miền int
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1645,7 +1645,7 @@ menu:
     summary: ""
   - slug: index-checks-and-buffers-002
     title: Objects.checkFromToIndex với long và khoảng nửa mở
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1654,7 +1654,7 @@ menu:
     summary: ""
   - slug: index-checks-and-buffers-003
     title: Objects.checkFromIndexSize với long và kiểm tra tràn phép cộng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1663,7 +1663,7 @@ menu:
     summary: ""
   - slug: index-checks-and-buffers-004
     title: Đầu vào âm, độ dài bằng không và biên cuối hợp lệ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1672,7 +1672,7 @@ menu:
     summary: ""
   - slug: index-checks-and-buffers-005
     title: Giá trị trả về của phép kiểm tra và IndexOutOfBoundsException
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1681,7 +1681,7 @@ menu:
     summary: ""
   - slug: index-checks-and-buffers-006
     title: IndexOutOfBoundsException(long) và giới hạn phụ thuộc chuỗi thông báo
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1690,7 +1690,7 @@ menu:
     summary: ""
   - slug: index-checks-and-buffers-007
     title: ByteBuffer.put(index, src, offset, length) bổ sung từ Java 16
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1699,7 +1699,7 @@ menu:
     summary: ""
   - slug: index-checks-and-buffers-008
     title: Absolute bulk put và việc giữ nguyên position của buffer nguồn, đích
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1708,7 +1708,7 @@ menu:
     summary: ""
   - slug: index-checks-and-buffers-009
     title: Kiểm tra theo limit thay vì chỉ nhìn capacity
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1717,7 +1717,7 @@ menu:
     summary: ""
   - slug: index-checks-and-buffers-010
     title: Sao chép vùng buffer chồng lấn và kiểm chứng dữ liệu
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1726,7 +1726,7 @@ menu:
     summary: ""
   - slug: index-checks-and-buffers-011
     title: Bulk put trên CharBuffer, ShortBuffer và IntBuffer
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1735,7 +1735,7 @@ menu:
     summary: ""
   - slug: index-checks-and-buffers-012
     title: Bulk put trên LongBuffer, FloatBuffer và DoubleBuffer
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1744,7 +1744,7 @@ menu:
     summary: ""
   - slug: index-checks-and-buffers-013
     title: Kiểm thử buffer read-only, sai chỉ số, vùng rỗng và dữ liệu nhị phân
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1756,7 +1756,7 @@ menu:
   childs:
   - slug: unix-domain-sockets-001
     title: Unix-domain socket từ Java 16 và giao tiếp giữa tiến trình cùng máy
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1765,7 +1765,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-002
     title: Chọn Unix-domain socket hay TCP loopback theo yêu cầu triển khai
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1774,7 +1774,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-003
     title: StandardProtocolFamily.UNIX và khả năng hỗ trợ của hệ điều hành
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1783,7 +1783,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-004
     title: UnixDomainSocketAddress.of với Path hoặc String
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1792,7 +1792,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-005
     title: Đường dẫn socket, hệ tệp mặc định và giới hạn độ dài theo nền tảng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1801,7 +1801,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-006
     title: Mở ServerSocketChannel bằng protocol family UNIX
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1810,7 +1810,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-007
     title: Bind địa chỉ và chấp nhận kết nối bằng accept
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1819,7 +1819,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-008
     title: Mở SocketChannel UNIX và kết nối tới endpoint cục bộ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1828,7 +1828,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-009
     title: Đọc ghi byte stream và thiết kế ranh giới thông điệp
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1837,7 +1837,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-010
     title: Xử lý partial read, partial write và ByteBuffer trong giao thức
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1846,7 +1846,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-011
     title: Nhận biết EOF, đóng kết nối và xử lý peer ngắt giữa chừng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1855,7 +1855,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-012
     title: Non-blocking connect và finishConnect khi dùng Selector
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1864,7 +1864,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-013
     title: Đăng ký OP_ACCEPT, OP_READ và OP_WRITE cho kênh UNIX
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1873,7 +1873,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-014
     title: Socket option theo supportedOptions và giới hạn adapter socket truyền thống
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1882,7 +1882,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-015
     title: Quản lý channel và selector bằng try-with-resources
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1891,7 +1891,7 @@ menu:
     summary: ""
   - slug: unix-domain-sockets-016
     title: Kiểm thử trao đổi thông điệp giữa hai tiến trình Java
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1903,7 +1903,7 @@ menu:
   childs:
   - slug: unix-socket-operations-001
     title: Quyền truy cập thư mục chứa socket và phân tách người dùng hệ điều hành
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1912,7 +1912,7 @@ menu:
     summary: ""
   - slug: unix-socket-operations-002
     title: Dọn socket pathname sau khi server đóng và xử lý tệp còn sót
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1921,7 +1921,7 @@ menu:
     summary: ""
   - slug: unix-socket-operations-003
     title: Tránh xóa nhầm endpoint khi nhiều tiến trình cùng khởi động
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1930,7 +1930,7 @@ menu:
     summary: ""
   - slug: unix-socket-operations-004
     title: Thiết kế timeout ở tầng ứng dụng cho kết nối không phản hồi
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1939,7 +1939,7 @@ menu:
     summary: ""
   - slug: unix-socket-operations-005
     title: Giới hạn bộ đệm, kích thước thông điệp và kiểm tra dữ liệu nhận
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1948,7 +1948,7 @@ menu:
     summary: ""
   - slug: unix-socket-operations-006
     title: Xử lý BindException, ConnectException và lỗi quyền hệ tệp
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1957,7 +1957,7 @@ menu:
     summary: ""
   - slug: unix-socket-operations-007
     title: Ứng phó UnsupportedOperationException trên runtime hoặc nền tảng thiếu hỗ trợ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1966,7 +1966,7 @@ menu:
     summary: ""
   - slug: unix-socket-operations-008
     title: Kiểm tra khác biệt hỗ trợ và socket option giữa Windows và Linux
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1975,7 +1975,7 @@ menu:
     summary: ""
   - slug: unix-socket-operations-009
     title: Chia sẻ socket qua volume và ranh giới namespace của container
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1984,7 +1984,7 @@ menu:
     summary: ""
   - slug: unix-socket-operations-010
     title: Graceful shutdown và đóng tài nguyên khi tiến trình nhận tín hiệu dừng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1993,7 +1993,7 @@ menu:
     summary: ""
   - slug: unix-socket-operations-011
     title: Đo độ trễ, throughput và số lần sao chép với workload đại diện
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2002,7 +2002,7 @@ menu:
     summary: ""
   - slug: unix-socket-operations-012
     title: Kiểm thử khởi động lại, client song song và peer bị dừng đột ngột
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2014,7 +2014,7 @@ menu:
   childs:
   - slug: jdk-encapsulation-001
     title: Strong encapsulation mặc định từ Java 16 và ý nghĩa của JEP 396
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2023,7 +2023,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-002
     title: Phân biệt API công khai, package exported và JDK internal
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2032,7 +2032,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-003
     title: Đối chiếu quy tắc Java 16 với strong encapsulation trên JDK hiện đại
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2041,7 +2041,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-004
     title: Readability, exports và opens trong Java Platform Module System
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2050,7 +2050,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-005
     title: Khác biệt giữa truy cập thông thường và deep reflection
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2059,7 +2059,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-006
     title: Vai trò của named module, unnamed module và ALL-UNNAMED
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2068,7 +2068,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-007
     title: Nhận diện IllegalAccessError và InaccessibleObjectException
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2077,7 +2077,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-008
     title: Đọc stack trace để xác định thư viện đang phụ thuộc JDK internal
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2086,7 +2086,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-009
     title: Dùng jdeps --jdk-internals để tìm phụ thuộc tĩnh vào API nội bộ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2095,7 +2095,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-010
     title: Giới hạn của jdeps với reflection, cấu hình chuỗi và lớp sinh động
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2104,7 +2104,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-011
     title: Ưu tiên nâng thư viện và chuyển sang API công khai được hỗ trợ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2113,7 +2113,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-012
     title: Cấu hình --add-exports có phạm vi hẹp khi cần truy cập API bị đóng gói
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2122,7 +2122,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-013
     title: Cấu hình --add-opens cho deep reflection đúng module và package
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2131,7 +2131,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-014
     title: Phân biệt hiệu lực compile-time với runtime của tùy chọn truy cập
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2140,7 +2140,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-015
     title: Khai báo exports và opens có đích trong module-info.java của ứng dụng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2149,7 +2149,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-016
     title: Dùng trySetAccessible và xử lý trường hợp không được cấp quyền
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2158,7 +2158,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-017
     title: Đồng bộ tùy chọn module cho môi trường test, IDE và launcher đóng gói
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2167,7 +2167,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-018
     title: Kiểm tra rủi ro khi mở package quá rộng cho mọi thư viện
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2176,7 +2176,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-019
     title: Kiểm thử nâng JDK và thu hẹp dần các ngoại lệ truy cập
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2185,7 +2185,7 @@ menu:
     summary: ""
   - slug: jdk-encapsulation-020
     title: Xác minh ứng dụng chạy bằng API công khai sau khi bỏ ngoại lệ không cần thiết
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2197,7 +2197,7 @@ menu:
   childs:
   - slug: jpackage-basics-001
     title: jpackage chính thức từ Java 16 và ứng dụng tự chứa runtime
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2206,7 +2206,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-002
     title: Phân biệt JAR, runtime image, application image và native installer
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2215,7 +2215,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-003
     title: Đầu vào của jpackage và trách nhiệm build ứng dụng trước khi đóng gói
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2224,7 +2224,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-004
     title: Kiểm tra jpackage --version, --help và tùy chọn của JDK đang dùng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2233,7 +2233,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-005
     title: Chuẩn bị thư mục input sạch chỉ chứa JAR, dependency và tài nguyên cần thiết
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2242,7 +2242,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-006
     title: Đóng gói ứng dụng classpath với --input, --main-jar và --main-class
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2251,7 +2251,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-007
     title: Đóng gói ứng dụng modular với --module-path và --module
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2260,7 +2260,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-008
     title: Tạo application image bằng --type app-image để kiểm thử launcher
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2269,7 +2269,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-009
     title: Cấu trúc launcher, thư mục app và runtime trong image
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2278,7 +2278,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-010
     title: Thiết lập --name, --app-version, --vendor và --description
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2287,7 +2287,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-011
     title: Chọn thư mục xuất bằng --dest và xử lý đường dẫn chứa khoảng trắng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2296,7 +2296,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-012
     title: Tách --arguments của ứng dụng khỏi --java-options của JVM
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2305,7 +2305,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-013
     title: Dùng @argfile để quản lý cấu hình đóng gói dài và quoting
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2314,7 +2314,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-014
     title: Tạo launcher bổ sung bằng --add-launcher và tệp properties
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2323,7 +2323,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-015
     title: Đóng gói icon và tài nguyên với --icon, --resource-dir
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2332,7 +2332,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-016
     title: Đọc lỗi bằng --verbose và giữ thư mục chẩn đoán bằng --temp
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2341,7 +2341,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-017
     title: Chạy application image trên máy không cài JDK riêng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2350,7 +2350,7 @@ menu:
     summary: ""
   - slug: jpackage-basics-018
     title: Kiểm thử launch argument, tài nguyên và thư viện phụ thuộc trong image
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2362,7 +2362,7 @@ menu:
   childs:
   - slug: application-runtime-images-001
     title: Quan hệ giữa jpackage và jlink khi tạo runtime đi kèm
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2371,7 +2371,7 @@ menu:
     summary: ""
   - slug: application-runtime-images-002
     title: Phân biệt JDK dùng để build, mức --release và runtime được phân phối
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2380,7 +2380,7 @@ menu:
     summary: ""
   - slug: application-runtime-images-003
     title: Dùng jdeps --print-module-deps để lập danh sách module khởi đầu
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2389,7 +2389,7 @@ menu:
     summary: ""
   - slug: application-runtime-images-004
     title: Bổ sung module được nạp qua reflection mà phân tích tĩnh không phát hiện
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2398,7 +2398,7 @@ menu:
     summary: ""
   - slug: application-runtime-images-005
     title: Cấu hình --add-modules cho runtime của ứng dụng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2407,7 +2407,7 @@ menu:
     summary: ""
   - slug: application-runtime-images-006
     title: Tạo runtime riêng bằng jlink và truyền --runtime-image cho jpackage
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2416,7 +2416,7 @@ menu:
     summary: ""
   - slug: application-runtime-images-007
     title: Giới hạn của automatic module khi xây runtime bằng jlink
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2425,7 +2425,7 @@ menu:
     summary: ""
   - slug: application-runtime-images-008
     title: ServiceLoader, service provider và nhu cầu bind service trong runtime
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2434,7 +2434,7 @@ menu:
     summary: ""
   - slug: application-runtime-images-009
     title: Kiểm tra thay đổi mặc định service binding theo phiên bản jpackage
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2443,7 +2443,7 @@ menu:
     summary: ""
   - slug: application-runtime-images-010
     title: Cân đối dung lượng runtime với locale, charset và công cụ chẩn đoán cần dùng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2452,7 +2452,7 @@ menu:
     summary: ""
   - slug: application-runtime-images-011
     title: Kiểm thử TLS, múi giờ, font và provider thực sự được ứng dụng sử dụng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2461,7 +2461,7 @@ menu:
     summary: ""
   - slug: application-runtime-images-012
     title: Đóng gói native library đúng hệ điều hành, kiến trúc và cơ chế nạp
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2470,7 +2470,7 @@ menu:
     summary: ""
   - slug: application-runtime-images-013
     title: Kiểm tra đường dẫn làm việc và vị trí cấu hình ghi được sau cài đặt
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2479,7 +2479,7 @@ menu:
     summary: ""
   - slug: application-runtime-images-014
     title: Cập nhật runtime đi kèm khi JDK có bản vá và phát hành lại ứng dụng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2491,7 +2491,7 @@ menu:
   childs:
   - slug: native-installers-001
     title: Chọn định dạng exe, msi, deb, rpm, dmg hoặc pkg theo nền tảng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2500,7 +2500,7 @@ menu:
     summary: ""
   - slug: native-installers-002
     title: Vì sao phải build gói trên hệ điều hành đích
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2509,7 +2509,7 @@ menu:
     summary: ""
   - slug: native-installers-003
     title: Kiểm tra công cụ đóng gói bản địa tương thích với JDK đang dùng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2518,7 +2518,7 @@ menu:
     summary: ""
   - slug: native-installers-004
     title: Tạo installer từ application image đã kiểm thử bằng --app-image
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2527,7 +2527,7 @@ menu:
     summary: ""
   - slug: native-installers-005
     title: Cấu hình --install-dir và dữ liệu ứng dụng theo quyền người dùng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2536,7 +2536,7 @@ menu:
     summary: ""
   - slug: native-installers-006
     title: Windows launcher console, shortcut và menu bằng tùy chọn jpackage
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2545,7 +2545,7 @@ menu:
     summary: ""
   - slug: native-installers-007
     title: Windows cài theo người dùng và quản lý --win-upgrade-uuid
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2554,7 +2554,7 @@ menu:
     summary: ""
   - slug: native-installers-008
     title: Metadata, shortcut và dependency hệ điều hành cho gói Linux
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2563,7 +2563,7 @@ menu:
     summary: ""
   - slug: native-installers-009
     title: Bundle identifier và ký ứng dụng macOS theo môi trường phân phối
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2572,7 +2572,7 @@ menu:
     summary: ""
   - slug: native-installers-010
     title: File association bằng --file-associations và tệp properties
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2581,7 +2581,7 @@ menu:
     summary: ""
   - slug: native-installers-011
     title: Quy trình ký gói trên nền tảng đích và kiểm tra chữ ký đầu ra
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2590,7 +2590,7 @@ menu:
     summary: ""
   - slug: native-installers-012
     title: Xử lý version, tên gói và ràng buộc của từng định dạng installer
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2599,7 +2599,7 @@ menu:
     summary: ""
   - slug: native-installers-013
     title: Phân biệt cài mới, nâng cấp và gỡ cài đặt trong kế hoạch kiểm thử
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2608,7 +2608,7 @@ menu:
     summary: ""
   - slug: native-installers-014
     title: Bảo toàn dữ liệu người dùng khi nâng cấp hoặc gỡ ứng dụng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2617,7 +2617,7 @@ menu:
     summary: ""
   - slug: native-installers-015
     title: Build matrix theo hệ điều hành và kiến trúc cho quy trình CI
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2626,7 +2626,7 @@ menu:
     summary: ""
   - slug: native-installers-016
     title: Kiểm thử cài đặt trên máy sạch có quyền người dùng hạn chế
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2635,7 +2635,7 @@ menu:
     summary: ""
   - slug: native-installers-017
     title: Chẩn đoán thiếu dependency, launcher thoát sớm và tài nguyên không tìm thấy
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2644,7 +2644,7 @@ menu:
     summary: ""
   - slug: native-installers-018
     title: Đối chiếu checksum, phiên bản runtime và hành vi gói trước phát hành
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2656,7 +2656,7 @@ menu:
   childs:
   - slug: elastic-metaspace-001
     title: Elastic Metaspace từ Java 16 và bộ nhớ metadata của class
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2665,7 +2665,7 @@ menu:
     summary: ""
   - slug: elastic-metaspace-002
     title: Phân biệt heap, metaspace, compressed class space và RSS
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2674,7 +2674,7 @@ menu:
     summary: ""
   - slug: elastic-metaspace-003
     title: Class loader quyết định vòng đời của metadata như thế nào
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2683,7 +2683,7 @@ menu:
     summary: ""
   - slug: elastic-metaspace-004
     title: Tổ chức cấp phát metaspace và giảm phân mảnh ở mức khái niệm
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2692,7 +2692,7 @@ menu:
     summary: ""
   - slug: elastic-metaspace-005
     title: Thu hồi class và trả vùng nhớ metaspace không dùng về hệ điều hành
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2701,7 +2701,7 @@ menu:
     summary: ""
   - slug: elastic-metaspace-006
     title: Phân biệt reserved, committed và used khi đọc số liệu
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2710,7 +2710,7 @@ menu:
     summary: ""
   - slug: elastic-metaspace-007
     title: MetaspaceSize là ngưỡng kích hoạt GC và khác với MaxMetaspaceSize
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2719,7 +2719,7 @@ menu:
     summary: ""
   - slug: elastic-metaspace-008
     title: Cấu hình MetaspaceReclaimPolicy sau khi kiểm tra hỗ trợ của JVM
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2728,7 +2728,7 @@ menu:
     summary: ""
   - slug: elastic-metaspace-009
     title: Đánh đổi giữa tốc độ thu hồi và chi phí quản lý bộ nhớ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2737,7 +2737,7 @@ menu:
     summary: ""
   - slug: elastic-metaspace-010
     title: Đọc jcmd VM.metaspace và VM.classloader_stats trên JVM đích
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2746,7 +2746,7 @@ menu:
     summary: ""
   - slug: elastic-metaspace-011
     title: Bật Native Memory Tracking và đối chiếu VM.native_memory
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2755,7 +2755,7 @@ menu:
     summary: ""
   - slug: elastic-metaspace-012
     title: Phân biệt class loader leak với bộ nhớ chưa được hệ điều hành thu hồi ngay
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2764,7 +2764,7 @@ menu:
     summary: ""
   - slug: elastic-metaspace-013
     title: Kiểm thử tạo, bỏ tham chiếu class loader và quan sát xu hướng metaspace
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2773,7 +2773,7 @@ menu:
     summary: ""
   - slug: elastic-metaspace-014
     title: Chẩn đoán OutOfMemoryError Metaspace trước khi tăng giới hạn bộ nhớ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2785,7 +2785,7 @@ menu:
   childs:
   - slug: gc-latency-001
     title: ZGC concurrent thread-stack processing được cải tiến trong Java 16
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2794,7 +2794,7 @@ menu:
     summary: ""
   - slug: gc-latency-002
     title: GC root, thread stack và nguồn công việc gây stop-the-world
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2803,7 +2803,7 @@ menu:
     summary: ""
   - slug: gc-latency-003
     title: Chuyển xử lý stack sang pha concurrent và tác động tới độ trễ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2812,7 +2812,7 @@ menu:
     summary: ""
   - slug: gc-latency-004
     title: Phân biệt mục tiêu pause thấp với bảo đảm độ trễ toàn ứng dụng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2821,7 +2821,7 @@ menu:
     summary: ""
   - slug: gc-latency-005
     title: Tách cải tiến có từ Java 16 khỏi các thế hệ ZGC của JDK hiện đại
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2830,7 +2830,7 @@ menu:
     summary: ""
   - slug: gc-latency-006
     title: Bật ZGC bằng -XX:+UseZGC trên tổ hợp JDK và nền tảng được hỗ trợ
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2839,7 +2839,7 @@ menu:
     summary: ""
   - slug: gc-latency-007
     title: Cân đối Xmx, live set và headroom cho hoạt động GC đồng thời
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2848,7 +2848,7 @@ menu:
     summary: ""
   - slug: gc-latency-008
     title: Đánh đổi CPU, throughput và footprint khi chọn collector
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2857,7 +2857,7 @@ menu:
     summary: ""
   - slug: gc-latency-009
     title: G1 trả heap memory về hệ điều hành qua công việc uncommit đồng thời
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2866,7 +2866,7 @@ menu:
     summary: ""
   - slug: gc-latency-010
     title: Dùng unified logging -Xlog:gc* để đọc chu kỳ và pause của collector
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2875,7 +2875,7 @@ menu:
     summary: ""
   - slug: gc-latency-011
     title: So sánh G1 và ZGC bằng workload đại diện có số lượng thread thực tế
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2884,7 +2884,7 @@ menu:
     summary: ""
   - slug: gc-latency-012
     title: Kiểm chứng p95, p99, allocation rate và RSS trước khi đổi cấu hình GC
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2896,7 +2896,7 @@ menu:
   childs:
   - slug: jfr-and-jit-001
     title: Sự kiện jdk.ObjectAllocationSample được bổ sung trong Java 16
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2905,7 +2905,7 @@ menu:
     summary: ""
   - slug: jfr-and-jit-002
     title: Phân biệt lấy mẫu cấp phát với ghi nhận mọi lần cấp phát
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2914,7 +2914,7 @@ menu:
     summary: ""
   - slug: jfr-and-jit-003
     title: Tạo bản ghi JFR bằng StartFlightRecording hoặc jcmd JFR.start
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2923,7 +2923,7 @@ menu:
     summary: ""
   - slug: jfr-and-jit-004
     title: Dump, kết thúc và kiểm tra nội dung bản ghi bằng công cụ JFR
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2932,7 +2932,7 @@ menu:
     summary: ""
   - slug: jfr-and-jit-005
     title: Đọc allocation sample theo stack trace để tìm điểm tạo đối tượng
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2941,7 +2941,7 @@ menu:
     summary: ""
   - slug: jfr-and-jit-006
     title: Dùng JFR so sánh cấp phát của mapMulti, flatMap và mô hình record
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2950,7 +2950,7 @@ menu:
     summary: ""
   - slug: jfr-and-jit-007
     title: Đối chiếu allocation sample, GC log và thời gian phản hồi
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2959,7 +2959,7 @@ menu:
     summary: ""
   - slug: jfr-and-jit-008
     title: Kiểm tra overhead và giới hạn suy diễn từ dữ liệu lấy mẫu
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2968,7 +2968,7 @@ menu:
     summary: ""
   - slug: jfr-and-jit-009
     title: Cú pháp CompileCommand có kiểm tra tên và kiểu tùy chọn từ Java 16
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2977,7 +2977,7 @@ menu:
     summary: ""
   - slug: jfr-and-jit-010
     title: Dùng CompileCommand=help trên JVM đích để xác minh cấu hình JIT
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2986,7 +2986,7 @@ menu:
     summary: ""
   - slug: jfr-and-jit-011
     title: Phân biệt tối ưu JIT với cam kết ngữ nghĩa của ngôn ngữ và API
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -2995,7 +2995,7 @@ menu:
     summary: ""
   - slug: jfr-and-jit-012
     title: Thiết kế phép đo có warmup và đầu vào đại diện để tránh kết luận sai
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3007,7 +3007,7 @@ menu:
   childs:
   - slug: deployment-platforms-001
     title: Alpine Linux port từ Java 16 và khác biệt musl với glibc
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3016,7 +3016,7 @@ menu:
     summary: ""
   - slug: deployment-platforms-002
     title: Chọn bản phân phối JDK hỗ trợ musl còn được bảo trì
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3025,7 +3025,7 @@ menu:
     summary: ""
   - slug: deployment-platforms-003
     title: Kiểm tra native dependency trước khi chuyển ứng dụng sang Alpine
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3034,7 +3034,7 @@ menu:
     summary: ""
   - slug: deployment-platforms-004
     title: Windows AArch64 port và ý nghĩa của chạy Java native trên ARM64
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3043,7 +3043,7 @@ menu:
     summary: ""
   - slug: deployment-platforms-005
     title: Phân biệt kiến trúc JVM, bytecode ứng dụng và native library
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3052,7 +3052,7 @@ menu:
     summary: ""
   - slug: deployment-platforms-006
     title: Kiểm tra java -version, os.arch và kiến trúc runtime trong gói
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3061,7 +3061,7 @@ menu:
     summary: ""
   - slug: deployment-platforms-007
     title: Giới hạn tính di động của application image và runtime image
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3070,7 +3070,7 @@ menu:
     summary: ""
   - slug: deployment-platforms-008
     title: Chọn JDK, công cụ bản địa và image nền nhất quán trong CI
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3079,7 +3079,7 @@ menu:
     summary: ""
   - slug: deployment-platforms-009
     title: Kiểm thử Unix-domain socket và installer trên từng nền tảng đích
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3088,7 +3088,7 @@ menu:
     summary: ""
   - slug: deployment-platforms-010
     title: Xác minh hỗ trợ collector và công cụ chẩn đoán trên bản JDK phân phối
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3100,7 +3100,7 @@ menu:
   childs:
   - slug: integrated-practice-001
     title: Xây mô hình đơn hàng bằng record với validation và defensive copy
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3109,7 +3109,7 @@ menu:
     summary: ""
   - slug: integrated-practice-002
     title: Tạo báo cáo nhóm theo khóa record bằng Stream và method reference
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3118,7 +3118,7 @@ menu:
     summary: ""
   - slug: integrated-practice-003
     title: Xây pipeline lọc kiểu bằng instanceof, mapMulti và toList
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3127,7 +3127,7 @@ menu:
     summary: ""
   - slug: integrated-practice-004
     title: Refactor lớp DTO thành record và kiểm tra hợp đồng API hiện có
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3136,7 +3136,7 @@ menu:
     summary: ""
   - slug: integrated-practice-005
     title: Thiết kế bộ kiểm thử hồi quy cho equality, null và collection unmodifiable
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3145,7 +3145,7 @@ menu:
     summary: ""
   - slug: integrated-practice-006
     title: Viết proxy bổ sung logging nhưng giữ nguyên default method
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3154,7 +3154,7 @@ menu:
     summary: ""
   - slug: integrated-practice-007
     title: Xây dịch vụ IPC cục bộ truyền thông điệp qua Unix-domain socket
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3163,7 +3163,7 @@ menu:
     summary: ""
   - slug: integrated-practice-008
     title: Kiểm tra thư viện của ứng dụng trước strong encapsulation
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3172,7 +3172,7 @@ menu:
     summary: ""
   - slug: integrated-practice-009
     title: Đóng gói công cụ báo cáo thành application image có runtime tối giản
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3181,7 +3181,7 @@ menu:
     summary: ""
   - slug: integrated-practice-010
     title: Tạo bộ cài và kiểm thử nâng cấp trên máy sạch
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3190,7 +3190,7 @@ menu:
     summary: ""
   - slug: integrated-practice-011
     title: Dùng JFR, GC log và metaspace metrics để phân tích một workload thống nhất
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -3199,7 +3199,7 @@ menu:
     summary: ""
   - slug: integrated-practice-012
     title: Lập báo cáo tương thích nguồn, runtime, nền tảng và hiệu năng sau nâng JDK
-    status: ""
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""

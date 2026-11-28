@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-001
     title: Phiên làm việc (session) là gì và vì sao HTTP cần cơ chế giữ trạng thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-002
     title: Phân biệt phiên, người dùng, trạng thái đăng nhập và kết nối mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-003
     title: Cookie chứa định danh phiên và dữ liệu phiên lưu ở phía máy chủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-004
     title: Giới hạn của phiên trong bộ nhớ khi ứng dụng có nhiều bản chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-005
     title: Spring Session giải quyết bài toán lưu phiên độc lập với bộ chứa ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-006
     title: Mối liên hệ giữa Session, repository, HttpSession và WebSession
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-007
     title: Phiên phân tán, định tuyến bám phiên (sticky session) và nhân bản của container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: overview-008
     title: Spring Session, Spring Security và token JWT có trách nhiệm khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -76,7 +76,7 @@ menu:
     summary: ''
   - slug: overview-009
     title: Lộ trình từ một phiên cục bộ đến quản lý phiên trên nhiều nút
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
   childs:
   - slug: session-data-001
     title: Định danh phiên, thời điểm tạo, lần truy cập cuối và khoảng không hoạt động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: session-data-002
     title: Thuộc tính phiên và cách mô hình hóa trạng thái của người dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: session-data-003
     title: Phiên ẩn danh, phiên đã xác thực và chuyển đổi trạng thái đăng nhập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: session-data-004
     title: Giá trị phù hợp để lưu trong phiên và dữ liệu nên thuộc cơ sở dữ liệu nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: session-data-005
     title: Định danh tham chiếu, dữ liệu dẫn xuất và tránh sao chép quá nhiều dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: session-data-006
     title: Giới hạn kích thước thuộc tính, số thuộc tính và tổng dung lượng phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: session-data-007
     title: Đối tượng khả biến và thay đổi dữ liệu bên trong thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -151,7 +151,7 @@ menu:
     summary: ''
   - slug: session-data-008
     title: Danh tính người dùng, principal và chỉ mục tìm phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -160,7 +160,7 @@ menu:
     summary: ''
   - slug: session-data-009
     title: Dữ liệu nhạy cảm, thời gian giữ lại và trách nhiệm thu hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -169,7 +169,7 @@ menu:
     summary: ''
   - slug: session-data-010
     title: Phiên hết hạn, phiên bị xóa và phiên không còn tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
   childs:
   - slug: api-and-repositories-001
     title: Session và các thao tác quản lý định danh, thuộc tính, thời gian sống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: api-and-repositories-002
     title: SessionRepository và hợp đồng tạo, đọc, lưu, xóa phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: api-and-repositories-003
     title: Tạo đối tượng phiên khác với lưu phiên vào kho
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: api-and-repositories-004
     title: MapSession và mô hình phiên không phụ thuộc kho lưu trữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: api-and-repositories-005
     title: MapSessionRepository và giới hạn của repository trong bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -226,7 +226,7 @@ menu:
     summary: ''
   - slug: api-and-repositories-006
     title: FindByIndexNameSessionRepository và tra cứu phiên qua chỉ mục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -235,7 +235,7 @@ menu:
     summary: ''
   - slug: api-and-repositories-007
     title: ReactiveSessionRepository và hợp đồng bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -244,7 +244,7 @@ menu:
     summary: ''
   - slug: api-and-repositories-008
     title: ReactiveFindByIndexNameSessionRepository và khả năng tra cứu phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -253,7 +253,7 @@ menu:
     summary: ''
   - slug: api-and-repositories-009
     title: Repository, lớp tích hợp web và nguồn sinh định danh phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -262,7 +262,7 @@ menu:
     summary: ''
   - slug: api-and-repositories-010
     title: 'Ma trận khả năng: thời hạn, sự kiện, chỉ mục và chính sách lưu của từng repository'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
   childs:
   - slug: bootstrap-configuration-001
     title: Chọn phiên bản JDK, Spring Boot, Spring Session và thư viện kho tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
     summary: ''
   - slug: bootstrap-configuration-002
     title: Phụ thuộc cho Servlet, WebFlux, Redis, JDBC và kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: bootstrap-configuration-003
     title: Cấu hình tự động của Spring Boot và điều kiện kích hoạt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -301,7 +301,7 @@ menu:
     summary: ''
   - slug: bootstrap-configuration-004
     title: Lựa chọn kho khi có nhiều thành phần lưu phiên trên classpath
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -310,7 +310,7 @@ menu:
     summary: ''
   - slug: bootstrap-configuration-005
     title: Cấu hình tường minh bằng @Enable*HttpSession hoặc @Enable*WebSession
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -319,7 +319,7 @@ menu:
     summary: ''
   - slug: bootstrap-configuration-006
     title: Khi cấu hình thủ công khiến cấu hình tự động ngừng áp dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -328,7 +328,7 @@ menu:
     summary: ''
   - slug: bootstrap-configuration-007
     title: Thuộc tính timeout, repository và kết nối theo phiên bản Spring Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -337,7 +337,7 @@ menu:
     summary: ''
   - slug: bootstrap-configuration-008
     title: Tách cấu hình môi trường và quản lý bí mật truy cập kho
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -346,7 +346,7 @@ menu:
     summary: ''
   - slug: bootstrap-configuration-009
     title: SessionRepositoryCustomizer và tùy chỉnh repository được tạo sẵn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -355,7 +355,7 @@ menu:
     summary: ''
   - slug: bootstrap-configuration-010
     title: Kiểm tra các bean thực tế và xác nhận phiên được lưu đúng nơi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -367,7 +367,7 @@ menu:
   childs:
   - slug: servlet-integration-001
     title: SessionRepositoryFilter và thay thế HttpSession qua request wrapper
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -376,7 +376,7 @@ menu:
     summary: ''
   - slug: servlet-integration-002
     title: Bean springSessionRepositoryFilter và cách đăng ký vào chuỗi filter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -385,7 +385,7 @@ menu:
     summary: ''
   - slug: servlet-integration-003
     title: Thứ tự filter trước Spring Security và các thành phần sử dụng phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -394,7 +394,7 @@ menu:
     summary: ''
   - slug: servlet-integration-004
     title: DelegatingFilterProxy và ứng dụng không dùng Spring Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -403,7 +403,7 @@ menu:
     summary: ''
   - slug: servlet-integration-005
     title: AbstractHttpSessionApplicationInitializer và khởi tạo ứng dụng Servlet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -412,7 +412,7 @@ menu:
     summary: ''
   - slug: servlet-integration-006
     title: request.getSession(), getSession(false) và thời điểm tạo phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -421,7 +421,7 @@ menu:
     summary: ''
   - slug: servlet-integration-007
     title: Tải phiên từ định danh được gửi trong yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -430,7 +430,7 @@ menu:
     summary: ''
   - slug: servlet-integration-008
     title: Lưu phiên khi kết thúc xử lý hoặc trước lúc phản hồi được commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -439,7 +439,7 @@ menu:
     summary: ''
   - slug: servlet-integration-009
     title: Redirect, ghi phản hồi sớm và lỗi tạo phiên sau khi đã commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -448,7 +448,7 @@ menu:
     summary: ''
   - slug: servlet-integration-010
     title: Error dispatch, xử lý bất đồng bộ và phạm vi hỗ trợ theo cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -457,7 +457,7 @@ menu:
     summary: ''
   - slug: servlet-integration-011
     title: HttpSessionListener, sự kiện Spring Session và khác biệt giữa các repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -466,7 +466,7 @@ menu:
     summary: ''
   - slug: servlet-integration-012
     title: Phân biệt HttpSession của container với phiên do Spring Session quản lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -478,7 +478,7 @@ menu:
   childs:
   - slug: session-lifecycle-001
     title: Tạo phiên mới, sử dụng phiên hiện có và các điều kiện bắt đầu phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -487,7 +487,7 @@ menu:
     summary: ''
   - slug: session-lifecycle-002
     title: Cập nhật lần truy cập cuối và thời gian không hoạt động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -496,7 +496,7 @@ menu:
     summary: ''
   - slug: session-lifecycle-003
     title: maxInactiveInterval, thời hạn mặc định và tùy chỉnh cho từng phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -505,7 +505,7 @@ menu:
     summary: ''
   - slug: session-lifecycle-004
     title: Phân biệt idle timeout với giới hạn tuổi thọ tuyệt đối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -514,7 +514,7 @@ menu:
     summary: ''
   - slug: session-lifecycle-005
     title: Thời hạn cookie, thời hạn logic của phiên và TTL của kho lưu trữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -523,7 +523,7 @@ menu:
     summary: ''
   - slug: session-lifecycle-006
     title: Đổi định danh bằng changeSessionId và quan hệ với dữ liệu đang lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -532,7 +532,7 @@ menu:
     summary: ''
   - slug: session-lifecycle-007
     title: invalidate, deleteById và tác động đến yêu cầu tiếp theo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -541,7 +541,7 @@ menu:
     summary: ''
   - slug: session-lifecycle-008
     title: Định danh không hợp lệ, phiên không tìm thấy và cookie cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -550,7 +550,7 @@ menu:
     summary: ''
   - slug: session-lifecycle-009
     title: Yêu cầu đang chạy khi phiên bị hết hạn hoặc bị thu hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -559,7 +559,7 @@ menu:
     summary: ''
   - slug: session-lifecycle-010
     title: Sự kiện tạo, xóa, hết hạn và phá hủy phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -568,7 +568,7 @@ menu:
     summary: ''
   - slug: session-lifecycle-011
     title: Thu dọn dữ liệu liên quan khi sự kiện đến muộn hoặc không được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -577,7 +577,7 @@ menu:
     summary: ''
   - slug: session-lifecycle-012
     title: Thiết kế trạng thái phiên để việc kết thúc có thể xử lý lặp an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -589,7 +589,7 @@ menu:
   childs:
   - slug: session-cookie-001
     title: CookieHttpSessionIdResolver và nhận, gửi định danh phiên bằng cookie
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -598,7 +598,7 @@ menu:
     summary: ''
   - slug: session-cookie-002
     title: CookieSerializer, DefaultCookieSerializer và phạm vi cấu hình Servlet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -607,7 +607,7 @@ menu:
     summary: ''
   - slug: session-cookie-003
     title: Tên cookie SESSION, JSESSIONID và tương tác với phiên container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -616,7 +616,7 @@ menu:
     summary: ''
   - slug: session-cookie-004
     title: Path, Domain, host-only và phạm vi trình duyệt gửi cookie
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -625,7 +625,7 @@ menu:
     summary: ''
   - slug: session-cookie-005
     title: Secure, HttpOnly và giới hạn bảo vệ của từng thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -634,7 +634,7 @@ menu:
     summary: ''
   - slug: session-cookie-006
     title: SameSite, yêu cầu khác site và yêu cầu dùng SameSite=None
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -643,7 +643,7 @@ menu:
     summary: ''
   - slug: session-cookie-007
     title: Cookie tồn tại theo phiên trình duyệt và cookie có Max-Age
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -652,7 +652,7 @@ menu:
     summary: ''
   - slug: session-cookie-008
     title: Mã hóa biểu diễn định danh trong cookie và sự khác nhau với mã hóa bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -661,7 +661,7 @@ menu:
     summary: ''
   - slug: session-cookie-009
     title: Reverse proxy, thông tin HTTPS và nguồn header được tin cậy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -670,7 +670,7 @@ menu:
     summary: ''
   - slug: session-cookie-010
     title: domainNamePattern và giới hạn ký tự khi suy ra miền cookie
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -679,7 +679,7 @@ menu:
     summary: ''
   - slug: session-cookie-011
     title: Xóa cookie đúng tên, miền, đường dẫn và kiểm tra cookie trùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -688,7 +688,7 @@ menu:
     summary: ''
   - slug: session-cookie-012
     title: Tùy chỉnh cookie của WebFlux qua WebSessionIdResolver riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -700,7 +700,7 @@ menu:
   childs:
   - slug: header-identifiers-001
     title: HttpSessionIdResolver và tách cơ chế truyền định danh khỏi kho lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -709,7 +709,7 @@ menu:
     summary: ''
   - slug: header-identifiers-002
     title: HeaderHttpSessionIdResolver và trao đổi định danh phiên qua HTTP header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -718,7 +718,7 @@ menu:
     summary: ''
   - slug: header-identifiers-003
     title: Phát định danh mới, đọc định danh và thông báo phiên đã kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -727,7 +727,7 @@ menu:
     summary: ''
   - slug: header-identifiers-004
     title: Thiết kế client giữ, gửi và xóa định danh qua vòng đời đăng nhập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -736,7 +736,7 @@ menu:
     summary: ''
   - slug: header-identifiers-005
     title: Định danh phiên và quyền truy cập của bên nắm giữ định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -745,7 +745,7 @@ menu:
     summary: ''
   - slug: header-identifiers-006
     title: Header phiên khác với token JWT hoặc OAuth access token
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -754,7 +754,7 @@ menu:
     summary: ''
   - slug: header-identifiers-007
     title: CORS, header được phép gửi và header phản hồi cần được công bố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -763,7 +763,7 @@ menu:
     summary: ''
   - slug: header-identifiers-008
     title: Cookie, header và thứ tự lựa chọn khi một yêu cầu có nhiều định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -772,7 +772,7 @@ menu:
     summary: ''
   - slug: header-identifiers-009
     title: Tránh đưa định danh vào URL, nhật ký hoặc dữ liệu có thể bị chia sẻ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -784,7 +784,7 @@ menu:
   childs:
   - slug: redis-foundations-001
     title: Spring Session Data Redis và đường đi từ yêu cầu đến dữ liệu trong Redis
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -793,7 +793,7 @@ menu:
     summary: ''
   - slug: redis-foundations-002
     title: RedisConnectionFactory, kết nối và cấu hình xác thực, TLS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -802,7 +802,7 @@ menu:
     summary: ''
   - slug: redis-foundations-003
     title: RedisSessionRepository và tra cứu phiên theo định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -811,7 +811,7 @@ menu:
     summary: ''
   - slug: redis-foundations-004
     title: '@EnableRedisHttpSession và cấu hình tương đương trong Spring Boot'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -820,7 +820,7 @@ menu:
     summary: ''
   - slug: redis-foundations-005
     title: Namespace và cách tách khóa phiên giữa các ứng dụng, môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -829,7 +829,7 @@ menu:
     summary: ''
   - slug: redis-foundations-006
     title: Metadata, thuộc tính và cách tổ chức dữ liệu phiên ở mức khái niệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -838,7 +838,7 @@ menu:
     summary: ''
   - slug: redis-foundations-007
     title: Tạo, đọc, lưu, xóa và thay đổi định danh trên Redis
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -847,7 +847,7 @@ menu:
     summary: ''
   - slug: redis-foundations-008
     title: Khoảng không hoạt động, TTL và đọc phiên đã hết hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -856,7 +856,7 @@ menu:
     summary: ''
   - slug: redis-foundations-009
     title: Giới hạn về chỉ mục và sự kiện của repository cơ bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -865,7 +865,7 @@ menu:
     summary: ''
   - slug: redis-foundations-010
     title: Quan sát dữ liệu bằng công cụ Redis mà không làm lộ định danh, thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -874,7 +874,7 @@ menu:
     summary: ''
   - slug: redis-foundations-011
     title: Phân biệt cấu hình kết nối Redis với cấu hình quản lý phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -886,7 +886,7 @@ menu:
   childs:
   - slug: redis-indexed-001
     title: RedisIndexedSessionRepository và nhu cầu tra cứu phiên theo principal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -895,7 +895,7 @@ menu:
     summary: ''
   - slug: redis-indexed-002
     title: '@EnableRedisIndexedHttpSession và lựa chọn repository theo phiên bản'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -904,7 +904,7 @@ menu:
     summary: ''
   - slug: redis-indexed-003
     title: FindByIndexNameSessionRepository và tên chỉ mục principal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -913,7 +913,7 @@ menu:
     summary: ''
   - slug: redis-indexed-004
     title: Nguồn lấy tên principal và yêu cầu nhất quán với cơ chế xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -922,7 +922,7 @@ menu:
     summary: ''
   - slug: redis-indexed-005
     title: Tra cứu toàn bộ phiên của một người dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -931,7 +931,7 @@ menu:
     summary: ''
   - slug: redis-indexed-006
     title: Tạo, cập nhật, xóa chỉ mục khi phiên hoặc danh tính thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -940,7 +940,7 @@ menu:
     summary: ''
   - slug: redis-indexed-007
     title: SessionCreatedEvent, SessionDeletedEvent và SessionExpiredEvent
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -949,7 +949,7 @@ menu:
     summary: ''
   - slug: redis-indexed-008
     title: RedisMessageListenerContainer và nhận thông báo liên quan đến phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -958,7 +958,7 @@ menu:
     summary: ''
   - slug: redis-indexed-009
     title: Keyspace notifications và cấu hình quyền trên Redis được quản lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -967,7 +967,7 @@ menu:
     summary: ''
   - slug: redis-indexed-010
     title: Khác biệt giữa truy vấn phiên với danh sách tất cả người dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -976,7 +976,7 @@ menu:
     summary: ''
   - slug: redis-indexed-011
     title: Redis Cluster, phạm vi nhận sự kiện và nguy cơ chỉ mục không được dọn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -985,7 +985,7 @@ menu:
     summary: ''
   - slug: redis-indexed-012
     title: Chọn repository cơ bản hay có chỉ mục theo khả năng thực sự cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -997,7 +997,7 @@ menu:
   childs:
   - slug: redis-expiration-001
     title: Thời điểm phiên không còn hợp lệ và thời điểm khóa Redis được xóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1006,7 +1006,7 @@ menu:
     summary: ''
   - slug: redis-expiration-002
     title: Dữ liệu phiên, dữ liệu theo dõi hết hạn và các khóa phụ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1015,7 +1015,7 @@ menu:
     summary: ''
   - slug: redis-expiration-003
     title: TTL, tác vụ dọn dẹp và sự kiện hết hạn không đến đúng một thời điểm cố định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1024,7 +1024,7 @@ menu:
     summary: ''
   - slug: redis-expiration-004
     title: Cấu hình dọn phiên và phạm vi ảnh hưởng của lịch chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1033,7 +1033,7 @@ menu:
     summary: ''
   - slug: redis-expiration-005
     title: Gia hạn phiên đồng thời với tác vụ kiểm tra hết hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1042,7 +1042,7 @@ menu:
     summary: ''
   - slug: redis-expiration-006
     title: Khóa bị xóa thủ công, khóa bị eviction và phiên hết hạn tự nhiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1051,7 +1051,7 @@ menu:
     summary: ''
   - slug: redis-expiration-007
     title: Giới hạn giao nhận của Redis Pub/Sub và thông báo keyspace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1060,7 +1060,7 @@ menu:
     summary: ''
   - slug: redis-expiration-008
     title: Lắng nghe SessionDestroyedEvent và thu hồi tài nguyên bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1069,7 +1069,7 @@ menu:
     summary: ''
   - slug: redis-expiration-009
     title: Khôi phục sau mất kết nối listener hoặc thay đổi nút Redis
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1078,7 +1078,7 @@ menu:
     summary: ''
   - slug: redis-expiration-010
     title: Kiểm tra dữ liệu chỉ mục còn sót và chiến lược đối soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1087,7 +1087,7 @@ menu:
     summary: ''
   - slug: redis-expiration-011
     title: Kiểm chứng hành vi hết hạn trên đúng repository và phiên bản đang dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1099,7 +1099,7 @@ menu:
   childs:
   - slug: write-policies-001
     title: Phân biệt thời điểm lưu với phạm vi dữ liệu được lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1108,7 +1108,7 @@ menu:
     summary: ''
   - slug: write-policies-002
     title: FlushMode.ON_SAVE và FlushMode.IMMEDIATE trên repository hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1117,7 +1117,7 @@ menu:
     summary: ''
   - slug: write-policies-003
     title: SaveMode.ON_SET_ATTRIBUTE, ON_GET_ATTRIBUTE và ALWAYS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1126,7 +1126,7 @@ menu:
     summary: ''
   - slug: write-policies-004
     title: Theo dõi thay đổi metadata và thuộc tính phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1135,7 +1135,7 @@ menu:
     summary: ''
   - slug: write-policies-005
     title: Thay đổi trực tiếp một đối tượng đã lấy ra từ thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1144,7 +1144,7 @@ menu:
     summary: ''
   - slug: write-policies-006
     title: Khi cần gán lại thuộc tính để thay đổi được ghi nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1153,7 +1153,7 @@ menu:
     summary: ''
   - slug: write-policies-007
     title: Chỉ đọc phiên vẫn có thể cập nhật thời điểm truy cập hoặc phát sinh ghi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1162,7 +1162,7 @@ menu:
     summary: ''
   - slug: write-policies-008
     title: Xóa thuộc tính và đồng bộ thay đổi xuống kho
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1171,7 +1171,7 @@ menu:
     summary: ''
   - slug: write-policies-009
     title: Ảnh hưởng của save mode đến ghi đè giữa các yêu cầu đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1180,7 +1180,7 @@ menu:
     summary: ''
   - slug: write-policies-010
     title: Lưu tường minh trước khi chuyển công việc cho thành phần khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1189,7 +1189,7 @@ menu:
     summary: ''
   - slug: write-policies-011
     title: Đánh đổi giữa số lần ghi, độ trễ và mức độ nhất quán quan sát được
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1201,7 +1201,7 @@ menu:
   childs:
   - slug: data-serialization-001
     title: Chuyển thuộc tính phiên thành dữ liệu lưu trữ và khôi phục lại đối tượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1210,7 +1210,7 @@ menu:
     summary: ''
   - slug: data-serialization-002
     title: Java Serialization, JSON và các đánh đổi về kích thước, tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1219,7 +1219,7 @@ menu:
     summary: ''
   - slug: data-serialization-003
     title: RedisSerializer và bean springSessionDefaultRedisSerializer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1228,7 +1228,7 @@ menu:
     summary: ''
   - slug: data-serialization-004
     title: Ánh xạ kiểu dữ liệu, thông tin kiểu và giới hạn lớp được phép khôi phục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1237,7 +1237,7 @@ menu:
     summary: ''
   - slug: data-serialization-005
     title: ObjectMapper và các module dành cho dữ liệu Spring Security theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1246,7 +1246,7 @@ menu:
     summary: ''
   - slug: data-serialization-006
     title: Lớp không tuần tự hóa được, classloader và lỗi thiếu lớp khi đọc phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1255,7 +1255,7 @@ menu:
     summary: ''
   - slug: data-serialization-007
     title: serialVersionUID và tương thích của dữ liệu Java đã được lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1264,7 +1264,7 @@ menu:
     summary: ''
   - slug: data-serialization-008
     title: Thay đổi cấu trúc đối tượng giữa các phiên bản ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1273,7 +1273,7 @@ menu:
     summary: ''
   - slug: data-serialization-009
     title: Tránh lưu kết nối, request, tài nguyên mở và thực thể phụ thuộc ngữ cảnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1282,7 +1282,7 @@ menu:
     summary: ''
   - slug: data-serialization-010
     title: Giới hạn dữ liệu không đáng tin khi giải tuần tự hóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1291,7 +1291,7 @@ menu:
     summary: ''
   - slug: data-serialization-011
     title: Kiểm thử đọc phiên được tạo bởi phiên bản ứng dụng cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1300,7 +1300,7 @@ menu:
     summary: ''
   - slug: data-serialization-012
     title: Chiến lược đổi định dạng và xử lý phiên không còn đọc được
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1312,7 +1312,7 @@ menu:
   childs:
   - slug: jdbc-session-storage-001
     title: Spring Session JDBC và nhu cầu dùng cơ sở dữ liệu quan hệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1321,7 +1321,7 @@ menu:
     summary: ''
   - slug: jdbc-session-storage-002
     title: JdbcIndexedSessionRepository và các thao tác quản lý phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1330,7 +1330,7 @@ menu:
     summary: ''
   - slug: jdbc-session-storage-003
     title: '@EnableJdbcHttpSession và cấu hình tự động của Spring Boot'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1339,7 +1339,7 @@ menu:
     summary: ''
   - slug: jdbc-session-storage-004
     title: DataSource, transaction manager và tài nguyên kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1348,7 +1348,7 @@ menu:
     summary: ''
   - slug: jdbc-session-storage-005
     title: Hai bảng SPRING_SESSION, SPRING_SESSION_ATTRIBUTES và quan hệ giữa chúng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1357,7 +1357,7 @@ menu:
     summary: ''
   - slug: jdbc-session-storage-006
     title: PRIMARY_ID, SESSION_ID và ý nghĩa của từng định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1366,7 +1366,7 @@ menu:
     summary: ''
   - slug: jdbc-session-storage-007
     title: Chỉ mục thời điểm hết hạn, principal và tra cứu phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1375,7 +1375,7 @@ menu:
     summary: ''
   - slug: jdbc-session-storage-008
     title: Dữ liệu thuộc tính dạng nhị phân và chuyển đổi giá trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1384,7 +1384,7 @@ menu:
     summary: ''
   - slug: jdbc-session-storage-009
     title: Script schema theo hệ quản trị cơ sở dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1393,7 +1393,7 @@ menu:
     summary: ''
   - slug: jdbc-session-storage-010
     title: Khởi tạo schema cho môi trường học và quản lý bằng công cụ migration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1402,7 +1402,7 @@ menu:
     summary: ''
   - slug: jdbc-session-storage-011
     title: Lịch xóa phiên hết hạn và chi phí dọn dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1411,7 +1411,7 @@ menu:
     summary: ''
   - slug: jdbc-session-storage-012
     title: Quan sát phiên trong bảng mà không công bố thông tin truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1423,7 +1423,7 @@ menu:
   childs:
   - slug: jdbc-customization-001
     title: SessionRepositoryCustomizer và thay đổi cấu hình repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1432,7 +1432,7 @@ menu:
     summary: ''
   - slug: jdbc-customization-002
     title: Đổi tên bảng, schema và tên bảng thuộc tính liên quan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1441,7 +1441,7 @@ menu:
     summary: ''
   - slug: jdbc-customization-003
     title: SQL tùy chỉnh và khác biệt cú pháp giữa các hệ quản trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1450,7 +1450,7 @@ menu:
     summary: ''
   - slug: jdbc-customization-004
     title: Tranh chấp thêm thuộc tính, duplicate key và truy vấn cập nhật phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1459,7 +1459,7 @@ menu:
     summary: ''
   - slug: jdbc-customization-005
     title: Lưu thuộc tính dưới dạng JSON bằng conversion service và SQL tương ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1468,7 +1468,7 @@ menu:
     summary: ''
   - slug: jdbc-customization-006
     title: DataSource riêng cho phiên và @SpringSessionDataSource
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1477,7 +1477,7 @@ menu:
     summary: ''
   - slug: jdbc-customization-007
     title: Chọn transaction manager với @SpringSessionTransactionManager
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1486,7 +1486,7 @@ menu:
     summary: ''
   - slug: jdbc-customization-008
     title: TransactionOperations và ranh giới giao dịch lưu phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1495,7 +1495,7 @@ menu:
     summary: ''
   - slug: jdbc-customization-009
     title: Quan hệ giữa rollback nghiệp vụ với giao dịch lưu phiên độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1504,7 +1504,7 @@ menu:
     summary: ''
   - slug: jdbc-customization-010
     title: Tùy chỉnh tác vụ cleanup và phối hợp khi có nhiều bản chạy ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1516,7 +1516,7 @@ menu:
   childs:
   - slug: extended-repositories-001
     title: Phân biệt module lõi, tích hợp đi kèm và phần mở rộng do nhóm khác duy trì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1525,7 +1525,7 @@ menu:
     summary: ''
   - slug: extended-repositories-002
     title: Hazelcast và lưu phiên trên bản đồ dữ liệu phân tán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1534,7 +1534,7 @@ menu:
     summary: ''
   - slug: extended-repositories-003
     title: Kho Hazelcast nhúng, client-server và các yêu cầu triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1543,7 +1543,7 @@ menu:
     summary: ''
   - slug: extended-repositories-004
     title: 'MongoDB và các phần mở rộng: xác minh đơn vị duy trì, phiên bản, khả năng'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1552,7 +1552,7 @@ menu:
     summary: ''
   - slug: extended-repositories-005
     title: Kiểm tra hỗ trợ Servlet, WebFlux, chỉ mục và sự kiện của từng kho
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1561,7 +1561,7 @@ menu:
     summary: ''
   - slug: extended-repositories-006
     title: So sánh thời hạn, cơ chế dọn dữ liệu và chính sách ghi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1570,7 +1570,7 @@ menu:
     summary: ''
   - slug: extended-repositories-007
     title: Tuần tự hóa, lớp dữ liệu và tương thích giữa các nút
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1579,7 +1579,7 @@ menu:
     summary: ''
   - slug: extended-repositories-008
     title: Cấu hình tự động thay đổi giữa các dòng Spring Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1588,7 +1588,7 @@ menu:
     summary: ''
   - slug: extended-repositories-009
     title: Chọn kho theo yêu cầu và bằng chứng thử nghiệm thay vì chỉ đổi dependency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1600,7 +1600,7 @@ menu:
   childs:
   - slug: webflux-integration-001
     title: WebSession và khác biệt với HttpSession của Servlet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1609,7 +1609,7 @@ menu:
     summary: ''
   - slug: webflux-integration-002
     title: WebSessionManager, WebSessionStore và các điểm tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1618,7 +1618,7 @@ menu:
     summary: ''
   - slug: webflux-integration-003
     title: SpringSessionWebSessionStore và ReactiveSessionRepository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1627,7 +1627,7 @@ menu:
     summary: ''
   - slug: webflux-integration-004
     title: Bean webSessionManager và cấu hình thay thế kho phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1636,7 +1636,7 @@ menu:
     summary: ''
   - slug: webflux-integration-005
     title: ServerWebExchange.getSession và chuỗi xử lý phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1645,7 +1645,7 @@ menu:
     summary: ''
   - slug: webflux-integration-006
     title: Tạo phiên, trạng thái started và thời điểm phát hành định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1654,7 +1654,7 @@ menu:
     summary: ''
   - slug: webflux-integration-007
     title: Thuộc tính, thời gian truy cập, đổi định danh và invalidate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1663,7 +1663,7 @@ menu:
     summary: ''
   - slug: webflux-integration-008
     title: Lưu phiên trước khi phản hồi được commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1672,7 +1672,7 @@ menu:
     summary: ''
   - slug: webflux-integration-009
     title: WebSessionIdResolver và tùy chỉnh cookie hoặc header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1681,7 +1681,7 @@ menu:
     summary: ''
   - slug: webflux-integration-010
     title: Không chặn luồng xử lý sự kiện bằng repository đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1690,7 +1690,7 @@ menu:
     summary: ''
   - slug: webflux-integration-011
     title: Xử lý lỗi, hủy chuỗi phản ứng và giới hạn của việc lưu phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1699,7 +1699,7 @@ menu:
     summary: ''
   - slug: webflux-integration-012
     title: Phân biệt cấu hình WebFlux với SessionRepositoryFilter của Servlet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1711,7 +1711,7 @@ menu:
   childs:
   - slug: reactive-redis-001
     title: ReactiveRedisSessionRepository và lưu phiên qua API Redis phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1720,7 +1720,7 @@ menu:
     summary: ''
   - slug: reactive-redis-002
     title: '@EnableRedisWebSession và cấu hình kết nối Lettuce phù hợp'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1729,7 +1729,7 @@ menu:
     summary: ''
   - slug: reactive-redis-003
     title: ReactiveRedisConnectionFactory, ReactiveRedisOperations và serializer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1738,7 +1738,7 @@ menu:
     summary: ''
   - slug: reactive-redis-004
     title: Tạo, đọc, lưu, xóa phiên trong chuỗi Mono
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1747,7 +1747,7 @@ menu:
     summary: ''
   - slug: reactive-redis-005
     title: ReactiveRedisIndexedSessionRepository và khả năng hỗ trợ theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1756,7 +1756,7 @@ menu:
     summary: ''
   - slug: reactive-redis-006
     title: ReactiveFindByIndexNameSessionRepository và tra cứu theo principal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1765,7 +1765,7 @@ menu:
     summary: ''
   - slug: reactive-redis-007
     title: Namespace, TTL, dữ liệu thay đổi và thời điểm ghi của repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1774,7 +1774,7 @@ menu:
     summary: ''
   - slug: reactive-redis-008
     title: Thông báo hết hạn, chỉ mục và sự kiện của triển khai phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1783,7 +1783,7 @@ menu:
     summary: ''
   - slug: reactive-redis-009
     title: Tùy chỉnh repository mà không chuyển sang thao tác chặn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1792,7 +1792,7 @@ menu:
     summary: ''
   - slug: reactive-redis-010
     title: Kiểm tra kết quả lưu thực tế trước khi một yêu cầu khác đọc phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1804,7 +1804,7 @@ menu:
   childs:
   - slug: spring-security-integration-001
     title: Phiên lưu trạng thái và cơ chế xác thực có những trách nhiệm riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1813,7 +1813,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-002
     title: Thứ tự tích hợp Spring Session với chuỗi filter bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1822,7 +1822,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-003
     title: SecurityContext và lưu danh tính xác thực trong HttpSession
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1831,7 +1831,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-004
     title: Khôi phục và lưu SecurityContext theo phiên bản, cấu hình Spring Security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1840,7 +1840,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-005
     title: SessionCreationPolicy và các đường đi có thể tạo phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1849,7 +1849,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-006
     title: Chống session fixation bằng đổi định danh sau xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1858,7 +1858,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-007
     title: Request cache, CSRF token và các thuộc tính phiên do bảo mật tạo ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1867,7 +1867,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-008
     title: Kiểm tra quyền dựa trên Authentication thay vì thuộc tính do client cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1876,7 +1876,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-009
     title: WebFlux, SecurityContextRepository và trạng thái xác thực trong WebSession
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1885,7 +1885,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-010
     title: Ứng dụng stateless và kiểm chứng không phát sinh phiên ngoài dự kiến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1894,7 +1894,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-011
     title: Thay đổi quyền, khóa tài khoản và nhu cầu thu hồi phiên đã tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1903,7 +1903,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-012
     title: Kiểm thử đăng nhập, truy cập được bảo vệ và đăng xuất trên nhiều nút
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1915,7 +1915,7 @@ menu:
   childs:
   - slug: multiple-logins-001
     title: Phiên theo người dùng, theo trình duyệt và theo thiết bị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1924,7 +1924,7 @@ menu:
     summary: ''
   - slug: multiple-logins-002
     title: FindByIndexNameSessionRepository và điều kiện có chỉ mục principal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1933,7 +1933,7 @@ menu:
     summary: ''
   - slug: multiple-logins-003
     title: SpringSessionBackedSessionRegistry và kiểm soát phiên trong cụm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1942,7 +1942,7 @@ menu:
     summary: ''
   - slug: multiple-logins-004
     title: Cấu hình maximumSessions và chính sách từ chối hoặc hết hạn phiên cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1951,7 +1951,7 @@ menu:
     summary: ''
   - slug: multiple-logins-005
     title: Tên principal trong chỉ mục phải khớp với danh tính dùng để tra cứu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1960,7 +1960,7 @@ menu:
     summary: ''
   - slug: multiple-logins-006
     title: Giới hạn getAllPrincipals và tránh suy diễn khả năng liệt kê người dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1969,7 +1969,7 @@ menu:
     summary: ''
   - slug: multiple-logins-007
     title: Phiên hoạt động, phiên bị đánh dấu hết hạn và phiên đã xóa khỏi kho
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1978,7 +1978,7 @@ menu:
     summary: ''
   - slug: multiple-logins-008
     title: Đăng nhập đồng thời và giới hạn bảo đảm khi nhiều nút cùng xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1987,7 +1987,7 @@ menu:
     summary: ''
   - slug: multiple-logins-009
     title: Tra cứu, hiển thị và thu hồi một phiên cụ thể của người dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1996,7 +1996,7 @@ menu:
     summary: ''
   - slug: multiple-logins-010
     title: SpringSessionBackedReactiveSessionRegistry và khả năng theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2005,7 +2005,7 @@ menu:
     summary: ''
   - slug: multiple-logins-011
     title: Bảo vệ chức năng quản lý phiên và hạn chế công bố thông tin thiết bị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2017,7 +2017,7 @@ menu:
   childs:
   - slug: remember-me-and-logout-001
     title: Cookie tồn tại lâu, phiên tồn tại lâu và đăng nhập ghi nhớ là các cơ chế khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2026,7 +2026,7 @@ menu:
     summary: ''
   - slug: remember-me-and-logout-002
     title: SpringSessionRememberMeServices và điều chỉnh vòng đời phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2035,7 +2035,7 @@ menu:
     summary: ''
   - slug: remember-me-and-logout-003
     title: Phối hợp remember-me với DefaultCookieSerializer được tùy chỉnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2044,7 +2044,7 @@ menu:
     summary: ''
   - slug: remember-me-and-logout-004
     title: Khoảng không hoạt động, gia hạn phiên và tuổi thọ tuyệt đối của đăng nhập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2053,7 +2053,7 @@ menu:
     summary: ''
   - slug: remember-me-and-logout-005
     title: Đăng xuất phiên hiện tại và thu hồi mọi phiên của một người dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2062,7 +2062,7 @@ menu:
     summary: ''
   - slug: remember-me-and-logout-006
     title: invalidate, xóa dữ liệu kho và xóa cookie hoặc định danh header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2071,7 +2071,7 @@ menu:
     summary: ''
   - slug: remember-me-and-logout-007
     title: Đăng xuất đồng thời với các yêu cầu đang thực hiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2080,7 +2080,7 @@ menu:
     summary: ''
   - slug: remember-me-and-logout-008
     title: Đăng xuất cục bộ khác với đăng xuất tại nhà cung cấp danh tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2089,7 +2089,7 @@ menu:
     summary: ''
   - slug: remember-me-and-logout-009
     title: Phiên bị xóa, cookie còn lại và yêu cầu đăng nhập lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2098,7 +2098,7 @@ menu:
     summary: ''
   - slug: remember-me-and-logout-010
     title: Đổi mật khẩu, nghi ngờ lộ phiên và chính sách thu hồi theo yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2107,7 +2107,7 @@ menu:
     summary: ''
   - slug: remember-me-and-logout-011
     title: Kiểm chứng kết thúc phiên trên các nút và kết nối liên quan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2119,7 +2119,7 @@ menu:
   childs:
   - slug: web-socket-integration-001
     title: Vòng đời HttpSession và kết nối WebSocket không đồng nhất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2128,7 +2128,7 @@ menu:
     summary: ''
   - slug: web-socket-integration-002
     title: Phạm vi tích hợp Spring WebSocket, STOMP và giới hạn với API WebSocket khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2137,7 +2137,7 @@ menu:
     summary: ''
   - slug: web-socket-integration-003
     title: AbstractSessionWebSocketMessageBrokerConfigurer và cấu hình tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2146,7 +2146,7 @@ menu:
     summary: ''
   - slug: web-socket-integration-004
     title: HandshakeInterceptor và liên kết phiên với kết nối được mở
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2155,7 +2155,7 @@ menu:
     summary: ''
   - slug: web-socket-integration-005
     title: SessionRepositoryMessageInterceptor và cập nhật hoạt động khi nhận thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2164,7 +2164,7 @@ menu:
     summary: ''
   - slug: web-socket-integration-006
     title: Thông điệp đến, heartbeat, thông điệp gửi đi và cách xác định không hoạt động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2173,7 +2173,7 @@ menu:
     summary: ''
   - slug: web-socket-integration-007
     title: SessionDestroyedEvent và đóng kết nối gắn với phiên đã kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2182,7 +2182,7 @@ menu:
     summary: ''
   - slug: web-socket-integration-008
     title: Một phiên có nhiều WebSocket trên nhiều nút
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2191,7 +2191,7 @@ menu:
     summary: ''
   - slug: web-socket-integration-009
     title: Phụ thuộc vào repository có sự kiện và độ trễ nhận thông báo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2200,7 +2200,7 @@ menu:
     summary: ''
   - slug: web-socket-integration-010
     title: Kiểm thử hết hạn, đăng xuất và mất kết nối kho trong ứng dụng WebSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2212,7 +2212,7 @@ menu:
   childs:
   - slug: concurrency-and-consistency-001
     title: Nhiều yêu cầu cùng đọc một phiên và cập nhật từ các bản trạng thái khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2221,7 +2221,7 @@ menu:
     summary: ''
   - slug: concurrency-and-consistency-002
     title: Ghi đè mất thay đổi khi hai bên cập nhật cùng thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2230,7 +2230,7 @@ menu:
     summary: ''
   - slug: concurrency-and-consistency-003
     title: Thay đổi thuộc tính khác nhau và ảnh hưởng của chính sách lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2239,7 +2239,7 @@ menu:
     summary: ''
   - slug: concurrency-and-consistency-004
     title: Đối tượng khả biến và ranh giới theo dõi thay đổi của repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2248,7 +2248,7 @@ menu:
     summary: ''
   - slug: concurrency-and-consistency-005
     title: Đọc, kiểm tra rồi ghi không tự trở thành một giao dịch nguyên tử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2257,7 +2257,7 @@ menu:
     summary: ''
   - slug: concurrency-and-consistency-006
     title: Khóa trong một JVM không bảo vệ được mọi nút ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2266,7 +2266,7 @@ menu:
     summary: ''
   - slug: concurrency-and-consistency-007
     title: Đổi định danh, xóa và gia hạn phiên khi có yêu cầu đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2275,7 +2275,7 @@ menu:
     summary: ''
   - slug: concurrency-and-consistency-008
     title: Tránh dùng phiên làm nguồn duy nhất cho số dư, tồn kho hoặc bất biến nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2284,7 +2284,7 @@ menu:
     summary: ''
   - slug: concurrency-and-consistency-009
     title: Phối hợp qua thao tác nguyên tử hoặc lưu trạng thái tại hệ thống phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2293,7 +2293,7 @@ menu:
     summary: ''
   - slug: concurrency-and-consistency-010
     title: Phiên trên replica, độ trễ sao chép và dữ liệu cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2302,7 +2302,7 @@ menu:
     summary: ''
   - slug: concurrency-and-consistency-011
     title: Kiểm thử các lịch thực thi gây lỗi thay vì chỉ tăng số luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2314,7 +2314,7 @@ menu:
   childs:
   - slug: multi-node-deployment-001
     title: Chia sẻ kho phiên giữa các bản chạy ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2323,7 +2323,7 @@ menu:
     summary: ''
   - slug: multi-node-deployment-002
     title: Cân bằng tải, sticky session và khả năng chuyển yêu cầu sang nút khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2332,7 +2332,7 @@ menu:
     summary: ''
   - slug: multi-node-deployment-003
     title: Namespace, tên cookie và cấu hình phải thống nhất trong cùng một ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2341,7 +2341,7 @@ menu:
     summary: ''
   - slug: multi-node-deployment-004
     title: Tương thích lớp dữ liệu và serializer trên các nút
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2350,7 +2350,7 @@ menu:
     summary: ''
   - slug: multi-node-deployment-005
     title: Redis Sentinel, Redis Cluster và lựa chọn theo yêu cầu kho
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2359,7 +2359,7 @@ menu:
     summary: ''
   - slug: multi-node-deployment-006
     title: Nhân bản dữ liệu, chuyển đổi dự phòng và giới hạn mất cập nhật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2368,7 +2368,7 @@ menu:
     summary: ''
   - slug: multi-node-deployment-007
     title: JDBC, nhóm kết nối và tải bổ sung do mọi nút cùng truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2377,7 +2377,7 @@ menu:
     summary: ''
   - slug: multi-node-deployment-008
     title: Rolling deployment và phiên được tạo bởi hai phiên bản cùng tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2386,7 +2386,7 @@ menu:
     summary: ''
   - slug: multi-node-deployment-009
     title: Tắt có trật tự và hoàn tất việc lưu phiên trước khi dừng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2395,7 +2395,7 @@ menu:
     summary: ''
   - slug: multi-node-deployment-010
     title: TLS sau reverse proxy và nhận biết đúng nguồn yêu cầu an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2404,7 +2404,7 @@ menu:
     summary: ''
   - slug: multi-node-deployment-011
     title: Thử chuyển nút xử lý để chứng minh phiên không phụ thuộc một JVM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2416,7 +2416,7 @@ menu:
   childs:
   - slug: session-data-safety-001
     title: Định danh phiên là bí mật và phải khó dự đoán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2425,7 +2425,7 @@ menu:
     summary: ''
   - slug: session-data-safety-002
     title: Sinh định danh, nguồn ngẫu nhiên và SessionIdGenerator theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2434,7 +2434,7 @@ menu:
     summary: ''
   - slug: session-data-safety-003
     title: Chống session fixation, đánh cắp phiên và sử dụng lại định danh đã thu hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2443,7 +2443,7 @@ menu:
     summary: ''
   - slug: session-data-safety-004
     title: HTTPS, cookie bảo vệ và tránh để lộ qua URL hoặc nhật ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2452,7 +2452,7 @@ menu:
     summary: ''
   - slug: session-data-safety-005
     title: CSRF, SameSite và giới hạn của việc chỉ dựa vào cookie
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2461,7 +2461,7 @@ menu:
     summary: ''
   - slug: session-data-safety-006
     title: Quyền truy cập Redis, cơ sở dữ liệu và phạm vi tài khoản dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2470,7 +2470,7 @@ menu:
     summary: ''
   - slug: session-data-safety-007
     title: Cách ly môi trường, namespace và giới hạn tài nguyên lưu phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2479,7 +2479,7 @@ menu:
     summary: ''
   - slug: session-data-safety-008
     title: Kiểm soát dữ liệu được giải tuần tự hóa và hạn chế kiểu đối tượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2488,7 +2488,7 @@ menu:
     summary: ''
   - slug: session-data-safety-009
     title: Tối thiểu hóa dữ liệu cá nhân và thời gian giữ lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2497,7 +2497,7 @@ menu:
     summary: ''
   - slug: session-data-safety-010
     title: Bảo vệ bản sao lưu, kênh truyền và dữ liệu lưu trên thiết bị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2506,7 +2506,7 @@ menu:
     summary: ''
   - slug: session-data-safety-011
     title: Giới hạn tạo phiên để tránh làm cạn bộ nhớ hoặc dung lượng kho
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2515,7 +2515,7 @@ menu:
     summary: ''
   - slug: session-data-safety-012
     title: Thiết kế hành vi an toàn khi không thể đọc hoặc ghi trạng thái xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2527,7 +2527,7 @@ menu:
   childs:
   - slug: cross-application-sharing-001
     title: Chung kho lưu trữ không tự đồng nghĩa chung phiên hoặc chung đăng nhập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2536,7 +2536,7 @@ menu:
     summary: ''
   - slug: cross-application-sharing-002
     title: Cookie name, Domain, Path và điều kiện trình duyệt gửi cùng định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2545,7 +2545,7 @@ menu:
     summary: ''
   - slug: cross-application-sharing-003
     title: Namespace, repository và định dạng dữ liệu phải tương thích khi chủ động chia sẻ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2554,7 +2554,7 @@ menu:
     summary: ''
   - slug: cross-application-sharing-004
     title: Chia sẻ SecurityContext và yêu cầu tương thích kiểu principal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2563,7 +2563,7 @@ menu:
     summary: ''
   - slug: cross-application-sharing-005
     title: Ranh giới tin cậy khi nhiều ứng dụng có thể đọc, sửa cùng một phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2572,7 +2572,7 @@ menu:
     summary: ''
   - slug: cross-application-sharing-006
     title: Subdomain, site, origin và giới hạn của cơ chế cookie
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2581,7 +2581,7 @@ menu:
     summary: ''
   - slug: cross-application-sharing-007
     title: SSO qua nhà cung cấp danh tính khác với dùng chung kho phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2590,7 +2590,7 @@ menu:
     summary: ''
   - slug: cross-application-sharing-008
     title: Cách ly tenant bằng thiết kế định danh, kho và kiểm tra quyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2599,7 +2599,7 @@ menu:
     summary: ''
   - slug: cross-application-sharing-009
     title: Tránh dùng dữ liệu do một ứng dụng ghi làm bằng chứng cấp quyền không kiểm chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2608,7 +2608,7 @@ menu:
     summary: ''
   - slug: cross-application-sharing-010
     title: Lựa chọn tách phiên khi ứng dụng có vòng đời hoặc yêu cầu bảo mật khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2620,7 +2620,7 @@ menu:
   childs:
   - slug: custom-repository-001
     title: Khi nào cần tự xây repository thay vì dùng triển khai sẵn có
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2629,7 +2629,7 @@ menu:
     summary: ''
   - slug: custom-repository-002
     title: Thực hiện hợp đồng SessionRepository và vòng đời đối tượng Session
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2638,7 +2638,7 @@ menu:
     summary: ''
   - slug: custom-repository-003
     title: Phân biệt tạo trong bộ nhớ với lưu vào kho bền vững
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2647,7 +2647,7 @@ menu:
     summary: ''
   - slug: custom-repository-004
     title: Đọc không trả về phiên đã hết hạn và xử lý định danh không tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2656,7 +2656,7 @@ menu:
     summary: ''
   - slug: custom-repository-005
     title: Lưu thay đổi, xóa thuộc tính và xóa phiên an toàn khi bị gọi lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2665,7 +2665,7 @@ menu:
     summary: ''
   - slug: custom-repository-006
     title: Đổi định danh và giữ nhất quán dữ liệu, chỉ mục liên quan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2674,7 +2674,7 @@ menu:
     summary: ''
   - slug: custom-repository-007
     title: Tùy chọn hỗ trợ FindByIndexNameSessionRepository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2683,7 +2683,7 @@ menu:
     summary: ''
   - slug: custom-repository-008
     title: TTL, dọn dữ liệu và công bố sự kiện theo khả năng được cam kết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2692,7 +2692,7 @@ menu:
     summary: ''
   - slug: custom-repository-009
     title: ReactiveSessionRepository và tuân thủ chuỗi xử lý không chặn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2701,7 +2701,7 @@ menu:
     summary: ''
   - slug: custom-repository-010
     title: Bộ kiểm thử hợp đồng cho phiên, thời hạn, đồng thời và lỗi kho
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2713,7 +2713,7 @@ menu:
   childs:
   - slug: servlet-testing-001
     title: Kiểm thử logic nghiệp vụ độc lập với bộ lọc và kho phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2722,7 +2722,7 @@ menu:
     summary: ''
   - slug: servlet-testing-002
     title: MockMvc với đầy đủ filter Spring Session cần kiểm chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2731,7 +2731,7 @@ menu:
     summary: ''
   - slug: servlet-testing-003
     title: MockHttpSession và lý do không đủ để chứng minh phiên được lưu ngoài JVM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2740,7 +2740,7 @@ menu:
     summary: ''
   - slug: servlet-testing-004
     title: Tạo phiên qua yêu cầu HTTP và gửi lại cookie ở yêu cầu tiếp theo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2749,7 +2749,7 @@ menu:
     summary: ''
   - slug: servlet-testing-005
     title: Kiểm tra thuộc tính, đổi định danh, invalidate và cookie không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2758,7 +2758,7 @@ menu:
     summary: ''
   - slug: servlet-testing-006
     title: Đăng nhập, SecurityContext và thứ tự filter thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2767,7 +2767,7 @@ menu:
     summary: ''
   - slug: servlet-testing-007
     title: Kiểm tra Secure, HttpOnly, SameSite, Path, Domain của Set-Cookie
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2776,7 +2776,7 @@ menu:
     summary: ''
   - slug: servlet-testing-008
     title: Kiểm thử HeaderHttpSessionIdResolver và đường đi không dùng cookie
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2785,7 +2785,7 @@ menu:
     summary: ''
   - slug: servlet-testing-009
     title: Phản hồi redirect, lỗi, commit sớm và yêu cầu bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2794,7 +2794,7 @@ menu:
     summary: ''
   - slug: servlet-testing-010
     title: Kiểm tra hành vi khi repository ném lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2803,7 +2803,7 @@ menu:
     summary: ''
   - slug: servlet-testing-011
     title: Cách ly namespace và dữ liệu thử nghiệm giữa các ca kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2815,7 +2815,7 @@ menu:
   childs:
   - slug: web-flux-testing-001
     title: WebTestClient và phạm vi kiểm thử WebSession
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2824,7 +2824,7 @@ menu:
     summary: ''
   - slug: web-flux-testing-002
     title: Kiểm thử WebSessionStore cùng ReactiveSessionRepository được cấu hình thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2833,7 +2833,7 @@ menu:
     summary: ''
   - slug: web-flux-testing-003
     title: StepVerifier cho tạo, đọc, lưu, xóa phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2842,7 +2842,7 @@ menu:
     summary: ''
   - slug: web-flux-testing-004
     title: Gửi lại cookie hoặc header từ phản hồi trước
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2851,7 +2851,7 @@ menu:
     summary: ''
   - slug: web-flux-testing-005
     title: Kiểm tra phiên chỉ được phát hành khi đã bắt đầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2860,7 +2860,7 @@ menu:
     summary: ''
   - slug: web-flux-testing-006
     title: Đổi định danh, invalidate và khôi phục trạng thái ở yêu cầu tiếp theo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2869,7 +2869,7 @@ menu:
     summary: ''
   - slug: web-flux-testing-007
     title: Kiểm tra SecurityContext và giới hạn phiên phản ứng theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2878,7 +2878,7 @@ menu:
     summary: ''
   - slug: web-flux-testing-008
     title: Đảm bảo không dùng thao tác chặn trong luồng xử lý sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2887,7 +2887,7 @@ menu:
     summary: ''
   - slug: web-flux-testing-009
     title: Lỗi, timeout, hủy chuỗi và tình trạng phiên đã được lưu hay chưa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2896,7 +2896,7 @@ menu:
     summary: ''
   - slug: web-flux-testing-010
     title: Kiểm tra mốc thời gian logic và TTL backend theo các cơ chế khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2908,7 +2908,7 @@ menu:
   childs:
   - slug: integration-testing-001
     title: Dùng Redis và cơ sở dữ liệu thử nghiệm gần với môi trường triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2917,7 +2917,7 @@ menu:
     summary: ''
   - slug: integration-testing-002
     title: Testcontainers, thông tin kết nối động và vòng đời tài nguyên kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2926,7 +2926,7 @@ menu:
     summary: ''
   - slug: integration-testing-003
     title: Hai bản chạy ứng dụng cùng đọc phiên qua một kho
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2935,7 +2935,7 @@ menu:
     summary: ''
   - slug: integration-testing-004
     title: Tạo phiên ở nút thứ nhất, cập nhật ở nút thứ hai rồi kiểm tra lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2944,7 +2944,7 @@ menu:
     summary: ''
   - slug: integration-testing-005
     title: Khởi động lại một nút và kiểm chứng trạng thái phiên còn hay mất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2953,7 +2953,7 @@ menu:
     summary: ''
   - slug: integration-testing-006
     title: Kiểm thử idle timeout, cookie hết hạn và tác vụ cleanup độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2962,7 +2962,7 @@ menu:
     summary: ''
   - slug: integration-testing-007
     title: Xác nhận sự kiện tạo, xóa, hết hạn theo khả năng repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2971,7 +2971,7 @@ menu:
     summary: ''
   - slug: integration-testing-008
     title: Tra cứu theo principal và thu hồi nhiều phiên đăng nhập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2980,7 +2980,7 @@ menu:
     summary: ''
   - slug: integration-testing-009
     title: Đăng nhập hoặc cập nhật cùng lúc để kiểm tra tranh chấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2989,7 +2989,7 @@ menu:
     summary: ''
   - slug: integration-testing-010
     title: Kiểm tra tương thích serializer giữa hai phiên bản ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2998,7 +2998,7 @@ menu:
     summary: ''
   - slug: integration-testing-011
     title: Mất kết nối, chuyển đổi dự phòng, eviction và phục hồi kho
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3007,7 +3007,7 @@ menu:
     summary: ''
   - slug: integration-testing-012
     title: WebSocket, đăng xuất và thời gian đóng các kết nối liên quan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3019,7 +3019,7 @@ menu:
   childs:
   - slug: performance-and-monitoring-001
     title: Độ trễ tải, lưu phiên và phần chi phí trong một yêu cầu HTTP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3028,7 +3028,7 @@ menu:
     summary: ''
   - slug: performance-and-monitoring-002
     title: Số phiên hoạt động, số phiên tạo mới và tốc độ hết hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3037,7 +3037,7 @@ menu:
     summary: ''
   - slug: performance-and-monitoring-003
     title: Kích thước thuộc tính, chi phí serializer và lưu lượng truyền dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3046,7 +3046,7 @@ menu:
     summary: ''
   - slug: performance-and-monitoring-004
     title: Số lần truy cập kho do một yêu cầu đọc hoặc sửa phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3055,7 +3055,7 @@ menu:
     summary: ''
   - slug: performance-and-monitoring-005
     title: Ảnh hưởng của FlushMode, SaveMode và việc đọc thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3064,7 +3064,7 @@ menu:
     summary: ''
   - slug: performance-and-monitoring-006
     title: Nhóm kết nối, luồng listener, thời gian chờ và mức bão hòa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3073,7 +3073,7 @@ menu:
     summary: ''
   - slug: performance-and-monitoring-007
     title: Chỉ mục principal, tác vụ cleanup và chi phí dữ liệu phụ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3082,7 +3082,7 @@ menu:
     summary: ''
   - slug: performance-and-monitoring-008
     title: Phiên rất lớn, ghi thường xuyên và giới hạn tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3091,7 +3091,7 @@ menu:
     summary: ''
   - slug: performance-and-monitoring-009
     title: Metric, trace và ghi log tương quan mà không công bố định danh thô
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3100,7 +3100,7 @@ menu:
     summary: ''
   - slug: performance-and-monitoring-010
     title: Quan sát dữ liệu Redis hoặc JDBC mà không gây tải quét quá lớn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3109,7 +3109,7 @@ menu:
     summary: ''
   - slug: performance-and-monitoring-011
     title: Đo chuẩn bằng tải đại diện cho đọc, ghi, đăng nhập và hết hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3121,7 +3121,7 @@ menu:
   childs:
   - slug: operations-and-recovery-001
     title: 'Chẩn đoán mất phiên: cookie, định danh, filter, namespace hay dữ liệu kho'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3130,7 +3130,7 @@ menu:
     summary: ''
   - slug: operations-and-recovery-002
     title: Lỗi giải tuần tự hóa, không tìm thấy lớp và thay đổi cấu trúc thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3139,7 +3139,7 @@ menu:
     summary: ''
   - slug: operations-and-recovery-003
     title: Lỗi JDBC schema, thiếu quyền, duplicate key và cạn kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3148,7 +3148,7 @@ menu:
     summary: ''
   - slug: operations-and-recovery-004
     title: Redis từ chối cấu hình keyspace, listener ngừng nhận và chỉ mục còn sót
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3157,7 +3157,7 @@ menu:
     summary: ''
   - slug: operations-and-recovery-005
     title: Timeout kho phiên và phân biệt lỗi xác thực với lỗi hạ tầng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3166,7 +3166,7 @@ menu:
     summary: ''
   - slug: operations-and-recovery-006
     title: Chính sách bộ nhớ Redis, eviction và rủi ro mất phiên đang hoạt động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3175,7 +3175,7 @@ menu:
     summary: ''
   - slug: operations-and-recovery-007
     title: Mất kết nối trong lúc ghi và kết quả cập nhật chưa xác định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3184,7 +3184,7 @@ menu:
     summary: ''
   - slug: operations-and-recovery-008
     title: Khôi phục từ bản sao lưu và nguy cơ phục hồi cả phiên đã thu hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3193,7 +3193,7 @@ menu:
     summary: ''
   - slug: operations-and-recovery-009
     title: Vệ sinh dữ liệu hết hạn, chỉ mục phụ và dữ liệu thử nghiệm theo phạm vi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3202,7 +3202,7 @@ menu:
     summary: ''
   - slug: operations-and-recovery-010
     title: Cảnh báo lỗi lưu phiên, công việc dọn dẹp tồn đọng và bất thường tạo phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3211,7 +3211,7 @@ menu:
     summary: ''
   - slug: operations-and-recovery-011
     title: Quy trình phục hồi, tiêu chí xác nhận và trường hợp cần đăng nhập lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3223,7 +3223,7 @@ menu:
   childs:
   - slug: upgrade-and-migration-001
     title: Đối chiếu phiên bản Spring Session với Boot, Security, Data Redis và driver JDBC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3232,7 +3232,7 @@ menu:
     summary: ''
   - slug: upgrade-and-migration-002
     title: Thay đổi dependency, starter và tên thuộc tính cấu hình giữa các dòng Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3241,7 +3241,7 @@ menu:
     summary: ''
   - slug: upgrade-and-migration-003
     title: Servlet javax, jakarta và yêu cầu tương thích container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3250,7 +3250,7 @@ menu:
     summary: ''
   - slug: upgrade-and-migration-004
     title: Chuyển serializer hoặc phiên bản Jackson mà vẫn đọc được dữ liệu cần giữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3259,7 +3259,7 @@ menu:
     summary: ''
   - slug: upgrade-and-migration-005
     title: Thay đổi lớp principal, SecurityContext và module hỗ trợ tuần tự hóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3268,7 +3268,7 @@ menu:
     summary: ''
   - slug: upgrade-and-migration-006
     title: Đổi repository cơ bản, có chỉ mục hoặc chuyển kho lưu trữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3277,7 +3277,7 @@ menu:
     summary: ''
   - slug: upgrade-and-migration-007
     title: Thay đổi định dạng khóa, namespace, tên cookie và kế hoạch chuyển tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3286,7 +3286,7 @@ menu:
     summary: ''
   - slug: upgrade-and-migration-008
     title: Phần mở rộng Hazelcast, MongoDB và thay đổi đơn vị duy trì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3295,7 +3295,7 @@ menu:
     summary: ''
   - slug: upgrade-and-migration-009
     title: Rolling upgrade, rollback và kiểm thử tương thích phiên trước khi triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3307,7 +3307,7 @@ menu:
   childs:
   - slug: integrated-practice-001
     title: Xây dựng ứng dụng lưu tùy chọn người dùng bằng HttpSession
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3316,7 +3316,7 @@ menu:
     summary: ''
   - slug: integrated-practice-002
     title: Chuyển từ phiên trong bộ nhớ sang Redis và kiểm chứng qua hai nút
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3325,7 +3325,7 @@ menu:
     summary: ''
   - slug: integrated-practice-003
     title: So sánh repository Redis cơ bản với repository có chỉ mục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3334,7 +3334,7 @@ menu:
     summary: ''
   - slug: integrated-practice-004
     title: Đăng nhập bằng Spring Security và kiểm tra đổi định danh phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3343,7 +3343,7 @@ menu:
     summary: ''
   - slug: integrated-practice-005
     title: Giới hạn số phiên, liệt kê phiên của người dùng và thu hồi theo yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3352,7 +3352,7 @@ menu:
     summary: ''
   - slug: integrated-practice-006
     title: Thiết kế cookie hoặc header phiên cho một client cụ thể
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3361,7 +3361,7 @@ menu:
     summary: ''
   - slug: integrated-practice-007
     title: Thay Redis bằng JDBC và kiểm chứng khác biệt về cleanup, sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3370,7 +3370,7 @@ menu:
     summary: ''
   - slug: integrated-practice-008
     title: Xây dựng bản WebFlux dùng ReactiveSessionRepository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3379,7 +3379,7 @@ menu:
     summary: ''
   - slug: integrated-practice-009
     title: Tích hợp WebSocket và kiểm tra hết hạn, đăng xuất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3388,7 +3388,7 @@ menu:
     summary: ''
   - slug: integrated-practice-010
     title: Tái hiện cập nhật đồng thời và đánh giá các chính sách lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3397,7 +3397,7 @@ menu:
     summary: ''
   - slug: integrated-practice-011
     title: Đổi serializer giữa hai bản ứng dụng rồi kiểm thử tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3406,7 +3406,7 @@ menu:
     summary: ''
   - slug: integrated-practice-012
     title: Tạo sự cố kho, thu bằng chứng và thực hiện quy trình phục hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

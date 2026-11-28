@@ -1,3 +1,3 @@
 menuLevel1: MethodHandle
 menuLevel2: 'invoke(): chuyển đổi kiểu theo quy tắc asType khi chữ ký gọi chưa khớp'
-status: ""
+status: WRITTEN

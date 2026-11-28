@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: orientation-001
     title: Gọi công cụ (tool calling) là gì và giải quyết vấn đề nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: orientation-002
     title: Phân biệt trả lời bằng kiến thức mô hình và truy cập dữ liệu thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: orientation-003
     title: Trách nhiệm của mô hình, Spring AI và mã thực thi công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: orientation-004
     title: Phân biệt tool calling, function calling, structured output và agent
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: orientation-005
     title: Quan hệ với RAG, bộ nhớ hội thoại và MCP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: orientation-006
     title: Khi nào dùng công cụ và khi nào gọi trực tiếp dịch vụ nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: orientation-007
     title: Kiến thức cần có và lộ trình từ công cụ đầu tiên đến vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -70,7 +70,7 @@ menu:
   childs:
   - slug: tool-call-flow-001
     title: Tool definition gồm tên, mô tả và schema tham số
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -79,7 +79,7 @@ menu:
     summary: ''
   - slug: tool-call-flow-002
     title: Mô hình chọn công cụ và sinh đối số thay vì trực tiếp chạy mã
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
     summary: ''
   - slug: tool-call-flow-003
     title: Tool call ID và liên kết giữa yêu cầu gọi với kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: tool-call-flow-004
     title: Vai trò của ChatClient, ChatModel, ToolCallback và ToolCallingManager
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: tool-call-flow-005
     title: Luồng gửi định nghĩa, nhận yêu cầu gọi, thực thi và trả kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: tool-call-flow-006
     title: Vòng lặp nhiều lượt và điều kiện kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: tool-call-flow-007
     title: Phân biệt thông điệp assistant chứa tool call với câu trả lời cuối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: tool-call-flow-008
     title: Thay đổi vị trí điều phối vòng lặp giữa Spring AI 1.x và 2.x
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -145,7 +145,7 @@ menu:
   childs:
   - slug: project-setup-001
     title: Chọn tổ hợp Java, Spring Boot và Spring AI tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -154,7 +154,7 @@ menu:
     summary: ''
   - slug: project-setup-002
     title: Quản lý dependency bằng Spring AI BOM trong Maven và Gradle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -163,7 +163,7 @@ menu:
     summary: ''
   - slug: project-setup-003
     title: Chọn starter và mô hình có hỗ trợ gọi công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
     summary: ''
   - slug: project-setup-004
     title: Cấu hình thông tin xác thực, endpoint và tên mô hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: project-setup-005
     title: Tổ chức ChatClient, lớp công cụ và dịch vụ nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: project-setup-006
     title: Tách môi trường kiểm thử khỏi tài nguyên sản xuất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: project-setup-007
     title: Ghi lại phiên bản và điều kiện tái lập các ví dụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -211,7 +211,7 @@ menu:
   childs:
   - slug: first-tool-001
     title: Xây dựng công cụ chỉ đọc với đầu vào và kết quả đơn giản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -220,7 +220,7 @@ menu:
     summary: ''
   - slug: first-tool-002
     title: Khai báo phương thức bằng @Tool
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -229,7 +229,7 @@ menu:
     summary: ''
   - slug: first-tool-003
     title: Đưa công cụ vào một yêu cầu ChatClient
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -238,7 +238,7 @@ menu:
     summary: ''
   - slug: first-tool-004
     title: Đặt câu hỏi cần dữ liệu từ công cụ và quan sát luồng thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -247,7 +247,7 @@ menu:
     summary: ''
   - slug: first-tool-005
     title: Kiểm tra kết quả khi mô hình chọn không gọi công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
     summary: ''
   - slug: first-tool-006
     title: Phân biệt kết quả thực thi đã xác minh và nội dung mô hình diễn giải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -268,7 +268,7 @@ menu:
   childs:
   - slug: tool-toolparam-001
     title: Đặt tên công cụ rõ nghĩa và duy nhất trong tập được cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -277,7 +277,7 @@ menu:
     summary: ''
   - slug: tool-toolparam-002
     title: Viết mô tả nêu chức năng, điều kiện dùng và giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -286,7 +286,7 @@ menu:
     summary: ''
   - slug: tool-toolparam-003
     title: Mô tả tham số bằng @ToolParam
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -295,7 +295,7 @@ menu:
     summary: ''
   - slug: tool-toolparam-004
     title: Tham số bắt buộc, tùy chọn và giá trị có thể null
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -304,7 +304,7 @@ menu:
     summary: ''
   - slug: tool-toolparam-005
     title: Phương thức instance, static và phạm vi truy cập được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -313,7 +313,7 @@ menu:
     summary: ''
   - slug: tool-toolparam-006
     title: Dependency injection cho lớp chứa công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -322,7 +322,7 @@ menu:
     summary: ''
   - slug: tool-toolparam-007
     title: Quan hệ giữa lời gọi qua bean, proxy Spring và xử lý nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -331,7 +331,7 @@ menu:
     summary: ''
   - slug: tool-toolparam-008
     title: Tùy chỉnh returnDirect và bộ chuyển đổi kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -343,7 +343,7 @@ menu:
   childs:
   - slug: input-schema-001
     title: Vai trò của JSON Schema trong hợp đồng gọi công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -352,7 +352,7 @@ menu:
     summary: ''
   - slug: input-schema-002
     title: Sinh schema từ tham số Java và kiểu dữ liệu đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -361,7 +361,7 @@ menu:
     summary: ''
   - slug: input-schema-003
     title: Mô hình hóa đối số bằng record hoặc DTO
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -370,7 +370,7 @@ menu:
     summary: ''
   - slug: input-schema-004
     title: Kiểu nguyên thủy, chuỗi, enum và trường có cấu trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -379,7 +379,7 @@ menu:
     summary: ''
   - slug: input-schema-005
     title: Danh sách, đối tượng lồng nhau và kiểu generic theo khả năng hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -388,7 +388,7 @@ menu:
     summary: ''
   - slug: input-schema-006
     title: Biểu diễn required, optional và nullable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -397,7 +397,7 @@ menu:
     summary: ''
   - slug: input-schema-007
     title: Mô tả đơn vị, múi giờ, định dạng thời gian và định danh tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -406,7 +406,7 @@ menu:
     summary: ''
   - slug: input-schema-008
     title: Tùy chỉnh schema bằng annotation Spring AI, Jackson hoặc Swagger
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -415,7 +415,7 @@ menu:
     summary: ''
   - slug: input-schema-009
     title: Phân biệt ràng buộc schema với kiểm tra dữ liệu lúc thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -424,7 +424,7 @@ menu:
     summary: ''
   - slug: input-schema-010
     title: Giới hạn kiểu Optional, bất đồng bộ và reactive ở method-based tool
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -433,7 +433,7 @@ menu:
     summary: ''
   - slug: input-schema-011
     title: Kiểm tra schema thực tế và mức tương thích với từng nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -445,7 +445,7 @@ menu:
   childs:
   - slug: methodtoolcallback-001
     title: Khi nào tạo callback từ phương thức thay cho khai báo trực tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -454,7 +454,7 @@ menu:
     summary: ''
   - slug: methodtoolcallback-002
     title: Chọn Method và đối tượng chứa phương thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -463,7 +463,7 @@ menu:
     summary: ''
   - slug: methodtoolcallback-003
     title: Xây dựng ToolDefinition và metadata cho phương thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -472,7 +472,7 @@ menu:
     summary: ''
   - slug: methodtoolcallback-004
     title: Chuyển JSON đối số sang tham số Java
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -481,7 +481,7 @@ menu:
     summary: ''
   - slug: methodtoolcallback-005
     title: Truyền ToolContext vào phương thức khi cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -490,7 +490,7 @@ menu:
     summary: ''
   - slug: methodtoolcallback-006
     title: Chọn bộ chuyển đổi kết quả và xử lý lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -499,7 +499,7 @@ menu:
     summary: ''
   - slug: methodtoolcallback-007
     title: Đánh giá reflection, proxy và khả năng biên dịch AOT
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -511,7 +511,7 @@ menu:
   childs:
   - slug: functiontoolcallback-001
     title: Chọn Function, Supplier, Consumer hoặc BiFunction theo nhu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -520,7 +520,7 @@ menu:
     summary: ''
   - slug: functiontoolcallback-002
     title: Định nghĩa kiểu đầu vào và đầu ra tường minh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -529,7 +529,7 @@ menu:
     summary: ''
   - slug: functiontoolcallback-003
     title: Tạo FunctionToolCallback từ lambda hoặc method reference
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -538,7 +538,7 @@ menu:
     summary: ''
   - slug: functiontoolcallback-004
     title: Cung cấp tên, mô tả và schema đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -547,7 +547,7 @@ menu:
     summary: ''
   - slug: functiontoolcallback-005
     title: Tiếp nhận ToolContext qua dạng hàm tương ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -556,7 +556,7 @@ menu:
     summary: ''
   - slug: functiontoolcallback-006
     title: Phân biệt hàm không có đầu vào và hàm không trả dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -565,7 +565,7 @@ menu:
     summary: ''
   - slug: functiontoolcallback-007
     title: Đóng gói thành ToolCallback bean và tái sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -577,7 +577,7 @@ menu:
   childs:
   - slug: custom-toolcallback-001
     title: Hợp đồng của ToolCallback và trách nhiệm khi tự triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -586,7 +586,7 @@ menu:
     summary: ''
   - slug: custom-toolcallback-002
     title: Xây dựng ToolDefinition với JSON Schema riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -595,7 +595,7 @@ menu:
     summary: ''
   - slug: custom-toolcallback-003
     title: Đọc và kiểm tra đối số trước khi gọi hệ thống phía sau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -604,7 +604,7 @@ menu:
     summary: ''
   - slug: custom-toolcallback-004
     title: Truyền ngữ cảnh và áp dụng chính sách tại thời điểm thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -613,7 +613,7 @@ menu:
     summary: ''
   - slug: custom-toolcallback-005
     title: Chuyển kết quả về biểu diễn phù hợp với giao thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -622,7 +622,7 @@ menu:
     summary: ''
   - slug: custom-toolcallback-006
     title: Đóng gói lỗi bằng ToolExecutionException theo hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -631,7 +631,7 @@ menu:
     summary: ''
   - slug: custom-toolcallback-007
     title: Bọc callback bằng decorator để bổ sung kiểm soát và quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -643,7 +643,7 @@ menu:
   childs:
   - slug: tool-registration-001
     title: Phân biệt tạo bean, phân giải theo tên và cung cấp công cụ cho yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -652,7 +652,7 @@ menu:
     summary: ''
   - slug: tool-registration-002
     title: Cung cấp công cụ theo từng lần gọi ChatClient
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -661,7 +661,7 @@ menu:
     summary: ''
   - slug: tool-registration-003
     title: Đặt công cụ mặc định và đánh giá phạm vi dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -670,7 +670,7 @@ menu:
     summary: ''
   - slug: tool-registration-004
     title: Kết hợp POJO, ToolCallback và ToolCallbackProvider theo API phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -679,7 +679,7 @@ menu:
     summary: ''
   - slug: tool-registration-005
     title: Tạo callback từ đối tượng và gom nhóm công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -688,7 +688,7 @@ menu:
     summary: ''
   - slug: tool-registration-006
     title: Quy tắc kết hợp hoặc ghi đè giữa mặc định và cấu hình lúc gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -697,7 +697,7 @@ menu:
     summary: ''
   - slug: tool-registration-007
     title: Phát hiện trùng tên giữa nhiều nguồn công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -706,7 +706,7 @@ menu:
     summary: ''
   - slug: tool-registration-008
     title: Lựa chọn tập công cụ theo chức năng và quyền của người dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -715,7 +715,7 @@ menu:
     summary: ''
   - slug: tool-registration-009
     title: Đảm bảo công cụ có trong ứng dụng không tự động trở thành công cụ được phép chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -727,7 +727,7 @@ menu:
   childs:
   - slug: dynamic-resolution-001
     title: Vai trò của ToolCallbackResolver
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -736,7 +736,7 @@ menu:
     summary: ''
   - slug: dynamic-resolution-002
     title: Phân giải tĩnh từ tập ToolCallback đã biết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -745,7 +745,7 @@ menu:
     summary: ''
   - slug: dynamic-resolution-003
     title: Tạo resolver tùy chỉnh cho danh mục công cụ động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -754,7 +754,7 @@ menu:
     summary: ''
   - slug: dynamic-resolution-004
     title: Phân biệt phân giải theo tên với quảng bá định nghĩa cho mô hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -763,7 +763,7 @@ menu:
     summary: ''
   - slug: dynamic-resolution-005
     title: Giới hạn công cụ được thực thi trong từng yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -772,7 +772,7 @@ menu:
     summary: ''
   - slug: dynamic-resolution-006
     title: Đánh giá cơ chế resolution fallback theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -781,7 +781,7 @@ menu:
     summary: ''
   - slug: dynamic-resolution-007
     title: Xử lý tên không tồn tại, trùng tên và công cụ bị thu hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -790,7 +790,7 @@ menu:
     summary: ''
   - slug: dynamic-resolution-008
     title: Quản lý thay đổi danh mục mà không làm sai hợp đồng đang sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -802,7 +802,7 @@ menu:
   childs:
   - slug: toolcontext-001
     title: Phân biệt đối số do mô hình sinh và ngữ cảnh do ứng dụng cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -811,7 +811,7 @@ menu:
     summary: ''
   - slug: toolcontext-002
     title: Truyền thông tin người dùng, tenant và định danh yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -820,7 +820,7 @@ menu:
     summary: ''
   - slug: toolcontext-003
     title: Đọc ToolContext trong phương thức hoặc callback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -829,7 +829,7 @@ menu:
     summary: ''
   - slug: toolcontext-004
     title: Quy tắc kết hợp ngữ cảnh mặc định và ngữ cảnh từng lần gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -838,7 +838,7 @@ menu:
     summary: ''
   - slug: toolcontext-005
     title: Giữ thông tin xác thực và quyền truy cập ngoài schema gửi mô hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -847,7 +847,7 @@ menu:
     summary: ''
   - slug: toolcontext-006
     title: Kiểm tra quyền từ nguồn tin cậy tại thời điểm thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -856,7 +856,7 @@ menu:
     summary: ''
   - slug: toolcontext-007
     title: Tránh rò rỉ ngữ cảnh vào kết quả công cụ hoặc nhật ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -865,7 +865,7 @@ menu:
     summary: ''
   - slug: toolcontext-008
     title: Cô lập ngữ cảnh giữa các hội thoại và yêu cầu đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -877,7 +877,7 @@ menu:
   childs:
   - slug: automatic-loop-001
     title: ToolCallingAdvisor và kiến trúc vòng lặp trong Spring AI 2.x
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -886,7 +886,7 @@ menu:
     summary: ''
   - slug: automatic-loop-002
     title: Cơ chế tự đăng ký advisor khi dùng ChatClient theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -895,7 +895,7 @@ menu:
     summary: ''
   - slug: automatic-loop-003
     title: ToolCallingManager và quá trình tìm, gọi, thu thập kết quả công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -904,7 +904,7 @@ menu:
     summary: ''
   - slug: automatic-loop-004
     title: Duy trì lịch sử thông điệp giữa các vòng gọi mô hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -913,7 +913,7 @@ menu:
     summary: ''
   - slug: automatic-loop-005
     title: Xác định phản hồi cần thực thi công cụ và phản hồi đã hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -922,7 +922,7 @@ menu:
     summary: ''
   - slug: automatic-loop-006
     title: Thứ tự advisor và thành phần nằm trong hoặc ngoài vòng lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -931,7 +931,7 @@ menu:
     summary: ''
   - slug: automatic-loop-007
     title: Ràng buộc một ToolAdvisor trong chuỗi theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -940,7 +940,7 @@ menu:
     summary: ''
   - slug: automatic-loop-008
     title: Tùy chỉnh điều kiện tiếp tục bằng ToolExecutionEligibilityChecker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -949,7 +949,7 @@ menu:
     summary: ''
   - slug: automatic-loop-009
     title: Phân biệt đường gọi ChatClient và ChatModel trực tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -961,7 +961,7 @@ menu:
   childs:
   - slug: manual-orchestration-001
     title: Khi nào ứng dụng cần kiểm soát từng vòng thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -970,7 +970,7 @@ menu:
     summary: ''
   - slug: manual-orchestration-002
     title: Tắt vòng lặp tự động theo cơ chế của phiên bản đang dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -979,7 +979,7 @@ menu:
     summary: ''
   - slug: manual-orchestration-003
     title: Đọc tool call từ ChatResponse và chuẩn bị ngữ cảnh thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -988,7 +988,7 @@ menu:
     summary: ''
   - slug: manual-orchestration-004
     title: Thực thi bằng ToolCallingManager và tiếp nhận ToolExecutionResult
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -997,7 +997,7 @@ menu:
     summary: ''
   - slug: manual-orchestration-005
     title: Xây dựng lượt gọi tiếp theo từ lịch sử đã cập nhật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1006,7 +1006,7 @@ menu:
     summary: ''
   - slug: manual-orchestration-006
     title: Giữ đúng tool call ID, thứ tự thông điệp và kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1015,7 +1015,7 @@ menu:
     summary: ''
   - slug: manual-orchestration-007
     title: Chèn bước kiểm tra chính sách hoặc xác nhận của người dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1024,7 +1024,7 @@ menu:
     summary: ''
   - slug: manual-orchestration-008
     title: Dừng, tạm hoãn hoặc hủy luồng theo trạng thái ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1033,7 +1033,7 @@ menu:
     summary: ''
   - slug: manual-orchestration-009
     title: Tránh thực thi hai lần khi kết hợp vòng lặp thủ công với advisor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1045,7 +1045,7 @@ menu:
   childs:
   - slug: execution-limits-001
     title: Phân biệt số vòng gọi mô hình và tổng số lần gọi công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1054,7 +1054,7 @@ menu:
     summary: ''
   - slug: execution-limits-002
     title: Giới hạn lượt gọi của từng công cụ và toàn bộ một lượt hội thoại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1063,7 +1063,7 @@ menu:
     summary: ''
   - slug: execution-limits-003
     title: Cấu hình hạn mức chung và ngoại lệ theo khả năng phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1072,7 +1072,7 @@ menu:
     summary: ''
   - slug: execution-limits-004
     title: Đặt thời hạn cho công cụ và cho toàn bộ yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1081,7 +1081,7 @@ menu:
     summary: ''
   - slug: execution-limits-005
     title: Phát hiện vòng lặp lặp lại cùng công cụ hoặc cùng đối số
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1090,7 +1090,7 @@ menu:
     summary: ''
   - slug: execution-limits-006
     title: Chọn kết thúc bằng lỗi hay trả thông báo cho mô hình khi vượt giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1099,7 +1099,7 @@ menu:
     summary: ''
   - slug: execution-limits-007
     title: Bảo toàn kết quả đã hoàn tất khi một phần lượt thực thi bị giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1108,7 +1108,7 @@ menu:
     summary: ''
   - slug: execution-limits-008
     title: Thiết kế điều kiện dừng nghiệp vụ và ngân sách chi phí
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1120,7 +1120,7 @@ menu:
   childs:
   - slug: tool-results-001
     title: Thiết kế DTO kết quả có cấu trúc và ngữ nghĩa rõ ràng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1129,7 +1129,7 @@ menu:
     summary: ''
   - slug: tool-results-002
     title: Chuyển kết quả bằng DefaultToolCallResultConverter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1138,7 +1138,7 @@ menu:
     summary: ''
   - slug: tool-results-003
     title: Tùy chỉnh ToolCallResultConverter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1147,7 +1147,7 @@ menu:
     summary: ''
   - slug: tool-results-004
     title: Xử lý kết quả rỗng, null và công cụ không trả dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1156,7 +1156,7 @@ menu:
     summary: ''
   - slug: tool-results-005
     title: Giới hạn kích thước, phân trang và rút gọn dữ liệu trả về
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1165,7 +1165,7 @@ menu:
     summary: ''
   - slug: tool-results-006
     title: Return direct và trường hợp bỏ lượt diễn giải tiếp theo của mô hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1174,7 +1174,7 @@ menu:
     summary: ''
   - slug: tool-results-007
     title: Phối hợp returnDirect khi một phản hồi yêu cầu nhiều công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1183,7 +1183,7 @@ menu:
     summary: ''
   - slug: tool-results-008
     title: Phân biệt kết quả công cụ với structured output của câu trả lời cuối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1192,7 +1192,7 @@ menu:
     summary: ''
   - slug: tool-results-009
     title: Lưu nguồn dữ liệu và thời điểm đọc để hỗ trợ kiểm chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1204,7 +1204,7 @@ menu:
   childs:
   - slug: error-handling-001
     title: Phân loại lỗi schema, đối số, phân giải, thực thi và dịch vụ ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1213,7 +1213,7 @@ menu:
     summary: ''
   - slug: error-handling-002
     title: ToolExecutionException và ToolExecutionExceptionProcessor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1222,7 +1222,7 @@ menu:
     summary: ''
   - slug: error-handling-003
     title: Chọn trả lỗi có kiểm soát cho mô hình hoặc ném lỗi cho ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1231,7 +1231,7 @@ menu:
     summary: ''
   - slug: error-handling-004
     title: Kiểm tra hành vi với checked exception, runtime exception và Error
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1240,7 +1240,7 @@ menu:
     summary: ''
   - slug: error-handling-005
     title: Thiết kế mã lỗi, thông tin có thể khôi phục và thông báo an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1249,7 +1249,7 @@ menu:
     summary: ''
   - slug: error-handling-006
     title: Yêu cầu bổ sung dữ kiện thay vì tự đoán đối số còn thiếu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1258,7 +1258,7 @@ menu:
     summary: ''
   - slug: error-handling-007
     title: Retry có giới hạn với lỗi tạm thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1267,7 +1267,7 @@ menu:
     summary: ''
   - slug: error-handling-008
     title: Xử lý nhiều công cụ khi một công cụ thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1276,7 +1276,7 @@ menu:
     summary: ''
   - slug: error-handling-009
     title: Tránh lặp vô hạn việc sửa đối số và tránh tiết lộ bí mật trong lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1288,7 +1288,7 @@ menu:
   childs:
   - slug: streaming-concurrency-001
     title: Phân biệt luồng token của mô hình với tiến trình thực thi công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1297,7 +1297,7 @@ menu:
     summary: ''
   - slug: streaming-concurrency-002
     title: Gom đủ tên và đối số từ các phần tool call trước khi thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1306,7 +1306,7 @@ menu:
     summary: ''
   - slug: streaming-concurrency-003
     title: Vòng lặp streaming qua ChatClient và advisor theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1315,7 +1315,7 @@ menu:
     summary: ''
   - slug: streaming-concurrency-004
     title: Đưa trạng thái công cụ ra SSE hoặc WebSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1324,7 +1324,7 @@ menu:
     summary: ''
   - slug: streaming-concurrency-005
     title: Phân biệt nhiều tool call trong một lượt với thực thi song song
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1333,7 +1333,7 @@ menu:
     summary: ''
   - slug: streaming-concurrency-006
     title: Xác định phụ thuộc dữ liệu trước khi chạy các công cụ đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1342,7 +1342,7 @@ menu:
     summary: ''
   - slug: streaming-concurrency-007
     title: Giới hạn số công việc, thread và kết nối tới dịch vụ ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1351,7 +1351,7 @@ menu:
     summary: ''
   - slug: streaming-concurrency-008
     title: Giữ đúng liên kết kết quả khi các công cụ hoàn tất khác thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1360,7 +1360,7 @@ menu:
     summary: ''
   - slug: streaming-concurrency-009
     title: Không chặn luồng xử lý reactive bằng tác vụ chậm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
     summary: ''
   - slug: streaming-concurrency-010
     title: Phân biệt streaming chat với khả năng trả Mono, Flux hoặc Future của công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: streaming-concurrency-011
     title: Hủy luồng và xử lý công việc đã bắt đầu hoặc đã tạo tác động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1390,7 +1390,7 @@ menu:
   childs:
   - slug: conversation-history-001
     title: Phân biệt lịch sử nội bộ của vòng lặp với bộ nhớ giữa nhiều lượt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1399,7 +1399,7 @@ menu:
     summary: ''
   - slug: conversation-history-002
     title: Giữ cặp tool request và tool response hợp lệ trong hội thoại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1408,7 +1408,7 @@ menu:
     summary: ''
   - slug: conversation-history-003
     title: Ảnh hưởng của vị trí ChatMemory advisor đối với thông điệp được lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1417,7 +1417,7 @@ menu:
     summary: ''
   - slug: conversation-history-004
     title: Tránh nhân đôi lịch sử khi nhiều thành phần cùng quản lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1426,7 +1426,7 @@ menu:
     summary: ''
   - slug: conversation-history-005
     title: Khả năng lưu thông điệp công cụ của từng repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
     summary: ''
   - slug: conversation-history-006
     title: Cắt giảm lịch sử mà không tách rời cặp lời gọi và kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: conversation-history-007
     title: Cô lập conversation ID và tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1453,7 +1453,7 @@ menu:
     summary: ''
   - slug: conversation-history-008
     title: Phân biệt phát lại lịch sử với cho phép chạy lại hành động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1465,7 +1465,7 @@ menu:
   childs:
   - slug: security-001
     title: Mô hình đề xuất hành động và ứng dụng quyết định quyền thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1474,7 +1474,7 @@ menu:
     summary: ''
   - slug: security-002
     title: Kiểm tra danh tính và quyền trên từng tài nguyên nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1483,7 +1483,7 @@ menu:
     summary: ''
   - slug: security-003
     title: Xây dựng danh sách công cụ được phép theo yêu cầu và vai trò
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1492,7 +1492,7 @@ menu:
     summary: ''
   - slug: security-004
     title: Phân biệt dữ liệu đầu vào không tin cậy và chỉ dẫn được phép thực hiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1501,7 +1501,7 @@ menu:
     summary: ''
   - slug: security-005
     title: Prompt injection qua câu hỏi, tài liệu và kết quả công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1510,7 +1510,7 @@ menu:
     summary: ''
   - slug: security-006
     title: Ngăn truy cập URL, tệp hoặc truy vấn ngoài phạm vi cho phép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1519,7 +1519,7 @@ menu:
     summary: ''
   - slug: security-007
     title: Bảo vệ khóa API, thông tin cá nhân và dữ liệu khác tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1528,7 +1528,7 @@ menu:
     summary: ''
   - slug: security-008
     title: Đánh giá tác động của công cụ mặc định và phân giải fallback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1537,7 +1537,7 @@ menu:
     summary: ''
   - slug: security-009
     title: Xác nhận thao tác nhạy cảm bằng nội dung cụ thể có thể kiểm tra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1546,7 +1546,7 @@ menu:
     summary: ''
   - slug: security-010
     title: Ghi nhật ký kiểm toán với dữ liệu được che phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1558,7 +1558,7 @@ menu:
   childs:
   - slug: business-impact-001
     title: Phân biệt công cụ chỉ đọc và công cụ làm thay đổi trạng thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1567,7 +1567,7 @@ menu:
     summary: ''
   - slug: business-impact-002
     title: Tách bước chuẩn bị, kiểm tra và thực hiện hành động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1576,7 +1576,7 @@ menu:
     summary: ''
   - slug: business-impact-003
     title: Thiết kế khóa lũy đẳng để ngăn xử lý trùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1585,7 +1585,7 @@ menu:
     summary: ''
   - slug: business-impact-004
     title: Phạm vi transaction trong một lần gọi công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1594,7 +1594,7 @@ menu:
     summary: ''
   - slug: business-impact-005
     title: Phối hợp nhiều hệ thống bằng outbox hoặc bù trừ khi cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1603,7 +1603,7 @@ menu:
     summary: ''
   - slug: business-impact-006
     title: Retry sau timeout khi chưa biết hành động đã hoàn tất hay chưa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1612,7 +1612,7 @@ menu:
     summary: ''
   - slug: business-impact-007
     title: Kiểm tra dữ liệu thay đổi giữa lúc đề xuất và lúc thực hiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1621,7 +1621,7 @@ menu:
     summary: ''
   - slug: business-impact-008
     title: Quản lý trạng thái chờ xác nhận hoặc tác vụ kéo dài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1630,7 +1630,7 @@ menu:
     summary: ''
   - slug: business-impact-009
     title: Khôi phục sau khi ứng dụng dừng giữa chuỗi hành động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1642,7 +1642,7 @@ menu:
   childs:
   - slug: service-integration-001
     title: Bọc REST API hoặc SDK trong dịch vụ công cụ có hợp đồng rõ ràng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1651,7 +1651,7 @@ menu:
     summary: ''
   - slug: service-integration-002
     title: Truy vấn cơ sở dữ liệu qua thao tác nghiệp vụ được giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1660,7 +1660,7 @@ menu:
     summary: ''
   - slug: service-integration-003
     title: Kết hợp dữ liệu truy xuất với công cụ mà không thay thế toàn bộ quy trình RAG
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1669,7 +1669,7 @@ menu:
     summary: ''
   - slug: service-integration-004
     title: Phân biệt công cụ Java cục bộ và công cụ từ MCP server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1678,7 +1678,7 @@ menu:
     summary: ''
   - slug: service-integration-005
     title: Chuyển công cụ MCP thành callback qua tích hợp tương ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1687,7 +1687,7 @@ menu:
     summary: ''
   - slug: service-integration-006
     title: Đặt tiền tố tên và xử lý xung đột công cụ cục bộ với công cụ từ xa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1696,7 +1696,7 @@ menu:
     summary: ''
   - slug: service-integration-007
     title: Timeout, quyền truy cập và kiểm tra dữ liệu trả về từ dịch vụ ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1705,7 +1705,7 @@ menu:
     summary: ''
   - slug: service-integration-008
     title: Ranh giới của module Tool Calling với module MCP và Memory Advisors
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1717,7 +1717,7 @@ menu:
   childs:
   - slug: large-tool-catalog-001
     title: Ảnh hưởng của số lượng công cụ và độ dài schema đến lựa chọn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1726,7 +1726,7 @@ menu:
     summary: ''
   - slug: large-tool-catalog-002
     title: Nhóm công cụ theo miền nghiệp vụ và tác vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1735,7 +1735,7 @@ menu:
     summary: ''
   - slug: large-tool-catalog-003
     title: Chỉ cung cấp công cụ liên quan tới yêu cầu hiện tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1744,7 +1744,7 @@ menu:
     summary: ''
   - slug: large-tool-catalog-004
     title: Progressive tool disclosure và tìm kiếm định nghĩa khi cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1753,7 +1753,7 @@ menu:
     summary: ''
   - slug: large-tool-catalog-005
     title: ToolSearchToolCallingAdvisor và điều kiện hỗ trợ theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1762,7 +1762,7 @@ menu:
     summary: ''
   - slug: large-tool-catalog-006
     title: Lựa chọn chỉ mục và chất lượng truy xuất công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1771,7 +1771,7 @@ menu:
     summary: ''
   - slug: large-tool-catalog-007
     title: Lọc quyền trước và sau bước tìm công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1780,7 +1780,7 @@ menu:
     summary: ''
   - slug: large-tool-catalog-008
     title: Cập nhật danh mục, bộ nhớ đệm và kiểm thử công cụ khó phân biệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1792,7 +1792,7 @@ menu:
   childs:
   - slug: advisor-extensions-001
     title: Khi nào mở rộng vòng lặp thay vì tự viết lại toàn bộ điều phối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1801,7 +1801,7 @@ menu:
     summary: ''
   - slug: advisor-extensions-002
     title: Tạo ToolAdvisor hoặc mở rộng ToolCallingAdvisor theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1810,7 +1810,7 @@ menu:
     summary: ''
   - slug: advisor-extensions-003
     title: Hook khởi tạo, trước gọi, sau gọi và kết thúc vòng lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1819,7 +1819,7 @@ menu:
     summary: ''
   - slug: advisor-extensions-004
     title: Xử lý cả đường gọi đồng bộ và đường streaming
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1828,7 +1828,7 @@ menu:
     summary: ''
   - slug: advisor-extensions-005
     title: Chèn chính sách, quan sát hoặc điều chỉnh tập công cụ giữa các vòng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1837,7 +1837,7 @@ menu:
     summary: ''
   - slug: advisor-extensions-006
     title: Bổ sung trường vào schema bằng AugmentedToolCallbackProvider khi hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1846,7 +1846,7 @@ menu:
     summary: ''
   - slug: advisor-extensions-007
     title: Xử lý metadata bổ sung mà không làm đổi hợp đồng công cụ gốc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1855,7 +1855,7 @@ menu:
     summary: ''
   - slug: advisor-extensions-008
     title: Kiểm tra tương tác giữa advisor tùy chỉnh, lịch sử và giới hạn thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1867,7 +1867,7 @@ menu:
   childs:
   - slug: observability-001
     title: Theo dõi một yêu cầu qua lượt gọi mô hình và các lần thực thi công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1876,7 +1876,7 @@ menu:
     summary: ''
   - slug: observability-002
     title: Metric về số lượt gọi, độ trễ, lỗi và tỷ lệ hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1885,7 +1885,7 @@ menu:
     summary: ''
   - slug: observability-003
     title: Liên kết trace giữa ChatClient, tool callback và dịch vụ ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1894,7 +1894,7 @@ menu:
     summary: ''
   - slug: observability-004
     title: Ghi nhận lựa chọn công cụ và nguồn kết quả để kiểm tra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1903,7 +1903,7 @@ menu:
     summary: ''
   - slug: observability-005
     title: Phân biệt số token, chi phí mô hình và chi phí hệ thống được gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1912,7 +1912,7 @@ menu:
     summary: ''
   - slug: observability-006
     title: Che đối số, kết quả và dữ liệu nhạy cảm trong log hoặc span
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1921,7 +1921,7 @@ menu:
     summary: ''
   - slug: observability-007
     title: Quan sát vòng lặp bị dừng, giới hạn vượt mức và hành động bị từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1930,7 +1930,7 @@ menu:
     summary: ''
   - slug: observability-008
     title: Thiết kế bảng theo dõi và cảnh báo gắn với tác vụ nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1942,7 +1942,7 @@ menu:
   childs:
   - slug: testing-001
     title: Unit test logic công cụ tách khỏi mô hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1951,7 +1951,7 @@ menu:
     summary: ''
   - slug: testing-002
     title: Kiểm thử schema, required field và chuyển đổi kiểu dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1960,7 +1960,7 @@ menu:
     summary: ''
   - slug: testing-003
     title: Kiểm thử ToolCallback và ToolContext trực tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1969,7 +1969,7 @@ menu:
     summary: ''
   - slug: testing-004
     title: Giả lập ChatModel với phản hồi có hoặc không có tool call
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1978,7 +1978,7 @@ menu:
     summary: ''
   - slug: testing-005
     title: Kiểm thử chuỗi nhiều vòng và nhiều tool call trong cùng phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1987,7 +1987,7 @@ menu:
     summary: ''
   - slug: testing-006
     title: Kiểm thử tool call ID, lịch sử hội thoại và returnDirect
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1996,7 +1996,7 @@ menu:
     summary: ''
   - slug: testing-007
     title: Kiểm thử lỗi, retry, hạn mức và điều kiện dừng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2005,7 +2005,7 @@ menu:
     summary: ''
   - slug: testing-008
     title: Kiểm thử quyền truy cập, dữ liệu khác tenant và prompt injection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2014,7 +2014,7 @@ menu:
     summary: ''
   - slug: testing-009
     title: Kiểm thử hành động lũy đẳng khi nhận yêu cầu trùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2023,7 +2023,7 @@ menu:
     summary: ''
   - slug: testing-010
     title: Kiểm thử tích hợp có kiểm soát với mô hình và dịch vụ thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2035,7 +2035,7 @@ menu:
   childs:
   - slug: quality-evaluation-001
     title: Xây dựng tập tình huống cần gọi và không nên gọi công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2044,7 +2044,7 @@ menu:
     summary: ''
   - slug: quality-evaluation-002
     title: Đánh giá độ chính xác chọn công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2053,7 +2053,7 @@ menu:
     summary: ''
   - slug: quality-evaluation-003
     title: Đánh giá tính đúng và đầy đủ của đối số
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2062,7 +2062,7 @@ menu:
     summary: ''
   - slug: quality-evaluation-004
     title: Đánh giá chuỗi hành động và kết quả nghiệp vụ cuối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2071,7 +2071,7 @@ menu:
     summary: ''
   - slug: quality-evaluation-005
     title: Kiểm tra khả năng hỏi lại khi thiếu dữ kiện hoặc yêu cầu mơ hồ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2080,7 +2080,7 @@ menu:
     summary: ''
   - slug: quality-evaluation-006
     title: Đánh giá hiệu quả mô tả công cụ và schema
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2089,7 +2089,7 @@ menu:
     summary: ''
   - slug: quality-evaluation-007
     title: So sánh mô hình trên cùng hợp đồng và tập dữ liệu kiểm tra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2098,7 +2098,7 @@ menu:
     summary: ''
   - slug: quality-evaluation-008
     title: Phân biệt nhận xét bằng mô hình với bằng chứng thực thi xác định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2110,7 +2110,7 @@ menu:
   childs:
   - slug: model-differences-001
     title: Kiểm tra hỗ trợ tool calling của mô hình và nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2119,7 +2119,7 @@ menu:
     summary: ''
   - slug: model-differences-002
     title: Khác biệt tên công cụ, schema và kiểu dữ liệu được chấp nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2128,7 +2128,7 @@ menu:
     summary: ''
   - slug: model-differences-003
     title: Chế độ tự chọn, bắt buộc hoặc chỉ định công cụ khi API hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2137,7 +2137,7 @@ menu:
     summary: ''
   - slug: model-differences-004
     title: Khả năng nhiều tool call, streaming và xử lý kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2146,7 +2146,7 @@ menu:
     summary: ''
   - slug: model-differences-005
     title: Giới hạn strict schema và ràng buộc định dạng theo nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2155,7 +2155,7 @@ menu:
     summary: ''
   - slug: model-differences-006
     title: Ảnh hưởng của system prompt và tham số sinh đến quyết định gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2164,7 +2164,7 @@ menu:
     summary: ''
   - slug: model-differences-007
     title: Kiểm tra khả năng thực tế của mô hình cục bộ và endpoint tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2173,7 +2173,7 @@ menu:
     summary: ''
   - slug: model-differences-008
     title: Kiểm thử lại hợp đồng trước khi đổi mô hình hoặc nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2185,7 +2185,7 @@ menu:
   childs:
   - slug: performance-cost-001
     title: Ước lượng số lượt mô hình cho một tác vụ nhiều công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2194,7 +2194,7 @@ menu:
     summary: ''
   - slug: performance-cost-002
     title: Giảm token bằng mô tả ngắn rõ và tập công cụ phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2203,7 +2203,7 @@ menu:
     summary: ''
   - slug: performance-cost-003
     title: Giới hạn kích thước kết quả và lịch sử gửi lại mô hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2212,7 +2212,7 @@ menu:
     summary: ''
   - slug: performance-cost-004
     title: Lưu đệm kết quả chỉ đọc theo dữ liệu, danh tính và thời hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2221,7 +2221,7 @@ menu:
     summary: ''
   - slug: performance-cost-005
     title: Tái sử dụng client và quản lý connection pool
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2230,7 +2230,7 @@ menu:
     summary: ''
   - slug: performance-cost-006
     title: Chạy đồng thời công cụ độc lập khi kiến trúc cho phép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2239,7 +2239,7 @@ menu:
     summary: ''
   - slug: performance-cost-007
     title: Đặt ngân sách thời gian, token và số hành động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2248,7 +2248,7 @@ menu:
     summary: ''
   - slug: performance-cost-008
     title: Đo chất lượng cùng độ trễ trước khi tối ưu hoặc đổi mô hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2260,7 +2260,7 @@ menu:
   childs:
   - slug: operations-001
     title: Quản lý cấu hình công cụ và quyền theo môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2269,7 +2269,7 @@ menu:
     summary: ''
   - slug: operations-002
     title: Bảo đảm callback dùng chung an toàn với nhiều yêu cầu đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2278,7 +2278,7 @@ menu:
     summary: ''
   - slug: operations-003
     title: Đặt timeout, quota và giới hạn phụ thuộc bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2287,7 +2287,7 @@ menu:
     summary: ''
   - slug: operations-004
     title: Kiểm tra reflection, AOT và native image theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2296,7 +2296,7 @@ menu:
     summary: ''
   - slug: operations-005
     title: Triển khai thay đổi schema cùng mã công cụ tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2305,7 +2305,7 @@ menu:
     summary: ''
   - slug: operations-006
     title: Điều khiển bật tắt hoặc thu hồi công cụ đang gặp sự cố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2314,7 +2314,7 @@ menu:
     summary: ''
   - slug: operations-007
     title: Lưu vết hành động đã thực hiện để hỗ trợ khôi phục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2323,7 +2323,7 @@ menu:
     summary: ''
   - slug: operations-008
     title: Xây dựng quy trình xử lý sự cố và dọn dữ liệu tạm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2335,7 +2335,7 @@ menu:
   childs:
   - slug: troubleshooting-001
     title: Mô hình không gọi công cụ dù công cụ đã được khai báo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2344,7 +2344,7 @@ menu:
     summary: ''
   - slug: troubleshooting-002
     title: Mô hình chọn nhầm công cụ hoặc tự tạo tên không tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2353,7 +2353,7 @@ menu:
     summary: ''
   - slug: troubleshooting-003
     title: Công cụ được tạo thành bean nhưng không có trong yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2362,7 +2362,7 @@ menu:
     summary: ''
   - slug: troubleshooting-004
     title: Lỗi schema, required field, null và chuyển đổi đối số
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2371,7 +2371,7 @@ menu:
     summary: ''
   - slug: troubleshooting-005
     title: Công cụ chạy lặp do cấu hình vòng lặp hoặc retry chồng nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2380,7 +2380,7 @@ menu:
     summary: ''
   - slug: troubleshooting-006
     title: Lỗi thiếu tool response, sai ID hoặc sai thứ tự thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2389,7 +2389,7 @@ menu:
     summary: ''
   - slug: troubleshooting-007
     title: Return direct không có hiệu lực như mong đợi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2398,7 +2398,7 @@ menu:
     summary: ''
   - slug: troubleshooting-008
     title: Streaming bị treo, mất ngữ cảnh hoặc chặn luồng reactive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2407,7 +2407,7 @@ menu:
     summary: ''
   - slug: troubleshooting-009
     title: Lỗi thiếu quyền, timeout và hành động đã chạy nhưng phản hồi bị mất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2416,7 +2416,7 @@ menu:
     summary: ''
   - slug: troubleshooting-010
     title: Trùng tên công cụ từ nhiều nguồn hoặc resolver trả sai callback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2425,7 +2425,7 @@ menu:
     summary: ''
   - slug: troubleshooting-011
     title: Kết quả nghiệp vụ đúng nhưng câu trả lời cuối diễn giải sai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2437,7 +2437,7 @@ menu:
   childs:
   - slug: upgrades-001
     title: Đọc migration guide và đối chiếu API đúng phiên bản Spring AI
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2446,7 +2446,7 @@ menu:
     summary: ''
   - slug: upgrades-002
     title: Phân biệt API FunctionCallback kế thừa và ToolCallback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2455,7 +2455,7 @@ menu:
     summary: ''
   - slug: upgrades-003
     title: Chuyển từ vòng lặp bên trong ChatModel 1.x sang cơ chế 2.x
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2464,7 +2464,7 @@ menu:
     summary: ''
   - slug: upgrades-004
     title: Phân biệt ToolCallAdvisor ở phiên bản trước và ToolCallingAdvisor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2473,7 +2473,7 @@ menu:
     summary: ''
   - slug: upgrades-005
     title: Đối chiếu cơ chế tắt tự thực thi và thuộc tính đã thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2482,7 +2482,7 @@ menu:
     summary: ''
   - slug: upgrades-006
     title: Chuyển hàm bean phân giải theo tên sang đăng ký callback tường minh khi cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2491,7 +2491,7 @@ menu:
     summary: ''
   - slug: upgrades-007
     title: Kiểm tra thay đổi về ghép tập công cụ, fallback và lịch sử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2500,7 +2500,7 @@ menu:
     summary: ''
   - slug: upgrades-008
     title: Kiểm thử hồi quy schema, lỗi, streaming và quyền trước triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2512,7 +2512,7 @@ menu:
   childs:
   - slug: capstone-practice-001
     title: Xây dựng trợ lý tra cứu dữ liệu bằng công cụ chỉ đọc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2521,7 +2521,7 @@ menu:
     summary: ''
   - slug: capstone-practice-002
     title: Thiết kế công cụ tìm kiếm và công cụ chi tiết dùng kết quả của nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2530,7 +2530,7 @@ menu:
     summary: ''
   - slug: capstone-practice-003
     title: Thêm ToolContext để cô lập dữ liệu theo người dùng và tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2539,7 +2539,7 @@ menu:
     summary: ''
   - slug: capstone-practice-004
     title: Thực hiện hành động thay đổi trạng thái với xác nhận và khóa lũy đẳng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2548,7 +2548,7 @@ menu:
     summary: ''
   - slug: capstone-practice-005
     title: Tự điều phối một quy trình có giới hạn và điều kiện dừng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2557,7 +2557,7 @@ menu:
     summary: ''
   - slug: capstone-practice-006
     title: Kết hợp công cụ cục bộ với một dịch vụ ngoài hoặc MCP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2566,7 +2566,7 @@ menu:
     summary: ''
   - slug: capstone-practice-007
     title: Hiển thị tiến trình qua streaming và xử lý việc hủy yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2575,7 +2575,7 @@ menu:
     summary: ''
   - slug: capstone-practice-008
     title: Mô phỏng lỗi đối số, timeout, trùng yêu cầu và khôi phục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2584,7 +2584,7 @@ menu:
     summary: ''
   - slug: capstone-practice-009
     title: So sánh chất lượng, độ trễ và chi phí trên tập tình huống cố định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2593,7 +2593,7 @@ menu:
     summary: ''
   - slug: capstone-practice-010
     title: Viết hướng dẫn tái lập cùng bằng chứng thực thi và quy trình vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-001
     title: Đánh giá và quan sát ứng dụng AI là gì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-002
     title: Phân biệt tính đúng của phần mềm, chất lượng câu trả lời và sức khỏe hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-003
     title: Vai trò của Evaluation và Observability trong vòng đời ứng dụng Spring AI
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-004
     title: Quan hệ giữa dữ liệu kiểm thử, kết quả đánh giá và bằng chứng thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-005
     title: Phân biệt đánh giá ngoại tuyến và theo dõi chất lượng khi vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-006
     title: Ranh giới với các module Core, RAG, Tool Calling và Memory Advisors
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-007
     title: Lộ trình từ một ca đánh giá đến theo dõi toàn bộ ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -70,7 +70,7 @@ menu:
   childs:
   - slug: project-setup-001
     title: Chọn tổ hợp Java, Spring Boot và Spring AI tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -79,7 +79,7 @@ menu:
     summary: ''
   - slug: project-setup-002
     title: Quản lý phiên bản và dependency bằng Spring AI BOM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
     summary: ''
   - slug: project-setup-003
     title: Cấu hình mô hình sinh câu trả lời và mô hình dùng để đánh giá
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: project-setup-004
     title: Tách thông tin xác thực và tài nguyên theo môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: project-setup-005
     title: Tổ chức mã đánh giá, dữ liệu tình huống và cấu hình quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: project-setup-006
     title: Bổ sung Actuator, Micrometer và thành phần tracing phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: project-setup-007
     title: Tạo ứng dụng mẫu có kết quả thành công, sai và lỗi kỹ thuật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: project-setup-008
     title: Ghi lại phiên bản để tái lập thí nghiệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -145,7 +145,7 @@ menu:
   childs:
   - slug: quality-criteria-001
     title: Độ liên quan của câu trả lời với câu hỏi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -154,7 +154,7 @@ menu:
     summary: ''
   - slug: quality-criteria-002
     title: Mức độ được hỗ trợ bởi ngữ cảnh và nguồn dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -163,7 +163,7 @@ menu:
     summary: ''
   - slug: quality-criteria-003
     title: Tính đúng của thông tin, tính đầy đủ và mức hữu ích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
     summary: ''
   - slug: quality-criteria-004
     title: Tuân thủ định dạng, schema và ràng buộc nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: quality-criteria-005
     title: Khả năng hỏi lại hoặc từ chối khi thiếu dữ kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: quality-criteria-006
     title: Tính nhất quán giữa câu trả lời và hành động công cụ thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: quality-criteria-007
     title: Chất lượng ngôn ngữ, cách trình bày và trích dẫn nguồn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: quality-criteria-008
     title: Phân biệt tiêu chí bắt buộc với mục tiêu tối ưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -220,7 +220,7 @@ menu:
   childs:
   - slug: evaluation-datasets-001
     title: Thiết kế ca gồm đầu vào, ngữ cảnh, kết quả tham chiếu và tiêu chí
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -229,7 +229,7 @@ menu:
     summary: ''
   - slug: evaluation-datasets-002
     title: Xây dựng tập chuẩn từ tình huống nghiệp vụ có thể kiểm chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -238,7 +238,7 @@ menu:
     summary: ''
   - slug: evaluation-datasets-003
     title: Phân chia dữ liệu phát triển, hiệu chỉnh và kiểm tra độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -247,7 +247,7 @@ menu:
     summary: ''
   - slug: evaluation-datasets-004
     title: Bao phủ câu hỏi thường gặp, trường hợp biên và dữ liệu thiếu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
     summary: ''
   - slug: evaluation-datasets-005
     title: Thiết kế tình huống phủ định, mơ hồ và ngoài phạm vi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -265,7 +265,7 @@ menu:
     summary: ''
   - slug: evaluation-datasets-006
     title: Định danh ca, phiên bản dữ liệu và nguồn gốc bằng chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
     summary: ''
   - slug: evaluation-datasets-007
     title: Quản lý dữ liệu nhiều ngôn ngữ và nhiều nhóm người dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
     summary: ''
   - slug: evaluation-datasets-008
     title: Tránh trùng lặp, rò rỉ đáp án và dữ liệu nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: evaluation-datasets-009
     title: Cập nhật bộ dữ liệu từ lỗi thực tế đã được rà soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -304,7 +304,7 @@ menu:
   childs:
   - slug: evaluator-api-001
     title: Evaluator và hợp đồng evaluate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -313,7 +313,7 @@ menu:
     summary: ''
   - slug: evaluator-api-002
     title: EvaluationRequest với câu hỏi, dữ liệu hỗ trợ và nội dung phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -322,7 +322,7 @@ menu:
     summary: ''
   - slug: evaluator-api-003
     title: Chuẩn bị dữ liệu đầu vào đúng ngữ nghĩa của từng evaluator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -331,7 +331,7 @@ menu:
     summary: ''
   - slug: evaluator-api-004
     title: EvaluationResponse với trạng thái, điểm, phản hồi và metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -340,7 +340,7 @@ menu:
     summary: ''
   - slug: evaluator-api-005
     title: Phân biệt ý nghĩa isPass và score của từng implementation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -349,7 +349,7 @@ menu:
     summary: ''
   - slug: evaluator-api-006
     title: Gọi evaluator độc lập hoặc trong kiểm thử tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -358,7 +358,7 @@ menu:
     summary: ''
   - slug: evaluator-api-007
     title: Xử lý lỗi gọi mô hình và kết quả đánh giá không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -367,7 +367,7 @@ menu:
     summary: ''
   - slug: evaluator-api-008
     title: Đọc API đúng phiên bản thay vì giả định mọi evaluator giống nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -379,7 +379,7 @@ menu:
   childs:
   - slug: relevancy-evaluator-001
     title: Mục đích đánh giá sự phù hợp với câu hỏi và ngữ cảnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -388,7 +388,7 @@ menu:
     summary: ''
   - slug: relevancy-evaluator-002
     title: Cung cấp câu hỏi, phản hồi và dữ liệu hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -397,7 +397,7 @@ menu:
     summary: ''
   - slug: relevancy-evaluator-003
     title: Khởi tạo evaluator với ChatClient.Builder phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -406,7 +406,7 @@ menu:
     summary: ''
   - slug: relevancy-evaluator-004
     title: Vai trò của prompt đánh giá và định dạng phán quyết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -415,7 +415,7 @@ menu:
     summary: ''
   - slug: relevancy-evaluator-005
     title: Tùy chỉnh PromptTemplate với các biến bắt buộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -424,7 +424,7 @@ menu:
     summary: ''
   - slug: relevancy-evaluator-006
     title: Kiểm tra phản hồi lệch định dạng hoặc không có phán quyết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -433,7 +433,7 @@ menu:
     summary: ''
   - slug: relevancy-evaluator-007
     title: Giới hạn khi ngữ cảnh thiếu, sai hoặc không liên quan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -442,7 +442,7 @@ menu:
     summary: ''
   - slug: relevancy-evaluator-008
     title: Phân biệt đánh giá liên quan với xác minh sự thật ngoài ngữ cảnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -454,7 +454,7 @@ menu:
   childs:
   - slug: fact-checking-evaluator-001
     title: Mục đích kiểm tra phát biểu có được tài liệu hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -463,7 +463,7 @@ menu:
     summary: ''
   - slug: fact-checking-evaluator-002
     title: Ánh xạ dữ liệu thành claim và document theo implementation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -472,7 +472,7 @@ menu:
     summary: ''
   - slug: fact-checking-evaluator-003
     title: Chọn mô hình đánh giá phù hợp với prompt kiểm chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -481,7 +481,7 @@ menu:
     summary: ''
   - slug: fact-checking-evaluator-004
     title: Chuẩn bị phát biểu đơn và câu trả lời chứa nhiều phát biểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -490,7 +490,7 @@ menu:
     summary: ''
   - slug: fact-checking-evaluator-005
     title: Kiểm tra thông tin đúng, mâu thuẫn và không đủ bằng chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -499,7 +499,7 @@ menu:
     summary: ''
   - slug: fact-checking-evaluator-006
     title: Diễn giải phán quyết và giới hạn của điểm trả về
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -508,7 +508,7 @@ menu:
     summary: ''
   - slug: fact-checking-evaluator-007
     title: Phân biệt được tài liệu hỗ trợ với đúng trong thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -517,7 +517,7 @@ menu:
     summary: ''
   - slug: fact-checking-evaluator-008
     title: Kiểm thử tích hợp với ngữ cảnh có thể xác minh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -529,7 +529,7 @@ menu:
   childs:
   - slug: custom-evaluators-001
     title: Khi nào cần triển khai Evaluator riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -538,7 +538,7 @@ menu:
     summary: ''
   - slug: custom-evaluators-002
     title: Kiểm tra có tính xác định bằng quy tắc, schema và dữ liệu nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -547,7 +547,7 @@ menu:
     summary: ''
   - slug: custom-evaluators-003
     title: Đánh giá định dạng JSON, trường bắt buộc và giá trị cho phép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -556,7 +556,7 @@ menu:
     summary: ''
   - slug: custom-evaluators-004
     title: Thiết kế thang điểm, trạng thái không áp dụng và phản hồi có cấu trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -565,7 +565,7 @@ menu:
     summary: ''
   - slug: custom-evaluators-005
     title: Kết hợp nhiều evaluator bằng mã điều phối của ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -574,7 +574,7 @@ menu:
     summary: ''
   - slug: custom-evaluators-006
     title: Đặt ngưỡng cho từng tiêu chí và quy tắc tổng hợp kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -583,7 +583,7 @@ menu:
     summary: ''
   - slug: custom-evaluators-007
     title: Lưu bằng chứng và phiên bản chính sách đánh giá
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -592,7 +592,7 @@ menu:
     summary: ''
   - slug: custom-evaluators-008
     title: Xử lý lỗi hệ thống đánh giá tách khỏi kết quả chất lượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -604,7 +604,7 @@ menu:
   childs:
   - slug: llm-as-judge-001
     title: Lựa chọn mô hình đánh giá độc lập với mô hình sinh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -613,7 +613,7 @@ menu:
     summary: ''
   - slug: llm-as-judge-002
     title: Viết tiêu chí chấm có ví dụ rõ ràng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -622,7 +622,7 @@ menu:
     summary: ''
   - slug: llm-as-judge-003
     title: Thiết kế phán quyết có cấu trúc và kiểm tra khả năng phân tích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -631,7 +631,7 @@ menu:
     summary: ''
   - slug: llm-as-judge-004
     title: Hiệu chỉnh kết quả với tập đã được con người đánh giá
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -640,7 +640,7 @@ menu:
     summary: ''
   - slug: llm-as-judge-005
     title: Đo độ ổn định khi lặp lại cùng tình huống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -649,7 +649,7 @@ menu:
     summary: ''
   - slug: llm-as-judge-006
     title: Thiên lệch theo vị trí, độ dài và cách diễn đạt câu trả lời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -658,7 +658,7 @@ menu:
     summary: ''
   - slug: llm-as-judge-007
     title: Chống chỉ dẫn đánh lừa bên trong dữ liệu cần chấm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -667,7 +667,7 @@ menu:
     summary: ''
   - slug: llm-as-judge-008
     title: Phân biệt mức tự tin tự báo với độ tin cậy được đo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -676,7 +676,7 @@ menu:
     summary: ''
   - slug: llm-as-judge-009
     title: Cân đối chi phí, độ trễ và chất lượng giám khảo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -688,7 +688,7 @@ menu:
   childs:
   - slug: rag-evaluation-001
     title: Phân biệt chất lượng truy xuất và chất lượng sinh câu trả lời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -697,7 +697,7 @@ menu:
     summary: ''
   - slug: rag-evaluation-002
     title: Ghi lại đúng tài liệu đã đi vào yêu cầu mô hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -706,7 +706,7 @@ menu:
     summary: ''
   - slug: rag-evaluation-003
     title: Lấy ngữ cảnh từ metadata của advisor theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -715,7 +715,7 @@ menu:
     summary: ''
   - slug: rag-evaluation-004
     title: Đánh giá độ liên quan và mức bao phủ của tài liệu truy xuất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -724,7 +724,7 @@ menu:
     summary: ''
   - slug: rag-evaluation-005
     title: Thiết kế phép đo precision, recall hoặc thứ hạng khi có nhãn phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -733,7 +733,7 @@ menu:
     summary: ''
   - slug: rag-evaluation-006
     title: Đánh giá câu trả lời có căn cứ và tính đúng của trích dẫn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -742,7 +742,7 @@ menu:
     summary: ''
   - slug: rag-evaluation-007
     title: Kiểm tra trường hợp không có tài liệu hoặc tài liệu mâu thuẫn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -751,7 +751,7 @@ menu:
     summary: ''
   - slug: rag-evaluation-008
     title: So sánh thay đổi top-k, bộ lọc và bước xếp hạng lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -760,7 +760,7 @@ menu:
     summary: ''
   - slug: rag-evaluation-009
     title: Khoanh vùng lỗi ở dữ liệu, truy xuất, prompt hay bước sinh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -772,7 +772,7 @@ menu:
   childs:
   - slug: tool-evaluation-001
     title: Kiểm tra quyết định gọi hoặc không gọi công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -781,7 +781,7 @@ menu:
     summary: ''
   - slug: tool-evaluation-002
     title: Đánh giá lựa chọn công cụ và tính đúng của đối số
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -790,7 +790,7 @@ menu:
     summary: ''
   - slug: tool-evaluation-003
     title: Kiểm chứng kết quả nghiệp vụ bằng dữ liệu hoặc trạng thái thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -799,7 +799,7 @@ menu:
     summary: ''
   - slug: tool-evaluation-004
     title: Đánh giá chuỗi nhiều bước và điều kiện dừng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -808,7 +808,7 @@ menu:
     summary: ''
   - slug: tool-evaluation-005
     title: Phân biệt hành động đã thực hiện với nội dung mô hình tuyên bố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -817,7 +817,7 @@ menu:
     summary: ''
   - slug: tool-evaluation-006
     title: Kiểm tra quyền truy cập, yêu cầu trùng và xử lý lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -826,7 +826,7 @@ menu:
     summary: ''
   - slug: tool-evaluation-007
     title: Đánh giá hội thoại nhiều lượt và tính nhất quán của ngữ cảnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -835,7 +835,7 @@ menu:
     summary: ''
   - slug: tool-evaluation-008
     title: Giữ phạm vi đánh giá tách khỏi triển khai sâu Tool Calling hoặc Memory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -847,7 +847,7 @@ menu:
   childs:
   - slug: testing-strategy-001
     title: Phân biệt unit test, kiểm thử hợp đồng và đánh giá bằng mô hình thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -856,7 +856,7 @@ menu:
     summary: ''
   - slug: testing-strategy-002
     title: Giả lập mô hình để kiểm tra luồng xử lý có tính xác định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -865,7 +865,7 @@ menu:
     summary: ''
   - slug: testing-strategy-003
     title: Kiểm thử evaluator với phán quyết đạt, không đạt và sai định dạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -874,7 +874,7 @@ menu:
     summary: ''
   - slug: testing-strategy-004
     title: Kiểm thử trường hợp giám khảo timeout, lỗi hoặc bị giới hạn tốc độ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -883,7 +883,7 @@ menu:
     summary: ''
   - slug: testing-strategy-005
     title: Thực hiện kiểm thử tích hợp với mô hình và tài nguyên biệt lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -892,7 +892,7 @@ menu:
     summary: ''
   - slug: testing-strategy-006
     title: Tách ca kiểm thử ổn định khỏi thí nghiệm chất lượng có biến động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -901,7 +901,7 @@ menu:
     summary: ''
   - slug: testing-strategy-007
     title: Đặt thời hạn, ngân sách và khả năng tái chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -910,7 +910,7 @@ menu:
     summary: ''
   - slug: testing-strategy-008
     title: Không chuyển lỗi giám khảo thành kết quả đạt mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -919,7 +919,7 @@ menu:
     summary: ''
   - slug: testing-strategy-009
     title: Cô lập dữ liệu, ngữ cảnh hội thoại và tài nguyên giữa các ca
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -931,7 +931,7 @@ menu:
   childs:
   - slug: evaluation-workflow-001
     title: Tổ chức luồng tạo phản hồi, thu thập ngữ cảnh và chấm điểm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -940,7 +940,7 @@ menu:
     summary: ''
   - slug: evaluation-workflow-002
     title: Chạy đánh giá theo lô với số công việc đồng thời có giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -949,7 +949,7 @@ menu:
     summary: ''
   - slug: evaluation-workflow-003
     title: Lưu cấu hình prompt, mô hình, dữ liệu và tham số của mỗi lần chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -958,7 +958,7 @@ menu:
     summary: ''
   - slug: evaluation-workflow-004
     title: Phân biệt ca đạt, không đạt, bị bỏ qua và lỗi kỹ thuật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -967,7 +967,7 @@ menu:
     summary: ''
   - slug: evaluation-workflow-005
     title: Tạo báo cáo tổng hợp cùng danh sách ca thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -976,7 +976,7 @@ menu:
     summary: ''
   - slug: evaluation-workflow-006
     title: So sánh kết quả với đường cơ sở đã xác nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -985,7 +985,7 @@ menu:
     summary: ''
   - slug: evaluation-workflow-007
     title: Đưa tiêu chí kiểm tra hồi quy vào CI/CD
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -994,7 +994,7 @@ menu:
     summary: ''
   - slug: evaluation-workflow-008
     title: Quản lý retry và chạy tiếp từ các ca chưa hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1003,7 +1003,7 @@ menu:
     summary: ''
   - slug: evaluation-workflow-009
     title: Giữ khả năng truy ngược báo cáo đến từng đầu vào và bằng chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1015,7 +1015,7 @@ menu:
   childs:
   - slug: experiment-comparison-001
     title: Thiết kế so sánh theo cùng một tập tình huống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1024,7 +1024,7 @@ menu:
     summary: ''
   - slug: experiment-comparison-002
     title: Đánh giá theo từng nhóm nghiệp vụ và độ khó
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1033,7 +1033,7 @@ menu:
     summary: ''
   - slug: experiment-comparison-003
     title: Đo tỷ lệ đạt, phân bố điểm và số lỗi nghiêm trọng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1042,7 +1042,7 @@ menu:
     summary: ''
   - slug: experiment-comparison-004
     title: Đánh giá biến động qua nhiều lần chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1051,7 +1051,7 @@ menu:
     summary: ''
   - slug: experiment-comparison-005
     title: Cỡ mẫu, khoảng bất định và giới hạn của kết luận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1060,7 +1060,7 @@ menu:
     summary: ''
   - slug: experiment-comparison-006
     title: Tránh che lỗi một nhóm bằng điểm trung bình toàn bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1069,7 +1069,7 @@ menu:
     summary: ''
   - slug: experiment-comparison-007
     title: Phân biệt cải thiện chất lượng với thay đổi độ trễ hoặc chi phí
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1078,7 +1078,7 @@ menu:
     summary: ''
   - slug: experiment-comparison-008
     title: Xác định điều kiện chấp nhận và lý do nâng cấp đường cơ sở
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1090,7 +1090,7 @@ menu:
   childs:
   - slug: observability-platforms-001
     title: Phân biệt log, metric, trace và sự kiện nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1099,7 +1099,7 @@ menu:
     summary: ''
   - slug: observability-platforms-002
     title: Observation và vòng đời một phép quan sát trong Micrometer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1108,7 +1108,7 @@ menu:
     summary: ''
   - slug: observability-platforms-003
     title: ObservationRegistry, MeterRegistry và tracing bridge
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1117,7 +1117,7 @@ menu:
     summary: ''
   - slug: observability-platforms-004
     title: Quan hệ giữa trace, span và ngữ cảnh đang hoạt động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1126,7 +1126,7 @@ menu:
     summary: ''
   - slug: observability-platforms-005
     title: Low-cardinality và high-cardinality trong thuộc tính quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1135,7 +1135,7 @@ menu:
     summary: ''
   - slug: observability-platforms-006
     title: Phân biệt instrumentation của Spring AI, HTTP client và ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1144,7 +1144,7 @@ menu:
     summary: ''
   - slug: observability-platforms-007
     title: Khả năng quan sát theo thành phần và nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1153,7 +1153,7 @@ menu:
     summary: ''
   - slug: observability-platforms-008
     title: Đọc semantic convention theo phiên bản thư viện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1165,7 +1165,7 @@ menu:
   childs:
   - slug: telemetry-configuration-001
     title: Bật Actuator và lựa chọn endpoint quản trị cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1174,7 +1174,7 @@ menu:
     summary: ''
   - slug: telemetry-configuration-002
     title: Cấu hình registry xuất metric phù hợp môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1183,7 +1183,7 @@ menu:
     summary: ''
   - slug: telemetry-configuration-003
     title: Thiết lập tracing bridge và bộ xuất trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1192,7 +1192,7 @@ menu:
     summary: ''
   - slug: telemetry-configuration-004
     title: Lựa chọn OTLP hoặc hệ thu thập được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1201,7 +1201,7 @@ menu:
     summary: ''
   - slug: telemetry-configuration-005
     title: Kết nối Prometheus, Grafana và hệ lưu trace theo kiến trúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1210,7 +1210,7 @@ menu:
     summary: ''
   - slug: telemetry-configuration-006
     title: Cấu hình sampling, endpoint và thông tin xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1219,7 +1219,7 @@ menu:
     summary: ''
   - slug: telemetry-configuration-007
     title: Xác minh một yêu cầu mẫu tạo đủ metric và trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1228,7 +1228,7 @@ menu:
     summary: ''
   - slug: telemetry-configuration-008
     title: Phân biệt telemetry chưa được tạo với telemetry chưa được chuyển đi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1240,7 +1240,7 @@ menu:
   childs:
   - slug: chatclient-advisors-001
     title: Phép quan sát cho ChatClient call và stream
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1249,7 +1249,7 @@ menu:
     summary: ''
   - slug: chatclient-advisors-002
     title: Phân biệt thời gian toàn yêu cầu và thời gian gọi mô hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1258,7 +1258,7 @@ menu:
     summary: ''
   - slug: chatclient-advisors-003
     title: Quan sát từng advisor trong chuỗi xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1267,7 +1267,7 @@ menu:
     summary: ''
   - slug: chatclient-advisors-004
     title: Thời gian advisor bao gồm các bước nằm bên trong
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1276,7 +1276,7 @@ menu:
     summary: ''
   - slug: chatclient-advisors-005
     title: Ảnh hưởng của thứ tự advisor và vòng lặp gọi công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1285,7 +1285,7 @@ menu:
     summary: ''
   - slug: chatclient-advisors-006
     title: Liên kết conversation ID và tập công cụ ở phạm vi trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1294,7 +1294,7 @@ menu:
     summary: ''
   - slug: chatclient-advisors-007
     title: Nhận diện nhiều lượt mô hình trong một yêu cầu ChatClient
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1303,7 +1303,7 @@ menu:
     summary: ''
   - slug: chatclient-advisors-008
     title: Tránh cộng trùng thời gian hoặc số lần gọi giữa các lớp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1315,7 +1315,7 @@ menu:
   childs:
   - slug: model-observability-001
     title: Phép quan sát thao tác ChatModel theo nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1324,7 +1324,7 @@ menu:
     summary: ''
   - slug: model-observability-002
     title: Định danh mô hình yêu cầu và mô hình thực tế phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1333,7 +1333,7 @@ menu:
     summary: ''
   - slug: model-observability-003
     title: Theo dõi thời lượng, trạng thái kết thúc và lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1342,7 +1342,7 @@ menu:
     summary: ''
   - slug: model-observability-004
     title: Đọc token đầu vào, đầu ra và tổng mức sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1351,7 +1351,7 @@ menu:
     summary: ''
   - slug: model-observability-005
     title: Phân biệt token được cache, token thông thường và thông tin không có
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1360,7 +1360,7 @@ menu:
     summary: ''
   - slug: model-observability-006
     title: Tương tác giữa span mô hình và span HTTP phía dưới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
     summary: ''
   - slug: model-observability-007
     title: Khác biệt instrumentation giữa call, stream và các nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: model-observability-008
     title: Giới hạn dữ liệu được cung cấp bởi mô hình cục bộ hoặc endpoint tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1390,7 +1390,7 @@ menu:
   childs:
   - slug: embeddings-multimodal-001
     title: Quan sát thời gian và mức sử dụng của EmbeddingModel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1399,7 +1399,7 @@ menu:
     summary: ''
   - slug: embeddings-multimodal-002
     title: Theo dõi kích thước vector và mô hình embedding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1408,7 +1408,7 @@ menu:
     summary: ''
   - slug: embeddings-multimodal-003
     title: Phân biệt một lô embedding với từng tài liệu bên trong
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1417,7 +1417,7 @@ menu:
     summary: ''
   - slug: embeddings-multimodal-004
     title: Quan sát ImageModel theo phạm vi instrumentation hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1426,7 +1426,7 @@ menu:
     summary: ''
   - slug: embeddings-multimodal-005
     title: Đánh giá khả năng quan sát các thao tác âm thanh theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
     summary: ''
   - slug: embeddings-multimodal-006
     title: Phân biệt số token, ảnh, thời lượng âm thanh và đơn vị tính phí
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: embeddings-multimodal-007
     title: Kiểm tra dữ liệu thiếu và khác biệt giữa các nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1456,7 +1456,7 @@ menu:
   childs:
   - slug: vectorstore-observability-001
     title: Phép quan sát thêm, truy vấn và xóa dữ liệu vector
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1465,7 +1465,7 @@ menu:
     summary: ''
   - slug: vectorstore-observability-002
     title: Định danh hệ lưu trữ, collection và namespace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1474,7 +1474,7 @@ menu:
     summary: ''
   - slug: vectorstore-observability-003
     title: Theo dõi thời lượng và lỗi thao tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1483,7 +1483,7 @@ menu:
     summary: ''
   - slug: vectorstore-observability-004
     title: Thu thập top-k, ngưỡng tương đồng và bộ lọc theo khả năng hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1492,7 +1492,7 @@ menu:
     summary: ''
   - slug: vectorstore-observability-005
     title: Liên kết truy vấn vector với embedding và bước sinh câu trả lời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1501,7 +1501,7 @@ menu:
     summary: ''
   - slug: vectorstore-observability-006
     title: Phân biệt độ trễ truy xuất với chất lượng tài liệu trả về
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1510,7 +1510,7 @@ menu:
     summary: ''
   - slug: vectorstore-observability-007
     title: Kiểm soát nội dung truy vấn và tài liệu trong telemetry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1519,7 +1519,7 @@ menu:
     summary: ''
   - slug: vectorstore-observability-008
     title: Đối chiếu metric phía ứng dụng với số liệu cơ sở dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1531,7 +1531,7 @@ menu:
   childs:
   - slug: tool-observability-001
     title: Phép quan sát cho mỗi lần thực thi tool callback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1540,7 +1540,7 @@ menu:
     summary: ''
   - slug: tool-observability-002
     title: Liên kết tool call ID với lượt gọi mô hình và yêu cầu ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1549,7 +1549,7 @@ menu:
     summary: ''
   - slug: tool-observability-003
     title: Theo dõi tên công cụ, thời lượng và lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1558,7 +1558,7 @@ menu:
     summary: ''
   - slug: tool-observability-004
     title: Quan sát công cụ cục bộ và dịch vụ ngoài được gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1567,7 +1567,7 @@ menu:
     summary: ''
   - slug: tool-observability-005
     title: Phân biệt số lần thử, số lần hoàn tất và tác động nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1576,7 +1576,7 @@ menu:
     summary: ''
   - slug: tool-observability-006
     title: Phân biệt vòng lặp công cụ với các lượt chat độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1585,7 +1585,7 @@ menu:
     summary: ''
   - slug: tool-observability-007
     title: Kiểm soát ghi đối số và kết quả công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1594,7 +1594,7 @@ menu:
     summary: ''
   - slug: tool-observability-008
     title: Liên kết thông tin đánh giá chuỗi hành động với bằng chứng trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1606,7 +1606,7 @@ menu:
   childs:
   - slug: streaming-async-001
     title: Vòng đời observation từ subscription đến hoàn tất hoặc hủy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1615,7 +1615,7 @@ menu:
     summary: ''
   - slug: streaming-async-002
     title: Phân biệt độ trễ token đầu tiên và thời gian hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1624,7 +1624,7 @@ menu:
     summary: ''
   - slug: streaming-async-003
     title: Đo các mốc streaming khi có dữ liệu cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1633,7 +1633,7 @@ menu:
     summary: ''
   - slug: streaming-async-004
     title: Thu thập usage cuối luồng và xử lý phản hồi chưa hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1642,7 +1642,7 @@ menu:
     summary: ''
   - slug: streaming-async-005
     title: Lan truyền observation qua Reactor Context và scheduler
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1651,7 +1651,7 @@ menu:
     summary: ''
   - slug: streaming-async-006
     title: Truyền ngữ cảnh qua executor hoặc tác vụ nền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1660,7 +1660,7 @@ menu:
     summary: ''
   - slug: streaming-async-007
     title: Xử lý trace đứt đoạn khi SDK đổi thread
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1669,7 +1669,7 @@ menu:
     summary: ''
   - slug: streaming-async-008
     title: Quan sát timeout, retry và hủy luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1678,7 +1678,7 @@ menu:
     summary: ''
   - slug: streaming-async-009
     title: Tránh tạo một metric hoặc span dư thừa cho mỗi token
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1690,7 +1690,7 @@ menu:
   childs:
   - slug: metric-design-001
     title: Chọn counter, timer, distribution summary và gauge
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1699,7 +1699,7 @@ menu:
     summary: ''
   - slug: metric-design-002
     title: Đặt tên metric và đơn vị đo nhất quán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1708,7 +1708,7 @@ menu:
     summary: ''
   - slug: metric-design-003
     title: Phân biệt tên Micrometer với tên xuất ra Prometheus
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1717,7 +1717,7 @@ menu:
     summary: ''
   - slug: metric-design-004
     title: Histogram, percentile và cách đọc độ trễ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1726,7 +1726,7 @@ menu:
     summary: ''
   - slug: metric-design-005
     title: Đo tỷ lệ lỗi, timeout và giới hạn tốc độ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1735,7 +1735,7 @@ menu:
     summary: ''
   - slug: metric-design-006
     title: Thiết kế nhãn ổn định và giới hạn cardinality
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1744,7 +1744,7 @@ menu:
     summary: ''
   - slug: metric-design-007
     title: Phân biệt không có dữ liệu với giá trị bằng không
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1753,7 +1753,7 @@ menu:
     summary: ''
   - slug: metric-design-008
     title: Đăng ký metric chất lượng bằng instrumentation riêng khi cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1762,7 +1762,7 @@ menu:
     summary: ''
   - slug: metric-design-009
     title: Liên kết metric vận hành với mục tiêu nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1774,7 +1774,7 @@ menu:
   childs:
   - slug: trace-design-001
     title: Xây dựng cây span cho HTTP, ChatClient, advisor, mô hình và công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1783,7 +1783,7 @@ menu:
     summary: ''
   - slug: trace-design-002
     title: Lan truyền trace context giữa các dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1792,7 +1792,7 @@ menu:
     summary: ''
   - slug: trace-design-003
     title: Kết nối span của các bước RAG và truy cập dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1801,7 +1801,7 @@ menu:
     summary: ''
   - slug: trace-design-004
     title: Phân biệt span cha con với span link cho tác vụ bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1810,7 +1810,7 @@ menu:
     summary: ''
   - slug: trace-design-005
     title: Đặt tên span và thuộc tính có giá trị chẩn đoán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1819,7 +1819,7 @@ menu:
     summary: ''
   - slug: trace-design-006
     title: Sampling theo lưu lượng và nhu cầu điều tra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1828,7 +1828,7 @@ menu:
     summary: ''
   - slug: trace-design-007
     title: Phân tích retry, chờ đợi và các nhánh thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1837,7 +1837,7 @@ menu:
     summary: ''
   - slug: trace-design-008
     title: Tránh instrumentation trùng khi kết hợp thư viện và Java agent
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1849,7 +1849,7 @@ menu:
   childs:
   - slug: logging-001
     title: Nhật ký có cấu trúc và liên kết trace ID, span ID
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1858,7 +1858,7 @@ menu:
     summary: ''
   - slug: logging-002
     title: Ghi sự kiện nghiệp vụ, cấu hình và lỗi có thể xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1867,7 +1867,7 @@ menu:
     summary: ''
   - slug: logging-003
     title: Phân biệt log metadata với nội dung prompt và phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1876,7 +1876,7 @@ menu:
     summary: ''
   - slug: logging-004
     title: Cấu hình ghi nội dung theo thành phần và môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1885,7 +1885,7 @@ menu:
     summary: ''
   - slug: logging-005
     title: Rút gọn dữ liệu lớn và che giá trị nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1894,7 +1894,7 @@ menu:
     summary: ''
   - slug: logging-006
     title: Phân biệt phản hồi mô hình, kết quả công cụ và kết quả đánh giá
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1903,7 +1903,7 @@ menu:
     summary: ''
   - slug: logging-007
     title: Giữ đủ bằng chứng điều tra mà không ghi lặp toàn bộ hội thoại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1912,7 +1912,7 @@ menu:
     summary: ''
   - slug: logging-008
     title: Đặt mức log và thời hạn lưu phù hợp mục đích sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1924,7 +1924,7 @@ menu:
   childs:
   - slug: custom-observability-001
     title: Tạo Observation cho toàn bộ tác vụ nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1933,7 +1933,7 @@ menu:
     summary: ''
   - slug: custom-observability-002
     title: Đăng ký convention để bổ sung thuộc tính phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1942,7 +1942,7 @@ menu:
     summary: ''
   - slug: custom-observability-003
     title: Sử dụng filter, predicate hoặc handler theo cơ chế Micrometer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1951,7 +1951,7 @@ menu:
     summary: ''
   - slug: custom-observability-004
     title: Ghi nhận điểm chất lượng và trạng thái giám khảo riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1960,7 +1960,7 @@ menu:
     summary: ''
   - slug: custom-observability-005
     title: Liên kết evaluation run ID với request ID hoặc trace ID
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1969,7 +1969,7 @@ menu:
     summary: ''
   - slug: custom-observability-006
     title: Quan sát pipeline đánh giá theo lô
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1978,7 +1978,7 @@ menu:
     summary: ''
   - slug: custom-observability-007
     title: Kiểm tra overhead của instrumentation bổ sung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1987,7 +1987,7 @@ menu:
     summary: ''
   - slug: custom-observability-008
     title: Kiểm thử metric, span và dữ liệu che bằng registry hoặc exporter thử nghiệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1999,7 +1999,7 @@ menu:
   childs:
   - slug: data-protection-001
     title: Phân loại prompt, tài liệu, phản hồi và đối số công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2008,7 +2008,7 @@ menu:
     summary: ''
   - slug: data-protection-002
     title: Giữ khóa API và thông tin xác thực ngoài log hoặc span
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2017,7 +2017,7 @@ menu:
     summary: ''
   - slug: data-protection-003
     title: Che hoặc loại bỏ dữ liệu cá nhân trước khi xuất telemetry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2026,7 +2026,7 @@ menu:
     summary: ''
   - slug: data-protection-004
     title: Cô lập dữ liệu và quyền xem theo tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2035,7 +2035,7 @@ menu:
     summary: ''
   - slug: data-protection-005
     title: Kiểm soát ghi nội dung và lấy mẫu dữ liệu đánh giá
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2044,7 +2044,7 @@ menu:
     summary: ''
   - slug: data-protection-006
     title: Quản lý quyền truy cập hệ thống giám sát và bộ dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2053,7 +2053,7 @@ menu:
     summary: ''
   - slug: data-protection-007
     title: Thời hạn lưu, xóa và truy vết nguồn gốc dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2062,7 +2062,7 @@ menu:
     summary: ''
   - slug: data-protection-008
     title: Đánh giá dữ liệu gửi tới mô hình giám khảo bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2071,7 +2071,7 @@ menu:
     summary: ''
   - slug: data-protection-009
     title: Kiểm thử trường hợp nội dung nhạy cảm lọt vào thông báo lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2083,7 +2083,7 @@ menu:
   childs:
   - slug: cost-performance-001
     title: Tách chi phí sinh câu trả lời, embedding, công cụ và đánh giá
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2092,7 +2092,7 @@ menu:
     summary: ''
   - slug: cost-performance-002
     title: Ước lượng chi phí từ usage với bảng giá có phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2101,7 +2101,7 @@ menu:
     summary: ''
   - slug: cost-performance-003
     title: Phân biệt ước lượng phía ứng dụng với hóa đơn nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2110,7 +2110,7 @@ menu:
     summary: ''
   - slug: cost-performance-004
     title: Đo chất lượng trên mỗi mức chi phí và độ trễ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2119,7 +2119,7 @@ menu:
     summary: ''
   - slug: cost-performance-005
     title: Đặt ngân sách đánh giá và giới hạn số công việc đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2128,7 +2128,7 @@ menu:
     summary: ''
   - slug: cost-performance-006
     title: Lấy mẫu đánh giá khi vận hành theo mục tiêu chất lượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2137,7 +2137,7 @@ menu:
     summary: ''
   - slug: cost-performance-007
     title: Tối ưu cache, batching và lượng ngữ cảnh dựa trên số liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2146,7 +2146,7 @@ menu:
     summary: ''
   - slug: cost-performance-008
     title: Đánh giá chi phí lưu trữ log, metric và trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2155,7 +2155,7 @@ menu:
     summary: ''
   - slug: cost-performance-009
     title: Giám sát quota, rate limit và tăng chi phí bất thường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2167,7 +2167,7 @@ menu:
   childs:
   - slug: dashboards-alerting-001
     title: Chọn chỉ số cho sức khỏe hệ thống và chất lượng câu trả lời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2176,7 +2176,7 @@ menu:
     summary: ''
   - slug: dashboards-alerting-002
     title: Theo dõi lưu lượng, độ trễ, lỗi và mức sử dụng token
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2185,7 +2185,7 @@ menu:
     summary: ''
   - slug: dashboards-alerting-003
     title: Hiển thị chi phí theo tính năng hoặc mô hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2194,7 +2194,7 @@ menu:
     summary: ''
   - slug: dashboards-alerting-004
     title: Theo dõi tỷ lệ đạt, giám khảo lỗi và tình huống chưa được đánh giá
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2203,7 +2203,7 @@ menu:
     summary: ''
   - slug: dashboards-alerting-005
     title: Thiết kế SLI, SLO và ngưỡng cảnh báo phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2212,7 +2212,7 @@ menu:
     summary: ''
   - slug: dashboards-alerting-006
     title: Phân biệt lỗi từng yêu cầu với suy giảm trên cả nhóm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2221,7 +2221,7 @@ menu:
     summary: ''
   - slug: dashboards-alerting-007
     title: Liên kết cảnh báo tới trace, dữ liệu đánh giá và hướng dẫn xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2230,7 +2230,7 @@ menu:
     summary: ''
   - slug: dashboards-alerting-008
     title: Tránh cảnh báo nhiễu khi cỡ mẫu nhỏ hoặc dữ liệu đến chậm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2242,7 +2242,7 @@ menu:
   childs:
   - slug: production-quality-001
     title: Thu thập phản hồi người dùng cùng ngữ cảnh cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2251,7 +2251,7 @@ menu:
     summary: ''
   - slug: production-quality-002
     title: Lấy mẫu yêu cầu thật để đánh giá sau khi xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2260,7 +2260,7 @@ menu:
     summary: ''
   - slug: production-quality-003
     title: Phát hiện thay đổi phân bố câu hỏi và chất lượng theo thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2269,7 +2269,7 @@ menu:
     summary: ''
   - slug: production-quality-004
     title: Phân biệt thay đổi dữ liệu, prompt, mô hình và công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2278,7 +2278,7 @@ menu:
     summary: ''
   - slug: production-quality-005
     title: Kết hợp đánh giá tự động với rà soát của con người
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2287,7 +2287,7 @@ menu:
     summary: ''
   - slug: production-quality-006
     title: Triển khai canary hoặc so sánh song song với phạm vi có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2296,7 +2296,7 @@ menu:
     summary: ''
   - slug: production-quality-007
     title: Ngăn phản hồi chưa xác minh tự động trở thành đáp án chuẩn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2305,7 +2305,7 @@ menu:
     summary: ''
   - slug: production-quality-008
     title: Đưa lỗi đã xác nhận trở lại bộ dữ liệu kiểm tra hồi quy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2317,7 +2317,7 @@ menu:
   childs:
   - slug: operations-001
     title: Quản lý cấu hình exporter, giám khảo và sampling theo môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2326,7 +2326,7 @@ menu:
     summary: ''
   - slug: operations-002
     title: Giới hạn tác động khi hệ thống telemetry bị chậm hoặc lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2335,7 +2335,7 @@ menu:
     summary: ''
   - slug: operations-003
     title: Hàng đợi, batching và chính sách bỏ dữ liệu khi quá tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2344,7 +2344,7 @@ menu:
     summary: ''
   - slug: operations-004
     title: Tách tài nguyên đánh giá khỏi tài nguyên phục vụ chính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2353,7 +2353,7 @@ menu:
     summary: ''
   - slug: operations-005
     title: Theo dõi sức khỏe của collector, registry và kho kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2362,7 +2362,7 @@ menu:
     summary: ''
   - slug: operations-006
     title: Triển khai thay đổi instrumentation hoặc rubric theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2371,7 +2371,7 @@ menu:
     summary: ''
   - slug: operations-007
     title: Hoàn tác cấu hình và phục hồi các lần đánh giá chưa hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2380,7 +2380,7 @@ menu:
     summary: ''
   - slug: operations-008
     title: Chuẩn bị quy trình xử lý sự cố và bàn giao vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2392,7 +2392,7 @@ menu:
   childs:
   - slug: troubleshooting-001
     title: Không có metric do thiếu registry hoặc auto-configuration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2401,7 +2401,7 @@ menu:
     summary: ''
   - slug: troubleshooting-002
     title: Metric có trong Actuator nhưng không tới hệ thu thập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2410,7 +2410,7 @@ menu:
     summary: ''
   - slug: troubleshooting-003
     title: Không thấy trace do sampling, exporter hoặc lỗi kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2419,7 +2419,7 @@ menu:
     summary: ''
   - slug: troubleshooting-004
     title: Trace bị tách khi đổi thread, dùng executor hoặc SDK streaming
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2428,7 +2428,7 @@ menu:
     summary: ''
   - slug: troubleshooting-005
     title: Số token thiếu, khác nhau hoặc bị tính trùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2437,7 +2437,7 @@ menu:
     summary: ''
   - slug: troubleshooting-006
     title: Cardinality tăng do nhãn chứa định danh hoặc nội dung động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2446,7 +2446,7 @@ menu:
     summary: ''
   - slug: troubleshooting-007
     title: Evaluator không đạt do phán quyết lệch định dạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2455,7 +2455,7 @@ menu:
     summary: ''
   - slug: troubleshooting-008
     title: Thiếu ngữ cảnh hoặc ánh xạ sai dữ liệu EvaluationRequest
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2464,7 +2464,7 @@ menu:
     summary: ''
   - slug: troubleshooting-009
     title: Kết quả đánh giá dao động khi code và bộ dữ liệu không đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2473,7 +2473,7 @@ menu:
     summary: ''
   - slug: troubleshooting-010
     title: Giám khảo lỗi bị nhầm thành lỗi chất lượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2482,7 +2482,7 @@ menu:
     summary: ''
   - slug: troubleshooting-011
     title: Điểm tổng hợp tốt nhưng một nhóm tình huống suy giảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2491,7 +2491,7 @@ menu:
     summary: ''
   - slug: troubleshooting-012
     title: Telemetry làm tăng độ trễ, tốn bộ nhớ hoặc để lộ dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2503,7 +2503,7 @@ menu:
   childs:
   - slug: upgrades-001
     title: Đối chiếu API evaluator và khả năng hỗ trợ theo phiên bản Spring AI
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2512,7 +2512,7 @@ menu:
     summary: ''
   - slug: upgrades-002
     title: Kiểm tra thay đổi tên metric, span và thuộc tính semantic convention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2521,7 +2521,7 @@ menu:
     summary: ''
   - slug: upgrades-003
     title: Đối chiếu cấu hình ghi nội dung và mặc định bảo vệ dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2530,7 +2530,7 @@ menu:
     summary: ''
   - slug: upgrades-004
     title: Kiểm tra thay đổi instrumentation của SDK và HTTP client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2539,7 +2539,7 @@ menu:
     summary: ''
   - slug: upgrades-005
     title: Quản lý phiên bản prompt chấm, rubric và mô hình giám khảo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2548,7 +2548,7 @@ menu:
     summary: ''
   - slug: upgrades-006
     title: Đánh giá lại khi thay mô hình sinh, embedding hoặc tài liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2557,7 +2557,7 @@ menu:
     summary: ''
   - slug: upgrades-007
     title: Kiểm thử dashboard, cảnh báo và truy vấn metric sau nâng cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2566,7 +2566,7 @@ menu:
     summary: ''
   - slug: upgrades-008
     title: Bảo toàn khả năng so sánh với kết quả thí nghiệm trước
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2578,7 +2578,7 @@ menu:
   childs:
   - slug: end-to-end-lab-001
     title: Tạo bộ dữ liệu nhỏ có ca đúng, sai và thiếu ngữ cảnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2587,7 +2587,7 @@ menu:
     summary: ''
   - slug: end-to-end-lab-002
     title: Chạy RelevancyEvaluator và FactCheckingEvaluator rồi đọc kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2596,7 +2596,7 @@ menu:
     summary: ''
   - slug: end-to-end-lab-003
     title: Viết evaluator nghiệp vụ có kiểm tra xác định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2605,7 +2605,7 @@ menu:
     summary: ''
   - slug: end-to-end-lab-004
     title: Kết hợp đánh giá câu trả lời với bằng chứng thực thi công cụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2614,7 +2614,7 @@ menu:
     summary: ''
   - slug: end-to-end-lab-005
     title: Bật metric và trace cho một luồng RAG hoặc tool calling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2623,7 +2623,7 @@ menu:
     summary: ''
   - slug: end-to-end-lab-006
     title: Xây dựng báo cáo đánh giá cùng dashboard vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2632,7 +2632,7 @@ menu:
     summary: ''
   - slug: end-to-end-lab-007
     title: So sánh hai cấu hình theo chất lượng, độ trễ và chi phí
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2641,7 +2641,7 @@ menu:
     summary: ''
   - slug: end-to-end-lab-008
     title: Mô phỏng lỗi giám khảo, mất exporter và gián đoạn streaming
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2650,7 +2650,7 @@ menu:
     summary: ''
   - slug: end-to-end-lab-009
     title: Thiết lập kiểm tra hồi quy trong CI với ngân sách giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2659,7 +2659,7 @@ menu:
     summary: ''
   - slug: end-to-end-lab-010
     title: Viết hướng dẫn tái lập, lưu bằng chứng và dọn dữ liệu thực hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

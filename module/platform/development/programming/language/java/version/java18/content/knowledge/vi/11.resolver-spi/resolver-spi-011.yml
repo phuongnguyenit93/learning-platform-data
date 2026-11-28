@@ -1,3 +1,3 @@
 menuLevel1: Resolver SPI
 menuLevel2: Giữ constructor và get(Configuration) đơn giản để tránh vòng lặp class loading hoặc deadlock
-status: ""
+status: WRITTEN
